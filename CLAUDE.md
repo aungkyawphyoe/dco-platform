@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-This is a greenfield scaffold. The repository contains no code, no configuration, no git history, and no build tooling yet — only the top-level directory structure below. As files are added, update each section rather than leaving placeholders.
+Product is in MVP definition. The `docs/` folder holds vision, roadmap, business model, personas, principles, and glossary. `product/frd/` holds feature requirement documents (Garage is specified; others to come). `product/mvp-scope.md` is the agreed MVP scope.
+
+The repository contains no implementation code yet — no build tooling, no tech stack chosen. As files are added, update each section rather than leaving placeholders.
+
+The working plan is: mobile app (Flutter) is the primary surface, backend REST API + DB services mobile and web, web portal handles admin user management and partner onboarding. Together we are defining MVP features before moving to architecture.
 
 ## Intended project layout
 
