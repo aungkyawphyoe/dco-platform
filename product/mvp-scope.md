@@ -52,8 +52,8 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Feature | Description |
 |---------|-------------|
 | Garage Home | List of the user's vehicles as cards (photo, nickname, make/model, plate, mileage, next maintenance) |
-| Add Vehicle | Required: make, model, year, license plate. Optional: VIN, color, nickname, purchase date, purchase price, odometer, photo |
-| Edit Vehicle | Update vehicle details |
+| Add Vehicle | Required: make, model, year, license plate, **car type (EV/Engine)**. Optional: VIN, color, nickname, purchase date, purchase price, odometer, photo |
+| Edit Vehicle | Update vehicle details including car type |
 | Archive Vehicle | Soft-delete; records are archived, never permanently removed |
 | Active Vehicle | User always has one active vehicle selected; switching persists |
 | Vehicle Detail | Overview section + entry points to maintenance, expenses, documents |
@@ -66,6 +66,7 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Service Reminders | Scheduled by time interval and/or distance threshold |
 | Reminder Notifications | Local notification when a reminder is due; mark as done or dismiss |
 | Service History | Chronological list per vehicle |
+| **EV-Specific Maintenance** | Separate maintenance schedules for EV vs Engine vehicles. EV: Tire rotation (5,000-7,500 mi), Brake inspection (annual), Brake fluid (3-5 years), Coolant - battery/power electronics (3-5 years), Cabin air filter (15,000-22,500 mi/2 years), 12V battery (6 months/4-6 years). Engine: Oil change, Tire rotation, Brake inspection, etc. |
 
 ### Documents
 

@@ -89,6 +89,7 @@ Required fields
 - Model
 - Year
 - License Plate
+- Car Type (EV / Engine)
 
 Optional
 
@@ -127,6 +128,26 @@ Sections
 - Insurance
 - Documents
 - Service History
+
+---
+
+# EV vs Engine Maintenance
+
+The maintenance module shows different scheduled maintenance items based on the vehicle's Car Type (set when adding the vehicle).
+
+## Engine Vehicle Maintenance
+- Oil Change (every 5,000 mi or 6 months)
+- Tire Rotation (every 7,500 mi)
+- Brake Inspection (every 15,000 mi or 12 months)
+- Additional engine-specific items
+
+## EV Maintenance
+- Tire Rotation (every 5,000-7,500 mi) — EVs weigh more and deliver instant torque
+- Brake Inspection (annual) — Regenerative braking reduces wear, but calipers can stick
+- Brake Fluid (every 3-5 years)
+- Coolant - Battery Thermal Management & Power Electronics (every 3-5 years)
+- Cabin Air Filter (every 15,000-22,500 mi or 2 years)
+- 12-Volt Battery (test every 6 months; 4-6 year lifespan)
 
 ---
 
