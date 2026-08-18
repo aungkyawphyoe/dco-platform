@@ -18,6 +18,7 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 
 | Module | File | Surface |
 |--------|------|---------|
+| Dashboard | [dashboard.md](dashboard.md) | Mobile (default after login) |
 | Garage | [garage.md](garage.md) | Mobile |
 | Auth | [auth.md](auth.md) | Mobile + API |
 | Maintenance | [maintenance.md](maintenance.md) | Mobile + API |
@@ -27,7 +28,7 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 | Notifications | [notifications.md](notifications.md) | Mobile + API |
 | Admin | [admin.md](admin.md) | Web portal + API |
 
-Dashboard is specified in `product/mvp-scope.md` (ownership summary, recent activity, next maintenance). It consumes Garage, Maintenance, Expenses, and Documents; it has no separate FRD yet.
+Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `docs/app-shell.md`. API: `architecture/openapi.yaml`.
 
 ---
 

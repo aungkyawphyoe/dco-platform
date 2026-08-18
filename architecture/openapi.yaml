@@ -1,0 +1,1772 @@
+openapi: 3.0.3
+info:
+  title: DCO Platform API
+  version: 1.0.0
+  description: |
+    Versioned REST API for the Digital Car Ownership MVP.
+    Owner clients (Flutter) use audience `dco-owner`. Admin portal uses `dco-admin`.
+    Client-generated UUIDs on create are idempotent. Mileage never decreases.
+    Azure VPS hostname is environment-specific and is not part of this contract.
+servers:
+  - url: http://localhost:8080/v1
+    description: local
+  - url: https://api.example.invalid/v1
+    description: placeholder — replace per env (see docs/environment-secrets.md)
+tags:
+  - name: Auth
+  - name: Me
+  - name: Vehicles
+  - name: Dashboard
+  - name: Maintenance
+  - name: Documents
+  - name: Expenses
+  - name: Notifications
+  - name: Media
+  - name: Sync
+  - name: Admin
+security:
+  - bearerAuth: []
+paths:
+  /auth/signup:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Create owner account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SignupRequest'
+      responses:
+        '201':
+          description: Session established
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '409':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+  /auth/login:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Owner or admin login (role in token)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Session
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '429':
+          $ref: '#/components/responses/Error'
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Rotate refresh token; issue new access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refresh_token]
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: New session pair
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: Revoke current refresh family on the server; client still discards local tokens
+      responses:
+        '204':
+          description: Logged out
+  /auth/verify-email:
+    post:
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '204':
+          description: Verified
+        '400':
+          $ref: '#/components/responses/Error'
+  /auth/resend-verification:
+    post:
+      tags: [Auth]
+      summary: Rate-limited resend
+      responses:
+        '202':
+          description: Accepted if applicable
+        '429':
+          $ref: '#/components/responses/Error'
+  /auth/forgot-password:
+    post:
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '202':
+          description: Always generic success
+  /auth/reset-password:
+    post:
+      tags: [Auth]
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, password]
+              properties:
+                token:
+                  type: string
+                password:
+                  type: string
+                  minLength: 8
+      responses:
+        '204':
+          description: Password changed; refresh tokens revoked
+        '400':
+          $ref: '#/components/responses/Error'
+  /me:
+    get:
+      tags: [Me]
+      summary: Current user
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    patch:
+      tags: [Me]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPatch'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /me/device-tokens:
+    post:
+      tags: [Me]
+      summary: Register push token (unused for campaigns in MVP)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token, platform]
+              properties:
+                token:
+                  type: string
+                platform:
+                  type: string
+                  enum: [ios, android]
+      responses:
+        '204':
+          description: Stored
+  /vehicles:
+    get:
+      tags: [Vehicles]
+      parameters:
+        - in: query
+          name: include_archived
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Garage list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Vehicle'
+    post:
+      tags: [Vehicles]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleWrite'
+      responses:
+        '201':
+          description: Created (or idempotent replay)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '409':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+  /vehicles/{vehicleId}:
+    parameters:
+      - $ref: '#/components/parameters/vehicleId'
+    get:
+      tags: [Vehicles]
+      responses:
+        '200':
+          description: Vehicle
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '404':
+          $ref: '#/components/responses/Error'
+    patch:
+      tags: [Vehicles]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehiclePatch'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+        '409':
+          $ref: '#/components/responses/Error'
+        '422':
+          $ref: '#/components/responses/Error'
+  /vehicles/{vehicleId}/archive:
+    post:
+      tags: [Vehicles]
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      summary: Soft-delete vehicle and hide child records
+      responses:
+        '200':
+          description: Archived
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Vehicle'
+  /vehicles/{vehicleId}/activate:
+    post:
+      tags: [Vehicles]
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      summary: Set as the user's active vehicle
+      responses:
+        '200':
+          description: Active vehicle updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /vehicles/{vehicleId}/dashboard:
+    get:
+      tags: [Dashboard]
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      summary: Read model for Dashboard (screen 3)
+      responses:
+        '200':
+          description: Dashboard payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dashboard'
+  /vehicles/{vehicleId}/plan-items:
+    parameters:
+      - $ref: '#/components/parameters/vehicleId'
+    get:
+      tags: [Maintenance]
+      responses:
+        '200':
+          description: Plan
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/PlanItem'
+    post:
+      tags: [Maintenance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanItemWrite'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanItem'
+        '422':
+          $ref: '#/components/responses/Error'
+  /vehicles/{vehicleId}/suggested-plan-items:
+    get:
+      tags: [Maintenance]
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      summary: Catalog filtered by vehicle fuel_type
+      responses:
+        '200':
+          description: Templates (not yet user-owned)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SuggestedPlanItem'
+  /plan-items/{planItemId}:
+    parameters:
+      - $ref: '#/components/parameters/planItemId'
+    patch:
+      tags: [Maintenance]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PlanItemPatch'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlanItem'
+    delete:
+      tags: [Maintenance]
+      summary: Disable or delete user copy; history remains on service records
+      responses:
+        '204':
+          description: Removed
+  /vehicles/{vehicleId}/service-records:
+    parameters:
+      - $ref: '#/components/parameters/vehicleId'
+    get:
+      tags: [Maintenance]
+      responses:
+        '200':
+          description: History newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ServiceRecord'
+    post:
+      tags: [Maintenance]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRecordWrite'
+      responses:
+        '201':
+          description: Created; vehicle mileage may increase
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRecord'
+        '422':
+          $ref: '#/components/responses/Error'
+  /service-records/{serviceRecordId}:
+    parameters:
+      - $ref: '#/components/parameters/serviceRecordId'
+    get:
+      tags: [Maintenance]
+      responses:
+        '200':
+          description: Record
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRecord'
+    patch:
+      tags: [Maintenance]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceRecordWrite'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceRecord'
+  /vehicles/{vehicleId}/documents:
+    parameters:
+      - $ref: '#/components/parameters/vehicleId'
+    get:
+      tags: [Documents]
+      parameters:
+        - in: query
+          name: category
+          schema:
+            $ref: '#/components/schemas/DocumentCategory'
+      responses:
+        '200':
+          description: Vault list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Document'
+    post:
+      tags: [Documents]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentWrite'
+      responses:
+        '201':
+          description: Metadata created; upload bytes to /media
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+  /documents/{documentId}:
+    parameters:
+      - $ref: '#/components/parameters/documentId'
+    get:
+      tags: [Documents]
+      responses:
+        '200':
+          description: Document
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    patch:
+      tags: [Documents]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentPatch'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Document'
+    delete:
+      tags: [Documents]
+      responses:
+        '204':
+          description: Deleted
+  /vehicles/{vehicleId}/expenses:
+    parameters:
+      - $ref: '#/components/parameters/vehicleId'
+    get:
+      tags: [Expenses]
+      parameters:
+        - in: query
+          name: category
+          schema:
+            $ref: '#/components/schemas/ExpenseCategory'
+      responses:
+        '200':
+          description: Newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Expense'
+    post:
+      tags: [Expenses]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseWrite'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+        '422':
+          $ref: '#/components/responses/Error'
+  /vehicles/{vehicleId}/expenses/summary:
+    get:
+      tags: [Expenses]
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Month, total, optional category breakdown
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExpenseSummary'
+  /expenses/{expenseId}:
+    parameters:
+      - $ref: '#/components/parameters/expenseId'
+    patch:
+      tags: [Expenses]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExpenseWrite'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Expense'
+    delete:
+      tags: [Expenses]
+      responses:
+        '204':
+          description: Deleted
+  /notifications:
+    get:
+      tags: [Notifications]
+      responses:
+        '200':
+          description: In-app feed newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+  /notifications/{notificationId}:
+    patch:
+      tags: [Notifications]
+      parameters:
+        - $ref: '#/components/parameters/notificationId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [unread, read, done, dismissed]
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+  /media:
+    post:
+      tags: [Media]
+      summary: Upload bytes (multipart). Max 15MB after client compression.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, id]
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                  description: Client media UUID
+                file:
+                  type: string
+                  format: binary
+                purpose:
+                  type: string
+                  enum: [vehicle_photo, document, service_receipt, expense_receipt]
+      responses:
+        '201':
+          description: Stored
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaObject'
+        '413':
+          $ref: '#/components/responses/Error'
+  /media/{mediaId}:
+    get:
+      tags: [Media]
+      parameters:
+        - $ref: '#/components/parameters/mediaId'
+      summary: Redirect or JSON with short-lived download URL
+      responses:
+        '200':
+          description: Metadata + url
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaObject'
+        '302':
+          description: Optional redirect to signed URL
+  /sync/push:
+    post:
+      tags: [Sync]
+      summary: Drain a batch of outbox operations in order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SyncPushRequest'
+      responses:
+        '200':
+          description: Per-item results
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncPushResponse'
+        '401':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /sync/changes:
+    get:
+      tags: [Sync]
+      summary: Pull change log after cursor
+      parameters:
+        - in: query
+          name: cursor
+          required: true
+          schema:
+            type: string
+          description: Opaque. Empty string on first pull.
+      responses:
+        '200':
+          description: Page of changes plus next cursor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SyncPullResponse'
+        '400':
+          description: Cursor rejected — client should full-snapshot once
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /admin/dashboard:
+    get:
+      tags: [Admin]
+      summary: Counts and recent activity (no fuel/insurance KPIs)
+      responses:
+        '200':
+          description: Overview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminDashboard'
+        '403':
+          $ref: '#/components/responses/Error'
+  /admin/users:
+    get:
+      tags: [Admin]
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+          description: Search email or name
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum: [active, deactivated]
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminUserListItem'
+  /admin/users/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/userId'
+    get:
+      tags: [Admin]
+      responses:
+        '200':
+          description: Profile (no document bytes)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserProfile'
+    patch:
+      tags: [Admin]
+      summary: Support plan change
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                plan:
+                  $ref: '#/components/schemas/Plan'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserProfile'
+  /admin/users/{userId}/deactivate:
+    post:
+      tags: [Admin]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: Deactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserProfile'
+        '409':
+          description: Last remaining admin
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
+  /admin/users/{userId}/reactivate:
+    post:
+      tags: [Admin]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200':
+          description: Reactivated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminUserProfile'
+  /admin/users/{userId}/send-password-reset:
+    post:
+      tags: [Admin]
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '202':
+          description: Same mail flow as owner forgot-password
+  /admin/partners:
+    get:
+      tags: [Admin]
+      parameters:
+        - in: query
+          name: q
+          schema:
+            type: string
+        - in: query
+          name: type
+          schema:
+            $ref: '#/components/schemas/PartnerType'
+        - in: query
+          name: status
+          schema:
+            $ref: '#/components/schemas/PartnerStatus'
+      responses:
+        '200':
+          description: Partners
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Partner'
+    post:
+      tags: [Admin]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerWrite'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Partner'
+  /admin/partners/{partnerId}:
+    parameters:
+      - $ref: '#/components/parameters/partnerId'
+    get:
+      tags: [Admin]
+      responses:
+        '200':
+          description: Partner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Partner'
+    patch:
+      tags: [Admin]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerWrite'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Partner'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    vehicleId:
+      in: path
+      name: vehicleId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    planItemId:
+      in: path
+      name: planItemId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    serviceRecordId:
+      in: path
+      name: serviceRecordId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    documentId:
+      in: path
+      name: documentId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    expenseId:
+      in: path
+      name: expenseId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    notificationId:
+      in: path
+      name: notificationId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    mediaId:
+      in: path
+      name: mediaId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    userId:
+      in: path
+      name: userId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    partnerId:
+      in: path
+      name: partnerId
+      required: true
+      schema:
+        type: string
+        format: uuid
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
+  schemas:
+    ErrorBody:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+              example: mileage_decrease
+            message:
+              type: string
+            details:
+              type: object
+              additionalProperties: true
+    Plan:
+      type: string
+      enum: [free, premium]
+    Role:
+      type: string
+      enum: [owner, admin]
+    AccountStatus:
+      type: string
+      enum: [active, deactivated]
+    FuelType:
+      type: string
+      enum: [petrol, electric, hybrid_plugin]
+    DocumentCategory:
+      type: string
+      enum: [insurance, registration, invoice, warranty, receipt, other]
+    ExpenseCategory:
+      type: string
+      enum: [fuel, maintenance, insurance, parking, tolls, parts, other]
+    PartnerType:
+      type: string
+      enum: [workshop, insurer]
+    PartnerStatus:
+      type: string
+      enum: [draft, pending_verification, verified, rejected]
+    SignupRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 8
+        display_name:
+          type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+    SessionResponse:
+      type: object
+      required: [access_token, refresh_token, user]
+      properties:
+        access_token:
+          type: string
+        refresh_token:
+          type: string
+        expires_in:
+          type: integer
+          description: Access TTL seconds
+        user:
+          $ref: '#/components/schemas/User'
+    User:
+      type: object
+      required: [id, email, role, plan, status, email_verified]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        display_name:
+          type: string
+          nullable: true
+        role:
+          $ref: '#/components/schemas/Role'
+        plan:
+          $ref: '#/components/schemas/Plan'
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        email_verified:
+          type: boolean
+        active_vehicle_id:
+          type: string
+          format: uuid
+          nullable: true
+        vehicle_limit:
+          type: integer
+          nullable: true
+          description: 1 for free, null for unlimited premium (gating off in MVP)
+        created_at:
+          type: string
+          format: date-time
+    UserPatch:
+      type: object
+      properties:
+        display_name:
+          type: string
+        active_vehicle_id:
+          type: string
+          format: uuid
+    Vehicle:
+      type: object
+      required: [id, user_id, name, make, model, year, license_plate, fuel_type, mileage, archived]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        nickname:
+          type: string
+          nullable: true
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        license_plate:
+          type: string
+          maxLength: 20
+        vin:
+          type: string
+          nullable: true
+          minLength: 17
+          maxLength: 17
+        color:
+          type: string
+          nullable: true
+        fuel_type:
+          $ref: '#/components/schemas/FuelType'
+        mileage:
+          type: number
+          format: double
+        mileage_unit:
+          type: string
+          enum: [mi, km]
+          default: mi
+        purchase_date:
+          type: string
+          format: date
+          nullable: true
+        purchase_price:
+          type: number
+          nullable: true
+        photo_media_id:
+          type: string
+          format: uuid
+          nullable: true
+        archived:
+          type: boolean
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+        next_maintenance:
+          $ref: '#/components/schemas/NextMaintenance'
+    VehicleWrite:
+      allOf:
+        - type: object
+          required: [id, name, make, model, year, license_plate, mileage, fuel_type]
+          properties:
+            id:
+              type: string
+              format: uuid
+        - $ref: '#/components/schemas/VehiclePatch'
+    VehiclePatch:
+      type: object
+      properties:
+        name:
+          type: string
+        nickname:
+          type: string
+        make:
+          type: string
+        model:
+          type: string
+        year:
+          type: integer
+        license_plate:
+          type: string
+          maxLength: 20
+        vin:
+          type: string
+        color:
+          type: string
+        fuel_type:
+          $ref: '#/components/schemas/FuelType'
+        mileage:
+          type: number
+        mileage_unit:
+          type: string
+          enum: [mi, km]
+        purchase_date:
+          type: string
+          format: date
+        purchase_price:
+          type: number
+        photo_media_id:
+          type: string
+          format: uuid
+    NextMaintenance:
+      type: object
+      nullable: true
+      properties:
+        plan_item_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        due_mileage:
+          type: number
+          nullable: true
+        due_on:
+          type: string
+          format: date
+          nullable: true
+        overdue:
+          type: boolean
+    Dashboard:
+      type: object
+      required: [vehicle, ownership, recent_services]
+      properties:
+        vehicle:
+          $ref: '#/components/schemas/Vehicle'
+        ownership:
+          type: object
+          required: [total_spent, this_month_spent, services_count, documents_count]
+          properties:
+            total_spent:
+              type: number
+            this_month_spent:
+              type: number
+            currency:
+              type: string
+              example: USD
+            services_count:
+              type: integer
+            documents_count:
+              type: integer
+        recent_services:
+          type: array
+          maxItems: 3
+          items:
+            $ref: '#/components/schemas/ServiceRecordSummary'
+        next_maintenance:
+          $ref: '#/components/schemas/NextMaintenance'
+    ServiceRecordSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        serviced_on:
+          type: string
+          format: date
+        title:
+          type: string
+        total_cost:
+          type: number
+    PlanItem:
+      type: object
+      required: [id, vehicle_id, name, enabled]
+      properties:
+        id:
+          type: string
+          format: uuid
+        vehicle_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 80
+        interval_days:
+          type: integer
+          nullable: true
+        interval_distance:
+          type: number
+          nullable: true
+        next_due_mileage:
+          type: number
+          nullable: true
+        next_due_on:
+          type: string
+          format: date
+          nullable: true
+        enabled:
+          type: boolean
+        notes:
+          type: string
+          nullable: true
+        catalog_key:
+          type: string
+          nullable: true
+    PlanItemWrite:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        interval_days:
+          type: integer
+        interval_distance:
+          type: number
+        notes:
+          type: string
+        catalog_key:
+          type: string
+        enabled:
+          type: boolean
+          default: true
+    PlanItemPatch:
+      type: object
+      properties:
+        name:
+          type: string
+        interval_days:
+          type: integer
+          nullable: true
+        interval_distance:
+          type: number
+          nullable: true
+        notes:
+          type: string
+        enabled:
+          type: boolean
+    SuggestedPlanItem:
+      type: object
+      properties:
+        catalog_key:
+          type: string
+        name:
+          type: string
+        interval_days:
+          type: integer
+          nullable: true
+        interval_distance:
+          type: number
+          nullable: true
+        fuel_type:
+          $ref: '#/components/schemas/FuelType'
+    ServiceRecord:
+      type: object
+      required: [id, vehicle_id, serviced_on, odometer, total_cost, items]
+      properties:
+        id:
+          type: string
+          format: uuid
+        vehicle_id:
+          type: string
+          format: uuid
+        serviced_on:
+          type: string
+          format: date
+        odometer:
+          type: number
+        total_cost:
+          type: number
+        workshop_name:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        receipt_media_id:
+          type: string
+          format: uuid
+          nullable: true
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ServiceLine'
+    ServiceLine:
+      type: object
+      required: [name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        plan_item_id:
+          type: string
+          format: uuid
+          nullable: true
+        name:
+          type: string
+        line_cost:
+          type: number
+          nullable: true
+    ServiceRecordWrite:
+      type: object
+      required: [id, serviced_on, odometer, total_cost, items]
+      properties:
+        id:
+          type: string
+          format: uuid
+        serviced_on:
+          type: string
+          format: date
+        odometer:
+          type: number
+        total_cost:
+          type: number
+        workshop_name:
+          type: string
+        notes:
+          type: string
+        receipt_media_id:
+          type: string
+          format: uuid
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ServiceLine'
+    Document:
+      type: object
+      required: [id, vehicle_id, name, category]
+      properties:
+        id:
+          type: string
+          format: uuid
+        vehicle_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 120
+        category:
+          $ref: '#/components/schemas/DocumentCategory'
+        notes:
+          type: string
+          nullable: true
+        media_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+    DocumentWrite:
+      type: object
+      required: [id, name, category]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/DocumentCategory'
+        notes:
+          type: string
+        media_id:
+          type: string
+          format: uuid
+    DocumentPatch:
+      type: object
+      properties:
+        name:
+          type: string
+        category:
+          $ref: '#/components/schemas/DocumentCategory'
+        notes:
+          type: string
+        media_id:
+          type: string
+          format: uuid
+    Expense:
+      type: object
+      required: [id, vehicle_id, category, amount, incurred_on]
+      properties:
+        id:
+          type: string
+          format: uuid
+        vehicle_id:
+          type: string
+          format: uuid
+        category:
+          $ref: '#/components/schemas/ExpenseCategory'
+        amount:
+          type: number
+        incurred_on:
+          type: string
+          format: date
+        notes:
+          type: string
+          nullable: true
+        receipt_media_id:
+          type: string
+          format: uuid
+          nullable: true
+    ExpenseWrite:
+      type: object
+      required: [id, category, amount, incurred_on]
+      properties:
+        id:
+          type: string
+          format: uuid
+        category:
+          $ref: '#/components/schemas/ExpenseCategory'
+        amount:
+          type: number
+          minimum: 0.01
+          maximum: 999999.99
+        incurred_on:
+          type: string
+          format: date
+        notes:
+          type: string
+          maxLength: 500
+        receipt_media_id:
+          type: string
+          format: uuid
+    ExpenseSummary:
+      type: object
+      required: [this_month, total]
+      properties:
+        this_month:
+          type: number
+        total:
+          type: number
+        by_category:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                $ref: '#/components/schemas/ExpenseCategory'
+              amount:
+                type: number
+              percent:
+                type: number
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        vehicle_id:
+          type: string
+          format: uuid
+        plan_item_id:
+          type: string
+          format: uuid
+          nullable: true
+        title:
+          type: string
+        body:
+          type: string
+        status:
+          type: string
+          enum: [unread, read, done, dismissed]
+        due_reason:
+          type: string
+          enum: [date, mileage, both]
+        created_at:
+          type: string
+          format: date-time
+    MediaObject:
+      type: object
+      required: [id, content_type, byte_size]
+      properties:
+        id:
+          type: string
+          format: uuid
+        blob_key:
+          type: string
+        content_type:
+          type: string
+        byte_size:
+          type: integer
+        sha256:
+          type: string
+        download_url:
+          type: string
+          format: uri
+          description: Short-lived; omit in list payloads if unused
+        expires_at:
+          type: string
+          format: date-time
+    SyncPushRequest:
+      type: object
+      required: [operations]
+      properties:
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/SyncOperation'
+    SyncOperation:
+      type: object
+      required: [entity_type, entity_id, op, payload, client_ts]
+      properties:
+        entity_type:
+          type: string
+          enum: [vehicle, plan_item, service_record, document, expense, notification, media]
+        entity_id:
+          type: string
+          format: uuid
+        op:
+          type: string
+          enum: [upsert, archive, delete]
+        payload:
+          type: object
+          additionalProperties: true
+        client_ts:
+          type: string
+          format: date-time
+    SyncPushResponse:
+      type: object
+      properties:
+        results:
+          type: array
+          items:
+            type: object
+            properties:
+              entity_id:
+                type: string
+                format: uuid
+              status:
+                type: string
+                enum: [applied, idempotent, conflict, rejected]
+              server_ts:
+                type: string
+                format: date-time
+              error:
+                $ref: '#/components/schemas/ErrorBody'
+    SyncPullResponse:
+      type: object
+      required: [cursor, changes]
+      properties:
+        cursor:
+          type: string
+          description: Opaque next cursor
+        changes:
+          type: array
+          items:
+            type: object
+            properties:
+              entity_type:
+                type: string
+              entity_id:
+                type: string
+                format: uuid
+              op:
+                type: string
+                enum: [upsert, archive, delete]
+              payload:
+                type: object
+              server_ts:
+                type: string
+                format: date-time
+    AdminDashboard:
+      type: object
+      properties:
+        users_total:
+          type: integer
+        vehicles_active:
+          type: integer
+        partners_total:
+          type: integer
+        sync_errors_24h:
+          type: integer
+        recent_activity:
+          type: array
+          items:
+            type: object
+            properties:
+              at:
+                type: string
+                format: date-time
+              kind:
+                type: string
+                enum: [signup, vehicle_added, sync_error, partner_status]
+              summary:
+                type: string
+    AdminUserListItem:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        display_name:
+          type: string
+          nullable: true
+        plan:
+          $ref: '#/components/schemas/Plan'
+        status:
+          $ref: '#/components/schemas/AccountStatus'
+        vehicle_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+    AdminUserProfile:
+      allOf:
+        - $ref: '#/components/schemas/AdminUserListItem'
+        - type: object
+          properties:
+            email_verified:
+              type: boolean
+            vehicles:
+              type: array
+              items:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  nickname:
+                    type: string
+                  license_plate:
+                    type: string
+            documents_count:
+              type: integer
+              description: Metadata count only
+    Partner:
+      type: object
+      required: [id, name, type, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 120
+        type:
+          $ref: '#/components/schemas/PartnerType'
+        status:
+          $ref: '#/components/schemas/PartnerStatus'
+        contact_email:
+          type: string
+          nullable: true
+        contact_phone:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+    PartnerWrite:
+      type: object
+      required: [name, type]
+      properties:
+        name:
+          type: string
+          maxLength: 120
+        type:
+          $ref: '#/components/schemas/PartnerType'
+        status:
+          $ref: '#/components/schemas/PartnerStatus'
+        contact_email:
+          type: string
+        contact_phone:
+          type: string
+        notes:
+          type: string

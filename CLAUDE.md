@@ -4,11 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Product is in MVP definition. `product/mvp-scope.md` is the Phase 1 contract. `product/frd/` holds FRDs for Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, and Admin. `docs/design-system.md` and `docs/theme/garage-minimal-dark.json` are the shared Flutter + web visual tokens. `docs/implementation-readiness.md` lists remaining docs before code.
+Product is in MVP definition. `product/mvp-scope.md` is the Phase 1 contract. `product/frd/` holds FRDs for Dashboard, Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, and Admin. `docs/design-system.md` and `docs/theme/garage-minimal-dark.json` are the shared Flutter + web visual tokens.
+
+Must-have implementation docs are in place: `architecture/system.md`, `architecture/data-model.md`, `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md` (draft). Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A6). Still open before scaffolding: backend language/DB ADR, web framework ADR. Azure VPS setup is deferred.
 
 The repository contains no implementation code yet — no build tooling. Mobile is Flutter; backend is REST + JWT; web framework is not chosen. As files are added, update each section rather than leaving placeholders.
 
-The working plan is: mobile app (Flutter) is the primary surface, backend REST API + DB services mobile and web, web portal handles admin user management and partner onboarding. Architecture docs are the next gap (`architecture/` is empty).
+The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management and partner onboarding.
 
 ## Intended project layout
 
