@@ -47,12 +47,21 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Sync Engine | Bidirectional sync with the backend, conflict handling, automatic retry |
 | Notifications | Local reminders; push-ready infrastructure |
 
-### Garage
+### Dashboard
+| Feature | Description |
+|---------|-------------|
+| Default Selected Car and Toggle | Show the default selected informations and user can switch another car which will lead to Garage Home(My Garage) Screen |
+| Vehicle Detail | Show the vehicle overall information |
+| Ownership Summary | Show total spent money, total used fuel, services count |
+| Recent Activity | Show 3 records of maintenance history |
+| Next Maintenance | Show the most due maintenance |
+
+### Garage Home
 
 | Feature | Description |
 |---------|-------------|
-| Garage Home | List of the user's vehicles as cards (photo, nickname, make/model, plate, mileage, next maintenance) |
-| Add Vehicle | Required: make, model, year, license plate, **car type (EV/Engine)**. Optional: VIN, color, nickname, purchase date, purchase price, odometer, photo |
+| arage Home | List of the user's vehicles as cards (photo, nickname, make/model, plate, mileage, next maintenance) |
+| Add Vehicle | Required: name, year, make, model, license plate, mileage, **fuel type (petrol/electric/hybrid plugin)**. Optional: VIN, color, nickname, purchase date |
 | Edit Vehicle | Update vehicle details including car type |
 | Archive Vehicle | Soft-delete; records are archived, never permanently removed |
 | Active Vehicle | User always has one active vehicle selected; switching persists |
