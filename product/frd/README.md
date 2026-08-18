@@ -10,6 +10,27 @@ Each FRD is self-contained and serves as the primary source of truth for:
 - QA Engineers
 - AI Development Agents
 
+Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the MVP scope wins and the FRD must be updated.
+
+---
+
+## Index (MVP)
+
+| Module | File | Surface |
+|--------|------|---------|
+| Garage | [garage.md](garage.md) | Mobile |
+| Auth | [auth.md](auth.md) | Mobile + API |
+| Maintenance | [maintenance.md](maintenance.md) | Mobile + API |
+| Documents | [documents.md](documents.md) | Mobile + API |
+| Expenses | [expenses.md](expenses.md) | Mobile + API |
+| Sync | [sync.md](sync.md) | Mobile + API |
+| Notifications | [notifications.md](notifications.md) | Mobile + API |
+| Admin | [admin.md](admin.md) | Web portal + API |
+
+Dashboard is specified in `product/mvp-scope.md` (ownership summary, recent activity, next maintenance). It consumes Garage, Maintenance, Expenses, and Documents; it has no separate FRD yet.
+
+---
+
 ## Purpose
 
 Each FRD defines:

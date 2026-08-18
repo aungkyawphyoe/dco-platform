@@ -4,9 +4,11 @@
 
 **Version:** 1.0
 
-**Status:** Draft
+**Status:** Aligned (Phase 1 contract)
 
 **Last Updated:** August 2026
+
+This file is the source of truth for what ships in MVP. `docs/product-roadmap.md` and `product/frd/` must not contradict it. Fuel tracking and insurance *policy* management are Autozis-style modules deferred to v1.1. Insurance remains a document category and an expense category.
 
 ---
 
@@ -50,9 +52,9 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 ### Dashboard
 | Feature | Description |
 |---------|-------------|
-| Default Selected Car and Toggle | Show the default selected informations and user can switch another car which will lead to Garage Home(My Garage) Screen |
+| Default Selected Car and Toggle | Show the active vehicle; switching opens Garage Home (My Garage) |
 | Vehicle Detail | Show the vehicle overall information |
-| Ownership Summary | Show total spent money, total used fuel, services count |
+| Ownership Summary | Total spent, this month spent, services count, documents count. No fuel volume or MPG. |
 | Recent Activity | Show 3 records of maintenance history |
 | Next Maintenance | Show the most due maintenance |
 
@@ -60,12 +62,12 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 
 | Feature | Description |
 |---------|-------------|
-| arage Home | List of the user's vehicles as cards (photo, nickname, make/model, plate, mileage, next maintenance) |
-| Add Vehicle | Required: name, year, make, model, license plate, mileage, **fuel type (petrol/electric/hybrid plugin)**. Optional: VIN, color, nickname, purchase date |
-| Edit Vehicle | Update vehicle details including car type |
+| Garage Home | List of the user's vehicles as cards (photo, nickname, make/model, plate, mileage, next maintenance) |
+| Add Vehicle | Required: name, year, make, model, license plate, mileage, **fuel type (petrol / electric / hybrid plugin)**. Optional: VIN, color, nickname, purchase date |
+| Edit Vehicle | Update vehicle details including fuel type |
 | Archive Vehicle | Soft-delete; records are archived, never permanently removed |
 | Active Vehicle | User always has one active vehicle selected; switching persists |
-| Vehicle Detail | Overview section + entry points to maintenance, expenses, documents |
+| Vehicle Detail | Overview section + entry points to maintenance, expenses, documents. No Fuel or Insurance modules. |
 
 ### Maintenance
 
@@ -74,8 +76,13 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Service Records | Log date, type, odometer, cost, notes, workshop |
 | Service Reminders | Scheduled by time interval and/or distance threshold |
 | Reminder Notifications | Local notification when a reminder is due; mark as done or dismiss |
-| Service History | Chronological list per vehicle |
-| **EV-Specific Maintenance** | Separate maintenance schedules for EV vs Engine vehicles. EV: Tire rotation (5,000-7,500 mi), Brake inspection (annual), Brake fluid (3-5 years), Coolant - battery/power electronics (3-5 years), Cabin air filter (15,000-22,500 mi/2 years), 12V battery (6 months/4-6 years). Engine: Oil change, Tire rotation, Brake inspection, etc. |
+| Service History | Chronological list of service history |
+| Empty State | Upcoming, Scheduled, and Service History each have their own empty view |
+| Register Service | Add a service record with service items and total cost |
+| Attach Receipt | Open camera or photo picker and store the image with the service record. No OCR or auto-fill in MVP. |
+| Maintenance Plan | List of user-added maintenance items for the active vehicle |
+| Add Maintenance Item | Custom user-defined plan item (name, time and/or distance interval) |
+| Add Suggested Item | Predefined plan items filtered by the vehicle's fuel type |
 
 ### Documents
 
@@ -92,7 +99,7 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 |---------|-------------|
 | Expense Log | Add expense entries (category, amount, date, vehicle, notes, receipt photo) |
 | Summaries | Monthly and total spend per vehicle |
-| Categories | e.g. fuel, maintenance, insurance, parking, tolls, parts |
+| Categories | e.g. fuel, maintenance, insurance, parking, tolls, parts. A fuel *expense* is not a fuel-tracking log. |
 
 ## Backend
 
@@ -123,8 +130,9 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 
 The following are explicitly deferred:
 
-- Fuel tracking
-- Insurance module (policy management)
+- Fuel tracking (refuel/charge logs, volume, efficiency / MPG). Fuel remains an expense category only.
+- Insurance module (policy management, renewals, previous policies). Insurance remains a document category and an expense category.
+- Receipt OCR / auto-fill from a captured image
 - Cloud backup beyond the core sync engine
 - Family sharing / multi-driver access
 - Marketplace (parts, accessories, services)
@@ -136,6 +144,7 @@ The following are explicitly deferred:
 - Fleet management
 - Push campaigns / marketing automation
 - Digital Vehicle Passport / verified service history
+- Trips / mileage logbook, vehicle sharing, import/export, PDF reports (Autozis features not in this slice)
 
 ---
 
@@ -147,7 +156,9 @@ These rules come from the vision and FRD documentation and must be honored by th
 - VIN cannot belong to multiple vehicles.
 - A user must always have one active vehicle selected.
 - Deleting a vehicle archives its records rather than permanently removing them.
+- Mileage is required when adding a vehicle.
 - Odometer/mileage cannot decrease (admin correction workflow may come later).
+- Fuel type is required and must be one of: petrol, electric, hybrid plugin.
 - Vehicle year is between 1900 and current year + 1.
 - VIN is exactly 17 characters when supplied.
 - License plate max length is 20 characters.
@@ -233,6 +244,6 @@ Minimal instrumentation on the critical path:
 
 Refer to `docs/product-roadmap.md` for the full phased plan. Immediately after MVP:
 
-- **v1.1:** Fuel tracking, Insurance module, Cloud backup
+- **v1.1:** Fuel tracking, Insurance module, Cloud backup, receipt OCR
 - **Phase 2:** Workshop booking, Marketplace, Family sharing, Vehicle health dashboard
 - **Phase 3 (Year 2):** OBD/connected cars, predictive maintenance, fleet, dealer/insurance portals

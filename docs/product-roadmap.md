@@ -1,25 +1,37 @@
 # Product Roadmap
 
+Phase 1 is the contract in `product/mvp-scope.md`. Do not pull v1.1 modules (fuel tracking, insurance policies, extra cloud backup, receipt OCR) into MVP.
+
+---
+
 ## Phase 1 — MVP
 
 ### Q1
 
 - Authentication
-- Garage
-- Vehicle Profiles
-- Maintenance Tracking
+- Garage and vehicle profiles
+- Fuel type: petrol / electric / hybrid plugin (taxonomy only, not a fuel log)
+- Maintenance tracking and maintenance plan
 - Documents
-- Notifications
+- Local notifications
+- Offline-first sync engine
 
 ---
 
 ### Q2
 
-- Expense Tracking
-- Fuel Tracking
-- Insurance
-- Cloud Backup
-- Offline Sync
+- Expense tracking
+- Web admin: user management and partner onboarding
+- MVP polish (conflict UX, empty states, accessibility)
+
+---
+
+## v1.1 — After MVP
+
+- Fuel tracking (refuel / charge logs, volume, efficiency)
+- Insurance module (policy management)
+- Cloud backup beyond the core sync engine
+- Receipt OCR / auto-fill from camera
 
 ---
 

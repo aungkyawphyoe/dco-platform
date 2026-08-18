@@ -24,7 +24,7 @@ Enable users to:
 - Vehicle details
 - Add vehicle
 - Edit vehicle
-- Delete vehicle
+- Archive vehicle
 - Vehicle photo
 - Active vehicle selection
 
@@ -36,6 +36,8 @@ Enable users to:
 - Vehicle selling
 - Fleet management
 - Vehicle financing
+- Fuel tracking (refuel / charge logs, efficiency)
+- Insurance policy management (keep insurance as a document and expense category only)
 
 ---
 
@@ -85,11 +87,13 @@ So I can manage multiple cars.
 
 Required fields
 
+- Name
 - Make
 - Model
 - Year
 - License Plate
-- Car Type (EV / Engine)
+- Mileage
+- Fuel Type (petrol / electric / hybrid plugin)
 
 Optional
 
@@ -98,7 +102,6 @@ Optional
 - Nickname
 - Purchase Date
 - Purchase Price
-- Odometer
 - Photo
 
 ---
@@ -124,30 +127,35 @@ Sections
 - Overview
 - Maintenance
 - Expenses
-- Fuel
-- Insurance
 - Documents
 - Service History
 
+Do not add Fuel or Insurance as vehicle-detail modules in MVP. Insurance files live in Documents. Fuel spend can be logged as an expense.
+
 ---
 
-# EV vs Engine Maintenance
+# Suggested Maintenance by Fuel Type
 
-The maintenance module shows different scheduled maintenance items based on the vehicle's Car Type (set when adding the vehicle).
+The maintenance plan shows different suggested items based on the vehicle's fuel type (set when adding the vehicle).
 
-## Engine Vehicle Maintenance
+## Petrol
 - Oil Change (every 5,000 mi or 6 months)
 - Tire Rotation (every 7,500 mi)
 - Brake Inspection (every 15,000 mi or 12 months)
-- Additional engine-specific items
+- Additional engine-specific items (fuel filter, engine air filter, spark plugs)
 
-## EV Maintenance
+## Electric
 - Tire Rotation (every 5,000-7,500 mi) — EVs weigh more and deliver instant torque
 - Brake Inspection (annual) — Regenerative braking reduces wear, but calipers can stick
 - Brake Fluid (every 3-5 years)
 - Coolant - Battery Thermal Management & Power Electronics (every 3-5 years)
 - Cabin Air Filter (every 15,000-22,500 mi or 2 years)
 - 12-Volt Battery (test every 6 months; 4-6 year lifespan)
+
+## Hybrid Plugin
+- All petrol items above
+- Battery / power-electronics coolant (every 3-5 years)
+- 12-Volt Battery (test every 6 months)
 
 ---
 
@@ -157,6 +165,8 @@ The maintenance module shows different scheduled maintenance items based on the 
 - VIN cannot belong to multiple vehicles.
 - A user must always have one active vehicle selected.
 - Deleting a vehicle archives its records rather than permanently removing them.
+- Mileage is required.
+- Fuel type is required and must be petrol, electric, or hybrid plugin.
 - Premium users may manage unlimited vehicles; free users are limited according to their plan.
 
 ---
@@ -196,15 +206,22 @@ License Plate
 
 Year
 
+- Required
 - Between 1900 and current year + 1
+
+Mileage
+
+- Required
+- Cannot decrease unless corrected through an administrator workflow
+
+Fuel Type
+
+- Required
+- One of: petrol, electric, hybrid plugin
 
 VIN
 
 - 17 characters when supplied
-
-Mileage
-
-- Cannot decrease unless corrected through an administrator workflow
 
 ---
 
@@ -269,6 +286,8 @@ vehicle_updated
 
 - VIN decoder
 - License plate OCR
+- Fuel tracking
+- Insurance module
 - Vehicle valuation
 - Connected car integrations
 - EV battery health
