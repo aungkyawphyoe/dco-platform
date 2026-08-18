@@ -4,11 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Product is in MVP definition. The `docs/` folder holds vision, roadmap, business model, personas, principles, and glossary. `product/frd/` holds feature requirement documents (Garage is specified; others to come). `product/mvp-scope.md` is the agreed MVP scope.
+Product is in MVP definition. `product/mvp-scope.md` is the Phase 1 contract. `product/frd/` holds FRDs for Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, and Admin. `docs/design-system.md` and `docs/theme/garage-minimal-dark.json` are the shared Flutter + web visual tokens. `docs/implementation-readiness.md` lists remaining docs before code.
 
-The repository contains no implementation code yet — no build tooling, no tech stack chosen. As files are added, update each section rather than leaving placeholders.
+The repository contains no implementation code yet — no build tooling. Mobile is Flutter; backend is REST + JWT; web framework is not chosen. As files are added, update each section rather than leaving placeholders.
 
-The working plan is: mobile app (Flutter) is the primary surface, backend REST API + DB services mobile and web, web portal handles admin user management and partner onboarding. Together we are defining MVP features before moving to architecture.
+The working plan is: mobile app (Flutter) is the primary surface, backend REST API + DB services mobile and web, web portal handles admin user management and partner onboarding. Architecture docs are the next gap (`architecture/` is empty).
 
 ## Intended project layout
 
