@@ -11,6 +11,8 @@ import '../../features/auth/domain/entities/session.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
 import '../../features/garage/domain/repositories/vehicle_repository.dart';
+import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
+import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
 import 'analytics/analytics.dart';
 import 'config/app_config.dart';
 import 'database/app_database.dart';
@@ -97,6 +99,14 @@ final syncEngineProvider = Provider<SyncEngine>((ref) => const SyncEngine());
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {
   return VehicleRepositoryImpl(
+    db: ref.watch(appDatabaseProvider),
+    outbox: ref.watch(outboxWriterProvider),
+    syncEngine: ref.watch(syncEngineProvider),
+  );
+});
+
+final maintenanceRepositoryProvider = Provider<MaintenanceRepository>((ref) {
+  return MaintenanceRepositoryImpl(
     db: ref.watch(appDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),

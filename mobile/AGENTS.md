@@ -4,7 +4,7 @@ Working contract for the Flutter **owner app**. Do not copy FRDs into this file.
 
 This is the primary product surface. The web admin portal is a separate app and is **not** implemented here.
 
-**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), four-tab shell, local Drift persistence (vehicles + outbox), and register/edit vehicle are implemented. Next: sync engine drain, then maintenance.
+**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), four-tab shell, local Drift persistence (vehicles + outbox), register/edit vehicle, and maintenance plan + history are implemented. Next: sync engine drain, then documents / expenses.
 
 ---
 

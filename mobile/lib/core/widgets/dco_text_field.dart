@@ -16,6 +16,8 @@ class DcoTextField extends StatefulWidget {
     this.onChanged,
     this.onSubmitted,
     this.maxLength,
+    this.maxLines = 1,
+    this.minLines,
     this.readOnly = false,
     this.onTap,
     this.suffix,
@@ -32,6 +34,8 @@ class DcoTextField extends StatefulWidget {
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final int? maxLength;
+  final int maxLines;
+  final int? minLines;
   final bool readOnly;
   final VoidCallback? onTap;
   final Widget? suffix;
@@ -60,6 +64,8 @@ class _DcoTextFieldState extends State<DcoTextField> {
           onChanged: widget.onChanged,
           onSubmitted: widget.onSubmitted,
           maxLength: widget.maxLength,
+          maxLines: widget.obscureText ? 1 : widget.maxLines,
+          minLines: widget.obscureText ? 1 : widget.minLines,
           readOnly: widget.readOnly,
           onTap: widget.onTap,
           style: Theme.of(context).textTheme.bodyLarge,

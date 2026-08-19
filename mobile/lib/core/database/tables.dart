@@ -49,3 +49,59 @@ class OutboxEntries extends Table {
   IntColumn get attemptCount => integer().withDefault(const Constant(0))();
   TextColumn get lastError => text().nullable()();
 }
+
+class PlanItemRecords extends Table {
+  @override
+  String get tableName => 'plan_items';
+
+  TextColumn get id => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get name => text()();
+  IntColumn get intervalDays => integer().nullable()();
+  RealColumn get intervalDistance => real().nullable()();
+  RealColumn get nextDueMileage => real().nullable()();
+  DateTimeColumn get nextDueOn => dateTime().nullable()();
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  TextColumn get notes => text().nullable()();
+  TextColumn get catalogKey => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class ServiceRecordRows extends Table {
+  @override
+  String get tableName => 'service_records';
+
+  TextColumn get id => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get title => text()();
+  DateTimeColumn get servicedOn => dateTime()();
+  RealColumn get odometer => real()();
+  RealColumn get totalCost => real()();
+  TextColumn get workshopName => text().nullable()();
+  TextColumn get notes => text().nullable()();
+  TextColumn get receiptLocalPath => text().nullable()();
+  TextColumn get receiptMediaId => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class ServiceLineRecords extends Table {
+  @override
+  String get tableName => 'service_record_items';
+
+  TextColumn get id => text()();
+  TextColumn get serviceRecordId => text()();
+  TextColumn get planItemId => text().nullable()();
+  TextColumn get name => text()();
+  RealColumn get lineCost => real().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

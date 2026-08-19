@@ -10,7 +10,10 @@ enum AnalyticsEvent {
   vehicleDeleted('vehicle_deleted'),
   vehicleSwitched('vehicle_switched'),
   vehicleUpdated('vehicle_updated'),
-  dashboardOpened('dashboard_opened');
+  dashboardOpened('dashboard_opened'),
+  maintenanceRecordAdded('maintenance_record_added'),
+  maintenancePlanItemAdded('maintenance_plan_item_added'),
+  maintenanceReminderCompleted('maintenance_reminder_completed');
 
   const AnalyticsEvent(this.name);
   final String name;

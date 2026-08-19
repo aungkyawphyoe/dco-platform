@@ -5,13 +5,23 @@ import 'tables.dart';
 
 part 'app_database.g.dart';
 
-@DriftDatabase(tables: [AppMeta, VehicleRecords, UserProfiles, OutboxEntries])
+@DriftDatabase(
+  tables: [
+    AppMeta,
+    VehicleRecords,
+    UserProfiles,
+    OutboxEntries,
+    PlanItemRecords,
+    ServiceRecordRows,
+    ServiceLineRecords,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
       : super(executor ?? driftDatabase(name: 'dco_owner'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -21,6 +31,11 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(vehicleRecords);
         await migrator.createTable(userProfiles);
         await migrator.createTable(outboxEntries);
+      }
+      if (from < 3) {
+        await migrator.createTable(planItemRecords);
+        await migrator.createTable(serviceRecordRows);
+        await migrator.createTable(serviceLineRecords);
       }
     },
   );

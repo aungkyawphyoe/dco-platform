@@ -10,6 +10,14 @@ abstract final class AppRoutes {
   static String vehicleEdit(String id) => '/dashboard/garage/$id/edit';
   static const notifications = '/dashboard/notifications';
   static const maintenance = '/maintenance';
+  static const maintenancePlan = '/maintenance/plan';
+  static const maintenancePlanNew = '/maintenance/plan/new';
+  static const maintenanceSuggested = '/maintenance/plan/suggested';
+  static String maintenancePlanEdit(String id) => '/maintenance/plan/$id/edit';
+  static const maintenanceRegister = '/maintenance/register';
+  static String maintenanceRegisterItem(String planItemId) =>
+      '/maintenance/register?item=$planItemId';
+  static String serviceDetail(String id) => '/maintenance/history/$id';
   static const expenses = '/expenses';
   static const documents = '/expenses/documents';
   static const settings = '/settings';
