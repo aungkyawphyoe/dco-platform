@@ -176,31 +176,28 @@ Behavior
 
 ---
 
-# Suggested items by fuel type
+# Suggested items
 
 Copied from the Garage catalog so this FRD stays implementable without opening another file.
+Suggested items are templates with the same shape as a custom plan item (name, recurring, time interval and/or distance interval). Once added they are user-owned copies.
 
-## Petrol
+A new maintenance plan also seeds two defaults: **Mileage Update** (every 30 days) and **Routine** (every 1 year or 10,000 mi).
 
-- Oil Change (every 5,000 mi or 6 months)
-- Tire Rotation (every 7,500 mi)
-- Brake Inspection (every 15,000 mi or 12 months)
-- Fuel filter, engine air filter, spark plugs as additional engine items
+Engine-only items (oil, belts, fuel filter) are hidden for electric vehicles.
 
-## Electric
-
-- Tire Rotation (every 5,000–7,500 mi)
-- Brake Inspection (annual)
-- Brake Fluid (every 3–5 years)
-- Coolant — battery thermal management and power electronics (every 3–5 years)
-- Cabin Air Filter (every 15,000–22,500 mi or 2 years)
-- 12-Volt Battery (test every 6 months)
-
-## Hybrid Plugin
-
-- All petrol items
-- Battery / power-electronics coolant (every 3–5 years)
-- 12-Volt Battery (test every 6 months)
+| Item | Recurring | Time | Distance |
+|------|-----------|------|----------|
+| Oil Change | yes | 1 year | 15,000 mi |
+| Air Filter (Cabin) | yes | 1 year | 15,000 mi |
+| New Tires | yes | 5 years | 50,000 mi |
+| Brake Change | yes | — | 30,000 mi |
+| Brake Fluid | yes | 3 years | 30,000 mi |
+| Belts | yes | 5 years | 80,000 mi |
+| Fuel Filter | yes | — | 30,000 mi |
+| Wash | yes | 14 days | — |
+| Battery | yes | 3 years | 36,000 mi |
+| Air Conditioning | yes | 1 year | — |
+| Rotate Tires | yes | 1 year | 6,000 mi |
 
 ---
 
