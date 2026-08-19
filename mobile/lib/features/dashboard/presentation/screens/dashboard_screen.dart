@@ -1,11 +1,18 @@
 import 'dart:io';
 
+import 'package:dco_mobile/core/analytics/analytics.dart';
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
+import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
+import 'package:dco_mobile/features/maintenance/domain/entities/service_record.dart';
+import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +21,8 @@ import 'package:intl/intl.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
+
+  static const recentActivityLimit = 3;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -94,16 +103,24 @@ class DashboardScreen extends ConsumerWidget {
   }
 }
 
-class _PopulatedDashboard extends StatelessWidget {
+class _PopulatedDashboard extends ConsumerWidget {
   const _PopulatedDashboard({required this.vehicle});
 
   final Vehicle vehicle;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final mileage = NumberFormat('#,###').format(vehicle.mileage.round());
     final money = NumberFormat.simpleCurrency().format(0);
+    final history = ref.watch(maintenanceHistoryProvider).valueOrNull ?? const <ServiceRecord>[];
+    final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
+    final recent = history.take(DashboardScreen.recentActivityLimit).toList();
+    final next = DueCalculator.nearest(
+      items: plan,
+      vehicleMileage: vehicle.mileage,
+      now: DateTime.now(),
+    );
 
     return ListView(
       padding: EdgeInsets.all(tokens.space.s4),
@@ -175,22 +192,203 @@ class _PopulatedDashboard extends StatelessWidget {
         SizedBox(height: tokens.space.s3),
         Row(
           children: [
-            const Expanded(child: _StatCard(label: 'Services', value: '0')),
+            Expanded(child: _StatCard(label: 'Services', value: '${history.length}')),
             SizedBox(width: tokens.space.s3),
             const Expanded(child: _StatCard(label: 'Documents', value: '0')),
           ],
         ),
         SizedBox(height: tokens.space.s5),
         Text('Recent Activity', style: Theme.of(context).textTheme.titleLarge),
-        SizedBox(height: tokens.space.s2),
-        Text('No services yet', style: Theme.of(context).textTheme.bodySmall),
+        SizedBox(height: tokens.space.s3),
+        if (recent.isEmpty)
+          Text(
+            'No services yet',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+          )
+        else
+          ...recent.map(
+            (record) => Padding(
+              padding: EdgeInsets.only(bottom: tokens.space.s3),
+              child: _RecentActivityRow(
+                record: record,
+                onTap: () => context.push(AppRoutes.serviceDetail(record.id)),
+              ),
+            ),
+          ),
         SizedBox(height: tokens.space.s5),
         Text('Next Maintenance', style: Theme.of(context).textTheme.titleLarge),
-        SizedBox(height: tokens.space.s2),
-        Text('No plan items yet', style: Theme.of(context).textTheme.bodySmall),
+        SizedBox(height: tokens.space.s3),
+        _NextMaintenanceCard(
+          vehicle: vehicle,
+          item: next,
+          onLogService: next == null
+              ? () => context.push(AppRoutes.maintenancePlan)
+              : () {
+                  ref.read(analyticsProvider).track(AnalyticsEvent.dashboardLogServiceTapped);
+                  context.push(AppRoutes.maintenanceRegisterItem(next.id));
+                },
+        ),
       ],
     );
   }
+}
+
+class _RecentActivityRow extends StatelessWidget {
+  const _RecentActivityRow({required this.record, required this.onTap});
+
+  final ServiceRecord record;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final title = record.items.isNotEmpty ? record.items.first.name : record.title;
+    return Material(
+      color: tokens.background.card,
+      borderRadius: BorderRadius.circular(tokens.radius.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.s3),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      DateFormat.yMMMd().format(record.servicedOn),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                    ),
+                    SizedBox(height: tokens.space.s1),
+                    Text(title, style: Theme.of(context).textTheme.titleMedium),
+                  ],
+                ),
+              ),
+              Text(
+                NumberFormat.simpleCurrency().format(record.totalCost),
+                style: GoogleFonts.ibmPlexMono(color: tokens.text.secondary, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NextMaintenanceCard extends StatelessWidget {
+  const _NextMaintenanceCard({
+    required this.vehicle,
+    required this.item,
+    required this.onLogService,
+  });
+
+  final Vehicle vehicle;
+  final PlanItem? item;
+  final VoidCallback onLogService;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    if (item == null) {
+      return Material(
+        color: tokens.background.card,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.s4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'No plan items yet',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
+              ),
+              SizedBox(height: tokens.space.s3),
+              DcoButton(
+                label: 'Add a plan item',
+                variant: DcoButtonVariant.secondary,
+                onPressed: onLogService,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final urgency = DueCalculator.urgency(
+      item: item!,
+      vehicleMileage: vehicle.mileage,
+      now: DateTime.now(),
+    );
+    final overdue = urgency == PlanUrgency.overdue;
+    final dueColor = overdue
+        ? tokens.feedback.overdue
+        : urgency == PlanUrgency.dueSoon
+        ? tokens.feedback.dueSoon
+        : tokens.text.caption;
+
+    return Material(
+      color: tokens.background.card,
+      borderRadius: BorderRadius.circular(tokens.radius.md),
+      child: Padding(
+        padding: EdgeInsets.all(tokens.space.s4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(item!.name, style: Theme.of(context).textTheme.titleMedium),
+            SizedBox(height: tokens.space.s2),
+            Text(
+              _dueCopy(item!, vehicle),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: dueColor),
+            ),
+            SizedBox(height: tokens.space.s4),
+            DcoButton(label: 'Log Service', onPressed: onLogService),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _dueCopy(PlanItem item, Vehicle vehicle) {
+  final now = DateTime.now();
+  final today = DueCalculator.dateOnly(now);
+  final overdue = DueCalculator.urgency(
+        item: item,
+        vehicleMileage: vehicle.mileage,
+        now: now,
+      ) ==
+      PlanUrgency.overdue;
+  final miles = NumberFormat('#,###');
+  final unit = vehicle.mileageUnit.label;
+
+  if (overdue) {
+    final parts = <String>[];
+    if (item.nextDueMileage != null && vehicle.mileage > item.nextDueMileage!) {
+      parts.add('${miles.format((vehicle.mileage - item.nextDueMileage!).round())} $unit');
+    }
+    if (item.nextDueOn != null) {
+      final days = today.difference(DueCalculator.dateOnly(item.nextDueOn!)).inDays;
+      if (days > 0) parts.add('$days ${days == 1 ? 'day' : 'days'}');
+    }
+    if (parts.isEmpty) return 'Overdue';
+    return 'Overdue by ${parts.join(' / ')}';
+  }
+
+  final remainingMiles = item.nextDueMileage == null
+      ? null
+      : (item.nextDueMileage! - vehicle.mileage).round();
+  final dateLabel = item.nextDueOn == null ? null : DateFormat.MMMd().format(item.nextDueOn!);
+  if (remainingMiles != null && remainingMiles > 0 && dateLabel != null) {
+    return 'Due in ${miles.format(remainingMiles)} $unit ($dateLabel)';
+  }
+  if (remainingMiles != null && remainingMiles > 0) {
+    return 'Due in ${miles.format(remainingMiles)} $unit';
+  }
+  if (dateLabel != null) return 'Due $dateLabel';
+  return 'Due soon';
 }
 
 class _StatCard extends StatelessWidget {

@@ -32,7 +32,7 @@ class MaintenanceScreen extends ConsumerWidget {
                 ? null
                 : () => _openPlan(context, ref),
             child: Text(
-              'maintenance plan',
+              'Plan',
               style: TextStyle(color: tokens.text.link, fontSize: 13),
             ),
           ),
@@ -67,8 +67,8 @@ class MaintenanceScreen extends ConsumerWidget {
                 ) ==
                 PlanUrgency.scheduled;
           }).toList();
-          upcoming.sort(_bySoonest(vehicle.mileage, now));
-          scheduled.sort(_bySoonest(vehicle.mileage, now));
+          upcoming.sort((a, b) => DueCalculator.compareSoonest(a, b, vehicle.mileage, now));
+          scheduled.sort((a, b) => DueCalculator.compareSoonest(a, b, vehicle.mileage, now));
 
           return Column(
             children: [
@@ -144,24 +144,8 @@ class MaintenanceScreen extends ConsumerWidget {
       userId: vehicle.userId,
       vehicle: vehicle,
     );
-    if (context.mounted) context.push(AppRoutes.maintenancePlan);
+    if (context.mounted) context.push(AppRoutes.maintenancePlan    );
   }
-}
-
-int Function(PlanItem, PlanItem) _bySoonest(double mileage, DateTime now) {
-  return (a, b) {
-    final aDays = a.nextDueOn == null
-        ? 1 << 20
-        : DueCalculator.dateOnly(a.nextDueOn!).difference(DueCalculator.dateOnly(now)).inDays;
-    final bDays = b.nextDueOn == null
-        ? 1 << 20
-        : DueCalculator.dateOnly(b.nextDueOn!).difference(DueCalculator.dateOnly(now)).inDays;
-    final aMiles = a.nextDueMileage == null ? 1 << 20 : (a.nextDueMileage! - mileage);
-    final bMiles = b.nextDueMileage == null ? 1 << 20 : (b.nextDueMileage! - mileage);
-    final aRank = aDays < aMiles ? aDays : aMiles.round();
-    final bRank = bDays < bMiles ? bDays : bMiles.round();
-    return aRank.compareTo(bRank);
-  };
 }
 
 class _SectionEmpty extends StatelessWidget {

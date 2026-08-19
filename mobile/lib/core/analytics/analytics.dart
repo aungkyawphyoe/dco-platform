@@ -11,6 +11,7 @@ enum AnalyticsEvent {
   vehicleSwitched('vehicle_switched'),
   vehicleUpdated('vehicle_updated'),
   dashboardOpened('dashboard_opened'),
+  dashboardLogServiceTapped('dashboard_log_service_tapped'),
   maintenanceRecordAdded('maintenance_record_added'),
   maintenancePlanItemAdded('maintenance_plan_item_added'),
   maintenanceReminderCompleted('maintenance_reminder_completed');

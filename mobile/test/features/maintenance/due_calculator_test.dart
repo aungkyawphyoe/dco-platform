@@ -6,6 +6,8 @@ import 'package:dco_mobile/features/maintenance/domain/suggested_catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 PlanItem _item({
+  String id = 'p1',
+  String name = 'Oil Change',
   int? intervalDays,
   double? intervalDistance,
   DateTime? nextDueOn,
@@ -14,9 +16,9 @@ PlanItem _item({
 }) {
   final now = DateTime(2026, 8, 19);
   return PlanItem(
-    id: 'p1',
+    id: id,
     vehicleId: 'v1',
-    name: 'Oil Change',
+    name: name,
     intervalDays: intervalDays,
     intervalDistance: intervalDistance,
     nextDueOn: nextDueOn,
@@ -121,6 +123,35 @@ void main() {
       );
       expect(next.on, isNull);
       expect(next.mileage, isNull);
+    });
+
+    test('nearest prefers overdue over a later scheduled item', () {
+      final next = DueCalculator.nearest(
+        items: [
+          _item(id: 'routine', name: 'Routine', nextDueOn: DateTime(2027, 1, 1)),
+          _item(id: 'oil', name: 'Oil Change', nextDueOn: DateTime(2026, 8, 1)),
+        ],
+        vehicleMileage: 10000,
+        now: now,
+      );
+      expect(next?.name, 'Oil Change');
+    });
+
+    test('nearest ignores disabled items', () {
+      final next = DueCalculator.nearest(
+        items: [
+          _item(
+            id: 'disabled',
+            name: 'Oil Change',
+            nextDueOn: DateTime(2026, 8, 1),
+            enabled: false,
+          ),
+          _item(id: 'wash', name: 'Wash', nextDueOn: DateTime(2026, 12, 1)),
+        ],
+        vehicleMileage: 10000,
+        now: now,
+      );
+      expect(next?.name, 'Wash');
     });
   });
 

@@ -83,6 +83,44 @@ abstract final class DueCalculator {
   static bool isUpcoming(PlanUrgency value) =>
       value == PlanUrgency.overdue || value == PlanUrgency.dueSoon;
 
+  /// Smaller is more due. Used to pick Dashboard "Next Maintenance" and sort lists.
+  static int remainingScore(PlanItem item, double mileage, DateTime now) {
+    final today = dateOnly(now);
+    final days = item.nextDueOn == null
+        ? 1 << 20
+        : dateOnly(item.nextDueOn!).difference(today).inDays;
+    final miles = item.nextDueMileage == null ? 1 << 20 : (item.nextDueMileage! - mileage).round();
+    return days < miles ? days : miles;
+  }
+
+  static int compareSoonest(PlanItem a, PlanItem b, double mileage, DateTime now) {
+    final urgencyDelta = urgency(
+      item: a,
+      vehicleMileage: mileage,
+      now: now,
+    ).index.compareTo(
+      urgency(item: b, vehicleMileage: mileage, now: now).index,
+    );
+    if (urgencyDelta != 0) return urgencyDelta;
+    return remainingScore(a, mileage, now).compareTo(remainingScore(b, mileage, now));
+  }
+
+  static PlanItem? nearest({
+    required List<PlanItem> items,
+    required double vehicleMileage,
+    required DateTime now,
+  }) {
+    final visible = items
+        .where(
+          (item) =>
+              urgency(item: item, vehicleMileage: vehicleMileage, now: now) != PlanUrgency.hidden,
+        )
+        .toList();
+    if (visible.isEmpty) return null;
+    visible.sort((a, b) => compareSoonest(a, b, vehicleMileage, now));
+    return visible.first;
+  }
+
   static String intervalLabel({int? intervalDays, double? intervalDistance, String unit = 'mi'}) {
     final parts = <String>[];
     if (intervalDays != null && intervalDays > 0) {
