@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -23,12 +24,17 @@ import '../../features/settings/presentation/screens/settings_screen.dart';
 import 'app_shell.dart';
 import 'routes.dart';
 
+/// Root navigator. Nested screens set [GoRoute.parentNavigatorKey] to this
+/// so they cover the tab shell instead of sitting above the bottom bar.
+final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
+
 final goRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
   ref.listen(sessionControllerProvider, (_, _) => refresh.value++);
   ref.onDispose(refresh.dispose);
 
   return GoRouter(
+    navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
     refreshListenable: refresh,
     debugLogDiagnostics: kDebugMode,
@@ -86,14 +92,17 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'garage',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const GarageHomeScreen(),
                     routes: [
                       GoRoute(
                         path: 'new',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => const VehicleFormScreen(),
                       ),
                       GoRoute(
                         path: ':vehicleId/edit',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => VehicleFormScreen(
                           vehicleId: state.pathParameters['vehicleId'],
                         ),
@@ -102,6 +111,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'notifications',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const NotificationFeedScreen(),
                   ),
                 ],
@@ -116,18 +126,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'plan',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const MaintenancePlanScreen(),
                     routes: [
                       GoRoute(
                         path: 'new',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => const PlanItemFormScreen(),
                       ),
                       GoRoute(
                         path: 'suggested',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => const SuggestedItemsScreen(),
                       ),
                       GoRoute(
                         path: ':planItemId/edit',
+                        parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => PlanItemFormScreen(
                           planItemId: state.pathParameters['planItemId'],
                         ),
@@ -136,12 +150,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   ),
                   GoRoute(
                     path: 'register',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => RegisterServiceScreen(
                       preselectedPlanItemId: state.uri.queryParameters['item'],
                     ),
                   ),
                   GoRoute(
                     path: 'history/:serviceId',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => ServiceDetailScreen(
                       serviceId: state.pathParameters['serviceId']!,
                     ),
@@ -158,6 +174,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 routes: [
                   GoRoute(
                     path: 'documents',
+                    parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const DocumentsScreen(),
                   ),
                 ],
