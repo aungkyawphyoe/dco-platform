@@ -4,7 +4,7 @@ Working contract for the Flutter **owner app**. Do not copy FRDs into this file.
 
 This is the primary product surface. The web admin portal is a separate app and is **not** implemented here.
 
-**Scaffold status:** this folder is the contract only. The next pass runs `flutter create` against the tree in [Required folder structure](#required-folder-structure). Do not invent a different layout.
+**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), and the four-tab shell are implemented. Next slice: garage (active vehicle + add vehicle) then sync outbox. Honor the tree in [Required folder structure](#required-folder-structure).
 
 ---
 
@@ -47,6 +47,8 @@ Wireframes: [`wireframes/dco-mobile-wireframes.tldraw`](../wireframes/dco-mobile
 ---
 
 ## Technologies (decided)
+
+Debug builds default `DCO_MOCK_AUTH=true` so auth screens work before the API exists. Release builds never mock. Override with `--dart-define=DCO_MOCK_AUTH=false`.
 
 | Role | Choice |
 |------|--------|

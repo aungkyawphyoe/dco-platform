@@ -6,9 +6,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Product is in MVP definition. `product/mvp-scope.md` is the Phase 1 contract. `product/frd/` holds FRDs for Dashboard, Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, and Admin. `docs/design-system.md` and `docs/theme/garage-minimal-dark.json` are the shared Flutter + web visual tokens.
 
-Must-have implementation docs are in place: `architecture/system.md`, `architecture/data-model.md`, `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md` (draft). Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A6). Still open before scaffolding: backend language/DB ADR, web framework ADR. Azure VPS setup is deferred.
+Must-have implementation docs are in place: `architecture/system.md`, `architecture/data-model.md`, `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md` (draft). Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A6).
 
-The repository contains no implementation code yet — no build tooling. Mobile is Flutter; backend is REST + JWT; web framework is not chosen. As files are added, update each section rather than leaving placeholders.
+Mobile Flutter app is scaffolded in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Still open: backend language/DB ADR, web framework ADR. Azure VPS setup is deferred.
 
 The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management and partner onboarding.
 
@@ -18,7 +18,7 @@ The working plan is: mobile app (Flutter) is the primary surface (Dashboard afte
 
 - `backend/` — server / API layer
 - `web/` — web frontend
-- `mobile/` — mobile app
+- `mobile/` — Flutter owner app (see `mobile/AGENTS.md`)
 - `architecture/` — system design / architectural docs
 - `product/` — product definitions, requirements
 - `prompt/` — prompt definitions or spec-driven artifacts
@@ -27,8 +27,21 @@ The working plan is: mobile app (Flutter) is the primary surface (Dashboard afte
 
 ## How to operate here
 
-Because the tech stack and tooling are not yet chosen, there are no build, lint, test, or dev-server commands to record. When the first implementation lands, revisit this file and capture:
+### Mobile (Flutter)
 
-- Build / run / test commands (including how to run a single test)
-- The concrete tech stack for each layer (backend, web, mobile)
-- The "big picture" architecture that spans multiple files
+From `mobile/`:
+
+```bash
+flutter pub get
+dart run build_runner build
+flutter run
+flutter test
+```
+
+Stack: Flutter, Riverpod, GoRouter, Drift/SQLite, Dio, Freezed. Theme: Garage Minimal Dark. Full rules: `mobile/AGENTS.md`.
+
+Backend and web still have no build tooling. When those land, capture run/test commands here.
+
+- Mobile: Flutter owner app, offline-first, JWT audience `dco-owner`
+- Backend: REST `/v1` + JWT (language/DB not chosen)
+- Web: admin portal (framework not chosen)
