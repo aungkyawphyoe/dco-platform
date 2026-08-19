@@ -10,12 +10,14 @@ class DcoEmptyState extends StatelessWidget {
     required this.body,
     this.actionLabel,
     this.onAction,
+    this.actionKey,
   });
 
   final String title;
   final String body;
   final String? actionLabel;
   final VoidCallback? onAction;
+  final Key? actionKey;
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +36,7 @@ class DcoEmptyState extends StatelessWidget {
           ),
           if (actionLabel != null && onAction != null) ...[
             SizedBox(height: tokens.space.s5),
-            DcoButton(label: actionLabel!, onPressed: onAction),
+            DcoButton(key: actionKey, label: actionLabel!, onPressed: onAction),
           ],
         ],
       ),

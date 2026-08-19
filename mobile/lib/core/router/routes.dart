@@ -6,6 +6,8 @@ abstract final class AppRoutes {
   static const forgotPassword = '/forgot-password';
   static const dashboard = '/dashboard';
   static const garage = '/dashboard/garage';
+  static const vehicleNew = '/dashboard/garage/new';
+  static String vehicleEdit(String id) => '/dashboard/garage/$id/edit';
   static const notifications = '/dashboard/notifications';
   static const maintenance = '/maintenance';
   static const expenses = '/expenses';

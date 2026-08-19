@@ -11,6 +11,7 @@ import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
 import '../../features/expenses/presentation/screens/expenses_screen.dart';
 import '../../features/garage/presentation/screens/garage_home_screen.dart';
+import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_screen.dart';
 import '../../features/notifications/presentation/screens/notification_feed_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -81,6 +82,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'garage',
                     builder: (context, state) => const GarageHomeScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        builder: (context, state) => const VehicleFormScreen(),
+                      ),
+                      GoRoute(
+                        path: ':vehicleId/edit',
+                        builder: (context, state) => VehicleFormScreen(
+                          vehicleId: state.pathParameters['vehicleId'],
+                        ),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'notifications',

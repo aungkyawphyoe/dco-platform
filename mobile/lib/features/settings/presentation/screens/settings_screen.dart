@@ -1,9 +1,11 @@
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
+import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -28,6 +30,13 @@ class SettingsScreen extends ConsumerWidget {
           Text(
             mockAuth ? 'Local mock session · not talking to the API' : 'Sync status: idle',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
+          ),
+          SizedBox(height: tokens.space.s4),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Manage vehicles'),
+            trailing: Icon(Icons.chevron_right, color: tokens.icon.inactive),
+            onTap: () => context.push(AppRoutes.garage),
           ),
           SizedBox(height: tokens.space.s7),
           DcoButton(

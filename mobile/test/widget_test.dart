@@ -14,6 +14,8 @@ void main() {
   GoogleFonts.config.allowRuntimeFetching = false;
 
   testWidgets('welcome to dashboard via mock sign in', (tester) async {
+    final database = AppDatabase(NativeDatabase.memory());
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -25,9 +27,7 @@ void main() {
             ),
           ),
           tokenStoreProvider.overrideWithValue(MemoryTokenStore()),
-          appDatabaseProvider.overrideWithValue(
-            AppDatabase(NativeDatabase.memory()),
-          ),
+          appDatabaseProvider.overrideWithValue(database),
         ],
         child: const DcoApp(),
       ),
@@ -45,5 +45,36 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Register a vehicle'), findsWidgets);
+
+    await tester.tap(find.byKey(const Key('register-vehicle-cta')));
+    await tester.pumpAndSettle();
+
+    Future<void> fill(String key, String value) async {
+      final field = find.descendant(
+        of: find.byKey(Key(key)),
+        matching: find.byType(TextField),
+      );
+      await tester.ensureVisible(find.byKey(Key(key)));
+      await tester.enterText(field, value);
+    }
+
+    await fill('vehicle-name', 'Daily Driver');
+    await fill('vehicle-year', '2022');
+    await fill('vehicle-make', 'Toyota');
+    await fill('vehicle-model', 'Camry');
+    await fill('vehicle-plate', 'ABC123');
+    await fill('vehicle-mileage', '45230');
+    await tester.ensureVisible(find.text('Petrol'));
+    await tester.tap(find.text('Petrol'));
+    await tester.ensureVisible(find.byKey(const Key('vehicle-save')));
+    await tester.tap(find.byKey(const Key('vehicle-save')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Daily Driver'), findsWidgets);
+    expect(find.textContaining('Toyota Camry'), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(Duration.zero);
+    await database.close();
   });
 }

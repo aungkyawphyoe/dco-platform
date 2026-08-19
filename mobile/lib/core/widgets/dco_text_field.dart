@@ -15,6 +15,10 @@ class DcoTextField extends StatefulWidget {
     this.autofillHints,
     this.onChanged,
     this.onSubmitted,
+    this.maxLength,
+    this.readOnly = false,
+    this.onTap,
+    this.suffix,
   });
 
   final String label;
@@ -27,6 +31,10 @@ class DcoTextField extends StatefulWidget {
   final Iterable<String>? autofillHints;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
+  final int? maxLength;
+  final bool readOnly;
+  final VoidCallback? onTap;
+  final Widget? suffix;
 
   @override
   State<DcoTextField> createState() => _DcoTextFieldState();
@@ -51,10 +59,14 @@ class _DcoTextFieldState extends State<DcoTextField> {
           autofillHints: widget.autofillHints,
           onChanged: widget.onChanged,
           onSubmitted: widget.onSubmitted,
+          maxLength: widget.maxLength,
+          readOnly: widget.readOnly,
+          onTap: widget.onTap,
           style: Theme.of(context).textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: widget.hint,
             errorText: widget.errorText,
+            counterText: widget.maxLength == null ? '' : null,
             suffixIcon: widget.obscureText
                 ? IconButton(
                     tooltip: _obscured ? 'Show password' : 'Hide password',
@@ -64,7 +76,7 @@ class _DcoTextFieldState extends State<DcoTextField> {
                       color: tokens.icon.inactive,
                     ),
                   )
-                : null,
+                : widget.suffix,
           ),
         ),
       ],
