@@ -13,6 +13,8 @@ import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
 import '../../features/garage/domain/repositories/vehicle_repository.dart';
 import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
 import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../../features/expenses/data/repositories/expense_repository_impl.dart';
+import '../../features/expenses/domain/repositories/expense_repository.dart';
 import '../../features/fuel/data/repositories/fuel_repository_impl.dart';
 import '../../features/fuel/domain/repositories/fuel_repository.dart';
 import '../../features/parts/data/repositories/parts_repository_impl.dart';
@@ -129,6 +131,14 @@ final partsRepositoryProvider = Provider<PartsRepository>((ref) {
 
 final fuelRepositoryProvider = Provider<FuelRepository>((ref) {
   return FuelRepositoryImpl(
+    db: ref.watch(appDatabaseProvider),
+    outbox: ref.watch(outboxWriterProvider),
+    syncEngine: ref.watch(syncEngineProvider),
+  );
+});
+
+final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
+  return ExpenseRepositoryImpl(
     db: ref.watch(appDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),

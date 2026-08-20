@@ -34,6 +34,8 @@ erDiagram
   vehicles ||--o{ documents : vault
   vehicles ||--o{ expenses : costs
   vehicles ||--o{ parts : catalog
+  expenses ||--o{ expense_parts : uses
+  parts ||--o{ expense_parts : assigned_on
   vehicles ||--o{ fuel_logs : energy
   vehicles ||--o{ notification_feed : alerts
   vehicles {
@@ -151,6 +153,13 @@ erDiagram
     uuid receipt_media_id FK
   }
 
+  expense_parts {
+    uuid id PK
+    uuid expense_id FK
+    uuid part_id FK
+    string name
+  }
+
   media_objects {
     uuid id PK
     uuid user_id FK
@@ -232,6 +241,7 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 - Document categories: `insurance` \| `registration` \| `invoice` \| `warranty` \| `receipt` \| `other`.
 - Expense categories: `fuel` \| `maintenance` \| `insurance` \| `parking` \| `tolls` \| `parts` \| `other`.
 - Expense `fuel` is **money only** (no litres, no kWh). Volume and kWh live on `fuel_logs`. Expense `maintenance` does **not** auto-create from service records. Dashboard totals read **expenses only**.
+- Assigned parts on an expense snapshot `name` on `expense_parts` so later catalog edits do not rewrite history.
 
 ### fuel_types / fuel_logs
 

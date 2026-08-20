@@ -2,7 +2,7 @@
 
 ## Overview
 
-Parts is a per-vehicle catalog of components the owner cares about (filters, pads, batteries). Parts are added and edited from Quick Actions. They can be assigned when logging a service today, and when logging an expense once that form ships.
+Parts is a per-vehicle catalog of components the owner cares about (filters, pads, batteries). Parts are added and edited from Quick Actions. They can be assigned when logging a service or an expense.
 
 Source of truth for scope: `product/mvp-scope.md`.
 
@@ -11,7 +11,7 @@ Source of truth for scope: `product/mvp-scope.md`.
 # Objectives
 
 - Keep a named list of parts for the active vehicle
-- Attach those parts to a service (and later an expense) without retyping
+- Attach those parts to a service or an expense without retyping
 
 ---
 
@@ -20,14 +20,14 @@ Source of truth for scope: `product/mvp-scope.md`.
 - List parts for the active vehicle
 - Add and edit a part (name required; brand, part number, notes optional)
 - Assign parts when registering a service
-- Show assigned parts on service detail
+- Assign parts when logging an expense
+- Show assigned parts on service detail and the expense form
 
 # Out of Scope
 
 - Inventory quantity / stock
 - Marketplace or vendor catalog
 - Deleting parts in this slice
-- Expense assignment until the expenses add form exists
 
 ---
 
@@ -67,6 +67,12 @@ Optional: brand, part number, notes.
 - Owner picks from the catalog or adds a new part then returns
 - Assigned names are snapshotted on the service so later catalog edits do not rewrite history
 
+## Assign on expense
+
+- Add / edit expense has a Parts section
+- Owner picks from the catalog or adds a new part then returns
+- Assigned names are snapshotted on the expense so later catalog edits do not rewrite history
+
 ---
 
 # Business Rules
@@ -74,7 +80,7 @@ Optional: brand, part number, notes.
 - Every part belongs to one vehicle
 - Duplicate names on the same vehicle are rejected
 - Assignment is optional
-- The same part cannot be assigned twice on one service
+- The same part cannot be assigned twice on one service or expense
 
 ---
 
@@ -93,4 +99,4 @@ Optional: brand, part number, notes.
 
 # Dependencies
 
-Garage (active vehicle), Maintenance (register service)
+Garage (active vehicle), Maintenance (register service), Expenses (add/edit form)

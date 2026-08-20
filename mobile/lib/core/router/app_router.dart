@@ -10,6 +10,7 @@ import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/session_controller.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
+import '../../features/expenses/presentation/screens/expense_form_screen.dart';
 import '../../features/expenses/presentation/screens/expenses_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
 import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
@@ -257,6 +258,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.expenses,
                 builder: (context, state) => const ExpensesScreen(),
                 routes: [
+                  GoRoute(
+                    path: 'new',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const ExpenseFormScreen(),
+                  ),
+                  GoRoute(
+                    path: ':expenseId/edit',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => ExpenseFormScreen(
+                      expenseId: state.pathParameters['expenseId'],
+                    ),
+                  ),
                   GoRoute(
                     path: 'documents',
                     parentNavigatorKey: rootNavigatorKey,

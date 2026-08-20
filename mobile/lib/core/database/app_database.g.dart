@@ -6182,6 +6182,936 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
   }
 }
 
+class $ExpenseRecordsTable extends ExpenseRecords
+    with TableInfo<$ExpenseRecordsTable, ExpenseRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExpenseRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _incurredOnMeta = const VerificationMeta(
+    'incurredOn',
+  );
+  @override
+  late final GeneratedColumn<DateTime> incurredOn = GeneratedColumn<DateTime>(
+    'incurred_on',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _receiptLocalPathMeta = const VerificationMeta(
+    'receiptLocalPath',
+  );
+  @override
+  late final GeneratedColumn<String> receiptLocalPath = GeneratedColumn<String>(
+    'receipt_local_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _receiptMediaIdMeta = const VerificationMeta(
+    'receiptMediaId',
+  );
+  @override
+  late final GeneratedColumn<String> receiptMediaId = GeneratedColumn<String>(
+    'receipt_media_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    vehicleId,
+    category,
+    amount,
+    incurredOn,
+    notes,
+    receiptLocalPath,
+    receiptMediaId,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'expenses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExpenseRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('incurred_on')) {
+      context.handle(
+        _incurredOnMeta,
+        incurredOn.isAcceptableOrUnknown(data['incurred_on']!, _incurredOnMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_incurredOnMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('receipt_local_path')) {
+      context.handle(
+        _receiptLocalPathMeta,
+        receiptLocalPath.isAcceptableOrUnknown(
+          data['receipt_local_path']!,
+          _receiptLocalPathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('receipt_media_id')) {
+      context.handle(
+        _receiptMediaIdMeta,
+        receiptMediaId.isAcceptableOrUnknown(
+          data['receipt_media_id']!,
+          _receiptMediaIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ExpenseRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExpenseRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      incurredOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}incurred_on'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      receiptLocalPath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_local_path'],
+      ),
+      receiptMediaId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_media_id'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $ExpenseRecordsTable createAlias(String alias) {
+    return $ExpenseRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
+  final String id;
+  final String vehicleId;
+  final String category;
+  final double amount;
+  final DateTime incurredOn;
+  final String? notes;
+  final String? receiptLocalPath;
+  final String? receiptMediaId;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const ExpenseRecord({
+    required this.id,
+    required this.vehicleId,
+    required this.category,
+    required this.amount,
+    required this.incurredOn,
+    this.notes,
+    this.receiptLocalPath,
+    this.receiptMediaId,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    map['category'] = Variable<String>(category);
+    map['amount'] = Variable<double>(amount);
+    map['incurred_on'] = Variable<DateTime>(incurredOn);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || receiptLocalPath != null) {
+      map['receipt_local_path'] = Variable<String>(receiptLocalPath);
+    }
+    if (!nullToAbsent || receiptMediaId != null) {
+      map['receipt_media_id'] = Variable<String>(receiptMediaId);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  ExpenseRecordsCompanion toCompanion(bool nullToAbsent) {
+    return ExpenseRecordsCompanion(
+      id: Value(id),
+      vehicleId: Value(vehicleId),
+      category: Value(category),
+      amount: Value(amount),
+      incurredOn: Value(incurredOn),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      receiptLocalPath: receiptLocalPath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiptLocalPath),
+      receiptMediaId: receiptMediaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(receiptMediaId),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory ExpenseRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExpenseRecord(
+      id: serializer.fromJson<String>(json['id']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      category: serializer.fromJson<String>(json['category']),
+      amount: serializer.fromJson<double>(json['amount']),
+      incurredOn: serializer.fromJson<DateTime>(json['incurredOn']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      receiptLocalPath: serializer.fromJson<String?>(json['receiptLocalPath']),
+      receiptMediaId: serializer.fromJson<String?>(json['receiptMediaId']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'category': serializer.toJson<String>(category),
+      'amount': serializer.toJson<double>(amount),
+      'incurredOn': serializer.toJson<DateTime>(incurredOn),
+      'notes': serializer.toJson<String?>(notes),
+      'receiptLocalPath': serializer.toJson<String?>(receiptLocalPath),
+      'receiptMediaId': serializer.toJson<String?>(receiptMediaId),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  ExpenseRecord copyWith({
+    String? id,
+    String? vehicleId,
+    String? category,
+    double? amount,
+    DateTime? incurredOn,
+    Value<String?> notes = const Value.absent(),
+    Value<String?> receiptLocalPath = const Value.absent(),
+    Value<String?> receiptMediaId = const Value.absent(),
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => ExpenseRecord(
+    id: id ?? this.id,
+    vehicleId: vehicleId ?? this.vehicleId,
+    category: category ?? this.category,
+    amount: amount ?? this.amount,
+    incurredOn: incurredOn ?? this.incurredOn,
+    notes: notes.present ? notes.value : this.notes,
+    receiptLocalPath: receiptLocalPath.present
+        ? receiptLocalPath.value
+        : this.receiptLocalPath,
+    receiptMediaId: receiptMediaId.present
+        ? receiptMediaId.value
+        : this.receiptMediaId,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  ExpenseRecord copyWithCompanion(ExpenseRecordsCompanion data) {
+    return ExpenseRecord(
+      id: data.id.present ? data.id.value : this.id,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      category: data.category.present ? data.category.value : this.category,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      incurredOn: data.incurredOn.present
+          ? data.incurredOn.value
+          : this.incurredOn,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      receiptLocalPath: data.receiptLocalPath.present
+          ? data.receiptLocalPath.value
+          : this.receiptLocalPath,
+      receiptMediaId: data.receiptMediaId.present
+          ? data.receiptMediaId.value
+          : this.receiptMediaId,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExpenseRecord(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('category: $category, ')
+          ..write('amount: $amount, ')
+          ..write('incurredOn: $incurredOn, ')
+          ..write('notes: $notes, ')
+          ..write('receiptLocalPath: $receiptLocalPath, ')
+          ..write('receiptMediaId: $receiptMediaId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    vehicleId,
+    category,
+    amount,
+    incurredOn,
+    notes,
+    receiptLocalPath,
+    receiptMediaId,
+    updatedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExpenseRecord &&
+          other.id == this.id &&
+          other.vehicleId == this.vehicleId &&
+          other.category == this.category &&
+          other.amount == this.amount &&
+          other.incurredOn == this.incurredOn &&
+          other.notes == this.notes &&
+          other.receiptLocalPath == this.receiptLocalPath &&
+          other.receiptMediaId == this.receiptMediaId &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
+  final Value<String> id;
+  final Value<String> vehicleId;
+  final Value<String> category;
+  final Value<double> amount;
+  final Value<DateTime> incurredOn;
+  final Value<String?> notes;
+  final Value<String?> receiptLocalPath;
+  final Value<String?> receiptMediaId;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const ExpenseRecordsCompanion({
+    this.id = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.category = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.incurredOn = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.receiptLocalPath = const Value.absent(),
+    this.receiptMediaId = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExpenseRecordsCompanion.insert({
+    required String id,
+    required String vehicleId,
+    required String category,
+    required double amount,
+    required DateTime incurredOn,
+    this.notes = const Value.absent(),
+    this.receiptLocalPath = const Value.absent(),
+    this.receiptMediaId = const Value.absent(),
+    required DateTime updatedAt,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       vehicleId = Value(vehicleId),
+       category = Value(category),
+       amount = Value(amount),
+       incurredOn = Value(incurredOn),
+       updatedAt = Value(updatedAt),
+       createdAt = Value(createdAt);
+  static Insertable<ExpenseRecord> custom({
+    Expression<String>? id,
+    Expression<String>? vehicleId,
+    Expression<String>? category,
+    Expression<double>? amount,
+    Expression<DateTime>? incurredOn,
+    Expression<String>? notes,
+    Expression<String>? receiptLocalPath,
+    Expression<String>? receiptMediaId,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (category != null) 'category': category,
+      if (amount != null) 'amount': amount,
+      if (incurredOn != null) 'incurred_on': incurredOn,
+      if (notes != null) 'notes': notes,
+      if (receiptLocalPath != null) 'receipt_local_path': receiptLocalPath,
+      if (receiptMediaId != null) 'receipt_media_id': receiptMediaId,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExpenseRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vehicleId,
+    Value<String>? category,
+    Value<double>? amount,
+    Value<DateTime>? incurredOn,
+    Value<String?>? notes,
+    Value<String?>? receiptLocalPath,
+    Value<String?>? receiptMediaId,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return ExpenseRecordsCompanion(
+      id: id ?? this.id,
+      vehicleId: vehicleId ?? this.vehicleId,
+      category: category ?? this.category,
+      amount: amount ?? this.amount,
+      incurredOn: incurredOn ?? this.incurredOn,
+      notes: notes ?? this.notes,
+      receiptLocalPath: receiptLocalPath ?? this.receiptLocalPath,
+      receiptMediaId: receiptMediaId ?? this.receiptMediaId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (incurredOn.present) {
+      map['incurred_on'] = Variable<DateTime>(incurredOn.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (receiptLocalPath.present) {
+      map['receipt_local_path'] = Variable<String>(receiptLocalPath.value);
+    }
+    if (receiptMediaId.present) {
+      map['receipt_media_id'] = Variable<String>(receiptMediaId.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExpenseRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('category: $category, ')
+          ..write('amount: $amount, ')
+          ..write('incurredOn: $incurredOn, ')
+          ..write('notes: $notes, ')
+          ..write('receiptLocalPath: $receiptLocalPath, ')
+          ..write('receiptMediaId: $receiptMediaId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ExpensePartRecordsTable extends ExpensePartRecords
+    with TableInfo<$ExpensePartRecordsTable, ExpensePartRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ExpensePartRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _expenseIdMeta = const VerificationMeta(
+    'expenseId',
+  );
+  @override
+  late final GeneratedColumn<String> expenseId = GeneratedColumn<String>(
+    'expense_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _partIdMeta = const VerificationMeta('partId');
+  @override
+  late final GeneratedColumn<String> partId = GeneratedColumn<String>(
+    'part_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, expenseId, partId, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'expense_parts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ExpensePartRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('expense_id')) {
+      context.handle(
+        _expenseIdMeta,
+        expenseId.isAcceptableOrUnknown(data['expense_id']!, _expenseIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expenseIdMeta);
+    }
+    if (data.containsKey('part_id')) {
+      context.handle(
+        _partIdMeta,
+        partId.isAcceptableOrUnknown(data['part_id']!, _partIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_partIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ExpensePartRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ExpensePartRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      expenseId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}expense_id'],
+      )!,
+      partId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  $ExpensePartRecordsTable createAlias(String alias) {
+    return $ExpensePartRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class ExpensePartRecord extends DataClass
+    implements Insertable<ExpensePartRecord> {
+  final String id;
+  final String expenseId;
+  final String partId;
+  final String name;
+  const ExpensePartRecord({
+    required this.id,
+    required this.expenseId,
+    required this.partId,
+    required this.name,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['expense_id'] = Variable<String>(expenseId);
+    map['part_id'] = Variable<String>(partId);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  ExpensePartRecordsCompanion toCompanion(bool nullToAbsent) {
+    return ExpensePartRecordsCompanion(
+      id: Value(id),
+      expenseId: Value(expenseId),
+      partId: Value(partId),
+      name: Value(name),
+    );
+  }
+
+  factory ExpensePartRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ExpensePartRecord(
+      id: serializer.fromJson<String>(json['id']),
+      expenseId: serializer.fromJson<String>(json['expenseId']),
+      partId: serializer.fromJson<String>(json['partId']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'expenseId': serializer.toJson<String>(expenseId),
+      'partId': serializer.toJson<String>(partId),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  ExpensePartRecord copyWith({
+    String? id,
+    String? expenseId,
+    String? partId,
+    String? name,
+  }) => ExpensePartRecord(
+    id: id ?? this.id,
+    expenseId: expenseId ?? this.expenseId,
+    partId: partId ?? this.partId,
+    name: name ?? this.name,
+  );
+  ExpensePartRecord copyWithCompanion(ExpensePartRecordsCompanion data) {
+    return ExpensePartRecord(
+      id: data.id.present ? data.id.value : this.id,
+      expenseId: data.expenseId.present ? data.expenseId.value : this.expenseId,
+      partId: data.partId.present ? data.partId.value : this.partId,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExpensePartRecord(')
+          ..write('id: $id, ')
+          ..write('expenseId: $expenseId, ')
+          ..write('partId: $partId, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, expenseId, partId, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ExpensePartRecord &&
+          other.id == this.id &&
+          other.expenseId == this.expenseId &&
+          other.partId == this.partId &&
+          other.name == this.name);
+}
+
+class ExpensePartRecordsCompanion extends UpdateCompanion<ExpensePartRecord> {
+  final Value<String> id;
+  final Value<String> expenseId;
+  final Value<String> partId;
+  final Value<String> name;
+  final Value<int> rowid;
+  const ExpensePartRecordsCompanion({
+    this.id = const Value.absent(),
+    this.expenseId = const Value.absent(),
+    this.partId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ExpensePartRecordsCompanion.insert({
+    required String id,
+    required String expenseId,
+    required String partId,
+    required String name,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       expenseId = Value(expenseId),
+       partId = Value(partId),
+       name = Value(name);
+  static Insertable<ExpensePartRecord> custom({
+    Expression<String>? id,
+    Expression<String>? expenseId,
+    Expression<String>? partId,
+    Expression<String>? name,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (expenseId != null) 'expense_id': expenseId,
+      if (partId != null) 'part_id': partId,
+      if (name != null) 'name': name,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ExpensePartRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? expenseId,
+    Value<String>? partId,
+    Value<String>? name,
+    Value<int>? rowid,
+  }) {
+    return ExpensePartRecordsCompanion(
+      id: id ?? this.id,
+      expenseId: expenseId ?? this.expenseId,
+      partId: partId ?? this.partId,
+      name: name ?? this.name,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (expenseId.present) {
+      map['expense_id'] = Variable<String>(expenseId.value);
+    }
+    if (partId.present) {
+      map['part_id'] = Variable<String>(partId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ExpensePartRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('expenseId: $expenseId, ')
+          ..write('partId: $partId, ')
+          ..write('name: $name, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -6203,6 +7133,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     this,
   );
   late final $FuelLogRecordsTable fuelLogRecords = $FuelLogRecordsTable(this);
+  late final $ExpenseRecordsTable expenseRecords = $ExpenseRecordsTable(this);
+  late final $ExpensePartRecordsTable expensePartRecords =
+      $ExpensePartRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -6219,6 +7152,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     servicePartRecords,
     fuelTypeRecords,
     fuelLogRecords,
+    expenseRecords,
+    expensePartRecords,
   ];
 }
 
@@ -9340,6 +10275,503 @@ typedef $$FuelLogRecordsTableProcessedTableManager =
       FuelLogRecord,
       PrefetchHooks Function()
     >;
+typedef $$ExpenseRecordsTableCreateCompanionBuilder =
+    ExpenseRecordsCompanion Function({
+      required String id,
+      required String vehicleId,
+      required String category,
+      required double amount,
+      required DateTime incurredOn,
+      Value<String?> notes,
+      Value<String?> receiptLocalPath,
+      Value<String?> receiptMediaId,
+      required DateTime updatedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$ExpenseRecordsTableUpdateCompanionBuilder =
+    ExpenseRecordsCompanion Function({
+      Value<String> id,
+      Value<String> vehicleId,
+      Value<String> category,
+      Value<double> amount,
+      Value<DateTime> incurredOn,
+      Value<String?> notes,
+      Value<String?> receiptLocalPath,
+      Value<String?> receiptMediaId,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$ExpenseRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $ExpenseRecordsTable> {
+  $$ExpenseRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get incurredOn => $composableBuilder(
+    column: $table.incurredOn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiptLocalPath => $composableBuilder(
+    column: $table.receiptLocalPath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiptMediaId => $composableBuilder(
+    column: $table.receiptMediaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExpenseRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExpenseRecordsTable> {
+  $$ExpenseRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get incurredOn => $composableBuilder(
+    column: $table.incurredOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get receiptLocalPath => $composableBuilder(
+    column: $table.receiptLocalPath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get receiptMediaId => $composableBuilder(
+    column: $table.receiptMediaId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExpenseRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExpenseRecordsTable> {
+  $$ExpenseRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get incurredOn => $composableBuilder(
+    column: $table.incurredOn,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get receiptLocalPath => $composableBuilder(
+    column: $table.receiptLocalPath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get receiptMediaId => $composableBuilder(
+    column: $table.receiptMediaId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$ExpenseRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExpenseRecordsTable,
+          ExpenseRecord,
+          $$ExpenseRecordsTableFilterComposer,
+          $$ExpenseRecordsTableOrderingComposer,
+          $$ExpenseRecordsTableAnnotationComposer,
+          $$ExpenseRecordsTableCreateCompanionBuilder,
+          $$ExpenseRecordsTableUpdateCompanionBuilder,
+          (
+            ExpenseRecord,
+            BaseReferences<_$AppDatabase, $ExpenseRecordsTable, ExpenseRecord>,
+          ),
+          ExpenseRecord,
+          PrefetchHooks Function()
+        > {
+  $$ExpenseRecordsTableTableManager(
+    _$AppDatabase db,
+    $ExpenseRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExpenseRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExpenseRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExpenseRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<DateTime> incurredOn = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> receiptLocalPath = const Value.absent(),
+                Value<String?> receiptMediaId = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExpenseRecordsCompanion(
+                id: id,
+                vehicleId: vehicleId,
+                category: category,
+                amount: amount,
+                incurredOn: incurredOn,
+                notes: notes,
+                receiptLocalPath: receiptLocalPath,
+                receiptMediaId: receiptMediaId,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vehicleId,
+                required String category,
+                required double amount,
+                required DateTime incurredOn,
+                Value<String?> notes = const Value.absent(),
+                Value<String?> receiptLocalPath = const Value.absent(),
+                Value<String?> receiptMediaId = const Value.absent(),
+                required DateTime updatedAt,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => ExpenseRecordsCompanion.insert(
+                id: id,
+                vehicleId: vehicleId,
+                category: category,
+                amount: amount,
+                incurredOn: incurredOn,
+                notes: notes,
+                receiptLocalPath: receiptLocalPath,
+                receiptMediaId: receiptMediaId,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExpenseRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExpenseRecordsTable,
+      ExpenseRecord,
+      $$ExpenseRecordsTableFilterComposer,
+      $$ExpenseRecordsTableOrderingComposer,
+      $$ExpenseRecordsTableAnnotationComposer,
+      $$ExpenseRecordsTableCreateCompanionBuilder,
+      $$ExpenseRecordsTableUpdateCompanionBuilder,
+      (
+        ExpenseRecord,
+        BaseReferences<_$AppDatabase, $ExpenseRecordsTable, ExpenseRecord>,
+      ),
+      ExpenseRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$ExpensePartRecordsTableCreateCompanionBuilder =
+    ExpensePartRecordsCompanion Function({
+      required String id,
+      required String expenseId,
+      required String partId,
+      required String name,
+      Value<int> rowid,
+    });
+typedef $$ExpensePartRecordsTableUpdateCompanionBuilder =
+    ExpensePartRecordsCompanion Function({
+      Value<String> id,
+      Value<String> expenseId,
+      Value<String> partId,
+      Value<String> name,
+      Value<int> rowid,
+    });
+
+class $$ExpensePartRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $ExpensePartRecordsTable> {
+  $$ExpensePartRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get expenseId => $composableBuilder(
+    column: $table.expenseId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partId => $composableBuilder(
+    column: $table.partId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ExpensePartRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ExpensePartRecordsTable> {
+  $$ExpensePartRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get expenseId => $composableBuilder(
+    column: $table.expenseId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partId => $composableBuilder(
+    column: $table.partId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ExpensePartRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ExpensePartRecordsTable> {
+  $$ExpensePartRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get expenseId =>
+      $composableBuilder(column: $table.expenseId, builder: (column) => column);
+
+  GeneratedColumn<String> get partId =>
+      $composableBuilder(column: $table.partId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+}
+
+class $$ExpensePartRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ExpensePartRecordsTable,
+          ExpensePartRecord,
+          $$ExpensePartRecordsTableFilterComposer,
+          $$ExpensePartRecordsTableOrderingComposer,
+          $$ExpensePartRecordsTableAnnotationComposer,
+          $$ExpensePartRecordsTableCreateCompanionBuilder,
+          $$ExpensePartRecordsTableUpdateCompanionBuilder,
+          (
+            ExpensePartRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $ExpensePartRecordsTable,
+              ExpensePartRecord
+            >,
+          ),
+          ExpensePartRecord,
+          PrefetchHooks Function()
+        > {
+  $$ExpensePartRecordsTableTableManager(
+    _$AppDatabase db,
+    $ExpensePartRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ExpensePartRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ExpensePartRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ExpensePartRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> expenseId = const Value.absent(),
+                Value<String> partId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ExpensePartRecordsCompanion(
+                id: id,
+                expenseId: expenseId,
+                partId: partId,
+                name: name,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String expenseId,
+                required String partId,
+                required String name,
+                Value<int> rowid = const Value.absent(),
+              }) => ExpensePartRecordsCompanion.insert(
+                id: id,
+                expenseId: expenseId,
+                partId: partId,
+                name: name,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ExpensePartRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ExpensePartRecordsTable,
+      ExpensePartRecord,
+      $$ExpensePartRecordsTableFilterComposer,
+      $$ExpensePartRecordsTableOrderingComposer,
+      $$ExpensePartRecordsTableAnnotationComposer,
+      $$ExpensePartRecordsTableCreateCompanionBuilder,
+      $$ExpensePartRecordsTableUpdateCompanionBuilder,
+      (
+        ExpensePartRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $ExpensePartRecordsTable,
+          ExpensePartRecord
+        >,
+      ),
+      ExpensePartRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -9366,4 +10798,8 @@ class $AppDatabaseManager {
       $$FuelTypeRecordsTableTableManager(_db, _db.fuelTypeRecords);
   $$FuelLogRecordsTableTableManager get fuelLogRecords =>
       $$FuelLogRecordsTableTableManager(_db, _db.fuelLogRecords);
+  $$ExpenseRecordsTableTableManager get expenseRecords =>
+      $$ExpenseRecordsTableTableManager(_db, _db.expenseRecords);
+  $$ExpensePartRecordsTableTableManager get expensePartRecords =>
+      $$ExpensePartRecordsTableTableManager(_db, _db.expensePartRecords);
 }

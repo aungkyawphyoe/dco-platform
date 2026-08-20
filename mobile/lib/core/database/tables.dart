@@ -176,3 +176,35 @@ class FuelLogRecords extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+class ExpenseRecords extends Table {
+  @override
+  String get tableName => 'expenses';
+
+  TextColumn get id => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get category => text()();
+  RealColumn get amount => real()();
+  DateTimeColumn get incurredOn => dateTime()();
+  TextColumn get notes => text().nullable()();
+  TextColumn get receiptLocalPath => text().nullable()();
+  TextColumn get receiptMediaId => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class ExpensePartRecords extends Table {
+  @override
+  String get tableName => 'expense_parts';
+
+  TextColumn get id => text()();
+  TextColumn get expenseId => text()();
+  TextColumn get partId => text()();
+  TextColumn get name => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

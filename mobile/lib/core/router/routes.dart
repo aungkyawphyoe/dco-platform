@@ -19,6 +19,8 @@ abstract final class AppRoutes {
       '/maintenance/register?item=$planItemId';
   static String serviceDetail(String id) => '/maintenance/history/$id';
   static const expenses = '/expenses';
+  static const expenseNew = '/expenses/new';
+  static String expenseEdit(String id) => '/expenses/$id/edit';
   static const documents = '/expenses/documents';
   static const settings = '/settings';
   static const settingsLocalization = '/settings/localization';

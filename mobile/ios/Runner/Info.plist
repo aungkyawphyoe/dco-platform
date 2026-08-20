@@ -48,9 +48,9 @@
 		</dict>
 	</dict>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>DCO uses your photo library to attach a vehicle photo.</string>
+	<string>DCO uses your photo library to attach vehicle and receipt photos.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>DCO uses the camera to take a vehicle photo.</string>
+	<string>DCO uses the camera to take vehicle and receipt photos.</string>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

@@ -9,6 +9,8 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/features/dashboard/presentation/widgets/quick_actions_grid.dart';
+import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
+import 'package:dco_mobile/features/expenses/providers.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
@@ -116,7 +118,10 @@ class _PopulatedDashboard extends ConsumerWidget {
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
     final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
-    final money = NumberFormat.simpleCurrency().format(0);
+    final currency = ref.watch(userPreferencesProvider).valueOrNull?.currency.code ?? 'USD';
+    final summary = ref.watch(vehicleExpenseSummaryProvider).valueOrNull ?? ExpenseSummary.empty;
+    final moneyTotal = '${summary.total.toStringAsFixed(2)} $currency';
+    final moneyMonth = '${summary.thisMonth.toStringAsFixed(2)} $currency';
     final history = ref.watch(maintenanceHistoryProvider).valueOrNull ?? const <ServiceRecord>[];
     final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
     final recent = history.take(DashboardScreen.recentActivityLimit).toList();
@@ -188,9 +193,9 @@ class _PopulatedDashboard extends ConsumerWidget {
         SizedBox(height: tokens.space.s3),
         Row(
           children: [
-            Expanded(child: _StatCard(label: 'Total spent', value: money)),
+            Expanded(child: _StatCard(label: 'Total spent', value: moneyTotal)),
             SizedBox(width: tokens.space.s3),
-            Expanded(child: _StatCard(label: 'This month', value: money)),
+            Expanded(child: _StatCard(label: 'This month', value: moneyMonth)),
           ],
         ),
         SizedBox(height: tokens.space.s5),

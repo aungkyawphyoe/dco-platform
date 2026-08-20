@@ -37,6 +37,7 @@ Enable users to:
 # Out of Scope
 
 - Fuel tracking (volume, efficiency, charging)
+- Insurance
 - Insurance policy management
 - Trip-linked costs
 - Multi-currency conversion

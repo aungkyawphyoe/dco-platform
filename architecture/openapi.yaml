@@ -1501,6 +1501,10 @@ components:
           type: string
           format: uuid
           nullable: true
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExpensePart'
     ExpenseWrite:
       type: object
       required: [id, category, amount, incurred_on]
@@ -1523,6 +1527,22 @@ components:
         receipt_media_id:
           type: string
           format: uuid
+        parts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExpensePart'
+    ExpensePart:
+      type: object
+      required: [part_id, name]
+      properties:
+        id:
+          type: string
+          format: uuid
+        part_id:
+          type: string
+          format: uuid
+        name:
+          type: string
     ExpenseSummary:
       type: object
       required: [this_month, total]
