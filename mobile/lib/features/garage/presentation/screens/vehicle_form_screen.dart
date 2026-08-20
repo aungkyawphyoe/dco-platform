@@ -1,14 +1,17 @@
 import 'dart:io';
 
+import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_failure.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_validators.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -16,8 +19,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
-
-import 'package:dco_mobile/core/analytics/analytics.dart';
 
 class VehicleFormScreen extends ConsumerStatefulWidget {
   const VehicleFormScreen({super.key, this.vehicleId});
@@ -69,9 +70,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       _year.text = '${vehicle.year}';
       _model.text = vehicle.model;
       _plate.text = vehicle.licensePlate;
-      _mileage.text = vehicle.mileage.truncateToDouble() == vehicle.mileage
-          ? vehicle.mileage.toStringAsFixed(0)
-          : vehicle.mileage.toString();
+      _mileage.text = MileageFormat.input(vehicle.mileage, ref.read(lengthUnitProvider));
       _vin.text = vehicle.vin ?? '';
       _color.text = vehicle.color ?? '';
       _nickname.text = vehicle.nickname ?? '';
@@ -114,6 +113,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       _formError = null;
     });
     if (_errors.values.any((error) => error != null) || _fuelType == null) return null;
+    final unit = ref.read(lengthUnitProvider);
     return VehicleDraft(
       name: _name.text,
       make: _make.text,
@@ -121,7 +121,8 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       year: VehicleValidators.parseYear(_year.text)!,
       licensePlate: _plate.text,
       fuelType: _fuelType!,
-      mileage: VehicleValidators.parseMileage(_mileage.text)!,
+      mileage: unit.toStorage(VehicleValidators.parseMileage(_mileage.text)!),
+      mileageUnit: MileageUnit.mi,
       nickname: _nickname.text,
       vin: _vin.text,
       color: _color.text,
@@ -205,6 +206,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final lengthUnit = ref.watch(lengthUnitProvider);
     if (_loading) {
       return Scaffold(
         appBar: AppBar(title: Text(widget.isEditing ? 'Edit Vehicle' : 'Register Vehicle')),
@@ -288,7 +290,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                   textInputAction: TextInputAction.next,
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text('mi', style: TextStyle(color: tokens.text.caption)),
+                    child: Text(lengthUnit.label, style: TextStyle(color: tokens.text.caption)),
                   ),
                   onChanged: (_) => setState(() => _errors['mileage'] = null),
                 ),

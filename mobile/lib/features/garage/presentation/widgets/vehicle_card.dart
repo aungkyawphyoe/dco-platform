@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
 
 class VehicleCard extends StatelessWidget {
   const VehicleCard({
@@ -12,18 +12,20 @@ class VehicleCard extends StatelessWidget {
     required this.vehicle,
     required this.isActive,
     required this.onOpen,
+    this.lengthUnit = MileageUnit.mi,
     this.onSetActive,
   });
 
   final Vehicle vehicle;
   final bool isActive;
   final VoidCallback onOpen;
+  final MileageUnit lengthUnit;
   final VoidCallback? onSetActive;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final mileage = NumberFormat('#,###').format(vehicle.mileage.round());
+    final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
     return Material(
       color: tokens.background.card,
       borderRadius: BorderRadius.circular(tokens.radius.md),
@@ -68,7 +70,7 @@ class VehicleCard extends StatelessWidget {
                     ),
                     SizedBox(height: tokens.space.s2),
                     Text(
-                      '$mileage ${vehicle.mileageUnit.label}',
+                      mileage,
                       style: GoogleFonts.ibmPlexMono(
                         color: tokens.text.primary,
                         fontSize: 13,

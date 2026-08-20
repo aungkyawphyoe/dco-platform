@@ -5,6 +5,7 @@ import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_tile.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +18,7 @@ class MaintenancePlanScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan = ref.watch(maintenancePlanProvider);
+    final lengthUnit = ref.watch(lengthUnitProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Maintenance Plan')),
@@ -52,6 +54,7 @@ class MaintenancePlanScreen extends ConsumerWidget {
                               item: item,
                               vehicle: vehicle,
                               now: now,
+                              lengthUnit: lengthUnit,
                               onTap: () => context.push(AppRoutes.maintenancePlanEdit(item.id)),
                             ),
                           ),

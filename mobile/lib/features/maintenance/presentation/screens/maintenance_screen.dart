@@ -9,6 +9,7 @@ import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_t
 import 'package:dco_mobile/features/maintenance/presentation/widgets/section_header.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -22,6 +23,7 @@ class MaintenanceScreen extends ConsumerWidget {
     final active = ref.watch(activeVehicleProvider);
     final plan = ref.watch(maintenancePlanProvider);
     final history = ref.watch(maintenanceHistoryProvider);
+    final lengthUnit = ref.watch(lengthUnitProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -89,6 +91,7 @@ class MaintenanceScreen extends ConsumerWidget {
                           item: item,
                           vehicle: vehicle,
                           now: now,
+                          lengthUnit: lengthUnit,
                           onTap: () => context.push(AppRoutes.maintenanceRegisterItem(item.id)),
                         ),
                       ),
@@ -105,6 +108,7 @@ class MaintenanceScreen extends ConsumerWidget {
                           item: item,
                           vehicle: vehicle,
                           now: now,
+                          lengthUnit: lengthUnit,
                           onTap: () => context.push(AppRoutes.maintenanceRegisterItem(item.id)),
                         ),
                       ),
@@ -116,7 +120,7 @@ class MaintenanceScreen extends ConsumerWidget {
                       ...records.map(
                         (record) => HistoryTile(
                           record: record,
-                          unit: vehicle.mileageUnit.label,
+                          lengthUnit: lengthUnit,
                           onTap: () => context.push(AppRoutes.serviceDetail(record.id)),
                         ),
                       ),

@@ -1,6 +1,7 @@
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
@@ -13,6 +14,7 @@ import 'package:dco_mobile/features/maintenance/domain/maintenance_failure.dart'
 import 'package:dco_mobile/features/maintenance/domain/plan_item_validators.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -65,9 +67,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   void _prefill(Vehicle vehicle, List<PlanItem> plan) {
     if (!_mileagePrefill) {
       _mileagePrefill = true;
-      _mileage.text = vehicle.mileage.truncateToDouble() == vehicle.mileage
-          ? vehicle.mileage.toStringAsFixed(0)
-          : vehicle.mileage.toString();
+      _mileage.text = MileageFormat.input(vehicle.mileage, ref.read(lengthUnitProvider));
     }
     final preselected = widget.preselectedPlanItemId;
     if (!_itemPrefill && preselected != null) {
@@ -115,7 +115,8 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   }
 
   ServiceRecordDraft? _draftOrNull() {
-    final odometer = PlanItemValidators.parseMileage(_mileage.text);
+    final parsed = PlanItemValidators.parseMileage(_mileage.text);
+    final odometer = parsed == null ? null : ref.read(lengthUnitProvider).toStorage(parsed);
     final total = ServiceRecordValidators.parseCost(_total.text) ??
         _lines.fold<double>(0, (sum, line) => sum + (line.cost ?? 0));
     final items = _lines
@@ -189,6 +190,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
 
   Future<void> _openAddService(Vehicle vehicle, List<PlanItem> plan) async {
     final now = DateTime.now();
+    final lengthUnit = ref.read(lengthUnitProvider);
     final available = plan.where((item) {
       if (!item.enabled) return false;
       if (_lines.any((line) => line.planItemId == item.id)) return false;
@@ -232,8 +234,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                     subtitle: Text(
                       DueCalculator.intervalLabel(
                         intervalDays: item.intervalDays,
-                        intervalDistance: item.intervalDistance,
-                        unit: vehicle.mileageUnit.label,
+                        intervalDistance: item.intervalDistance == null
+                            ? null
+                            : lengthUnit.toDisplay(item.intervalDistance!),
+                        unit: lengthUnit.label,
                       ),
                     ),
                     onTap: () {
@@ -267,6 +271,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final lengthUnit = ref.watch(lengthUnitProvider);
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
     if (vehicle != null) {
@@ -313,12 +318,12 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                   key: const Key('register-mileage'),
                   label: 'Mileage *',
                   controller: _mileage,
-                  hint: '*** ${vehicle.mileageUnit.label}',
+                  hint: '*** ${lengthUnit.label}',
                   errorText: _errors['mileage'],
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(vehicle.mileageUnit.label, style: TextStyle(color: tokens.text.caption)),
+                    child: Text(lengthUnit.label, style: TextStyle(color: tokens.text.caption)),
                   ),
                   onChanged: (_) => setState(() => _errors['mileage'] = null),
                 ),

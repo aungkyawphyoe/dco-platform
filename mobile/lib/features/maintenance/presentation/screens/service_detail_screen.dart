@@ -1,7 +1,8 @@
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
-import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -15,7 +16,7 @@ class ServiceDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
-    final unit = ref.watch(activeVehicleProvider).valueOrNull?.mileageUnit.label ?? 'mi';
+    final lengthUnit = ref.watch(lengthUnitProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Service')),
@@ -33,7 +34,7 @@ class ServiceDetailScreen extends ConsumerWidget {
             );
           }
           final money = NumberFormat.simpleCurrency().format(record.totalCost);
-          final miles = NumberFormat('#,###').format(record.odometer.round());
+          final odometer = MileageFormat.labeled(record.odometer, lengthUnit);
           return ListView(
             padding: EdgeInsets.all(tokens.space.s5),
             children: [
@@ -44,7 +45,7 @@ class ServiceDetailScreen extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               SizedBox(height: tokens.space.s5),
-              _kv(context, 'Mileage', '$miles $unit'),
+              _kv(context, 'Mileage', odometer),
               _kv(context, 'Total', money),
               if (record.workshopName != null) _kv(context, 'Workshop', record.workshopName!),
               if (record.notes != null) _kv(context, 'Notes', record.notes!),

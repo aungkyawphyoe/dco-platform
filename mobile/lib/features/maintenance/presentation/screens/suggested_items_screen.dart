@@ -6,6 +6,7 @@ import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/suggested_catalog.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -17,6 +18,7 @@ class SuggestedItemsScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const [];
+    final lengthUnit = ref.watch(lengthUnitProvider);
     final existing = plan.map((item) => item.catalogKey).whereType<String>().toSet();
 
     return Scaffold(
@@ -77,8 +79,10 @@ class SuggestedItemsScreen extends ConsumerWidget {
                                     Text(
                                       DueCalculator.intervalLabel(
                                         intervalDays: item.intervalDays,
-                                        intervalDistance: item.intervalDistance,
-                                        unit: vehicle.mileageUnit.label,
+                                        intervalDistance: item.intervalDistance == null
+                                            ? null
+                                            : lengthUnit.toDisplay(item.intervalDistance!),
+                                        unit: lengthUnit.label,
                                       ),
                                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                         color: tokens.text.caption,

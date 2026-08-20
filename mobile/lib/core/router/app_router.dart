@@ -13,14 +13,19 @@ import '../../features/documents/presentation/screens/documents_screen.dart';
 import '../../features/expenses/presentation/screens/expenses_screen.dart';
 import '../../features/garage/presentation/screens/garage_home_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
+import '../../features/insurance/presentation/screens/insurance_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_plan_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_screen.dart';
 import '../../features/maintenance/presentation/screens/plan_item_form_screen.dart';
 import '../../features/maintenance/presentation/screens/register_service_screen.dart';
 import '../../features/maintenance/presentation/screens/service_detail_screen.dart';
+import '../../features/maintenance/presentation/screens/service_history_screen.dart';
 import '../../features/maintenance/presentation/screens/suggested_items_screen.dart';
 import '../../features/notifications/presentation/screens/notification_feed_screen.dart';
+import '../../features/parts/presentation/screens/parts_screen.dart';
+import '../../features/settings/presentation/screens/localization_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/settings/presentation/screens/units_formats_screen.dart';
 import 'app_shell.dart';
 import 'routes.dart';
 
@@ -114,6 +119,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const NotificationFeedScreen(),
                   ),
+                  GoRoute(
+                    path: 'services',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const ServiceHistoryScreen(),
+                  ),
+                  GoRoute(
+                    path: 'documents',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const DocumentsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'insurance',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const InsuranceScreen(),
+                  ),
+                  GoRoute(
+                    path: 'parts',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const PartsScreen(),
+                  ),
                 ],
               ),
             ],
@@ -186,6 +211,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: AppRoutes.settings,
                 builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'localization',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const LocalizationScreen(),
+                  ),
+                  GoRoute(
+                    path: 'units',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const UnitsFormatsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

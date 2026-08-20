@@ -13,6 +13,8 @@ import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
 import '../../features/garage/domain/repositories/vehicle_repository.dart';
 import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
 import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../../features/settings/data/repositories/preferences_repository_impl.dart';
+import '../../features/settings/domain/repositories/preferences_repository.dart';
 import 'analytics/analytics.dart';
 import 'config/app_config.dart';
 import 'database/app_database.dart';
@@ -111,4 +113,8 @@ final maintenanceRepositoryProvider = Provider<MaintenanceRepository>((ref) {
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
   );
+});
+
+final preferencesRepositoryProvider = Provider<PreferencesRepository>((ref) {
+  return PreferencesRepositoryImpl(ref.watch(appDatabaseProvider));
 });

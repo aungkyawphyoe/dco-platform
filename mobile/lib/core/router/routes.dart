@@ -21,6 +21,12 @@ abstract final class AppRoutes {
   static const expenses = '/expenses';
   static const documents = '/expenses/documents';
   static const settings = '/settings';
+  static const settingsLocalization = '/settings/localization';
+  static const settingsUnits = '/settings/units';
+  static const serviceHistory = '/dashboard/services';
+  static const dashboardDocuments = '/dashboard/documents';
+  static const insurance = '/dashboard/insurance';
+  static const parts = '/dashboard/parts';
 
   static const authPaths = {
     welcome,

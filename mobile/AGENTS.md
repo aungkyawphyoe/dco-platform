@@ -200,6 +200,14 @@ mobile/
         data/
         domain/
         presentation/
+      insurance/
+        data/
+        domain/
+        presentation/
+      parts/
+        data/
+        domain/
+        presentation/
       settings/
         data/
         domain/
@@ -237,7 +245,7 @@ From [`docs/app-shell.md`](../docs/app-shell.md). Keep one `StatefulShellRoute` 
 
 Unauthenticated: login / signup / password-reset only.
 
-Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle; Maintenance Plan, Suggested items, Add item, Register Service, Service detail; Add/Edit expense, Expense detail; Document list / viewer / upload; Notification feed, Profile, Email & password, Notification prefs, Sync status.
+Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Parts; Maintenance Plan, Suggested items, Add item, Register Service, Service detail; Add/Edit expense, Expense detail; Document list / viewer / upload; Notification feed, Profile, Email & password, Notification prefs, Sync status.
 
 Empty garage: Dashboard is still the default route. Maintenance, Expenses, and Documents show their "no active vehicle" empty states until a vehicle exists.
 

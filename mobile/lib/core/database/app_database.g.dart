@@ -1439,8 +1439,50 @@ class $UserProfilesTable extends UserProfiles
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
   @override
-  List<GeneratedColumn> get $columns => [userId, activeVehicleId];
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('en'),
+  );
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('USD'),
+  );
+  static const VerificationMeta _lengthUnitMeta = const VerificationMeta(
+    'lengthUnit',
+  );
+  @override
+  late final GeneratedColumn<String> lengthUnit = GeneratedColumn<String>(
+    'length_unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('mi'),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    userId,
+    activeVehicleId,
+    language,
+    currency,
+    lengthUnit,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1470,6 +1512,24 @@ class $UserProfilesTable extends UserProfiles
         ),
       );
     }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    }
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
+    if (data.containsKey('length_unit')) {
+      context.handle(
+        _lengthUnitMeta,
+        lengthUnit.isAcceptableOrUnknown(data['length_unit']!, _lengthUnitMeta),
+      );
+    }
     return context;
   }
 
@@ -1487,6 +1547,18 @@ class $UserProfilesTable extends UserProfiles
         DriftSqlType.string,
         data['${effectivePrefix}active_vehicle_id'],
       ),
+      language: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}language'],
+      )!,
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
+      lengthUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}length_unit'],
+      )!,
     );
   }
 
@@ -1499,7 +1571,16 @@ class $UserProfilesTable extends UserProfiles
 class UserProfile extends DataClass implements Insertable<UserProfile> {
   final String userId;
   final String? activeVehicleId;
-  const UserProfile({required this.userId, this.activeVehicleId});
+  final String language;
+  final String currency;
+  final String lengthUnit;
+  const UserProfile({
+    required this.userId,
+    this.activeVehicleId,
+    required this.language,
+    required this.currency,
+    required this.lengthUnit,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -1507,6 +1588,9 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     if (!nullToAbsent || activeVehicleId != null) {
       map['active_vehicle_id'] = Variable<String>(activeVehicleId);
     }
+    map['language'] = Variable<String>(language);
+    map['currency'] = Variable<String>(currency);
+    map['length_unit'] = Variable<String>(lengthUnit);
     return map;
   }
 
@@ -1516,6 +1600,9 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       activeVehicleId: activeVehicleId == null && nullToAbsent
           ? const Value.absent()
           : Value(activeVehicleId),
+      language: Value(language),
+      currency: Value(currency),
+      lengthUnit: Value(lengthUnit),
     );
   }
 
@@ -1527,6 +1614,9 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     return UserProfile(
       userId: serializer.fromJson<String>(json['userId']),
       activeVehicleId: serializer.fromJson<String?>(json['activeVehicleId']),
+      language: serializer.fromJson<String>(json['language']),
+      currency: serializer.fromJson<String>(json['currency']),
+      lengthUnit: serializer.fromJson<String>(json['lengthUnit']),
     );
   }
   @override
@@ -1535,17 +1625,26 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     return <String, dynamic>{
       'userId': serializer.toJson<String>(userId),
       'activeVehicleId': serializer.toJson<String?>(activeVehicleId),
+      'language': serializer.toJson<String>(language),
+      'currency': serializer.toJson<String>(currency),
+      'lengthUnit': serializer.toJson<String>(lengthUnit),
     };
   }
 
   UserProfile copyWith({
     String? userId,
     Value<String?> activeVehicleId = const Value.absent(),
+    String? language,
+    String? currency,
+    String? lengthUnit,
   }) => UserProfile(
     userId: userId ?? this.userId,
     activeVehicleId: activeVehicleId.present
         ? activeVehicleId.value
         : this.activeVehicleId,
+    language: language ?? this.language,
+    currency: currency ?? this.currency,
+    lengthUnit: lengthUnit ?? this.lengthUnit,
   );
   UserProfile copyWithCompanion(UserProfilesCompanion data) {
     return UserProfile(
@@ -1553,6 +1652,11 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       activeVehicleId: data.activeVehicleId.present
           ? data.activeVehicleId.value
           : this.activeVehicleId,
+      language: data.language.present ? data.language.value : this.language,
+      currency: data.currency.present ? data.currency.value : this.currency,
+      lengthUnit: data.lengthUnit.present
+          ? data.lengthUnit.value
+          : this.lengthUnit,
     );
   }
 
@@ -1560,43 +1664,65 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
   String toString() {
     return (StringBuffer('UserProfile(')
           ..write('userId: $userId, ')
-          ..write('activeVehicleId: $activeVehicleId')
+          ..write('activeVehicleId: $activeVehicleId, ')
+          ..write('language: $language, ')
+          ..write('currency: $currency, ')
+          ..write('lengthUnit: $lengthUnit')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(userId, activeVehicleId);
+  int get hashCode =>
+      Object.hash(userId, activeVehicleId, language, currency, lengthUnit);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is UserProfile &&
           other.userId == this.userId &&
-          other.activeVehicleId == this.activeVehicleId);
+          other.activeVehicleId == this.activeVehicleId &&
+          other.language == this.language &&
+          other.currency == this.currency &&
+          other.lengthUnit == this.lengthUnit);
 }
 
 class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
   final Value<String> userId;
   final Value<String?> activeVehicleId;
+  final Value<String> language;
+  final Value<String> currency;
+  final Value<String> lengthUnit;
   final Value<int> rowid;
   const UserProfilesCompanion({
     this.userId = const Value.absent(),
     this.activeVehicleId = const Value.absent(),
+    this.language = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.lengthUnit = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserProfilesCompanion.insert({
     required String userId,
     this.activeVehicleId = const Value.absent(),
+    this.language = const Value.absent(),
+    this.currency = const Value.absent(),
+    this.lengthUnit = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : userId = Value(userId);
   static Insertable<UserProfile> custom({
     Expression<String>? userId,
     Expression<String>? activeVehicleId,
+    Expression<String>? language,
+    Expression<String>? currency,
+    Expression<String>? lengthUnit,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
       if (userId != null) 'user_id': userId,
       if (activeVehicleId != null) 'active_vehicle_id': activeVehicleId,
+      if (language != null) 'language': language,
+      if (currency != null) 'currency': currency,
+      if (lengthUnit != null) 'length_unit': lengthUnit,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1604,11 +1730,17 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
   UserProfilesCompanion copyWith({
     Value<String>? userId,
     Value<String?>? activeVehicleId,
+    Value<String>? language,
+    Value<String>? currency,
+    Value<String>? lengthUnit,
     Value<int>? rowid,
   }) {
     return UserProfilesCompanion(
       userId: userId ?? this.userId,
       activeVehicleId: activeVehicleId ?? this.activeVehicleId,
+      language: language ?? this.language,
+      currency: currency ?? this.currency,
+      lengthUnit: lengthUnit ?? this.lengthUnit,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1622,6 +1754,15 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     if (activeVehicleId.present) {
       map['active_vehicle_id'] = Variable<String>(activeVehicleId.value);
     }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
+    if (lengthUnit.present) {
+      map['length_unit'] = Variable<String>(lengthUnit.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1633,6 +1774,9 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     return (StringBuffer('UserProfilesCompanion(')
           ..write('userId: $userId, ')
           ..write('activeVehicleId: $activeVehicleId, ')
+          ..write('language: $language, ')
+          ..write('currency: $currency, ')
+          ..write('lengthUnit: $lengthUnit, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4714,12 +4858,18 @@ typedef $$UserProfilesTableCreateCompanionBuilder =
     UserProfilesCompanion Function({
       required String userId,
       Value<String?> activeVehicleId,
+      Value<String> language,
+      Value<String> currency,
+      Value<String> lengthUnit,
       Value<int> rowid,
     });
 typedef $$UserProfilesTableUpdateCompanionBuilder =
     UserProfilesCompanion Function({
       Value<String> userId,
       Value<String?> activeVehicleId,
+      Value<String> language,
+      Value<String> currency,
+      Value<String> lengthUnit,
       Value<int> rowid,
     });
 
@@ -4739,6 +4889,21 @@ class $$UserProfilesTableFilterComposer
 
   ColumnFilters<String> get activeVehicleId => $composableBuilder(
     column: $table.activeVehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lengthUnit => $composableBuilder(
+    column: $table.lengthUnit,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -4761,6 +4926,21 @@ class $$UserProfilesTableOrderingComposer
     column: $table.activeVehicleId,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lengthUnit => $composableBuilder(
+    column: $table.lengthUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserProfilesTableAnnotationComposer
@@ -4777,6 +4957,17 @@ class $$UserProfilesTableAnnotationComposer
 
   GeneratedColumn<String> get activeVehicleId => $composableBuilder(
     column: $table.activeVehicleId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
+  GeneratedColumn<String> get lengthUnit => $composableBuilder(
+    column: $table.lengthUnit,
     builder: (column) => column,
   );
 }
@@ -4814,20 +5005,32 @@ class $$UserProfilesTableTableManager
               ({
                 Value<String> userId = const Value.absent(),
                 Value<String?> activeVehicleId = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String> lengthUnit = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserProfilesCompanion(
                 userId: userId,
                 activeVehicleId: activeVehicleId,
+                language: language,
+                currency: currency,
+                lengthUnit: lengthUnit,
                 rowid: rowid,
               ),
           createCompanionCallback:
               ({
                 required String userId,
                 Value<String?> activeVehicleId = const Value.absent(),
+                Value<String> language = const Value.absent(),
+                Value<String> currency = const Value.absent(),
+                Value<String> lengthUnit = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserProfilesCompanion.insert(
                 userId: userId,
                 activeVehicleId: activeVehicleId,
+                language: language,
+                currency: currency,
+                lengthUnit: lengthUnit,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

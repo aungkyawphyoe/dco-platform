@@ -1,12 +1,14 @@
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/maintenance_failure.dart';
 import 'package:dco_mobile/features/maintenance/domain/plan_item_validators.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,6 +54,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
     }
     final item = await ref.read(maintenanceRepositoryProvider).getPlanItem(widget.planItemId!);
     if (!mounted) return;
+    final length = ref.read(lengthUnitProvider);
     if (item != null) {
       _name.text = item.name;
       _recurring = item.recurring;
@@ -61,7 +64,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
         _date.text = DateFormat.yMMMd().format(item.nextDueOn!);
       }
       if (item.nextDueMileage != null) {
-        _mileage.text = _num(item.nextDueMileage!);
+        _mileage.text = MileageFormat.input(item.nextDueMileage!, length);
       }
       if (item.intervalDays != null) {
         final decoded = TimeIntervalUnit.fromDays(item.intervalDays!);
@@ -69,7 +72,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
         _unit = decoded.unit;
       }
       if (item.intervalDistance != null) {
-        _intervalDistance.text = _num(item.intervalDistance!);
+        _intervalDistance.text = MileageFormat.input(item.intervalDistance!, length);
       }
     }
     setState(() => _loading = false);
@@ -87,10 +90,13 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
   }
 
   PlanItemDraft? _draftOrNull() {
+    final length = ref.read(lengthUnitProvider);
     final intervalCount = PlanItemValidators.parseIntervalCount(_intervalCount.text);
     final intervalDays = !_recurring || intervalCount == null ? null : _unit.toDays(intervalCount);
-    final intervalDistance = _recurring ? PlanItemValidators.parseMileage(_intervalDistance.text) : null;
-    final mileage = PlanItemValidators.parseMileage(_mileage.text);
+    final parsedDistance = _recurring ? PlanItemValidators.parseMileage(_intervalDistance.text) : null;
+    final intervalDistance = parsedDistance == null ? null : length.toStorage(parsedDistance);
+    final parsedMileage = PlanItemValidators.parseMileage(_mileage.text);
+    final mileage = parsedMileage == null ? null : length.toStorage(parsedMileage);
 
     setState(() {
       _errors
@@ -167,7 +173,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final unit = ref.watch(activeVehicleProvider).valueOrNull?.mileageUnit.label ?? 'mi';
+    final unit = ref.watch(lengthUnitProvider).label;
     if (_loading) {
       return Scaffold(
         appBar: AppBar(title: Text(widget.isEditing ? 'Edit Service Item' : 'Create Service Item')),
@@ -337,10 +343,6 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
         ],
       ),
     );
-  }
-
-  String _num(double value) {
-    return value.truncateToDouble() == value ? value.toStringAsFixed(0) : value.toString();
   }
 }
 

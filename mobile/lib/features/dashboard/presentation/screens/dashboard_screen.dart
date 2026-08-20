@@ -7,12 +7,15 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
+import 'package:dco_mobile/features/dashboard/presentation/widgets/quick_actions_grid.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/service_record.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -111,7 +114,8 @@ class _PopulatedDashboard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
-    final mileage = NumberFormat('#,###').format(vehicle.mileage.round());
+    final lengthUnit = ref.watch(lengthUnitProvider);
+    final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
     final money = NumberFormat.simpleCurrency().format(0);
     final history = ref.watch(maintenanceHistoryProvider).valueOrNull ?? const <ServiceRecord>[];
     final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
@@ -161,7 +165,7 @@ class _PopulatedDashboard extends ConsumerWidget {
                         ),
                         SizedBox(height: tokens.space.s2),
                         Text(
-                          '$mileage ${vehicle.mileageUnit.label}',
+                          mileage,
                           style: Theme.of(context).textTheme.bodyMedium,
                         ),
                         if (vehicle.vin != null) ...[
@@ -189,12 +193,35 @@ class _PopulatedDashboard extends ConsumerWidget {
             Expanded(child: _StatCard(label: 'This month', value: money)),
           ],
         ),
+        SizedBox(height: tokens.space.s5),
+        Text('Quick Actions', style: Theme.of(context).textTheme.titleLarge),
         SizedBox(height: tokens.space.s3),
-        Row(
-          children: [
-            Expanded(child: _StatCard(label: 'Services', value: '${history.length}')),
-            SizedBox(width: tokens.space.s3),
-            const Expanded(child: _StatCard(label: 'Documents', value: '0')),
+        QuickActionsGrid(
+          items: [
+            QuickActionItem(
+              label: 'Services',
+              icon: Icons.build_outlined,
+              color: tokens.chart.maintenance,
+              onTap: () => context.push(AppRoutes.serviceHistory),
+            ),
+            QuickActionItem(
+              label: 'Documents',
+              icon: Icons.folder_outlined,
+              color: tokens.status.infoFg,
+              onTap: () => context.push(AppRoutes.dashboardDocuments),
+            ),
+            QuickActionItem(
+              label: 'Insurance',
+              icon: Icons.shield_outlined,
+              color: tokens.chart.insurance,
+              onTap: () => context.push(AppRoutes.insurance),
+            ),
+            QuickActionItem(
+              label: 'Parts',
+              icon: Icons.settings_outlined,
+              color: tokens.chart.parts,
+              onTap: () => context.push(AppRoutes.parts),
+            ),
           ],
         ),
         SizedBox(height: tokens.space.s5),
@@ -221,6 +248,7 @@ class _PopulatedDashboard extends ConsumerWidget {
         _NextMaintenanceCard(
           vehicle: vehicle,
           item: next,
+          lengthUnit: lengthUnit,
           onLogService: next == null
               ? () => context.push(AppRoutes.maintenancePlan)
               : () {
@@ -282,11 +310,13 @@ class _NextMaintenanceCard extends StatelessWidget {
   const _NextMaintenanceCard({
     required this.vehicle,
     required this.item,
+    required this.lengthUnit,
     required this.onLogService,
   });
 
   final Vehicle vehicle;
   final PlanItem? item;
+  final MileageUnit lengthUnit;
   final VoidCallback onLogService;
 
   @override
@@ -340,7 +370,7 @@ class _NextMaintenanceCard extends StatelessWidget {
             Text(item!.name, style: Theme.of(context).textTheme.titleMedium),
             SizedBox(height: tokens.space.s2),
             Text(
-              _dueCopy(item!, vehicle),
+              _dueCopy(item!, vehicle, lengthUnit),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: dueColor),
             ),
             SizedBox(height: tokens.space.s4),
@@ -352,7 +382,7 @@ class _NextMaintenanceCard extends StatelessWidget {
   }
 }
 
-String _dueCopy(PlanItem item, Vehicle vehicle) {
+String _dueCopy(PlanItem item, Vehicle vehicle, MileageUnit unit) {
   final now = DateTime.now();
   final today = DueCalculator.dateOnly(now);
   final overdue = DueCalculator.urgency(
@@ -362,12 +392,13 @@ String _dueCopy(PlanItem item, Vehicle vehicle) {
       ) ==
       PlanUrgency.overdue;
   final miles = NumberFormat('#,###');
-  final unit = vehicle.mileageUnit.label;
 
   if (overdue) {
     final parts = <String>[];
     if (item.nextDueMileage != null && vehicle.mileage > item.nextDueMileage!) {
-      parts.add('${miles.format((vehicle.mileage - item.nextDueMileage!).round())} $unit');
+      parts.add(
+        '${miles.format(unit.toDisplay(vehicle.mileage - item.nextDueMileage!).round())} ${unit.label}',
+      );
     }
     if (item.nextDueOn != null) {
       final days = today.difference(DueCalculator.dateOnly(item.nextDueOn!)).inDays;
@@ -379,13 +410,13 @@ String _dueCopy(PlanItem item, Vehicle vehicle) {
 
   final remainingMiles = item.nextDueMileage == null
       ? null
-      : (item.nextDueMileage! - vehicle.mileage).round();
+      : unit.toDisplay(item.nextDueMileage! - vehicle.mileage).round();
   final dateLabel = item.nextDueOn == null ? null : DateFormat.MMMd().format(item.nextDueOn!);
   if (remainingMiles != null && remainingMiles > 0 && dateLabel != null) {
-    return 'Due in ${miles.format(remainingMiles)} $unit ($dateLabel)';
+    return 'Due in ${miles.format(remainingMiles)} ${unit.label} ($dateLabel)';
   }
   if (remainingMiles != null && remainingMiles > 0) {
-    return 'Due in ${miles.format(remainingMiles)} $unit';
+    return 'Due in ${miles.format(remainingMiles)} ${unit.label}';
   }
   if (dateLabel != null) return 'Due $dateLabel';
   return 'Due soon';

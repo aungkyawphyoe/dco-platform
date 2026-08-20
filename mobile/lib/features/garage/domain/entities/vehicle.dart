@@ -1,3 +1,7 @@
+import 'package:dco_mobile/core/units/mileage_unit.dart';
+
+export 'package:dco_mobile/core/units/mileage_unit.dart';
+
 enum FuelType {
   petrol,
   electric,
@@ -20,17 +24,6 @@ enum FuelType {
       (type) => type.storage == value || type.name == value,
       orElse: () => throw FormatException('Unknown fuel type: $value'),
     );
-  }
-}
-
-enum MileageUnit {
-  mi,
-  km;
-
-  String get label => this == MileageUnit.mi ? 'mi' : 'km';
-
-  static MileageUnit parse(String value) {
-    return value == 'km' ? MileageUnit.km : MileageUnit.mi;
   }
 }
 

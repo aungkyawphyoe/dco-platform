@@ -1,4 +1,5 @@
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
@@ -13,6 +14,7 @@ class PlanItemTile extends StatelessWidget {
     required this.item,
     required this.vehicle,
     required this.now,
+    this.lengthUnit = MileageUnit.mi,
     this.onTap,
     this.leadingAction,
   });
@@ -20,6 +22,7 @@ class PlanItemTile extends StatelessWidget {
   final PlanItem item;
   final Vehicle vehicle;
   final DateTime now;
+  final MileageUnit lengthUnit;
   final VoidCallback? onTap;
   final Widget? leadingAction;
 
@@ -83,7 +86,7 @@ class PlanItemTile extends StatelessWidget {
                       Text(item.name, style: Theme.of(context).textTheme.titleMedium),
                       SizedBox(height: tokens.space.s1),
                       Text(
-                        _dueLine(item, vehicle, overdue),
+                        _dueLine(item, vehicle, overdue, lengthUnit),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: overdue ? tokens.feedback.overdue : tokens.text.caption,
                         ),
@@ -92,8 +95,10 @@ class PlanItemTile extends StatelessWidget {
                       Text(
                         DueCalculator.intervalLabel(
                           intervalDays: item.intervalDays,
-                          intervalDistance: item.intervalDistance,
-                          unit: vehicle.mileageUnit.label,
+                          intervalDistance: item.intervalDistance == null
+                              ? null
+                              : lengthUnit.toDisplay(item.intervalDistance!),
+                          unit: lengthUnit.label,
                         ),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: tokens.text.caption,
@@ -111,12 +116,11 @@ class PlanItemTile extends StatelessWidget {
   }
 }
 
-String _dueLine(PlanItem item, Vehicle vehicle, bool overdue) {
+String _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit unit) {
   if (overdue) {
     final parts = <String>[];
     if (item.nextDueMileage != null && vehicle.mileage > item.nextDueMileage!) {
-      final delta = NumberFormat('#,###').format((vehicle.mileage - item.nextDueMileage!).round());
-      parts.add('$delta ${vehicle.mileageUnit.label}');
+      parts.add(MileageFormat.labeled(vehicle.mileage - item.nextDueMileage!, unit));
     }
     if (item.nextDueOn != null) {
       final days = DateTime.now().difference(DueCalculator.dateOnly(item.nextDueOn!)).inDays;
@@ -127,7 +131,7 @@ String _dueLine(PlanItem item, Vehicle vehicle, bool overdue) {
   }
   final bits = <String>[];
   if (item.nextDueMileage != null) {
-    bits.add('${NumberFormat('#,###').format(item.nextDueMileage!.round())} ${vehicle.mileageUnit.label}');
+    bits.add(MileageFormat.labeled(item.nextDueMileage!, unit));
   }
   if (item.nextDueOn != null) {
     bits.add(DateFormat.MMMd().format(item.nextDueOn!));
@@ -137,17 +141,22 @@ String _dueLine(PlanItem item, Vehicle vehicle, bool overdue) {
 }
 
 class HistoryTile extends StatelessWidget {
-  const HistoryTile({super.key, required this.record, required this.unit, this.onTap});
+  const HistoryTile({
+    super.key,
+    required this.record,
+    required this.lengthUnit,
+    this.onTap,
+  });
 
   final ServiceRecord record;
-  final String unit;
+  final MileageUnit lengthUnit;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final money = NumberFormat.simpleCurrency().format(record.totalCost);
-    final miles = NumberFormat('#,###').format(record.odometer.round());
+    final odometer = MileageFormat.labeled(record.odometer, lengthUnit);
     final workshop = record.workshopName;
     return Padding(
       padding: EdgeInsets.fromLTRB(tokens.space.s4, 0, tokens.space.s4, tokens.space.s3),
@@ -182,7 +191,7 @@ class HistoryTile extends StatelessWidget {
                 Text(record.title, style: Theme.of(context).textTheme.titleMedium),
                 SizedBox(height: tokens.space.s1),
                 Text(
-                  workshop == null || workshop.isEmpty ? '$miles $unit' : '$miles $unit  $workshop',
+                  workshop == null || workshop.isEmpty ? odometer : '$odometer  $workshop',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                 ),
               ],

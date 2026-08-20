@@ -6,6 +6,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/presentation/widgets/vehicle_card.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +20,7 @@ class GarageHomeScreen extends ConsumerWidget {
     final vehicles = ref.watch(garageVehiclesProvider);
     final active = ref.watch(activeVehicleProvider).valueOrNull;
     final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
+    final lengthUnit = ref.watch(lengthUnitProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -52,6 +54,7 @@ class GarageHomeScreen extends ConsumerWidget {
                   child: VehicleCard(
                     vehicle: vehicle,
                     isActive: vehicle.id == active?.id,
+                    lengthUnit: lengthUnit,
                     onOpen: () => context.push(AppRoutes.vehicleEdit(vehicle.id)),
                     onSetActive: vehicle.id == active?.id || userId == null
                         ? null

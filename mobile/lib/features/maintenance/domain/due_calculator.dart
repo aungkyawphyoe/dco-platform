@@ -133,10 +133,7 @@ abstract final class DueCalculator {
       parts.add('${decoded.value} $noun');
     }
     if (intervalDistance != null && intervalDistance > 0) {
-      final miles = intervalDistance.truncateToDouble() == intervalDistance
-          ? intervalDistance.toStringAsFixed(0)
-          : intervalDistance.toString();
-      parts.add('$miles $unit');
+      parts.add('${intervalDistance.round()} $unit');
     }
     if (parts.isEmpty) return 'One-time';
     return 'Every ${parts.join(' or ')}';
