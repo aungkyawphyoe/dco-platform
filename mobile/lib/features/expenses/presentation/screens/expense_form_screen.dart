@@ -4,6 +4,7 @@ import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
@@ -63,7 +64,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
       if (expense != null && mounted) {
         _category = expense.category;
         _categoryLabel.text = expense.category.label;
-        _amount.text = _formatNumber(expense.amount);
+        _amount.text = MoneyFormat.input(expense.amount, ref.read(currencyProvider).code);
         _incurredOn = expense.incurredOn;
         _date.text = DateFormat.yMMMd().format(expense.incurredOn);
         _notes.text = expense.notes ?? '';
@@ -90,10 +91,6 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     _date.dispose();
     _notes.dispose();
     super.dispose();
-  }
-
-  String _formatNumber(double value) {
-    return value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
   }
 
   ExpenseDraft? _draftOrNull() {
@@ -353,7 +350,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
-    final currency = ref.watch(userPreferencesProvider).valueOrNull?.currency.code ?? 'USD';
+    final currency = ref.watch(currencyProvider).code;
     ref.watch(vehiclePartsProvider);
 
     if (_loading) {
@@ -411,9 +408,13 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   key: const Key('expense-amount'),
                   label: 'Amount *',
                   controller: _amount,
-                  hint: currency,
+                  hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
                   errorText: _errors['amount'],
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: TextInputType.numberWithOptions(decimal: !MoneyFormat.isMmk(currency)),
+                  suffix: Padding(
+                    padding: const EdgeInsets.only(right: 12, top: 12),
+                    child: Text(currency, style: TextStyle(color: tokens.text.caption)),
+                  ),
                   onChanged: (_) => setState(() => _errors['amount'] = null),
                 ),
                 SizedBox(height: tokens.space.s4),

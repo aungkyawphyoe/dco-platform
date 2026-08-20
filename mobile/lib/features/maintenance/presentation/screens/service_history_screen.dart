@@ -18,6 +18,7 @@ class ServiceHistoryScreen extends ConsumerWidget {
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final history = ref.watch(maintenanceHistoryProvider);
     final lengthUnit = ref.watch(lengthUnitProvider);
+    final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Service History')),
@@ -44,6 +45,7 @@ class ServiceHistoryScreen extends ConsumerWidget {
                     return HistoryTile(
                       record: record,
                       lengthUnit: lengthUnit,
+                      currency: currency,
                       onTap: () => context.push(AppRoutes.serviceDetail(record.id)),
                     );
                   },

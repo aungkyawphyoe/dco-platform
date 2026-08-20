@@ -8,6 +8,7 @@ import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
+import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/features/dashboard/presentation/widgets/quick_actions_grid.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
@@ -118,10 +119,10 @@ class _PopulatedDashboard extends ConsumerWidget {
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
     final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
-    final currency = ref.watch(userPreferencesProvider).valueOrNull?.currency.code ?? 'USD';
+    final currency = ref.watch(currencyProvider).code;
     final summary = ref.watch(vehicleExpenseSummaryProvider).valueOrNull ?? ExpenseSummary.empty;
-    final moneyTotal = '${summary.total.toStringAsFixed(2)} $currency';
-    final moneyMonth = '${summary.thisMonth.toStringAsFixed(2)} $currency';
+    final moneyTotal = MoneyFormat.labeled(summary.total, currency);
+    final moneyMonth = MoneyFormat.labeled(summary.thisMonth, currency);
     final history = ref.watch(maintenanceHistoryProvider).valueOrNull ?? const <ServiceRecord>[];
     final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
     final recent = history.take(DashboardScreen.recentActivityLimit).toList();
@@ -251,6 +252,7 @@ class _PopulatedDashboard extends ConsumerWidget {
               padding: EdgeInsets.only(bottom: tokens.space.s3),
               child: _RecentActivityRow(
                 record: record,
+                currency: currency,
                 onTap: () => context.push(AppRoutes.serviceDetail(record.id)),
               ),
             ),
@@ -275,9 +277,10 @@ class _PopulatedDashboard extends ConsumerWidget {
 }
 
 class _RecentActivityRow extends StatelessWidget {
-  const _RecentActivityRow({required this.record, required this.onTap});
+  const _RecentActivityRow({required this.record, required this.currency, required this.onTap});
 
   final ServiceRecord record;
+  final String currency;
   final VoidCallback onTap;
 
   @override
@@ -308,7 +311,7 @@ class _RecentActivityRow extends StatelessWidget {
                 ),
               ),
               Text(
-                NumberFormat.simpleCurrency().format(record.totalCost),
+                MoneyFormat.labeled(record.totalCost, currency),
                 style: GoogleFonts.ibmPlexMono(color: tokens.text.secondary, fontSize: 13),
               ),
             ],

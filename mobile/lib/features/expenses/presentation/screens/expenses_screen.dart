@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
@@ -27,7 +28,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final expenses = ref.watch(vehicleExpensesProvider);
     final summary = ref.watch(vehicleExpenseSummaryProvider).valueOrNull ?? ExpenseSummary.empty;
-    final currency = ref.watch(userPreferencesProvider).valueOrNull?.currency.code ?? 'USD';
+    final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
       appBar: AppBar(
@@ -120,11 +121,11 @@ class _SummaryHeader extends StatelessWidget {
       child: Row(
         children: [
           Expanded(
-            child: _SummaryCard(label: 'This month', value: _money(summary.thisMonth, currency)),
+            child: _SummaryCard(label: 'This month', value: MoneyFormat.labeled(summary.thisMonth, currency)),
           ),
           SizedBox(width: tokens.space.s3),
           Expanded(
-            child: _SummaryCard(label: 'Total', value: _money(summary.total, currency)),
+            child: _SummaryCard(label: 'Total', value: MoneyFormat.labeled(summary.total, currency)),
           ),
         ],
       ),
@@ -198,7 +199,7 @@ class _CategoryBreakdown extends StatelessWidget {
                   ),
                   SizedBox(width: tokens.space.s3),
                   Text(
-                    _money(slice.amount, currency),
+                    MoneyFormat.labeled(slice.amount, currency),
                     style: GoogleFonts.ibmPlexMono(color: tokens.text.secondary, fontSize: 12),
                   ),
                 ],
@@ -342,7 +343,7 @@ class _ExpenseTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    _money(expense.amount, currency),
+                    MoneyFormat.labeled(expense.amount, currency),
                     style: GoogleFonts.ibmPlexMono(color: tokens.text.secondary, fontSize: 13),
                   ),
                   if (expense.hasReceipt) ...[
@@ -358,8 +359,6 @@ class _ExpenseTile extends StatelessWidget {
     );
   }
 }
-
-String _money(double amount, String currency) => '${amount.toStringAsFixed(2)} $currency';
 
 extension ExpenseCategoryStyle on ExpenseCategory {
   Color color(DcoTokens tokens) => switch (this) {

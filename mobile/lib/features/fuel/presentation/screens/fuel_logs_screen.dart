@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
@@ -30,7 +31,7 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
     final kind = ref.watch(vehicleFuelLogKindProvider);
     final logs = ref.watch(vehicleFuelLogsProvider);
     final types = ref.watch(matchingFuelTypesProvider);
-    final currency = ref.watch(userPreferencesProvider).valueOrNull?.currency.code ?? 'USD';
+    final currency = ref.watch(currencyProvider).code;
     final title = kind?.label ?? 'Refuel';
     ref.watch(seedFuelTypesProvider);
 
@@ -290,7 +291,7 @@ class _FuelLogTile extends StatelessWidget {
                 ),
               ),
               Text(
-                '${log.cost.toStringAsFixed(2)} $currency',
+                MoneyFormat.labeled(log.cost, currency),
                 style: GoogleFonts.ibmPlexMono(color: tokens.text.secondary, fontSize: 13),
               ),
             ],

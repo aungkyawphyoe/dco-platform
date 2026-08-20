@@ -24,6 +24,7 @@ class MaintenanceScreen extends ConsumerWidget {
     final plan = ref.watch(maintenancePlanProvider);
     final history = ref.watch(maintenanceHistoryProvider);
     final lengthUnit = ref.watch(lengthUnitProvider);
+    final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
       appBar: AppBar(
@@ -121,6 +122,7 @@ class MaintenanceScreen extends ConsumerWidget {
                         (record) => HistoryTile(
                           record: record,
                           lengthUnit: lengthUnit,
+                          currency: currency,
                           onTap: () => context.push(AppRoutes.serviceDetail(record.id)),
                         ),
                       ),

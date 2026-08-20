@@ -30,7 +30,7 @@ class UnitsFormatsScreen extends ConsumerWidget {
           Text('Currency', style: Theme.of(context).textTheme.titleMedium),
           SizedBox(height: tokens.space.s2),
           Text(
-            'Used when you log expenses. Amounts stay as you enter them.',
+            'USD shows cents. MMK shows whole kyat, and large amounts use K or M (25K, 23M).',
             style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
           ),
           SizedBox(height: tokens.space.s3),

@@ -1,6 +1,7 @@
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
+import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,7 @@ class ServiceDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
+    final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Service')),
@@ -33,7 +35,7 @@ class ServiceDetailScreen extends ConsumerWidget {
               body: 'This record is no longer available.',
             );
           }
-          final money = NumberFormat.simpleCurrency().format(record.totalCost);
+          final money = MoneyFormat.labeled(record.totalCost, currency);
           final odometer = MileageFormat.labeled(record.odometer, lengthUnit);
           return ListView(
             padding: EdgeInsets.all(tokens.space.s5),
@@ -55,7 +57,7 @@ class ServiceDetailScreen extends ConsumerWidget {
               ...record.items.map((item) {
                 final cost = item.lineCost == null
                     ? '—'
-                    : NumberFormat.simpleCurrency().format(item.lineCost);
+                    : MoneyFormat.labeled(item.lineCost!, currency);
                 return Padding(
                   padding: EdgeInsets.only(bottom: tokens.space.s3),
                   child: Row(

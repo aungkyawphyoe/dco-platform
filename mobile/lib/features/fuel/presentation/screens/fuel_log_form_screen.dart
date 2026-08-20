@@ -2,6 +2,7 @@ import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
@@ -99,7 +100,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         _fuelTypeId = log.fuelTypeId;
         _fuelTypeLabel.text = log.fuelTypeName;
         _amount.text = _formatNumber(log.amount);
-        _cost.text = _formatNumber(log.cost);
+        _cost.text = MoneyFormat.input(log.cost, ref.read(currencyProvider).code);
       }
     } else if (vehicle != null) {
       final types = await ref
@@ -253,7 +254,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final types = ref.watch(matchingFuelTypesProvider);
-    final currency = ref.watch(userPreferencesProvider).valueOrNull?.currency.code ?? 'USD';
+    final currency = ref.watch(currencyProvider).code;
     FuelCatalogType? selected;
     for (final type in types) {
       if (type.id == _fuelTypeId) {
@@ -326,8 +327,8 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   key: const Key('fuel-log-cost'),
                   label: 'Cost *',
                   controller: _cost,
-                  hint: '0.00',
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
+                  keyboardType: TextInputType.numberWithOptions(decimal: !MoneyFormat.isMmk(currency)),
                   textInputAction: TextInputAction.done,
                   errorText: _errors['cost'],
                   suffix: Padding(

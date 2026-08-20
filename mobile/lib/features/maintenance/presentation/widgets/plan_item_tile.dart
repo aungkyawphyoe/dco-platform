@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
+import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
@@ -145,17 +146,19 @@ class HistoryTile extends StatelessWidget {
     super.key,
     required this.record,
     required this.lengthUnit,
+    required this.currency,
     this.onTap,
   });
 
   final ServiceRecord record;
   final MileageUnit lengthUnit;
+  final String currency;
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final money = NumberFormat.simpleCurrency().format(record.totalCost);
+    final money = MoneyFormat.labeled(record.totalCost, currency);
     final odometer = MileageFormat.labeled(record.odometer, lengthUnit);
     final workshop = record.workshopName;
     return Padding(
