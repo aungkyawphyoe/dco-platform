@@ -29,6 +29,12 @@ abstract final class AppRoutes {
   static const parts = '/dashboard/parts';
   static const partNew = '/dashboard/parts/new';
   static String partEdit(String id) => '/dashboard/parts/$id/edit';
+  static const fuelLogs = '/dashboard/fuel';
+  static const fuelLogNew = '/dashboard/fuel/new';
+  static String fuelLogEdit(String id) => '/dashboard/fuel/$id/edit';
+  static const fuelTypes = '/dashboard/fuel/types';
+  static const fuelTypeNew = '/dashboard/fuel/types/new';
+  static String fuelTypeEdit(String id) => '/dashboard/fuel/types/$id/edit';
 
   static const authPaths = {
     welcome,

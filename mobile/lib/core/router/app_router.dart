@@ -11,6 +11,11 @@ import '../../features/auth/presentation/session_controller.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
 import '../../features/expenses/presentation/screens/expenses_screen.dart';
+import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
+import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
+import '../../features/fuel/presentation/screens/fuel_logs_screen.dart';
+import '../../features/fuel/presentation/screens/fuel_type_form_screen.dart';
+import '../../features/fuel/presentation/screens/fuel_types_screen.dart';
 import '../../features/garage/presentation/screens/garage_home_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
 import '../../features/insurance/presentation/screens/insurance_screen.dart';
@@ -134,6 +139,46 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'insurance',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const InsuranceScreen(),
+                  ),
+                  GoRoute(
+                    path: 'fuel',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const FuelLogsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => const FuelLogEntryScreen(),
+                      ),
+                      GoRoute(
+                        path: 'types',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => const FuelTypesScreen(),
+                        routes: [
+                          GoRoute(
+                            path: 'new',
+                            parentNavigatorKey: rootNavigatorKey,
+                            builder: (context, state) => FuelTypeFormScreen(
+                              initialKind: state.extra is FuelCatalogKind ? state.extra as FuelCatalogKind : null,
+                            ),
+                          ),
+                          GoRoute(
+                            path: ':fuelTypeId/edit',
+                            parentNavigatorKey: rootNavigatorKey,
+                            builder: (context, state) => FuelTypeFormScreen(
+                              fuelTypeId: state.pathParameters['fuelTypeId'],
+                            ),
+                          ),
+                        ],
+                      ),
+                      GoRoute(
+                        path: ':logId/edit',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => FuelLogEntryScreen(
+                          logId: state.pathParameters['logId'],
+                        ),
+                      ),
+                    ],
                   ),
                   GoRoute(
                     path: 'parts',

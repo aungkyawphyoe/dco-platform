@@ -16,7 +16,11 @@ enum AnalyticsEvent {
   maintenancePlanItemAdded('maintenance_plan_item_added'),
   maintenanceReminderCompleted('maintenance_reminder_completed'),
   partAdded('part_added'),
-  partUpdated('part_updated');
+  partUpdated('part_updated'),
+  fuelTypeAdded('fuel_type_added'),
+  fuelTypeUpdated('fuel_type_updated'),
+  fuelLogAdded('fuel_log_added'),
+  fuelLogUpdated('fuel_log_updated');
 
   const AnalyticsEvent(this.name);
   final String name;

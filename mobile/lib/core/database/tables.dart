@@ -139,3 +139,40 @@ class ServicePartRecords extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+class FuelTypeRecords extends Table {
+  @override
+  String get tableName => 'fuel_types';
+
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get name => text()();
+  TextColumn get kind => text()();
+  TextColumn get unit => text()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class FuelLogRecords extends Table {
+  @override
+  String get tableName => 'fuel_logs';
+
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get kind => text()();
+  TextColumn get fuelTypeId => text()();
+  TextColumn get fuelTypeName => text()();
+  TextColumn get unit => text()();
+  DateTimeColumn get loggedOn => dateTime()();
+  RealColumn get amount => real()();
+  RealColumn get cost => real()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

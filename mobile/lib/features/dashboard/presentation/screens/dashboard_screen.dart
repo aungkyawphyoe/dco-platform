@@ -217,6 +217,14 @@ class _PopulatedDashboard extends ConsumerWidget {
               onTap: () => context.push(AppRoutes.insurance),
             ),
             QuickActionItem(
+              label: vehicle.fuelType == FuelType.electric ? 'Charge' : 'Refuel',
+              icon: vehicle.fuelType == FuelType.electric
+                  ? Icons.bolt_outlined
+                  : Icons.local_gas_station_outlined,
+              color: tokens.chart.fuel,
+              onTap: () => context.push(AppRoutes.fuelLogs),
+            ),
+            QuickActionItem(
               label: 'Parts',
               icon: Icons.settings_outlined,
               color: tokens.chart.parts,

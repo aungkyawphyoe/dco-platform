@@ -5029,6 +5029,1159 @@ class ServicePartRecordsCompanion extends UpdateCompanion<ServicePartRecord> {
   }
 }
 
+class $FuelTypeRecordsTable extends FuelTypeRecords
+    with TableInfo<$FuelTypeRecordsTable, FuelTypeRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FuelTypeRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    name,
+    kind,
+    unit,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fuel_types';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FuelTypeRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FuelTypeRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FuelTypeRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FuelTypeRecordsTable createAlias(String alias) {
+    return $FuelTypeRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class FuelTypeRecord extends DataClass implements Insertable<FuelTypeRecord> {
+  final String id;
+  final String userId;
+  final String name;
+  final String kind;
+  final String unit;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const FuelTypeRecord({
+    required this.id,
+    required this.userId,
+    required this.name,
+    required this.kind,
+    required this.unit,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['name'] = Variable<String>(name);
+    map['kind'] = Variable<String>(kind);
+    map['unit'] = Variable<String>(unit);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  FuelTypeRecordsCompanion toCompanion(bool nullToAbsent) {
+    return FuelTypeRecordsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      name: Value(name),
+      kind: Value(kind),
+      unit: Value(unit),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory FuelTypeRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FuelTypeRecord(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      name: serializer.fromJson<String>(json['name']),
+      kind: serializer.fromJson<String>(json['kind']),
+      unit: serializer.fromJson<String>(json['unit']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'name': serializer.toJson<String>(name),
+      'kind': serializer.toJson<String>(kind),
+      'unit': serializer.toJson<String>(unit),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  FuelTypeRecord copyWith({
+    String? id,
+    String? userId,
+    String? name,
+    String? kind,
+    String? unit,
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => FuelTypeRecord(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    name: name ?? this.name,
+    kind: kind ?? this.kind,
+    unit: unit ?? this.unit,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  FuelTypeRecord copyWithCompanion(FuelTypeRecordsCompanion data) {
+    return FuelTypeRecord(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      name: data.name.present ? data.name.value : this.name,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FuelTypeRecord(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('name: $name, ')
+          ..write('kind: $kind, ')
+          ..write('unit: $unit, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, userId, name, kind, unit, updatedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FuelTypeRecord &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.name == this.name &&
+          other.kind == this.kind &&
+          other.unit == this.unit &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class FuelTypeRecordsCompanion extends UpdateCompanion<FuelTypeRecord> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> name;
+  final Value<String> kind;
+  final Value<String> unit;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const FuelTypeRecordsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FuelTypeRecordsCompanion.insert({
+    required String id,
+    required String userId,
+    required String name,
+    required String kind,
+    required String unit,
+    required DateTime updatedAt,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       name = Value(name),
+       kind = Value(kind),
+       unit = Value(unit),
+       updatedAt = Value(updatedAt),
+       createdAt = Value(createdAt);
+  static Insertable<FuelTypeRecord> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? name,
+    Expression<String>? kind,
+    Expression<String>? unit,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (name != null) 'name': name,
+      if (kind != null) 'kind': kind,
+      if (unit != null) 'unit': unit,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FuelTypeRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? name,
+    Value<String>? kind,
+    Value<String>? unit,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return FuelTypeRecordsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      name: name ?? this.name,
+      kind: kind ?? this.kind,
+      unit: unit ?? this.unit,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FuelTypeRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('name: $name, ')
+          ..write('kind: $kind, ')
+          ..write('unit: $unit, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FuelLogRecordsTable extends FuelLogRecords
+    with TableInfo<$FuelLogRecordsTable, FuelLogRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FuelLogRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _kindMeta = const VerificationMeta('kind');
+  @override
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fuelTypeIdMeta = const VerificationMeta(
+    'fuelTypeId',
+  );
+  @override
+  late final GeneratedColumn<String> fuelTypeId = GeneratedColumn<String>(
+    'fuel_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _fuelTypeNameMeta = const VerificationMeta(
+    'fuelTypeName',
+  );
+  @override
+  late final GeneratedColumn<String> fuelTypeName = GeneratedColumn<String>(
+    'fuel_type_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _unitMeta = const VerificationMeta('unit');
+  @override
+  late final GeneratedColumn<String> unit = GeneratedColumn<String>(
+    'unit',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _loggedOnMeta = const VerificationMeta(
+    'loggedOn',
+  );
+  @override
+  late final GeneratedColumn<DateTime> loggedOn = GeneratedColumn<DateTime>(
+    'logged_on',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<double> amount = GeneratedColumn<double>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _costMeta = const VerificationMeta('cost');
+  @override
+  late final GeneratedColumn<double> cost = GeneratedColumn<double>(
+    'cost',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    vehicleId,
+    kind,
+    fuelTypeId,
+    fuelTypeName,
+    unit,
+    loggedOn,
+    amount,
+    cost,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fuel_logs';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FuelLogRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('kind')) {
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_kindMeta);
+    }
+    if (data.containsKey('fuel_type_id')) {
+      context.handle(
+        _fuelTypeIdMeta,
+        fuelTypeId.isAcceptableOrUnknown(
+          data['fuel_type_id']!,
+          _fuelTypeIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fuelTypeIdMeta);
+    }
+    if (data.containsKey('fuel_type_name')) {
+      context.handle(
+        _fuelTypeNameMeta,
+        fuelTypeName.isAcceptableOrUnknown(
+          data['fuel_type_name']!,
+          _fuelTypeNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_fuelTypeNameMeta);
+    }
+    if (data.containsKey('unit')) {
+      context.handle(
+        _unitMeta,
+        unit.isAcceptableOrUnknown(data['unit']!, _unitMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_unitMeta);
+    }
+    if (data.containsKey('logged_on')) {
+      context.handle(
+        _loggedOnMeta,
+        loggedOn.isAcceptableOrUnknown(data['logged_on']!, _loggedOnMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_loggedOnMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('cost')) {
+      context.handle(
+        _costMeta,
+        cost.isAcceptableOrUnknown(data['cost']!, _costMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_costMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FuelLogRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FuelLogRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      fuelTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fuel_type_id'],
+      )!,
+      fuelTypeName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fuel_type_name'],
+      )!,
+      unit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unit'],
+      )!,
+      loggedOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}logged_on'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}amount'],
+      )!,
+      cost: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}cost'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $FuelLogRecordsTable createAlias(String alias) {
+    return $FuelLogRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
+  final String id;
+  final String userId;
+  final String vehicleId;
+  final String kind;
+  final String fuelTypeId;
+  final String fuelTypeName;
+  final String unit;
+  final DateTime loggedOn;
+  final double amount;
+  final double cost;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const FuelLogRecord({
+    required this.id,
+    required this.userId,
+    required this.vehicleId,
+    required this.kind,
+    required this.fuelTypeId,
+    required this.fuelTypeName,
+    required this.unit,
+    required this.loggedOn,
+    required this.amount,
+    required this.cost,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    map['kind'] = Variable<String>(kind);
+    map['fuel_type_id'] = Variable<String>(fuelTypeId);
+    map['fuel_type_name'] = Variable<String>(fuelTypeName);
+    map['unit'] = Variable<String>(unit);
+    map['logged_on'] = Variable<DateTime>(loggedOn);
+    map['amount'] = Variable<double>(amount);
+    map['cost'] = Variable<double>(cost);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  FuelLogRecordsCompanion toCompanion(bool nullToAbsent) {
+    return FuelLogRecordsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      vehicleId: Value(vehicleId),
+      kind: Value(kind),
+      fuelTypeId: Value(fuelTypeId),
+      fuelTypeName: Value(fuelTypeName),
+      unit: Value(unit),
+      loggedOn: Value(loggedOn),
+      amount: Value(amount),
+      cost: Value(cost),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory FuelLogRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FuelLogRecord(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      kind: serializer.fromJson<String>(json['kind']),
+      fuelTypeId: serializer.fromJson<String>(json['fuelTypeId']),
+      fuelTypeName: serializer.fromJson<String>(json['fuelTypeName']),
+      unit: serializer.fromJson<String>(json['unit']),
+      loggedOn: serializer.fromJson<DateTime>(json['loggedOn']),
+      amount: serializer.fromJson<double>(json['amount']),
+      cost: serializer.fromJson<double>(json['cost']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'kind': serializer.toJson<String>(kind),
+      'fuelTypeId': serializer.toJson<String>(fuelTypeId),
+      'fuelTypeName': serializer.toJson<String>(fuelTypeName),
+      'unit': serializer.toJson<String>(unit),
+      'loggedOn': serializer.toJson<DateTime>(loggedOn),
+      'amount': serializer.toJson<double>(amount),
+      'cost': serializer.toJson<double>(cost),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  FuelLogRecord copyWith({
+    String? id,
+    String? userId,
+    String? vehicleId,
+    String? kind,
+    String? fuelTypeId,
+    String? fuelTypeName,
+    String? unit,
+    DateTime? loggedOn,
+    double? amount,
+    double? cost,
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => FuelLogRecord(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    vehicleId: vehicleId ?? this.vehicleId,
+    kind: kind ?? this.kind,
+    fuelTypeId: fuelTypeId ?? this.fuelTypeId,
+    fuelTypeName: fuelTypeName ?? this.fuelTypeName,
+    unit: unit ?? this.unit,
+    loggedOn: loggedOn ?? this.loggedOn,
+    amount: amount ?? this.amount,
+    cost: cost ?? this.cost,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  FuelLogRecord copyWithCompanion(FuelLogRecordsCompanion data) {
+    return FuelLogRecord(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      fuelTypeId: data.fuelTypeId.present
+          ? data.fuelTypeId.value
+          : this.fuelTypeId,
+      fuelTypeName: data.fuelTypeName.present
+          ? data.fuelTypeName.value
+          : this.fuelTypeName,
+      unit: data.unit.present ? data.unit.value : this.unit,
+      loggedOn: data.loggedOn.present ? data.loggedOn.value : this.loggedOn,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      cost: data.cost.present ? data.cost.value : this.cost,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FuelLogRecord(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('kind: $kind, ')
+          ..write('fuelTypeId: $fuelTypeId, ')
+          ..write('fuelTypeName: $fuelTypeName, ')
+          ..write('unit: $unit, ')
+          ..write('loggedOn: $loggedOn, ')
+          ..write('amount: $amount, ')
+          ..write('cost: $cost, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    vehicleId,
+    kind,
+    fuelTypeId,
+    fuelTypeName,
+    unit,
+    loggedOn,
+    amount,
+    cost,
+    updatedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FuelLogRecord &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.vehicleId == this.vehicleId &&
+          other.kind == this.kind &&
+          other.fuelTypeId == this.fuelTypeId &&
+          other.fuelTypeName == this.fuelTypeName &&
+          other.unit == this.unit &&
+          other.loggedOn == this.loggedOn &&
+          other.amount == this.amount &&
+          other.cost == this.cost &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> vehicleId;
+  final Value<String> kind;
+  final Value<String> fuelTypeId;
+  final Value<String> fuelTypeName;
+  final Value<String> unit;
+  final Value<DateTime> loggedOn;
+  final Value<double> amount;
+  final Value<double> cost;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const FuelLogRecordsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.fuelTypeId = const Value.absent(),
+    this.fuelTypeName = const Value.absent(),
+    this.unit = const Value.absent(),
+    this.loggedOn = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.cost = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FuelLogRecordsCompanion.insert({
+    required String id,
+    required String userId,
+    required String vehicleId,
+    required String kind,
+    required String fuelTypeId,
+    required String fuelTypeName,
+    required String unit,
+    required DateTime loggedOn,
+    required double amount,
+    required double cost,
+    required DateTime updatedAt,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       vehicleId = Value(vehicleId),
+       kind = Value(kind),
+       fuelTypeId = Value(fuelTypeId),
+       fuelTypeName = Value(fuelTypeName),
+       unit = Value(unit),
+       loggedOn = Value(loggedOn),
+       amount = Value(amount),
+       cost = Value(cost),
+       updatedAt = Value(updatedAt),
+       createdAt = Value(createdAt);
+  static Insertable<FuelLogRecord> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? vehicleId,
+    Expression<String>? kind,
+    Expression<String>? fuelTypeId,
+    Expression<String>? fuelTypeName,
+    Expression<String>? unit,
+    Expression<DateTime>? loggedOn,
+    Expression<double>? amount,
+    Expression<double>? cost,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (kind != null) 'kind': kind,
+      if (fuelTypeId != null) 'fuel_type_id': fuelTypeId,
+      if (fuelTypeName != null) 'fuel_type_name': fuelTypeName,
+      if (unit != null) 'unit': unit,
+      if (loggedOn != null) 'logged_on': loggedOn,
+      if (amount != null) 'amount': amount,
+      if (cost != null) 'cost': cost,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FuelLogRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? vehicleId,
+    Value<String>? kind,
+    Value<String>? fuelTypeId,
+    Value<String>? fuelTypeName,
+    Value<String>? unit,
+    Value<DateTime>? loggedOn,
+    Value<double>? amount,
+    Value<double>? cost,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return FuelLogRecordsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      vehicleId: vehicleId ?? this.vehicleId,
+      kind: kind ?? this.kind,
+      fuelTypeId: fuelTypeId ?? this.fuelTypeId,
+      fuelTypeName: fuelTypeName ?? this.fuelTypeName,
+      unit: unit ?? this.unit,
+      loggedOn: loggedOn ?? this.loggedOn,
+      amount: amount ?? this.amount,
+      cost: cost ?? this.cost,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (fuelTypeId.present) {
+      map['fuel_type_id'] = Variable<String>(fuelTypeId.value);
+    }
+    if (fuelTypeName.present) {
+      map['fuel_type_name'] = Variable<String>(fuelTypeName.value);
+    }
+    if (unit.present) {
+      map['unit'] = Variable<String>(unit.value);
+    }
+    if (loggedOn.present) {
+      map['logged_on'] = Variable<DateTime>(loggedOn.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<double>(amount.value);
+    }
+    if (cost.present) {
+      map['cost'] = Variable<double>(cost.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FuelLogRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('kind: $kind, ')
+          ..write('fuelTypeId: $fuelTypeId, ')
+          ..write('fuelTypeName: $fuelTypeName, ')
+          ..write('unit: $unit, ')
+          ..write('loggedOn: $loggedOn, ')
+          ..write('amount: $amount, ')
+          ..write('cost: $cost, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -5046,6 +6199,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PartRecordsTable partRecords = $PartRecordsTable(this);
   late final $ServicePartRecordsTable servicePartRecords =
       $ServicePartRecordsTable(this);
+  late final $FuelTypeRecordsTable fuelTypeRecords = $FuelTypeRecordsTable(
+    this,
+  );
+  late final $FuelLogRecordsTable fuelLogRecords = $FuelLogRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -5060,6 +6217,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     serviceLineRecords,
     partRecords,
     servicePartRecords,
+    fuelTypeRecords,
+    fuelLogRecords,
   ];
 }
 
@@ -7598,6 +8757,589 @@ typedef $$ServicePartRecordsTableProcessedTableManager =
       ServicePartRecord,
       PrefetchHooks Function()
     >;
+typedef $$FuelTypeRecordsTableCreateCompanionBuilder =
+    FuelTypeRecordsCompanion Function({
+      required String id,
+      required String userId,
+      required String name,
+      required String kind,
+      required String unit,
+      required DateTime updatedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$FuelTypeRecordsTableUpdateCompanionBuilder =
+    FuelTypeRecordsCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String> name,
+      Value<String> kind,
+      Value<String> unit,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$FuelTypeRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $FuelTypeRecordsTable> {
+  $$FuelTypeRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FuelTypeRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FuelTypeRecordsTable> {
+  $$FuelTypeRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FuelTypeRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FuelTypeRecordsTable> {
+  $$FuelTypeRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$FuelTypeRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FuelTypeRecordsTable,
+          FuelTypeRecord,
+          $$FuelTypeRecordsTableFilterComposer,
+          $$FuelTypeRecordsTableOrderingComposer,
+          $$FuelTypeRecordsTableAnnotationComposer,
+          $$FuelTypeRecordsTableCreateCompanionBuilder,
+          $$FuelTypeRecordsTableUpdateCompanionBuilder,
+          (
+            FuelTypeRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $FuelTypeRecordsTable,
+              FuelTypeRecord
+            >,
+          ),
+          FuelTypeRecord,
+          PrefetchHooks Function()
+        > {
+  $$FuelTypeRecordsTableTableManager(
+    _$AppDatabase db,
+    $FuelTypeRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FuelTypeRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FuelTypeRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FuelTypeRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String> unit = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FuelTypeRecordsCompanion(
+                id: id,
+                userId: userId,
+                name: name,
+                kind: kind,
+                unit: unit,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                required String name,
+                required String kind,
+                required String unit,
+                required DateTime updatedAt,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FuelTypeRecordsCompanion.insert(
+                id: id,
+                userId: userId,
+                name: name,
+                kind: kind,
+                unit: unit,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FuelTypeRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FuelTypeRecordsTable,
+      FuelTypeRecord,
+      $$FuelTypeRecordsTableFilterComposer,
+      $$FuelTypeRecordsTableOrderingComposer,
+      $$FuelTypeRecordsTableAnnotationComposer,
+      $$FuelTypeRecordsTableCreateCompanionBuilder,
+      $$FuelTypeRecordsTableUpdateCompanionBuilder,
+      (
+        FuelTypeRecord,
+        BaseReferences<_$AppDatabase, $FuelTypeRecordsTable, FuelTypeRecord>,
+      ),
+      FuelTypeRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$FuelLogRecordsTableCreateCompanionBuilder =
+    FuelLogRecordsCompanion Function({
+      required String id,
+      required String userId,
+      required String vehicleId,
+      required String kind,
+      required String fuelTypeId,
+      required String fuelTypeName,
+      required String unit,
+      required DateTime loggedOn,
+      required double amount,
+      required double cost,
+      required DateTime updatedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$FuelLogRecordsTableUpdateCompanionBuilder =
+    FuelLogRecordsCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String> vehicleId,
+      Value<String> kind,
+      Value<String> fuelTypeId,
+      Value<String> fuelTypeName,
+      Value<String> unit,
+      Value<DateTime> loggedOn,
+      Value<double> amount,
+      Value<double> cost,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$FuelLogRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $FuelLogRecordsTable> {
+  $$FuelLogRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fuelTypeId => $composableBuilder(
+    column: $table.fuelTypeId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fuelTypeName => $composableBuilder(
+    column: $table.fuelTypeName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get loggedOn => $composableBuilder(
+    column: $table.loggedOn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get cost => $composableBuilder(
+    column: $table.cost,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FuelLogRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FuelLogRecordsTable> {
+  $$FuelLogRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fuelTypeId => $composableBuilder(
+    column: $table.fuelTypeId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fuelTypeName => $composableBuilder(
+    column: $table.fuelTypeName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unit => $composableBuilder(
+    column: $table.unit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get loggedOn => $composableBuilder(
+    column: $table.loggedOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get cost => $composableBuilder(
+    column: $table.cost,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FuelLogRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FuelLogRecordsTable> {
+  $$FuelLogRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get kind =>
+      $composableBuilder(column: $table.kind, builder: (column) => column);
+
+  GeneratedColumn<String> get fuelTypeId => $composableBuilder(
+    column: $table.fuelTypeId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get fuelTypeName => $composableBuilder(
+    column: $table.fuelTypeName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get unit =>
+      $composableBuilder(column: $table.unit, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get loggedOn =>
+      $composableBuilder(column: $table.loggedOn, builder: (column) => column);
+
+  GeneratedColumn<double> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<double> get cost =>
+      $composableBuilder(column: $table.cost, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$FuelLogRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FuelLogRecordsTable,
+          FuelLogRecord,
+          $$FuelLogRecordsTableFilterComposer,
+          $$FuelLogRecordsTableOrderingComposer,
+          $$FuelLogRecordsTableAnnotationComposer,
+          $$FuelLogRecordsTableCreateCompanionBuilder,
+          $$FuelLogRecordsTableUpdateCompanionBuilder,
+          (
+            FuelLogRecord,
+            BaseReferences<_$AppDatabase, $FuelLogRecordsTable, FuelLogRecord>,
+          ),
+          FuelLogRecord,
+          PrefetchHooks Function()
+        > {
+  $$FuelLogRecordsTableTableManager(
+    _$AppDatabase db,
+    $FuelLogRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FuelLogRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FuelLogRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FuelLogRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<String> kind = const Value.absent(),
+                Value<String> fuelTypeId = const Value.absent(),
+                Value<String> fuelTypeName = const Value.absent(),
+                Value<String> unit = const Value.absent(),
+                Value<DateTime> loggedOn = const Value.absent(),
+                Value<double> amount = const Value.absent(),
+                Value<double> cost = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FuelLogRecordsCompanion(
+                id: id,
+                userId: userId,
+                vehicleId: vehicleId,
+                kind: kind,
+                fuelTypeId: fuelTypeId,
+                fuelTypeName: fuelTypeName,
+                unit: unit,
+                loggedOn: loggedOn,
+                amount: amount,
+                cost: cost,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                required String vehicleId,
+                required String kind,
+                required String fuelTypeId,
+                required String fuelTypeName,
+                required String unit,
+                required DateTime loggedOn,
+                required double amount,
+                required double cost,
+                required DateTime updatedAt,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => FuelLogRecordsCompanion.insert(
+                id: id,
+                userId: userId,
+                vehicleId: vehicleId,
+                kind: kind,
+                fuelTypeId: fuelTypeId,
+                fuelTypeName: fuelTypeName,
+                unit: unit,
+                loggedOn: loggedOn,
+                amount: amount,
+                cost: cost,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FuelLogRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FuelLogRecordsTable,
+      FuelLogRecord,
+      $$FuelLogRecordsTableFilterComposer,
+      $$FuelLogRecordsTableOrderingComposer,
+      $$FuelLogRecordsTableAnnotationComposer,
+      $$FuelLogRecordsTableCreateCompanionBuilder,
+      $$FuelLogRecordsTableUpdateCompanionBuilder,
+      (
+        FuelLogRecord,
+        BaseReferences<_$AppDatabase, $FuelLogRecordsTable, FuelLogRecord>,
+      ),
+      FuelLogRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -7620,4 +9362,8 @@ class $AppDatabaseManager {
       $$PartRecordsTableTableManager(_db, _db.partRecords);
   $$ServicePartRecordsTableTableManager get servicePartRecords =>
       $$ServicePartRecordsTableTableManager(_db, _db.servicePartRecords);
+  $$FuelTypeRecordsTableTableManager get fuelTypeRecords =>
+      $$FuelTypeRecordsTableTableManager(_db, _db.fuelTypeRecords);
+  $$FuelLogRecordsTableTableManager get fuelLogRecords =>
+      $$FuelLogRecordsTableTableManager(_db, _db.fuelLogRecords);
 }

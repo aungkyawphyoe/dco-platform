@@ -11,6 +11,8 @@ abstract final class OutboxEntityType {
   static const planItem = 'plan_item';
   static const serviceRecord = 'service_record';
   static const part = 'part';
+  static const fuelType = 'fuel_type';
+  static const fuelLog = 'fuel_log';
   static const document = 'document';
   static const expense = 'expense';
   static const media = 'media';

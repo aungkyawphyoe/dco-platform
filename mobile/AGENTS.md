@@ -38,9 +38,9 @@ After a successful owner login, land on **Dashboard** (tldraw screen 3) — the 
 
 Documents is reached from Expenses (header) and from vehicle flows — not a tab. Sync status is a compact indicator in the top bar or Settings — never a fifth tab.
 
-**In MVP:** auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, local reminder notifications.
+**In MVP:** auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications.
 
-**Out of MVP (do not add):** fuel/charge logs, volume, MPG/kWh; insurance policy module; receipt OCR; trips; family sharing; Autozis assistant/catalogs/PDF export; admin routes; light theme.
+**Out of MVP (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; family sharing; Autozis assistant/PDF export; admin routes; light theme.
 
 Wireframes: [`wireframes/dco-mobile-wireframes.tldraw`](../wireframes/dco-mobile-wireframes.tldraw). Auth screens live there; do not redesign them.
 
@@ -147,7 +147,7 @@ flowchart TB
 - Fuel type required: `petrol` | `electric` | `hybrid_plugin`.
 - Year: 1900 … current year + 1. Plate max 20 chars. Mileage ≥ 0 and monotonic.
 - `users.plan` exists (`free` / `premium`). Monetization is off; do not invent a paywall.
-- Expense `fuel` is money only (no litres, no kWh). Dashboard totals read **expenses only**, not service-record costs.
+- Expense `fuel` is money only (no litres, no kWh). Volume and kWh live on fuel logs. Dashboard totals read **expenses only**, not service-record costs or fuel-log costs.
 
 ---
 
@@ -208,6 +208,10 @@ mobile/
         data/
         domain/
         presentation/
+      fuel/
+        data/
+        domain/
+        presentation/
       settings/
         data/
         domain/
@@ -245,7 +249,7 @@ From [`docs/app-shell.md`](../docs/app-shell.md). Keep one `StatefulShellRoute` 
 
 Unauthenticated: login / signup / password-reset only.
 
-Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Parts; Maintenance Plan, Suggested items, Add item, Register Service, Service detail; Add/Edit expense, Expense detail; Document list / viewer / upload; Notification feed, Profile, Email & password, Notification prefs, Sync status.
+Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Refuel/Charge, Fuel Types, Parts; Maintenance Plan, Suggested items, Add item, Register Service, Service detail; Add/Edit expense, Expense detail; Document list / viewer / upload; Notification feed, Profile, Email & password, Notification prefs, Sync status.
 
 Empty garage: Dashboard is still the default route. Maintenance, Expenses, and Documents show their "no active vehicle" empty states until a vehicle exists.
 
@@ -282,7 +286,7 @@ Tertiary text is for icons and placeholders, not small body copy on cards (use `
 2. Implement HTTP against [`architecture/openapi.yaml`](../architecture/openapi.yaml).
 3. Client UUIDs for creates. Archive vehicles; do not hard-delete them.
 4. UI reads Drift. Writes go local + outbox. Do not bind lists to Dio responses.
-5. Do not add Autozis modules (refuel logs, trips, insurance policies, OCR, assistant, PDF reports).
+5. Do not add Autozis modules (trips, insurance policies, OCR, assistant, PDF reports, fuel *efficiency* KPIs). Refuel/charge logs and Fuel Types are in MVP.
 6. Do not implement admin portal URLs, admin JWT audience, or partner onboarding in this app.
 7. Do not commit secrets. Use `--dart-define` / flavors for `API_BASE_URL` and `JWT_OWNER_AUD`.
 8. Keep workflows consistent: same empty / error / loading language across features; design-system tokens only.
