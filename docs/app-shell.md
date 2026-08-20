@@ -67,7 +67,7 @@ Empty garage: Dashboard still is the default route. Maintenance, Expenses, and D
 
 Keep one `StatefulShellRoute` (or equivalent) for the four tabs. Push these on the active tab's stack:
 
-- My Garage, Add/Edit Vehicle
+- My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Parts
 - Maintenance Plan, Suggested items, Add item, Register Service, Service detail
 - Add/Edit expense, Expense detail
 - Document list (if opened from Expenses), viewer, upload

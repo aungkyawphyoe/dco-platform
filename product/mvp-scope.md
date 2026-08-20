@@ -54,7 +54,8 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 |---------|-------------|
 | Default Selected Car and Toggle | Show the active vehicle; switching opens Garage Home (My Garage) |
 | Vehicle Detail | Show the vehicle overall information |
-| Ownership Summary | Total spent, this month spent, services count, documents count. No fuel volume or MPG. |
+| Ownership Summary | Total spent, this month spent. No fuel volume or MPG. |
+| Quick Actions | 3×2 bento: Services (full history), Documents, Insurance (placeholder), Parts |
 | Recent Activity | Show 3 records of maintenance history |
 | Next Maintenance | Show the most due maintenance |
 
@@ -83,6 +84,16 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Maintenance Plan | List of user-added maintenance items for the active vehicle |
 | Add Maintenance Item | Custom user-defined plan item (name, time and/or distance interval) |
 | Add Suggested Item | Predefined plan items filtered by the vehicle's fuel type |
+| Assign parts | Pick catalog parts when logging a service |
+
+### Parts
+
+| Feature | Description |
+|---------|-------------|
+| Parts catalog | Per-vehicle list of parts (name, optional brand, part number, notes) |
+| Add / edit part | Owner-defined parts for the active vehicle |
+| Assign on service | Attach parts when registering a service |
+| Assign on expense | Attach parts when logging an expense (with the expenses slice) |
 
 ### Documents
 

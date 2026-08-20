@@ -27,6 +27,8 @@ abstract final class AppRoutes {
   static const dashboardDocuments = '/dashboard/documents';
   static const insurance = '/dashboard/insurance';
   static const parts = '/dashboard/parts';
+  static const partNew = '/dashboard/parts/new';
+  static String partEdit(String id) => '/dashboard/parts/$id/edit';
 
   static const authPaths = {
     welcome,

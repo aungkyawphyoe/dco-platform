@@ -14,6 +14,8 @@ part 'app_database.g.dart';
     PlanItemRecords,
     ServiceRecordRows,
     ServiceLineRecords,
+    PartRecords,
+    ServicePartRecords,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -21,7 +23,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'dco_owner'));
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -41,6 +43,10 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(userProfiles, userProfiles.language);
         await migrator.addColumn(userProfiles, userProfiles.currency);
         await migrator.addColumn(userProfiles, userProfiles.lengthUnit);
+      }
+      if (from < 5) {
+        await migrator.createTable(partRecords);
+        await migrator.createTable(servicePartRecords);
       }
     },
   );

@@ -4160,6 +4160,875 @@ class ServiceLineRecordsCompanion extends UpdateCompanion<ServiceLineRecord> {
   }
 }
 
+class $PartRecordsTable extends PartRecords
+    with TableInfo<$PartRecordsTable, PartRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PartRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _brandMeta = const VerificationMeta('brand');
+  @override
+  late final GeneratedColumn<String> brand = GeneratedColumn<String>(
+    'brand',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _partNumberMeta = const VerificationMeta(
+    'partNumber',
+  );
+  @override
+  late final GeneratedColumn<String> partNumber = GeneratedColumn<String>(
+    'part_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    vehicleId,
+    name,
+    brand,
+    partNumber,
+    notes,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'parts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PartRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('brand')) {
+      context.handle(
+        _brandMeta,
+        brand.isAcceptableOrUnknown(data['brand']!, _brandMeta),
+      );
+    }
+    if (data.containsKey('part_number')) {
+      context.handle(
+        _partNumberMeta,
+        partNumber.isAcceptableOrUnknown(data['part_number']!, _partNumberMeta),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  PartRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PartRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      brand: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}brand'],
+      ),
+      partNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_number'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $PartRecordsTable createAlias(String alias) {
+    return $PartRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class PartRecord extends DataClass implements Insertable<PartRecord> {
+  final String id;
+  final String userId;
+  final String vehicleId;
+  final String name;
+  final String? brand;
+  final String? partNumber;
+  final String? notes;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const PartRecord({
+    required this.id,
+    required this.userId,
+    required this.vehicleId,
+    required this.name,
+    this.brand,
+    this.partNumber,
+    this.notes,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || brand != null) {
+      map['brand'] = Variable<String>(brand);
+    }
+    if (!nullToAbsent || partNumber != null) {
+      map['part_number'] = Variable<String>(partNumber);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  PartRecordsCompanion toCompanion(bool nullToAbsent) {
+    return PartRecordsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      vehicleId: Value(vehicleId),
+      name: Value(name),
+      brand: brand == null && nullToAbsent
+          ? const Value.absent()
+          : Value(brand),
+      partNumber: partNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(partNumber),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory PartRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PartRecord(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      name: serializer.fromJson<String>(json['name']),
+      brand: serializer.fromJson<String?>(json['brand']),
+      partNumber: serializer.fromJson<String?>(json['partNumber']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'name': serializer.toJson<String>(name),
+      'brand': serializer.toJson<String?>(brand),
+      'partNumber': serializer.toJson<String?>(partNumber),
+      'notes': serializer.toJson<String?>(notes),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  PartRecord copyWith({
+    String? id,
+    String? userId,
+    String? vehicleId,
+    String? name,
+    Value<String?> brand = const Value.absent(),
+    Value<String?> partNumber = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => PartRecord(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    vehicleId: vehicleId ?? this.vehicleId,
+    name: name ?? this.name,
+    brand: brand.present ? brand.value : this.brand,
+    partNumber: partNumber.present ? partNumber.value : this.partNumber,
+    notes: notes.present ? notes.value : this.notes,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  PartRecord copyWithCompanion(PartRecordsCompanion data) {
+    return PartRecord(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      name: data.name.present ? data.name.value : this.name,
+      brand: data.brand.present ? data.brand.value : this.brand,
+      partNumber: data.partNumber.present
+          ? data.partNumber.value
+          : this.partNumber,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PartRecord(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('name: $name, ')
+          ..write('brand: $brand, ')
+          ..write('partNumber: $partNumber, ')
+          ..write('notes: $notes, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    vehicleId,
+    name,
+    brand,
+    partNumber,
+    notes,
+    updatedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PartRecord &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.vehicleId == this.vehicleId &&
+          other.name == this.name &&
+          other.brand == this.brand &&
+          other.partNumber == this.partNumber &&
+          other.notes == this.notes &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> vehicleId;
+  final Value<String> name;
+  final Value<String?> brand;
+  final Value<String?> partNumber;
+  final Value<String?> notes;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const PartRecordsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.brand = const Value.absent(),
+    this.partNumber = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PartRecordsCompanion.insert({
+    required String id,
+    required String userId,
+    required String vehicleId,
+    required String name,
+    this.brand = const Value.absent(),
+    this.partNumber = const Value.absent(),
+    this.notes = const Value.absent(),
+    required DateTime updatedAt,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       vehicleId = Value(vehicleId),
+       name = Value(name),
+       updatedAt = Value(updatedAt),
+       createdAt = Value(createdAt);
+  static Insertable<PartRecord> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? vehicleId,
+    Expression<String>? name,
+    Expression<String>? brand,
+    Expression<String>? partNumber,
+    Expression<String>? notes,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (name != null) 'name': name,
+      if (brand != null) 'brand': brand,
+      if (partNumber != null) 'part_number': partNumber,
+      if (notes != null) 'notes': notes,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PartRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? vehicleId,
+    Value<String>? name,
+    Value<String?>? brand,
+    Value<String?>? partNumber,
+    Value<String?>? notes,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return PartRecordsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      vehicleId: vehicleId ?? this.vehicleId,
+      name: name ?? this.name,
+      brand: brand ?? this.brand,
+      partNumber: partNumber ?? this.partNumber,
+      notes: notes ?? this.notes,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (brand.present) {
+      map['brand'] = Variable<String>(brand.value);
+    }
+    if (partNumber.present) {
+      map['part_number'] = Variable<String>(partNumber.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PartRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('name: $name, ')
+          ..write('brand: $brand, ')
+          ..write('partNumber: $partNumber, ')
+          ..write('notes: $notes, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $ServicePartRecordsTable extends ServicePartRecords
+    with TableInfo<$ServicePartRecordsTable, ServicePartRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $ServicePartRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _serviceRecordIdMeta = const VerificationMeta(
+    'serviceRecordId',
+  );
+  @override
+  late final GeneratedColumn<String> serviceRecordId = GeneratedColumn<String>(
+    'service_record_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _partIdMeta = const VerificationMeta('partId');
+  @override
+  late final GeneratedColumn<String> partId = GeneratedColumn<String>(
+    'part_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, serviceRecordId, partId, name];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'service_record_parts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<ServicePartRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('service_record_id')) {
+      context.handle(
+        _serviceRecordIdMeta,
+        serviceRecordId.isAcceptableOrUnknown(
+          data['service_record_id']!,
+          _serviceRecordIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_serviceRecordIdMeta);
+    }
+    if (data.containsKey('part_id')) {
+      context.handle(
+        _partIdMeta,
+        partId.isAcceptableOrUnknown(data['part_id']!, _partIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_partIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ServicePartRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ServicePartRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      serviceRecordId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}service_record_id'],
+      )!,
+      partId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}part_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  $ServicePartRecordsTable createAlias(String alias) {
+    return $ServicePartRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class ServicePartRecord extends DataClass
+    implements Insertable<ServicePartRecord> {
+  final String id;
+  final String serviceRecordId;
+  final String partId;
+  final String name;
+  const ServicePartRecord({
+    required this.id,
+    required this.serviceRecordId,
+    required this.partId,
+    required this.name,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['service_record_id'] = Variable<String>(serviceRecordId);
+    map['part_id'] = Variable<String>(partId);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  ServicePartRecordsCompanion toCompanion(bool nullToAbsent) {
+    return ServicePartRecordsCompanion(
+      id: Value(id),
+      serviceRecordId: Value(serviceRecordId),
+      partId: Value(partId),
+      name: Value(name),
+    );
+  }
+
+  factory ServicePartRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ServicePartRecord(
+      id: serializer.fromJson<String>(json['id']),
+      serviceRecordId: serializer.fromJson<String>(json['serviceRecordId']),
+      partId: serializer.fromJson<String>(json['partId']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'serviceRecordId': serializer.toJson<String>(serviceRecordId),
+      'partId': serializer.toJson<String>(partId),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  ServicePartRecord copyWith({
+    String? id,
+    String? serviceRecordId,
+    String? partId,
+    String? name,
+  }) => ServicePartRecord(
+    id: id ?? this.id,
+    serviceRecordId: serviceRecordId ?? this.serviceRecordId,
+    partId: partId ?? this.partId,
+    name: name ?? this.name,
+  );
+  ServicePartRecord copyWithCompanion(ServicePartRecordsCompanion data) {
+    return ServicePartRecord(
+      id: data.id.present ? data.id.value : this.id,
+      serviceRecordId: data.serviceRecordId.present
+          ? data.serviceRecordId.value
+          : this.serviceRecordId,
+      partId: data.partId.present ? data.partId.value : this.partId,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ServicePartRecord(')
+          ..write('id: $id, ')
+          ..write('serviceRecordId: $serviceRecordId, ')
+          ..write('partId: $partId, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, serviceRecordId, partId, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ServicePartRecord &&
+          other.id == this.id &&
+          other.serviceRecordId == this.serviceRecordId &&
+          other.partId == this.partId &&
+          other.name == this.name);
+}
+
+class ServicePartRecordsCompanion extends UpdateCompanion<ServicePartRecord> {
+  final Value<String> id;
+  final Value<String> serviceRecordId;
+  final Value<String> partId;
+  final Value<String> name;
+  final Value<int> rowid;
+  const ServicePartRecordsCompanion({
+    this.id = const Value.absent(),
+    this.serviceRecordId = const Value.absent(),
+    this.partId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ServicePartRecordsCompanion.insert({
+    required String id,
+    required String serviceRecordId,
+    required String partId,
+    required String name,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       serviceRecordId = Value(serviceRecordId),
+       partId = Value(partId),
+       name = Value(name);
+  static Insertable<ServicePartRecord> custom({
+    Expression<String>? id,
+    Expression<String>? serviceRecordId,
+    Expression<String>? partId,
+    Expression<String>? name,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (serviceRecordId != null) 'service_record_id': serviceRecordId,
+      if (partId != null) 'part_id': partId,
+      if (name != null) 'name': name,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ServicePartRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? serviceRecordId,
+    Value<String>? partId,
+    Value<String>? name,
+    Value<int>? rowid,
+  }) {
+    return ServicePartRecordsCompanion(
+      id: id ?? this.id,
+      serviceRecordId: serviceRecordId ?? this.serviceRecordId,
+      partId: partId ?? this.partId,
+      name: name ?? this.name,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (serviceRecordId.present) {
+      map['service_record_id'] = Variable<String>(serviceRecordId.value);
+    }
+    if (partId.present) {
+      map['part_id'] = Variable<String>(partId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ServicePartRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('serviceRecordId: $serviceRecordId, ')
+          ..write('partId: $partId, ')
+          ..write('name: $name, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -4174,6 +5043,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ServiceRecordRowsTable(this);
   late final $ServiceLineRecordsTable serviceLineRecords =
       $ServiceLineRecordsTable(this);
+  late final $PartRecordsTable partRecords = $PartRecordsTable(this);
+  late final $ServicePartRecordsTable servicePartRecords =
+      $ServicePartRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -4186,6 +5058,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     planItemRecords,
     serviceRecordRows,
     serviceLineRecords,
+    partRecords,
+    servicePartRecords,
   ];
 }
 
@@ -6250,6 +7124,480 @@ typedef $$ServiceLineRecordsTableProcessedTableManager =
       ServiceLineRecord,
       PrefetchHooks Function()
     >;
+typedef $$PartRecordsTableCreateCompanionBuilder =
+    PartRecordsCompanion Function({
+      required String id,
+      required String userId,
+      required String vehicleId,
+      required String name,
+      Value<String?> brand,
+      Value<String?> partNumber,
+      Value<String?> notes,
+      required DateTime updatedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$PartRecordsTableUpdateCompanionBuilder =
+    PartRecordsCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String> vehicleId,
+      Value<String> name,
+      Value<String?> brand,
+      Value<String?> partNumber,
+      Value<String?> notes,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$PartRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $PartRecordsTable> {
+  $$PartRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PartRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PartRecordsTable> {
+  $$PartRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get brand => $composableBuilder(
+    column: $table.brand,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PartRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PartRecordsTable> {
+  $$PartRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get brand =>
+      $composableBuilder(column: $table.brand, builder: (column) => column);
+
+  GeneratedColumn<String> get partNumber => $composableBuilder(
+    column: $table.partNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$PartRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PartRecordsTable,
+          PartRecord,
+          $$PartRecordsTableFilterComposer,
+          $$PartRecordsTableOrderingComposer,
+          $$PartRecordsTableAnnotationComposer,
+          $$PartRecordsTableCreateCompanionBuilder,
+          $$PartRecordsTableUpdateCompanionBuilder,
+          (
+            PartRecord,
+            BaseReferences<_$AppDatabase, $PartRecordsTable, PartRecord>,
+          ),
+          PartRecord,
+          PrefetchHooks Function()
+        > {
+  $$PartRecordsTableTableManager(_$AppDatabase db, $PartRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PartRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PartRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PartRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String?> brand = const Value.absent(),
+                Value<String?> partNumber = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PartRecordsCompanion(
+                id: id,
+                userId: userId,
+                vehicleId: vehicleId,
+                name: name,
+                brand: brand,
+                partNumber: partNumber,
+                notes: notes,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                required String vehicleId,
+                required String name,
+                Value<String?> brand = const Value.absent(),
+                Value<String?> partNumber = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                required DateTime updatedAt,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => PartRecordsCompanion.insert(
+                id: id,
+                userId: userId,
+                vehicleId: vehicleId,
+                name: name,
+                brand: brand,
+                partNumber: partNumber,
+                notes: notes,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PartRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PartRecordsTable,
+      PartRecord,
+      $$PartRecordsTableFilterComposer,
+      $$PartRecordsTableOrderingComposer,
+      $$PartRecordsTableAnnotationComposer,
+      $$PartRecordsTableCreateCompanionBuilder,
+      $$PartRecordsTableUpdateCompanionBuilder,
+      (
+        PartRecord,
+        BaseReferences<_$AppDatabase, $PartRecordsTable, PartRecord>,
+      ),
+      PartRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$ServicePartRecordsTableCreateCompanionBuilder =
+    ServicePartRecordsCompanion Function({
+      required String id,
+      required String serviceRecordId,
+      required String partId,
+      required String name,
+      Value<int> rowid,
+    });
+typedef $$ServicePartRecordsTableUpdateCompanionBuilder =
+    ServicePartRecordsCompanion Function({
+      Value<String> id,
+      Value<String> serviceRecordId,
+      Value<String> partId,
+      Value<String> name,
+      Value<int> rowid,
+    });
+
+class $$ServicePartRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $ServicePartRecordsTable> {
+  $$ServicePartRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get serviceRecordId => $composableBuilder(
+    column: $table.serviceRecordId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get partId => $composableBuilder(
+    column: $table.partId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$ServicePartRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $ServicePartRecordsTable> {
+  $$ServicePartRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get serviceRecordId => $composableBuilder(
+    column: $table.serviceRecordId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get partId => $composableBuilder(
+    column: $table.partId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$ServicePartRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $ServicePartRecordsTable> {
+  $$ServicePartRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get serviceRecordId => $composableBuilder(
+    column: $table.serviceRecordId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get partId =>
+      $composableBuilder(column: $table.partId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+}
+
+class $$ServicePartRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $ServicePartRecordsTable,
+          ServicePartRecord,
+          $$ServicePartRecordsTableFilterComposer,
+          $$ServicePartRecordsTableOrderingComposer,
+          $$ServicePartRecordsTableAnnotationComposer,
+          $$ServicePartRecordsTableCreateCompanionBuilder,
+          $$ServicePartRecordsTableUpdateCompanionBuilder,
+          (
+            ServicePartRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $ServicePartRecordsTable,
+              ServicePartRecord
+            >,
+          ),
+          ServicePartRecord,
+          PrefetchHooks Function()
+        > {
+  $$ServicePartRecordsTableTableManager(
+    _$AppDatabase db,
+    $ServicePartRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$ServicePartRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$ServicePartRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$ServicePartRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> serviceRecordId = const Value.absent(),
+                Value<String> partId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => ServicePartRecordsCompanion(
+                id: id,
+                serviceRecordId: serviceRecordId,
+                partId: partId,
+                name: name,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String serviceRecordId,
+                required String partId,
+                required String name,
+                Value<int> rowid = const Value.absent(),
+              }) => ServicePartRecordsCompanion.insert(
+                id: id,
+                serviceRecordId: serviceRecordId,
+                partId: partId,
+                name: name,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$ServicePartRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $ServicePartRecordsTable,
+      ServicePartRecord,
+      $$ServicePartRecordsTableFilterComposer,
+      $$ServicePartRecordsTableOrderingComposer,
+      $$ServicePartRecordsTableAnnotationComposer,
+      $$ServicePartRecordsTableCreateCompanionBuilder,
+      $$ServicePartRecordsTableUpdateCompanionBuilder,
+      (
+        ServicePartRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $ServicePartRecordsTable,
+          ServicePartRecord
+        >,
+      ),
+      ServicePartRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -6268,4 +7616,8 @@ class $AppDatabaseManager {
       $$ServiceRecordRowsTableTableManager(_db, _db.serviceRecordRows);
   $$ServiceLineRecordsTableTableManager get serviceLineRecords =>
       $$ServiceLineRecordsTableTableManager(_db, _db.serviceLineRecords);
+  $$PartRecordsTableTableManager get partRecords =>
+      $$PartRecordsTableTableManager(_db, _db.partRecords);
+  $$ServicePartRecordsTableTableManager get servicePartRecords =>
+      $$ServicePartRecordsTableTableManager(_db, _db.servicePartRecords);
 }

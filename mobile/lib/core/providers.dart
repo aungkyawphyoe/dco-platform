@@ -13,6 +13,8 @@ import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
 import '../../features/garage/domain/repositories/vehicle_repository.dart';
 import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
 import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../../features/parts/data/repositories/parts_repository_impl.dart';
+import '../../features/parts/domain/repositories/parts_repository.dart';
 import '../../features/settings/data/repositories/preferences_repository_impl.dart';
 import '../../features/settings/domain/repositories/preferences_repository.dart';
 import 'analytics/analytics.dart';
@@ -109,6 +111,14 @@ final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {
 
 final maintenanceRepositoryProvider = Provider<MaintenanceRepository>((ref) {
   return MaintenanceRepositoryImpl(
+    db: ref.watch(appDatabaseProvider),
+    outbox: ref.watch(outboxWriterProvider),
+    syncEngine: ref.watch(syncEngineProvider),
+  );
+});
+
+final partsRepositoryProvider = Provider<PartsRepository>((ref) {
+  return PartsRepositoryImpl(
     db: ref.watch(appDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),

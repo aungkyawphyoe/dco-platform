@@ -32,6 +32,7 @@ erDiagram
   vehicles ||--o{ service_records : history
   vehicles ||--o{ documents : vault
   vehicles ||--o{ expenses : costs
+  vehicles ||--o{ parts : catalog
   vehicles ||--o{ notification_feed : alerts
   vehicles {
     uuid id PK
@@ -70,6 +71,8 @@ erDiagram
   }
 
   service_records ||--|{ service_record_items : contains
+  service_records ||--o{ service_record_parts : uses
+  parts ||--o{ service_record_parts : assigned_on
   service_records {
     uuid id PK
     uuid vehicle_id FK
@@ -87,6 +90,22 @@ erDiagram
     uuid plan_item_id FK
     string name
     decimal line_cost
+  }
+
+  parts {
+    uuid id PK
+    uuid vehicle_id FK
+    string name
+    string brand
+    string part_number
+    string notes
+  }
+
+  service_record_parts {
+    uuid id PK
+    uuid service_record_id FK
+    uuid part_id FK
+    string name
   }
 
   documents {
@@ -238,7 +257,8 @@ Observed in the Autozis demo (Toyota Camry dashboard, multi-vehicle garage, expe
 | Refuel / charge logs, volume, efficiency | Expense category `fuel` only | **Defer** (v1.1) |
 | Insurance **tracker** (policy, renew, expiry) | Document category + expense category | **Defer** policy object |
 | Trips / mileage logbook | Mileage on vehicle + service odometer only | **Defer** |
-| Notes, catalogs (fuel types, expense types, parts, locations) as first-class screens | Fixed enums | **Defer** user catalogs |
+| Notes, catalogs (fuel types, expense types, locations) as first-class screens | Fixed enums | **Defer** user catalogs |
+| Parts catalog (name, brand, number) assigned on service / expense | Per-vehicle parts + service assignment | **Adopt** (expense assignment with the expenses form) |
 | Documents with multiple attachments, notes | One file per document | **Adopt simplified** |
 | Receipt scanning / OCR ("Load from Receipt") | Attach photo, no extract | **Defer** |
 | Vehicle sharing, import/export, PDF reports, AI assistant | — | **Defer** |

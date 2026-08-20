@@ -40,8 +40,9 @@ PlanItemRecordsCompanion planItemToCompanion(PlanItem item) {
 
 ServiceRecord serviceRecordFromDrift(
   ServiceRecordRow row,
-  List<ServiceLineRecord> lines,
-) {
+  List<ServiceLineRecord> lines, [
+  List<ServicePartRecord> parts = const [],
+]) {
   return ServiceRecord(
     id: row.id,
     vehicleId: row.vehicleId,
@@ -54,6 +55,7 @@ ServiceRecord serviceRecordFromDrift(
     receiptLocalPath: row.receiptLocalPath,
     receiptMediaId: row.receiptMediaId,
     items: lines.map(serviceLineFromDrift).toList(),
+    parts: parts.map(assignedPartFromDrift).toList(),
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
   );
@@ -65,5 +67,13 @@ ServiceLine serviceLineFromDrift(ServiceLineRecord row) {
     planItemId: row.planItemId,
     name: row.name,
     lineCost: row.lineCost,
+  );
+}
+
+AssignedPart assignedPartFromDrift(ServicePartRecord row) {
+  return AssignedPart(
+    id: row.id,
+    partId: row.partId,
+    name: row.name,
   );
 }

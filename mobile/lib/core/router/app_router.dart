@@ -22,6 +22,7 @@ import '../../features/maintenance/presentation/screens/service_detail_screen.da
 import '../../features/maintenance/presentation/screens/service_history_screen.dart';
 import '../../features/maintenance/presentation/screens/suggested_items_screen.dart';
 import '../../features/notifications/presentation/screens/notification_feed_screen.dart';
+import '../../features/parts/presentation/screens/part_form_screen.dart';
 import '../../features/parts/presentation/screens/parts_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -138,6 +139,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'parts',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const PartsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => const PartFormScreen(),
+                      ),
+                      GoRoute(
+                        path: ':partId/edit',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => PartFormScreen(
+                          partId: state.pathParameters['partId'],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

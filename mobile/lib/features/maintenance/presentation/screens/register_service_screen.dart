@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
@@ -14,6 +15,8 @@ import 'package:dco_mobile/features/maintenance/domain/maintenance_failure.dart'
 import 'package:dco_mobile/features/maintenance/domain/plan_item_validators.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
+import 'package:dco_mobile/features/parts/domain/entities/part.dart';
+import 'package:dco_mobile/features/parts/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -37,6 +40,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   final _total = TextEditingController();
   final _errors = <String, String?>{};
   final _lines = <_ServiceLineInput>[];
+  final _parts = <AssignedPartDraft>[];
 
   DateTime _servicedOn = DateTime.now();
   String? _formError;
@@ -146,6 +150,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       totalCost: total,
       notes: _notes.text,
       items: items,
+      parts: List.of(_parts),
     );
   }
 
@@ -268,12 +273,76 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     custom.dispose();
   }
 
+  Future<void> _openAssignPart() async {
+    final catalog = ref.read(vehiclePartsProvider).valueOrNull ?? const <Part>[];
+    final assigned = _parts.map((part) => part.partId).toSet();
+    final available = catalog.where((part) => !assigned.contains(part.id)).toList();
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: context.tokens.background.card,
+      builder: (context) {
+        final tokens = context.tokens;
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            tokens.space.s4,
+            tokens.space.s4,
+            tokens.space.s4,
+            MediaQuery.viewInsetsOf(context).bottom + tokens.space.s4,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Assign part', style: Theme.of(context).textTheme.titleLarge),
+              SizedBox(height: tokens.space.s3),
+              if (catalog.isEmpty)
+                Text(
+                  'No parts in the catalog yet. Add one, then assign it here.',
+                  style: TextStyle(color: tokens.text.caption),
+                )
+              else if (available.isEmpty)
+                Text(
+                  'Every part is already assigned to this service.',
+                  style: TextStyle(color: tokens.text.caption),
+                )
+              else
+                ...available.map(
+                  (part) => ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(part.name),
+                    subtitle: part.detailLine == null ? null : Text(part.detailLine!),
+                    onTap: () {
+                      setState(() {
+                        _parts.add(AssignedPartDraft(partId: part.id, name: part.name));
+                      });
+                      Navigator.pop(context);
+                    },
+                  ),
+                ),
+              SizedBox(height: tokens.space.s3),
+              DcoButton(
+                label: 'Add a new part',
+                variant: DcoButtonVariant.secondary,
+                onPressed: () {
+                  Navigator.pop(context);
+                  context.push(AppRoutes.partNew);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
+    ref.watch(vehiclePartsProvider);
     if (vehicle != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _prefill(vehicle, plan);
@@ -380,6 +449,38 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                   SizedBox(height: tokens.space.s2),
                   Text(_errors['items']!, style: TextStyle(color: tokens.status.dangerFg)),
                 ],
+                SizedBox(height: tokens.space.s5),
+                Text('Parts', style: Theme.of(context).textTheme.labelLarge),
+                SizedBox(height: tokens.space.s3),
+                ..._parts.map(
+                  (part) => Padding(
+                    padding: EdgeInsets.only(bottom: tokens.space.s3),
+                    child: Material(
+                      color: tokens.background.card,
+                      borderRadius: BorderRadius.circular(tokens.radius.md),
+                      child: Padding(
+                        padding: EdgeInsets.all(tokens.space.s3),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(part.name, style: Theme.of(context).textTheme.titleMedium),
+                            ),
+                            IconButton(
+                              tooltip: 'Remove',
+                              onPressed: () => setState(() => _parts.remove(part)),
+                              icon: Icon(Icons.close, color: tokens.icon.inactive),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _openAssignPart,
+                  icon: Icon(Icons.add, color: tokens.icon.active),
+                  label: Text('assign part', style: TextStyle(color: tokens.text.link)),
+                ),
                 SizedBox(height: tokens.space.s5),
                 DcoTextField(
                   label: 'Total',

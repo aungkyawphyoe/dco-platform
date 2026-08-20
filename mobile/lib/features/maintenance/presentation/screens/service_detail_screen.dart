@@ -69,6 +69,17 @@ class ServiceDetailScreen extends ConsumerWidget {
                   ),
                 );
               }),
+              if (record.parts.isNotEmpty) ...[
+                SizedBox(height: tokens.space.s5),
+                Text('Parts', style: Theme.of(context).textTheme.titleMedium),
+                SizedBox(height: tokens.space.s3),
+                ...record.parts.map(
+                  (part) => Padding(
+                    padding: EdgeInsets.only(bottom: tokens.space.s3),
+                    child: Text(part.name),
+                  ),
+                ),
+              ],
             ],
           );
         },

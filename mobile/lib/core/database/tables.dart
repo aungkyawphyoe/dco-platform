@@ -108,3 +108,34 @@ class ServiceLineRecords extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+class PartRecords extends Table {
+  @override
+  String get tableName => 'parts';
+
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get name => text()();
+  TextColumn get brand => text().nullable()();
+  TextColumn get partNumber => text().nullable()();
+  TextColumn get notes => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class ServicePartRecords extends Table {
+  @override
+  String get tableName => 'service_record_parts';
+
+  TextColumn get id => text()();
+  TextColumn get serviceRecordId => text()();
+  TextColumn get partId => text()();
+  TextColumn get name => text()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

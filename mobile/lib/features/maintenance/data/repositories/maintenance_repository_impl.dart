@@ -50,7 +50,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     final query = _db.select(_db.serviceRecordRows)
       ..where((row) => row.vehicleId.equals(vehicleId))
       ..orderBy([(row) => OrderingTerm.desc(row.servicedOn)]);
-    return query.watch().asyncMap(_attachLines);
+    return query.watch().asyncMap(_attachChildren);
   }
 
   @override
@@ -67,7 +67,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       _db.serviceRecordRows,
     )..where((r) => r.id.equals(id))).getSingleOrNull();
     if (row == null) return null;
-    final attached = await _attachLines([row]);
+    final attached = await _attachChildren([row]);
     return attached.single;
   }
 
@@ -242,6 +242,15 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           ),
         )
         .toList();
+    final assigned = draft.parts
+        .map(
+          (part) => AssignedPart(
+            id: _uuid.v4(),
+            partId: part.partId,
+            name: part.name.trim(),
+          ),
+        )
+        .toList();
     final title = _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
     final record = ServiceRecord(
       id: _uuid.v4(),
@@ -253,6 +262,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       workshopName: _emptyToNull(draft.workshopName),
       notes: _emptyToNull(draft.notes),
       items: lines,
+      parts: assigned,
       updatedAt: now,
       createdAt: now,
     );
@@ -284,6 +294,18 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
                 planItemId: Value(line.planItemId),
                 name: line.name,
                 lineCost: Value(line.lineCost),
+              ),
+            );
+      }
+      for (final part in assigned) {
+        await _db
+            .into(_db.servicePartRecords)
+            .insert(
+              ServicePartRecordsCompanion.insert(
+                id: part.id,
+                serviceRecordId: record.id,
+                partId: part.partId,
+                name: part.name,
               ),
             );
       }
@@ -351,18 +373,31 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     return record;
   }
 
-  Future<List<ServiceRecord>> _attachLines(List<ServiceRecordRow> rows) async {
+  Future<List<ServiceRecord>> _attachChildren(List<ServiceRecordRow> rows) async {
     if (rows.isEmpty) return const [];
     final ids = rows.map((row) => row.id).toList();
     final lines = await (_db.select(
       _db.serviceLineRecords,
     )..where((row) => row.serviceRecordId.isIn(ids))).get();
-    final byRecord = <String, List<ServiceLineRecord>>{};
+    final parts = await (_db.select(
+      _db.servicePartRecords,
+    )..where((row) => row.serviceRecordId.isIn(ids))).get();
+    final linesByRecord = <String, List<ServiceLineRecord>>{};
     for (final line in lines) {
-      byRecord.putIfAbsent(line.serviceRecordId, () => []).add(line);
+      linesByRecord.putIfAbsent(line.serviceRecordId, () => []).add(line);
+    }
+    final partsByRecord = <String, List<ServicePartRecord>>{};
+    for (final part in parts) {
+      partsByRecord.putIfAbsent(part.serviceRecordId, () => []).add(part);
     }
     return rows
-        .map((row) => serviceRecordFromDrift(row, byRecord[row.id] ?? const []))
+        .map(
+          (row) => serviceRecordFromDrift(
+            row,
+            linesByRecord[row.id] ?? const [],
+            partsByRecord[row.id] ?? const [],
+          ),
+        )
         .toList();
   }
 

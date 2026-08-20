@@ -16,6 +16,7 @@ Enable users to:
 
 - See which vehicle they are working on
 - Read a truthful ownership cost snapshot
+- Open Services, Documents, Insurance, and Parts from Quick Actions
 - Jump to the next due service
 - Scan the last three maintenance events
 - Register a vehicle when the garage is empty
@@ -27,7 +28,8 @@ Enable users to:
 - Default selected (active) vehicle
 - Vehicle switcher → Garage Home
 - Vehicle identity block (photo, plate, year/make/model, mileage, VIN if present)
-- Ownership summary: total spent, this month spent, services count, documents count
+- Ownership summary: total spent, this month spent
+- Quick Actions: Services (full history), Documents, Insurance (placeholder), Parts
 - Recent activity: **3** maintenance history rows
 - Next maintenance: the most due plan item + Log Service
 - Empty garage dashboard
@@ -71,7 +73,7 @@ So that I do not hunt for it in a list.
 
 As an owner,
 
-I want total and this-month spend plus service and document counts
+I want total and this-month spend
 
 So that I know what ownership is costing without opening every module.
 
@@ -120,16 +122,27 @@ Tap on the identity block may open edit vehicle (screen 5) in MVP; if not implem
 
 ## Ownership summary
 
-Four figures, active vehicle only:
+Two figures, active vehicle only:
 
 | Metric | Source | Autozis analogue (do not copy extra) |
 |--------|--------|--------------------------------------|
 | Total spent | Sum of **expenses** for the vehicle | Autozis splits Refuel / Maintenance / Expense costs |
 | This month | Expenses with `incurred_on` in the current local calendar month | Autozis "current year running costs" |
-| Services | Count of service records | Autozis maintenance visit stats |
-| Documents | Count of document records | Autozis Documents "Set up" card |
 
 No fuel volume, no MPG, no insurance premium field.
+
+## Quick Actions
+
+3-column bento under Ownership Summary. Current tiles:
+
+| Tile | Destination |
+|------|-------------|
+| Services | Service History — full service list for the active vehicle |
+| Documents | Document vault (UI only until the documents slice) |
+| Insurance | Insurance screen (placeholder; policy module is later) |
+| Parts | Parts catalog for the active vehicle |
+
+Tiles are shortcuts, not KPI counts.
 
 ## Recent activity
 
@@ -181,7 +194,7 @@ Active vehicle?
 
 No → Empty dashboard → Register A Vehicle → Add Vehicle → Dashboard populated
 
-Yes → Identity + Ownership Summary + Recent Activity + Next Maintenance
+Yes → Identity + Ownership Summary + Quick Actions + Recent Activity + Next Maintenance
 
 ↓
 
@@ -217,7 +230,7 @@ None on this screen (no form). Child screens validate. Dashboard must tolerate m
 
 - First paint from local DB < 2 seconds on a mid-range device
 - Offline: full Dashboard from last local state
-- Accessible headings: vehicle name, Ownership Summary, Recent Activity, Next Maintenance
+- Accessible headings: vehicle name, Ownership Summary, Quick Actions, Recent Activity, Next Maintenance
 - Tokens from `docs/design-system.md` only
 
 ---

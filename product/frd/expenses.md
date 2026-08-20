@@ -113,6 +113,7 @@ Optional
 
 - Notes
 - Receipt photo (camera or library)
+- Assigned parts from the vehicle parts catalog
 
 Behavior
 
