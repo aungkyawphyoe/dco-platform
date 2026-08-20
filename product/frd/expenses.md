@@ -135,7 +135,7 @@ Behavior
 # Business Rules
 
 - Every expense belongs to exactly one vehicle
-- Currency is the device locale; store amount as a decimal with 2 fraction digits
+- Currency follows Settings (USD or MMK); store amount as a decimal with 2 fraction digits. USD displays cents. MMK displays whole kyat and uses K / M suffixes for thousands and millions.
 - Category `fuel` does not require liters, gallons, or station
 - Category `maintenance` is optional extra spend (parts bought separately, etc.); it is not synced from service records
 - Category `insurance` is a payment log only

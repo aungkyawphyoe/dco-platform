@@ -180,7 +180,7 @@ Do **not** show Autozis-style REFUEL timeline rows.
 - Dashboard is a **read model**. It does not create expenses from services.
 - Total / this month ignore archived vehicles (the active vehicle is never archived).
 - Mileage displayed is `vehicles.mileage` after monotonic updates from services.
-- Currency is the device locale.
+- Currency follows Settings (USD or MMK). USD shows cents; MMK shows whole kyat with K / M for large amounts.
 - Fuel type is not a dashboard KPI; it only affects suggested plan items elsewhere.
 
 ---

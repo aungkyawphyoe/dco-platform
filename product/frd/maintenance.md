@@ -250,7 +250,7 @@ Total cost
 
 - Required
 - >= 0
-- Currency is the user's locale default; no multi-currency in MVP
+- Currency follows Settings (USD or MMK); no conversion in MVP. USD shows cents; MMK shows whole kyat with K / M for large amounts.
 
 Plan item name
 
