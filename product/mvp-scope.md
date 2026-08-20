@@ -8,7 +8,7 @@
 
 **Last Updated:** August 2026
 
-This file is the source of truth for what ships in MVP. `docs/product-roadmap.md` and `product/frd/` must not contradict it. Fuel tracking and insurance *policy* management are Autozis-style modules deferred to v1.1. Insurance remains a document category and an expense category.
+This file is the source of truth for what ships in MVP. `docs/product-roadmap.md` and `product/frd/` must not contradict it. Fuel *efficiency* (MPG / kWh economy) and insurance *policy* management are Autozis-style modules deferred to v1.1. Insurance remains a document category and an expense category. Refuel / charge *logs* (date, type, amount, cost) are in MVP.
 
 ---
 
@@ -55,7 +55,7 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Default Selected Car and Toggle | Show the active vehicle; switching opens Garage Home (My Garage) |
 | Vehicle Detail | Show the vehicle overall information |
 | Ownership Summary | Total spent, this month spent. No fuel volume or MPG. |
-| Quick Actions | 3×2 bento: Services (full history), Documents, Insurance (placeholder), Parts |
+| Quick Actions | 3-column bento: Services (full history), Documents, Insurance (placeholder), Refuel/Charge, Parts |
 | Recent Activity | Show 3 records of maintenance history |
 | Next Maintenance | Show the most due maintenance |
 
@@ -68,7 +68,7 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Edit Vehicle | Update vehicle details including fuel type |
 | Archive Vehicle | Soft-delete; records are archived, never permanently removed |
 | Active Vehicle | User always has one active vehicle selected; switching persists |
-| Vehicle Detail | Overview section + entry points to maintenance, expenses, documents. No Fuel or Insurance modules. |
+| Vehicle Detail | Overview section + entry points to maintenance, expenses, documents, and Refuel/Charge from Dashboard Quick Actions. |
 
 ### Maintenance
 
@@ -94,6 +94,15 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Add / edit part | Owner-defined parts for the active vehicle |
 | Assign on service | Attach parts when registering a service |
 | Assign on expense | Attach parts when logging an expense (with the expenses slice) |
+
+### Fuel
+
+| Feature | Description |
+|---------|-------------|
+| Refuel / Charge logs | Date, fuel type, amount, cost for the active vehicle |
+| Vehicle split | Petrol and hybrid plugin → Refuel. Electric → Charge |
+| Fuel Types catalog | Owner-defined types (liquid vs electric, unit) on a Fuel Types screen |
+| Filters | List filters by fuel type and this month / all dates |
 
 ### Documents
 
@@ -141,7 +150,7 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 
 The following are explicitly deferred:
 
-- Fuel tracking (refuel/charge logs, volume, efficiency / MPG). Fuel remains an expense category only.
+- Fuel efficiency (MPG, L/100km, kWh/100km). Refuel/charge *logs* are in MVP; economy KPIs are not.
 - Insurance module (policy management, renewals, previous policies). Insurance remains a document category and an expense category.
 - Receipt OCR / auto-fill from a captured image
 - Cloud backup beyond the core sync engine
@@ -255,6 +264,6 @@ Minimal instrumentation on the critical path:
 
 Refer to `docs/product-roadmap.md` for the full phased plan. Immediately after MVP:
 
-- **v1.1:** Fuel tracking, Insurance module, Cloud backup, receipt OCR
+- **v1.1:** Fuel efficiency KPIs, Insurance module, Cloud backup, receipt OCR
 - **Phase 2:** Workshop booking, Marketplace, Family sharing, Vehicle health dashboard
 - **Phase 3 (Year 2):** OBD/connected cars, predictive maintenance, fleet, dealer/insurance portals

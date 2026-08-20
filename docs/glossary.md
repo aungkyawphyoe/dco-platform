@@ -5,7 +5,8 @@
 | Garage | Collection of a user's vehicles |
 | Vehicle Profile | Digital identity of a vehicle |
 | Active Vehicle | The vehicle currently selected as the working context |
-| Fuel Type | Vehicle energy class: petrol, electric, or hybrid plugin. Not a fuel-tracking log. |
+| Fuel Type | Vehicle energy class: petrol, electric, or hybrid plugin. Also the owner catalog of liquid/electric types used on refuel and charge logs. |
+| Fuel log | Dated refill or charge (amount + cost) for a vehicle. Not an expense row and not an efficiency KPI. |
 | Maintenance Record | Logged service activity |
 | Service Reminder | Scheduled maintenance notification |
 | Expense | Money spent on vehicle ownership. A fuel expense is not a refuel log. |

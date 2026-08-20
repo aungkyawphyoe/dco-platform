@@ -36,7 +36,7 @@ Enable users to:
 - Vehicle selling
 - Fleet management
 - Vehicle financing
-- Fuel tracking (refuel / charge logs, efficiency)
+- Fuel tracking *efficiency* (MPG / kWh economy). Refuel / charge logs are a separate module (`fuel.md`).
 - Insurance policy management (keep insurance as a document and expense category only)
 
 ---

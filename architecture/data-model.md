@@ -15,6 +15,7 @@ erDiagram
   users ||--o{ refresh_tokens : has
   users ||--o{ device_tokens : registers
   users ||--o{ notification_feed : receives
+  users ||--o{ fuel_types : catalog
   users {
     uuid id PK
     string email UK
@@ -33,6 +34,7 @@ erDiagram
   vehicles ||--o{ documents : vault
   vehicles ||--o{ expenses : costs
   vehicles ||--o{ parts : catalog
+  vehicles ||--o{ fuel_logs : energy
   vehicles ||--o{ notification_feed : alerts
   vehicles {
     uuid id PK
@@ -106,6 +108,28 @@ erDiagram
     uuid service_record_id FK
     uuid part_id FK
     string name
+  }
+
+  fuel_types {
+    uuid id PK
+    uuid user_id FK
+    string name
+    enum kind
+    string unit
+  }
+
+  fuel_types ||--o{ fuel_logs : used_on
+  fuel_logs {
+    uuid id PK
+    uuid user_id FK
+    uuid vehicle_id FK
+    enum kind
+    uuid fuel_type_id FK
+    string fuel_type_name
+    string unit
+    date logged_on
+    decimal amount
+    decimal cost
   }
 
   documents {
@@ -207,12 +231,19 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 - One primary file per document (`media_objects`).
 - Document categories: `insurance` \| `registration` \| `invoice` \| `warranty` \| `receipt` \| `other`.
 - Expense categories: `fuel` \| `maintenance` \| `insurance` \| `parking` \| `tolls` \| `parts` \| `other`.
-- Expense `fuel` is **money only** (no litres, no kWh). Expense `maintenance` does **not** auto-create from service records. Dashboard totals read **expenses only**.
+- Expense `fuel` is **money only** (no litres, no kWh). Volume and kWh live on `fuel_logs`. Expense `maintenance` does **not** auto-create from service records. Dashboard totals read **expenses only**.
+
+### fuel_types / fuel_logs
+
+- `fuel_types.kind`: `liquid` \| `electric`. Unique `name` per `user_id` (case-insensitive).
+- `fuel_logs.kind`: `refuel` \| `charge`. Petrol and hybrid plugin vehicles write `refuel`; electric vehicles write `charge`.
+- Amount is litres/gallons or kWh from the catalog type's `unit`. Name and unit are snapshotted on the log.
+- Do not copy Autozis odometer-on-log, partial/full tank, or efficiency KPIs.
 
 ### change_log
 
 - Append-only. Cursor is opaque (`seq` encoded, not invented by clients).
-- Entity types in MVP: `user`, `vehicle`, `plan_item`, `service_record`, `document`, `expense`, `notification`, `media`.
+- Entity types in MVP: `user`, `vehicle`, `plan_item`, `service_record`, `document`, `expense`, `notification`, `media`, `part`, `fuel_type`, `fuel_log`.
 - Duplicate create with the same client UUID → idempotent success.
 - Archive vs later edit: **archive wins**.
 
@@ -254,10 +285,10 @@ Observed in the Autozis demo (Toyota Camry dashboard, multi-vehicle garage, expe
 | Multi-vehicle garage, photo, make/model, mileage, purchase date | Same core + plate uniqueness, VIN rule, fuel type enum, nickname, archive | **Adopt** (with DCO rules) |
 | Dashboard: vehicle health, mileage, next event, cost KPIs, needs-attention, recent activity | Dashboard for **active vehicle**: identity, ownership summary (spend + counts), 3 maintenance rows, next plan item | **Adopt shape, shrink metrics** — no refuel €, L/100km, insurance expiry module |
 | Maintenance plan + reminders (time and/or mileage) + service history | Same | **Adopt** |
-| Refuel / charge logs, volume, efficiency | Expense category `fuel` only | **Defer** (v1.1) |
+| Refuel / charge logs (date, type, amount, cost) | `fuel_types` catalog + `fuel_logs` | **Adopt simplified** — no efficiency KPIs |
 | Insurance **tracker** (policy, renew, expiry) | Document category + expense category | **Defer** policy object |
 | Trips / mileage logbook | Mileage on vehicle + service odometer only | **Defer** |
-| Notes, catalogs (fuel types, expense types, locations) as first-class screens | Fixed enums | **Defer** user catalogs |
+| Notes, catalogs (expense types, locations) as first-class screens | Fuel Types catalog only; other catalogs deferred | **Adopt Fuel Types**; defer the rest |
 | Parts catalog (name, brand, number) assigned on service / expense | Per-vehicle parts + service assignment | **Adopt** (expense assignment with the expenses form) |
 | Documents with multiple attachments, notes | One file per document | **Adopt simplified** |
 | Receipt scanning / OCR ("Load from Receipt") | Attach photo, no extract | **Defer** |
@@ -266,7 +297,7 @@ Observed in the Autozis demo (Toyota Camry dashboard, multi-vehicle garage, expe
 | No staff admin | Users + partners + audit | **DCO-only** |
 | Freemium (advanced features gated) | `plan` field, gating not activated | **Adopt field only** |
 
-Do not add Autozis tables (`refuels`, `charges`, `trips`, `policies`, `notes`, `expense_types`) to this schema. Leave extension points: `fuel_type` on vehicle and `category` enums already cover v1.1 without a rewrite.
+Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to this schema. Fuel logs are a DCO slice (`fuel_types`, `fuel_logs`), not Autozis efficiency tracking.
 
 ---
 

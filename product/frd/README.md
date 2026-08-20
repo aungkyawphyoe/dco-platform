@@ -27,6 +27,7 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 | Sync | [sync.md](sync.md) | Mobile + API |
 | Notifications | [notifications.md](notifications.md) | Mobile + API |
 | Parts | [parts.md](parts.md) | Mobile |
+| Fuel | [fuel.md](fuel.md) | Mobile |
 | Admin | [admin.md](admin.md) | Web portal + API |
 
 Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `docs/app-shell.md`. API: `architecture/openapi.yaml`.

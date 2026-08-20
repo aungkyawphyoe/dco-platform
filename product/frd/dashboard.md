@@ -6,7 +6,7 @@ Dashboard is the first authenticated screen. It is the **active vehicle's home**
 
 It composes Garage, Maintenance, Expenses, and Documents. It does not own those records.
 
-Source of truth for scope: `product/mvp-scope.md`. Visual reference: tldraw `3. Dashboard (Default Vehicle Detail)` and Autozis `https://autozis.com/app/dashboard` (shape only — Autozis fuel, insurance, trips, and assistant metrics are out of scope).
+Source of truth for scope: `product/mvp-scope.md`. Visual reference: tldraw `3. Dashboard (Default Vehicle Detail)` and Autozis `https://autozis.com/app/dashboard` (shape only — Autozis fuel *efficiency*, insurance policies, trips, and assistant metrics are out of scope).
 
 ---
 
@@ -16,7 +16,7 @@ Enable users to:
 
 - See which vehicle they are working on
 - Read a truthful ownership cost snapshot
-- Open Services, Documents, Insurance, and Parts from Quick Actions
+- Open Services, Documents, Insurance, Refuel/Charge, and Parts from Quick Actions
 - Jump to the next due service
 - Scan the last three maintenance events
 - Register a vehicle when the garage is empty
@@ -29,7 +29,7 @@ Enable users to:
 - Vehicle switcher → Garage Home
 - Vehicle identity block (photo, plate, year/make/model, mileage, VIN if present)
 - Ownership summary: total spent, this month spent
-- Quick Actions: Services (full history), Documents, Insurance (placeholder), Parts
+- Quick Actions: Services (full history), Documents, Insurance (placeholder), Refuel/Charge, Parts
 - Recent activity: **3** maintenance history rows
 - Next maintenance: the most due plan item + Log Service
 - Empty garage dashboard
@@ -40,7 +40,7 @@ Enable users to:
 
 # Out of Scope
 
-- Fuel volume, €/L, L/100km, charging kWh (Autozis Key metrics)
+- Fuel *efficiency* KPIs (€/L, L/100km, charging kWh/100km). Refuel/Charge *logs* are a Quick Action, not dashboard metrics.
 - Insurance expiry as a dashboard module (Autozis Needs attention / Insurance)
 - Trips, AI assistant, mileage-update "events" as a product type
 - Mixing refuel rows into Recent Activity
@@ -140,6 +140,7 @@ No fuel volume, no MPG, no insurance premium field.
 | Services | Service History — full service list for the active vehicle |
 | Documents | Document vault (UI only until the documents slice) |
 | Insurance | Insurance screen (placeholder; policy module is later) |
+| Refuel / Charge | Fuel logs for the active vehicle. Label is **Charge** when the vehicle fuel type is electric; otherwise **Refuel**. Placed before Parts. |
 | Parts | Parts catalog for the active vehicle |
 
 Tiles are shortcuts, not KPI counts.

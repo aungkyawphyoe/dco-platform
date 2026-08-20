@@ -4,7 +4,7 @@
 
 Expenses is the ownership-cost log for a vehicle. The owner records category, amount, date, notes, and an optional receipt photo. Monthly and lifetime totals feed the dashboard ownership summary.
 
-A **fuel expense** is money spent on fuel. It is not a refuel log: no volume, no price per liter, no MPG, no charging kWh. Those belong to v1.1 Fuel tracking. An **insurance expense** is a payment; it is not a policy record.
+A **fuel expense** is money spent on fuel. It is not a refuel log: volume, kWh, and fuel type on a log belong to the Fuel module (`fuel.md`). An **insurance expense** is a payment; it is not a policy record.
 
 Maintenance **service record costs** stay on the Maintenance module. They do not auto-create an expense. Dashboard "total spent" and "this month" use this Expenses module only.
 
@@ -72,7 +72,7 @@ As a user,
 
 I want categories including fuel and insurance
 
-So that I can group spend without a fuel or insurance module.
+So that I can group spend without mixing it into a refuel log or insurance policy.
 
 ---
 
