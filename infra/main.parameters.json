@@ -1,0 +1,15 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "environmentName": { "value": "${AZURE_ENV_NAME}" },
+    "location": { "value": "${AZURE_LOCATION}" },
+    "principalId": { "value": "${AZURE_PRINCIPAL_ID}" },
+    "postgresPassword": { "value": "${POSTGRES_PASSWORD}" },
+    "jwtAccessSecret": { "value": "${JWT_ACCESS_SECRET}" },
+    "jwtRefreshSecret": { "value": "${JWT_REFRESH_SECRET}" },
+    "mediaSigningKey": { "value": "${MEDIA_SIGNING_KEY}" },
+    "bootstrapAdminEmail": { "value": "${BOOTSTRAP_ADMIN_EMAIL}" },
+    "bootstrapAdminPassword": { "value": "${BOOTSTRAP_ADMIN_PASSWORD}" }
+  }
+}

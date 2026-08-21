@@ -1,0 +1,21 @@
+# Node / backend
+node_modules/
+dist/
+backend/node_modules/
+backend/dist/
+backend/.env
+backend/var/
+backend/coverage/
+
+# Local media
+*.pem
+.DS_Store
+
+# Azure
+.azure/*.env
+.azure/.env
+.azure/config.json
+
+# IDE
+.idea/
+.vscode/

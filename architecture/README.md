@@ -4,7 +4,8 @@ MVP system design. Product contract remains `product/mvp-scope.md`.
 
 | Document | Contents |
 |----------|----------|
-| [system.md](system.md) | Surfaces, trust boundaries, JWT, offline vs online, media, Azure VPS later |
+| [system.md](system.md) | Surfaces, trust boundaries, JWT, offline vs online, media, Container Apps |
+| [iam.md](iam.md) | Owner/admin MVP IAM and future family/fleet/partner map |
 | [data-model.md](data-model.md) | ERD, mileage/archive rules, Autozis comparison |
 | [api.md](api.md) | Pointer to the OpenAPI file |
 | [openapi.yaml](openapi.yaml) | `/v1` REST contract for mobile and admin |

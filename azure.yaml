@@ -1,0 +1,12 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+name: dco-platform
+metadata:
+  template: dco-platform@0.0.1
+services:
+  api:
+    project: ./backend
+    host: containerapp
+    language: js
+    docker:
+      path: ./Dockerfile
+      remoteBuild: true

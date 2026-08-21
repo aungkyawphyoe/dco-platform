@@ -1,6 +1,6 @@
-# Environment and secrets (draft)
+# Environment and secrets
 
-**Status:** Draft. Do not treat values here as real credentials. Azure VPS provisioning is **later** — this file only names what that machine will need.
+**Status:** Draft placeholders. Do not treat values here as real credentials. Azure secrets live in Key Vault (`docs/adr/azure-hosting.md`). Local uses an ignored `.env`.
 
 ---
 
@@ -19,7 +19,7 @@ Each environment has its **own** JWT keys, database, blob container, and mail fr
 
 ## Secret inventory
 
-Placeholders only. Store in a secret manager or the VPS env file (`chmod 600`), not in git.
+Placeholders only. Store in Key Vault (Azure) or a local ignored `.env` (`chmod 600`), not in git.
 
 | Variable | Who uses it | Notes |
 |----------|-------------|--------|
@@ -33,10 +33,10 @@ Placeholders only. Store in a secret manager or the VPS env file (`chmod 600`), 
 | `JWT_ADMIN_AUD` | API / web | Draft: `dco-admin` |
 | `BOOTSTRAP_ADMIN_EMAIL` | API once | Seed first admin. Remove or disable after first login. |
 | `BOOTSTRAP_ADMIN_PASSWORD` | API once | Single-use. Rotate immediately. |
-| `MAIL_PROVIDER` | API | Draft: unset. Candidates: Azure Communication Services, Postmark, SES. |
-| `MAIL_API_KEY` | API | Provider secret. |
+| `MAIL_PROVIDER` | API | `stdout` (local) or `acs` (Azure Communication Services Email). |
+| `MAIL_API_KEY` | API | ACS connection string or key when `MAIL_PROVIDER=acs`. |
 | `MAIL_FROM` | API | e.g. `noreply@<domain>` |
-| `MEDIA_DRIVER` | API | Draft: `local` in local env; `azure_blob` in stage/prod later. |
+| `MEDIA_DRIVER` | API | `local` on a laptop; `azure_blob` on Azure. |
 | `AZURE_STORAGE_CONNECTION_STRING` | API | When Blob is on. |
 | `AZURE_BLOB_CONTAINER` | API | Separate containers per env. |
 | `MEDIA_SIGNING_KEY` | API | For short-lived download URLs if not using native Blob SAS. |
@@ -64,19 +64,19 @@ Web admin:
 
 | Key | Holder | Not held by |
 |-----|--------|-------------|
-| JWT access / refresh secrets | API process env on the VPS (later) | Flutter app, admin JS, git, chat logs |
-| TLS cert private key | Reverse proxy on the VPS | Application code |
+| JWT access / refresh secrets | Key Vault → Container Apps | Flutter app, admin JS, git, chat logs |
+| TLS cert private key | Container Apps ingress | Application code |
 | Blob account key / managed identity | API (managed identity preferred on Azure) | Clients |
 | Mail API key | API | Clients |
 | Store signing keys (Play / Apple) | Human operator / CI later | This repo |
 
-Local dev may use generated secrets in an ignored `.env`. Prod keys are generated on the VPS or in Azure Key Vault when that guide is written.
+Local dev may use generated secrets in an ignored `.env`. Prod keys are generated in Azure Key Vault.
 
 ---
 
 ## Email
 
-MVP needs verification and password-reset mail (`product/frd/auth.md`). Provider is **not chosen**. Until then, `local` may log the link to stdout.
+MVP needs verification and password-reset mail (`product/frd/auth.md`). Provider: **stdout** locally; **Azure Communication Services Email** on Azure.
 
 ---
 
@@ -85,24 +85,23 @@ MVP needs verification and password-reset mail (`product/frd/auth.md`). Provider
 MVP needs object storage for photos and PDFs. Draft:
 
 - `local`: disk directory under the API working dir (gitignored).
-- `stage` / `prod`: Azure Blob in the same subscription as the VPS.
+- `stage` / `prod`: Azure Blob in the same subscription as the Container App.
 
 The data model stores `blob_key`, not a vendor URL, so the driver can change.
 
 ---
 
-## Azure VPS (later)
+## Azure (Container Apps)
 
-When you are ready, a follow-up setup should cover:
+IaC: `azure.yaml` + `infra/`. First deploy (`azd up`) should cover:
 
-1. Region, VM size, disk, NSG (22/80/443 only as needed).
-2. DNS + TLS reverse proxy in front of the API.
-3. Docker Compose or systemd unit, migrations on deploy.
-4. Env file or Key Vault references for the table above.
-5. Backups for the database; Blob lifecycle for media.
-6. How to rotate JWT secrets without kicking every user off (dual-key window).
+1. Subscription and region (`azd env`).
+2. Key Vault secrets for the table above.
+3. Migrations on container start (or a release job).
+4. Blob lifecycle for media; PostgreSQL backups.
+5. JWT rotation with a dual-key window so existing access tokens still verify.
 
-Do not start that work until the backend stack ADR picks language and database.
+Local: `backend/.env` + Docker Compose Postgres. See `docs/adr/azure-hosting.md`.
 
 ---
 

@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dco
+      POSTGRES_PASSWORD: dco
+      POSTGRES_DB: dco
+    ports:
+      - "5432:5432"
+    volumes:
+      - dco_pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dco"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  dco_pg:

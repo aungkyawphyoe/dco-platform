@@ -2,7 +2,7 @@
 
 **Status:** Proposed — proceed to implement against this document.  
 **Contract:** `product/mvp-scope.md` and `product/frd/`.  
-**Hosting:** REST API will later run on an Azure VPS. This file does not provision that VPS; see `docs/environment-secrets.md` for the draft env map and a later setup guide.
+**Hosting:** REST API runs on Azure Container Apps (`docs/adr/azure-hosting.md`). Local loop is Docker Compose. See `docs/environment-secrets.md` for the env map. IAM taxonomy: `architecture/iam.md`.
 
 ---
 
@@ -13,10 +13,10 @@ Three surfaces share one API and one database:
 | Surface | Who | Online? | Stack (decided / not) |
 |---------|-----|---------|------------------------|
 | **Mobile owner app** | Car owners | Offline-first | Flutter, Riverpod, GoRouter, Drift/SQLite, Dio — decided |
-| **REST API** | Serves mobile + admin | Always online | REST + JWT, versioned `/v1` — language/DB ADR still open |
+| **REST API** | Serves mobile + admin | Always online | Fastify + Drizzle + PostgreSQL, REST + JWT, versioned `/v1` (`docs/adr/backend-stack.md`) |
 | **Web admin portal** | Internal staff | Online-only | Framework ADR still open. Visual tokens from `docs/design-system.md` |
 
-The owner product is a **digital garage**: vehicles, maintenance plan + history, documents, expenses. It is **not** Autozis: fuel/charge logs, insurance policies, trips, OCR, AI assistant, family sharing, and PDF reports stay out of MVP (`product/mvp-scope.md` Out of Scope).
+The owner product is a **digital garage**: vehicles, maintenance plan + history, documents, expenses, parts, and refuel/charge **logs**. It is **not** Autozis: fuel *efficiency* KPIs, insurance *policies*, trips, OCR, AI assistant, family sharing, and PDF reports stay out of MVP (`product/mvp-scope.md` Out of Scope). Refuel/charge logs are in Phase 1.
 
 ```mermaid
 flowchart LR
@@ -29,15 +29,16 @@ flowchart LR
     TLS[TLS termination]
   end
 
-  subgraph vps [Azure VPS - later]
+  subgraph azure [Azure Container Apps]
     API["REST API /v1"]
-    DB[(Primary DB)]
+    DB[(PostgreSQL Flexible)]
     OutboxLog[(Change log)]
   end
 
-  subgraph deps [Managed deps - later]
-    Mail[Email provider]
-    Blob[Object storage for media]
+  subgraph deps [Managed deps]
+    Mail[ACS Email]
+    Blob[Azure Blob]
+    KV[Key Vault]
   end
 
   Mobile -->|JWT owner audience| TLS
@@ -47,6 +48,7 @@ flowchart LR
   API --> OutboxLog
   API --> Mail
   API --> Blob
+  API --> KV
   Mobile -.->|local Drift/SQLite + outbox| Mobile
 ```
 
@@ -137,7 +139,7 @@ Full sequence diagram is a **should-have** later (`docs/implementation-readiness
 
 1. Client compresses images before queueing (15 MB cap after compression; PDF as-is under the same cap).
 2. Local file path is stored on the document / receipt / vehicle-photo row.
-3. Sync uploads bytes to the API (multipart) or to a signed PUT URL. MVP API can start with multipart through the VPS; swap the backing store to Azure Blob without changing resource URLs in JSON (store `blob_key`, not a vendor URL).
+3. Sync uploads bytes to the API (multipart) or to a signed PUT URL. Local uses a disk driver; Azure uses Blob. Resource JSON stores `blob_key`, not a vendor URL.
 4. Server stores: `blob_key`, `content_type`, `byte_size`, `sha256`.
 5. Download: authenticated GET or short-lived signed URL. Admin does not stream owner files in the default profile view.
 
@@ -153,17 +155,17 @@ Vehicle photos, service receipts, expense receipts, and vault documents share th
 
 ---
 
-## Deployment sketch (Azure VPS — later)
+## Deployment (Azure Container Apps)
 
-Not executed in this pass. When you are ready to provision:
+IaC lives at repo root (`azure.yaml`, `infra/`). This slice is **deployable**, not deployed.
 
-- One VPS (or a small pair: API + managed Postgres later) in an Azure region close to users.
-- systemd or Docker Compose for the API process.
-- TLS via a reverse proxy (Caddy or nginx) and a real domain.
-- Secrets from `docs/environment-secrets.md` — never in the image or the git repo.
-- Object storage and email as managed services, not files on the VPS disk, once traffic is real.
+- Container Apps (external ingress, min 1 replica) running the Fastify image from ACR.
+- Azure Database for PostgreSQL Flexible Server.
+- Blob for media; ACS Email for verification and password reset.
+- Secrets from Key Vault via managed identity. Never in the image or git.
+- Local: Docker Compose + Postgres + `MEDIA_DRIVER=local`.
 
-Until that machine exists, local API + local Postgres/SQLite is enough to start the first vertical slice.
+See `docs/adr/azure-hosting.md` and `.azure/deployment-plan.md`.
 
 ---
 
@@ -177,8 +179,7 @@ See `architecture/data-model.md` for entity-level compare and `docs/app-shell.md
 
 ## Open decisions (do not block this architecture)
 
-- Backend language and database (`docs/implementation-readiness.md` Backend stack ADR).
 - Web framework (`docs/implementation-readiness.md` Web stack ADR).
-- Exact Azure SKU, region, and whether Blob is on day one vs local disk in dev.
+- Azure subscription and region (parameters at first `azd up`).
 
-The API contract in `architecture/openapi.yaml` is written so those choices can land without rewriting resources.
+Backend stack and hosting ADRs are accepted: `docs/adr/backend-stack.md`, `docs/adr/azure-hosting.md`.

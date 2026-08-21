@@ -10,13 +10,13 @@ Contract for *what* to build remains `product/mvp-scope.md` and `product/frd/`.
 
 | Document | Location |
 |----------|----------|
-| **Architecture overview** | [`architecture/system.md`](../architecture/system.md) — surfaces, trust boundaries, JWT, offline vs online, media. Azure VPS is planned, not provisioned. |
+| **Architecture overview** | [`architecture/system.md`](../architecture/system.md) — surfaces, trust boundaries, JWT, offline vs online, media. Container Apps hosting: [`docs/adr/azure-hosting.md`](adr/azure-hosting.md). IAM: [`architecture/iam.md`](../architecture/iam.md). |
 | **Data model / ERD** | [`architecture/data-model.md`](../architecture/data-model.md) — entities, mileage/archive, Autozis compare |
 | **API contract** | [`architecture/openapi.yaml`](../architecture/openapi.yaml) (index: [`architecture/api.md`](../architecture/api.md)) |
 | **App shell / navigation IA** | [`docs/app-shell.md`](app-shell.md) — four-tab owner shell; admin A1–A6 |
 | **Dashboard FRD** | [`product/frd/dashboard.md`](../product/frd/dashboard.md) |
 | **Web admin wireframes** | [`wireframes/dco-mobile-wireframes.tldraw`](../wireframes/dco-mobile-wireframes.tldraw) frames **A1–A6** (WEB ADMIN cluster) |
-| **Environment & secrets** | [`docs/environment-secrets.md`](environment-secrets.md) — **draft** (placeholders; VPS setup later) |
+| **Environment & secrets** | [`docs/environment-secrets.md`](environment-secrets.md) — **draft** (placeholders; Key Vault on Azure). |
 
 ## Should have (do before the first vertical slice)
 
@@ -26,8 +26,8 @@ Contract for *what* to build remains `product/mvp-scope.md` and `product/frd/`.
 | **Error, empty, and loading catalog** | Copy and layout for the states already named in FRDs. Fits the design system. |
 | **Privacy / retention** | What is stored locally vs server, how delete-account will work later, document file retention. Principle 5 is otherwise unimplemented. |
 | **Test strategy** | Domain tests for mileage, due dates, sync idempotency; what CI runs on mobile vs API vs web. |
-| **Web stack ADR** | Mobile is Flutter. Backend is REST + JWT. **Web framework is not chosen.** Pick one before `web/` scaffolding. |
-| **Backend stack ADR** | Language, DB, migration tool. Same: not chosen. |
+| **Web stack ADR** | Mobile is Flutter. Backend is Fastify + JWT. **Web framework is not chosen.** Pick one before `web/` scaffolding. |
+| **Backend stack ADR** | Accepted: [`docs/adr/backend-stack.md`](adr/backend-stack.md) (Fastify, Drizzle, PostgreSQL). |
 
 ## Can wait until after the first slice
 
@@ -36,7 +36,7 @@ Contract for *what* to build remains `product/mvp-scope.md` and `product/frd/`.
 - Marketing site and store listing copy
 - Light theme
 - Localization plan beyond one locale
-- Azure VPS runbook (env map exists; provisioning deferred)
+- Azure VPS runbook (superseded by Container Apps; see `docs/adr/azure-hosting.md`)
 
 ---
 
