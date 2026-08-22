@@ -108,7 +108,9 @@ Access JWT  (minutes, aud=dco-owner or dco-admin, sub=user id, plan, role)
 Refresh JWT (days, rotating, family id for revoke-all-on-reset)
         │
         ├── Mobile: both in secure storage; Dio interceptor attaches Bearer access
-        └── Admin: access in memory; refresh in httpOnly cookie if the web stack allows, else secure storage
+        └── Admin (web): refresh in httpOnly Secure cookie set by the Next.js BFF
+            (/api/auth/*, docs/adr/web-stack.md); access token memory-only, renewed
+            silently through the BFF; logout may revoke by refresh token alone
         │
 Refresh on 401 once per request cycle
 Password reset → revoke all refresh families for that user

@@ -26,7 +26,7 @@ Contract for *what* to build remains `product/mvp-scope.md` and `product/frd/`.
 | **Error, empty, and loading catalog** | Copy and layout for the states already named in FRDs. Fits the design system. |
 | **Privacy / retention** | What is stored locally vs server, how delete-account will work later, document file retention. Principle 5 is otherwise unimplemented. |
 | **Test strategy** | Domain tests for mileage, due dates, sync idempotency; what CI runs on mobile vs API vs web. |
-| **Web stack ADR** | Mobile is Flutter. Backend is Fastify + JWT. **Web framework is not chosen.** Pick one before `web/` scaffolding. |
+| **Web stack ADR** | Accepted: [`docs/adr/web-stack.md`](adr/web-stack.md) (Next.js 15, second Container App, BFF httpOnly-cookie session). |
 | **Backend stack ADR** | Accepted: [`docs/adr/backend-stack.md`](adr/backend-stack.md) (Fastify, Drizzle, PostgreSQL). |
 
 ## Can wait until after the first slice

@@ -129,10 +129,27 @@ paths:
   /auth/logout:
     post:
       tags: [Auth]
-      summary: Revoke current refresh family on the server; client still discards local tokens
+      summary: Revoke refresh tokens on the server; client still discards local tokens
+      description: >-
+        Accepts either a bearer access token (revokes every refresh family for the
+        user) or a JSON body `{refresh_token}` without a bearer token (revokes only
+        that token's family). The body form lets a web BFF revoke after the short-lived
+        access token has expired. Supplying neither is 401.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
       responses:
         '204':
           description: Logged out
+        '401':
+          $ref: '#/components/responses/Error'
   /auth/verify-email:
     post:
       tags: [Auth]

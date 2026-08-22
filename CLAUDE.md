@@ -8,7 +8,7 @@ Product is in MVP definition. `product/mvp-scope.md` is the Phase 1 contract. `p
 
 Must-have implementation docs are in place: `architecture/system.md`, `architecture/data-model.md`, `architecture/iam.md`, `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md` (draft). Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A6).
 
-Mobile Flutter app is scaffolded in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web framework ADR is still open.
+Mobile Flutter app is scaffolded in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin stack decided: Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, second Container App.
 
 The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management and partner onboarding.
 
@@ -53,6 +53,18 @@ npm test
 
 Stack: Node 22, Fastify, Drizzle, PostgreSQL, Zod, Vitest. Contract: `architecture/openapi.yaml`. Theme is not used on the API.
 
+### Web admin (Next.js)
+
+From `web/` (once scaffolded):
+
+```bash
+npm install
+npm run dev
+npm test
+```
+
+Stack: Next.js 15 App Router, TanStack Query, Tailwind + tokens from `docs/theme/garage-minimal-dark.json`, types generated from `architecture/openapi.yaml`. Session: httpOnly cookies via Route Handler BFF (`/api/auth/*`); see `docs/adr/web-stack.md`.
+
 - Mobile: Flutter owner app, offline-first, JWT audience `dco-owner`
 - Backend: REST `/v1` + JWT (Fastify, PostgreSQL, `aud` `dco-owner` / `dco-admin`)
-- Web: admin portal (framework not chosen)
+- Web: admin portal (Next.js 15, JWT audience `dco-admin` via BFF)

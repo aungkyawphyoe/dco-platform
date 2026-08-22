@@ -115,10 +115,42 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     return issueSession(app, user, stored.familyId);
   });
 
-  app.post("/auth/logout", async (request, reply) => {
-    const userId = request.authUser!.sub;
-    await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, userId));
-    return reply.code(204).send();
+  app.post("/auth/logout", { config: { public: true } }, async (request, reply) => {
+    const parsedBody = z
+      .object({ refresh_token: z.string().optional() })
+      .safeParse(request.body ?? {});
+    const refreshToken = parsedBody.success ? parsedBody.data.refresh_token : undefined;
+
+    const token = bearer(request);
+    if (token) {
+      let claims;
+      try {
+        claims = await verifyAccess(app.env, token);
+      } catch {
+        throw new AppError(401, "unauthorized", "Invalid access token");
+      }
+      await app.db
+        .update(refreshTokens)
+        .set({ revokedAt: new Date() })
+        .where(eq(refreshTokens.userId, claims.sub));
+      return reply.code(204).send();
+    }
+
+    if (refreshToken) {
+      let payload;
+      try {
+        payload = await verifyRefresh(app.env, refreshToken);
+      } catch {
+        throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
+      }
+      await app.db
+        .update(refreshTokens)
+        .set({ revokedAt: new Date() })
+        .where(and(eq(refreshTokens.familyId, payload.family), eq(refreshTokens.userId, payload.sub)));
+      return reply.code(204).send();
+    }
+
+    throw new AppError(401, "unauthorized", "Missing access token");
   });
 
   app.post("/auth/verify-email", { config: { public: true } }, async (request, reply) => {

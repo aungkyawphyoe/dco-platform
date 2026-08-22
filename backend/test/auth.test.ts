@@ -52,3 +52,92 @@ describe("auth", () => {
     await app.close();
   });
 });
+
+describe("logout", () => {
+  async function loginAs(
+    app: Awaited<ReturnType<typeof createTestApp>>["app"],
+    email: string,
+  ) {
+    const res = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email, password: "password1" },
+    });
+    expect(res.statusCode).toBe(200);
+    return res.json() as { access_token: string; refresh_token: string };
+  }
+
+  async function signupOwner(app: Awaited<ReturnType<typeof createTestApp>>["app"]) {
+    const email = `owner-${uuid()}@test.local`;
+    const signup = await app.inject({
+      method: "POST",
+      url: "/v1/auth/signup",
+      payload: { email, password: "password1" },
+    });
+    expect(signup.statusCode).toBe(201);
+    return email;
+  }
+
+  it("accepts a refresh token without a bearer and revokes only that family", async () => {
+    const { app } = await createTestApp();
+    const email = await signupOwner(app);
+    const first = await loginAs(app, email);
+    const second = await loginAs(app, email);
+
+    const out = await app.inject({
+      method: "POST",
+      url: "/v1/auth/logout",
+      payload: { refresh_token: first.refresh_token },
+    });
+    expect(out.statusCode).toBe(204);
+
+    const revokedFamily = await app.inject({
+      method: "POST",
+      url: "/v1/auth/refresh",
+      payload: { refresh_token: first.refresh_token },
+    });
+    expect(revokedFamily.statusCode).toBe(401);
+
+    const otherFamily = await app.inject({
+      method: "POST",
+      url: "/v1/auth/refresh",
+      payload: { refresh_token: second.refresh_token },
+    });
+    expect(otherFamily.statusCode).toBe(200);
+    await app.close();
+  });
+
+  it("with a bearer token revokes every family and rejects missing or bad credentials", async () => {
+    const { app } = await createTestApp();
+    const email = await signupOwner(app);
+    const first = await loginAs(app, email);
+    const second = await loginAs(app, email);
+
+    const out = await app.inject({
+      method: "POST",
+      url: "/v1/auth/logout",
+      headers: { authorization: `Bearer ${first.access_token}` },
+    });
+    expect(out.statusCode).toBe(204);
+
+    for (const refresh of [first.refresh_token, second.refresh_token]) {
+      const attempt = await app.inject({
+        method: "POST",
+        url: "/v1/auth/refresh",
+        payload: { refresh_token: refresh },
+      });
+      expect(attempt.statusCode).toBe(401);
+    }
+
+    const neither = await app.inject({ method: "POST", url: "/v1/auth/logout" });
+    expect(neither.statusCode).toBe(401);
+
+    const badRefresh = await app.inject({
+      method: "POST",
+      url: "/v1/auth/logout",
+      payload: { refresh_token: "not-a-token" },
+    });
+    expect(badRefresh.statusCode).toBe(401);
+    await app.close();
+  });
+});
