@@ -55,7 +55,7 @@ Web admin:
 
 | Variable | Notes |
 |----------|--------|
-| `VITE_API_BASE_URL` (or stack equivalent) | Per env |
+| `NEXT_PUBLIC_API_BASE_URL` | Per env, includes the `/v1` prefix (see `docs/adr/web-stack.md`) |
 | No signing keys in the browser bundle | |
 
 ---

@@ -1,0 +1,189 @@
+{
+  "themeName": "Garage Minimal Dark",
+  "version": "1.1",
+  "mode": "dark",
+  "platforms": ["mobile", "web"],
+  "description": "Night-garage surfaces, brass-bay accent. Same tokens for Flutter and the admin web portal.",
+  "background": {
+    "primary": "#101B22",
+    "secondary": "#1A2832",
+    "card": "#1E2D38",
+    "input": "#16242D",
+    "nav": "#101B22",
+    "overlay": "#101B22B8",
+    "skeleton": "#243441"
+  },
+  "text": {
+    "primary": "#FFFFFF",
+    "secondary": "#A8B6C1",
+    "tertiary": "#6C7D8A",
+    "caption": "#8A9BA8",
+    "accent": "#EEB757",
+    "onAccent": "#101B22",
+    "disabled": "#6C7D8A",
+    "link": "#EEB757",
+    "inverse": "#101B22"
+  },
+  "button": {
+    "primary": {
+      "background": "#EEB757",
+      "backgroundHover": "#F2C36A",
+      "backgroundPressed": "#D4A44A",
+      "backgroundDisabled": "#5C5340",
+      "text": "#101B22",
+      "textDisabled": "#A8B6C1",
+      "border": "transparent"
+    },
+    "secondary": {
+      "background": "#1E2D38",
+      "backgroundHover": "#243441",
+      "backgroundPressed": "#16242D",
+      "backgroundDisabled": "#1A2832",
+      "text": "#FFFFFF",
+      "textDisabled": "#6C7D8A",
+      "border": "#6C7D8A"
+    },
+    "tertiary": {
+      "background": "transparent",
+      "backgroundHover": "#1A2832",
+      "backgroundPressed": "#16242D",
+      "text": "#EEB757",
+      "textDisabled": "#6C7D8A",
+      "border": "transparent"
+    },
+    "destructive": {
+      "background": "transparent",
+      "backgroundHover": "#3A2424",
+      "text": "#E07A6C",
+      "border": "#E07A6C"
+    }
+  },
+  "icon": {
+    "active": "#EEB757",
+    "inactive": "#6C7D8A",
+    "onAccent": "#101B22",
+    "inverse": "#FFFFFF"
+  },
+  "border": {
+    "subtle": "#1E2D38",
+    "default": "#6C7D8A",
+    "divider": "#2A3C48",
+    "highlight": "#EEB757",
+    "focus": "#EEB757"
+  },
+  "status": {
+    "success": {
+      "fg": "#7CB89A",
+      "bg": "#7CB89A22"
+    },
+    "warning": {
+      "fg": "#E39A3C",
+      "bg": "#E39A3C22"
+    },
+    "danger": {
+      "fg": "#E07A6C",
+      "bg": "#E07A6C22"
+    },
+    "info": {
+      "fg": "#7AA0B8",
+      "bg": "#7AA0B822"
+    }
+  },
+  "feedback": {
+    "overdue": "#E07A6C",
+    "dueSoon": "#E39A3C",
+    "healthy": "#7CB89A",
+    "queuedSync": "#7AA0B8"
+  },
+  "input": {
+    "background": "#16242D",
+    "border": "#6C7D8A",
+    "borderFocus": "#EEB757",
+    "placeholder": "#6C7D8A",
+    "errorBorder": "#E07A6C"
+  },
+  "chart": {
+    "fuel": "#E39A3C",
+    "maintenance": "#7AA0B8",
+    "insurance": "#8B9CCF",
+    "parking": "#8A9BA8",
+    "tolls": "#A8B6C1",
+    "parts": "#7CB89A",
+    "other": "#6C7D8A"
+  },
+  "radius": {
+    "sm": 4,
+    "md": 8,
+    "lg": 12,
+    "xl": 16,
+    "full": 999
+  },
+  "space": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 24,
+    "6": 32,
+    "7": 48
+  },
+  "typography": {
+    "display": {
+      "family": "Barlow",
+      "weight": 600,
+      "size": 28,
+      "lineHeight": 34,
+      "letterSpacing": -0.3
+    },
+    "title": {
+      "family": "Barlow",
+      "weight": 600,
+      "size": 20,
+      "lineHeight": 26
+    },
+    "body": {
+      "family": "IBM Plex Sans",
+      "weight": 400,
+      "size": 16,
+      "lineHeight": 24
+    },
+    "label": {
+      "family": "IBM Plex Sans",
+      "weight": 500,
+      "size": 13,
+      "lineHeight": 18,
+      "letterSpacing": 0.2
+    },
+    "caption": {
+      "family": "IBM Plex Sans",
+      "weight": 400,
+      "size": 12,
+      "lineHeight": 16
+    },
+    "mono": {
+      "family": "IBM Plex Mono",
+      "weight": 400,
+      "size": 13,
+      "lineHeight": 18
+    }
+  },
+  "elevation": {
+    "none": "none",
+    "card": "none",
+    "modal": "0 12px 32px #101B2266"
+  },
+  "motion": {
+    "fast": 120,
+    "base": 180,
+    "slow": 280,
+    "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "respectReducedMotion": true
+  },
+  "usageNotes": {
+    "text.tertiary": "Icons, placeholders, inactive nav. Do not use for small body copy on cards (contrast 3.3:1).",
+    "text.caption": "Readable muted copy on cards (AA).",
+    "border.subtle": "Hairline on primary background only. Invisible on card; use border.divider or border.default there.",
+    "border.default": "Inputs and secondary buttons. Matches icon.inactive.",
+    "status.warning vs text.accent": "Do not use brand gold for overdue. Overdue is danger; due-soon is warning orange."
+  }
+}

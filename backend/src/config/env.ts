@@ -21,7 +21,7 @@ const schema = z.object({
   MEDIA_SIGNING_KEY: z.string().min(8),
   AZURE_STORAGE_CONNECTION_STRING: z.string().optional(),
   AZURE_BLOB_CONTAINER: z.string().default("dco-media"),
-  CORS_ORIGINS: z.string().default("http://localhost:5173"),
+  CORS_ORIGINS: z.string().default("http://localhost:3000,http://localhost:5173"),
   PUBLIC_API_URL: z.string().default("http://localhost:8080/v1"),
 });
 
