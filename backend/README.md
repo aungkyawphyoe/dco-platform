@@ -17,6 +17,8 @@ npm test
 
 API listens on `http://localhost:8080/v1`. Health: `GET /v1/health`.
 
+**Swagger UI:** `http://localhost:8080/docs` — served from [`architecture/openapi.yaml`](../architecture/openapi.yaml) (single source of truth, never generated). Click **Authorize**, paste an access token (from `POST /auth/login`), then use **Try it out**. Dev only — disabled when `APP_ENV=prod`. Override the spec location with `OPENAPI_SPEC_PATH` if needed.
+
 Bootstrap admin comes from `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD`. Rotate after first login.
 
 ## Azure (deploy later)

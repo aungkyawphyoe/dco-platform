@@ -15,6 +15,7 @@ import { ownerPlugin } from "./modules/owner.js";
 import { mediaPlugin } from "./modules/media.js";
 import { syncPlugin } from "./modules/sync.js";
 import { adminPlugin } from "./modules/admin.js";
+import { docsPlugin } from "./modules/docs.js";
 import "./types.js";
 
 export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: MediaStore }) {
@@ -43,6 +44,8 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       error: { code: "internal", message: "Internal server error", details: {} },
     });
   });
+
+  await app.register(docsPlugin);
 
   await app.register(
     async (v1) => {
