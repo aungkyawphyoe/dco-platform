@@ -41,6 +41,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     if (existing[0]) throw new AppError(409, "email_taken", "Email already registered");
     const id = newId();
     const passwordHash = await hashPassword(body.password);
+    const emailVerification = app.env.EMAIL_VERIFICATION === "on";
     const [user] = await app.db
       .insert(users)
       .values({
@@ -50,6 +51,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
         displayName: body.display_name ?? null,
         role: "owner",
         plan: "free",
+        emailVerified: !emailVerification,
       })
       .returning();
     for (const ft of DEFAULT_FUEL_TYPES) {
@@ -62,15 +64,17 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
       });
     }
     await recordChange(app.db, { userId: id, entityType: "user", entityId: id, op: "upsert", payload: publicUser(user) });
-    const verify = randomToken();
-    await app.db.insert(emailTokens).values({
-      id: newId(),
-      userId: id,
-      purpose: "verify",
-      tokenHash: sha256(verify),
-      expiresAt: new Date(Date.now() + TOKEN_TTL_MS),
-    });
-    await app.mailer.sendVerification(email, verify);
+    if (emailVerification) {
+      const verify = randomToken();
+      await app.db.insert(emailTokens).values({
+        id: newId(),
+        userId: id,
+        purpose: "verify",
+        tokenHash: sha256(verify),
+        expiresAt: new Date(Date.now() + TOKEN_TTL_MS),
+      });
+      await app.mailer.sendVerification(email, verify);
+    }
     const session = await issueSession(app, user);
     return reply.code(201).send(session);
   });

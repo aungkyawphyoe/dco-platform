@@ -66,9 +66,9 @@ Debug builds default `DCO_MOCK_AUTH=true` so auth screens work before the API ex
 | Reminders | `flutter_local_notifications` |
 | Codegen | `build_runner` |
 
-Config via `--dart-define` or flavors — never committed secrets:
+Config via `--dart-define` or flavors — never committed secrets. Per-env JSON files live in `config/` and are passed with `--dart-define-from-file`:
 
-- `API_BASE_URL` (per environment)
+- `API_BASE_URL` (per environment) — `config/prod.json` is checked in; local dev uses the `localhost` default
 - `JWT_OWNER_AUD` (must match server; draft `dco-owner`)
 
 Do not put JWT signing keys in the app.

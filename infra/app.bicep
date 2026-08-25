@@ -219,6 +219,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'JWT_ACCESS_TTL', value: '15m' }
             { name: 'JWT_REFRESH_TTL', value: '720h' }
             { name: 'MAIL_PROVIDER', value: 'acs' }
+            { name: 'EMAIL_VERIFICATION', value: 'off' }
             { name: 'MAIL_FROM', value: 'noreply@localhost' }
             { name: 'MEDIA_DRIVER', value: 'azure_blob' }
             { name: 'AZURE_BLOB_CONTAINER', value: blobContainer }
