@@ -19,7 +19,7 @@ class FuelRepositoryImpl implements FuelRepository {
   FuelRepositoryImpl({
     required AppDatabase db,
     required OutboxWriter outbox,
-    SyncEngine syncEngine = const SyncEngine(),
+    SyncEngine? syncEngine,
     Uuid uuid = const Uuid(),
   }) : _db = db,
        _outbox = outbox,
@@ -28,7 +28,7 @@ class FuelRepositoryImpl implements FuelRepository {
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
-  final SyncEngine _sync;
+  final SyncEngine? _sync;
   final Uuid _uuid;
 
   static const _defaultLiquid = [
@@ -115,7 +115,7 @@ class FuelRepositoryImpl implements FuelRepository {
         payload: type.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return type;
   }
 
@@ -154,7 +154,7 @@ class FuelRepositoryImpl implements FuelRepository {
         payload: updated.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return updated;
   }
 
@@ -215,7 +215,7 @@ class FuelRepositoryImpl implements FuelRepository {
         payload: log.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return log;
   }
 
@@ -267,7 +267,7 @@ class FuelRepositoryImpl implements FuelRepository {
         payload: updated.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return updated;
   }
 

@@ -18,7 +18,7 @@ class PartsRepositoryImpl implements PartsRepository {
   PartsRepositoryImpl({
     required AppDatabase db,
     required OutboxWriter outbox,
-    SyncEngine syncEngine = const SyncEngine(),
+    SyncEngine? syncEngine,
     Uuid uuid = const Uuid(),
   }) : _db = db,
        _outbox = outbox,
@@ -27,7 +27,7 @@ class PartsRepositoryImpl implements PartsRepository {
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
-  final SyncEngine _sync;
+  final SyncEngine? _sync;
   final Uuid _uuid;
 
   @override
@@ -76,7 +76,7 @@ class PartsRepositoryImpl implements PartsRepository {
         payload: part.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return part;
   }
 
@@ -117,7 +117,7 @@ class PartsRepositoryImpl implements PartsRepository {
         payload: updated.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return updated;
   }
 

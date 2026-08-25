@@ -7112,6 +7112,613 @@ class ExpensePartRecordsCompanion extends UpdateCompanion<ExpensePartRecord> {
   }
 }
 
+class $NotificationRecordsTable extends NotificationRecords
+    with TableInfo<$NotificationRecordsTable, NotificationRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NotificationRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _planItemIdMeta = const VerificationMeta(
+    'planItemId',
+  );
+  @override
+  late final GeneratedColumn<String> planItemId = GeneratedColumn<String>(
+    'plan_item_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _titleMeta = const VerificationMeta('title');
+  @override
+  late final GeneratedColumn<String> title = GeneratedColumn<String>(
+    'title',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _bodyMeta = const VerificationMeta('body');
+  @override
+  late final GeneratedColumn<String> body = GeneratedColumn<String>(
+    'body',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('unread'),
+  );
+  static const VerificationMeta _dueReasonMeta = const VerificationMeta(
+    'dueReason',
+  );
+  @override
+  late final GeneratedColumn<String> dueReason = GeneratedColumn<String>(
+    'due_reason',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    vehicleId,
+    planItemId,
+    title,
+    body,
+    status,
+    dueReason,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'notifications';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NotificationRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    }
+    if (data.containsKey('plan_item_id')) {
+      context.handle(
+        _planItemIdMeta,
+        planItemId.isAcceptableOrUnknown(
+          data['plan_item_id']!,
+          _planItemIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('title')) {
+      context.handle(
+        _titleMeta,
+        title.isAcceptableOrUnknown(data['title']!, _titleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_titleMeta);
+    }
+    if (data.containsKey('body')) {
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_bodyMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('due_reason')) {
+      context.handle(
+        _dueReasonMeta,
+        dueReason.isAcceptableOrUnknown(data['due_reason']!, _dueReasonMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  NotificationRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NotificationRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      ),
+      planItemId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plan_item_id'],
+      ),
+      title: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}title'],
+      )!,
+      body: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}body'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      dueReason: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}due_reason'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $NotificationRecordsTable createAlias(String alias) {
+    return $NotificationRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class NotificationRecord extends DataClass
+    implements Insertable<NotificationRecord> {
+  final String id;
+  final String userId;
+  final String? vehicleId;
+  final String? planItemId;
+  final String title;
+  final String body;
+  final String status;
+  final String? dueReason;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  const NotificationRecord({
+    required this.id,
+    required this.userId,
+    this.vehicleId,
+    this.planItemId,
+    required this.title,
+    required this.body,
+    required this.status,
+    this.dueReason,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || vehicleId != null) {
+      map['vehicle_id'] = Variable<String>(vehicleId);
+    }
+    if (!nullToAbsent || planItemId != null) {
+      map['plan_item_id'] = Variable<String>(planItemId);
+    }
+    map['title'] = Variable<String>(title);
+    map['body'] = Variable<String>(body);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || dueReason != null) {
+      map['due_reason'] = Variable<String>(dueReason);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  NotificationRecordsCompanion toCompanion(bool nullToAbsent) {
+    return NotificationRecordsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      vehicleId: vehicleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(vehicleId),
+      planItemId: planItemId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(planItemId),
+      title: Value(title),
+      body: Value(body),
+      status: Value(status),
+      dueReason: dueReason == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueReason),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory NotificationRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NotificationRecord(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      vehicleId: serializer.fromJson<String?>(json['vehicleId']),
+      planItemId: serializer.fromJson<String?>(json['planItemId']),
+      title: serializer.fromJson<String>(json['title']),
+      body: serializer.fromJson<String>(json['body']),
+      status: serializer.fromJson<String>(json['status']),
+      dueReason: serializer.fromJson<String?>(json['dueReason']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'vehicleId': serializer.toJson<String?>(vehicleId),
+      'planItemId': serializer.toJson<String?>(planItemId),
+      'title': serializer.toJson<String>(title),
+      'body': serializer.toJson<String>(body),
+      'status': serializer.toJson<String>(status),
+      'dueReason': serializer.toJson<String?>(dueReason),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  NotificationRecord copyWith({
+    String? id,
+    String? userId,
+    Value<String?> vehicleId = const Value.absent(),
+    Value<String?> planItemId = const Value.absent(),
+    String? title,
+    String? body,
+    String? status,
+    Value<String?> dueReason = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) => NotificationRecord(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    vehicleId: vehicleId.present ? vehicleId.value : this.vehicleId,
+    planItemId: planItemId.present ? planItemId.value : this.planItemId,
+    title: title ?? this.title,
+    body: body ?? this.body,
+    status: status ?? this.status,
+    dueReason: dueReason.present ? dueReason.value : this.dueReason,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  NotificationRecord copyWithCompanion(NotificationRecordsCompanion data) {
+    return NotificationRecord(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      planItemId: data.planItemId.present
+          ? data.planItemId.value
+          : this.planItemId,
+      title: data.title.present ? data.title.value : this.title,
+      body: data.body.present ? data.body.value : this.body,
+      status: data.status.present ? data.status.value : this.status,
+      dueReason: data.dueReason.present ? data.dueReason.value : this.dueReason,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationRecord(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('planItemId: $planItemId, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('status: $status, ')
+          ..write('dueReason: $dueReason, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    vehicleId,
+    planItemId,
+    title,
+    body,
+    status,
+    dueReason,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NotificationRecord &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.vehicleId == this.vehicleId &&
+          other.planItemId == this.planItemId &&
+          other.title == this.title &&
+          other.body == this.body &&
+          other.status == this.status &&
+          other.dueReason == this.dueReason &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String?> vehicleId;
+  final Value<String?> planItemId;
+  final Value<String> title;
+  final Value<String> body;
+  final Value<String> status;
+  final Value<String?> dueReason;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<int> rowid;
+  const NotificationRecordsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.planItemId = const Value.absent(),
+    this.title = const Value.absent(),
+    this.body = const Value.absent(),
+    this.status = const Value.absent(),
+    this.dueReason = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NotificationRecordsCompanion.insert({
+    required String id,
+    required String userId,
+    this.vehicleId = const Value.absent(),
+    this.planItemId = const Value.absent(),
+    required String title,
+    required String body,
+    this.status = const Value.absent(),
+    this.dueReason = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       title = Value(title),
+       body = Value(body),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<NotificationRecord> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? vehicleId,
+    Expression<String>? planItemId,
+    Expression<String>? title,
+    Expression<String>? body,
+    Expression<String>? status,
+    Expression<String>? dueReason,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (planItemId != null) 'plan_item_id': planItemId,
+      if (title != null) 'title': title,
+      if (body != null) 'body': body,
+      if (status != null) 'status': status,
+      if (dueReason != null) 'due_reason': dueReason,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NotificationRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String?>? vehicleId,
+    Value<String?>? planItemId,
+    Value<String>? title,
+    Value<String>? body,
+    Value<String>? status,
+    Value<String?>? dueReason,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<int>? rowid,
+  }) {
+    return NotificationRecordsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      vehicleId: vehicleId ?? this.vehicleId,
+      planItemId: planItemId ?? this.planItemId,
+      title: title ?? this.title,
+      body: body ?? this.body,
+      status: status ?? this.status,
+      dueReason: dueReason ?? this.dueReason,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (planItemId.present) {
+      map['plan_item_id'] = Variable<String>(planItemId.value);
+    }
+    if (title.present) {
+      map['title'] = Variable<String>(title.value);
+    }
+    if (body.present) {
+      map['body'] = Variable<String>(body.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (dueReason.present) {
+      map['due_reason'] = Variable<String>(dueReason.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NotificationRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('planItemId: $planItemId, ')
+          ..write('title: $title, ')
+          ..write('body: $body, ')
+          ..write('status: $status, ')
+          ..write('dueReason: $dueReason, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7136,6 +7743,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ExpenseRecordsTable expenseRecords = $ExpenseRecordsTable(this);
   late final $ExpensePartRecordsTable expensePartRecords =
       $ExpensePartRecordsTable(this);
+  late final $NotificationRecordsTable notificationRecords =
+      $NotificationRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7154,6 +7763,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     fuelLogRecords,
     expenseRecords,
     expensePartRecords,
+    notificationRecords,
   ];
 }
 
@@ -10772,6 +11382,319 @@ typedef $$ExpensePartRecordsTableProcessedTableManager =
       ExpensePartRecord,
       PrefetchHooks Function()
     >;
+typedef $$NotificationRecordsTableCreateCompanionBuilder =
+    NotificationRecordsCompanion Function({
+      required String id,
+      required String userId,
+      Value<String?> vehicleId,
+      Value<String?> planItemId,
+      required String title,
+      required String body,
+      Value<String> status,
+      Value<String?> dueReason,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<int> rowid,
+    });
+typedef $$NotificationRecordsTableUpdateCompanionBuilder =
+    NotificationRecordsCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String?> vehicleId,
+      Value<String?> planItemId,
+      Value<String> title,
+      Value<String> body,
+      Value<String> status,
+      Value<String?> dueReason,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<int> rowid,
+    });
+
+class $$NotificationRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $NotificationRecordsTable> {
+  $$NotificationRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get planItemId => $composableBuilder(
+    column: $table.planItemId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dueReason => $composableBuilder(
+    column: $table.dueReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$NotificationRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $NotificationRecordsTable> {
+  $$NotificationRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get planItemId => $composableBuilder(
+    column: $table.planItemId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get title => $composableBuilder(
+    column: $table.title,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dueReason => $composableBuilder(
+    column: $table.dueReason,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$NotificationRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $NotificationRecordsTable> {
+  $$NotificationRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get planItemId => $composableBuilder(
+    column: $table.planItemId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get title =>
+      $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get body =>
+      $composableBuilder(column: $table.body, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get dueReason =>
+      $composableBuilder(column: $table.dueReason, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+}
+
+class $$NotificationRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $NotificationRecordsTable,
+          NotificationRecord,
+          $$NotificationRecordsTableFilterComposer,
+          $$NotificationRecordsTableOrderingComposer,
+          $$NotificationRecordsTableAnnotationComposer,
+          $$NotificationRecordsTableCreateCompanionBuilder,
+          $$NotificationRecordsTableUpdateCompanionBuilder,
+          (
+            NotificationRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $NotificationRecordsTable,
+              NotificationRecord
+            >,
+          ),
+          NotificationRecord,
+          PrefetchHooks Function()
+        > {
+  $$NotificationRecordsTableTableManager(
+    _$AppDatabase db,
+    $NotificationRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NotificationRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NotificationRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$NotificationRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String?> vehicleId = const Value.absent(),
+                Value<String?> planItemId = const Value.absent(),
+                Value<String> title = const Value.absent(),
+                Value<String> body = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> dueReason = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NotificationRecordsCompanion(
+                id: id,
+                userId: userId,
+                vehicleId: vehicleId,
+                planItemId: planItemId,
+                title: title,
+                body: body,
+                status: status,
+                dueReason: dueReason,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                Value<String?> vehicleId = const Value.absent(),
+                Value<String?> planItemId = const Value.absent(),
+                required String title,
+                required String body,
+                Value<String> status = const Value.absent(),
+                Value<String?> dueReason = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => NotificationRecordsCompanion.insert(
+                id: id,
+                userId: userId,
+                vehicleId: vehicleId,
+                planItemId: planItemId,
+                title: title,
+                body: body,
+                status: status,
+                dueReason: dueReason,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$NotificationRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $NotificationRecordsTable,
+      NotificationRecord,
+      $$NotificationRecordsTableFilterComposer,
+      $$NotificationRecordsTableOrderingComposer,
+      $$NotificationRecordsTableAnnotationComposer,
+      $$NotificationRecordsTableCreateCompanionBuilder,
+      $$NotificationRecordsTableUpdateCompanionBuilder,
+      (
+        NotificationRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $NotificationRecordsTable,
+          NotificationRecord
+        >,
+      ),
+      NotificationRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -10802,4 +11725,6 @@ class $AppDatabaseManager {
       $$ExpenseRecordsTableTableManager(_db, _db.expenseRecords);
   $$ExpensePartRecordsTableTableManager get expensePartRecords =>
       $$ExpensePartRecordsTableTableManager(_db, _db.expensePartRecords);
+  $$NotificationRecordsTableTableManager get notificationRecords =>
+      $$NotificationRecordsTableTableManager(_db, _db.notificationRecords);
 }

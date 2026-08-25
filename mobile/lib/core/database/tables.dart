@@ -208,3 +208,22 @@ class ExpensePartRecords extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+class NotificationRecords extends Table {
+  @override
+  String get tableName => 'notifications';
+
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get vehicleId => text().nullable()();
+  TextColumn get planItemId => text().nullable()();
+  TextColumn get title => text()();
+  TextColumn get body => text()();
+  TextColumn get status => text().withDefault(const Constant('unread'))();
+  TextColumn get dueReason => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

@@ -17,7 +17,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
   VehicleRepositoryImpl({
     required AppDatabase db,
     required OutboxWriter outbox,
-    SyncEngine syncEngine = const SyncEngine(),
+    SyncEngine? syncEngine,
     Uuid uuid = const Uuid(),
   }) : _db = db,
        _outbox = outbox,
@@ -26,7 +26,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
-  final SyncEngine _sync;
+  final SyncEngine? _sync;
   final Uuid _uuid;
 
   @override
@@ -106,7 +106,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
         payload: vehicle.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return vehicle;
   }
 
@@ -165,7 +165,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
         payload: updated.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return updated;
   }
 
@@ -218,7 +218,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
         payload: {'id': vehicleId, 'archived': true},
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
   }
 
   Future<void> _assertUniquePlate({

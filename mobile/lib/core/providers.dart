@@ -1,22 +1,29 @@
 import 'dart:convert';
 
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/datasources/dio_auth_remote_datasource.dart';
 import '../../features/auth/data/datasources/mock_auth_remote_datasource.dart';
+import '../../features/auth/data/datasources/profile_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/data/repositories/profile_repository_impl.dart';
 import '../../features/auth/domain/entities/session.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
-import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
-import '../../features/garage/domain/repositories/vehicle_repository.dart';
-import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
-import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../../features/auth/domain/repositories/profile_repository.dart';
+import '../../features/auth/presentation/session_controller.dart';
 import '../../features/expenses/data/repositories/expense_repository_impl.dart';
 import '../../features/expenses/domain/repositories/expense_repository.dart';
 import '../../features/fuel/data/repositories/fuel_repository_impl.dart';
 import '../../features/fuel/domain/repositories/fuel_repository.dart';
+import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
+import '../../features/garage/domain/repositories/vehicle_repository.dart';
+import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
+import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../../features/notifications/data/repositories/notification_repository_impl.dart';
+import '../../features/notifications/domain/repositories/notification_repository.dart';
 import '../../features/parts/data/repositories/parts_repository_impl.dart';
 import '../../features/parts/domain/repositories/parts_repository.dart';
 import '../../features/settings/data/repositories/preferences_repository_impl.dart';
@@ -24,9 +31,11 @@ import '../../features/settings/domain/repositories/preferences_repository.dart'
 import 'analytics/analytics.dart';
 import 'config/app_config.dart';
 import 'database/app_database.dart';
+import 'media/media_api.dart';
 import 'network/dio_client.dart';
 import 'storage/token_store.dart';
 import 'sync/outbox_writer.dart';
+import 'sync/sync_api.dart';
 import 'sync/sync_engine.dart';
 
 final appConfigProvider = Provider<AppConfig>((ref) {
@@ -103,7 +112,47 @@ final outboxWriterProvider = Provider<OutboxWriter>((ref) {
   return OutboxWriter(ref.watch(appDatabaseProvider));
 });
 
-final syncEngineProvider = Provider<SyncEngine>((ref) => const SyncEngine());
+final connectivityProvider = StreamProvider<List<ConnectivityResult>>((ref) {
+  return Connectivity().onConnectivityChanged;
+});
+
+final syncApiProvider = Provider<SyncApi>((ref) {
+  return DioSyncApi(ref.watch(dioProvider));
+});
+
+final mediaApiProvider = Provider<MediaApi>((ref) {
+  return DioMediaApi(ref.watch(dioProvider));
+});
+
+final syncEngineProvider = Provider<SyncEngine>((ref) {
+  final engine = SyncEngine(
+    db: ref.watch(appDatabaseProvider),
+    api: ref.watch(syncApiProvider),
+    mediaApi: ref.watch(mediaApiProvider),
+    currentUser: () => ref.read(sessionControllerProvider).valueOrNull?.user.id,
+  );
+  ref.onDispose(engine.dispose);
+  return engine;
+});
+
+final syncStatusProvider = StreamProvider<SyncState>((ref) {
+  return ref.watch(syncEngineProvider).stream;
+});
+
+final profileRemoteDataSourceProvider = Provider<ProfileRemoteDataSource>((ref) {
+  final config = ref.watch(appConfigProvider);
+  if (config.mockAuth) {
+    return MockProfileRemoteDataSource();
+  }
+  return DioProfileRemoteDataSource(ref.watch(dioProvider));
+});
+
+final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
+  return ProfileRepositoryImpl(
+    remote: ref.watch(profileRemoteDataSourceProvider),
+    db: ref.watch(appDatabaseProvider),
+  );
+});
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {
   return VehicleRepositoryImpl(
@@ -147,4 +196,11 @@ final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
 
 final preferencesRepositoryProvider = Provider<PreferencesRepository>((ref) {
   return PreferencesRepositoryImpl(ref.watch(appDatabaseProvider));
+});
+
+final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
+  return NotificationRepositoryImpl(
+    db: ref.watch(appDatabaseProvider),
+    outbox: ref.watch(outboxWriterProvider),
+  );
 });

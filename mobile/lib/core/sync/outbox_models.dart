@@ -15,6 +15,7 @@ abstract final class OutboxEntityType {
   static const fuelLog = 'fuel_log';
   static const document = 'document';
   static const expense = 'expense';
+  static const notification = 'notification';
   static const media = 'media';
   static const user = 'user';
 }

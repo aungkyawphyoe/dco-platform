@@ -20,7 +20,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
   ExpenseRepositoryImpl({
     required AppDatabase db,
     required OutboxWriter outbox,
-    SyncEngine syncEngine = const SyncEngine(),
+    SyncEngine? syncEngine,
     Uuid uuid = const Uuid(),
   }) : _db = db,
        _outbox = outbox,
@@ -29,7 +29,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
-  final SyncEngine _sync;
+  final SyncEngine? _sync;
   final Uuid _uuid;
 
   @override
@@ -85,7 +85,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         payload: expense.toWriteJson(),
       );
     });
-    await _sync.requestSync();
+    _sync?.requestSync();
     return expense;
   }
 
@@ -124,7 +124,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     if (existing.receiptLocalPath != null && existing.receiptLocalPath != updated.receiptLocalPath) {
       await _deleteLocalFile(existing.receiptLocalPath);
     }
-    await _sync.requestSync();
+    _sync?.requestSync();
     return updated;
   }
 
@@ -148,7 +148,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       );
     });
     await _deleteLocalFile(existing.receiptLocalPath);
-    await _sync.requestSync();
+    _sync?.requestSync();
   }
 
   Expense _fromDraft({

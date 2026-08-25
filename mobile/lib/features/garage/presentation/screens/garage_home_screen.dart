@@ -59,10 +59,7 @@ class GarageHomeScreen extends ConsumerWidget {
                     onSetActive: vehicle.id == active?.id || userId == null
                         ? null
                         : () async {
-                            await ref.read(vehicleRepositoryProvider).setActive(
-                              userId: userId,
-                              vehicleId: vehicle.id,
-                            );
+                            await ref.read(setActiveVehicleProvider)(vehicle.id);
                             ref.read(analyticsProvider).track(AnalyticsEvent.vehicleSwitched);
                             if (context.mounted) context.go(AppRoutes.dashboard);
                           },
