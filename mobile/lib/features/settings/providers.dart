@@ -11,9 +11,9 @@ final userPreferencesProvider = StreamProvider<UserPreferences>((ref) {
 });
 
 final lengthUnitProvider = Provider<MileageUnit>((ref) {
-  return ref.watch(userPreferencesProvider).valueOrNull?.lengthUnit ?? MileageUnit.mi;
+  return ref.watch(userPreferencesProvider).valueOrNull?.lengthUnit ?? MileageUnit.km;
 });
 
 final currencyProvider = Provider<AppCurrency>((ref) {
-  return ref.watch(userPreferencesProvider).valueOrNull?.currency ?? AppCurrency.usd;
+  return ref.watch(userPreferencesProvider).valueOrNull?.currency ?? AppCurrency.mmk;
 });

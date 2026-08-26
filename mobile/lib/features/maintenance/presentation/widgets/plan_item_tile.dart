@@ -15,7 +15,7 @@ class PlanItemTile extends StatelessWidget {
     required this.item,
     required this.vehicle,
     required this.now,
-    this.lengthUnit = MileageUnit.mi,
+    this.lengthUnit = MileageUnit.km,
     this.onTap,
     this.leadingAction,
   });

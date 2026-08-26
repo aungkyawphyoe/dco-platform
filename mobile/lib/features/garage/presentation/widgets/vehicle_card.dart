@@ -12,7 +12,7 @@ class VehicleCard extends StatelessWidget {
     required this.vehicle,
     required this.isActive,
     required this.onOpen,
-    this.lengthUnit = MileageUnit.mi,
+    this.lengthUnit = MileageUnit.km,
     this.onSetActive,
   });
 

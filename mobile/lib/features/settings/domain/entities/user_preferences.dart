@@ -52,8 +52,8 @@ class UserPreferences {
 
   static const defaults = UserPreferences(
     language: AppLanguage.english,
-    currency: AppCurrency.usd,
-    lengthUnit: MileageUnit.mi,
+    currency: AppCurrency.mmk,
+    lengthUnit: MileageUnit.km,
   );
 
   final AppLanguage language;

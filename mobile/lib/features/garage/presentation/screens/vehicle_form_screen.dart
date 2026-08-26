@@ -122,7 +122,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       licensePlate: _plate.text,
       fuelType: _fuelType!,
       mileage: unit.toStorage(VehicleValidators.parseMileage(_mileage.text)!),
-      mileageUnit: MileageUnit.mi,
+      mileageUnit: MileageUnit.km,
       nickname: _nickname.text,
       vin: _vin.text,
       color: _color.text,

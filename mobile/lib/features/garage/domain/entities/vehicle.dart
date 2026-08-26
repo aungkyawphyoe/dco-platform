@@ -111,7 +111,7 @@ class VehicleDraft {
     required this.licensePlate,
     required this.fuelType,
     required this.mileage,
-    this.mileageUnit = MileageUnit.mi,
+    this.mileageUnit = MileageUnit.km,
     this.nickname,
     this.vin,
     this.color,
