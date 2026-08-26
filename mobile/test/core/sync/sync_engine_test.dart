@@ -215,6 +215,60 @@ void main() {
     expect(cursorRow.value, 'cursor-2');
   });
 
+  test('cursor persists across multiple sync cycles', () async {
+    var callCount = 0;
+    api.pullHandler = (cursor) {
+      callCount++;
+      if (callCount == 1) {
+        return const SyncPullPage(cursor: 'page1', changes: []);
+      }
+      if (callCount == 2) {
+        return SyncPullPage(
+          cursor: 'page2',
+          changes: [
+            SyncChange(
+              entityType: OutboxEntityType.vehicle,
+              entityId: 'v-pulled',
+              op: SyncChangeOp.upsert,
+              payload: {
+                'id': 'v-pulled',
+                'user_id': 'u1',
+                'name': 'Synced vehicle',
+                'make': 'Honda',
+                'model': 'Civic',
+                'year': 2023,
+                'license_plate': 'ABC',
+                'fuel_type': 'petrol',
+                'mileage': 100.0,
+                'updated_at': '2026-01-01T00:00:00.000Z',
+              },
+              serverTs: DateTime.parse('2026-01-01T00:00:00.000Z'),
+            ),
+          ],
+        );
+      }
+      return const SyncPullPage(cursor: 'page2', changes: []);
+    };
+
+    await engine.syncNow();
+    expect(callCount, 1);
+    final cursor1 = await (db.select(db.appMeta)
+          ..where((m) => m.key.equals('sync_cursor:u1')))
+        .getSingleOrNull();
+    expect(cursor1?.value, 'page1');
+
+    await engine.syncNow();
+    expect(callCount, 3);
+    final vehicle = await (db.select(db.vehicleRecords)
+          ..where((r) => r.id.equals('v-pulled')))
+        .getSingleOrNull();
+    expect(vehicle?.name, 'Synced vehicle');
+    final cursor2 = await (db.select(db.appMeta)
+          ..where((m) => m.key.equals('sync_cursor:u1')))
+        .getSingleOrNull();
+    expect(cursor2?.value, 'page2');
+  });
+
   test('pull pages are followed until empty', () async {
     var calls = 0;
     api.pullHandler = (cursor) {

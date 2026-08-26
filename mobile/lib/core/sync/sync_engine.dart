@@ -355,9 +355,14 @@ class SyncEngine {
   }
 
   Future<void> _writeMeta(String key, String? value) async {
-    final updated = await (_db.update(_db.appMeta)..where((m) => m.key.equals(key)))
-        .write(AppMetaCompanion(value: Value(value)));
-    if (updated == 0) {
+    final existing = await (_db.select(
+      _db.appMeta,
+    )..where((m) => m.key.equals(key))).getSingleOrNull();
+    if (existing != null) {
+      await (_db.update(_db.appMeta)..where((m) => m.id.equals(existing.id))).write(
+        AppMetaCompanion(value: Value(value)),
+      );
+    } else {
       await _db
           .into(_db.appMeta)
           .insert(AppMetaCompanion.insert(key: key, value: Value(value)));
