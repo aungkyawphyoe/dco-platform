@@ -82,16 +82,58 @@ ApiError mapDioError(DioException error) {
   if (data is Map<String, dynamic>) {
     return ApiError.fromBody(data, statusCode: error.response?.statusCode);
   }
-  if (error.type == DioExceptionType.connectionError ||
-      error.type == DioExceptionType.connectionTimeout) {
-    return const ApiError(
-      code: 'network',
-      message: 'Check your connection and try again',
+  switch (error.type) {
+    case DioExceptionType.connectionTimeout:
+    case DioExceptionType.sendTimeout:
+    case DioExceptionType.receiveTimeout:
+    case DioExceptionType.transformTimeout:
+    case DioExceptionType.connectionError:
+      return const ApiError(
+        code: 'network',
+        message: 'Check your connection and try again',
+      );
+    case DioExceptionType.badCertificate:
+      return const ApiError(
+        code: 'bad_certificate',
+        message: 'The connection could not be verified',
+      );
+    case DioExceptionType.cancel:
+      return const ApiError(code: 'cancelled', message: 'Request cancelled');
+    case DioExceptionType.badResponse:
+      return _mapStatus(error.response?.statusCode);
+    case DioExceptionType.unknown:
+      return ApiError(
+        code: 'unknown',
+        message: error.message ?? 'Something went wrong',
+        statusCode: error.response?.statusCode,
+      );
+  }
+}
+
+ApiError _mapStatus(int? statusCode) {
+  if (statusCode == null) {
+    return const ApiError(code: 'unknown', message: 'Something went wrong');
+  }
+  if (statusCode >= 500) {
+    return ApiError(
+      code: 'server',
+      message: 'Server error. Try again shortly',
+      statusCode: statusCode,
     );
   }
-  return ApiError(
-    code: 'unknown',
-    message: error.message ?? 'Something went wrong',
-    statusCode: error.response?.statusCode,
-  );
+  return switch (statusCode) {
+    400 => const ApiError(code: 'validation', message: 'The request was invalid'),
+    401 => const ApiError(code: 'unauthenticated', message: 'Session expired. Sign in again'),
+    403 => const ApiError(code: 'forbidden', message: 'You do not have access to this'),
+    404 => const ApiError(code: 'not_found', message: 'Not found'),
+    409 => const ApiError(code: 'conflict', message: 'That change conflicts with a newer one'),
+    413 => const ApiError(code: 'media_too_large', message: 'File exceeds the 15MB limit'),
+    422 => const ApiError(code: 'validation', message: 'Some details need fixing'),
+    429 => const ApiError(code: 'rate_limited', message: 'Too many attempts. Try again shortly'),
+    _ => ApiError(
+      code: 'unknown',
+      message: 'Something went wrong',
+      statusCode: statusCode,
+    ),
+  };
 }

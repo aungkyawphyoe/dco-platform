@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
+import '../../../../core/widgets/dco_error_dialog.dart';
 import '../../../../core/widgets/dco_text_field.dart';
 import '../../domain/auth_failure.dart';
 import '../../domain/auth_validators.dart';
@@ -50,8 +53,21 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         email: _email.text,
         password: _password.text,
       );
-    } on AuthFailure catch (failure) {
-      if (mounted) setState(() => _formError = failure.message);
+    } catch (failure) {
+      final message =
+          failure is AuthFailure ? failure.message : 'Something went wrong. Try again.';
+      if (mounted) {
+        setState(() => _formError = message);
+        unawaited(
+          showDcoErrorDialog(
+            context,
+            title: 'Sign up failed',
+            message: message,
+            actionLabel: failure is NetworkAuthFailure ? 'Retry' : 'OK',
+            onAction: failure is NetworkAuthFailure ? () => _submit() : null,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

@@ -85,7 +85,10 @@ final dioProvider = Provider<Dio>((ref) {
           accessToken: session.accessToken,
           refreshToken: session.refreshToken,
         );
-      } on DioException {
+      } on DioException catch (error) {
+        if (error.response?.statusCode == 401) {
+          await tokens.clear();
+        }
         return null;
       }
     },

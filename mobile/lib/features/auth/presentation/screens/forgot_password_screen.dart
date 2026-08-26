@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
+import '../../../../core/widgets/dco_error_dialog.dart';
 import '../../../../core/widgets/dco_text_field.dart';
 import '../../domain/auth_failure.dart';
 import '../../domain/auth_validators.dart';
@@ -42,8 +45,21 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           _info = 'If that email is registered, we sent a reset link.';
         });
       }
-    } on AuthFailure catch (failure) {
-      if (mounted) setState(() => _info = failure.message);
+    } catch (failure) {
+      final message =
+          failure is AuthFailure ? failure.message : 'Something went wrong. Try again.';
+      if (mounted) {
+        setState(() => _info = message);
+        unawaited(
+          showDcoErrorDialog(
+            context,
+            title: 'Reset failed',
+            message: message,
+            actionLabel: failure is NetworkAuthFailure ? 'Retry' : 'OK',
+            onAction: failure is NetworkAuthFailure ? () => _submit() : null,
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

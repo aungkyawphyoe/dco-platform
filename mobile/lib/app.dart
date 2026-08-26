@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers.dart';
 import 'core/router/app_router.dart';
+import 'core/sync/sync_engine.dart';
 import 'core/theme/dco_theme.dart';
+import 'core/widgets/dco_error_dialog.dart';
 import 'features/auth/presentation/session_controller.dart';
 
 bool _isOnline(List<ConnectivityResult>? results) {
@@ -12,11 +16,43 @@ bool _isOnline(List<ConnectivityResult>? results) {
   return results.any((result) => result != ConnectivityResult.none);
 }
 
-class DcoApp extends ConsumerWidget {
+class DcoApp extends ConsumerStatefulWidget {
   const DcoApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DcoApp> createState() => _DcoAppState();
+}
+
+class _DcoAppState extends ConsumerState<DcoApp> {
+  ({String message, DateTime at})? _lastSyncDialog;
+
+  void _onSyncStatus(AsyncValue<SyncState> status) {
+    final state = status.valueOrNull;
+    if (state == null || !state.hasError) return;
+
+    final message = state.message ?? 'Your changes will retry automatically.';
+    final last = _lastSyncDialog;
+    final cooldown = const Duration(minutes: 1);
+    final alreadyShown =
+        last != null && last.message == message && DateTime.now().difference(last.at) < cooldown;
+    if (alreadyShown) return;
+    _lastSyncDialog = (message: message, at: DateTime.now());
+
+    final navigatorContext = rootNavigatorKey.currentContext;
+    if (navigatorContext == null || !mounted) return;
+    unawaited(
+      showDcoErrorDialog(
+        navigatorContext,
+        title: 'Sync failed',
+        message: message,
+        actionLabel: 'Retry',
+        onAction: () => ref.read(syncEngineProvider).syncNow(),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final router = ref.watch(goRouterProvider);
 
     ref.listen(sessionControllerProvider, (previous, next) {
@@ -34,6 +70,8 @@ class DcoApp extends ConsumerWidget {
         ref.read(syncEngineProvider).requestSync();
       }
     });
+
+    ref.listen(syncStatusProvider, (_, next) => _onSyncStatus(next));
 
     return MaterialApp.router(
       title: 'DCO',

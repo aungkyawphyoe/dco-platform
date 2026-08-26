@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
+import 'package:dco_mobile/core/widgets/dco_error_dialog.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/presentation/widgets/vehicle_card.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
@@ -59,8 +62,24 @@ class GarageHomeScreen extends ConsumerWidget {
                     onSetActive: vehicle.id == active?.id || userId == null
                         ? null
                         : () async {
-                            await ref.read(setActiveVehicleProvider)(vehicle.id);
-                            ref.read(analyticsProvider).track(AnalyticsEvent.vehicleSwitched);
+                            try {
+                              await ref.read(setActiveVehicleProvider)(vehicle.id);
+                              ref
+                                  .read(analyticsProvider)
+                                  .track(AnalyticsEvent.vehicleSwitched);
+                            } catch (_) {
+                              if (context.mounted) {
+                                unawaited(
+                                  showDcoErrorDialog(
+                                    context,
+                                    title: 'Switch failed',
+                                    message:
+                                        'Could not reach the server. Your change stays on this device and syncs later.',
+                                  ),
+                                );
+                              }
+                              return;
+                            }
                             if (context.mounted) context.go(AppRoutes.dashboard);
                           },
                   ),
