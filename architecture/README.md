@@ -10,6 +10,8 @@ MVP system design. Product contract remains `product/mvp-scope.md`.
 | [api.md](api.md) | Pointer to the OpenAPI file |
 | [openapi.yaml](openapi.yaml) | `/v1` REST contract for mobile and admin |
 
+As-built product guide (what the code does today): `docs/mvp-as-built.md`.
+
 Related UX:
 
 - Owner + admin navigation: `docs/app-shell.md`

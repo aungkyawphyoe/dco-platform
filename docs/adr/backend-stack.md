@@ -6,7 +6,7 @@
 
 ## Context
 
-The API contract is REST `/v1` + JWT (`architecture/openapi.yaml`). Hosting is Azure Container Apps (`docs/adr/azure-hosting.md`). The data model is relational (`architecture/data-model.md`). Mobile is already Flutter. Web admin framework is still open.
+The API contract is REST `/v1` + JWT (`architecture/openapi.yaml`). Hosting is Azure Container Apps (`docs/adr/azure-hosting.md`). The data model is relational (`architecture/data-model.md`). Mobile is Flutter. Web admin is Next.js 15 (`docs/adr/web-stack.md`).
 
 ## Decision
 

@@ -14,7 +14,7 @@ Three surfaces share one API and one database:
 |---------|-----|---------|------------------------|
 | **Mobile owner app** | Car owners | Offline-first | Flutter, Riverpod, GoRouter, Drift/SQLite, Dio — decided |
 | **REST API** | Serves mobile + admin | Always online | Fastify + Drizzle + PostgreSQL, REST + JWT, versioned `/v1` (`docs/adr/backend-stack.md`) |
-| **Web admin portal** | Internal staff | Online-only | Framework ADR still open. Visual tokens from `docs/design-system.md` |
+| **Web admin portal** | Internal staff | Online-only | Next.js 15 (`docs/adr/web-stack.md`). Visual tokens from `docs/design-system.md` |
 
 The owner product is a **digital garage**: vehicles, maintenance plan + history, documents, expenses, parts, and refuel/charge **logs**. It is **not** Autozis: fuel *efficiency* KPIs, insurance *policies*, trips, OCR, AI assistant, family sharing, and PDF reports stay out of MVP (`product/mvp-scope.md` Out of Scope). Refuel/charge logs are in Phase 1.
 
@@ -181,7 +181,6 @@ See `architecture/data-model.md` for entity-level compare and `docs/app-shell.md
 
 ## Open decisions (do not block this architecture)
 
-- Web framework (`docs/implementation-readiness.md` Web stack ADR).
 - Azure subscription and region (parameters at first `azd up`).
 
 Backend stack and hosting ADRs are accepted: `docs/adr/backend-stack.md`, `docs/adr/azure-hosting.md`.
