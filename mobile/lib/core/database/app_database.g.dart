@@ -7197,6 +7197,17 @@ class $NotificationRecordsTable extends NotificationRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _cycleKeyMeta = const VerificationMeta(
+    'cycleKey',
+  );
+  @override
+  late final GeneratedColumn<String> cycleKey = GeneratedColumn<String>(
+    'cycle_key',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
   );
@@ -7229,6 +7240,7 @@ class $NotificationRecordsTable extends NotificationRecords
     body,
     status,
     dueReason,
+    cycleKey,
     createdAt,
     updatedAt,
   ];
@@ -7300,6 +7312,12 @@ class $NotificationRecordsTable extends NotificationRecords
         dueReason.isAcceptableOrUnknown(data['due_reason']!, _dueReasonMeta),
       );
     }
+    if (data.containsKey('cycle_key')) {
+      context.handle(
+        _cycleKeyMeta,
+        cycleKey.isAcceptableOrUnknown(data['cycle_key']!, _cycleKeyMeta),
+      );
+    }
     if (data.containsKey('created_at')) {
       context.handle(
         _createdAtMeta,
@@ -7357,6 +7375,10 @@ class $NotificationRecordsTable extends NotificationRecords
         DriftSqlType.string,
         data['${effectivePrefix}due_reason'],
       ),
+      cycleKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}cycle_key'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -7384,6 +7406,7 @@ class NotificationRecord extends DataClass
   final String body;
   final String status;
   final String? dueReason;
+  final String? cycleKey;
   final DateTime createdAt;
   final DateTime updatedAt;
   const NotificationRecord({
@@ -7395,6 +7418,7 @@ class NotificationRecord extends DataClass
     required this.body,
     required this.status,
     this.dueReason,
+    this.cycleKey,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -7414,6 +7438,9 @@ class NotificationRecord extends DataClass
     map['status'] = Variable<String>(status);
     if (!nullToAbsent || dueReason != null) {
       map['due_reason'] = Variable<String>(dueReason);
+    }
+    if (!nullToAbsent || cycleKey != null) {
+      map['cycle_key'] = Variable<String>(cycleKey);
     }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
@@ -7436,6 +7463,9 @@ class NotificationRecord extends DataClass
       dueReason: dueReason == null && nullToAbsent
           ? const Value.absent()
           : Value(dueReason),
+      cycleKey: cycleKey == null && nullToAbsent
+          ? const Value.absent()
+          : Value(cycleKey),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
     );
@@ -7455,6 +7485,7 @@ class NotificationRecord extends DataClass
       body: serializer.fromJson<String>(json['body']),
       status: serializer.fromJson<String>(json['status']),
       dueReason: serializer.fromJson<String?>(json['dueReason']),
+      cycleKey: serializer.fromJson<String?>(json['cycleKey']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
     );
@@ -7471,6 +7502,7 @@ class NotificationRecord extends DataClass
       'body': serializer.toJson<String>(body),
       'status': serializer.toJson<String>(status),
       'dueReason': serializer.toJson<String?>(dueReason),
+      'cycleKey': serializer.toJson<String?>(cycleKey),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
     };
@@ -7485,6 +7517,7 @@ class NotificationRecord extends DataClass
     String? body,
     String? status,
     Value<String?> dueReason = const Value.absent(),
+    Value<String?> cycleKey = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
   }) => NotificationRecord(
@@ -7496,6 +7529,7 @@ class NotificationRecord extends DataClass
     body: body ?? this.body,
     status: status ?? this.status,
     dueReason: dueReason.present ? dueReason.value : this.dueReason,
+    cycleKey: cycleKey.present ? cycleKey.value : this.cycleKey,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
   );
@@ -7511,6 +7545,7 @@ class NotificationRecord extends DataClass
       body: data.body.present ? data.body.value : this.body,
       status: data.status.present ? data.status.value : this.status,
       dueReason: data.dueReason.present ? data.dueReason.value : this.dueReason,
+      cycleKey: data.cycleKey.present ? data.cycleKey.value : this.cycleKey,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
     );
@@ -7527,6 +7562,7 @@ class NotificationRecord extends DataClass
           ..write('body: $body, ')
           ..write('status: $status, ')
           ..write('dueReason: $dueReason, ')
+          ..write('cycleKey: $cycleKey, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt')
           ..write(')'))
@@ -7543,6 +7579,7 @@ class NotificationRecord extends DataClass
     body,
     status,
     dueReason,
+    cycleKey,
     createdAt,
     updatedAt,
   );
@@ -7558,6 +7595,7 @@ class NotificationRecord extends DataClass
           other.body == this.body &&
           other.status == this.status &&
           other.dueReason == this.dueReason &&
+          other.cycleKey == this.cycleKey &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt);
 }
@@ -7571,6 +7609,7 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
   final Value<String> body;
   final Value<String> status;
   final Value<String?> dueReason;
+  final Value<String?> cycleKey;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<int> rowid;
@@ -7583,6 +7622,7 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
     this.body = const Value.absent(),
     this.status = const Value.absent(),
     this.dueReason = const Value.absent(),
+    this.cycleKey = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -7596,6 +7636,7 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
     required String body,
     this.status = const Value.absent(),
     this.dueReason = const Value.absent(),
+    this.cycleKey = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.rowid = const Value.absent(),
@@ -7614,6 +7655,7 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
     Expression<String>? body,
     Expression<String>? status,
     Expression<String>? dueReason,
+    Expression<String>? cycleKey,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<int>? rowid,
@@ -7627,6 +7669,7 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
       if (body != null) 'body': body,
       if (status != null) 'status': status,
       if (dueReason != null) 'due_reason': dueReason,
+      if (cycleKey != null) 'cycle_key': cycleKey,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (rowid != null) 'rowid': rowid,
@@ -7642,6 +7685,7 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
     Value<String>? body,
     Value<String>? status,
     Value<String?>? dueReason,
+    Value<String?>? cycleKey,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<int>? rowid,
@@ -7655,6 +7699,7 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
       body: body ?? this.body,
       status: status ?? this.status,
       dueReason: dueReason ?? this.dueReason,
+      cycleKey: cycleKey ?? this.cycleKey,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       rowid: rowid ?? this.rowid,
@@ -7688,6 +7733,9 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
     if (dueReason.present) {
       map['due_reason'] = Variable<String>(dueReason.value);
     }
+    if (cycleKey.present) {
+      map['cycle_key'] = Variable<String>(cycleKey.value);
+    }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
@@ -7711,6 +7759,7 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
           ..write('body: $body, ')
           ..write('status: $status, ')
           ..write('dueReason: $dueReason, ')
+          ..write('cycleKey: $cycleKey, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('rowid: $rowid')
@@ -11392,6 +11441,7 @@ typedef $$NotificationRecordsTableCreateCompanionBuilder =
       required String body,
       Value<String> status,
       Value<String?> dueReason,
+      Value<String?> cycleKey,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<int> rowid,
@@ -11406,6 +11456,7 @@ typedef $$NotificationRecordsTableUpdateCompanionBuilder =
       Value<String> body,
       Value<String> status,
       Value<String?> dueReason,
+      Value<String?> cycleKey,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<int> rowid,
@@ -11457,6 +11508,11 @@ class $$NotificationRecordsTableFilterComposer
 
   ColumnFilters<String> get dueReason => $composableBuilder(
     column: $table.dueReason,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get cycleKey => $composableBuilder(
+    column: $table.cycleKey,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -11520,6 +11576,11 @@ class $$NotificationRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get cycleKey => $composableBuilder(
+    column: $table.cycleKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
@@ -11565,6 +11626,9 @@ class $$NotificationRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get dueReason =>
       $composableBuilder(column: $table.dueReason, builder: (column) => column);
+
+  GeneratedColumn<String> get cycleKey =>
+      $composableBuilder(column: $table.cycleKey, builder: (column) => column);
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
@@ -11624,6 +11688,7 @@ class $$NotificationRecordsTableTableManager
                 Value<String> body = const Value.absent(),
                 Value<String> status = const Value.absent(),
                 Value<String?> dueReason = const Value.absent(),
+                Value<String?> cycleKey = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -11636,6 +11701,7 @@ class $$NotificationRecordsTableTableManager
                 body: body,
                 status: status,
                 dueReason: dueReason,
+                cycleKey: cycleKey,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,
@@ -11650,6 +11716,7 @@ class $$NotificationRecordsTableTableManager
                 required String body,
                 Value<String> status = const Value.absent(),
                 Value<String?> dueReason = const Value.absent(),
+                Value<String?> cycleKey = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<int> rowid = const Value.absent(),
@@ -11662,6 +11729,7 @@ class $$NotificationRecordsTableTableManager
                 body: body,
                 status: status,
                 dueReason: dueReason,
+                cycleKey: cycleKey,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 rowid: rowid,

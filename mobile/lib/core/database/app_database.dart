@@ -28,7 +28,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'dco_owner'));
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -63,6 +63,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 8) {
         await migrator.createTable(notificationRecords);
+      }
+      if (from < 9) {
+        await migrator.addColumn(notificationRecords, notificationRecords.cycleKey);
       }
     },
   );

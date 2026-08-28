@@ -9,7 +9,7 @@
 
 This guide describes **what the codebase actually does today**. It is not a restatement of the FRDs. Where the running software is thinner than the Phase 1 contract, that gap is called out explicitly.
 
-**Next to implement:** mobile documents vault (API already exists), then OS local notifications. Do not add Autozis modules (trips, insurance policies, OCR, assistant, PDF, fuel *efficiency*) to close MVP.
+**Next to implement:** mobile documents vault (API already exists). Do not add Autozis modules (trips, insurance policies, OCR, assistant, PDF, fuel *efficiency*) to close MVP.
 
 ---
 
@@ -54,7 +54,7 @@ Honest snapshot against the Phase 1 contract.
 | Documents (mobile) | **Placeholder** | Empty screen only — no Drift table, no upload UI. **Next owner-app slice.** |
 | Insurance screen | **Placeholder** | Explicitly deferred; copy points to Documents |
 | Sync engine | **Done (core)** | Outbox → push → media upload → pull. Mileage max-wins; archive wins |
-| In-app notification feed | **Partial** | Local rows + status (done/dismiss). No OS local notifications package |
+| In-app notification feed | **Done** (local) | Local rows + status (done/dismiss). OS local reminders via `flutter_local_notifications` |
 | Settings | **Partial** | Units work. Language preference stored; UI still English. Plan label hardcoded. Sync line hardcoded `idle`. No Settings FRD. |
 | Web admin | **Done** | Login BFF, dashboard, users, partners. `sync_errors_24h` always `0`. |
 | Azure | **Deployable, not deployed** | `azure.yaml` + Bicep for the **API** only. Web is not wired. |
@@ -154,7 +154,7 @@ Owner-defined catalog per vehicle (name, optional brand, part number, notes). At
 - Units: USD/MMK and mi/km — these **do** affect displayed mileage and money
 - Sign out discards tokens; outbox stays bound to `user_id`
 - When not mocking, Settings still shows **Sync status: idle** as static copy, not the sync engine phase
-- Notification feed: list, mark done, dismiss, restore. Rows arrive from sync/API; the app does **not** schedule OS local notifications yet (`flutter_local_notifications` is named in `mobile/AGENTS.md`, not in `pubspec.yaml`)
+- Notification feed: list, mark done, dismiss, restore. Local OS reminders fire when a plan item is within 7 days or 100 km / 60 mi (`flutter_local_notifications`). No server-side push.
 
 ### 4.11 Offline and sync (owner)
 

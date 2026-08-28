@@ -221,6 +221,7 @@ class NotificationRecords extends Table {
   TextColumn get body => text()();
   TextColumn get status => text().withDefault(const Constant('unread'))();
   TextColumn get dueReason => text().nullable()();
+  TextColumn get cycleKey => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
 

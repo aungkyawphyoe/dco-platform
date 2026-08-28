@@ -88,4 +88,29 @@ void main() {
     final outboxRows = await db.select(db.outboxEntries).get();
     expect(outboxRows, isEmpty);
   });
+
+  test('recordDue inserts once per plan item cycle', () async {
+    final first = await repo.recordDue(
+      userId: 'u1',
+      vehicleId: 'v1',
+      planItemId: 'p1',
+      cycleKey: '2026-09-01|',
+      title: 'Maintenance Reminder',
+      body: 'Oil Change',
+      dueReason: NotificationDueReason.date,
+    );
+    final second = await repo.recordDue(
+      userId: 'u1',
+      vehicleId: 'v1',
+      planItemId: 'p1',
+      cycleKey: '2026-09-01|',
+      title: 'Maintenance Reminder',
+      body: 'Oil Change',
+      dueReason: NotificationDueReason.date,
+    );
+    expect(second.id, first.id);
+    expect(await repo.deliveredCycleKeys('u1'), {'p1::2026-09-01|'});
+    final outboxRows = await db.select(db.outboxEntries).get();
+    expect(outboxRows, isEmpty);
+  });
 }

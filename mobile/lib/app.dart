@@ -10,6 +10,7 @@ import 'core/sync/sync_engine.dart';
 import 'core/theme/dco_theme.dart';
 import 'core/widgets/dco_error_dialog.dart';
 import 'features/auth/presentation/session_controller.dart';
+import 'features/notifications/presentation/reminder_sync_controller.dart';
 
 bool _isOnline(List<ConnectivityResult>? results) {
   if (results == null || results.isEmpty) return true;
@@ -54,6 +55,7 @@ class _DcoAppState extends ConsumerState<DcoApp> {
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(goRouterProvider);
+    ref.watch(reminderSyncControllerProvider);
 
     ref.listen(sessionControllerProvider, (previous, next) {
       final userId = next.valueOrNull?.user.id;

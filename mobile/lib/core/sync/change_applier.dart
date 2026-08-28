@@ -353,6 +353,7 @@ class ChangeApplier {
         body: _str(payload['body']),
         status: Value(_str(payload['status'], fallback: 'unread')),
         dueReason: Value(_strN(payload['due_reason'])),
+        cycleKey: Value(_strN(payload['cycle_key']) ?? existing?.cycleKey),
         createdAt: _dt(payload['created_at']) ?? change.serverTs,
         updatedAt: change.serverTs,
       ),

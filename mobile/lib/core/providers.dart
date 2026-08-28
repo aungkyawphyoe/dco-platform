@@ -22,6 +22,8 @@ import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
 import '../../features/garage/domain/repositories/vehicle_repository.dart';
 import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
 import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
+import '../../features/notifications/data/reminder_schedule_store.dart';
+import '../../features/notifications/data/reminder_sync_service.dart';
 import '../../features/notifications/data/repositories/notification_repository_impl.dart';
 import '../../features/notifications/domain/repositories/notification_repository.dart';
 import '../../features/parts/data/repositories/parts_repository_impl.dart';
@@ -33,6 +35,8 @@ import 'config/app_config.dart';
 import 'database/app_database.dart';
 import 'media/media_api.dart';
 import 'network/dio_client.dart';
+import 'notifications/flutter_local_notification_client.dart';
+import 'notifications/local_notification_client.dart';
 import 'storage/token_store.dart';
 import 'sync/outbox_writer.dart';
 import 'sync/sync_api.dart';
@@ -51,6 +55,10 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
 });
 
 final analyticsProvider = Provider<Analytics>((ref) => const Analytics());
+
+final localNotificationClientProvider = Provider<LocalNotificationClient>((ref) {
+  return FlutterLocalNotificationClient();
+});
 
 final dioProvider = Provider<Dio>((ref) {
   final config = ref.watch(appConfigProvider);
@@ -205,5 +213,18 @@ final notificationRepositoryProvider = Provider<NotificationRepository>((ref) {
   return NotificationRepositoryImpl(
     db: ref.watch(appDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
+  );
+});
+
+final reminderScheduleStoreProvider = Provider<ReminderScheduleStore>((ref) {
+  return ReminderScheduleStore(ref.watch(appDatabaseProvider));
+});
+
+final reminderSyncServiceProvider = Provider<ReminderSyncService>((ref) {
+  return ReminderSyncService(
+    notifications: ref.watch(localNotificationClientProvider),
+    notificationsRepo: ref.watch(notificationRepositoryProvider),
+    schedules: ref.watch(reminderScheduleStoreProvider),
+    analytics: ref.watch(analyticsProvider),
   );
 });

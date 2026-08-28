@@ -41,6 +41,7 @@ class NotificationItem {
     this.vehicleId,
     this.planItemId,
     this.dueReason,
+    this.cycleKey,
   });
 
   final String id;
@@ -51,6 +52,7 @@ class NotificationItem {
   final String body;
   final NotificationStatus status;
   final NotificationDueReason? dueReason;
+  final String? cycleKey;
   final DateTime createdAt;
   final DateTime updatedAt;
 

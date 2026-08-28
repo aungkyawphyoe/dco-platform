@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
@@ -60,6 +61,11 @@ class _NotificationTile extends ConsumerWidget {
         notificationId: item.id,
         status: status,
       );
+      if (status == NotificationStatus.done) {
+        ref.read(analyticsProvider).track(AnalyticsEvent.maintenanceReminderCompleted);
+      } else if (status == NotificationStatus.dismissed) {
+        ref.read(analyticsProvider).track(AnalyticsEvent.maintenanceReminderDismissed);
+      }
     }
 
     final icon = switch (item.dueReason) {

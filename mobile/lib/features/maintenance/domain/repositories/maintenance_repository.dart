@@ -6,6 +6,8 @@ import '../entities/suggested_plan_item.dart';
 abstract class MaintenanceRepository {
   Stream<List<PlanItem>> watchPlan(String vehicleId);
 
+  Stream<List<PlanItem>> watchAllPlans(String userId);
+
   Stream<List<ServiceRecord>> watchHistory(String vehicleId);
 
   Future<PlanItem?> getPlanItem(String id);

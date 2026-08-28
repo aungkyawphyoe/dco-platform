@@ -134,4 +134,33 @@ void main() {
     expect(plan.single.catalogKey, 'oil_change');
     expect(plan.single.intervalDistance, 15000);
   });
+
+  test('watchAllPlans lists items across the user garage', () async {
+    final first = await addVehicle();
+    final second = await vehicles.add(
+      userId: 'user-1',
+      draft: VehicleDraft(
+        name: 'Weekend',
+        make: 'Honda',
+        model: 'Civic',
+        year: 2021,
+        licensePlate: 'XYZ789',
+        fuelType: FuelType.petrol,
+        mileage: 2000,
+      ),
+    );
+    await maintenance.addPlanItem(
+      userId: 'user-1',
+      vehicle: first,
+      draft: const PlanItemDraft(name: 'Oil', recurring: false, mileage: 12000),
+    );
+    await maintenance.addPlanItem(
+      userId: 'user-1',
+      vehicle: second,
+      draft: const PlanItemDraft(name: 'Tires', recurring: false, mileage: 8000),
+    );
+
+    final items = await maintenance.watchAllPlans('user-1').first;
+    expect(items.map((item) => item.name), containsAll(['Oil', 'Tires']));
+  });
 }

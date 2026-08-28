@@ -6,7 +6,7 @@ Notifications tell the owner that a maintenance plan item is due. MVP delivery i
 
 Source of truth for scope: `product/mvp-scope.md`.
 
-**As built (28 Aug 2026): Partial.** In-app feed works. No `flutter_local_notifications` / OS permission prompt. Status index: `product/frd/README.md`.
+**As built (28 Aug 2026): Done (local).** OS local reminders via `flutter_local_notifications`. No remote FCM/APNs. Status index: `product/frd/README.md`.
 
 ---
 
@@ -92,9 +92,11 @@ So that I can catch what I missed if I ignored the banner.
 
 ## Scheduling (local)
 
-- When a plan item's next due date is known, schedule a local notification at local 09:00 on that date (or immediately if already overdue when the item is saved)
-- When a plan item is due by mileage only, evaluate on app start and after mileage updates; if remaining distance <= 0, fire once
+- Fire when remaining time is less than 7 days **or** remaining mileage is less than 100 km / 60 mi (owner length unit). Whichever condition hits first.
+- When a plan item's next due date is known, schedule a local notification at local 09:00 on the day remaining time first drops below 7 days (or immediately if already inside that window / overdue)
+- When a plan item is due by mileage only, evaluate on app start and after mileage updates; if remaining distance is under 100 km or 60 mi, fire once
 - When both date and mileage exist, fire on whichever condition hits first
+- OS banner title is `Maintenance Reminder`; body is the service / plan item name
 - Reschedule when the plan item, vehicle mileage, or last service changes
 - Cancel local notifications for disabled or archived items
 

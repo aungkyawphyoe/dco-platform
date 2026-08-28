@@ -46,6 +46,19 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
   }
 
   @override
+  Stream<List<PlanItem>> watchAllPlans(String userId) {
+    final query = _db.select(_db.planItemRecords).join([
+      innerJoin(
+        _db.vehicleRecords,
+        _db.vehicleRecords.id.equalsExp(_db.planItemRecords.vehicleId),
+      ),
+    ])..where(_db.vehicleRecords.userId.equals(userId));
+    return query.watch().map(
+      (rows) => rows.map((row) => planItemFromDrift(row.readTable(_db.planItemRecords))).toList(),
+    );
+  }
+
+  @override
   Stream<List<ServiceRecord>> watchHistory(String vehicleId) {
     final query = _db.select(_db.serviceRecordRows)
       ..where((row) => row.vehicleId.equals(vehicleId))
