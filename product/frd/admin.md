@@ -8,6 +8,8 @@ This module is online-only. It does not use the mobile offline sync engine.
 
 Source of truth for scope: `product/mvp-scope.md`.
 
+**As built (28 Aug 2026): Done.** Login BFF, users, partners. `sync_errors_24h` is always `0`. No web tests. Status index: `product/frd/README.md`.
+
 ---
 
 # Objectives

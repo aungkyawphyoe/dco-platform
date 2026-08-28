@@ -6,6 +6,8 @@ Notifications tell the owner that a maintenance plan item is due. MVP delivery i
 
 Source of truth for scope: `product/mvp-scope.md`.
 
+**As built (28 Aug 2026): Partial.** In-app feed works. No `flutter_local_notifications` / OS permission prompt. Status index: `product/frd/README.md`.
+
 ---
 
 # Objectives

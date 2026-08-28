@@ -10,6 +10,8 @@ Maintenance **service record costs** stay on the Maintenance module. They do not
 
 Source of truth for scope: `product/mvp-scope.md`.
 
+**As built (28 Aug 2026): Done.** Status index: `product/frd/README.md`.
+
 ---
 
 # Objectives

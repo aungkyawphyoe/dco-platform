@@ -8,6 +8,8 @@ It composes Garage, Maintenance, Expenses, and Documents. It does not own those 
 
 Source of truth for scope: `product/mvp-scope.md`. Visual reference: tldraw `3. Dashboard (Default Vehicle Detail)` and Autozis `https://autozis.com/app/dashboard` (shape only — Autozis fuel *efficiency*, insurance policies, trips, and assistant metrics are out of scope).
 
+**As built (28 Aug 2026): Done.** Status index: `product/frd/README.md`. Spend is expenses-only. Insurance quick action is a placeholder; Documents opens an empty screen.
+
 ---
 
 # Objectives

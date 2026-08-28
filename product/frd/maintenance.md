@@ -8,6 +8,8 @@ Suggested plan items depend on the vehicle's fuel type (petrol / electric / hybr
 
 Source of truth for scope: `product/mvp-scope.md`.
 
+**As built (28 Aug 2026): Done** (plan, register service, history). Status index: `product/frd/README.md`. OS local reminders are **Partial** — see `notifications.md`.
+
 ---
 
 # Objectives

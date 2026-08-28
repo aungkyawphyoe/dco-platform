@@ -6,6 +6,8 @@ Fuel is per-vehicle **refuel** and **charge** logging, plus an account **Fuel Ty
 
 Source of truth for scope: `product/mvp-scope.md`. Shape reference: Autozis `https://autozis.com/app/refuel` and Catalog → Fuel Types. Do not copy Autozis extras (odometer on the log, partial/full tank, cost-per-unit, OCR, bulk edit, L/100km or kWh/100km KPIs).
 
+**As built (28 Aug 2026): Done.** `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. Status index: `product/frd/README.md`.
+
 ---
 
 # Objectives

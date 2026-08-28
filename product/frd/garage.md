@@ -4,6 +4,8 @@
 
 The Garage is the central feature of the platform. It represents the user's digital collection of vehicles and acts as the entry point to all vehicle-related information.
 
+**As built (28 Aug 2026): Done.** Status index: `product/frd/README.md`. Un-archive is not in the UI. Freemium one-vehicle cap is not enforced.
+
 ---
 
 # Objectives

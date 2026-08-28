@@ -6,6 +6,8 @@ Parts is a per-vehicle catalog of components the owner cares about (filters, pad
 
 Source of truth for scope: `product/mvp-scope.md`.
 
+**As built (28 Aug 2026): Done** (mobile + API). Status index: `product/frd/README.md`.
+
 ---
 
 # Objectives

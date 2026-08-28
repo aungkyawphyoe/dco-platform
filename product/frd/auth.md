@@ -8,6 +8,8 @@ This module does not include Google, Apple, or other social login. Those are fut
 
 Source of truth for scope: `product/mvp-scope.md`.
 
+**As built (28 Aug 2026): Done** (mobile + API). Status index: `product/frd/README.md`. Debug builds mock the API. No Google/Apple (out of scope).
+
 ---
 
 # Objectives

@@ -3,10 +3,13 @@
 **Product:** Digital Car Ownership (DCO)  
 **Audience:** Stakeholders, product, engineering  
 **Status:** Working implementation, not yet production-hosted  
-**As of:** August 2026  
-**Scope contract:** [`product/mvp-scope.md`](../product/mvp-scope.md)
+**As of:** 28 August 2026  
+**Scope contract:** [`product/mvp-scope.md`](../product/mvp-scope.md)  
+**FRD as-built index:** [`product/frd/README.md`](../product/frd/README.md)
 
 This guide describes **what the codebase actually does today**. It is not a restatement of the FRDs. Where the running software is thinner than the Phase 1 contract, that gap is called out explicitly.
+
+**Next to implement:** mobile documents vault (API already exists), then OS local notifications. Do not add Autozis modules (trips, insurance policies, OCR, assistant, PDF, fuel *efficiency*) to close MVP.
 
 ---
 
@@ -41,21 +44,22 @@ Honest snapshot against the Phase 1 contract.
 | Auth (API) | **Done** | Signup, login, refresh, logout, verify, forgot/reset. Bootstrap admin from env. |
 | Auth (mobile) | **Done** | Email/password screens, secure token store. Debug defaults to **mock auth**. |
 | App shell | **Done** | Four tabs: Garage (Dashboard) / Maintenance / Expenses / Setting |
-| Garage | **Done** | List, add/edit, archive, active vehicle, plate/VIN/mileage/fuel rules |
+| Garage | **Done** | List, add/edit, archive, active vehicle, plate/VIN/mileage/fuel rules. Un-archive not in UI. |
 | Dashboard | **Done** | Active vehicle, spend, next service, recent history, quick actions |
 | Maintenance | **Done** | Plan, suggested catalog by fuel type, register service, history, due calculator |
 | Parts | **Done** | Per-vehicle catalog; assign on service and expense |
-| Fuel logs | **Done** | Refuel vs charge by vehicle fuel type; owner-defined fuel types |
+| Fuel logs | **Done** | Refuel vs charge by vehicle fuel type; owner-defined fuel types. Hybrid plugin is **Refuel only** (no charge log). |
 | Expenses | **Done** | Categories, summaries, receipts (local photo), assign parts |
 | Documents (API) | **Done** | CRUD + media attach on the server |
-| Documents (mobile) | **Placeholder** | Empty screen only — no Drift table, no upload UI |
+| Documents (mobile) | **Placeholder** | Empty screen only — no Drift table, no upload UI. **Next owner-app slice.** |
 | Insurance screen | **Placeholder** | Explicitly deferred; copy points to Documents |
 | Sync engine | **Done (core)** | Outbox → push → media upload → pull. Mileage max-wins; archive wins |
 | In-app notification feed | **Partial** | Local rows + status (done/dismiss). No OS local notifications package |
-| Web admin | **Done** | Login BFF, dashboard, users, partners |
-| Azure | **Deployable, not deployed** | `azure.yaml` + Bicep for the **API** only |
-| Monetization | **Field only** | `plan` is `free`/`premium`; vehicle limits are **not** enforced |
-| Analytics | **Debug only** | `debugPrint` in debug builds; several MVP events not yet tracked |
+| Settings | **Partial** | Units work. Language preference stored; UI still English. Plan label hardcoded. Sync line hardcoded `idle`. No Settings FRD. |
+| Web admin | **Done** | Login BFF, dashboard, users, partners. `sync_errors_24h` always `0`. |
+| Azure | **Deployable, not deployed** | `azure.yaml` + Bicep for the **API** only. Web is not wired. |
+| Monetization | **Field only** | `plan` is `free`/`premium`; `vehicle_limit` returned on `/v1/me`; cap **not** enforced |
+| Analytics | **Debug only** | `debugPrint` in debug builds. Extra events exist; `document_uploaded`, `sync_completed`, `sync_failed` are **not** tracked |
 
 ---
 
@@ -71,7 +75,7 @@ Unauthenticated routes: Welcome, Login, Signup, Forgot password.
 - Release builds never mock. Tokens live in Keychain/Keystore.
 - Unverified email shows a banner on Dashboard with **Resend**.
 
-Auth itself is **online-only**. After a session exists, garage/maintenance/expenses/fuel work without a network.
+Auth itself is **online-only**. After a session exists, garage/maintenance/expenses/fuel work without a network. Documents cannot yet, because there is no local documents table.
 
 ### 4.2 Navigation
 
@@ -125,9 +129,10 @@ Owner-defined catalog per vehicle (name, optional brand, part number, notes). At
 ### 4.7 Fuel
 
 - **Logs:** date, type, amount, cost. Petrol and hybrid plugin → Refuel. Electric → Charge.
+- A plug-in hybrid **cannot** log a charge. That split is in [`product/frd/fuel.md`](../product/frd/fuel.md). Autozis’s demo PHEV uses both Charge and Refuel on the same car — DCO does not.
 - **Fuel Types** catalog: name, kind (liquid vs electric), unit. Seeded on API signup (Petrol, Diesel, Electricity).
 - List filters: fuel type, this month / all dates.
-- Volume/kWh live here. A fuel *expense* is money only.
+- Volume/kWh live here. A fuel *expense* is money only. No MPG / L/100km / kWh economy (v1.1).
 
 ### 4.8 Expenses
 
@@ -138,17 +143,18 @@ Owner-defined catalog per vehicle (name, optional brand, part number, notes). At
 
 ### 4.9 Documents and insurance (current)
 
-**Documents:** empty state only (“No documents yet”). Upload, categories, and viewer are not implemented on mobile even though the API supports them.
+**Documents:** empty state only (“No documents yet”). Upload, categories, and viewer are not implemented on mobile even though the API supports them. This is the largest hole against the Phase 1 contract (Goal 1: digitize vehicle documents).
 
 **Insurance:** placeholder (“Insurance coming later”). Store papers in Documents when that vault ships. No policy module in MVP by design.
 
 ### 4.10 Settings and notifications
 
-- Email, hardcoded **Free Plan** label, mock vs live hint
+- Email, hardcoded **Free Plan** label (does not read `users.plan`), mock vs live hint
 - Localization: English / Myanmar (preference stored locally; UI strings are still English)
-- Units: USD/MMK and mi/km
+- Units: USD/MMK and mi/km — these **do** affect displayed mileage and money
 - Sign out discards tokens; outbox stays bound to `user_id`
-- Notification feed: list, mark done, dismiss, restore. Rows arrive from sync/API; the app does **not** schedule OS local notifications yet (`flutter_local_notifications` is specified, not added)
+- When not mocking, Settings still shows **Sync status: idle** as static copy, not the sync engine phase
+- Notification feed: list, mark done, dismiss, restore. Rows arrive from sync/API; the app does **not** schedule OS local notifications yet (`flutter_local_notifications` is named in `mobile/AGENTS.md`, not in `pubspec.yaml`)
 
 ### 4.11 Offline and sync (owner)
 
@@ -157,8 +163,9 @@ Owner-defined catalog per vehicle (name, optional brand, part number, notes). At
 3. Sync: cold start after auth, reconnect, ~1s debounce after write, manual retry from a sync-error dialog.
 4. Push operations, then pending media bytes, then pull the change log.
 5. Mileage conflict: `max(local, remote)`; never decrease. Archive wins over a later edit.
-6. Sync status is informational and must not block navigation.
+6. Sync status is informational and must not block navigation. The Settings row does not yet bind to `SyncEngine` state.
 7. Client UUIDs make creates idempotent.
+8. Document entities are on the server change log but have no mobile outbox path until the vault exists.
 
 ---
 
@@ -171,7 +178,7 @@ Staff-only. Owner JWTs are rejected at login.
 3. Refresh token is an **httpOnly** cookie; access token is also cookied and used as Bearer to `/v1/admin/*`
 4. Middleware sends anyone without a refresh cookie to login
 
-**Dashboard:** users total, active vehicles, partners, sync-errors-24h (currently always `0`), recent signups.
+**Dashboard:** users total, active vehicles, partners, sync-errors-24h (**always `0`** — not queried), recent signups only (not vehicle/partner/sync events).
 
 **Users:** search, filter by status, open profile (email, plan, vehicles, document count). Actions: change plan, deactivate (revokes refresh tokens), reactivate, send password-reset email.
 
@@ -235,9 +242,17 @@ Mobile Drift mirrors owner entities **except documents** (no local documents tab
 
 ### 6.5 Tests
 
-- **Mobile:** domain/repository tests (validators, due calculator, sync engine, vehicles, maintenance, parts, fuel, expenses, notifications). No integration_test suite filled out.
-- **API:** Vitest for auth, vehicles, sync, admin.
+- **Mobile:** domain/repository tests (validators, due calculator, sync engine, vehicles, maintenance, parts, fuel, expenses, notifications). No integration_test suite filled out. No documents tests (no documents feature yet).
+- **API:** Vitest for auth, vehicles, sync, admin. Owner document/expense/fuel routes are thinner on tests than vehicles/sync.
 - **Web:** no Vitest/MSW suite yet (ADR called for it).
+
+### 6.6 Analytics (as built)
+
+`mobile/lib/core/analytics/analytics.dart` prints in debug only. No vendor.
+
+Tracked today: `auth_signed_up`, `auth_signed_in`, `auth_signed_out`, `auth_password_reset_requested`, `garage_opened`, `vehicle_*`, `dashboard_*`, `maintenance_*`, `part_*`, `fuel_*`, `expense_*`.
+
+Required by [`product/mvp-scope.md`](../product/mvp-scope.md) but **not** in the enum: `document_uploaded`, `sync_completed`, `sync_failed`.
 
 ---
 
@@ -260,12 +275,12 @@ From [`product/mvp-scope.md`](../product/mvp-scope.md) — do not treat these as
 | Need | Document |
 |------|----------|
 | What *should* ship | `product/mvp-scope.md` |
-| Feature behavior | `product/frd/*.md` |
-| System / JWT / offline | `architecture/system.md` |
+| Feature behavior + as-built status per FRD | `product/frd/README.md` |
+| System / JWT / offline | `architecture/system.md` (still marked Proposed; code matches the MVP slice) |
 | ERD | `architecture/data-model.md` |
 | HTTP shapes | `architecture/openapi.yaml` |
 | Navigation | `docs/app-shell.md` |
-| Flutter agent rules | `mobile/AGENTS.md` |
+| Flutter agent rules | `mobile/AGENTS.md` (the “Next: documents then sync” line is stale; sync is in, documents are next) |
 | Theme | `docs/design-system.md` |
 | Roadmap after MVP | `docs/product-roadmap.md` |
 
