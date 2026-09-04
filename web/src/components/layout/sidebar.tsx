@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth/session-context";
@@ -28,7 +29,14 @@ export function Sidebar() {
 
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-line-subtle bg-panel">
-      <div className="flex h-16 items-center px-5">
+      <div className="flex h-16 items-center gap-2.5 px-5">
+        <Image
+          src="/dco-logo.png"
+          alt=""
+          width={32}
+          height={32}
+          className="size-8 shrink-0 rounded-sm bg-white"
+        />
         <span className="font-display text-lg font-semibold tracking-tight text-gold">
           DCO Admin
         </span>

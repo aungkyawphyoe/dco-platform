@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,14 @@ export default function LoginPage() {
     <main className="flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
+          <Image
+            src="/dco-logo.png"
+            alt=""
+            width={96}
+            height={96}
+            className="mx-auto mb-4 size-24 rounded-lg bg-white"
+            priority
+          />
           <p className="font-display text-3xl font-semibold tracking-tight text-gold">
             DCO Admin
           </p>
