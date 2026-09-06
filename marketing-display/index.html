@@ -1,0 +1,1072 @@
+<!doctype html>
+<html lang="en" data-theme="auto">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light dark" />
+    <title>DCO — Your Digital Garage</title>
+    <style>
+      /* ---------- Tokens (system theme, light + dark) ---------- */
+      :root {
+        --bg-grad-1: #f6f7fb;
+        --bg-grad-2: #eef1f8;
+        --text: #0e1116;
+        --text-dim: #5b6473;
+        --text-faint: #8a93a3;
+        --accent: #eeb757;
+        --accent-2: #5b8def;
+        --card-bg: rgba(255, 255, 255, 0.62);
+        --card-border: rgba(15, 23, 42, 0.08);
+        --card-inner: linear-gradient(135deg, rgba(238, 183, 87, 0.07), rgba(91, 141, 239, 0.04));
+        --hairline: rgba(15, 23, 42, 0.06);
+        --shadow: 0 18px 50px -25px rgba(15, 23, 42, 0.25);
+      }
+      [data-theme="dark"],
+      :root[data-theme="auto"] {
+        color-scheme: dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root[data-theme="auto"] {
+          --bg-grad-1: #0a0d12;
+          --bg-grad-2: #11151c;
+          --text: #f1f3f8;
+          --text-dim: #a3acbd;
+          --text-faint: #6c7588;
+          --card-bg: rgba(20, 24, 32, 0.55);
+          --card-border: rgba(255, 255, 255, 0.08);
+          --card-inner: linear-gradient(135deg, rgba(238, 183, 87, 0.12), rgba(91, 141, 239, 0.08));
+          --hairline: rgba(255, 255, 255, 0.06);
+          --shadow: 0 22px 60px -28px rgba(0, 0, 0, 0.55);
+        }
+      }
+
+      /* ---------- Reset ---------- */
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+      html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        overscroll-behavior: none;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI",
+          Inter, Roboto, "Helvetica Neue", Arial, sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(1200px 800px at 12% 8%, rgba(91, 141, 239, 0.18), transparent 60%),
+          radial-gradient(1000px 700px at 92% 92%, rgba(238, 183, 87, 0.18), transparent 60%),
+          linear-gradient(160deg, var(--bg-grad-1), var(--bg-grad-2));
+        background-attachment: fixed;
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+
+      /* ---------- Grid container ---------- */
+      .stage {
+        position: fixed;
+        inset: 0;
+        padding: clamp(12px, 1.6vw, 24px);
+        display: grid;
+        gap: clamp(10px, 1.1vw, 18px);
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: repeat(8, 1fr);
+        grid-template-areas:
+          "hero hero hero hero hero hero intro intro intro intro intro intro"
+          "hero hero hero hero hero hero intro intro intro intro intro intro"
+          "hero hero hero hero hero hero intro intro intro intro intro intro"
+          "hero hero hero hero hero hero intro intro intro intro intro intro"
+          "hero hero hero hero hero hero intro intro intro intro intro intro"
+          "features features features features features features intro intro intro intro intro intro"
+          "features features features features features features intro intro intro intro intro intro"
+          "features features features features features features intro intro intro intro intro intro";
+      }
+
+      /* ---------- Card primitive ---------- */
+      .card {
+        position: relative;
+        border-radius: clamp(14px, 1.1vw, 22px);
+        background: var(--card-bg);
+        border: 1px solid var(--card-border);
+        backdrop-filter: blur(18px) saturate(140%);
+        -webkit-backdrop-filter: blur(18px) saturate(140%);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        isolation: isolate;
+      }
+      .card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: var(--card-inner);
+        pointer-events: none;
+        z-index: 0;
+      }
+      .card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        padding: 1px;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.35), rgba(255, 255, 255, 0) 40%);
+        -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
+        z-index: 1;
+      }
+      .card > * {
+        position: relative;
+        z-index: 2;
+      }
+
+      /* ---------- Areas ---------- */
+      .hero    { grid-area: hero; }
+      .intro   { grid-area: intro; }
+      .features{ grid-area: features; }
+
+      /* ---------- Hero ---------- */
+      .hero {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        padding: clamp(18px, 1.8vw, 30px);
+        color: #f4f6fb;
+      }
+      .hero__head {
+        grid-column: 1 / -1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: clamp(12px, 1.2vw, 24px);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: clamp(8px, 0.7vw, 12px);
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        font-size: clamp(14px, 1.1vw, 18px);
+      }
+      .brand__logo {
+        position: relative;
+        width: clamp(56px, 4.8vw, 84px);
+        height: clamp(28px, 2.4vw, 40px);
+        border-radius: 8px;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 24px -10px rgba(0, 0, 0, 0.45);
+      }
+      .brand__logo img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: clamp(2px, 0.2vw, 4px);
+        opacity: 0;
+        transform: scale(0.96);
+        transition: opacity 600ms ease, transform 600ms ease;
+        will-change: opacity, transform;
+      }
+      .brand__logo img.is-active {
+        opacity: 1;
+        transform: scale(1);
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .brand__logo img { transition: none; transform: none; }
+      }
+      .pill {
+        font-size: clamp(10px, 0.7vw, 12px);
+        color: var(--text-dim);
+        border: 1px solid var(--hairline);
+        padding: clamp(4px, 0.4vw, 6px) clamp(10px, 0.8vw, 14px);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.06);
+      }
+
+      .hero__body {
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: clamp(8px, 0.9vw, 14px);
+        min-height: 0;
+      }
+      .hero__title {
+        margin: 0;
+        font-size: clamp(26px, 3.2vw, 44px);
+        line-height: 1.04;
+        letter-spacing: -0.03em;
+        font-weight: 800;
+      }
+      .hero__title em {
+        font-style: normal;
+        background: linear-gradient(120deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .hero__sub {
+        margin-top: clamp(8px, 0.9vw, 14px);
+        font-size: clamp(12px, 1.05vw, 16px);
+        color: var(--text-dim);
+        max-width: 52ch;
+        line-height: 1.5;
+      }
+
+      /* Ken Burns gallery — pure CSS, 5 slides, 6s each, 30s loop */
+      .kb {
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        opacity: 0;
+        background-position: center;
+        background-size: cover;
+        animation: kbCycle 30s infinite;
+        filter: saturate(1.05);
+      }
+      .kb::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0) 30%, rgba(0, 0, 0, 0.25) 100%);
+      }
+      .kb--1 { background-image: radial-gradient(120% 80% at 20% 20%, #1a2438 0%, #0a0d12 60%, #050608 100%); animation-delay: 0s; }
+      .kb--2 { background-image: radial-gradient(120% 80% at 80% 30%, #2a2235 0%, #120a17 60%, #07050a 100%); animation-delay: 6s; }
+      .kb--3 { background-image: radial-gradient(120% 80% at 50% 80%, #102a25 0%, #07140f 60%, #040906 100%); animation-delay: 12s; }
+      .kb--4 { background-image: radial-gradient(120% 80% at 30% 70%, #2a1b0e 0%, #1a0e05 60%, #0a0502 100%); animation-delay: 18s; }
+      .kb--5 { background-image: radial-gradient(120% 80% at 70% 10%, #1b1635 0%, #0c0a1a 60%, #050414 100%); animation-delay: 24s; }
+
+      @keyframes kbCycle {
+        0%   { opacity: 0; transform: scale(1) translate(0, 0); }
+        3%   { opacity: 1; }
+        20%  { opacity: 1; transform: scale(1.15) translate(-1.5%, -1%); }
+        23%  { opacity: 0; }
+        100% { opacity: 0; transform: scale(1) translate(0, 0); }
+      }
+
+      /* hero content sits above gallery */
+      .hero__content {
+        position: relative;
+        z-index: 3;
+        align-self: end;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        height: 100%;
+        padding-top: clamp(20px, 2vw, 28px);
+      }
+
+      /* slide caption that cross-fades with gallery */
+      .captions {
+        display: grid;
+        position: relative;
+        min-height: clamp(80px, 8vh, 130px);
+      }
+      .caption {
+        grid-area: 1 / 1;
+        opacity: 0;
+        animation: capCycle 30s infinite;
+      }
+      .caption strong {
+        display: block;
+        font-size: clamp(16px, 1.6vw, 22px);
+        color: #fff;
+        letter-spacing: -0.01em;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .caption span {
+        display: block;
+        font-size: clamp(11px, 0.95vw, 14px);
+        color: rgba(255, 255, 255, 0.7);
+        margin-top: clamp(2px, 0.3vw, 6px);
+        line-height: 1.45;
+      }
+      .caption--1 { animation-delay: 0s; }
+      .caption--2 { animation-delay: 6s; }
+      .caption--3 { animation-delay: 12s; }
+      .caption--4 { animation-delay: 18s; }
+      .caption--5 { animation-delay: 24s; }
+      @keyframes capCycle {
+        0%, 2%   { opacity: 0; transform: translateY(6px); }
+        4%, 19%  { opacity: 1; transform: translateY(0); }
+        21%, 100%{ opacity: 0; transform: translateY(-6px); }
+      }
+
+      /* value-prop chips (stacked list for the narrower hero) */
+      .hero__props {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: clamp(6px, 0.6vw, 10px);
+        margin-top: clamp(8px, 0.9vw, 12px);
+      }
+      .prop {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: clamp(8px, 0.7vw, 12px);
+        padding: clamp(8px, 0.7vw, 12px);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(8px);
+      }
+      .prop__icon {
+        width: clamp(28px, 2.4vw, 36px);
+        height: clamp(28px, 2.4vw, 36px);
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        color: #0a0d12;
+        display: grid;
+        place-items: center;
+        font-size: clamp(14px, 1.2vw, 18px);
+        font-weight: 700;
+      }
+      .prop__label {
+        font-size: clamp(11px, 0.9vw, 13px);
+        font-weight: 700;
+        color: #fff;
+      }
+      .prop__hint {
+        font-size: clamp(9px, 0.7vw, 11px);
+        color: rgba(255, 255, 255, 0.65);
+        line-height: 1.3;
+      }
+
+      .hero__meta {
+        grid-column: 1 / -1;
+        margin-top: clamp(8px, 0.9vw, 14px);
+        display: flex;
+        gap: clamp(14px, 1.6vw, 28px);
+        color: rgba(255, 255, 255, 0.85);
+        font-size: clamp(10px, 0.8vw, 12px);
+        padding-top: clamp(8px, 0.9vw, 14px);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+      .hero__meta b { color: #fff; font-size: clamp(14px, 1.2vw, 20px); display: block; font-weight: 800; letter-spacing: -0.02em; }
+      .hero__meta span { color: rgba(255, 255, 255, 0.6); }
+
+      /* ---------- Intro (marketing intro card) ---------- */
+      .intro {
+        padding: clamp(20px, 1.8vw, 32px);
+        display: grid;
+        grid-template-rows: auto auto 1fr;
+        gap: clamp(12px, 1.1vw, 20px);
+        min-height: 0;
+        overflow: hidden;
+        isolation: isolate;
+      }
+
+      /* animated background — orbs + shimmer, sits behind everything in this card */
+      .intro__bg {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        overflow: hidden;
+        pointer-events: none;
+        border-radius: inherit;
+      }
+      .intro__bg .orb {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(36px);
+        opacity: 0.55;
+        mix-blend-mode: screen;
+        will-change: transform;
+      }
+      .intro__bg .orb--1 {
+        width: 38%;
+        aspect-ratio: 1 / 1;
+        top: -8%;
+        left: -10%;
+        background: radial-gradient(circle at 30% 30%, rgba(91, 141, 239, 0.7), rgba(91, 141, 239, 0) 70%);
+        animation: orbDrift1 22s ease-in-out infinite alternate;
+      }
+      .intro__bg .orb--2 {
+        width: 32%;
+        aspect-ratio: 1 / 1;
+        top: 35%;
+        right: -12%;
+        background: radial-gradient(circle at 60% 40%, rgba(238, 183, 87, 0.6), rgba(238, 183, 87, 0) 70%);
+        animation: orbDrift2 28s ease-in-out infinite alternate;
+      }
+      .intro__bg .orb--3 {
+        width: 46%;
+        aspect-ratio: 1 / 1;
+        bottom: -16%;
+        left: 18%;
+        background: radial-gradient(circle at 50% 50%, rgba(91, 141, 239, 0.45), rgba(91, 141, 239, 0) 70%);
+        animation: orbDrift3 32s ease-in-out infinite alternate;
+      }
+      .intro__bg .orb--4 {
+        width: 22%;
+        aspect-ratio: 1 / 1;
+        top: 60%;
+        left: 5%;
+        background: radial-gradient(circle at 50% 50%, rgba(238, 183, 87, 0.35), rgba(238, 183, 87, 0) 70%);
+        animation: orbDrift4 26s ease-in-out infinite alternate;
+      }
+
+      @keyframes orbDrift1 {
+        0%   { transform: translate3d(0, 0, 0) scale(1); }
+        100% { transform: translate3d(8%, 14%, 0) scale(1.15); }
+      }
+      @keyframes orbDrift2 {
+        0%   { transform: translate3d(0, 0, 0) scale(1); }
+        100% { transform: translate3d(-12%, 10%, 0) scale(1.1); }
+      }
+      @keyframes orbDrift3 {
+        0%   { transform: translate3d(0, 0, 0) scale(1); }
+        100% { transform: translate3d(6%, -10%, 0) scale(1.2); }
+      }
+      @keyframes orbDrift4 {
+        0%   { transform: translate3d(0, 0, 0) scale(1); }
+        100% { transform: translate3d(10%, -12%, 0) scale(1.1); }
+      }
+
+      /* soft shimmer sweep */
+      .intro__bg::before {
+        content: "";
+        position: absolute;
+        inset: -20%;
+        background: conic-gradient(
+          from 180deg at 50% 50%,
+          rgba(255, 255, 255, 0) 0deg,
+          rgba(255, 255, 255, 0.06) 90deg,
+          rgba(255, 255, 255, 0) 180deg,
+          rgba(238, 183, 87, 0.05) 270deg,
+          rgba(255, 255, 255, 0) 360deg
+        );
+        animation: shimmerSpin 18s linear infinite;
+      }
+      @keyframes shimmerSpin {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+
+      /* frosted veil so driver cards stay readable above the animation */
+      .intro__bg::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+        backdrop-filter: blur(40px) saturate(120%);
+        -webkit-backdrop-filter: blur(40px) saturate(120%);
+      }
+
+      /* bump intro content above the animation layer */
+      .intro > *:not(.intro__bg) {
+        position: relative;
+        z-index: 2;
+      }
+      .intro__head h2 {
+        margin: 0;
+        font-size: clamp(22px, 2.3vw, 34px);
+        font-weight: 800;
+        letter-spacing: -0.025em;
+        line-height: 1.1;
+      }
+      .intro__head p {
+        margin: clamp(6px, 0.5vw, 10px) 0 0;
+        color: var(--text-dim);
+        font-size: clamp(12px, 1.05vw, 16px);
+        line-height: 1.5;
+        max-width: 56ch;
+      }
+      .intro__list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: clamp(8px, 0.7vw, 12px);
+        align-content: start;
+        overflow: hidden;
+        min-height: 0;
+      }
+      .driver {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        gap: clamp(12px, 1vw, 16px);
+        padding: clamp(10px, 0.9vw, 14px);
+        border-radius: 14px;
+        border: 1px solid var(--hairline);
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+      }
+      .driver__icon {
+        width: clamp(34px, 2.6vw, 42px);
+        height: clamp(34px, 2.6vw, 42px);
+        border-radius: 12px;
+        background: var(--card-inner);
+        display: grid;
+        place-items: center;
+        font-size: clamp(18px, 1.6vw, 22px);
+        border: 1px solid var(--hairline);
+      }
+      .driver__title {
+        font-size: clamp(13px, 1.05vw, 15px);
+        font-weight: 700;
+        color: var(--text);
+        margin-bottom: clamp(2px, 0.2vw, 4px);
+        letter-spacing: -0.01em;
+      }
+      .driver__items {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        font-size: clamp(11px, 0.9vw, 13px);
+        color: var(--text-dim);
+        line-height: 1.45;
+        display: block;
+      }
+      .driver__items li {
+        padding-left: 0;
+        margin: 0 0 clamp(2px, 0.2vw, 3px);
+      }
+      .driver__items li:last-child { margin-bottom: 0; }
+      .driver__items li::before {
+        content: "✓ ";
+        color: var(--accent);
+        font-weight: 700;
+        margin-right: 4px;
+      }
+
+      /* ---------- Features (auto-cycling carousel, every 4s) ---------- */
+      .features {
+        padding: clamp(16px, 1.6vw, 26px);
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-template-rows: auto 1fr auto;
+        gap: clamp(10px, 1vw, 16px);
+      }
+      .features__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .features__head h2 {
+        margin: 0;
+        font-size: clamp(16px, 1.6vw, 24px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+      }
+      .features__head p {
+        margin: 0;
+        font-size: clamp(10px, 0.8vw, 13px);
+        color: var(--text-dim);
+      }
+      .stage-rotator {
+        position: relative;
+        overflow: hidden;
+        border-radius: 14px;
+        border: 1px solid var(--hairline);
+        background:
+          radial-gradient(120% 80% at 50% 0%, rgba(91, 141, 239, 0.12), transparent 60%),
+          rgba(255, 255, 255, 0.03);
+        min-height: 0;
+      }
+      .feature-card {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        grid-template-rows: auto 1fr auto;
+        padding: clamp(12px, 1.2vw, 20px);
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 600ms ease, transform 600ms ease;
+      }
+      .feature-card.is-active {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .feature-card__eyebrow {
+        font-size: clamp(9px, 0.7vw, 11px);
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: var(--accent);
+        font-weight: 700;
+      }
+      .feature-card__title {
+        margin: clamp(6px, 0.6vw, 10px) 0 clamp(2px, 0.2vw, 4px);
+        font-size: clamp(20px, 2.4vw, 32px);
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+      }
+      .feature-card__desc {
+        color: var(--text-dim);
+        font-size: clamp(11px, 0.9vw, 14px);
+        line-height: 1.5;
+        max-width: 38ch;
+      }
+      .feature-card__chips {
+        display: flex;
+        gap: clamp(6px, 0.6vw, 10px);
+        flex-wrap: wrap;
+        margin-top: auto;
+      }
+      .chip {
+        font-size: clamp(9px, 0.75vw, 11px);
+        padding: clamp(4px, 0.4vw, 6px) clamp(8px, 0.7vw, 12px);
+        border-radius: 999px;
+        border: 1px solid var(--hairline);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-dim);
+      }
+      .feature-card__icon {
+        position: absolute;
+        right: clamp(12px, 1.2vw, 22px);
+        top: clamp(12px, 1.2vw, 22px);
+        font-size: clamp(28px, 3vw, 44px);
+        opacity: 0.85;
+      }
+
+      .dots {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+      }
+      .dot {
+        width: 18px;
+        height: 4px;
+        border-radius: 2px;
+        background: var(--hairline);
+        transition: background 200ms ease, width 200ms ease;
+      }
+      .dot.is-active {
+        background: var(--accent);
+        width: 28px;
+      }
+
+      /* ---------- Compact viewports (still no scroll, just tighter) ---------- */
+      @media (max-width: 820px) {
+        .stage {
+          grid-template-rows: repeat(12, 1fr);
+          grid-template-areas:
+            "hero hero hero hero hero hero hero hero hero hero hero hero"
+            "hero hero hero hero hero hero hero hero hero hero hero hero"
+            "hero hero hero hero hero hero hero hero hero hero hero hero"
+            "hero hero hero hero hero hero hero hero hero hero hero hero"
+            "hero hero hero hero hero hero hero hero hero hero hero hero"
+            "intro intro intro intro intro intro intro intro intro intro intro intro"
+            "intro intro intro intro intro intro intro intro intro intro intro intro"
+            "intro intro intro intro intro intro intro intro intro intro intro intro"
+            "intro intro intro intro intro intro intro intro intro intro intro intro"
+            "features features features features features features features features features features features features"
+            "features features features features features features features features features features features features"
+            "features features features features features features features features features features features features";
+        }
+      }
+      @media (max-width: 520px) {
+        .hero__title { font-size: clamp(28px, 8vw, 44px); }
+        .hero__meta { flex-wrap: wrap; }
+      }
+
+      /* Reduced motion */
+      @media (prefers-reduced-motion: reduce) {
+        .kb, .caption, .feature-card { animation: none !important; transition: none !important; }
+        .kb--1 { opacity: 1; }
+        .caption--1 { opacity: 1; }
+        .feature-card.is-active { opacity: 1; transform: none; }
+        .intro__bg .orb,
+        .intro__bg::before { animation: none !important; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="stage" role="main" aria-label="DCO marketing overview">
+
+      <!-- ============== HERO (Ken Burns slideshow, 6 cols x 5 rows) ============== -->
+      <section class="card hero" aria-label="DCO hero">
+        <!-- Ken Burns background layers (5 abstract gradient "shots"). Swap radial-gradient URLs for real <img> URLs to use photographs. -->
+        <div class="kb kb--1" aria-hidden="true"></div>
+        <div class="kb kb--2" aria-hidden="true"></div>
+        <div class="kb kb--3" aria-hidden="true"></div>
+        <div class="kb kb--4" aria-hidden="true"></div>
+        <div class="kb kb--5" aria-hidden="true"></div>
+
+        <div class="hero__content">
+          <header class="hero__head">
+            <div class="brand">
+              <div class="brand__logo" id="brandLogo" aria-label="DCO logo"></div>
+              <span>Digital Car Ownership</span>
+            </div>
+            <span class="pill">v1.0 · MVP · Offline-first</span>
+          </header>
+
+          <div class="hero__body">
+            <h1 class="hero__title">
+              What DCO <em>helps you do</em>
+            </h1>
+            <p class="hero__sub">
+              A complete digital identity for every vehicle you own — every maintenance record, every cost, every receipt, in one place that works offline and syncs the moment you reconnect.
+            </p>
+
+            <div class="captions" aria-live="polite">
+              <div class="caption caption--1"><strong>Never Miss Maintenance</strong><span>Smart reminders by time or mileage — stay ahead of every service.</span></div>
+              <div class="caption caption--2"><strong>Know Your Real Costs</strong><span>Track fuel, charging, mileage, repairs — see the true cost of ownership.</span></div>
+              <div class="caption caption--3"><strong>One Complete History</strong><span>No more scattered records across emails, notes, and paper.</span></div>
+              <div class="caption caption--4"><strong>Higher Resale Value</strong><span>A documented service history builds buyer confidence and trust.</span></div>
+              <div class="caption caption--5"><strong>Every Vehicle, One App</strong><span>Families and small fleets organized under one account.</span></div>
+            </div>
+
+            <div class="hero__props" aria-label="Why DCO">
+              <div class="prop">
+                <span class="prop__icon">🔒</span>
+                <div>
+                  <div class="prop__label">Offline-First</div>
+                  <div class="prop__hint">Writes never block on a signal</div>
+                </div>
+              </div>
+              <div class="prop">
+                <span class="prop__icon">🧭</span>
+                <div>
+                  <div class="prop__label">Smart Reminders</div>
+                  <div class="prop__hint">Time and mileage thresholds</div>
+                </div>
+              </div>
+              <div class="prop">
+                <span class="prop__icon">💎</span>
+                <div>
+                  <div class="prop__label">Resale Ready</div>
+                  <div class="prop__hint">Verified service history</div>
+                </div>
+              </div>
+              <div class="prop">
+                <span class="prop__icon">🔁</span>
+                <div>
+                  <div class="prop__label">Multi-Vehicle</div>
+                  <div class="prop__hint">One garage, many cars</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero__meta" aria-label="At a glance">
+            <div><b>5</b><span>core surfaces</span></div>
+            <div><b>∞</b><span>offline writes</span></div>
+            <div><b>1</b><span>unified record</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============== INTRO (Built for Every Type of Driver) ============== -->
+      <section class="card intro" aria-label="Who DCO is built for">
+        <div class="intro__bg" aria-hidden="true">
+          <span class="orb orb--1"></span>
+          <span class="orb orb--2"></span>
+          <span class="orb orb--3"></span>
+          <span class="orb orb--4"></span>
+        </div>
+        <header class="intro__head">
+          <h2>Built for every type of driver</h2>
+          <p>One application for everything related to vehicle ownership — save time, save money, never miss important deadlines, and protect your resale value.</p>
+        </header>
+        <ul class="intro__list">
+          <li class="driver">
+            <div class="driver__icon">⚡</div>
+            <div>
+              <div class="driver__title">Electric Vehicle Owners</div>
+              <ul class="driver__items">
+                <li>Charging costs — log every kWh and what you paid at the plug.</li>
+                <li>Energy use — monitor consumption trends across drives.</li>
+                <li>Real cost per km — true ownership cost beyond the sticker price.</li>
+              </ul>
+            </div>
+          </li>
+          <li class="driver">
+            <div class="driver__icon">⛽</div>
+            <div>
+              <div class="driver__title">Petrol &amp; Diesel Drivers</div>
+              <ul class="driver__items">
+                <li>Track fuel efficiency — volume, spend, and frequency in one log.</li>
+                <li>Monitor service history — every receipt and odometer reading.</li>
+                <li>Organized maintenance — plan items surface the next due job.</li>
+              </ul>
+            </div>
+          </li>
+          <li class="driver">
+            <div class="driver__icon">👪</div>
+            <div>
+              <div class="driver__title">Families With Multiple Cars</div>
+              <ul class="driver__items">
+                <li>Manage multiple vehicles — every car in one shared garage.</li>
+                <li>Share records — service and cost history anyone can find.</li>
+                <li>Stay organized — switch the active vehicle in one tap.</li>
+              </ul>
+            </div>
+          </li>
+          <li class="driver">
+            <div class="driver__icon">🏢</div>
+            <div>
+              <div class="driver__title">Fleet Owners</div>
+              <ul class="driver__items">
+                <li>Track multiple vehicles — across unlimited cars in one garage.</li>
+                <li>Monitor usage and costs — per-vehicle fuel, service, and repair totals.</li>
+                <li>Centralize vehicle data — one source of truth for the whole fleet.</li>
+              </ul>
+            </div>
+          </li>
+          <li class="driver">
+            <div class="driver__icon">🚗</div>
+            <div>
+              <div class="driver__title">Ride Share &amp; Delivery</div>
+              <ul class="driver__items">
+                <li>Fuel &amp; earnings costs — track spend against what each trip made.</li>
+                <li>Mileage for tax deductions — automatic odometer log per shift.</li>
+                <li>High-mileage maintenance — reminders tuned to heavy use.</li>
+              </ul>
+            </div>
+          </li>
+        </ul>
+      </section>
+
+      <!-- ============== FEATURES (auto-cycling every 4s) ============== -->
+      <section class="card features" aria-label="DCO features">
+        <header class="features__head">
+          <div>
+            <h2>Meet DCO</h2>
+            <p>Your digital garage — track everything about your vehicle.</p>
+          </div>
+          <p id="rotatorLabel" aria-live="polite">Auto-cycling · 4s</p>
+        </header>
+
+        <div class="stage-rotator" id="rotator">
+          <!-- Card 1: Maintenance -->
+          <article class="feature-card is-active" data-icon="🔧" data-label="Maintenance">
+            <div class="feature-card__eyebrow">01 / Feature</div>
+            <div>
+              <h3 class="feature-card__title">Maintenance</h3>
+              <p class="feature-card__desc">Plan items by time or mileage. Suggested items filtered by fuel type. Register services with parts and receipts in seconds.</p>
+            </div>
+            <div class="feature-card__chips">
+              <span class="chip">Plan items</span>
+              <span class="chip">Service records</span>
+              <span class="chip">Receipts</span>
+            </div>
+            <span class="feature-card__icon" aria-hidden="true">🔧</span>
+          </article>
+          <!-- Card 2: Fuel or Charging -->
+          <article class="feature-card" data-icon="⛽" data-label="Fuel or Charging">
+            <div class="feature-card__eyebrow">02 / Feature</div>
+            <div>
+              <h3 class="feature-card__title">Fuel or Charging</h3>
+              <p class="feature-card__desc">Refuel logs for petrol and hybrid plugin, charge logs for electric. Volume, cost, and date — never lose a fill-up again.</p>
+            </div>
+            <div class="feature-card__chips">
+              <span class="chip">Refuel</span>
+              <span class="chip">Charge</span>
+              <span class="chip">Per-vehicle</span>
+            </div>
+            <span class="feature-card__icon" aria-hidden="true">⛽</span>
+          </article>
+          <!-- Card 3: Mileage -->
+          <article class="feature-card" data-icon="📋" data-label="Mileage">
+            <div class="feature-card__eyebrow">03 / Feature</div>
+            <div>
+              <h3 class="feature-card__title">Mileage</h3>
+              <p class="feature-card__desc">Mileage that never goes backward. Sync resolves conflicts with max-wins, so the highest odometer reading always wins.</p>
+            </div>
+            <div class="feature-card__chips">
+              <span class="chip">Monotonic</span>
+              <span class="chip">km / mi</span>
+              <span class="chip">Sync-safe</span>
+            </div>
+            <span class="feature-card__icon" aria-hidden="true">📋</span>
+          </article>
+          <!-- Card 4: Costs -->
+          <article class="feature-card" data-icon="💰" data-label="Costs">
+            <div class="feature-card__eyebrow">04 / Feature</div>
+            <div>
+              <h3 class="feature-card__title">Costs</h3>
+              <p class="feature-card__desc">Track fuel, maintenance, insurance, parking, tolls, parts, and other. Monthly and total summaries per vehicle — your real cost of ownership.</p>
+            </div>
+            <div class="feature-card__chips">
+              <span class="chip">Categories</span>
+              <span class="chip">Summaries</span>
+              <span class="chip">Receipts</span>
+            </div>
+            <span class="feature-card__icon" aria-hidden="true">💰</span>
+          </article>
+          <!-- Card 5: Reminders -->
+          <article class="feature-card" data-icon="🔔" data-label="Reminders">
+            <div class="feature-card__eyebrow">05 / Feature</div>
+            <div>
+              <h3 class="feature-card__title">Reminders</h3>
+              <p class="feature-card__desc">Local OS reminders when a plan item is within 7 days or 100 km. Mark done, dismiss, or snooze. Nothing falls through the cracks.</p>
+            </div>
+            <div class="feature-card__chips">
+              <span class="chip">Local notifications</span>
+              <span class="chip">Smart thresholds</span>
+            </div>
+            <span class="feature-card__icon" aria-hidden="true">🔔</span>
+          </article>
+          <!-- Card 6: Multiple Vehicles -->
+          <article class="feature-card" data-icon="🚗" data-label="Multiple Vehicles">
+            <div class="feature-card__eyebrow">06 / Feature</div>
+            <div>
+              <h3 class="feature-card__title">Multiple Vehicles</h3>
+              <p class="feature-card__desc">One garage, many cars. Switch active vehicle in one tap, keep separate plans, services, and expenses for each.</p>
+            </div>
+            <div class="feature-card__chips">
+              <span class="chip">Active switch</span>
+              <span class="chip">Per-vehicle data</span>
+            </div>
+            <span class="feature-card__icon" aria-hidden="true">🚗</span>
+          </article>
+        </div>
+
+        <div class="dots" id="dots" role="tablist" aria-label="Feature slides">
+          <!-- dots injected by JS -->
+        </div>
+      </section>
+    </main>
+
+    <script>
+      // ---------- Feature rotator: 4s per slide ----------
+      (function () {
+        const cards = Array.from(document.querySelectorAll(".feature-card"));
+        const dotsRoot = document.getElementById("dots");
+        const label = document.getElementById("rotatorLabel");
+        if (!cards.length || !dotsRoot) return;
+
+        // build dots
+        cards.forEach((_, i) => {
+          const d = document.createElement("button");
+          d.type = "button";
+          d.className = "dot" + (i === 0 ? " is-active" : "");
+          d.setAttribute("role", "tab");
+          d.setAttribute("aria-label", "Show feature " + (i + 1));
+          d.addEventListener("click", () => activate(i, true));
+          dotsRoot.appendChild(d);
+        });
+        const dots = Array.from(dotsRoot.children);
+
+        let idx = 0;
+        let timer = null;
+        const INTERVAL = 4000;
+
+        function activate(i, manual) {
+          cards.forEach((c, n) => c.classList.toggle("is-active", n === i));
+          dots.forEach((d, n) => d.classList.toggle("is-active", n === i));
+          const meta = cards[i].dataset.label || ("Feature " + (i + 1));
+          if (label) label.textContent = (i + 1) + " / " + cards.length + " · " + meta;
+          idx = i;
+          if (manual) restart();
+        }
+        function tick() {
+          activate((idx + 1) % cards.length, false);
+        }
+        function start() {
+          stop();
+          timer = setInterval(tick, INTERVAL);
+        }
+        function stop() {
+          if (timer) clearInterval(timer);
+          timer = null;
+        }
+        function restart() {
+          start();
+        }
+
+        // pause on hover, resume on leave
+        const root = document.getElementById("rotator");
+        root.addEventListener("mouseenter", stop);
+        root.addEventListener("mouseleave", start);
+
+        // pause when tab hidden to save cycles
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) stop();
+          else start();
+        });
+
+        start();
+      })();
+
+      // ---------- Brand logo rotator: 3s per logo, shuffled order ----------
+      (function () {
+        const slot = document.getElementById("brandLogo");
+        if (!slot) return;
+
+        const LOGOS = [
+          "assets/Logo-varient-main.png",
+          "assets/Logo-varient-1.png",
+          "assets/Logo-varient-2.png",
+          "assets/Logo-varient-3.png",
+        ];
+        const HOLD_MS = 3000;
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        // build <img> nodes once and stack them in the slot
+        const imgs = LOGOS.map((src) => {
+          const img = new Image();
+          img.src = src;
+          img.alt = "DCO logo";
+          img.decoding = "async";
+          slot.appendChild(img);
+          return img;
+        });
+
+        // Fisher-Yates shuffle (returns a new array)
+        function shuffle(arr) {
+          const a = arr.slice();
+          for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+          }
+          return a;
+        }
+
+        if (reduceMotion) {
+          // pick one logo and leave it visible
+          const [first] = imgs;
+          first.classList.add("is-active");
+          return;
+        }
+
+        let order = shuffle(LOGOS);
+        let i = 0;
+        let timer = null;
+
+        function show(idx) {
+          const src = order[idx];
+          imgs.forEach((img) => img.classList.toggle("is-active", img.src.endsWith(src)));
+        }
+        function tick() {
+          i++;
+          if (i >= order.length) {
+            order = shuffle(LOGOS);
+            i = 0;
+          }
+          show(i);
+        }
+        function start() {
+          stop();
+          timer = setInterval(tick, HOLD_MS);
+        }
+        function stop() {
+          if (timer) clearInterval(timer);
+          timer = null;
+        }
+
+        // initial logo
+        show(0);
+        start();
+
+        // pause when tab is hidden, resume on return
+        document.addEventListener("visibilitychange", () => {
+          if (document.hidden) stop();
+          else start();
+        });
+      })();
+    </script>
+  </body>
+</html>
