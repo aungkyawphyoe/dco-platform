@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../theme/dco_tokens.dart';
+import '../widgets/custom_floating_nav_bar.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key, required this.navigationShell});
@@ -10,44 +10,48 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
+    const items = [
+      CustomNavItem(
+        label: 'Garage',
+        icon: Icons.directions_car_outlined,
+        activeIcon: Icons.directions_car,
+      ),
+      CustomNavItem(
+        label: 'Maintenance',
+        icon: Icons.build_outlined,
+        activeIcon: Icons.build,
+      ),
+      CustomNavItem(
+        label: 'Expenses',
+        icon: Icons.payments_outlined,
+        activeIcon: Icons.payments,
+      ),
+      CustomNavItem(
+        label: 'Setting',
+        icon: Icons.settings_outlined,
+        activeIcon: Icons.settings,
+      ),
+    ];
+
     return Scaffold(
-      body: navigationShell,
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: tokens.border.subtle)),
-        ),
-        child: NavigationBar(
-          selectedIndex: navigationShell.currentIndex,
-          onDestinationSelected: (index) {
-            navigationShell.goBranch(
-              index,
-              initialLocation: index == navigationShell.currentIndex,
-            );
-          },
-          destinations: const [
-            NavigationDestination(
-              icon: Icon(Icons.directions_car_outlined),
-              selectedIcon: Icon(Icons.directions_car),
-              label: 'Garage',
+      body: Stack(
+        children: [
+          Positioned.fill(child: navigationShell),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: CustomFloatingNavBar(
+                currentIndex: navigationShell.currentIndex,
+                items: items,
+                onTap: (index) => navigationShell.goBranch(
+                  index,
+                  initialLocation: index == navigationShell.currentIndex,
+                ),
+              ),
             ),
-            NavigationDestination(
-              icon: Icon(Icons.build_outlined),
-              selectedIcon: Icon(Icons.build),
-              label: 'Maintenance',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.payments_outlined),
-              selectedIcon: Icon(Icons.payments),
-              label: 'Expenses',
-            ),
-            NavigationDestination(
-              icon: Icon(Icons.settings_outlined),
-              selectedIcon: Icon(Icons.settings),
-              label: 'Setting',
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
