@@ -43,6 +43,12 @@ class SettingsScreen extends ConsumerWidget {
           ),
           ListTile(
             contentPadding: EdgeInsets.zero,
+            title: const Text('Documents'),
+            trailing: Icon(Icons.chevron_right, color: tokens.icon.inactive),
+            onTap: () => context.push(AppRoutes.dashboardDocuments),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
             title: const Text('Localization'),
             subtitle: Text(
               prefs.language.label,

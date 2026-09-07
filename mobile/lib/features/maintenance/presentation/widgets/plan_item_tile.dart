@@ -86,25 +86,43 @@ class PlanItemTile extends StatelessWidget {
                     children: [
                       Text(item.name, style: Theme.of(context).textTheme.titleMedium),
                       SizedBox(height: tokens.space.s1),
-                      Text(
-                        _dueLine(item, vehicle, overdue, lengthUnit),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: overdue ? tokens.feedback.overdue : tokens.text.caption,
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(tokens.radius.sm),
+                        child: LinearProgressIndicator(
+                          value: _progress(item, vehicle, now),
+                          minHeight: 4,
+                          backgroundColor: tokens.background.input,
+                          valueColor: AlwaysStoppedAnimation<Color>(accent),
+                        ),
+                      ),
+                      SizedBox(height: tokens.space.s2),
+                      ..._dueLine(item, vehicle, overdue, lengthUnit).map(
+                        (line) => Padding(
+                          padding: EdgeInsets.only(bottom: tokens.space.s1),
+                          child: Text(
+                            line,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: overdue ? tokens.feedback.overdue : tokens.text.caption,
+                            ),
+                          ),
                         ),
                       ),
                       SizedBox(height: tokens.space.s1),
                       Text(
-                        DueCalculator.intervalLabel(
-                          intervalDays: item.intervalDays,
-                          intervalDistance: item.intervalDistance == null
-                              ? null
-                              : lengthUnit.toDisplay(item.intervalDistance!),
-                          unit: lengthUnit.label,
-                        ),
+                        _remainingLine(item, vehicle, now, lengthUnit),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: tokens.text.caption,
+                          color: tokens.text.secondary,
                         ),
                       ),
+                      if (item.notes != null && item.notes!.isNotEmpty) ...[
+                        SizedBox(height: tokens.space.s1),
+                        Text(
+                          item.notes!,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: tokens.text.caption,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
@@ -117,7 +135,7 @@ class PlanItemTile extends StatelessWidget {
   }
 }
 
-String _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit unit) {
+List<String> _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit unit) {
   if (overdue) {
     final parts = <String>[];
     if (item.nextDueMileage != null && vehicle.mileage > item.nextDueMileage!) {
@@ -127,18 +145,62 @@ String _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit unit) 
       final days = DateTime.now().difference(DueCalculator.dateOnly(item.nextDueOn!)).inDays;
       if (days > 0) parts.add('$days ${days == 1 ? 'day' : 'days'}');
     }
-    if (parts.isEmpty) return 'Overdue';
-    return 'Overdue by ${parts.join(' / ')}';
+    if (parts.isEmpty) return ['Overdue'];
+    return ['Overdue by ${parts.join(' / ')}'];
   }
-  final bits = <String>[];
+  final lines = <String>[];
   if (item.nextDueMileage != null) {
-    bits.add(MileageFormat.labeled(item.nextDueMileage!, unit));
+    lines.add('Next Mileage: ${MileageFormat.labeled(item.nextDueMileage!, unit)}');
   }
   if (item.nextDueOn != null) {
-    bits.add(DateFormat.MMMd().format(item.nextDueOn!));
+    lines.add('Next Date: ${DateFormat.yMMMd().format(item.nextDueOn!)}');
   }
-  if (bits.isEmpty) return 'No due date set';
-  return 'Due: ${bits.join(' / ')}';
+  if (lines.isEmpty) return ['No due date set'];
+  return lines;
+}
+
+/// Returns the higher of the mileage fraction and the time fraction as the
+/// progress bar value (clamped to [0, 1]). Falls back to null when neither
+/// dimension has a usable interval, in which case Flutter renders the bar as
+/// indeterminate-free empty track.
+double? _progress(PlanItem item, Vehicle vehicle, DateTime now) {
+  double? milesFrac;
+  if (item.nextDueMileage != null && item.intervalDistance != null && item.intervalDistance! > 0) {
+    final start = item.nextDueMileage! - item.intervalDistance!;
+    final span = item.nextDueMileage! - start;
+    if (span > 0) {
+      milesFrac = ((vehicle.mileage - start) / span).clamp(0.0, 1.0);
+    }
+  }
+  double? daysFrac;
+  if (item.nextDueOn != null && item.intervalDays != null && item.intervalDays! > 0) {
+    final start = item.nextDueOn!.subtract(Duration(days: item.intervalDays!));
+    final span = item.nextDueOn!.difference(start).inDays.toDouble();
+    if (span > 0) {
+      daysFrac = (DueCalculator.dateOnly(now).difference(start).inDays / span).clamp(0.0, 1.0);
+    }
+  }
+  if (milesFrac == null && daysFrac == null) return null;
+  final a = milesFrac ?? 0;
+  final b = daysFrac ?? 0;
+  return a > b ? a : b;
+}
+
+String _remainingLine(PlanItem item, Vehicle vehicle, DateTime now, MileageUnit unit) {
+  final parts = <String>[];
+  if (item.nextDueMileage != null) {
+    final remaining = item.nextDueMileage! - vehicle.mileage;
+    if (remaining >= 0) {
+      parts.add('Remaining: ${MileageFormat.labeled(remaining, unit)}');
+    }
+  }
+  if (item.nextDueOn != null) {
+    final days = DueCalculator.dateOnly(item.nextDueOn!).difference(DueCalculator.dateOnly(now)).inDays;
+    if (days >= 0) {
+      parts.add('Time left: $days ${days == 1 ? 'day' : 'days'}');
+    }
+  }
+  return parts.join('  ·  ');
 }
 
 class HistoryTile extends StatelessWidget {

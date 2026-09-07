@@ -24,7 +24,7 @@ class QuickActionsGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return GridView.count(
-      crossAxisCount: 3,
+      crossAxisCount: 4,
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: tokens.space.s3,
@@ -57,14 +57,14 @@ class _QuickActionTile extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 30,
+                height: 30,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: item.color.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(tokens.radius.sm),
                 ),
-                child: Icon(item.icon, color: item.color, size: 22),
+                child: Icon(item.icon, color: item.color, size: 16),
               ),
               SizedBox(height: tokens.space.s2),
               Text(

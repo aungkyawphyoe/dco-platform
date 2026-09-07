@@ -205,22 +205,10 @@ class _PopulatedDashboard extends ConsumerWidget {
         QuickActionsGrid(
           items: [
             QuickActionItem(
-              label: 'Services',
+              label: 'History',
               icon: Icons.build_outlined,
               color: tokens.chart.maintenance,
               onTap: () => context.push(AppRoutes.serviceHistory),
-            ),
-            QuickActionItem(
-              label: 'Documents',
-              icon: Icons.folder_outlined,
-              color: tokens.status.infoFg,
-              onTap: () => context.push(AppRoutes.dashboardDocuments),
-            ),
-            QuickActionItem(
-              label: 'Insurance',
-              icon: Icons.shield_outlined,
-              color: tokens.chart.insurance,
-              onTap: () => context.push(AppRoutes.insurance),
             ),
             QuickActionItem(
               label: vehicle.fuelType == FuelType.electric ? 'Charge' : 'Refuel',
@@ -229,6 +217,12 @@ class _PopulatedDashboard extends ConsumerWidget {
                   : Icons.local_gas_station_outlined,
               color: tokens.chart.fuel,
               onTap: () => context.push(AppRoutes.fuelLogs),
+            ),
+            QuickActionItem(
+              label: 'Insurance',
+              icon: Icons.shield_outlined,
+              color: tokens.chart.insurance,
+              onTap: () => context.push(AppRoutes.insurance),
             ),
             QuickActionItem(
               label: 'Parts',
