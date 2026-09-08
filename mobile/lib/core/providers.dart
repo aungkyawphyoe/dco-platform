@@ -178,6 +178,7 @@ final maintenanceRepositoryProvider = Provider<MaintenanceRepository>((ref) {
     db: ref.watch(appDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
+    expenseRepository: ref.watch(expenseRepositoryProvider),
   );
 });
 
@@ -194,6 +195,7 @@ final fuelRepositoryProvider = Provider<FuelRepository>((ref) {
     db: ref.watch(appDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
+    expenseRepository: ref.watch(expenseRepositoryProvider),
   );
 });
 

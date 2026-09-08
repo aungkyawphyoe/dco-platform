@@ -27,7 +27,9 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final expenses = ref.watch(vehicleExpensesProvider);
-    final summary = ref.watch(vehicleExpenseSummaryProvider).valueOrNull ?? ExpenseSummary.empty;
+    final summary =
+        ref.watch(vehicleExpenseSummaryProvider).valueOrNull ??
+        ExpenseSummary.empty;
     final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
@@ -36,47 +38,74 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
         actions: [
           IconButton(
             tooltip: 'Add expense',
-            onPressed: vehicle == null ? null : () => context.push(AppRoutes.expenseNew),
-            icon: Icon(Icons.add, color: vehicle == null ? tokens.icon.inactive : tokens.icon.active),
+            onPressed: vehicle == null
+                ? null
+                : () => context.push(AppRoutes.expenseNew),
+            icon: Icon(
+              Icons.add,
+              color: vehicle == null
+                  ? tokens.icon.inactive
+                  : tokens.icon.active,
+            ),
           ),
         ],
       ),
       body: vehicle == null
-          ? const DcoEmptyState(
-              title: 'No active vehicle',
-              body: 'Register a vehicle to log spend. Fuel here is money only — not a fuel log.',
+          ? const Center(
+              child: DcoEmptyState(
+                title: 'No active vehicle',
+                body:
+                    'Register a vehicle to log spend. Fuel here is money only — not a fuel log.',
+              ),
             )
           : expenses.when(
-              loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-              error: (error, _) => DcoEmptyState(title: 'Could not load expenses', body: '$error'),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: tokens.text.accent),
+              ),
+              error: (error, _) => DcoEmptyState(
+                title: 'Could not load expenses',
+                body: '$error',
+              ),
               data: (items) {
                 final filtered = _category == null
                     ? items
-                    : items.where((item) => item.category == _category).toList();
+                    : items
+                          .where((item) => item.category == _category)
+                          .toList();
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _SummaryHeader(summary: summary, currency: currency),
                     if (items.isNotEmpty) ...[
                       if (summary.byCategory.isNotEmpty)
-                        _CategoryBreakdown(summary: summary, currency: currency),
+                        _CategoryBreakdown(
+                          summary: summary,
+                          currency: currency,
+                        ),
                       _CategoryFilterBar(
                         selected: _category,
-                        onSelected: (category) => setState(() => _category = category),
+                        onSelected: (category) =>
+                            setState(() => _category = category),
                       ),
                     ],
                     Expanded(
                       child: items.isEmpty
-                          ? DcoEmptyState(
-                              title: 'No expenses yet',
-                              body: 'Log spend for ${vehicle.displayName}. Fuel is money only — not a fuel log.',
-                              actionLabel: 'Add expense',
-                              onAction: () => context.push(AppRoutes.expenseNew),
+                          ? Center(
+                              child: DcoEmptyState(
+                                title: 'No expenses yet',
+                                body:
+                                    'Log spend for ${vehicle.displayName}. Fuel is money only — not a fuel log.',
+                                actionLabel: 'Add expense',
+                                onAction: () =>
+                                    context.push(AppRoutes.expenseNew),
+                              ),
                             )
                           : filtered.isEmpty
-                          ? const DcoEmptyState(
-                              title: 'No matching expenses',
-                              body: 'Try a different category.',
+                          ? const Center(
+                              child: DcoEmptyState(
+                                title: 'No matching expenses',
+                                body: 'Try a different category.',
+                              ),
                             )
                           : ListView.builder(
                               padding: EdgeInsets.fromLTRB(
@@ -89,11 +118,15 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                               itemBuilder: (context, index) {
                                 final expense = filtered[index];
                                 return Padding(
-                                  padding: EdgeInsets.only(bottom: tokens.space.s3),
+                                  padding: EdgeInsets.only(
+                                    bottom: tokens.space.s3,
+                                  ),
                                   child: _ExpenseTile(
                                     expense: expense,
                                     currency: currency,
-                                    onTap: () => context.push(AppRoutes.expenseEdit(expense.id)),
+                                    onTap: () => context.push(
+                                      AppRoutes.expenseEdit(expense.id),
+                                    ),
                                   ),
                                 );
                               },
@@ -117,15 +150,26 @@ class _SummaryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Padding(
-      padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s3, tokens.space.s4, tokens.space.s2),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s4,
+        tokens.space.s3,
+        tokens.space.s4,
+        tokens.space.s2,
+      ),
       child: Row(
         children: [
           Expanded(
-            child: _SummaryCard(label: 'This month', value: MoneyFormat.labeled(summary.thisMonth, currency)),
+            child: _SummaryCard(
+              label: 'This month',
+              value: MoneyFormat.labeled(summary.thisMonth, currency),
+            ),
           ),
           SizedBox(width: tokens.space.s3),
           Expanded(
-            child: _SummaryCard(label: 'Total', value: MoneyFormat.labeled(summary.total, currency)),
+            child: _SummaryCard(
+              label: 'Total',
+              value: MoneyFormat.labeled(summary.total, currency),
+            ),
           ),
         ],
       ),
@@ -151,11 +195,20 @@ class _SummaryCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption)),
+          Text(
+            label,
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+          ),
           SizedBox(height: tokens.space.s2),
           Text(
             value,
-            style: GoogleFonts.ibmPlexMono(color: tokens.text.primary, fontSize: 16, fontWeight: FontWeight.w500),
+            style: GoogleFonts.ibmPlexMono(
+              color: tokens.text.primary,
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
@@ -173,7 +226,12 @@ class _CategoryBreakdown extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Padding(
-      padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s2, tokens.space.s4, tokens.space.s2),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s4,
+        tokens.space.s2,
+        tokens.space.s4,
+        tokens.space.s2,
+      ),
       child: Column(
         children: [
           for (final slice in summary.byCategory)
@@ -191,16 +249,24 @@ class _CategoryBreakdown extends StatelessWidget {
                   ),
                   SizedBox(width: tokens.space.s2),
                   Expanded(
-                    child: Text(slice.category.label, style: Theme.of(context).textTheme.bodySmall),
+                    child: Text(
+                      slice.category.label,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ),
                   Text(
                     '${slice.percent.toStringAsFixed(slice.percent == slice.percent.roundToDouble() ? 0 : 1)}%',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                   ),
                   SizedBox(width: tokens.space.s3),
                   Text(
                     MoneyFormat.labeled(slice.amount, currency),
-                    style: GoogleFonts.ibmPlexMono(color: tokens.text.secondary, fontSize: 12),
+                    style: GoogleFonts.ibmPlexMono(
+                      color: tokens.text.secondary,
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -221,7 +287,12 @@ class _CategoryFilterBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Padding(
-      padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s2, tokens.space.s4, tokens.space.s2),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s4,
+        tokens.space.s2,
+        tokens.space.s4,
+        tokens.space.s2,
+      ),
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
@@ -247,7 +318,11 @@ class _CategoryFilterBar extends StatelessWidget {
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.selected, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -323,17 +398,24 @@ class _ExpenseTile extends StatelessWidget {
                   children: [
                     Text(
                       DateFormat.yMMMd().format(expense.incurredOn),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.text.caption,
+                      ),
                     ),
                     SizedBox(height: tokens.space.s1),
-                    Text(expense.category.label, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      expense.category.label,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     if (expense.notesPreview != null) ...[
                       SizedBox(height: tokens.space.s1),
                       Text(
                         expense.notesPreview!,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.caption,
+                        ),
                       ),
                     ],
                   ],
@@ -344,11 +426,18 @@ class _ExpenseTile extends StatelessWidget {
                 children: [
                   Text(
                     MoneyFormat.labeled(expense.amount, currency),
-                    style: GoogleFonts.ibmPlexMono(color: tokens.text.secondary, fontSize: 13),
+                    style: GoogleFonts.ibmPlexMono(
+                      color: tokens.text.secondary,
+                      fontSize: 13,
+                    ),
                   ),
                   if (expense.hasReceipt) ...[
                     SizedBox(height: tokens.space.s1),
-                    Icon(Icons.photo_outlined, size: 16, color: tokens.icon.inactive),
+                    Icon(
+                      Icons.photo_outlined,
+                      size: 16,
+                      color: tokens.icon.inactive,
+                    ),
                   ],
                 ],
               ),

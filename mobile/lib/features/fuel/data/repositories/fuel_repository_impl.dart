@@ -11,6 +11,8 @@ import '../../domain/fuel_failure.dart';
 import '../../domain/fuel_validators.dart';
 import '../../domain/repositories/fuel_repository.dart';
 import '../mappers/fuel_mapper.dart';
+import '../../../expenses/domain/repositories/expense_repository.dart';
+import '../../../expenses/domain/entities/expense.dart';
 
 // Private fields with public constructor names.
 // ignore_for_file: prefer_initializing_formals
@@ -21,15 +23,18 @@ class FuelRepositoryImpl implements FuelRepository {
     required OutboxWriter outbox,
     SyncEngine? syncEngine,
     Uuid uuid = const Uuid(),
+    required ExpenseRepository expenseRepository,
   }) : _db = db,
-       _outbox = outbox,
-       _sync = syncEngine,
-       _uuid = uuid;
+        _outbox = outbox,
+        _sync = syncEngine,
+        _uuid = uuid,
+        _expenseRepository = expenseRepository;
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
   final SyncEngine? _sync;
   final Uuid _uuid;
+  final ExpenseRepository _expenseRepository;
 
   static const _defaultLiquid = [
     (name: 'Petrol', unit: 'L'),
@@ -214,6 +219,16 @@ class FuelRepositoryImpl implements FuelRepository {
         op: OutboxOp.upsert,
         payload: log.toWriteJson(),
       );
+      // Auto-create expense for fuel cost
+      await _expenseRepository.add(
+        userId: userId,
+        vehicleId: vehicleId,
+        draft: ExpenseDraft(
+          category: ExpenseCategory.fuel,
+          amount: draft.cost,
+          incurredOn: draft.loggedOn,
+        ),
+      );
     });
     _sync?.requestSync();
     return log;
@@ -265,6 +280,16 @@ class FuelRepositoryImpl implements FuelRepository {
         entityId: updated.id,
         op: OutboxOp.upsert,
         payload: updated.toWriteJson(),
+      );
+      // Auto-create/update expense for fuel cost
+      await _expenseRepository.add(
+        userId: userId,
+        vehicleId: existing.vehicleId,
+        draft: ExpenseDraft(
+          category: ExpenseCategory.fuel,
+          amount: draft.cost,
+          incurredOn: draft.loggedOn,
+        ),
       );
     });
     _sync?.requestSync();

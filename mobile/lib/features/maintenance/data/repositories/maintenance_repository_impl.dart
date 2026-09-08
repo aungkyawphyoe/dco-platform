@@ -9,12 +9,15 @@ import '../../../garage/domain/entities/vehicle.dart';
 import '../../domain/due_calculator.dart';
 import '../../domain/entities/plan_item.dart';
 import '../../domain/entities/service_record.dart';
-import '../../domain/entities/suggested_plan_item.dart';
 import '../../domain/maintenance_failure.dart';
 import '../../domain/plan_item_validators.dart';
 import '../../domain/repositories/maintenance_repository.dart';
 import '../../domain/suggested_catalog.dart';
 import '../mappers/maintenance_mapper.dart';
+import '../../../expenses/domain/repositories/expense_repository.dart';
+import '../../../expenses/domain/entities/expense.dart';
+import '../../../expenses/domain/expense_validators.dart';
+import '../../domain/entities/suggested_plan_item.dart';
 
 // Private fields with public constructor names.
 // ignore_for_file: prefer_initializing_formals
@@ -25,15 +28,18 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     required OutboxWriter outbox,
     SyncEngine? syncEngine,
     Uuid uuid = const Uuid(),
+    required ExpenseRepository expenseRepository,
   }) : _db = db,
-       _outbox = outbox,
-       _sync = syncEngine,
-       _uuid = uuid;
+        _outbox = outbox,
+        _sync = syncEngine,
+        _uuid = uuid,
+        _expenseRepository = expenseRepository;
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
   final SyncEngine? _sync;
   final Uuid _uuid;
+  final ExpenseRepository _expenseRepository;
 
   @override
   Stream<List<PlanItem>> watchPlan(String vehicleId) {
@@ -382,6 +388,16 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         payload: record.toWriteJson(),
       );
     });
+    // Auto-create expense for maintenance cost
+    await _expenseRepository.add(
+      userId: userId,
+      vehicleId: vehicle.id,
+      draft: ExpenseDraft(
+        category: ExpenseCategory.maintenance,
+        amount: draft.totalCost,
+        incurredOn: draft.servicedOn,
+      ),
+    );
     _sync?.requestSync();
     return record;
   }
