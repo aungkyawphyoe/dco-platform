@@ -1,10 +1,7 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -15,7 +12,6 @@ import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/family/providers.dart';
 import 'package:dco_mobile/features/family/domain/entities/family.dart' as family_entities;
 import 'package:dco_mobile/features/garage/providers.dart';
-import 'package:go_router/go_router.dart';
 
 class UserDetailScreen extends ConsumerStatefulWidget {
   final String userId;

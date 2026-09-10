@@ -308,25 +308,26 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const FamilySetupScreen(),
                   ),
                   GoRoute(
+                    path: 'family/join/:code',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => FamilySetupScreen(
+                      joinCode: state.pathParameters['code']!,
+                    ),
+                  ),
+                  GoRoute(
                     path: 'family',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const FamilyManagementScreen(),
                     routes: [
                       GoRoute(
-                        path: AppRoutes.familyJoin(':code'),
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) =>
-                            FamilyManagementScreen(), //FamilySetupScreen(joinCode: state.pathParameters['code']!),
-                      ),
-                      GoRoute(
-                        path: AppRoutes.vehicleDetail(':id'),
+                        path: 'vehicle/:id',
                         parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => CarDetailScreen(
                           vehicleId: state.pathParameters['id']!,
                         ),
                       ),
                       GoRoute(
-                        path: AppRoutes.userDetail(':id'),
+                        path: 'user/:id',
                         parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => UserDetailScreen(
                           userId: state.pathParameters['id']!,

@@ -136,6 +136,7 @@ class MaintenanceScreen extends ConsumerWidget {
                 primaryLabel: 'Load from Receipt',
                 onPrimary: () {},
               ),
+              SizedBox(height: 70.0)
             ],
           );
         },

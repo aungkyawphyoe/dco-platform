@@ -9,7 +9,9 @@ import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/family/providers.dart';
 
 class FamilySetupScreen extends ConsumerStatefulWidget {
-  const FamilySetupScreen({super.key});
+  final String? joinCode;
+
+  const FamilySetupScreen({super.key, this.joinCode});
 
   @override
   ConsumerState<FamilySetupScreen> createState() => _FamilySetupScreenState();
@@ -22,6 +24,16 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
   String? _shareCode;
   String? _qrData;
   String? _errorText;
+
+  bool get _isJoinMode => widget.joinCode != null;
+
+  @override
+  void initState() {
+    super.initState();
+    if (_isJoinMode) {
+      _joinFamily();
+    }
+  }
 
   @override
   void dispose() {
@@ -71,6 +83,33 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
     }
   }
 
+  Future<void> _joinFamily() async {
+    if (widget.joinCode == null) return;
+    setState(() => _isLoading = true);
+
+    try {
+      final repo = ref.read(familyRepositoryProvider);
+      await repo.joinFamily(widget.joinCode!);
+
+      if (!mounted) return;
+
+      setState(() => _isLoading = false);
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Joined family successfully!')),
+        );
+        context.go('/settings/family');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to join family: $e')),
+      );
+    }
+  }
+
   void _shareFamily() {
     if (_shareCode == null) return;
     SharePlus.instance.share(ShareParams(text: 'Join my DCO family! Code: $_shareCode'));
@@ -87,14 +126,28 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Create Family'),
+        title: Text(_isJoinMode ? 'Join Family' : 'Create Family'),
         leading: showResult ? IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: _navigateToManagement,
         ) : null,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
+        child: _isJoinMode && _isLoading
+            ? Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: tokens.text.accent),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Joining family...',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
+                    ),
+                  ],
+                ),
+              )
+            : SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
