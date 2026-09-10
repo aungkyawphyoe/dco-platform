@@ -341,6 +341,20 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+      GoRoute(
+        path: AppRoutes.vehicleDetail(':id'),
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => CarDetailScreen(
+          vehicleId: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.userDetail(':id'),
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => UserDetailScreen(
+          userId: state.pathParameters['id']!,
+        ),
+      ),
     ],
   );
 });

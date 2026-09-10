@@ -139,7 +139,7 @@ class _PopulatedDashboard extends ConsumerWidget {
           color: tokens.background.card,
           borderRadius: BorderRadius.circular(tokens.radius.md),
           child: InkWell(
-            onTap: () => context.push(AppRoutes.vehicleEdit(vehicle.id)),
+            onTap: () => context.push(AppRoutes.vehicleDetail(vehicle.id)),
             borderRadius: BorderRadius.circular(tokens.radius.md),
             child: Padding(
               padding: EdgeInsets.all(tokens.space.s4),

@@ -1,6 +1,7 @@
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
@@ -64,24 +65,51 @@ class SettingsScreen extends ConsumerWidget {
             child: ListView(
               padding: EdgeInsets.all(tokens.space.s5),
               children: [
-                Text(
-                  user?.email ?? '',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                SizedBox(height: tokens.space.s2),
-                Text(
-                  'Free Plan',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
-                ),
-                SizedBox(height: tokens.space.s2),
-                Text(
-                  mockAuth
-                      ? 'Local mock session · not talking to the API'
-                      : 'Sync status: idle',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: tokens.text.secondary,
+                Material(
+                  color: tokens.background.card,
+                  borderRadius: BorderRadius.circular(tokens.radius.md),
+                  child: InkWell(
+                    onTap: user?.id != null
+                        ? () => context.push(AppRoutes.userDetail(user!.id))
+                        : null,
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                    child: Padding(
+                      padding: EdgeInsets.all(tokens.space.s4),
+                      child: Row(
+                        children: [
+                          DcoAvatar(name: user?.email ?? '?', radius: 28),
+                          SizedBox(width: tokens.space.s3),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  user?.email ?? '',
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                ),
+                                SizedBox(height: tokens.space.s1),
+                                Text(
+                                  'Free Plan',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: tokens.text.caption,
+                                  ),
+                                ),
+                                SizedBox(height: tokens.space.s1),
+                                Text(
+                                  mockAuth
+                                      ? 'Local mock session'
+                                      : 'Sync status: idle',
+                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: tokens.text.secondary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(Icons.chevron_right, color: tokens.icon.inactive),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
                 SizedBox(height: tokens.space.s4),

@@ -42,8 +42,10 @@ abstract final class AppRoutes {
   static const familyCreate = '/settings/family/create';
   static const familyManage = '/settings/family';
   static String familyJoin(String code) => 'join/$code';
-  static String vehicleDetail(String id) => 'vehicle/$id';
-  static String userDetail(String id) => 'user/$id';
+
+  // Detail screens (top-level, accessible from any tab)
+  static String vehicleDetail(String id) => '/vehicle/$id';
+  static String userDetail(String id) => '/user/$id';
 
   static const authPaths = {
     welcome,

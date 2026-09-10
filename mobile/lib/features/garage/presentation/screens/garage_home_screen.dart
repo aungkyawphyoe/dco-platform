@@ -58,7 +58,8 @@ class GarageHomeScreen extends ConsumerWidget {
                     vehicle: vehicle,
                     isActive: vehicle.id == active?.id,
                     lengthUnit: lengthUnit,
-                    onOpen: () => context.push(AppRoutes.vehicleEdit(vehicle.id)),
+                    onOpen: () => context.push(AppRoutes.vehicleDetail(vehicle.id)),
+                    onEdit: () => context.push(AppRoutes.vehicleEdit(vehicle.id)),
                     onSetActive: vehicle.id == active?.id || userId == null
                         ? null
                         : () async {

@@ -14,6 +14,7 @@ class VehicleCard extends StatelessWidget {
     required this.onOpen,
     this.lengthUnit = MileageUnit.km,
     this.onSetActive,
+    this.onEdit,
   });
 
   final Vehicle vehicle;
@@ -21,6 +22,7 @@ class VehicleCard extends StatelessWidget {
   final VoidCallback onOpen;
   final MileageUnit lengthUnit;
   final VoidCallback? onSetActive;
+  final VoidCallback? onEdit;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +63,14 @@ class VehicleCard extends StatelessWidget {
                               padding: EdgeInsets.symmetric(horizontal: tokens.space.s2),
                             ),
                             child: Text('Set active', style: TextStyle(color: tokens.text.link, fontSize: 12)),
+                          ),
+                        if (onEdit != null)
+                          IconButton(
+                            tooltip: 'Edit vehicle',
+                            onPressed: onEdit,
+                            icon: Icon(Icons.edit_outlined, size: 20, color: tokens.icon.inactive),
+                            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                            padding: EdgeInsets.zero,
                           ),
                       ],
                     ),
