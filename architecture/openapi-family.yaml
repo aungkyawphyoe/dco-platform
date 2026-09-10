@@ -1,0 +1,743 @@
+# Family Sharing API Extension (v1.1)
+# 
+# This file documents the ADDITIONAL paths and schemas for family sharing.
+# Merge into architecture/openapi.yaml under components/schemas and paths.
+# 
+# Version: 1.1.0
+# Base: architecture/openapi.yaml (MVP)
+
+# ============================================================
+# NEW TAGS
+# ============================================================
+tags:
+  - name: Families
+    description: Family group management, membership, and vehicle grants
+  - name: Users
+    description: User profile extensions (driving license, family detail)
+
+# ============================================================
+# NEW SCHEMAS (add to components/schemas)
+# ============================================================
+components:
+  schemas:
+    # ---- Family ----
+    Family:
+      type: object
+      required: [id, name, share_code, status, created_by, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 100
+        share_code:
+          type: string
+          pattern: '^[A-Z0-9]{8}$'
+          description: 8-char uppercase alphanumeric invite code
+        qr_code_data:
+          type: object
+          nullable: true
+          properties:
+            code:
+              type: string
+            family_id:
+              type: string
+              format: uuid
+            expires_at:
+              type: string
+              format: date-time
+          description: QR code payload for sharing; expires in 7 days
+        status:
+          type: string
+          enum: [active, archived]
+        created_by:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        archived_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    FamilyCreateRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+
+    FamilyPatchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        regenerate_share_code:
+          type: boolean
+          default: false
+          description: Set true to rotate the share code (old code invalidated)
+
+    FamilyJoinRequest:
+      type: object
+      required: [code]
+      properties:
+        code:
+          type: string
+          minLength: 8
+          maxLength: 8
+          pattern: '^[A-Za-z0-9]{8}$'
+          description: Case-insensitive share code
+
+    FamilyMember:
+      type: object
+      required: [id, user_id, role, joined_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Membership ID
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          format: email
+        display_name:
+          type: string
+          nullable: true
+        role:
+          $ref: '#/components/schemas/FamilyRole'
+        joined_at:
+          type: string
+          format: date-time
+        invited_by:
+          type: string
+          format: uuid
+          nullable: true
+        vehicle_count:
+          type: integer
+          description: Vehicles this member owns
+        license_status:
+          type: string
+          enum: [valid, expiring_soon, expired, none]
+          nullable: true
+
+    FamilyRole:
+      type: string
+      enum: [primary_owner, member, driver]
+
+    FamilyMemberRolePatch:
+      type: object
+      required: [role]
+      properties:
+        role:
+          $ref: '#/components/schemas/FamilyRole'
+          description: Cannot be primary_owner (use ownership transfer)
+
+    # ---- Vehicle Grants ----
+    GrantPermission:
+      type: string
+      enum: [full, drive_only]
+
+    VehicleGrant:
+      type: object
+      required: [id, vehicle_id, user_id, granted_by, permission, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        vehicle_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        granted_by:
+          type: string
+          format: uuid
+        permission:
+          $ref: '#/components/schemas/GrantPermission'
+        created_at:
+          type: string
+          format: date-time
+
+    VehicleGrantCreateRequest:
+      type: object
+      required: [vehicle_id, user_id, permission]
+      properties:
+        vehicle_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        permission:
+          $ref: '#/components/schemas/GrantPermission'
+
+    # ---- Vehicle Detail (Extended) ----
+    VehicleDetail:
+      allOf:
+        - $ref: '#/components/schemas/Vehicle'
+        - type: object
+          properties:
+            grants:
+              type: array
+              items: $ref: '#/components/schemas/VehicleGrant'
+            documents:
+              type: array
+              items: $ref: '#/components/schemas/Document'
+            assigned_drivers:
+              type: array
+              items:
+                type: object
+                required: [user_id, display_name, permission, license_status]
+                properties:
+                  user_id:
+                    type: string
+                    format: uuid
+                  display_name:
+                    type: string
+                  permission:
+                    $ref: '#/components/schemas/GrantPermission'
+                  license_status:
+                    type: string
+                    enum: [valid, expiring_soon, expired, none]
+
+    # ---- Driving License ----
+    DrivingLicense:
+      type: object
+      required: [id, user_id, expiry_date, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        license_number:
+          type: string
+          maxLength: 50
+          nullable: true
+        issuing_country:
+          type: string
+          pattern: '^[A-Z]{2}$'
+          nullable: true
+          description: ISO 3166-1 alpha-2
+        expiry_date:
+          type: string
+          format: date
+        categories:
+          type: string
+          nullable: true
+          description: e.g., "B, BE"
+        front_media_id:
+          type: string
+          format: uuid
+          nullable: true
+        back_media_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    DrivingLicenseWrite:
+      type: object
+      required: [expiry_date]
+      properties:
+        license_number:
+          type: string
+          maxLength: 50
+        issuing_country:
+          type: string
+          pattern: '^[A-Z]{2}$'
+        expiry_date:
+          type: string
+          format: date
+        categories:
+          type: string
+        front_media_id:
+          type: string
+          format: uuid
+        back_media_id:
+          type: string
+          format: uuid
+
+    DrivingLicenseMediaUploadResponse:
+      type: object
+      required: [media_id]
+      properties:
+        media_id:
+          type: string
+          format: uuid
+
+    # ---- User Detail (Extended for Family) ----
+    UserDetail:
+      allOf:
+        - $ref: '#/components/schemas/User'
+        - type: object
+          properties:
+            family_id:
+              type: string
+              format: uuid
+              nullable: true
+            family_role:
+              $ref: '#/components/schemas/FamilyRole'
+              nullable: true
+            driving_license:
+              $ref: '#/components/schemas/DrivingLicense'
+              nullable: true
+            owned_vehicles:
+              type: array
+              items: $ref: '#/components/schemas/Vehicle'
+              description: Vehicles where this user is the owner (vehicles.user_id)
+
+    # ---- Error Codes (add to existing ErrorBody examples) ----
+    # family_not_found
+    # already_in_family
+    # family_archived
+    # not_primary_owner
+    # transfer_required
+    # invalid_expiry_date
+    # no_family_access
+    # grant_not_found
+    # license_not_found
+
+# ============================================================
+# NEW PATHS (add to paths)
+# ============================================================
+paths:
+  # ---- Families ----
+  /families:
+    post:
+      tags: [Families]
+      summary: Create a new family (becomes Primary Owner)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyCreateRequest'
+      responses:
+        '201':
+          description: Family created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+        '409':
+          $ref: '#/components/responses/Error'
+          description: User already in a family
+        '422':
+          $ref: '#/components/responses/Error'
+
+    get:
+      tags: [Families]
+      summary: Get my family (if member)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Family with my role
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/Family'
+                  - type: object
+                    properties:
+                      my_role:
+                        $ref: '#/components/schemas/FamilyRole'
+        '404':
+          $ref: '#/components/responses/Error'
+          description: Not a member of any family
+
+  /families/{code}:
+    parameters:
+      - $ref: '#/components/parameters/familyCode'
+    get:
+      tags: [Families]
+      summary: Lookup family by share code (for joining)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Family preview (name, member count, vehicle count)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, name, member_count, vehicle_count]
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  member_count:
+                    type: integer
+                  vehicle_count:
+                    type: integer
+        '404':
+          $ref: '#/components/responses/Error'
+          description: Invalid or expired code
+
+  /families/{id}/join:
+    parameters:
+      - $ref: '#/components/parameters/familyId'
+    post:
+      tags: [Families]
+      summary: Join family by share code
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyJoinRequest'
+      responses:
+        '200':
+          description: Joined successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+          description: Already in a family
+        '410':
+          $ref: '#/components/responses/Error'
+          description: Family archived
+
+  /families/{id}:
+    parameters:
+      - $ref: '#/components/parameters/familyId'
+    patch:
+      tags: [Families]
+      summary: Update family (Primary Owner only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyPatchRequest'
+      responses:
+        '200':
+          description: Family updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Family'
+        '403':
+          $ref: '#/components/responses/Error'
+          description: Not Primary Owner
+        '404':
+          $ref: '#/components/responses/Error'
+
+    delete:
+      tags: [Families]
+      summary: Archive family (Primary Owner only, after ownership transfer)
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Family archived
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+          description: Ownership transfer required first
+        '404':
+          $ref: '#/components/responses/Error'
+
+  /families/{id}/members:
+    parameters:
+      - $ref: '#/components/parameters/familyId'
+    get:
+      tags: [Families]
+      summary: List family members with roles
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Member list
+          content:
+            application/json:
+              schema:
+                type: array
+                items: $ref: '#/components/schemas/FamilyMember'
+
+  /families/{id}/members/{userId}:
+    parameters:
+      - $ref: '#/components/parameters/familyId'
+      - $ref: '#/components/parameters/userId'
+    patch:
+      tags: [Families]
+      summary: Update member role or remove (Primary Owner only)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FamilyMemberRolePatch'
+      responses:
+        '200':
+          description: Member updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FamilyMember'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+          description: Cannot demote Primary Owner or orphan grants
+
+    delete:
+      tags: [Families]
+      summary: Remove member from family (Primary Owner only)
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Member removed
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+          description: Cannot remove Primary Owner without transfer
+
+  # ---- Vehicle Grants ----
+  /families/{id}/vehicle-grants:
+    parameters:
+      - $ref: '#/components/parameters/familyId'
+    post:
+      tags: [Families]
+      summary: Grant vehicle access to family member (Primary Owner or Member with full grant)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VehicleGrantCreateRequest'
+      responses:
+        '201':
+          description: Grant created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleGrant'
+        '403':
+          $ref: '#/components/responses/Error'
+          description: Insufficient permission on vehicle
+        '404':
+          $ref: '#/components/responses/Error'
+          description: Vehicle or member not found
+        '409':
+          $ref: '#/components/responses/Error'
+          description: Grant already exists
+
+  /families/{id}/vehicle-grants/{grantId}:
+    parameters:
+      - $ref: '#/components/parameters/familyId'
+      - name: grantId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      tags: [Families]
+      summary: Revoke vehicle grant (Primary Owner or grantor)
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Grant revoked
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+
+  # ---- Driving License ----
+  /users/me/license:
+    get:
+      tags: [Users]
+      summary: Get my driving license
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: License data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrivingLicense'
+        '404':
+          $ref: '#/components/responses/Error'
+          description: No license uploaded yet
+
+    put:
+      tags: [Users]
+      summary: Upsert my driving license
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DrivingLicenseWrite'
+      responses:
+        '200':
+          description: License saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrivingLicense'
+        '400':
+          $ref: '#/components/responses/Error'
+          description: Invalid expiry date (past)
+        '422':
+          $ref: '#/components/responses/Error'
+
+  /users/me/license/media:
+    post:
+      tags: [Users]
+      summary: Upload license photo (front or back)
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, side]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                side:
+                  type: string
+                  enum: [front, back]
+      responses:
+        '201':
+          description: Uploaded
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrivingLicenseMediaUploadResponse'
+        '413':
+          $ref: '#/components/responses/Error'
+          description: File too large (>15MB after compression)
+        '422':
+          $ref: '#/components/responses/Error'
+
+  /users/{userId}/license:
+    parameters:
+      - $ref: '#/components/parameters/userId'
+    get:
+      tags: [Users]
+      summary: Get family member's driving license (family only)
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: License data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DrivingLicense'
+        '403':
+          $ref: '#/components/responses/Error'
+          description: Not in same family
+        '404':
+          $ref: '#/components/responses/Error'
+
+  # ---- Vehicle Detail (Extended) ----
+  /vehicles/{vehicleId}/detail:
+    parameters:
+      - $ref: '#/components/parameters/vehicleId'
+    get:
+      tags: [Vehicles]
+      summary: Get vehicle with grants, documents, and assigned drivers
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Full vehicle detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleDetail'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+
+  # ---- User Detail (Extended) ----
+  /users/{userId}/detail:
+    parameters:
+      - $ref: '#/components/parameters/userId'
+    get:
+      tags: [Users]
+      summary: Get user detail with license, family role, owned vehicles
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: User detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDetail'
+        '403':
+          $ref: '#/components/responses/Error'
+          description: Not in same family (for non-self)
+        '404':
+          $ref: '#/components/responses/Error'
+
+# ============================================================
+# NEW PARAMETERS (add to components/parameters)
+# ============================================================
+  parameters:
+    familyId:
+      in: path
+      name: id
+      required: true
+      schema:
+        type: string
+        format: uuid
+    familyCode:
+      in: path
+      name: code
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9]{8}$'

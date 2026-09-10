@@ -257,3 +257,60 @@ CREATE TABLE IF NOT EXISTS audit_events (
   detail jsonb NOT NULL,
   at timestamptz NOT NULL DEFAULT now()
 );
+
+DO $$ BEGIN
+  CREATE TYPE family_role AS ENUM ('primary_owner', 'member', 'driver');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE TYPE grant_permission AS ENUM ('full', 'drive_only');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+DO $$ BEGIN
+  CREATE TYPE family_status AS ENUM ('active', 'archived');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
+
+ALTER TABLE users ADD COLUMN IF NOT EXISTS family_id uuid;
+
+CREATE TABLE IF NOT EXISTS families (
+  id uuid PRIMARY KEY,
+  name text NOT NULL,
+  share_code text NOT NULL UNIQUE,
+  qr_code_data jsonb,
+  created_by uuid NOT NULL REFERENCES users(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  status family_status NOT NULL DEFAULT 'active',
+  archived_at timestamptz
+);
+
+CREATE TABLE IF NOT EXISTS family_memberships (
+  id uuid PRIMARY KEY,
+  family_id uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role family_role NOT NULL,
+  joined_at timestamptz NOT NULL DEFAULT now(),
+  invited_by uuid REFERENCES users(id),
+  UNIQUE (family_id, user_id),
+  UNIQUE (user_id)
+);
+
+CREATE TABLE IF NOT EXISTS vehicle_grants (
+  id uuid PRIMARY KEY,
+  vehicle_id uuid NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+  user_id uuid NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  granted_by uuid NOT NULL REFERENCES users(id),
+  permission grant_permission NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (vehicle_id, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS driving_licenses (
+  id uuid PRIMARY KEY,
+  user_id uuid NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  license_number text,
+  issuing_country text,
+  expiry_date date NOT NULL,
+  categories text,
+  front_media_id uuid REFERENCES media_objects(id),
+  back_media_id uuid REFERENCES media_objects(id),
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
