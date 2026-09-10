@@ -7,6 +7,7 @@ import { AppError } from "../lib/errors.js";
 import { getUser } from "../lib/dbx.js";
 import { publicUser } from "../lib/serialize.js";
 import { requireOwner } from "./auth.js";
+import { getUserDetail } from "./family.js";
 
 export const mePlugin: FastifyPluginAsync = async (app) => {
   app.get("/me", async (request) => {
@@ -54,5 +55,15 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
       // already registered
     }
     return reply.code(204).send();
+  });
+
+  // User detail with family info, license, owned vehicles
+  app.get("/users/:userId/detail", async (request) => {
+    requireOwner(request);
+    const requestingUserId = request.authUser!.sub;
+    const targetUserId = (request.params as { userId: string }).userId;
+    const detail = await getUserDetail(app.db, targetUserId, requestingUserId);
+    if (!detail) throw new AppError(404, "user_not_found", "User not found");
+    return detail;
   });
 };

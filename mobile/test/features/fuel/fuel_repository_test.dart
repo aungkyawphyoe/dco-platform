@@ -1,5 +1,7 @@
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/core/sync/outbox_writer.dart';
+import 'package:dco_mobile/features/expenses/data/repositories/expense_repository_impl.dart';
+import 'package:dco_mobile/features/expenses/domain/repositories/expense_repository.dart';
 import 'package:dco_mobile/features/fuel/data/repositories/fuel_repository_impl.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
@@ -37,12 +39,14 @@ void main() {
   late AppDatabase db;
   late VehicleRepositoryImpl vehicles;
   late FuelRepositoryImpl fuel;
+  late ExpenseRepository expense;
 
   setUp(() {
     db = AppDatabase(NativeDatabase.memory());
     final outbox = OutboxWriter(db);
     vehicles = VehicleRepositoryImpl(db: db, outbox: outbox);
-    fuel = FuelRepositoryImpl(db: db, outbox: outbox);
+    expense = ExpenseRepositoryImpl(db: db, outbox: outbox);
+    fuel = FuelRepositoryImpl(db: db, outbox: outbox, expenseRepository: expense);
   });
 
   tearDown(() => db.close());

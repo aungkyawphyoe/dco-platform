@@ -2,6 +2,7 @@ import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/core/notifications/local_notification_client.dart';
 import 'package:dco_mobile/core/sync/outbox_writer.dart';
+import 'package:dco_mobile/features/expenses/data/repositories/expense_repository_impl.dart';
 import 'package:dco_mobile/features/garage/data/repositories/vehicle_repository_impl.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/data/repositories/maintenance_repository_impl.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   late AppDatabase db;
   late VehicleRepositoryImpl vehicles;
+  late ExpenseRepositoryImpl expenses;
   late MaintenanceRepositoryImpl maintenance;
   late NotificationRepositoryImpl notifications;
   late ReminderScheduleStore schedules;
@@ -26,7 +28,8 @@ void main() {
     db = AppDatabase(NativeDatabase.memory());
     final outbox = OutboxWriter(db);
     vehicles = VehicleRepositoryImpl(db: db, outbox: outbox);
-    maintenance = MaintenanceRepositoryImpl(db: db, outbox: outbox);
+    expenses = ExpenseRepositoryImpl(db: db, outbox: outbox);
+    maintenance = MaintenanceRepositoryImpl(db: db, outbox: outbox, expenseRepository: expenses);
     notifications = NotificationRepositoryImpl(db: db, outbox: outbox);
     schedules = ReminderScheduleStore(db);
     client = NoopLocalNotificationClient();

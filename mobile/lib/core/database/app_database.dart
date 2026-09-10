@@ -21,6 +21,10 @@ part 'app_database.g.dart';
     ExpenseRecords,
     ExpensePartRecords,
     NotificationRecords,
+    FamilyRecords,
+    FamilyMembershipRecords,
+    VehicleGrantRecords,
+    DrivingLicenseRecords,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -28,7 +32,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'dco_owner'));
 
   @override
-  int get schemaVersion => 9;
+  int get schemaVersion => 10;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -66,6 +70,12 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 9) {
         await migrator.addColumn(notificationRecords, notificationRecords.cycleKey);
+      }
+      if (from < 10) {
+        await migrator.createTable(familyRecords);
+        await migrator.createTable(familyMembershipRecords);
+        await migrator.createTable(vehicleGrantRecords);
+        await migrator.createTable(drivingLicenseRecords);
       }
     },
   );

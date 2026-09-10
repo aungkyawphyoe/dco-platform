@@ -33,6 +33,10 @@ import '../../features/parts/presentation/screens/parts_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/units_formats_screen.dart';
+import '../../features/family/presentation/screens/family_setup_screen.dart';
+import '../../features/family/presentation/screens/family_management_screen.dart';
+import '../../features/family/presentation/screens/car_detail_screen.dart';
+import '../../features/family/presentation/screens/user_detail_screen.dart';
 import 'app_shell.dart';
 import 'routes.dart';
 
@@ -160,7 +164,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: 'new',
                             parentNavigatorKey: rootNavigatorKey,
                             builder: (context, state) => FuelTypeFormScreen(
-                              initialKind: state.extra is FuelCatalogKind ? state.extra as FuelCatalogKind : null,
+                              initialKind: state.extra is FuelCatalogKind
+                                  ? state.extra as FuelCatalogKind
+                                  : null,
                             ),
                           ),
                           GoRoute(
@@ -223,7 +229,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'suggested',
                         parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => const SuggestedItemsScreen(),
+                        builder: (context, state) =>
+                            const SuggestedItemsScreen(),
                       ),
                       GoRoute(
                         path: ':planItemId/edit',
@@ -294,6 +301,38 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'units',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const UnitsFormatsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'family/create',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const FamilySetupScreen(),
+                  ),
+                  GoRoute(
+                    path: 'family',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const FamilyManagementScreen(),
+                    routes: [
+                      GoRoute(
+                        path: AppRoutes.familyJoin(':code'),
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) =>
+                            FamilyManagementScreen(), //FamilySetupScreen(joinCode: state.pathParameters['code']!),
+                      ),
+                      GoRoute(
+                        path: AppRoutes.vehicleDetail(':id'),
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => CarDetailScreen(
+                          vehicleId: state.pathParameters['id']!,
+                        ),
+                      ),
+                      GoRoute(
+                        path: AppRoutes.userDetail(':id'),
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => UserDetailScreen(
+                          userId: state.pathParameters['id']!,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

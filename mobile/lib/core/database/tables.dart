@@ -228,3 +228,73 @@ class NotificationRecords extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+class FamilyRecords extends Table {
+  @override
+  String get tableName => 'families';
+
+  TextColumn get id => text()();
+  TextColumn get name => text()();
+  TextColumn get shareCode => text()();
+  TextColumn get qrCodeData => text().nullable()();
+  TextColumn get createdBy => text()();
+  TextColumn get status => text().withDefault(const Constant('active'))();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get archivedAt => dateTime().nullable()();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class FamilyMembershipRecords extends Table {
+  @override
+  String get tableName => 'family_memberships';
+
+  TextColumn get id => text()();
+  TextColumn get familyId => text()();
+  TextColumn get userId => text()();
+  TextColumn get role => text()(); // primary_owner, member, driver
+  DateTimeColumn get joinedAt => dateTime()();
+  TextColumn get invitedBy => text().nullable()();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class VehicleGrantRecords extends Table {
+  @override
+  String get tableName => 'vehicle_grants';
+
+  TextColumn get id => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get userId => text()();
+  TextColumn get grantedBy => text()();
+  TextColumn get permission => text()(); // full, drive_only
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class DrivingLicenseRecords extends Table {
+  @override
+  String get tableName => 'driving_licenses';
+
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get licenseNumber => text().nullable()();
+  TextColumn get issuingCountry => text().nullable()();
+  DateTimeColumn get expiryDate => dateTime()();
+  TextColumn get categories => text().nullable()();
+  TextColumn get frontMediaId => text().nullable()();
+  TextColumn get backMediaId => text().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

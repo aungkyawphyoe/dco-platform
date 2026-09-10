@@ -7768,6 +7768,2185 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
   }
 }
 
+class $FamilyRecordsTable extends FamilyRecords
+    with TableInfo<$FamilyRecordsTable, FamilyRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamilyRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _shareCodeMeta = const VerificationMeta(
+    'shareCode',
+  );
+  @override
+  late final GeneratedColumn<String> shareCode = GeneratedColumn<String>(
+    'share_code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _qrCodeDataMeta = const VerificationMeta(
+    'qrCodeData',
+  );
+  @override
+  late final GeneratedColumn<String> qrCodeData = GeneratedColumn<String>(
+    'qr_code_data',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('active'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _archivedAtMeta = const VerificationMeta(
+    'archivedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> archivedAt = GeneratedColumn<DateTime>(
+    'archived_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    name,
+    shareCode,
+    qrCodeData,
+    createdBy,
+    status,
+    createdAt,
+    archivedAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'families';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FamilyRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('share_code')) {
+      context.handle(
+        _shareCodeMeta,
+        shareCode.isAcceptableOrUnknown(data['share_code']!, _shareCodeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_shareCodeMeta);
+    }
+    if (data.containsKey('qr_code_data')) {
+      context.handle(
+        _qrCodeDataMeta,
+        qrCodeData.isAcceptableOrUnknown(
+          data['qr_code_data']!,
+          _qrCodeDataMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdByMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('archived_at')) {
+      context.handle(
+        _archivedAtMeta,
+        archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta),
+      );
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FamilyRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FamilyRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      shareCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}share_code'],
+      )!,
+      qrCodeData: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}qr_code_data'],
+      ),
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      archivedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}archived_at'],
+      ),
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $FamilyRecordsTable createAlias(String alias) {
+    return $FamilyRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class FamilyRecord extends DataClass implements Insertable<FamilyRecord> {
+  final String id;
+  final String name;
+  final String shareCode;
+  final String? qrCodeData;
+  final String createdBy;
+  final String status;
+  final DateTime createdAt;
+  final DateTime? archivedAt;
+  final DateTime? syncedAt;
+  const FamilyRecord({
+    required this.id,
+    required this.name,
+    required this.shareCode,
+    this.qrCodeData,
+    required this.createdBy,
+    required this.status,
+    required this.createdAt,
+    this.archivedAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['name'] = Variable<String>(name);
+    map['share_code'] = Variable<String>(shareCode);
+    if (!nullToAbsent || qrCodeData != null) {
+      map['qr_code_data'] = Variable<String>(qrCodeData);
+    }
+    map['created_by'] = Variable<String>(createdBy);
+    map['status'] = Variable<String>(status);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || archivedAt != null) {
+      map['archived_at'] = Variable<DateTime>(archivedAt);
+    }
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  FamilyRecordsCompanion toCompanion(bool nullToAbsent) {
+    return FamilyRecordsCompanion(
+      id: Value(id),
+      name: Value(name),
+      shareCode: Value(shareCode),
+      qrCodeData: qrCodeData == null && nullToAbsent
+          ? const Value.absent()
+          : Value(qrCodeData),
+      createdBy: Value(createdBy),
+      status: Value(status),
+      createdAt: Value(createdAt),
+      archivedAt: archivedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(archivedAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory FamilyRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FamilyRecord(
+      id: serializer.fromJson<String>(json['id']),
+      name: serializer.fromJson<String>(json['name']),
+      shareCode: serializer.fromJson<String>(json['shareCode']),
+      qrCodeData: serializer.fromJson<String?>(json['qrCodeData']),
+      createdBy: serializer.fromJson<String>(json['createdBy']),
+      status: serializer.fromJson<String>(json['status']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'name': serializer.toJson<String>(name),
+      'shareCode': serializer.toJson<String>(shareCode),
+      'qrCodeData': serializer.toJson<String?>(qrCodeData),
+      'createdBy': serializer.toJson<String>(createdBy),
+      'status': serializer.toJson<String>(status),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  FamilyRecord copyWith({
+    String? id,
+    String? name,
+    String? shareCode,
+    Value<String?> qrCodeData = const Value.absent(),
+    String? createdBy,
+    String? status,
+    DateTime? createdAt,
+    Value<DateTime?> archivedAt = const Value.absent(),
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => FamilyRecord(
+    id: id ?? this.id,
+    name: name ?? this.name,
+    shareCode: shareCode ?? this.shareCode,
+    qrCodeData: qrCodeData.present ? qrCodeData.value : this.qrCodeData,
+    createdBy: createdBy ?? this.createdBy,
+    status: status ?? this.status,
+    createdAt: createdAt ?? this.createdAt,
+    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  FamilyRecord copyWithCompanion(FamilyRecordsCompanion data) {
+    return FamilyRecord(
+      id: data.id.present ? data.id.value : this.id,
+      name: data.name.present ? data.name.value : this.name,
+      shareCode: data.shareCode.present ? data.shareCode.value : this.shareCode,
+      qrCodeData: data.qrCodeData.present
+          ? data.qrCodeData.value
+          : this.qrCodeData,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
+      status: data.status.present ? data.status.value : this.status,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      archivedAt: data.archivedAt.present
+          ? data.archivedAt.value
+          : this.archivedAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyRecord(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('shareCode: $shareCode, ')
+          ..write('qrCodeData: $qrCodeData, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    shareCode,
+    qrCodeData,
+    createdBy,
+    status,
+    createdAt,
+    archivedAt,
+    syncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FamilyRecord &&
+          other.id == this.id &&
+          other.name == this.name &&
+          other.shareCode == this.shareCode &&
+          other.qrCodeData == this.qrCodeData &&
+          other.createdBy == this.createdBy &&
+          other.status == this.status &&
+          other.createdAt == this.createdAt &&
+          other.archivedAt == this.archivedAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class FamilyRecordsCompanion extends UpdateCompanion<FamilyRecord> {
+  final Value<String> id;
+  final Value<String> name;
+  final Value<String> shareCode;
+  final Value<String?> qrCodeData;
+  final Value<String> createdBy;
+  final Value<String> status;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> archivedAt;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const FamilyRecordsCompanion({
+    this.id = const Value.absent(),
+    this.name = const Value.absent(),
+    this.shareCode = const Value.absent(),
+    this.qrCodeData = const Value.absent(),
+    this.createdBy = const Value.absent(),
+    this.status = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.archivedAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FamilyRecordsCompanion.insert({
+    required String id,
+    required String name,
+    required String shareCode,
+    this.qrCodeData = const Value.absent(),
+    required String createdBy,
+    this.status = const Value.absent(),
+    required DateTime createdAt,
+    this.archivedAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       name = Value(name),
+       shareCode = Value(shareCode),
+       createdBy = Value(createdBy),
+       createdAt = Value(createdAt);
+  static Insertable<FamilyRecord> custom({
+    Expression<String>? id,
+    Expression<String>? name,
+    Expression<String>? shareCode,
+    Expression<String>? qrCodeData,
+    Expression<String>? createdBy,
+    Expression<String>? status,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? archivedAt,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+      if (shareCode != null) 'share_code': shareCode,
+      if (qrCodeData != null) 'qr_code_data': qrCodeData,
+      if (createdBy != null) 'created_by': createdBy,
+      if (status != null) 'status': status,
+      if (createdAt != null) 'created_at': createdAt,
+      if (archivedAt != null) 'archived_at': archivedAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FamilyRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? name,
+    Value<String>? shareCode,
+    Value<String?>? qrCodeData,
+    Value<String>? createdBy,
+    Value<String>? status,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? archivedAt,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return FamilyRecordsCompanion(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      shareCode: shareCode ?? this.shareCode,
+      qrCodeData: qrCodeData ?? this.qrCodeData,
+      createdBy: createdBy ?? this.createdBy,
+      status: status ?? this.status,
+      createdAt: createdAt ?? this.createdAt,
+      archivedAt: archivedAt ?? this.archivedAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (shareCode.present) {
+      map['share_code'] = Variable<String>(shareCode.value);
+    }
+    if (qrCodeData.present) {
+      map['qr_code_data'] = Variable<String>(qrCodeData.value);
+    }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (archivedAt.present) {
+      map['archived_at'] = Variable<DateTime>(archivedAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name, ')
+          ..write('shareCode: $shareCode, ')
+          ..write('qrCodeData: $qrCodeData, ')
+          ..write('createdBy: $createdBy, ')
+          ..write('status: $status, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('archivedAt: $archivedAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FamilyMembershipRecordsTable extends FamilyMembershipRecords
+    with TableInfo<$FamilyMembershipRecordsTable, FamilyMembershipRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamilyMembershipRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _familyIdMeta = const VerificationMeta(
+    'familyId',
+  );
+  @override
+  late final GeneratedColumn<String> familyId = GeneratedColumn<String>(
+    'family_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _roleMeta = const VerificationMeta('role');
+  @override
+  late final GeneratedColumn<String> role = GeneratedColumn<String>(
+    'role',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _joinedAtMeta = const VerificationMeta(
+    'joinedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> joinedAt = GeneratedColumn<DateTime>(
+    'joined_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _invitedByMeta = const VerificationMeta(
+    'invitedBy',
+  );
+  @override
+  late final GeneratedColumn<String> invitedBy = GeneratedColumn<String>(
+    'invited_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    familyId,
+    userId,
+    role,
+    joinedAt,
+    invitedBy,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'family_memberships';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FamilyMembershipRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('family_id')) {
+      context.handle(
+        _familyIdMeta,
+        familyId.isAcceptableOrUnknown(data['family_id']!, _familyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_familyIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('role')) {
+      context.handle(
+        _roleMeta,
+        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roleMeta);
+    }
+    if (data.containsKey('joined_at')) {
+      context.handle(
+        _joinedAtMeta,
+        joinedAt.isAcceptableOrUnknown(data['joined_at']!, _joinedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_joinedAtMeta);
+    }
+    if (data.containsKey('invited_by')) {
+      context.handle(
+        _invitedByMeta,
+        invitedBy.isAcceptableOrUnknown(data['invited_by']!, _invitedByMeta),
+      );
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FamilyMembershipRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FamilyMembershipRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      familyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}family_id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      role: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role'],
+      )!,
+      joinedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}joined_at'],
+      )!,
+      invitedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invited_by'],
+      ),
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $FamilyMembershipRecordsTable createAlias(String alias) {
+    return $FamilyMembershipRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class FamilyMembershipRecord extends DataClass
+    implements Insertable<FamilyMembershipRecord> {
+  final String id;
+  final String familyId;
+  final String userId;
+  final String role;
+  final DateTime joinedAt;
+  final String? invitedBy;
+  final DateTime? syncedAt;
+  const FamilyMembershipRecord({
+    required this.id,
+    required this.familyId,
+    required this.userId,
+    required this.role,
+    required this.joinedAt,
+    this.invitedBy,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['family_id'] = Variable<String>(familyId);
+    map['user_id'] = Variable<String>(userId);
+    map['role'] = Variable<String>(role);
+    map['joined_at'] = Variable<DateTime>(joinedAt);
+    if (!nullToAbsent || invitedBy != null) {
+      map['invited_by'] = Variable<String>(invitedBy);
+    }
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  FamilyMembershipRecordsCompanion toCompanion(bool nullToAbsent) {
+    return FamilyMembershipRecordsCompanion(
+      id: Value(id),
+      familyId: Value(familyId),
+      userId: Value(userId),
+      role: Value(role),
+      joinedAt: Value(joinedAt),
+      invitedBy: invitedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(invitedBy),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory FamilyMembershipRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FamilyMembershipRecord(
+      id: serializer.fromJson<String>(json['id']),
+      familyId: serializer.fromJson<String>(json['familyId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      role: serializer.fromJson<String>(json['role']),
+      joinedAt: serializer.fromJson<DateTime>(json['joinedAt']),
+      invitedBy: serializer.fromJson<String?>(json['invitedBy']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'familyId': serializer.toJson<String>(familyId),
+      'userId': serializer.toJson<String>(userId),
+      'role': serializer.toJson<String>(role),
+      'joinedAt': serializer.toJson<DateTime>(joinedAt),
+      'invitedBy': serializer.toJson<String?>(invitedBy),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  FamilyMembershipRecord copyWith({
+    String? id,
+    String? familyId,
+    String? userId,
+    String? role,
+    DateTime? joinedAt,
+    Value<String?> invitedBy = const Value.absent(),
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => FamilyMembershipRecord(
+    id: id ?? this.id,
+    familyId: familyId ?? this.familyId,
+    userId: userId ?? this.userId,
+    role: role ?? this.role,
+    joinedAt: joinedAt ?? this.joinedAt,
+    invitedBy: invitedBy.present ? invitedBy.value : this.invitedBy,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  FamilyMembershipRecord copyWithCompanion(
+    FamilyMembershipRecordsCompanion data,
+  ) {
+    return FamilyMembershipRecord(
+      id: data.id.present ? data.id.value : this.id,
+      familyId: data.familyId.present ? data.familyId.value : this.familyId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      role: data.role.present ? data.role.value : this.role,
+      joinedAt: data.joinedAt.present ? data.joinedAt.value : this.joinedAt,
+      invitedBy: data.invitedBy.present ? data.invitedBy.value : this.invitedBy,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyMembershipRecord(')
+          ..write('id: $id, ')
+          ..write('familyId: $familyId, ')
+          ..write('userId: $userId, ')
+          ..write('role: $role, ')
+          ..write('joinedAt: $joinedAt, ')
+          ..write('invitedBy: $invitedBy, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, familyId, userId, role, joinedAt, invitedBy, syncedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FamilyMembershipRecord &&
+          other.id == this.id &&
+          other.familyId == this.familyId &&
+          other.userId == this.userId &&
+          other.role == this.role &&
+          other.joinedAt == this.joinedAt &&
+          other.invitedBy == this.invitedBy &&
+          other.syncedAt == this.syncedAt);
+}
+
+class FamilyMembershipRecordsCompanion
+    extends UpdateCompanion<FamilyMembershipRecord> {
+  final Value<String> id;
+  final Value<String> familyId;
+  final Value<String> userId;
+  final Value<String> role;
+  final Value<DateTime> joinedAt;
+  final Value<String?> invitedBy;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const FamilyMembershipRecordsCompanion({
+    this.id = const Value.absent(),
+    this.familyId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.role = const Value.absent(),
+    this.joinedAt = const Value.absent(),
+    this.invitedBy = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FamilyMembershipRecordsCompanion.insert({
+    required String id,
+    required String familyId,
+    required String userId,
+    required String role,
+    required DateTime joinedAt,
+    this.invitedBy = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       familyId = Value(familyId),
+       userId = Value(userId),
+       role = Value(role),
+       joinedAt = Value(joinedAt);
+  static Insertable<FamilyMembershipRecord> custom({
+    Expression<String>? id,
+    Expression<String>? familyId,
+    Expression<String>? userId,
+    Expression<String>? role,
+    Expression<DateTime>? joinedAt,
+    Expression<String>? invitedBy,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (familyId != null) 'family_id': familyId,
+      if (userId != null) 'user_id': userId,
+      if (role != null) 'role': role,
+      if (joinedAt != null) 'joined_at': joinedAt,
+      if (invitedBy != null) 'invited_by': invitedBy,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FamilyMembershipRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? familyId,
+    Value<String>? userId,
+    Value<String>? role,
+    Value<DateTime>? joinedAt,
+    Value<String?>? invitedBy,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return FamilyMembershipRecordsCompanion(
+      id: id ?? this.id,
+      familyId: familyId ?? this.familyId,
+      userId: userId ?? this.userId,
+      role: role ?? this.role,
+      joinedAt: joinedAt ?? this.joinedAt,
+      invitedBy: invitedBy ?? this.invitedBy,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (familyId.present) {
+      map['family_id'] = Variable<String>(familyId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (role.present) {
+      map['role'] = Variable<String>(role.value);
+    }
+    if (joinedAt.present) {
+      map['joined_at'] = Variable<DateTime>(joinedAt.value);
+    }
+    if (invitedBy.present) {
+      map['invited_by'] = Variable<String>(invitedBy.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyMembershipRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('familyId: $familyId, ')
+          ..write('userId: $userId, ')
+          ..write('role: $role, ')
+          ..write('joinedAt: $joinedAt, ')
+          ..write('invitedBy: $invitedBy, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VehicleGrantRecordsTable extends VehicleGrantRecords
+    with TableInfo<$VehicleGrantRecordsTable, VehicleGrantRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VehicleGrantRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _grantedByMeta = const VerificationMeta(
+    'grantedBy',
+  );
+  @override
+  late final GeneratedColumn<String> grantedBy = GeneratedColumn<String>(
+    'granted_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _permissionMeta = const VerificationMeta(
+    'permission',
+  );
+  @override
+  late final GeneratedColumn<String> permission = GeneratedColumn<String>(
+    'permission',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    vehicleId,
+    userId,
+    grantedBy,
+    permission,
+    createdAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vehicle_grants';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VehicleGrantRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('granted_by')) {
+      context.handle(
+        _grantedByMeta,
+        grantedBy.isAcceptableOrUnknown(data['granted_by']!, _grantedByMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_grantedByMeta);
+    }
+    if (data.containsKey('permission')) {
+      context.handle(
+        _permissionMeta,
+        permission.isAcceptableOrUnknown(data['permission']!, _permissionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_permissionMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VehicleGrantRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VehicleGrantRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      grantedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}granted_by'],
+      )!,
+      permission: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}permission'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $VehicleGrantRecordsTable createAlias(String alias) {
+    return $VehicleGrantRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class VehicleGrantRecord extends DataClass
+    implements Insertable<VehicleGrantRecord> {
+  final String id;
+  final String vehicleId;
+  final String userId;
+  final String grantedBy;
+  final String permission;
+  final DateTime createdAt;
+  final DateTime? syncedAt;
+  const VehicleGrantRecord({
+    required this.id,
+    required this.vehicleId,
+    required this.userId,
+    required this.grantedBy,
+    required this.permission,
+    required this.createdAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    map['user_id'] = Variable<String>(userId);
+    map['granted_by'] = Variable<String>(grantedBy);
+    map['permission'] = Variable<String>(permission);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  VehicleGrantRecordsCompanion toCompanion(bool nullToAbsent) {
+    return VehicleGrantRecordsCompanion(
+      id: Value(id),
+      vehicleId: Value(vehicleId),
+      userId: Value(userId),
+      grantedBy: Value(grantedBy),
+      permission: Value(permission),
+      createdAt: Value(createdAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory VehicleGrantRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VehicleGrantRecord(
+      id: serializer.fromJson<String>(json['id']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      grantedBy: serializer.fromJson<String>(json['grantedBy']),
+      permission: serializer.fromJson<String>(json['permission']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'userId': serializer.toJson<String>(userId),
+      'grantedBy': serializer.toJson<String>(grantedBy),
+      'permission': serializer.toJson<String>(permission),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  VehicleGrantRecord copyWith({
+    String? id,
+    String? vehicleId,
+    String? userId,
+    String? grantedBy,
+    String? permission,
+    DateTime? createdAt,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => VehicleGrantRecord(
+    id: id ?? this.id,
+    vehicleId: vehicleId ?? this.vehicleId,
+    userId: userId ?? this.userId,
+    grantedBy: grantedBy ?? this.grantedBy,
+    permission: permission ?? this.permission,
+    createdAt: createdAt ?? this.createdAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  VehicleGrantRecord copyWithCompanion(VehicleGrantRecordsCompanion data) {
+    return VehicleGrantRecord(
+      id: data.id.present ? data.id.value : this.id,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      grantedBy: data.grantedBy.present ? data.grantedBy.value : this.grantedBy,
+      permission: data.permission.present
+          ? data.permission.value
+          : this.permission,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VehicleGrantRecord(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('userId: $userId, ')
+          ..write('grantedBy: $grantedBy, ')
+          ..write('permission: $permission, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    vehicleId,
+    userId,
+    grantedBy,
+    permission,
+    createdAt,
+    syncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VehicleGrantRecord &&
+          other.id == this.id &&
+          other.vehicleId == this.vehicleId &&
+          other.userId == this.userId &&
+          other.grantedBy == this.grantedBy &&
+          other.permission == this.permission &&
+          other.createdAt == this.createdAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class VehicleGrantRecordsCompanion extends UpdateCompanion<VehicleGrantRecord> {
+  final Value<String> id;
+  final Value<String> vehicleId;
+  final Value<String> userId;
+  final Value<String> grantedBy;
+  final Value<String> permission;
+  final Value<DateTime> createdAt;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const VehicleGrantRecordsCompanion({
+    this.id = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.grantedBy = const Value.absent(),
+    this.permission = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VehicleGrantRecordsCompanion.insert({
+    required String id,
+    required String vehicleId,
+    required String userId,
+    required String grantedBy,
+    required String permission,
+    required DateTime createdAt,
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       vehicleId = Value(vehicleId),
+       userId = Value(userId),
+       grantedBy = Value(grantedBy),
+       permission = Value(permission),
+       createdAt = Value(createdAt);
+  static Insertable<VehicleGrantRecord> custom({
+    Expression<String>? id,
+    Expression<String>? vehicleId,
+    Expression<String>? userId,
+    Expression<String>? grantedBy,
+    Expression<String>? permission,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (userId != null) 'user_id': userId,
+      if (grantedBy != null) 'granted_by': grantedBy,
+      if (permission != null) 'permission': permission,
+      if (createdAt != null) 'created_at': createdAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VehicleGrantRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vehicleId,
+    Value<String>? userId,
+    Value<String>? grantedBy,
+    Value<String>? permission,
+    Value<DateTime>? createdAt,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return VehicleGrantRecordsCompanion(
+      id: id ?? this.id,
+      vehicleId: vehicleId ?? this.vehicleId,
+      userId: userId ?? this.userId,
+      grantedBy: grantedBy ?? this.grantedBy,
+      permission: permission ?? this.permission,
+      createdAt: createdAt ?? this.createdAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (grantedBy.present) {
+      map['granted_by'] = Variable<String>(grantedBy.value);
+    }
+    if (permission.present) {
+      map['permission'] = Variable<String>(permission.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VehicleGrantRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('userId: $userId, ')
+          ..write('grantedBy: $grantedBy, ')
+          ..write('permission: $permission, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
+    with TableInfo<$DrivingLicenseRecordsTable, DrivingLicenseRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DrivingLicenseRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _licenseNumberMeta = const VerificationMeta(
+    'licenseNumber',
+  );
+  @override
+  late final GeneratedColumn<String> licenseNumber = GeneratedColumn<String>(
+    'license_number',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _issuingCountryMeta = const VerificationMeta(
+    'issuingCountry',
+  );
+  @override
+  late final GeneratedColumn<String> issuingCountry = GeneratedColumn<String>(
+    'issuing_country',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiryDateMeta = const VerificationMeta(
+    'expiryDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiryDate = GeneratedColumn<DateTime>(
+    'expiry_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoriesMeta = const VerificationMeta(
+    'categories',
+  );
+  @override
+  late final GeneratedColumn<String> categories = GeneratedColumn<String>(
+    'categories',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _frontMediaIdMeta = const VerificationMeta(
+    'frontMediaId',
+  );
+  @override
+  late final GeneratedColumn<String> frontMediaId = GeneratedColumn<String>(
+    'front_media_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _backMediaIdMeta = const VerificationMeta(
+    'backMediaId',
+  );
+  @override
+  late final GeneratedColumn<String> backMediaId = GeneratedColumn<String>(
+    'back_media_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    userId,
+    licenseNumber,
+    issuingCountry,
+    expiryDate,
+    categories,
+    frontMediaId,
+    backMediaId,
+    createdAt,
+    updatedAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'driving_licenses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DrivingLicenseRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('license_number')) {
+      context.handle(
+        _licenseNumberMeta,
+        licenseNumber.isAcceptableOrUnknown(
+          data['license_number']!,
+          _licenseNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('issuing_country')) {
+      context.handle(
+        _issuingCountryMeta,
+        issuingCountry.isAcceptableOrUnknown(
+          data['issuing_country']!,
+          _issuingCountryMeta,
+        ),
+      );
+    }
+    if (data.containsKey('expiry_date')) {
+      context.handle(
+        _expiryDateMeta,
+        expiryDate.isAcceptableOrUnknown(data['expiry_date']!, _expiryDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiryDateMeta);
+    }
+    if (data.containsKey('categories')) {
+      context.handle(
+        _categoriesMeta,
+        categories.isAcceptableOrUnknown(data['categories']!, _categoriesMeta),
+      );
+    }
+    if (data.containsKey('front_media_id')) {
+      context.handle(
+        _frontMediaIdMeta,
+        frontMediaId.isAcceptableOrUnknown(
+          data['front_media_id']!,
+          _frontMediaIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('back_media_id')) {
+      context.handle(
+        _backMediaIdMeta,
+        backMediaId.isAcceptableOrUnknown(
+          data['back_media_id']!,
+          _backMediaIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DrivingLicenseRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DrivingLicenseRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      licenseNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}license_number'],
+      ),
+      issuingCountry: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}issuing_country'],
+      ),
+      expiryDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expiry_date'],
+      )!,
+      categories: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}categories'],
+      ),
+      frontMediaId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}front_media_id'],
+      ),
+      backMediaId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}back_media_id'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $DrivingLicenseRecordsTable createAlias(String alias) {
+    return $DrivingLicenseRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class DrivingLicenseRecord extends DataClass
+    implements Insertable<DrivingLicenseRecord> {
+  final String id;
+  final String userId;
+  final String? licenseNumber;
+  final String? issuingCountry;
+  final DateTime expiryDate;
+  final String? categories;
+  final String? frontMediaId;
+  final String? backMediaId;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+  final DateTime? syncedAt;
+  const DrivingLicenseRecord({
+    required this.id,
+    required this.userId,
+    this.licenseNumber,
+    this.issuingCountry,
+    required this.expiryDate,
+    this.categories,
+    this.frontMediaId,
+    this.backMediaId,
+    required this.createdAt,
+    required this.updatedAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    if (!nullToAbsent || licenseNumber != null) {
+      map['license_number'] = Variable<String>(licenseNumber);
+    }
+    if (!nullToAbsent || issuingCountry != null) {
+      map['issuing_country'] = Variable<String>(issuingCountry);
+    }
+    map['expiry_date'] = Variable<DateTime>(expiryDate);
+    if (!nullToAbsent || categories != null) {
+      map['categories'] = Variable<String>(categories);
+    }
+    if (!nullToAbsent || frontMediaId != null) {
+      map['front_media_id'] = Variable<String>(frontMediaId);
+    }
+    if (!nullToAbsent || backMediaId != null) {
+      map['back_media_id'] = Variable<String>(backMediaId);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  DrivingLicenseRecordsCompanion toCompanion(bool nullToAbsent) {
+    return DrivingLicenseRecordsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      licenseNumber: licenseNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(licenseNumber),
+      issuingCountry: issuingCountry == null && nullToAbsent
+          ? const Value.absent()
+          : Value(issuingCountry),
+      expiryDate: Value(expiryDate),
+      categories: categories == null && nullToAbsent
+          ? const Value.absent()
+          : Value(categories),
+      frontMediaId: frontMediaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(frontMediaId),
+      backMediaId: backMediaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(backMediaId),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory DrivingLicenseRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DrivingLicenseRecord(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      licenseNumber: serializer.fromJson<String?>(json['licenseNumber']),
+      issuingCountry: serializer.fromJson<String?>(json['issuingCountry']),
+      expiryDate: serializer.fromJson<DateTime>(json['expiryDate']),
+      categories: serializer.fromJson<String?>(json['categories']),
+      frontMediaId: serializer.fromJson<String?>(json['frontMediaId']),
+      backMediaId: serializer.fromJson<String?>(json['backMediaId']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'licenseNumber': serializer.toJson<String?>(licenseNumber),
+      'issuingCountry': serializer.toJson<String?>(issuingCountry),
+      'expiryDate': serializer.toJson<DateTime>(expiryDate),
+      'categories': serializer.toJson<String?>(categories),
+      'frontMediaId': serializer.toJson<String?>(frontMediaId),
+      'backMediaId': serializer.toJson<String?>(backMediaId),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  DrivingLicenseRecord copyWith({
+    String? id,
+    String? userId,
+    Value<String?> licenseNumber = const Value.absent(),
+    Value<String?> issuingCountry = const Value.absent(),
+    DateTime? expiryDate,
+    Value<String?> categories = const Value.absent(),
+    Value<String?> frontMediaId = const Value.absent(),
+    Value<String?> backMediaId = const Value.absent(),
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => DrivingLicenseRecord(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    licenseNumber: licenseNumber.present
+        ? licenseNumber.value
+        : this.licenseNumber,
+    issuingCountry: issuingCountry.present
+        ? issuingCountry.value
+        : this.issuingCountry,
+    expiryDate: expiryDate ?? this.expiryDate,
+    categories: categories.present ? categories.value : this.categories,
+    frontMediaId: frontMediaId.present ? frontMediaId.value : this.frontMediaId,
+    backMediaId: backMediaId.present ? backMediaId.value : this.backMediaId,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  DrivingLicenseRecord copyWithCompanion(DrivingLicenseRecordsCompanion data) {
+    return DrivingLicenseRecord(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      licenseNumber: data.licenseNumber.present
+          ? data.licenseNumber.value
+          : this.licenseNumber,
+      issuingCountry: data.issuingCountry.present
+          ? data.issuingCountry.value
+          : this.issuingCountry,
+      expiryDate: data.expiryDate.present
+          ? data.expiryDate.value
+          : this.expiryDate,
+      categories: data.categories.present
+          ? data.categories.value
+          : this.categories,
+      frontMediaId: data.frontMediaId.present
+          ? data.frontMediaId.value
+          : this.frontMediaId,
+      backMediaId: data.backMediaId.present
+          ? data.backMediaId.value
+          : this.backMediaId,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DrivingLicenseRecord(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('licenseNumber: $licenseNumber, ')
+          ..write('issuingCountry: $issuingCountry, ')
+          ..write('expiryDate: $expiryDate, ')
+          ..write('categories: $categories, ')
+          ..write('frontMediaId: $frontMediaId, ')
+          ..write('backMediaId: $backMediaId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    userId,
+    licenseNumber,
+    issuingCountry,
+    expiryDate,
+    categories,
+    frontMediaId,
+    backMediaId,
+    createdAt,
+    updatedAt,
+    syncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DrivingLicenseRecord &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.licenseNumber == this.licenseNumber &&
+          other.issuingCountry == this.issuingCountry &&
+          other.expiryDate == this.expiryDate &&
+          other.categories == this.categories &&
+          other.frontMediaId == this.frontMediaId &&
+          other.backMediaId == this.backMediaId &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class DrivingLicenseRecordsCompanion
+    extends UpdateCompanion<DrivingLicenseRecord> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String?> licenseNumber;
+  final Value<String?> issuingCountry;
+  final Value<DateTime> expiryDate;
+  final Value<String?> categories;
+  final Value<String?> frontMediaId;
+  final Value<String?> backMediaId;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const DrivingLicenseRecordsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.licenseNumber = const Value.absent(),
+    this.issuingCountry = const Value.absent(),
+    this.expiryDate = const Value.absent(),
+    this.categories = const Value.absent(),
+    this.frontMediaId = const Value.absent(),
+    this.backMediaId = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DrivingLicenseRecordsCompanion.insert({
+    required String id,
+    required String userId,
+    this.licenseNumber = const Value.absent(),
+    this.issuingCountry = const Value.absent(),
+    required DateTime expiryDate,
+    this.categories = const Value.absent(),
+    this.frontMediaId = const Value.absent(),
+    this.backMediaId = const Value.absent(),
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       expiryDate = Value(expiryDate),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<DrivingLicenseRecord> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? licenseNumber,
+    Expression<String>? issuingCountry,
+    Expression<DateTime>? expiryDate,
+    Expression<String>? categories,
+    Expression<String>? frontMediaId,
+    Expression<String>? backMediaId,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (licenseNumber != null) 'license_number': licenseNumber,
+      if (issuingCountry != null) 'issuing_country': issuingCountry,
+      if (expiryDate != null) 'expiry_date': expiryDate,
+      if (categories != null) 'categories': categories,
+      if (frontMediaId != null) 'front_media_id': frontMediaId,
+      if (backMediaId != null) 'back_media_id': backMediaId,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DrivingLicenseRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String?>? licenseNumber,
+    Value<String?>? issuingCountry,
+    Value<DateTime>? expiryDate,
+    Value<String?>? categories,
+    Value<String?>? frontMediaId,
+    Value<String?>? backMediaId,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return DrivingLicenseRecordsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      licenseNumber: licenseNumber ?? this.licenseNumber,
+      issuingCountry: issuingCountry ?? this.issuingCountry,
+      expiryDate: expiryDate ?? this.expiryDate,
+      categories: categories ?? this.categories,
+      frontMediaId: frontMediaId ?? this.frontMediaId,
+      backMediaId: backMediaId ?? this.backMediaId,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (licenseNumber.present) {
+      map['license_number'] = Variable<String>(licenseNumber.value);
+    }
+    if (issuingCountry.present) {
+      map['issuing_country'] = Variable<String>(issuingCountry.value);
+    }
+    if (expiryDate.present) {
+      map['expiry_date'] = Variable<DateTime>(expiryDate.value);
+    }
+    if (categories.present) {
+      map['categories'] = Variable<String>(categories.value);
+    }
+    if (frontMediaId.present) {
+      map['front_media_id'] = Variable<String>(frontMediaId.value);
+    }
+    if (backMediaId.present) {
+      map['back_media_id'] = Variable<String>(backMediaId.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DrivingLicenseRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('licenseNumber: $licenseNumber, ')
+          ..write('issuingCountry: $issuingCountry, ')
+          ..write('expiryDate: $expiryDate, ')
+          ..write('categories: $categories, ')
+          ..write('frontMediaId: $frontMediaId, ')
+          ..write('backMediaId: $backMediaId, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -7794,6 +9973,13 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ExpensePartRecordsTable(this);
   late final $NotificationRecordsTable notificationRecords =
       $NotificationRecordsTable(this);
+  late final $FamilyRecordsTable familyRecords = $FamilyRecordsTable(this);
+  late final $FamilyMembershipRecordsTable familyMembershipRecords =
+      $FamilyMembershipRecordsTable(this);
+  late final $VehicleGrantRecordsTable vehicleGrantRecords =
+      $VehicleGrantRecordsTable(this);
+  late final $DrivingLicenseRecordsTable drivingLicenseRecords =
+      $DrivingLicenseRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -7813,6 +9999,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     expenseRecords,
     expensePartRecords,
     notificationRecords,
+    familyRecords,
+    familyMembershipRecords,
+    vehicleGrantRecords,
+    drivingLicenseRecords,
   ];
 }
 
@@ -11763,6 +13953,1144 @@ typedef $$NotificationRecordsTableProcessedTableManager =
       NotificationRecord,
       PrefetchHooks Function()
     >;
+typedef $$FamilyRecordsTableCreateCompanionBuilder =
+    FamilyRecordsCompanion Function({
+      required String id,
+      required String name,
+      required String shareCode,
+      Value<String?> qrCodeData,
+      required String createdBy,
+      Value<String> status,
+      required DateTime createdAt,
+      Value<DateTime?> archivedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$FamilyRecordsTableUpdateCompanionBuilder =
+    FamilyRecordsCompanion Function({
+      Value<String> id,
+      Value<String> name,
+      Value<String> shareCode,
+      Value<String?> qrCodeData,
+      Value<String> createdBy,
+      Value<String> status,
+      Value<DateTime> createdAt,
+      Value<DateTime?> archivedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$FamilyRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $FamilyRecordsTable> {
+  $$FamilyRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get shareCode => $composableBuilder(
+    column: $table.shareCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get qrCodeData => $composableBuilder(
+    column: $table.qrCodeData,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FamilyRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FamilyRecordsTable> {
+  $$FamilyRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get shareCode => $composableBuilder(
+    column: $table.shareCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get qrCodeData => $composableBuilder(
+    column: $table.qrCodeData,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FamilyRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FamilyRecordsTable> {
+  $$FamilyRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get shareCode =>
+      $composableBuilder(column: $table.shareCode, builder: (column) => column);
+
+  GeneratedColumn<String> get qrCodeData => $composableBuilder(
+    column: $table.qrCodeData,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
+    column: $table.archivedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$FamilyRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FamilyRecordsTable,
+          FamilyRecord,
+          $$FamilyRecordsTableFilterComposer,
+          $$FamilyRecordsTableOrderingComposer,
+          $$FamilyRecordsTableAnnotationComposer,
+          $$FamilyRecordsTableCreateCompanionBuilder,
+          $$FamilyRecordsTableUpdateCompanionBuilder,
+          (
+            FamilyRecord,
+            BaseReferences<_$AppDatabase, $FamilyRecordsTable, FamilyRecord>,
+          ),
+          FamilyRecord,
+          PrefetchHooks Function()
+        > {
+  $$FamilyRecordsTableTableManager(_$AppDatabase db, $FamilyRecordsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FamilyRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FamilyRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FamilyRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> shareCode = const Value.absent(),
+                Value<String?> qrCodeData = const Value.absent(),
+                Value<String> createdBy = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> archivedAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyRecordsCompanion(
+                id: id,
+                name: name,
+                shareCode: shareCode,
+                qrCodeData: qrCodeData,
+                createdBy: createdBy,
+                status: status,
+                createdAt: createdAt,
+                archivedAt: archivedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String name,
+                required String shareCode,
+                Value<String?> qrCodeData = const Value.absent(),
+                required String createdBy,
+                Value<String> status = const Value.absent(),
+                required DateTime createdAt,
+                Value<DateTime?> archivedAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyRecordsCompanion.insert(
+                id: id,
+                name: name,
+                shareCode: shareCode,
+                qrCodeData: qrCodeData,
+                createdBy: createdBy,
+                status: status,
+                createdAt: createdAt,
+                archivedAt: archivedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FamilyRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FamilyRecordsTable,
+      FamilyRecord,
+      $$FamilyRecordsTableFilterComposer,
+      $$FamilyRecordsTableOrderingComposer,
+      $$FamilyRecordsTableAnnotationComposer,
+      $$FamilyRecordsTableCreateCompanionBuilder,
+      $$FamilyRecordsTableUpdateCompanionBuilder,
+      (
+        FamilyRecord,
+        BaseReferences<_$AppDatabase, $FamilyRecordsTable, FamilyRecord>,
+      ),
+      FamilyRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$FamilyMembershipRecordsTableCreateCompanionBuilder =
+    FamilyMembershipRecordsCompanion Function({
+      required String id,
+      required String familyId,
+      required String userId,
+      required String role,
+      required DateTime joinedAt,
+      Value<String?> invitedBy,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$FamilyMembershipRecordsTableUpdateCompanionBuilder =
+    FamilyMembershipRecordsCompanion Function({
+      Value<String> id,
+      Value<String> familyId,
+      Value<String> userId,
+      Value<String> role,
+      Value<DateTime> joinedAt,
+      Value<String?> invitedBy,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$FamilyMembershipRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $FamilyMembershipRecordsTable> {
+  $$FamilyMembershipRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get familyId => $composableBuilder(
+    column: $table.familyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get joinedAt => $composableBuilder(
+    column: $table.joinedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get invitedBy => $composableBuilder(
+    column: $table.invitedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FamilyMembershipRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FamilyMembershipRecordsTable> {
+  $$FamilyMembershipRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get familyId => $composableBuilder(
+    column: $table.familyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get role => $composableBuilder(
+    column: $table.role,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get joinedAt => $composableBuilder(
+    column: $table.joinedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get invitedBy => $composableBuilder(
+    column: $table.invitedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FamilyMembershipRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FamilyMembershipRecordsTable> {
+  $$FamilyMembershipRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get familyId =>
+      $composableBuilder(column: $table.familyId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get role =>
+      $composableBuilder(column: $table.role, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get joinedAt =>
+      $composableBuilder(column: $table.joinedAt, builder: (column) => column);
+
+  GeneratedColumn<String> get invitedBy =>
+      $composableBuilder(column: $table.invitedBy, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$FamilyMembershipRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FamilyMembershipRecordsTable,
+          FamilyMembershipRecord,
+          $$FamilyMembershipRecordsTableFilterComposer,
+          $$FamilyMembershipRecordsTableOrderingComposer,
+          $$FamilyMembershipRecordsTableAnnotationComposer,
+          $$FamilyMembershipRecordsTableCreateCompanionBuilder,
+          $$FamilyMembershipRecordsTableUpdateCompanionBuilder,
+          (
+            FamilyMembershipRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $FamilyMembershipRecordsTable,
+              FamilyMembershipRecord
+            >,
+          ),
+          FamilyMembershipRecord,
+          PrefetchHooks Function()
+        > {
+  $$FamilyMembershipRecordsTableTableManager(
+    _$AppDatabase db,
+    $FamilyMembershipRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FamilyMembershipRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$FamilyMembershipRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$FamilyMembershipRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> familyId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> role = const Value.absent(),
+                Value<DateTime> joinedAt = const Value.absent(),
+                Value<String?> invitedBy = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyMembershipRecordsCompanion(
+                id: id,
+                familyId: familyId,
+                userId: userId,
+                role: role,
+                joinedAt: joinedAt,
+                invitedBy: invitedBy,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String familyId,
+                required String userId,
+                required String role,
+                required DateTime joinedAt,
+                Value<String?> invitedBy = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyMembershipRecordsCompanion.insert(
+                id: id,
+                familyId: familyId,
+                userId: userId,
+                role: role,
+                joinedAt: joinedAt,
+                invitedBy: invitedBy,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FamilyMembershipRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FamilyMembershipRecordsTable,
+      FamilyMembershipRecord,
+      $$FamilyMembershipRecordsTableFilterComposer,
+      $$FamilyMembershipRecordsTableOrderingComposer,
+      $$FamilyMembershipRecordsTableAnnotationComposer,
+      $$FamilyMembershipRecordsTableCreateCompanionBuilder,
+      $$FamilyMembershipRecordsTableUpdateCompanionBuilder,
+      (
+        FamilyMembershipRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $FamilyMembershipRecordsTable,
+          FamilyMembershipRecord
+        >,
+      ),
+      FamilyMembershipRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$VehicleGrantRecordsTableCreateCompanionBuilder =
+    VehicleGrantRecordsCompanion Function({
+      required String id,
+      required String vehicleId,
+      required String userId,
+      required String grantedBy,
+      required String permission,
+      required DateTime createdAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$VehicleGrantRecordsTableUpdateCompanionBuilder =
+    VehicleGrantRecordsCompanion Function({
+      Value<String> id,
+      Value<String> vehicleId,
+      Value<String> userId,
+      Value<String> grantedBy,
+      Value<String> permission,
+      Value<DateTime> createdAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$VehicleGrantRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $VehicleGrantRecordsTable> {
+  $$VehicleGrantRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get grantedBy => $composableBuilder(
+    column: $table.grantedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get permission => $composableBuilder(
+    column: $table.permission,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VehicleGrantRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $VehicleGrantRecordsTable> {
+  $$VehicleGrantRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get grantedBy => $composableBuilder(
+    column: $table.grantedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get permission => $composableBuilder(
+    column: $table.permission,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VehicleGrantRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VehicleGrantRecordsTable> {
+  $$VehicleGrantRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get grantedBy =>
+      $composableBuilder(column: $table.grantedBy, builder: (column) => column);
+
+  GeneratedColumn<String> get permission => $composableBuilder(
+    column: $table.permission,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$VehicleGrantRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VehicleGrantRecordsTable,
+          VehicleGrantRecord,
+          $$VehicleGrantRecordsTableFilterComposer,
+          $$VehicleGrantRecordsTableOrderingComposer,
+          $$VehicleGrantRecordsTableAnnotationComposer,
+          $$VehicleGrantRecordsTableCreateCompanionBuilder,
+          $$VehicleGrantRecordsTableUpdateCompanionBuilder,
+          (
+            VehicleGrantRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $VehicleGrantRecordsTable,
+              VehicleGrantRecord
+            >,
+          ),
+          VehicleGrantRecord,
+          PrefetchHooks Function()
+        > {
+  $$VehicleGrantRecordsTableTableManager(
+    _$AppDatabase db,
+    $VehicleGrantRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VehicleGrantRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$VehicleGrantRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$VehicleGrantRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> grantedBy = const Value.absent(),
+                Value<String> permission = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VehicleGrantRecordsCompanion(
+                id: id,
+                vehicleId: vehicleId,
+                userId: userId,
+                grantedBy: grantedBy,
+                permission: permission,
+                createdAt: createdAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vehicleId,
+                required String userId,
+                required String grantedBy,
+                required String permission,
+                required DateTime createdAt,
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VehicleGrantRecordsCompanion.insert(
+                id: id,
+                vehicleId: vehicleId,
+                userId: userId,
+                grantedBy: grantedBy,
+                permission: permission,
+                createdAt: createdAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VehicleGrantRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VehicleGrantRecordsTable,
+      VehicleGrantRecord,
+      $$VehicleGrantRecordsTableFilterComposer,
+      $$VehicleGrantRecordsTableOrderingComposer,
+      $$VehicleGrantRecordsTableAnnotationComposer,
+      $$VehicleGrantRecordsTableCreateCompanionBuilder,
+      $$VehicleGrantRecordsTableUpdateCompanionBuilder,
+      (
+        VehicleGrantRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $VehicleGrantRecordsTable,
+          VehicleGrantRecord
+        >,
+      ),
+      VehicleGrantRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$DrivingLicenseRecordsTableCreateCompanionBuilder =
+    DrivingLicenseRecordsCompanion Function({
+      required String id,
+      required String userId,
+      Value<String?> licenseNumber,
+      Value<String?> issuingCountry,
+      required DateTime expiryDate,
+      Value<String?> categories,
+      Value<String?> frontMediaId,
+      Value<String?> backMediaId,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$DrivingLicenseRecordsTableUpdateCompanionBuilder =
+    DrivingLicenseRecordsCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String?> licenseNumber,
+      Value<String?> issuingCountry,
+      Value<DateTime> expiryDate,
+      Value<String?> categories,
+      Value<String?> frontMediaId,
+      Value<String?> backMediaId,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$DrivingLicenseRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $DrivingLicenseRecordsTable> {
+  $$DrivingLicenseRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get licenseNumber => $composableBuilder(
+    column: $table.licenseNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get issuingCountry => $composableBuilder(
+    column: $table.issuingCountry,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiryDate => $composableBuilder(
+    column: $table.expiryDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get categories => $composableBuilder(
+    column: $table.categories,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get frontMediaId => $composableBuilder(
+    column: $table.frontMediaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get backMediaId => $composableBuilder(
+    column: $table.backMediaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DrivingLicenseRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DrivingLicenseRecordsTable> {
+  $$DrivingLicenseRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get licenseNumber => $composableBuilder(
+    column: $table.licenseNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get issuingCountry => $composableBuilder(
+    column: $table.issuingCountry,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiryDate => $composableBuilder(
+    column: $table.expiryDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get categories => $composableBuilder(
+    column: $table.categories,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get frontMediaId => $composableBuilder(
+    column: $table.frontMediaId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get backMediaId => $composableBuilder(
+    column: $table.backMediaId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DrivingLicenseRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DrivingLicenseRecordsTable> {
+  $$DrivingLicenseRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get licenseNumber => $composableBuilder(
+    column: $table.licenseNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get issuingCountry => $composableBuilder(
+    column: $table.issuingCountry,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiryDate => $composableBuilder(
+    column: $table.expiryDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get categories => $composableBuilder(
+    column: $table.categories,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get frontMediaId => $composableBuilder(
+    column: $table.frontMediaId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get backMediaId => $composableBuilder(
+    column: $table.backMediaId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$DrivingLicenseRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DrivingLicenseRecordsTable,
+          DrivingLicenseRecord,
+          $$DrivingLicenseRecordsTableFilterComposer,
+          $$DrivingLicenseRecordsTableOrderingComposer,
+          $$DrivingLicenseRecordsTableAnnotationComposer,
+          $$DrivingLicenseRecordsTableCreateCompanionBuilder,
+          $$DrivingLicenseRecordsTableUpdateCompanionBuilder,
+          (
+            DrivingLicenseRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $DrivingLicenseRecordsTable,
+              DrivingLicenseRecord
+            >,
+          ),
+          DrivingLicenseRecord,
+          PrefetchHooks Function()
+        > {
+  $$DrivingLicenseRecordsTableTableManager(
+    _$AppDatabase db,
+    $DrivingLicenseRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DrivingLicenseRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$DrivingLicenseRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$DrivingLicenseRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String?> licenseNumber = const Value.absent(),
+                Value<String?> issuingCountry = const Value.absent(),
+                Value<DateTime> expiryDate = const Value.absent(),
+                Value<String?> categories = const Value.absent(),
+                Value<String?> frontMediaId = const Value.absent(),
+                Value<String?> backMediaId = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DrivingLicenseRecordsCompanion(
+                id: id,
+                userId: userId,
+                licenseNumber: licenseNumber,
+                issuingCountry: issuingCountry,
+                expiryDate: expiryDate,
+                categories: categories,
+                frontMediaId: frontMediaId,
+                backMediaId: backMediaId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                Value<String?> licenseNumber = const Value.absent(),
+                Value<String?> issuingCountry = const Value.absent(),
+                required DateTime expiryDate,
+                Value<String?> categories = const Value.absent(),
+                Value<String?> frontMediaId = const Value.absent(),
+                Value<String?> backMediaId = const Value.absent(),
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DrivingLicenseRecordsCompanion.insert(
+                id: id,
+                userId: userId,
+                licenseNumber: licenseNumber,
+                issuingCountry: issuingCountry,
+                expiryDate: expiryDate,
+                categories: categories,
+                frontMediaId: frontMediaId,
+                backMediaId: backMediaId,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DrivingLicenseRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DrivingLicenseRecordsTable,
+      DrivingLicenseRecord,
+      $$DrivingLicenseRecordsTableFilterComposer,
+      $$DrivingLicenseRecordsTableOrderingComposer,
+      $$DrivingLicenseRecordsTableAnnotationComposer,
+      $$DrivingLicenseRecordsTableCreateCompanionBuilder,
+      $$DrivingLicenseRecordsTableUpdateCompanionBuilder,
+      (
+        DrivingLicenseRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $DrivingLicenseRecordsTable,
+          DrivingLicenseRecord
+        >,
+      ),
+      DrivingLicenseRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -11795,4 +15123,15 @@ class $AppDatabaseManager {
       $$ExpensePartRecordsTableTableManager(_db, _db.expensePartRecords);
   $$NotificationRecordsTableTableManager get notificationRecords =>
       $$NotificationRecordsTableTableManager(_db, _db.notificationRecords);
+  $$FamilyRecordsTableTableManager get familyRecords =>
+      $$FamilyRecordsTableTableManager(_db, _db.familyRecords);
+  $$FamilyMembershipRecordsTableTableManager get familyMembershipRecords =>
+      $$FamilyMembershipRecordsTableTableManager(
+        _db,
+        _db.familyMembershipRecords,
+      );
+  $$VehicleGrantRecordsTableTableManager get vehicleGrantRecords =>
+      $$VehicleGrantRecordsTableTableManager(_db, _db.vehicleGrantRecords);
+  $$DrivingLicenseRecordsTableTableManager get drivingLicenseRecords =>
+      $$DrivingLicenseRecordsTableTableManager(_db, _db.drivingLicenseRecords);
 }

@@ -1,4 +1,8 @@
-import type { HTMLAttributes } from "react";
+import type { HTMLAttributes, TdHTMLAttributes } from "react";
+
+export interface TableCellProps extends TdHTMLAttributes<HTMLTableCellElement> {
+  colSpan?: number;
+}
 
 export function Table({
   className = "",
@@ -59,11 +63,13 @@ export function TableHeadCell({
 
 export function TableCell({
   className = "",
+  colSpan,
   ...props
-}: HTMLAttributes<HTMLTableCellElement>) {
+}: TableCellProps) {
   return (
     <td
       className={`px-4 py-3 text-ink ${className}`}
+      colSpan={colSpan}
       {...props}
     />
   );

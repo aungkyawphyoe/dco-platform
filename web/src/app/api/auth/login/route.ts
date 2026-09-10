@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { setSessionCookies } from "@/lib/auth/cookies";
+import { setAdminSessionCookies, setOwnerSessionCookies } from "@/lib/auth/cookies";
 import { upstream, type UpstreamSession } from "@/lib/api/upstream";
 
 const bodySchema = z.object({
@@ -32,17 +32,31 @@ export async function POST(request: NextRequest) {
   }
 
   const session = (await res.json()) as UpstreamSession;
-  if (session.user.role !== "admin") {
+
+  // Check if admin or primary owner with family
+  const isAdmin = session.user.role === "admin";
+  const isOwnerWithFamily = session.user.role === "owner" && session.user.family_id;
+
+  if (!isAdmin && !isOwnerWithFamily) {
     return NextResponse.json(
-      { error: { code: "unauthorized", message: "Invalid email or password" } },
-      { status: 401 },
+      { error: { code: "unauthorized", message: isAdmin ? "Admin access required" : "Family access required" } },
+      { status: 403 },
     );
   }
 
+  const redirectPath = isAdmin ? "/" : "/family";
   const out = NextResponse.json({
     user: session.user,
     access_token: session.access_token,
+    redirect: redirectPath,
+    role: isAdmin ? "admin" : "owner",
   });
-  setSessionCookies(out, session.access_token, session.refresh_token);
+  
+  if (isAdmin) {
+    setAdminSessionCookies(out, session.access_token, session.refresh_token);
+  } else {
+    setOwnerSessionCookies(out, session.access_token, session.refresh_token);
+  }
+  
   return out;
 }

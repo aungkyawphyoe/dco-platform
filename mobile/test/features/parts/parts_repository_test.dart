@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/core/sync/outbox_writer.dart';
+import 'package:dco_mobile/features/expenses/data/repositories/expense_repository_impl.dart';
 import 'package:dco_mobile/features/garage/data/repositories/vehicle_repository_impl.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/data/repositories/maintenance_repository_impl.dart';
@@ -26,6 +27,7 @@ void main() {
   late AppDatabase db;
   late VehicleRepositoryImpl vehicles;
   late PartsRepositoryImpl parts;
+  late ExpenseRepositoryImpl expenses;
   late MaintenanceRepositoryImpl maintenance;
 
   setUp(() {
@@ -33,7 +35,8 @@ void main() {
     final outbox = OutboxWriter(db);
     vehicles = VehicleRepositoryImpl(db: db, outbox: outbox);
     parts = PartsRepositoryImpl(db: db, outbox: outbox);
-    maintenance = MaintenanceRepositoryImpl(db: db, outbox: outbox);
+    expenses = ExpenseRepositoryImpl(db: db, outbox: outbox);
+    maintenance = MaintenanceRepositoryImpl(db: db, outbox: outbox, expenseRepository: expenses);
   });
 
   tearDown(() => db.close());

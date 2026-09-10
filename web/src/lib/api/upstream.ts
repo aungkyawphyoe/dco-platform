@@ -17,6 +17,7 @@ export type SessionUser = {
   display_name: string | null;
   role: "owner" | "admin";
   plan: "free" | "premium";
+  family_id: string | null;
 };
 
 export type UpstreamSession = {

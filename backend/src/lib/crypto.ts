@@ -8,12 +8,15 @@ const REFRESH_TYP = "refresh";
 
 export type Role = "owner" | "admin";
 export type Plan = "free" | "premium";
+export type FamilyRole = "primary_owner" | "member" | "driver" | null;
 
 export type AccessClaims = {
   sub: string;
   aud: string;
   role: Role;
   plan: Plan;
+  family_id: string | null;
+  family_role: FamilyRole;
   typ: typeof ACCESS_TYP;
 };
 
@@ -52,7 +55,13 @@ export async function signAccess(env: Env, input: Omit<AccessClaims, "typ" | "au
   const aud = input.aud ?? (input.role === "admin" ? env.JWT_ADMIN_AUD : env.JWT_OWNER_AUD);
   const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
   const expiresIn = ttlToSeconds(env.JWT_ACCESS_TTL);
-  const token = await new SignJWT({ role: input.role, plan: input.plan, typ: ACCESS_TYP })
+  const token = await new SignJWT({ 
+    role: input.role, 
+    plan: input.plan, 
+    family_id: input.family_id,
+    family_role: input.family_role,
+    typ: ACCESS_TYP 
+  })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(input.sub)
     .setAudience(aud)

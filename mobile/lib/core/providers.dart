@@ -230,3 +230,13 @@ final reminderSyncServiceProvider = Provider<ReminderSyncService>((ref) {
     analytics: ref.watch(analyticsProvider),
   );
 });
+
+final currentUserIdProvider = Provider<String?>((ref) {
+  final session = ref.watch(sessionControllerProvider).valueOrNull;
+  return session?.user.id;
+});
+
+final authUserProvider = Provider((ref) {
+  final session = ref.watch(sessionControllerProvider).valueOrNull;
+  return session?.user;
+});

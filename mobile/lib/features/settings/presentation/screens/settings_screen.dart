@@ -5,12 +5,38 @@ import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/features/family/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  void _showLeaveFamilyDialog(BuildContext context, WidgetRef ref, family) {
+    showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Leave Family?'),
+        content: Text('Are you sure you want to leave "${family.name}"? You will lose access to all shared vehicles.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text('Leave', style: TextStyle(color: context.tokens.status.dangerFg)),
+          ),
+        ],
+      ),
+    ).then((confirmed) async {
+      if (confirmed == true && context.mounted) {
+        final repo = ref.read(familyRepositoryProvider);
+        // await repo.leaveFamily(); // Implement when leaveFamily is added to repository
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Left family')));
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -66,6 +92,67 @@ class SettingsScreen extends ConsumerWidget {
             ),
             trailing: Icon(Icons.chevron_right, color: tokens.icon.inactive),
             onTap: () => context.push(AppRoutes.settingsUnits),
+          ),
+          SizedBox(height: tokens.space.s4),
+          Text('Family', style: Theme.of(context).textTheme.titleMedium?.copyWith(color: tokens.text.primary)),
+          SizedBox(height: tokens.space.s2),
+          ref.watch(myFamilyProvider).when(
+            loading: () => ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Loading family...'),
+              leading: SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+            error: (_, _) => ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Failed to load family'),
+              subtitle: const Text('Tap to retry'),
+              onTap: () => ref.invalidate(myFamilyProvider),
+            ),
+            data: (family) {
+              if (family == null) {
+                return Column(
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Create Family'),
+                      subtitle: const Text('Start a new family group to share vehicles'),
+                      trailing: Icon(Icons.chevron_right, color: tokens.icon.inactive),
+                      onTap: () => context.push(AppRoutes.familyCreate),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      title: const Text('Join Family'),
+                      subtitle: const Text('Enter a share code or scan QR to join a family'),
+                      trailing: Icon(Icons.chevron_right, color: tokens.icon.inactive),
+                      onTap: () => context.push(AppRoutes.familyManage),
+                    ),
+                  ],
+                );
+              }
+              return Column(
+                children: [
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: CircleAvatar(
+                      backgroundColor: tokens.text.accent,
+                      child: Text(family.name.isNotEmpty ? family.name[0].toUpperCase() : 'F',
+                          style: TextStyle(color: tokens.text.onAccent)),
+                    ),
+                    title: Text(family.name),
+                    subtitle: Text('${family.myRole?.toUpperCase()} • Share Code: ${family.shareCode}'),
+                    trailing: Icon(Icons.chevron_right, color: tokens.icon.inactive),
+                    onTap: () => context.push(AppRoutes.familyManage),
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: const Text('Leave Family'),
+                    subtitle: const Text('Leave this family group'),
+                    trailing: Icon(Icons.chevron_right, color: tokens.icon.inactive),
+                    onTap: () => _showLeaveFamilyDialog(context, ref, family),
+                  ),
+                ],
+              );
+            },
           ),
           SizedBox(height: tokens.space.s7),
           DcoButton(

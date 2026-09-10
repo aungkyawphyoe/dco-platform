@@ -7,6 +7,7 @@ import { AppError } from "../lib/errors.js";
 import { dateOnly, getUser, num, recordChange, reqNum } from "../lib/dbx.js";
 import { publicUser, publicVehicle } from "../lib/serialize.js";
 import { requireOwner } from "./auth.js";
+import { getFamilyVehicleDetail } from "./family.js";
 
 const fuelEnum = z.enum(["petrol", "electric", "hybrid_plugin"]);
 
@@ -274,5 +275,14 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
       })),
       next_maintenance: await nextMaintenance(app.db, row.id, reqNum(row.mileage)),
     };
+  });
+
+  // Vehicle detail with family grants, documents, assigned drivers
+  app.get("/vehicles/:vehicleId/detail", async (request) => {
+    requireOwner(request);
+    const { vehicleId } = request.params as { vehicleId: string };
+    const detail = await getFamilyVehicleDetail(app.db, vehicleId, request.authUser!.sub);
+    if (!detail) throw new AppError(403, "no_vehicle_access", "No access to this vehicle");
+    return detail;
   });
 };

@@ -12,6 +12,7 @@ import { healthPlugin } from "./modules/health.js";
 import { mePlugin } from "./modules/me.js";
 import { vehiclesPlugin } from "./modules/vehicles.js";
 import { ownerPlugin } from "./modules/owner.js";
+import { familyPlugin } from "./modules/family.js";
 import { mediaPlugin } from "./modules/media.js";
 import { syncPlugin } from "./modules/sync.js";
 import { adminPlugin } from "./modules/admin.js";
@@ -55,6 +56,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(mePlugin);
       await v1.register(vehiclesPlugin);
       await v1.register(ownerPlugin);
+      await v1.register(familyPlugin);
       await v1.register(mediaPlugin);
       await v1.register(syncPlugin);
       await v1.register(adminPlugin);

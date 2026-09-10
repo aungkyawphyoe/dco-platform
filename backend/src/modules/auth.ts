@@ -1,7 +1,7 @@
 import { and, eq, gt, isNull } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { emailTokens, fuelTypes, refreshTokens, users } from "../db/schema.js";
+import { emailTokens, familyMemberships, fuelTypes, refreshTokens, users } from "../db/schema.js";
 import { DEFAULT_FUEL_TYPES } from "../lib/catalog.js";
 import {
   hashPassword,
@@ -270,10 +270,27 @@ async function issueSession(
   user: typeof users.$inferSelect,
   familyId = newId(),
 ) {
+  // Fetch family membership for the user
+  let family_id: string | null = null;
+  let family_role: "primary_owner" | "member" | "driver" | null = null;
+  if (user.role === "owner") {
+    const [membership] = await app.db
+      .select({ familyId: familyMemberships.familyId, role: familyMemberships.role })
+      .from(familyMemberships)
+      .where(eq(familyMemberships.userId, user.id))
+      .limit(1);
+    if (membership) {
+      family_id = membership.familyId;
+      family_role = membership.role as "primary_owner" | "member" | "driver";
+    }
+  }
+
   const access = await signAccess(app.env, {
     sub: user.id,
     role: user.role,
     plan: user.plan,
+    family_id,
+    family_role,
   });
   const jti = newId();
   const refresh = await signRefresh(app.env, user.id, familyId, jti);

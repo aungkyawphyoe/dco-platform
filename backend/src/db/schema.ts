@@ -10,6 +10,7 @@ import {
   text,
   timestamp,
   uuid,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("user_role", ["owner", "admin"]);
@@ -51,6 +52,9 @@ export const notificationStatusEnum = pgEnum("notification_status", [
   "dismissed",
 ]);
 export const dueReasonEnum = pgEnum("due_reason", ["date", "mileage", "both"]);
+export const familyRoleEnum = pgEnum("family_role", ["primary_owner", "member", "driver"]);
+export const grantPermissionEnum = pgEnum("grant_permission", ["full", "drive_only"]);
+export const familyStatusEnum = pgEnum("family_status", ["active", "archived"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
@@ -62,6 +66,7 @@ export const users = pgTable("users", {
   status: accountStatusEnum("status").notNull().default("active"),
   emailVerified: boolean("email_verified").notNull().default(false),
   activeVehicleId: uuid("active_vehicle_id"),
+  familyId: uuid("family_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -302,4 +307,66 @@ export const auditEvents = pgTable("audit_events", {
   action: text("action").notNull(),
   detail: jsonb("detail").notNull(),
   at: timestamp("at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const families = pgTable("families", {
+  id: uuid("id").primaryKey(),
+  name: text("name").notNull(),
+  shareCode: text("share_code").notNull().unique(),
+  qrCodeData: jsonb("qr_code_data"),
+  createdBy: uuid("created_by")
+    .notNull()
+    .references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  status: familyStatusEnum("status").notNull().default("active"),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+});
+
+export const familyMemberships = pgTable("family_memberships", {
+  id: uuid("id").primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  role: familyRoleEnum("role").notNull(),
+  joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  invitedBy: uuid("invited_by").references(() => users.id),
+}, (table) => ({
+  uniqueFamilyUser: unique().on(table.familyId, table.userId),
+  uniqueUser: unique().on(table.userId),
+}));
+
+export const vehicleGrants = pgTable("vehicle_grants", {
+  id: uuid("id").primaryKey(),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  grantedBy: uuid("granted_by")
+    .notNull()
+    .references(() => users.id),
+  permission: grantPermissionEnum("permission").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  uniqueVehicleUser: unique().on(table.vehicleId, table.userId),
+}));
+
+export const drivingLicenses = pgTable("driving_licenses", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  licenseNumber: text("license_number"),
+  issuingCountry: text("issuing_country"),
+  expiryDate: date("expiry_date").notNull(),
+  categories: text("categories"),
+  frontMediaId: uuid("front_media_id").references(() => mediaObjects.id),
+  backMediaId: uuid("back_media_id").references(() => mediaObjects.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
