@@ -107,19 +107,30 @@ New frame in tldraw (Settings cluster)
 #### Vehicles Tab
 ```
 ┌─────────────────────────────────────┐
-│  [Vehicle Card]                     │
-│  📷 Daily Driver    ABC-1234        │
-│  2023 Tesla Model 3  •  45,200 mi  │
-│  [Driver badge ×2] [Member badge]  │  ← Chips for assigned drivers
+│  Family Vehicles            [+ Add] │  ← Add button for owner only
 │                                     │
-│  [Vehicle Card]                     │
-│  📷 Weekend Car     XYZ-789         │
-│  2020 Honda Civic     •  78,500 mi  │
-│  [Driver badge]                     │
+│  ┌─────────────────────────────┐   │
+│  │  📷 Daily Driver  [Family]  │   │  ← Family badge for shared vehicles
+│  │  2023 Tesla Model 3         │   │
+│  │  ABC-1234  •  45,200 km     │   │
+│  │                     [🗑️]    │   │  ← Delete button for owner only
+│  └─────────────────────────────┘   │
+│                                     │
+│  ┌─────────────────────────────┐   │
+│  │  📷 Weekend Car   [Family]  │   │
+│  │  2020 Honda Civic           │   │
+│  │  XYZ-789   •  78,500 km     │   │
+│  │                     [🗑️]    │   │
+│  └─────────────────────────────┘   │
 └─────────────────────────────────────┘
 ```
-- Reuses `VehicleCard` from Garage Home
-- Adds driver chips below vehicle info
+- Reuses `VehicleCard` from Garage Home with `isFamily: true`
+- Shows "Family" badge for shared vehicles
+- **Owner sees**: Add button and delete button on each vehicle
+- **Member/Driver sees**: Read-only list
+- Empty state (owner): "No vehicles in family. Tap 'Add' to share a vehicle with your family"
+- Empty state (member): "No vehicles in family. Ask the owner to share a vehicle"
+- API: `GET /families/me/vehicles`, `POST /families/me/vehicles`, `DELETE /families/me/vehicles/:vehicleId`
 
 #### Invite Tab
 ```

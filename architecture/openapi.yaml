@@ -1385,6 +1385,83 @@ paths:
           $ref: '#/components/responses/Error'
         '404':
           $ref: '#/components/responses/Error'
+  /families/me/vehicles:
+    get:
+      tags: [Family]
+      summary: List family vehicles
+      description: >-
+        Owner sees all their non-archived vehicles that are in the family.
+        Member/Driver sees vehicles they have grants for.
+      responses:
+        '200':
+          description: Vehicle list with permission info
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/FamilyVehicle'
+        '404':
+          $ref: '#/components/responses/Error'
+    post:
+      tags: [Family]
+      summary: Add vehicle to family (Primary Owner only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [vehicle_id]
+              properties:
+                vehicle_id:
+                  type: string
+                  format: uuid
+      responses:
+        '201':
+          description: Vehicle added to family
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  family_id:
+                    type: string
+                    format: uuid
+                  vehicle_id:
+                    type: string
+                    format: uuid
+                  added_by:
+                    type: string
+                    format: uuid
+                  added_at:
+                    type: string
+                    format: date-time
+        '403':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /families/me/vehicles/{vehicleId}:
+    delete:
+      tags: [Family]
+      summary: Remove vehicle from family (Primary Owner only)
+      description: Removes vehicle from family and auto-revokes all grants for it.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '204':
+          description: Removed
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
   /users/me/license:
     get:
       tags: [Family]
@@ -2459,7 +2536,7 @@ components:
       properties:
         entity_type:
           type: string
-          enum: [vehicle, plan_item, service_record, document, expense, notification, media, part, fuel_type, fuel_log]
+          enum: [vehicle, plan_item, service_record, document, expense, notification, media, part, fuel_type, fuel_log, family, family_membership, vehicle_grant, driving_license, family_vehicle]
         entity_id:
           type: string
           format: uuid
@@ -2656,6 +2733,8 @@ components:
           type: string
           format: date-time
           nullable: true
+        vehicle_count:
+          type: integer
     FamilyLookup:
       type: object
       properties:
@@ -2717,6 +2796,18 @@ components:
         created_at:
           type: string
           format: date-time
+    FamilyVehicle:
+      allOf:
+        - $ref: '#/components/schemas/Vehicle'
+        - type: object
+          properties:
+            source:
+              type: string
+              enum: [owned, family]
+            permission:
+              type: string
+              enum: [full, drive_only]
+              nullable: true
     DrivingLicense:
       type: object
       properties:

@@ -33,6 +33,8 @@ class ChangeApplier {
         await _applyExpense(change);
       case OutboxEntityType.notification:
         await _applyNotification(change, userId);
+      case OutboxEntityType.familyVehicle:
+        await _applyFamilyVehicle(change);
       default:
       // document / media / user have no local tables yet; nothing to apply.
         break;
@@ -356,6 +358,29 @@ class ChangeApplier {
         cycleKey: Value(_strN(payload['cycle_key']) ?? existing?.cycleKey),
         createdAt: _dt(payload['created_at']) ?? change.serverTs,
         updatedAt: change.serverTs,
+      ),
+    );
+  }
+
+  Future<void> _applyFamilyVehicle(SyncChange change) async {
+    final payload = change.payload;
+    final id = _idOf(payload, change);
+    if (change.op == SyncChangeOp.delete) {
+      await (_db.delete(_db.familyVehicleRecords)..where((row) => row.id.equals(id))).go();
+      return;
+    }
+    final existing = await (_db.select(
+      _db.familyVehicleRecords,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+
+    await _db.into(_db.familyVehicleRecords).insertOnConflictUpdate(
+      FamilyVehicleRecordsCompanion.insert(
+        id: id,
+        familyId: _str(payload['family_id']),
+        vehicleId: _str(payload['vehicle_id']),
+        addedBy: _str(payload['added_by']),
+        addedAt: _dt(payload['added_at']) ?? change.serverTs,
+        syncedAt: Value(change.serverTs),
       ),
     );
   }

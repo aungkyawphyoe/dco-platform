@@ -7,6 +7,7 @@ import {
   drivingLicenses,
   families,
   familyMemberships,
+  familyVehicles,
   mediaObjects,
   users,
   vehicleGrants,
@@ -147,7 +148,11 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     const [family] = await db().select().from(families).where(eq(families.id, membership.familyId)).limit(1);
     if (!family || family.status === "archived") throw new AppError(404, "no_family", "Not a member of any family");
 
-    return { ...publicFamily(family), my_role: membership.role };
+    const [fvCount] = await db().select({ count: sql`count(*)` })
+      .from(familyVehicles)
+      .where(eq(familyVehicles.familyId, family.id));
+
+    return { ...publicFamily(family), my_role: membership.role, vehicle_count: Number(fvCount?.count ?? 0) };
   });
 
   // Lookup family by share code
@@ -400,6 +405,149 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
 
     return reply.code(204).send();
   });
+
+  // ─── Family Vehicles ────────────────────────────────────────────────
+
+  // List family vehicles
+  app.get("/families/me/vehicles", async (request) => {
+    requireOwner(request);
+    const userId = uid(request);
+
+    const [membership] = await db().select().from(familyMemberships)
+      .where(eq(familyMemberships.userId, userId)).limit(1);
+    if (!membership) throw new AppError(404, "no_family", "Not a member of any family");
+
+    if (membership.role === "primary_owner") {
+      // Owner sees all their non-archived vehicles that are in family_vehicles
+      const rows = await db().select({
+        vehicle: vehicles,
+        fv: familyVehicles,
+      })
+        .from(familyVehicles)
+        .innerJoin(vehicles, eq(familyVehicles.vehicleId, vehicles.id))
+        .where(
+          and(
+            eq(familyVehicles.familyId, membership.familyId),
+            eq(vehicles.userId, userId),
+            eq(vehicles.archived, false),
+          ),
+        );
+
+      return {
+        items: rows.map((r) => ({
+          ...publicVehicle(r.vehicle),
+          source: "family",
+          permission: null,
+        })),
+      };
+    }
+
+    // Member/Driver sees vehicles they have grants for that are in family_vehicles
+    const rows = await db().select({
+      vehicle: vehicles,
+      grant: vehicleGrants,
+    })
+      .from(vehicleGrants)
+      .innerJoin(vehicles, eq(vehicleGrants.vehicleId, vehicles.id))
+      .innerJoin(familyVehicles, eq(familyVehicles.vehicleId, vehicles.id))
+      .where(
+        and(
+          eq(vehicleGrants.userId, userId),
+          eq(familyVehicles.familyId, membership.familyId),
+          eq(vehicles.archived, false),
+        ),
+      );
+
+    return {
+      items: rows.map((r) => ({
+        ...publicVehicle(r.vehicle),
+        source: "family",
+        permission: r.grant.permission,
+      })),
+    };
+  });
+
+  // Add vehicle to family (Primary Owner only)
+  app.post("/families/me/vehicles", async (request, reply) => {
+    requireOwner(request);
+    const userId = uid(request);
+    const body = z.object({ vehicle_id: uuid }).parse(request.body);
+
+    const [membership] = await db().select().from(familyMemberships)
+      .where(and(eq(familyMemberships.userId, userId), eq(familyMemberships.role, "primary_owner"))).limit(1);
+    if (!membership) throw new AppError(403, "not_primary_owner", "Only Primary Owner can add vehicles");
+
+    // Verify vehicle belongs to the requesting user and is not archived
+    const [vehicle] = await db().select().from(vehicles)
+      .where(and(eq(vehicles.id, body.vehicle_id), eq(vehicles.userId, userId), eq(vehicles.archived, false))).limit(1);
+    if (!vehicle) throw new AppError(404, "vehicle_not_found", "Vehicle not found or not owned by you");
+
+    // Check if already in family
+    const [existing] = await db().select().from(familyVehicles)
+      .where(and(eq(familyVehicles.familyId, membership.familyId), eq(familyVehicles.vehicleId, body.vehicle_id))).limit(1);
+    if (existing) throw new AppError(409, "vehicle_already_in_family", "Vehicle is already in this family");
+
+    const id = newId();
+    const [row] = await db().insert(familyVehicles).values({
+      id,
+      familyId: membership.familyId,
+      vehicleId: body.vehicle_id,
+      addedBy: userId,
+    }).returning();
+
+    await recordChange(db(), {
+      userId,
+      entityType: "family_vehicle",
+      entityId: id,
+      op: "upsert",
+      payload: { id: row.id, family_id: row.familyId, vehicle_id: row.vehicleId, added_by: row.addedBy, added_at: iso(row.addedAt) },
+    });
+
+    return reply.code(201).send({
+      id: row.id,
+      family_id: row.familyId,
+      vehicle_id: row.vehicleId,
+      added_by: row.addedBy,
+      added_at: iso(row.addedAt),
+    });
+  });
+
+  // Remove vehicle from family (Primary Owner only)
+  app.delete("/families/me/vehicles/:vehicleId", async (request, reply) => {
+    requireOwner(request);
+    const userId = uid(request);
+    const vehicleId = (request.params as { vehicleId: string }).vehicleId;
+
+    const [membership] = await db().select().from(familyMemberships)
+      .where(and(eq(familyMemberships.userId, userId), eq(familyMemberships.role, "primary_owner"))).limit(1);
+    if (!membership) throw new AppError(403, "not_primary_owner", "Only Primary Owner can remove vehicles");
+
+    const [fv] = await db().select().from(familyVehicles)
+      .where(and(eq(familyVehicles.familyId, membership.familyId), eq(familyVehicles.vehicleId, vehicleId))).limit(1);
+    if (!fv) throw new AppError(404, "vehicle_not_in_family", "Vehicle is not in this family");
+
+    // Auto-revoke all grants for this vehicle in this family
+    await db().delete(vehicleGrants).where(
+      and(
+        eq(vehicleGrants.vehicleId, vehicleId),
+        sql`${vehicleGrants.userId} IN (SELECT user_id FROM ${familyMemberships} WHERE ${familyMemberships.familyId} = ${membership.familyId})`,
+      ),
+    );
+
+    await db().delete(familyVehicles).where(eq(familyVehicles.id, fv.id));
+
+    await recordChange(db(), {
+      userId,
+      entityType: "family_vehicle",
+      entityId: fv.id,
+      op: "delete",
+      payload: { id: fv.id, family_id: fv.familyId, vehicle_id: fv.vehicleId },
+    });
+
+    return reply.code(204).send();
+  });
+
+  // ─── Driving License ────────────────────────────────────────────────
 
   // Get my driving license
   app.get("/users/me/license", async (request) => {

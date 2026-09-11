@@ -15,6 +15,8 @@ class VehicleCard extends StatelessWidget {
     this.lengthUnit = MileageUnit.km,
     this.onSetActive,
     this.onEdit,
+    this.isFamily = false,
+    this.onDelete,
   });
 
   final Vehicle vehicle;
@@ -23,6 +25,8 @@ class VehicleCard extends StatelessWidget {
   final MileageUnit lengthUnit;
   final VoidCallback? onSetActive;
   final VoidCallback? onEdit;
+  final bool isFamily;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -48,9 +52,24 @@ class VehicleCard extends StatelessWidget {
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            vehicle.displayName,
-                            style: Theme.of(context).textTheme.titleMedium,
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  vehicle.displayName,
+                                  style: Theme.of(context).textTheme.titleMedium,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (isFamily || vehicle.source == VehicleSource.family) ...[
+                                SizedBox(width: tokens.space.s2),
+                                _Badge(
+                                  label: 'Family',
+                                  color: tokens.text.accent,
+                                  background: tokens.background.card,
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                         if (isActive)
@@ -69,6 +88,14 @@ class VehicleCard extends StatelessWidget {
                             tooltip: 'Edit vehicle',
                             onPressed: onEdit,
                             icon: Icon(Icons.edit_outlined, size: 20, color: tokens.icon.inactive),
+                            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                            padding: EdgeInsets.zero,
+                          ),
+                        if (onDelete != null)
+                          IconButton(
+                            tooltip: 'Remove from family',
+                            onPressed: onDelete,
+                            icon: Icon(Icons.delete_outline, size: 20, color: tokens.status.dangerFg),
                             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                             padding: EdgeInsets.zero,
                           ),

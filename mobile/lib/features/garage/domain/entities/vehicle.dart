@@ -27,6 +27,20 @@ enum FuelType {
   }
 }
 
+enum VehicleSource {
+  owned,
+  family;
+
+  String get storage => name;
+
+  static VehicleSource parse(String value) {
+    return VehicleSource.values.firstWhere(
+      (type) => type.storage == value,
+      orElse: () => VehicleSource.owned,
+    );
+  }
+}
+
 class Vehicle {
   const Vehicle({
     required this.id,
@@ -50,6 +64,8 @@ class Vehicle {
     this.photoLocalPath,
     this.photoMediaId,
     this.archivedAt,
+    this.source = VehicleSource.owned,
+    this.permission,
   });
 
   final String id;
@@ -73,6 +89,8 @@ class Vehicle {
   final DateTime? archivedAt;
   final DateTime updatedAt;
   final DateTime createdAt;
+  final VehicleSource source;
+  final String? permission;
 
   String get displayName {
     final nick = nickname?.trim();

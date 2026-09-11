@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dco_mobile/core/units/mileage_unit.dart';
+import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart' show Vehicle, VehicleSource, FuelType;
 
 String? _parseQrCodeData(dynamic value) {
   if (value == null) return null;
@@ -97,6 +98,7 @@ class Family {
     required this.createdAt,
     this.archivedAt,
     this.myRole,
+    this.vehicleCount = 0,
   });
 
   final String id;
@@ -108,6 +110,7 @@ class Family {
   final DateTime createdAt;
   final DateTime? archivedAt;
   final String? myRole;
+  final int vehicleCount;
 
   FamilyStatus get statusEnum => FamilyStatus.parse(status);
 
@@ -122,6 +125,7 @@ class Family {
       createdAt: DateTime.parse(json['created_at'] as String),
       archivedAt: json['archived_at'] != null ? DateTime.parse(json['archived_at'] as String) : null,
       myRole: json['my_role'] as String?,
+      vehicleCount: json['vehicle_count'] as int? ?? 0,
     );
   }
 
@@ -135,6 +139,7 @@ class Family {
     'created_at': createdAt.toIso8601String(),
     'archived_at': archivedAt?.toIso8601String(),
     'my_role': myRole,
+    'vehicle_count': vehicleCount,
   };
 }
 
@@ -449,6 +454,9 @@ class FamilyVehicle {
     required this.archived,
     this.archivedAt,
     required this.updatedAt,
+    this.createdAt,
+    this.source = 'family',
+    this.permission,
   });
 
   final String id;
@@ -470,6 +478,48 @@ class FamilyVehicle {
   final bool archived;
   final String? archivedAt;
   final DateTime updatedAt;
+  final DateTime? createdAt;
+  final String source;
+  final String? permission;
+
+  String get displayName {
+    final nick = nickname?.trim();
+    if (nick != null && nick.isNotEmpty) return nick;
+    return name;
+  }
+
+  String get yearMakeModel => '$year $make $model';
+
+  /// Convert to Vehicle entity for use in VehicleCard
+  Vehicle toVehicle() {
+    return Vehicle(
+      id: id,
+      userId: userId,
+      name: name,
+      make: make,
+      model: model,
+      year: year,
+      licensePlate: licensePlate,
+      fuelType: FuelType.parse(fuelType),
+      mileage: mileage,
+      mileageUnit: MileageUnit.values.firstWhere(
+        (u) => u.name == mileageUnit,
+        orElse: () => MileageUnit.km,
+      ),
+      archived: archived,
+      updatedAt: updatedAt,
+      createdAt: createdAt ?? DateTime.now(),
+      nickname: nickname,
+      vin: vin,
+      color: color,
+      purchaseDate: purchaseDate != null ? DateTime.tryParse(purchaseDate!) : null,
+      purchasePrice: purchasePrice,
+      photoMediaId: photoMediaId,
+      archivedAt: archivedAt != null ? DateTime.tryParse(archivedAt!) : null,
+      source: VehicleSource.parse(source),
+      permission: permission,
+    );
+  }
 
   factory FamilyVehicle.fromJson(Map<String, dynamic> json) {
     return FamilyVehicle(
@@ -485,13 +535,16 @@ class FamilyVehicle {
       color: json['color'] as String?,
       fuelType: json['fuel_type'] as String,
       mileage: (json['mileage'] as num).toDouble(),
-      mileageUnit: json['mileage_unit'] as String,
+      mileageUnit: json['mileage_unit'] as String? ?? 'mi',
       purchaseDate: json['purchase_date'] as String?,
       purchasePrice: (json['purchase_price'] as num?)?.toDouble(),
       photoMediaId: json['photo_media_id'] as String?,
-      archived: json['archived'] as bool,
+      archived: json['archived'] as bool? ?? false,
       archivedAt: json['archived_at'] as String?,
       updatedAt: DateTime.parse(json['updated_at'] as String),
+      createdAt: json['created_at'] != null ? DateTime.parse(json['created_at'] as String) : null,
+      source: json['source'] as String? ?? 'family',
+      permission: json['permission'] as String?,
     );
   }
 }

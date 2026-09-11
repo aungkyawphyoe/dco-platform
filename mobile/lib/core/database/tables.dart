@@ -25,6 +25,8 @@ class VehicleRecords extends Table {
   DateTimeColumn get archivedAt => dateTime().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
+  TextColumn get source => text().withDefault(const Constant('owned'))();
+  TextColumn get permission => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
@@ -273,6 +275,21 @@ class VehicleGrantRecords extends Table {
   TextColumn get grantedBy => text()();
   TextColumn get permission => text()(); // full, drive_only
   DateTimeColumn get createdAt => dateTime()();
+  DateTimeColumn get syncedAt => dateTime().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class FamilyVehicleRecords extends Table {
+  @override
+  String get tableName => 'family_vehicles';
+
+  TextColumn get id => text()();
+  TextColumn get familyId => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get addedBy => text()();
+  DateTimeColumn get addedAt => dateTime()();
   DateTimeColumn get syncedAt => dateTime().nullable()();
 
   @override

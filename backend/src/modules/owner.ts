@@ -74,6 +74,45 @@ async function loadService(appDb: Db, id: string) {
   };
 }
 
+/**
+ * Record a change under the acting user, and also under the vehicle owner
+ * if they are different people. This ensures the vehicle owner's sync
+ * picks up maintenance/expense logs created by family members.
+ */
+async function recordVehicleScopedChange(
+  appDb: Db,
+  params: {
+    actorUserId: string;
+    vehicleId: string;
+    entityType: string;
+    entityId: string;
+    op: string;
+    payload: Record<string, unknown> | null;
+  },
+) {
+  if (!params.payload) return;
+
+  await recordChange(appDb, {
+    userId: params.actorUserId,
+    entityType: params.entityType,
+    entityId: params.entityId,
+    op: params.op as "upsert" | "archive" | "delete",
+    payload: params.payload,
+  });
+
+  const [vehicle] = await appDb.select().from(vehicles)
+    .where(eq(vehicles.id, params.vehicleId)).limit(1);
+  if (vehicle && vehicle.userId !== params.actorUserId) {
+    await recordChange(appDb, {
+      userId: vehicle.userId,
+      entityType: params.entityType,
+      entityId: params.entityId,
+      op: params.op as "upsert" | "archive" | "delete",
+      payload: params.payload,
+    });
+  }
+}
+
 export const ownerPlugin: FastifyPluginAsync = async (app) => {
   const db = () => app.db;
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
@@ -123,7 +162,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       })
       .returning();
     const payload = publicPlan(row);
-    await recordChange(db(), { userId: uid(request), entityType: "plan_item", entityId: row.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "plan_item", entityId: row.id, op: "upsert", payload });
     return reply.code(201).send(payload);
   });
 
@@ -163,7 +202,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       .where(eq(planItems.id, planItemId))
       .returning();
     const payload = publicPlan(updated);
-    await recordChange(db(), { userId: uid(request), entityType: "plan_item", entityId: updated.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: updated.vehicleId, entityType: "plan_item", entityId: updated.id, op: "upsert", payload });
     return payload;
   });
 
@@ -174,7 +213,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     if (!row) return reply.code(204).send();
     await getOwnedVehicle(db(), uid(request), row.vehicleId, true);
     await db().delete(planItems).where(eq(planItems.id, planItemId));
-    await recordChange(db(), { userId: uid(request), entityType: "plan_item", entityId: planItemId, op: "delete", payload: { id: planItemId } });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "plan_item", entityId: planItemId, op: "delete", payload: { id: planItemId } });
     return reply.code(204).send();
   });
 
@@ -259,7 +298,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       await db().update(vehicles).set({ mileage: String(body.odometer), updatedAt: new Date() }).where(eq(vehicles.id, vehicleId));
     }
     const payload = await loadService(db(), body.id);
-    await recordChange(db(), { userId: uid(request), entityType: "service_record", entityId: body.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "service_record", entityId: body.id, op: "upsert", payload });
     return reply.code(201).send(payload);
   });
 
@@ -291,7 +330,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       })
       .where(eq(serviceRecords.id, serviceRecordId));
     const payload = await loadService(db(), serviceRecordId);
-    await recordChange(db(), { userId: uid(request), entityType: "service_record", entityId: serviceRecordId, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: existing.vehicle_id, entityType: "service_record", entityId: serviceRecordId, op: "upsert", payload });
     return payload;
   });
 
@@ -353,7 +392,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       part_number: row.partNumber,
       notes: row.notes,
     };
-    await recordChange(db(), { userId: uid(request), entityType: "part", entityId: row.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "part", entityId: row.id, op: "upsert", payload });
     return reply.code(201).send(payload);
   });
 
@@ -387,7 +426,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       part_number: updated.partNumber,
       notes: updated.notes,
     };
-    await recordChange(db(), { userId: uid(request), entityType: "part", entityId: updated.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: updated.vehicleId, entityType: "part", entityId: updated.id, op: "upsert", payload });
     return payload;
   });
 
@@ -520,7 +559,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       })
       .returning();
     const payload = publicFuelLog(row);
-    await recordChange(db(), { userId: uid(request), entityType: "fuel_log", entityId: row.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "fuel_log", entityId: row.id, op: "upsert", payload });
     return reply.code(201).send(payload);
   });
 
@@ -566,7 +605,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       .where(eq(fuelLogs.id, fuelLogId))
       .returning();
     const payload = publicFuelLog(updated);
-    await recordChange(db(), { userId: uid(request), entityType: "fuel_log", entityId: updated.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "fuel_log", entityId: updated.id, op: "upsert", payload });
     return payload;
   });
 
@@ -615,7 +654,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       })
       .returning();
     const payload = publicDoc(row);
-    await recordChange(db(), { userId: uid(request), entityType: "document", entityId: row.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "document", entityId: row.id, op: "upsert", payload });
     return reply.code(201).send(payload);
   });
 
@@ -651,7 +690,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       .where(eq(documents.id, documentId))
       .returning();
     const payload = publicDoc(updated);
-    await recordChange(db(), { userId: uid(request), entityType: "document", entityId: updated.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "document", entityId: updated.id, op: "upsert", payload });
     return payload;
   });
 
@@ -662,7 +701,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     if (row) {
       await getOwnedVehicle(db(), uid(request), row.vehicleId, true);
       await db().delete(documents).where(eq(documents.id, documentId));
-      await recordChange(db(), { userId: uid(request), entityType: "document", entityId: documentId, op: "delete", payload: { id: documentId } });
+      await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "document", entityId: documentId, op: "delete", payload: { id: documentId } });
     }
     return reply.code(204).send();
   });
@@ -730,7 +769,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       });
     }
     const payload = await publicExpense(body.id);
-    await recordChange(db(), { userId: uid(request), entityType: "expense", entityId: body.id, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "expense", entityId: body.id, op: "upsert", payload });
     return reply.code(201).send(payload);
   });
 
@@ -773,7 +812,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       })
       .where(eq(expenses.id, expenseId));
     const payload = await publicExpense(expenseId);
-    await recordChange(db(), { userId: uid(request), entityType: "expense", entityId: expenseId, op: "upsert", payload });
+    await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: current.vehicle_id, entityType: "expense", entityId: expenseId, op: "upsert", payload });
     return payload;
   });
 
@@ -785,7 +824,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       await getOwnedVehicle(db(), uid(request), current.vehicle_id, true);
       await db().delete(expenseParts).where(eq(expenseParts.expenseId, expenseId));
       await db().delete(expenses).where(eq(expenses.id, expenseId));
-      await recordChange(db(), { userId: uid(request), entityType: "expense", entityId: expenseId, op: "delete", payload: { id: expenseId } });
+      await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: current.vehicle_id, entityType: "expense", entityId: expenseId, op: "delete", payload: { id: expenseId } });
     }
     return reply.code(204).send();
   });

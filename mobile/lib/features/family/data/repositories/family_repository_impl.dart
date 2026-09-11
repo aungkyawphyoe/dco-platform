@@ -114,6 +114,37 @@ class FamilyRepositoryImpl implements FamilyRepository {
   }
 
   @override
+  Future<List<FamilyVehicle>> getFamilyVehicles() async {
+    try {
+      final response = await _dio.get('/families/me/vehicles');
+      final items = (response.data['items'] as List)
+          .map((e) => FamilyVehicle.fromJson(e as Map<String, dynamic>))
+          .toList();
+      // Cache family vehicles locally
+      for (final fv in items) {
+        await _cacheFamilyVehicle(fv);
+      }
+      return items;
+    } catch (e) {
+      return _getCachedFamilyVehicles();
+    }
+  }
+
+  @override
+  Future<void> addVehicleToFamily(String vehicleId) async {
+    await _dio.post('/families/me/vehicles', data: {'vehicle_id': vehicleId});
+  }
+
+  @override
+  Future<void> removeVehicleFromFamily(String vehicleId) async {
+    await _dio.delete('/families/me/vehicles/$vehicleId');
+    // Remove from local cache
+    await (_db.delete(_db.familyVehicleRecords)
+          ..where((r) => r.vehicleId.equals(vehicleId)))
+        .go();
+  }
+
+  @override
   Future<DrivingLicense?> getMyLicense() async {
     try {
       final response = await _dio.get('/users/me/license');
@@ -313,5 +344,41 @@ class FamilyRepositoryImpl implements FamilyRepository {
     await _db.delete(_db.familyMembershipRecords).go();
     await _db.delete(_db.vehicleGrantRecords).go();
     await _db.delete(_db.drivingLicenseRecords).go();
+    await _db.delete(_db.familyVehicleRecords).go();
+  }
+
+  Future<void> _cacheFamilyVehicle(FamilyVehicle fv) async {
+    await _db
+        .into(_db.familyVehicleRecords)
+        .insertOnConflictUpdate(
+          FamilyVehicleRecordsCompanion(
+            id: drift.Value('fv_${fv.id}'),
+            familyId: const drift.Value(''),
+            vehicleId: drift.Value(fv.id),
+            addedBy: drift.Value(fv.userId),
+            addedAt: drift.Value(fv.createdAt ?? DateTime.now()),
+            syncedAt: drift.Value(DateTime.now()),
+          ),
+        );
+  }
+
+  Future<List<FamilyVehicle>> _getCachedFamilyVehicles() async {
+    final rows = await _db.select(_db.familyVehicleRecords).get();
+    return rows.map((r) => FamilyVehicle(
+      id: r.vehicleId,
+      userId: r.addedBy,
+      name: '',
+      make: '',
+      model: '',
+      year: 0,
+      licensePlate: '',
+      fuelType: 'petrol',
+      mileage: 0,
+      mileageUnit: 'mi',
+      archived: false,
+      updatedAt: r.addedAt,
+      createdAt: r.addedAt,
+      source: 'family',
+    )).toList();
   }
 }

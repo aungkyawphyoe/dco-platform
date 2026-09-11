@@ -11,6 +11,9 @@ abstract class FamilyRepository {
   Future<void> removeMember(String userId);
   Future<VehicleGrant> grantVehicleAccess(String vehicleId, String userId, String permission);
   Future<void> revokeVehicleGrant(String grantId);
+  Future<List<FamilyVehicle>> getFamilyVehicles();
+  Future<void> addVehicleToFamily(String vehicleId);
+  Future<void> removeVehicleFromFamily(String vehicleId);
   Future<DrivingLicense?> getMyLicense();
   Future<DrivingLicense> upsertLicense({
     String? licenseNumber,

@@ -355,6 +355,22 @@ export const vehicleGrants = pgTable("vehicle_grants", {
   uniqueVehicleUser: unique().on(table.vehicleId, table.userId),
 }));
 
+export const familyVehicles = pgTable("family_vehicles", {
+  id: uuid("id").primaryKey(),
+  familyId: uuid("family_id")
+    .notNull()
+    .references(() => families.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  addedBy: uuid("added_by")
+    .notNull()
+    .references(() => users.id),
+  addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  uniqueFamilyVehicle: unique().on(table.familyId, table.vehicleId),
+}));
+
 export const drivingLicenses = pgTable("driving_licenses", {
   id: uuid("id").primaryKey(),
   userId: uuid("user_id")

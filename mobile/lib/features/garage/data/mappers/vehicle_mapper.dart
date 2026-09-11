@@ -24,5 +24,7 @@ Vehicle vehicleFromDrift(VehicleRecord row) {
     archivedAt: row.archivedAt,
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
+    source: VehicleSource.parse(row.source),
+    permission: row.permission,
   );
 }

@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
+import 'package:dco_mobile/core/sync/sync_engine.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
@@ -22,6 +23,8 @@ class SettingsScreen extends ConsumerWidget {
     final prefs =
         ref.watch(userPreferencesProvider).valueOrNull ??
         UserPreferences.defaults;
+    final syncState = ref.watch(syncStatusProvider).valueOrNull ?? const SyncState();
+    
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: Column(
@@ -57,15 +60,6 @@ class SettingsScreen extends ConsumerWidget {
                                   'Free Plan',
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: tokens.text.caption,
-                                  ),
-                                ),
-                                SizedBox(height: tokens.space.s1),
-                                Text(
-                                  mockAuth
-                                      ? 'Local mock session'
-                                      : 'Sync status: idle',
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: tokens.text.secondary,
                                   ),
                                 ),
                               ],
@@ -127,6 +121,17 @@ class SettingsScreen extends ConsumerWidget {
                   onTap: () => context.push(AppRoutes.settingsUnits),
                 ),
                 SizedBox(height: tokens.space.s4),
+                if (!mockAuth) ...[
+                  Text(
+                    'Sync',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.titleMedium?.copyWith(color: tokens.text.primary),
+                  ),
+                  SizedBox(height: tokens.space.s2),
+                  _SyncButton(syncState: syncState),
+                  SizedBox(height: tokens.space.s4),
+                ],
                 Text(
                   'Family',
                   style: Theme.of(
@@ -201,5 +206,83 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+}
+
+class _SyncButton extends ConsumerWidget {
+  const _SyncButton({required this.syncState});
+
+  final SyncState syncState;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tokens = context.tokens;
+    final isSyncing = syncState.phase == SyncPhase.syncing;
+
+    return Material(
+      color: tokens.background.card,
+      borderRadius: BorderRadius.circular(tokens.radius.md),
+      child: InkWell(
+        onTap: isSyncing
+            ? null
+            : () async {
+                await ref.read(syncEngineProvider).syncNow();
+              },
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.s4),
+          child: Row(
+            children: [
+              Icon(
+                Icons.sync,
+                color: isSyncing ? tokens.text.accent : tokens.icon.inactive,
+              ),
+              SizedBox(width: tokens.space.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sync now',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    SizedBox(height: tokens.space.s1),
+                    Text(
+                      _getStatusText(syncState),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: syncState.hasError
+                            ? tokens.status.dangerFg
+                            : tokens.text.secondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isSyncing)
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                Icon(Icons.chevron_right, color: tokens.icon.inactive),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  String _getStatusText(SyncState state) {
+    if (state.hasError) return state.message ?? 'Sync failed';
+    if (state.phase == SyncPhase.syncing) return 'Syncing...';
+    if (state.lastSyncedAt != null) {
+      final diff = DateTime.now().difference(state.lastSyncedAt!);
+      if (diff.inMinutes < 1) return 'Just synced';
+      if (diff.inHours < 1) return 'Synced ${diff.inMinutes}m ago';
+      if (diff.inDays < 1) return 'Synced ${diff.inHours}h ago';
+      return 'Synced ${diff.inDays}d ago';
+    }
+    return 'Tap to sync your data';
   }
 }

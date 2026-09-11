@@ -314,3 +314,12 @@ CREATE TABLE IF NOT EXISTS driving_licenses (
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS family_vehicles (
+  id uuid PRIMARY KEY,
+  family_id uuid NOT NULL REFERENCES families(id) ON DELETE CASCADE,
+  vehicle_id uuid NOT NULL REFERENCES vehicles(id) ON DELETE CASCADE,
+  added_by uuid NOT NULL REFERENCES users(id),
+  added_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (family_id, vehicle_id)
+);

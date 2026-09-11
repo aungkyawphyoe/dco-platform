@@ -476,6 +476,27 @@ class $VehicleRecordsTable extends VehicleRecords
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('owned'),
+  );
+  static const VerificationMeta _permissionMeta = const VerificationMeta(
+    'permission',
+  );
+  @override
+  late final GeneratedColumn<String> permission = GeneratedColumn<String>(
+    'permission',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -499,6 +520,8 @@ class $VehicleRecordsTable extends VehicleRecords
     archivedAt,
     updatedAt,
     createdAt,
+    source,
+    permission,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -675,6 +698,18 @@ class $VehicleRecordsTable extends VehicleRecords
     } else if (isInserting) {
       context.missing(_createdAtMeta);
     }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
+    }
+    if (data.containsKey('permission')) {
+      context.handle(
+        _permissionMeta,
+        permission.isAcceptableOrUnknown(data['permission']!, _permissionMeta),
+      );
+    }
     return context;
   }
 
@@ -768,6 +803,14 @@ class $VehicleRecordsTable extends VehicleRecords
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
+      permission: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}permission'],
+      ),
     );
   }
 
@@ -799,6 +842,8 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   final DateTime? archivedAt;
   final DateTime updatedAt;
   final DateTime createdAt;
+  final String source;
+  final String? permission;
   const VehicleRecord({
     required this.id,
     required this.userId,
@@ -821,6 +866,8 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
     this.archivedAt,
     required this.updatedAt,
     required this.createdAt,
+    required this.source,
+    this.permission,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -862,6 +909,10 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
+    map['source'] = Variable<String>(source);
+    if (!nullToAbsent || permission != null) {
+      map['permission'] = Variable<String>(permission);
+    }
     return map;
   }
 
@@ -902,6 +953,10 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
           : Value(archivedAt),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
+      source: Value(source),
+      permission: permission == null && nullToAbsent
+          ? const Value.absent()
+          : Value(permission),
     );
   }
 
@@ -932,6 +987,8 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
       archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      source: serializer.fromJson<String>(json['source']),
+      permission: serializer.fromJson<String?>(json['permission']),
     );
   }
   @override
@@ -959,6 +1016,8 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
       'archivedAt': serializer.toJson<DateTime?>(archivedAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
+      'source': serializer.toJson<String>(source),
+      'permission': serializer.toJson<String?>(permission),
     };
   }
 
@@ -984,6 +1043,8 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
     Value<DateTime?> archivedAt = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
+    String? source,
+    Value<String?> permission = const Value.absent(),
   }) => VehicleRecord(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -1010,6 +1071,8 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
     archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
+    source: source ?? this.source,
+    permission: permission.present ? permission.value : this.permission,
   );
   VehicleRecord copyWithCompanion(VehicleRecordsCompanion data) {
     return VehicleRecord(
@@ -1048,6 +1111,10 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
           : this.archivedAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      source: data.source.present ? data.source.value : this.source,
+      permission: data.permission.present
+          ? data.permission.value
+          : this.permission,
     );
   }
 
@@ -1074,7 +1141,9 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
           ..write('archived: $archived, ')
           ..write('archivedAt: $archivedAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('createdAt: $createdAt')
+          ..write('createdAt: $createdAt, ')
+          ..write('source: $source, ')
+          ..write('permission: $permission')
           ..write(')'))
         .toString();
   }
@@ -1102,6 +1171,8 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
     archivedAt,
     updatedAt,
     createdAt,
+    source,
+    permission,
   ]);
   @override
   bool operator ==(Object other) =>
@@ -1127,7 +1198,9 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
           other.archived == this.archived &&
           other.archivedAt == this.archivedAt &&
           other.updatedAt == this.updatedAt &&
-          other.createdAt == this.createdAt);
+          other.createdAt == this.createdAt &&
+          other.source == this.source &&
+          other.permission == this.permission);
 }
 
 class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
@@ -1152,6 +1225,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   final Value<DateTime?> archivedAt;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
+  final Value<String> source;
+  final Value<String?> permission;
   final Value<int> rowid;
   const VehicleRecordsCompanion({
     this.id = const Value.absent(),
@@ -1175,6 +1250,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     this.archivedAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
+    this.source = const Value.absent(),
+    this.permission = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   VehicleRecordsCompanion.insert({
@@ -1199,6 +1276,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     this.archivedAt = const Value.absent(),
     required DateTime updatedAt,
     required DateTime createdAt,
+    this.source = const Value.absent(),
+    this.permission = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        userId = Value(userId),
@@ -1233,6 +1312,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     Expression<DateTime>? archivedAt,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
+    Expression<String>? source,
+    Expression<String>? permission,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1257,6 +1338,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
       if (archivedAt != null) 'archived_at': archivedAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
+      if (source != null) 'source': source,
+      if (permission != null) 'permission': permission,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1283,6 +1366,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     Value<DateTime?>? archivedAt,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
+    Value<String>? source,
+    Value<String?>? permission,
     Value<int>? rowid,
   }) {
     return VehicleRecordsCompanion(
@@ -1307,6 +1392,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
       archivedAt: archivedAt ?? this.archivedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
+      source: source ?? this.source,
+      permission: permission ?? this.permission,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1377,6 +1464,12 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
+    if (permission.present) {
+      map['permission'] = Variable<String>(permission.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1407,6 +1500,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
           ..write('archivedAt: $archivedAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
+          ..write('source: $source, ')
+          ..write('permission: $permission, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -9947,6 +10042,419 @@ class DrivingLicenseRecordsCompanion
   }
 }
 
+class $FamilyVehicleRecordsTable extends FamilyVehicleRecords
+    with TableInfo<$FamilyVehicleRecordsTable, FamilyVehicleRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FamilyVehicleRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _familyIdMeta = const VerificationMeta(
+    'familyId',
+  );
+  @override
+  late final GeneratedColumn<String> familyId = GeneratedColumn<String>(
+    'family_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _addedByMeta = const VerificationMeta(
+    'addedBy',
+  );
+  @override
+  late final GeneratedColumn<String> addedBy = GeneratedColumn<String>(
+    'added_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _addedAtMeta = const VerificationMeta(
+    'addedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
+    'added_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    familyId,
+    vehicleId,
+    addedBy,
+    addedAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'family_vehicles';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FamilyVehicleRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('family_id')) {
+      context.handle(
+        _familyIdMeta,
+        familyId.isAcceptableOrUnknown(data['family_id']!, _familyIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_familyIdMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('added_by')) {
+      context.handle(
+        _addedByMeta,
+        addedBy.isAcceptableOrUnknown(data['added_by']!, _addedByMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_addedByMeta);
+    }
+    if (data.containsKey('added_at')) {
+      context.handle(
+        _addedAtMeta,
+        addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_addedAtMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FamilyVehicleRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FamilyVehicleRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      familyId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}family_id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      addedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}added_by'],
+      )!,
+      addedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}added_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $FamilyVehicleRecordsTable createAlias(String alias) {
+    return $FamilyVehicleRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class FamilyVehicleRecord extends DataClass
+    implements Insertable<FamilyVehicleRecord> {
+  final String id;
+  final String familyId;
+  final String vehicleId;
+  final String addedBy;
+  final DateTime addedAt;
+  final DateTime? syncedAt;
+  const FamilyVehicleRecord({
+    required this.id,
+    required this.familyId,
+    required this.vehicleId,
+    required this.addedBy,
+    required this.addedAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['family_id'] = Variable<String>(familyId);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    map['added_by'] = Variable<String>(addedBy);
+    map['added_at'] = Variable<DateTime>(addedAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<DateTime>(syncedAt);
+    }
+    return map;
+  }
+
+  FamilyVehicleRecordsCompanion toCompanion(bool nullToAbsent) {
+    return FamilyVehicleRecordsCompanion(
+      id: Value(id),
+      familyId: Value(familyId),
+      vehicleId: Value(vehicleId),
+      addedBy: Value(addedBy),
+      addedAt: Value(addedAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory FamilyVehicleRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FamilyVehicleRecord(
+      id: serializer.fromJson<String>(json['id']),
+      familyId: serializer.fromJson<String>(json['familyId']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      addedBy: serializer.fromJson<String>(json['addedBy']),
+      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
+      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'familyId': serializer.toJson<String>(familyId),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'addedBy': serializer.toJson<String>(addedBy),
+      'addedAt': serializer.toJson<DateTime>(addedAt),
+      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+    };
+  }
+
+  FamilyVehicleRecord copyWith({
+    String? id,
+    String? familyId,
+    String? vehicleId,
+    String? addedBy,
+    DateTime? addedAt,
+    Value<DateTime?> syncedAt = const Value.absent(),
+  }) => FamilyVehicleRecord(
+    id: id ?? this.id,
+    familyId: familyId ?? this.familyId,
+    vehicleId: vehicleId ?? this.vehicleId,
+    addedBy: addedBy ?? this.addedBy,
+    addedAt: addedAt ?? this.addedAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  FamilyVehicleRecord copyWithCompanion(FamilyVehicleRecordsCompanion data) {
+    return FamilyVehicleRecord(
+      id: data.id.present ? data.id.value : this.id,
+      familyId: data.familyId.present ? data.familyId.value : this.familyId,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      addedBy: data.addedBy.present ? data.addedBy.value : this.addedBy,
+      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyVehicleRecord(')
+          ..write('id: $id, ')
+          ..write('familyId: $familyId, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('addedBy: $addedBy, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, familyId, vehicleId, addedBy, addedAt, syncedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FamilyVehicleRecord &&
+          other.id == this.id &&
+          other.familyId == this.familyId &&
+          other.vehicleId == this.vehicleId &&
+          other.addedBy == this.addedBy &&
+          other.addedAt == this.addedAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class FamilyVehicleRecordsCompanion
+    extends UpdateCompanion<FamilyVehicleRecord> {
+  final Value<String> id;
+  final Value<String> familyId;
+  final Value<String> vehicleId;
+  final Value<String> addedBy;
+  final Value<DateTime> addedAt;
+  final Value<DateTime?> syncedAt;
+  final Value<int> rowid;
+  const FamilyVehicleRecordsCompanion({
+    this.id = const Value.absent(),
+    this.familyId = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.addedBy = const Value.absent(),
+    this.addedAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FamilyVehicleRecordsCompanion.insert({
+    required String id,
+    required String familyId,
+    required String vehicleId,
+    required String addedBy,
+    required DateTime addedAt,
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       familyId = Value(familyId),
+       vehicleId = Value(vehicleId),
+       addedBy = Value(addedBy),
+       addedAt = Value(addedAt);
+  static Insertable<FamilyVehicleRecord> custom({
+    Expression<String>? id,
+    Expression<String>? familyId,
+    Expression<String>? vehicleId,
+    Expression<String>? addedBy,
+    Expression<DateTime>? addedAt,
+    Expression<DateTime>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (familyId != null) 'family_id': familyId,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (addedBy != null) 'added_by': addedBy,
+      if (addedAt != null) 'added_at': addedAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FamilyVehicleRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? familyId,
+    Value<String>? vehicleId,
+    Value<String>? addedBy,
+    Value<DateTime>? addedAt,
+    Value<DateTime?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return FamilyVehicleRecordsCompanion(
+      id: id ?? this.id,
+      familyId: familyId ?? this.familyId,
+      vehicleId: vehicleId ?? this.vehicleId,
+      addedBy: addedBy ?? this.addedBy,
+      addedAt: addedAt ?? this.addedAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (familyId.present) {
+      map['family_id'] = Variable<String>(familyId.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (addedBy.present) {
+      map['added_by'] = Variable<String>(addedBy.value);
+    }
+    if (addedAt.present) {
+      map['added_at'] = Variable<DateTime>(addedAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FamilyVehicleRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('familyId: $familyId, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('addedBy: $addedBy, ')
+          ..write('addedAt: $addedAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -9980,6 +10488,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $VehicleGrantRecordsTable(this);
   late final $DrivingLicenseRecordsTable drivingLicenseRecords =
       $DrivingLicenseRecordsTable(this);
+  late final $FamilyVehicleRecordsTable familyVehicleRecords =
+      $FamilyVehicleRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10003,6 +10513,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     familyMembershipRecords,
     vehicleGrantRecords,
     drivingLicenseRecords,
+    familyVehicleRecords,
   ];
 }
 
@@ -10174,6 +10685,8 @@ typedef $$VehicleRecordsTableCreateCompanionBuilder =
       Value<DateTime?> archivedAt,
       required DateTime updatedAt,
       required DateTime createdAt,
+      Value<String> source,
+      Value<String?> permission,
       Value<int> rowid,
     });
 typedef $$VehicleRecordsTableUpdateCompanionBuilder =
@@ -10199,6 +10712,8 @@ typedef $$VehicleRecordsTableUpdateCompanionBuilder =
       Value<DateTime?> archivedAt,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
+      Value<String> source,
+      Value<String?> permission,
       Value<int> rowid,
     });
 
@@ -10313,6 +10828,16 @@ class $$VehicleRecordsTableFilterComposer
 
   ColumnFilters<DateTime> get createdAt => $composableBuilder(
     column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get permission => $composableBuilder(
+    column: $table.permission,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -10430,6 +10955,16 @@ class $$VehicleRecordsTableOrderingComposer
     column: $table.createdAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get permission => $composableBuilder(
+    column: $table.permission,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$VehicleRecordsTableAnnotationComposer
@@ -10517,6 +11052,14 @@ class $$VehicleRecordsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
+
+  GeneratedColumn<String> get permission => $composableBuilder(
+    column: $table.permission,
+    builder: (column) => column,
+  );
 }
 
 class $$VehicleRecordsTableTableManager
@@ -10573,6 +11116,8 @@ class $$VehicleRecordsTableTableManager
                 Value<DateTime?> archivedAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
+                Value<String> source = const Value.absent(),
+                Value<String?> permission = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VehicleRecordsCompanion(
                 id: id,
@@ -10596,6 +11141,8 @@ class $$VehicleRecordsTableTableManager
                 archivedAt: archivedAt,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
+                source: source,
+                permission: permission,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -10621,6 +11168,8 @@ class $$VehicleRecordsTableTableManager
                 Value<DateTime?> archivedAt = const Value.absent(),
                 required DateTime updatedAt,
                 required DateTime createdAt,
+                Value<String> source = const Value.absent(),
+                Value<String?> permission = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VehicleRecordsCompanion.insert(
                 id: id,
@@ -10644,6 +11193,8 @@ class $$VehicleRecordsTableTableManager
                 archivedAt: archivedAt,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
+                source: source,
+                permission: permission,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -15091,6 +15642,241 @@ typedef $$DrivingLicenseRecordsTableProcessedTableManager =
       DrivingLicenseRecord,
       PrefetchHooks Function()
     >;
+typedef $$FamilyVehicleRecordsTableCreateCompanionBuilder =
+    FamilyVehicleRecordsCompanion Function({
+      required String id,
+      required String familyId,
+      required String vehicleId,
+      required String addedBy,
+      required DateTime addedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$FamilyVehicleRecordsTableUpdateCompanionBuilder =
+    FamilyVehicleRecordsCompanion Function({
+      Value<String> id,
+      Value<String> familyId,
+      Value<String> vehicleId,
+      Value<String> addedBy,
+      Value<DateTime> addedAt,
+      Value<DateTime?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$FamilyVehicleRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $FamilyVehicleRecordsTable> {
+  $$FamilyVehicleRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get familyId => $composableBuilder(
+    column: $table.familyId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get addedBy => $composableBuilder(
+    column: $table.addedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$FamilyVehicleRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FamilyVehicleRecordsTable> {
+  $$FamilyVehicleRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get familyId => $composableBuilder(
+    column: $table.familyId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get addedBy => $composableBuilder(
+    column: $table.addedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get addedAt => $composableBuilder(
+    column: $table.addedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$FamilyVehicleRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FamilyVehicleRecordsTable> {
+  $$FamilyVehicleRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get familyId =>
+      $composableBuilder(column: $table.familyId, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get addedBy =>
+      $composableBuilder(column: $table.addedBy, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get addedAt =>
+      $composableBuilder(column: $table.addedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$FamilyVehicleRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FamilyVehicleRecordsTable,
+          FamilyVehicleRecord,
+          $$FamilyVehicleRecordsTableFilterComposer,
+          $$FamilyVehicleRecordsTableOrderingComposer,
+          $$FamilyVehicleRecordsTableAnnotationComposer,
+          $$FamilyVehicleRecordsTableCreateCompanionBuilder,
+          $$FamilyVehicleRecordsTableUpdateCompanionBuilder,
+          (
+            FamilyVehicleRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $FamilyVehicleRecordsTable,
+              FamilyVehicleRecord
+            >,
+          ),
+          FamilyVehicleRecord,
+          PrefetchHooks Function()
+        > {
+  $$FamilyVehicleRecordsTableTableManager(
+    _$AppDatabase db,
+    $FamilyVehicleRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FamilyVehicleRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FamilyVehicleRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$FamilyVehicleRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> familyId = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<String> addedBy = const Value.absent(),
+                Value<DateTime> addedAt = const Value.absent(),
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyVehicleRecordsCompanion(
+                id: id,
+                familyId: familyId,
+                vehicleId: vehicleId,
+                addedBy: addedBy,
+                addedAt: addedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String familyId,
+                required String vehicleId,
+                required String addedBy,
+                required DateTime addedAt,
+                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FamilyVehicleRecordsCompanion.insert(
+                id: id,
+                familyId: familyId,
+                vehicleId: vehicleId,
+                addedBy: addedBy,
+                addedAt: addedAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$FamilyVehicleRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FamilyVehicleRecordsTable,
+      FamilyVehicleRecord,
+      $$FamilyVehicleRecordsTableFilterComposer,
+      $$FamilyVehicleRecordsTableOrderingComposer,
+      $$FamilyVehicleRecordsTableAnnotationComposer,
+      $$FamilyVehicleRecordsTableCreateCompanionBuilder,
+      $$FamilyVehicleRecordsTableUpdateCompanionBuilder,
+      (
+        FamilyVehicleRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $FamilyVehicleRecordsTable,
+          FamilyVehicleRecord
+        >,
+      ),
+      FamilyVehicleRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -15134,4 +15920,6 @@ class $AppDatabaseManager {
       $$VehicleGrantRecordsTableTableManager(_db, _db.vehicleGrantRecords);
   $$DrivingLicenseRecordsTableTableManager get drivingLicenseRecords =>
       $$DrivingLicenseRecordsTableTableManager(_db, _db.drivingLicenseRecords);
+  $$FamilyVehicleRecordsTableTableManager get familyVehicleRecords =>
+      $$FamilyVehicleRecordsTableTableManager(_db, _db.familyVehicleRecords);
 }
