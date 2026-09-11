@@ -1,4 +1,13 @@
+import 'dart:convert';
+
 import 'package:dco_mobile/core/units/mileage_unit.dart';
+
+String? _parseQrCodeData(dynamic value) {
+  if (value == null) return null;
+  if (value is String) return value;
+  if (value is Map) return jsonEncode(value);
+  return value.toString();
+}
 
 enum FamilyStatus {
   active,
@@ -107,7 +116,7 @@ class Family {
       id: json['id'] as String,
       name: json['name'] as String,
       shareCode: json['share_code'] as String,
-      qrCodeData: json['qr_code_data'] as String?,
+      qrCodeData: _parseQrCodeData(json['qr_code_data']),
       status: json['status'] as String,
       createdBy: json['created_by'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),

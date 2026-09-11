@@ -39,18 +39,13 @@ abstract final class AppRoutes {
   static String fuelTypeEdit(String id) => '/dashboard/fuel/types/$id/edit';
 
   // Family
-  static const familyCreate = '/settings/family/create';
+  static const familyCreate = '/settings/family/new';
   static const familyManage = '/settings/family';
-  static String familyJoin(String code) => 'join/$code';
+  static String familyJoin(String code) => '/settings/family/join/$code';
 
   // Detail screens (top-level, accessible from any tab)
   static String vehicleDetail(String id) => '/vehicle/$id';
   static String userDetail(String id) => '/user/$id';
 
-  static const authPaths = {
-    welcome,
-    login,
-    signup,
-    forgotPassword,
-  };
+  static const authPaths = {welcome, login, signup, forgotPassword};
 }

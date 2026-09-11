@@ -303,7 +303,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => const UnitsFormatsScreen(),
                   ),
                   GoRoute(
-                    path: 'family/create',
+                    path: 'family/new',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const FamilySetupScreen(),
                   ),

@@ -24,4 +24,6 @@ abstract class FamilyRepository {
   Future<DrivingLicense?> getMemberLicense(String userId);
   Future<FamilyVehicleDetail?> getVehicleDetail(String vehicleId);
   Future<UserDetail?> getUserDetail(String userId);
+  Future<FamilyVehicleDetail?> getLocalVehicleDetail(String vehicleId);
+  Future<UserDetail?> getLocalUserDetail(String userId);
 }

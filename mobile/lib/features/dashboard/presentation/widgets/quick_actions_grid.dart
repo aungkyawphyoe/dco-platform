@@ -30,9 +30,7 @@ class QuickActionsGrid extends StatelessWidget {
       mainAxisSpacing: tokens.space.s3,
       crossAxisSpacing: tokens.space.s3,
       childAspectRatio: 1,
-      children: [
-        for (final item in items) _QuickActionTile(item: item),
-      ],
+      children: [for (final item in items) _QuickActionTile(item: item)],
     );
   }
 }

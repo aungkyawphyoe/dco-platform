@@ -31,7 +31,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
     final tokens = context.tokens;
     final currentUserId = ref.watch(currentUserIdProvider);
     final isSelf = widget.userId == currentUserId;
-    final userDetailAsync = ref.watch(userDetailProvider(widget.userId));
+    final userDetailAsync = ref.watch(localUserDetailProvider(widget.userId));
     final myFamilyAsync = ref.watch(myFamilyProvider);
 
     return Scaffold(

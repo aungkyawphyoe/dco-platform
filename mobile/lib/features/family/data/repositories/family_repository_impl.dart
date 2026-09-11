@@ -5,6 +5,7 @@ import 'package:dco_mobile/core/sync/outbox_writer.dart';
 import 'package:dco_mobile/features/family/data/mappers/family_mappers.dart';
 import 'package:dco_mobile/features/family/domain/entities/family.dart';
 import 'package:dco_mobile/features/family/domain/repositories/family_repository.dart';
+import 'package:dco_mobile/features/garage/data/mappers/vehicle_mapper.dart';
 
 class FamilyRepositoryImpl implements FamilyRepository {
   final Dio _dio;
@@ -13,12 +14,10 @@ class FamilyRepositoryImpl implements FamilyRepository {
 
   FamilyRepositoryImpl(this._dio, this._db, this._outbox);
 
-  String get _baseUrl => '/v1';
-
   @override
   Future<Family?> getMyFamily() async {
     try {
-      final response = await _dio.get('$_baseUrl/families/me');
+      final response = await _dio.get('/families/me');
       final family = Family.fromJson(response.data);
       await _cacheFamily(family);
       return family;
@@ -29,7 +28,7 @@ class FamilyRepositoryImpl implements FamilyRepository {
 
   @override
   Future<Family> createFamily(String name) async {
-    final response = await _dio.post('$_baseUrl/families', data: {'name': name});
+    final response = await _dio.post('/families', data: {'name': name});
     final family = Family.fromJson(response.data);
     await _cacheFamily(family);
     return family;
@@ -37,18 +36,24 @@ class FamilyRepositoryImpl implements FamilyRepository {
 
   @override
   Future<Family> joinFamily(String code) async {
-    final response = await _dio.post('$_baseUrl/families/me/join', data: {'code': code});
+    final response = await _dio.post('/families/me/join', data: {'code': code});
     final family = Family.fromJson(response.data);
     await _cacheFamily(family);
     return family;
   }
 
   @override
-  Future<Family> updateFamily({String? name, bool regenerateShareCode = false}) async {
-    final response = await _dio.patch('$_baseUrl/families/me', data: {
-      if (name != null) 'name': name,
-      'regenerate_share_code': regenerateShareCode,
-    });
+  Future<Family> updateFamily({
+    String? name,
+    bool regenerateShareCode = false,
+  }) async {
+    final response = await _dio.patch(
+      '/families/me',
+      data: {
+        if (name != null) 'name': name,
+        'regenerate_share_code': regenerateShareCode,
+      },
+    );
     final family = Family.fromJson(response.data);
     await _cacheFamily(family);
     return family;
@@ -56,15 +61,17 @@ class FamilyRepositoryImpl implements FamilyRepository {
 
   @override
   Future<void> archiveFamily() async {
-    await _dio.delete('$_baseUrl/families/me');
+    await _dio.delete('/families/me');
     await _clearFamilyCache();
   }
 
   @override
   Future<List<FamilyMember>> getMembers() async {
     try {
-      final response = await _dio.get('$_baseUrl/families/me/members');
-      return (response.data as List).map((e) => FamilyMember.fromJson(e)).toList();
+      final response = await _dio.get('/families/me/members');
+      return (response.data as List)
+          .map((e) => FamilyMember.fromJson(e))
+          .toList();
     } catch (e) {
       return _getCachedMembers();
     }
@@ -72,34 +79,44 @@ class FamilyRepositoryImpl implements FamilyRepository {
 
   @override
   Future<FamilyMember> updateMemberRole(String userId, String role) async {
-    final response = await _dio.patch('$_baseUrl/families/me/members/$userId', data: {'role': role});
+    final response = await _dio.patch(
+      '/families/me/members/$userId',
+      data: {'role': role},
+    );
     return FamilyMember.fromJson(response.data);
   }
 
   @override
   Future<void> removeMember(String userId) async {
-    await _dio.delete('$_baseUrl/families/me/members/$userId');
+    await _dio.delete('/families/me/members/$userId');
   }
 
   @override
-  Future<VehicleGrant> grantVehicleAccess(String vehicleId, String userId, String permission) async {
-    final response = await _dio.post('$_baseUrl/families/me/vehicle-grants', data: {
-      'vehicle_id': vehicleId,
-      'user_id': userId,
-      'permission': permission,
-    });
+  Future<VehicleGrant> grantVehicleAccess(
+    String vehicleId,
+    String userId,
+    String permission,
+  ) async {
+    final response = await _dio.post(
+      '/families/me/vehicle-grants',
+      data: {
+        'vehicle_id': vehicleId,
+        'user_id': userId,
+        'permission': permission,
+      },
+    );
     return VehicleGrant.fromJson(response.data);
   }
 
   @override
   Future<void> revokeVehicleGrant(String grantId) async {
-    await _dio.delete('$_baseUrl/families/me/vehicle-grants/$grantId');
+    await _dio.delete('/families/me/vehicle-grants/$grantId');
   }
 
   @override
   Future<DrivingLicense?> getMyLicense() async {
     try {
-      final response = await _dio.get('$_baseUrl/users/me/license');
+      final response = await _dio.get('/users/me/license');
       return DrivingLicense.fromJson(response.data);
     } catch (e) {
       return null;
@@ -115,14 +132,17 @@ class FamilyRepositoryImpl implements FamilyRepository {
     String? frontMediaId,
     String? backMediaId,
   }) async {
-    final response = await _dio.put('$_baseUrl/users/me/license', data: {
-      'license_number': licenseNumber,
-      'issuing_country': issuingCountry,
-      'expiry_date': expiryDate,
-      'categories': categories,
-      'front_media_id': frontMediaId,
-      'back_media_id': backMediaId,
-    });
+    final response = await _dio.put(
+      '/users/me/license',
+      data: {
+        'license_number': licenseNumber,
+        'issuing_country': issuingCountry,
+        'expiry_date': expiryDate,
+        'categories': categories,
+        'front_media_id': frontMediaId,
+        'back_media_id': backMediaId,
+      },
+    );
     return DrivingLicense.fromJson(response.data);
   }
 
@@ -132,14 +152,14 @@ class FamilyRepositoryImpl implements FamilyRepository {
       'file': MultipartFile.fromBytes(bytes, filename: 'license_$side.jpg'),
       'side': side,
     });
-    final response = await _dio.post('$_baseUrl/users/me/license/media', data: formData);
+    final response = await _dio.post('/users/me/license/media', data: formData);
     return response.data['media_id'] as String;
   }
 
   @override
   Future<DrivingLicense?> getMemberLicense(String userId) async {
     try {
-      final response = await _dio.get('$_baseUrl/users/$userId/license');
+      final response = await _dio.get('/users/$userId/license');
       return DrivingLicense.fromJson(response.data);
     } catch (e) {
       return null;
@@ -149,7 +169,7 @@ class FamilyRepositoryImpl implements FamilyRepository {
   @override
   Future<FamilyVehicleDetail?> getVehicleDetail(String vehicleId) async {
     try {
-      final response = await _dio.get('$_baseUrl/vehicles/$vehicleId/detail');
+      final response = await _dio.get('/vehicles/$vehicleId/detail');
       return FamilyVehicleDetail.fromJson(response.data);
     } catch (e) {
       return null;
@@ -159,27 +179,122 @@ class FamilyRepositoryImpl implements FamilyRepository {
   @override
   Future<UserDetail?> getUserDetail(String userId) async {
     try {
-      final response = await _dio.get('$_baseUrl/users/$userId/detail');
+      final response = await _dio.get('/users/$userId/detail');
       return UserDetail.fromJson(response.data);
     } catch (e) {
       return null;
     }
   }
 
-  Future<void> _cacheFamily(Family family) async {
-    await _db.into(_db.familyRecords).insertOnConflictUpdate(
-      FamilyRecordsCompanion(
-        id: drift.Value(family.id),
-        name: drift.Value(family.name),
-        shareCode: drift.Value(family.shareCode),
-        qrCodeData: drift.Value(family.qrCodeData),
-        createdBy: drift.Value(family.createdBy),
-        status: drift.Value(family.status),
-        createdAt: drift.Value(family.createdAt),
-        archivedAt: drift.Value(family.archivedAt),
-        syncedAt: drift.Value(DateTime.now()),
-      ),
+  @override
+  Future<FamilyVehicleDetail?> getLocalVehicleDetail(String vehicleId) async {
+    final row = await (_db.select(
+      _db.vehicleRecords,
+    )..where((r) => r.id.equals(vehicleId))).getSingleOrNull();
+    if (row == null) return null;
+
+    final vehicle = vehicleFromDrift(row);
+    return FamilyVehicleDetail(
+      id: vehicle.id,
+      userId: vehicle.userId,
+      name: vehicle.name,
+      nickname: vehicle.nickname,
+      make: vehicle.make,
+      model: vehicle.model,
+      year: vehicle.year,
+      licensePlate: vehicle.licensePlate,
+      vin: vehicle.vin,
+      color: vehicle.color,
+      fuelType: vehicle.fuelType.storage,
+      mileage: vehicle.mileage,
+      mileageUnit: vehicle.mileageUnit.name,
+      purchaseDate: vehicle.purchaseDate?.toIso8601String().split('T').first,
+      purchasePrice: vehicle.purchasePrice,
+      photoMediaId: vehicle.photoMediaId,
+      archived: vehicle.archived,
+      archivedAt: vehicle.archivedAt?.toIso8601String(),
+      updatedAt: vehicle.updatedAt,
+      grants: const [],
+      documents: const [],
+      assignedDrivers: const [],
     );
+  }
+
+  @override
+  Future<UserDetail?> getLocalUserDetail(String userId) async {
+    final profile = await (_db.select(
+      _db.userProfiles,
+    )..where((r) => r.userId.equals(userId))).getSingleOrNull();
+
+    final licenseRow = await (_db.select(
+      _db.drivingLicenseRecords,
+    )..where((r) => r.userId.equals(userId))).getSingleOrNull();
+
+    final membershipRow = await (_db.select(
+      _db.familyMembershipRecords,
+    )..where((r) => r.userId.equals(userId))).getSingleOrNull();
+
+    final vehicleRows = await (_db.select(
+      _db.vehicleRecords,
+    )..where((r) => r.userId.equals(userId) & r.archived.equals(false))).get();
+
+    final familyId = membershipRow?.familyId;
+
+    return UserDetail(
+      id: userId,
+      email: '',
+      role: 'owner',
+      plan: 'free',
+      status: 'active',
+      emailVerified: true,
+      activeVehicleId: profile?.activeVehicleId,
+      createdAt: DateTime.now(),
+      familyId: familyId,
+      familyRole: membershipRow?.role,
+      drivingLicense: licenseRow?.toDrivingLicense(),
+      ownedVehicles: vehicleRows.map((r) {
+        final v = vehicleFromDrift(r);
+        return FamilyVehicle(
+          id: v.id,
+          userId: v.userId,
+          name: v.name,
+          nickname: v.nickname,
+          make: v.make,
+          model: v.model,
+          year: v.year,
+          licensePlate: v.licensePlate,
+          vin: v.vin,
+          color: v.color,
+          fuelType: v.fuelType.storage,
+          mileage: v.mileage,
+          mileageUnit: v.mileageUnit.name,
+          purchaseDate: v.purchaseDate?.toIso8601String().split('T').first,
+          purchasePrice: v.purchasePrice,
+          photoMediaId: v.photoMediaId,
+          archived: v.archived,
+          archivedAt: v.archivedAt?.toIso8601String(),
+          updatedAt: v.updatedAt,
+        );
+      }).toList(),
+    );
+  }
+
+  Future<void> _cacheFamily(Family family) async {
+    await _db
+        .into(_db.familyRecords)
+        .insertOnConflictUpdate(
+          FamilyRecordsCompanion(
+            id: drift.Value(family.id),
+            name: drift.Value(family.name),
+            shareCode: drift.Value(family.shareCode),
+            qrCodeData: drift.Value(family.qrCodeData),
+            createdBy: drift.Value(family.createdBy),
+            status: drift.Value(family.status),
+            createdAt: drift.Value(family.createdAt),
+            archivedAt: drift.Value(family.archivedAt),
+            syncedAt: drift.Value(DateTime.now()),
+          ),
+        );
   }
 
   Future<Family?> _getCachedFamily() async {
