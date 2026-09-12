@@ -16,7 +16,7 @@ class VehiclesTab extends ConsumerWidget {
     final s = AppLocalizations.of(context)!;
     final vehiclesAsync = ref.watch(familyVehiclesProvider);
 
-    final isOwner = family.myRole == 'owner';
+    final isOwner = family.myRole == 'primary_owner';
 
     return Column(
       children: [
