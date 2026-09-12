@@ -12,6 +12,7 @@ import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/family/providers.dart';
 import 'package:dco_mobile/features/family/domain/entities/family.dart' as family_entities;
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 
 class UserDetailScreen extends ConsumerStatefulWidget {
   final String userId;
@@ -28,6 +29,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final currentUserId = ref.watch(currentUserIdProvider);
     final isSelf = widget.userId == currentUserId;
@@ -36,7 +38,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(isSelf ? 'Profile' : 'Member Detail'),
+        title: Text(isSelf ? s.userDetailProfileTitle : s.userDetailMemberTitle),
         actions: isSelf ? [
           IconButton(
             icon: Icon(Icons.edit, color: tokens.icon.active),
@@ -49,7 +51,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
         error: (error, _) => Center(child: Text('Error: $error')),
         data: (detail) {
           if (detail == null) {
-            return Center(child: Text('User not found'));
+            return Center(child: Text(s.userDetailNotFound));
           }
 
           return SingleChildScrollView(
@@ -133,7 +135,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
           children: [
             ListTile(
               leading: Icon(Icons.camera_alt, color: context.tokens.icon.active),
-              title: const Text('Take Photo'),
+              title: Text(AppLocalizations.of(context)!.userDetailTakePhoto),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.camera, front: front);
@@ -141,7 +143,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
             ),
             ListTile(
               leading: Icon(Icons.photo_library, color: context.tokens.icon.active),
-              title: const Text('Choose from Gallery'),
+              title: Text(AppLocalizations.of(context)!.userDetailChooseGallery),
               onTap: () {
                 Navigator.pop(context);
                 _pickImage(ImageSource.gallery, front: front);
@@ -200,7 +202,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to upload: $e')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.userDetailUploadFailed(e.toString()))),
         );
       }
     }
@@ -223,40 +225,40 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Driving License'),
+        title: Text(AppLocalizations.of(context)!.userDetailEditLicenseTitle),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               DcoTextField(
                 controller: numberController,
-                label: 'License Number',
-                hint: 'D1234567',
+                label: AppLocalizations.of(context)!.userDetailLicenseNumber,
+                hint: AppLocalizations.of(context)!.userDetailLicenseNumberHint,
               ),
               SizedBox(height: tokens.space.s3),
               DcoTextField(
                 controller: countryController,
-                label: 'Issuing Country (ISO)',
-                hint: 'US',
+                label: AppLocalizations.of(context)!.userDetailIssuingCountry,
+                hint: AppLocalizations.of(context)!.userDetailIssuingCountryHint,
               ),
               SizedBox(height: tokens.space.s3),
               DcoTextField(
                 controller: expiryController,
-                label: 'Expiry Date (YYYY-MM-DD)',
-                hint: '2028-12-31',
+                label: AppLocalizations.of(context)!.userDetailExpiryDate,
+                hint: AppLocalizations.of(context)!.userDetailExpiryDateHint,
               ),
               SizedBox(height: tokens.space.s3),
               DcoTextField(
                 controller: categoriesController,
-                label: 'Categories',
-                hint: 'B, BE',
+                label: AppLocalizations.of(context)!.userDetailCategories,
+                hint: AppLocalizations.of(context)!.userDetailCategoriesHint,
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Save')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(AppLocalizations.of(context)!.save)),
         ],
       ),
     );
@@ -280,13 +282,13 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Leave Family?'),
-        content: const Text('Are you sure you want to leave this family? You will lose access to shared vehicles.'),
+        title: Text(AppLocalizations.of(context)!.userDetailLeaveFamilyTitle),
+        content: Text(AppLocalizations.of(context)!.userDetailLeaveFamilyBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.cancel)),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: Text('Leave', style: TextStyle(color: context.tokens.status.dangerFg)),
+            child: Text(AppLocalizations.of(context)!.userDetailLeaveFamilyAction, style: TextStyle(color: context.tokens.status.dangerFg)),
           ),
         ],
       ),
@@ -297,7 +299,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
       // Need to implement leave family in repository
       // await repo.leaveFamily();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Left family')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.userDetailLeftFamily)));
         context.go(AppRoutes.settings);
       }
     }
@@ -328,11 +330,11 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove Member?'),
-        content: const Text('Are you sure you want to remove this member from the family? They will lose access to all shared vehicles.'),
+        title: Text(AppLocalizations.of(context)!.userDetailRemoveMemberTitle),
+        content: Text(AppLocalizations.of(context)!.userDetailRemoveMemberBody),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: Text('Remove', style: TextStyle(color: context.tokens.status.dangerFg))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(AppLocalizations.of(context)!.cancel)),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(AppLocalizations.of(context)!.userDetailRemoveMemberAction, style: TextStyle(color: context.tokens.status.dangerFg))),
         ],
       ),
     );
@@ -341,7 +343,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
       final repo = ref.read(familyRepositoryProvider);
       // await repo.removeMember(widget.userId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Member removed')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.userDetailMemberRemoved)));
         context.pop();
       }
     }
@@ -377,7 +379,7 @@ class _ProfileHeader extends StatelessWidget {
         if (isSelf) ...[
           SizedBox(height: tokens.space.s3),
           DcoButton(
-            label: 'Upload License Photo',
+            label: AppLocalizations.of(context)!.userDetailUploadLicensePhoto,
             variant: DcoButtonVariant.secondary,
             onPressed: onUploadLicense,
           ),
@@ -395,6 +397,7 @@ class _RoleBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     Color color;
     IconData icon;
     String label;
@@ -402,17 +405,17 @@ class _RoleBadge extends StatelessWidget {
       case 'primary_owner':
         color = tokens.text.accent;
         icon = Icons.emoji_events;
-        label = 'Primary Owner';
+        label = s.userDetailPrimaryOwner;
         break;
       case 'member':
         color = tokens.status.infoFg;
         icon = Icons.person;
-        label = 'Member';
+        label = s.userDetailMemberRole;
         break;
       case 'driver':
         color = tokens.status.successFg;
         icon = Icons.drive_eta;
-        label = 'Driver';
+        label = s.userDetailDriverRole;
         break;
       default:
         color = tokens.text.tertiary;
@@ -464,18 +467,18 @@ class _DrivingLicenseSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Driving License', style: Theme.of(context).textTheme.titleMedium),
+            Text(AppLocalizations.of(context)!.userDetailDrivingLicenseSection, style: Theme.of(context).textTheme.titleMedium),
             if (isSelf) ...[
               TextButton.icon(
                 onPressed: onEdit,
                 icon: Icon(Icons.edit, size: 18, color: tokens.text.accent),
-                label: Text('Edit', style: TextStyle(color: tokens.text.accent)),
+                label: Text(AppLocalizations.of(context)!.userDetailEditLicense, style: TextStyle(color: tokens.text.accent)),
               ),
               if (lic == null)
                 TextButton.icon(
                   onPressed: onUpload,
                   icon: Icon(Icons.add_a_photo, size: 18, color: tokens.text.accent),
-                  label: Text('Upload', style: TextStyle(color: tokens.text.accent)),
+                  label: Text(AppLocalizations.of(context)!.userDetailUploadLicense, style: TextStyle(color: tokens.text.accent)),
                 ),
             ],
           ],
@@ -483,9 +486,9 @@ class _DrivingLicenseSection extends StatelessWidget {
         SizedBox(height: tokens.space.s2),
         if (lic == null)
           DcoEmptyState(
-            title: 'No license uploaded',
-            body: 'Add your driving license to track expiry and share with family.',
-            actionLabel: 'Upload License',
+            title: AppLocalizations.of(context)!.userDetailNoLicense,
+            body: AppLocalizations.of(context)!.userDetailNoLicenseBody,
+            actionLabel: AppLocalizations.of(context)!.userDetailUploadLicenseAction,
             onAction: onUpload,
           )
         else
@@ -501,18 +504,18 @@ class _DrivingLicenseSection extends StatelessWidget {
                 if (lic.frontMediaId != null || lic.backMediaId != null)
                   Row(
                     children: [
-                      Expanded(child: _LicenseImagePlaceholder(label: 'Front', mediaId: lic.frontMediaId, tokens: tokens)),
+                      Expanded(child: _LicenseImagePlaceholder(label: AppLocalizations.of(context)!.userDetailFront, mediaId: lic.frontMediaId, tokens: tokens)),
                       SizedBox(width: tokens.space.s3),
-                      Expanded(child: _LicenseImagePlaceholder(label: 'Back', mediaId: lic.backMediaId, tokens: tokens)),
+                      Expanded(child: _LicenseImagePlaceholder(label: AppLocalizations.of(context)!.userDetailBack, mediaId: lic.backMediaId, tokens: tokens)),
                     ],
                   ),
                 if (lic.frontMediaId != null || lic.backMediaId != null)
                   SizedBox(height: tokens.space.s3),
-                _LicenseInfoRow(label: 'Expires', value: lic.expiryDate.toIso8601String().split('T').first, tokens: tokens),
+                _LicenseInfoRow(label: AppLocalizations.of(context)!.userDetailExpires, value: lic.expiryDate.toIso8601String().split('T').first, tokens: tokens),
                 if (lic.licenseNumber != null)
-                  _LicenseInfoRow(label: 'Number', value: lic.licenseNumber!, tokens: tokens),
+                  _LicenseInfoRow(label: AppLocalizations.of(context)!.userDetailNumber, value: lic.licenseNumber!, tokens: tokens),
                 if (lic.issuingCountry != null)
-                  _LicenseInfoRow(label: 'Country', value: lic.issuingCountry!, tokens: tokens),
+                  _LicenseInfoRow(label: AppLocalizations.of(context)!.userDetailCountry, value: lic.issuingCountry!, tokens: tokens),
                 if (lic.categories != null)
                   _LicenseInfoRow(label: 'Categories', value: lic.categories!, tokens: tokens),
                 SizedBox(height: tokens.space.s2),
@@ -583,6 +586,7 @@ class _LicenseStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     Color color;
     IconData icon;
     String label;
@@ -590,22 +594,22 @@ class _LicenseStatusBadge extends StatelessWidget {
       case family_entities.LicenseStatus.valid:
         color = tokens.status.successFg;
         icon = Icons.check_circle;
-        label = 'License Valid';
+        label = s.userDetailLicenseValid;
         break;
       case family_entities.LicenseStatus.expiringSoon:
         color = tokens.status.warningFg;
         icon = Icons.schedule;
-        label = 'Expiring Soon';
+        label = s.userDetailLicenseExpiringSoon;
         break;
       case family_entities.LicenseStatus.expired:
         color = tokens.status.dangerFg;
         icon = Icons.cancel;
-        label = 'Expired';
+        label = s.userDetailLicenseExpired;
         break;
       default:
         color = tokens.text.tertiary;
         icon = Icons.help;
-        label = 'No License';
+        label = s.userDetailLicenseNone;
     }
 
     return Container(
@@ -635,54 +639,55 @@ class _AccessLevelSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final role = user.familyRole ?? 'member';
     String description;
     List<String> permissions;
 
     switch (role) {
       case 'primary_owner':
-        description = 'Primary Owner';
+        description = s.userDetailPrimaryOwnerDescription;
         permissions = [
-          'Full control over family',
-          'Manage all vehicles',
-          'Add/remove members',
-          'Assign drivers',
-          'Transfer ownership',
+          s.userDetailFullControl,
+          s.userDetailManageAllVehicles,
+          s.userDetailAddRemoveMembers,
+          s.userDetailAssignDriversPerm,
+          s.userDetailTransferOwnership,
         ];
         break;
       case 'member':
-        description = 'Member (Secondary Owner)';
+        description = s.userDetailMemberDescription;
         permissions = [
-          'Full access to assigned vehicles',
-          'Log maintenance & expenses',
-          'Manage documents',
-          'Assign drivers to vehicles',
+          s.userDetailFullAccessAssigned,
+          s.userDetailLogMaintenanceExpenses,
+          s.userDetailManageDocumentsPerm,
+          s.userDetailAssignDriversToVehicles,
         ];
         break;
       case 'driver':
-        description = 'Driver';
+        description = s.userDetailDriverDescription;
         permissions = [
-          'View assigned vehicles',
-          'Log fuel/charge',
-          'View maintenance due',
-          'View documents',
+          s.userDetailViewAssignedVehicles,
+          s.userDetailLogFuelCharge,
+          s.userDetailViewMaintenanceDue,
+          s.userDetailViewDocumentsPerm,
         ];
         break;
       default:
-        description = 'Member';
+        description = s.userDetailMemberRole;
         permissions = [];
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Access Level', style: Theme.of(context).textTheme.titleMedium),
+        Text(s.userDetailAccessLevelSection, style: Theme.of(context).textTheme.titleMedium),
         SizedBox(height: tokens.space.s2),
         _RoleBadge(role: role, tokens: tokens),
         SizedBox(height: tokens.space.s2),
         Text(description, style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary)),
         SizedBox(height: tokens.space.s2),
-        Text('Permissions', style: Theme.of(context).textTheme.labelLarge),
+        Text(s.userDetailPermissionsSection, style: Theme.of(context).textTheme.labelLarge),
         SizedBox(height: tokens.space.s1),
         ...permissions.map((p) => Padding(
           padding: EdgeInsets.only(left: 16, bottom: 4),
@@ -712,7 +717,7 @@ class _MyVehiclesSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('My Vehicles', style: Theme.of(context).textTheme.titleMedium),
+        Text(AppLocalizations.of(context)!.userDetailMyVehiclesSection, style: Theme.of(context).textTheme.titleMedium),
         SizedBox(height: tokens.space.s2),
         ...vehicles.map((v) => Container(
           margin: EdgeInsets.only(bottom: tokens.space.s2),
@@ -770,10 +775,10 @@ class _SelfActionsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Actions', style: Theme.of(context).textTheme.titleMedium),
+        Text(AppLocalizations.of(context)!.userDetailActionsSection, style: Theme.of(context).textTheme.titleMedium),
         SizedBox(height: tokens.space.s2),
         DcoButton(
-          label: 'Leave Family',
+          label: AppLocalizations.of(context)!.userDetailLeaveFamilyButton,
           variant: DcoButtonVariant.destructive,
           onPressed: onLeaveFamily,
         ),
@@ -802,17 +807,17 @@ class _AdminActionsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Admin Actions', style: Theme.of(context).textTheme.titleMedium),
+        Text(AppLocalizations.of(context)!.userDetailAdminActionsSection, style: Theme.of(context).textTheme.titleMedium),
         SizedBox(height: tokens.space.s2),
         Row(
           children: [
-            Expanded(child: DcoButton(label: 'Change Role', variant: DcoButtonVariant.secondary, onPressed: onChangeRole)),
+            Expanded(child: DcoButton(label: AppLocalizations.of(context)!.userDetailChangeRole, variant: DcoButtonVariant.secondary, onPressed: onChangeRole)),
             SizedBox(width: tokens.space.s2),
-            Expanded(child: DcoButton(label: 'Assign Vehicles', onPressed: onAssignVehicles)),
+            Expanded(child: DcoButton(label: AppLocalizations.of(context)!.userDetailAssignVehicles, onPressed: onAssignVehicles)),
           ],
         ),
         SizedBox(height: tokens.space.s2),
-        DcoButton(label: 'Remove from Family', variant: DcoButtonVariant.destructive, onPressed: onRemove),
+        DcoButton(label: AppLocalizations.of(context)!.userDetailRemoveFromFamily, variant: DcoButtonVariant.destructive, onPressed: onRemove),
       ],
     );
   }
@@ -838,6 +843,7 @@ class _ChangeRoleSheetState extends ConsumerState<_ChangeRoleSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
 
     return SafeArea(
@@ -847,23 +853,23 @@ class _ChangeRoleSheetState extends ConsumerState<_ChangeRoleSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Change Role', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: tokens.text.primary)),
+            Text(s.userDetailChangeRoleSheet, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: tokens.text.primary)),
             SizedBox(height: tokens.space.s2),
-            Text('Current: ${_roleLabel(_selectedRole)}', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary)),
+            Text(s.userDetailCurrentRole(_roleLabel(_selectedRole)), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary)),
             SizedBox(height: tokens.space.s3),
-            Text('New Role', style: Theme.of(context).textTheme.labelLarge),
+            Text(s.userDetailNewRole, style: Theme.of(context).textTheme.labelLarge),
             SizedBox(height: tokens.space.s2),
             SegmentedButton<String>(
-              segments: const [
-                ButtonSegment(value: 'member', label: Text('Member'), icon: Icon(Icons.person)),
-                ButtonSegment(value: 'driver', label: Text('Driver'), icon: Icon(Icons.drive_eta)),
+              segments: [
+                ButtonSegment(value: 'member', label: Text(s.userDetailMemberRole), icon: const Icon(Icons.person)),
+                ButtonSegment(value: 'driver', label: Text(s.userDetailDriverRole), icon: const Icon(Icons.drive_eta)),
               ],
               selected: {_selectedRole},
               onSelectionChanged: (Set<String> selection) => setState(() => _selectedRole = selection.first),
             ),
             SizedBox(height: tokens.space.s3),
             DcoButton(
-              label: 'Save',
+              label: s.save,
               onPressed: _selectedRole != widget.user.familyRole
                   ? () async {
                       final repo = ref.read(familyRepositoryProvider);
@@ -883,10 +889,11 @@ class _ChangeRoleSheetState extends ConsumerState<_ChangeRoleSheet> {
   }
 
   String _roleLabel(String role) {
+    final s = AppLocalizations.of(context)!;
     switch (role) {
-      case 'primary_owner': return 'Primary Owner';
-      case 'member': return 'Member';
-      case 'driver': return 'Driver';
+      case 'primary_owner': return s.userDetailPrimaryOwner;
+      case 'member': return s.userDetailMemberRole;
+      case 'driver': return s.userDetailDriverRole;
       default: return role;
     }
   }
@@ -914,14 +921,14 @@ class _AssignVehiclesSheetState extends ConsumerState<_AssignVehiclesSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Assign Vehicles', style: Theme.of(context).textTheme.titleLarge?.copyWith(color: tokens.text.primary)),
+            Text(AppLocalizations.of(context)!.userDetailAssignVehiclesSheet, style: Theme.of(context).textTheme.titleLarge?.copyWith(color: tokens.text.primary)),
             SizedBox(height: tokens.space.s2),
             vehiclesAsync.when(
               loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
               error: (e, _) => Text('Error: $e'),
               data: (vehicles) {
                 if (vehicles.isEmpty) {
-                  return Text('No vehicles in garage', style: TextStyle(color: tokens.text.tertiary));
+                  return Text(AppLocalizations.of(context)!.userDetailNoVehiclesInGarage, style: TextStyle(color: tokens.text.tertiary));
                 }
                 return Column(
                   children: vehicles.map((v) => ListTile(
@@ -933,7 +940,7 @@ class _AssignVehiclesSheetState extends ConsumerState<_AssignVehiclesSheet> {
               },
             ),
             SizedBox(height: tokens.space.s4),
-            DcoButton(label: 'Done', onPressed: () => Navigator.pop(context)),
+            DcoButton(label: AppLocalizations.of(context)!.done, onPressed: () => Navigator.pop(context)),
           ],
         ),
       ),

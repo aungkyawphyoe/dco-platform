@@ -11,6 +11,8 @@ import 'core/theme/dco_theme.dart';
 import 'core/widgets/dco_error_dialog.dart';
 import 'features/auth/presentation/session_controller.dart';
 import 'features/notifications/presentation/reminder_sync_controller.dart';
+import 'features/settings/providers.dart';
+import 'generated/app_localizations.dart';
 
 bool _isOnline(List<ConnectivityResult>? results) {
   if (results == null || results.isEmpty) return true;
@@ -75,11 +77,17 @@ class _DcoAppState extends ConsumerState<DcoApp> {
 
     ref.listen(syncStatusProvider, (_, next) => _onSyncStatus(next));
 
+    final locale = ref.watch(localeProvider);
+
     return MaterialApp.router(
+      key: ValueKey(locale.languageCode),
       title: 'DCO',
       debugShowCheckedModeBanner: false,
       theme: buildDcoTheme(),
       routerConfig: router,
+      locale: locale,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
     );
   }
 }

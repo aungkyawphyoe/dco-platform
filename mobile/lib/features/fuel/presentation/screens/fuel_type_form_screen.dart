@@ -7,6 +7,7 @@ import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart'
 import 'package:dco_mobile/features/fuel/domain/fuel_failure.dart';
 import 'package:dco_mobile/features/fuel/domain/fuel_validators.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -107,16 +108,17 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? 'Edit Fuel Type' : 'Add Fuel Type')),
+        appBar: AppBar(title: Text(widget.isEditing ? s.fuelTypeFormEditTitle : s.fuelTypeFormAddTitle)),
         body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? 'Edit Fuel Type' : 'Add Fuel Type')),
+      appBar: AppBar(title: Text(widget.isEditing ? s.fuelTypeFormEditTitle : s.fuelTypeFormAddTitle)),
       body: Column(
         children: [
           Expanded(
@@ -125,16 +127,16 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
               children: [
                 DcoTextField(
                   key: const Key('fuel-type-name'),
-                  label: 'Name *',
+                  label: s.fuelTypeFormName,
                   controller: _name,
-                  hint: _kind == FuelCatalogKind.electric ? 'Electricity' : 'Petrol',
+                  hint: _kind == FuelCatalogKind.electric ? s.fuelTypeFormNameHintElectric : s.fuelTypeFormNameHintPetrol,
                   errorText: _errors['name'],
                   maxLength: FuelTypeValidators.maxNameLength,
                   textInputAction: TextInputAction.done,
                   onChanged: (_) => setState(() => _errors['name'] = null),
                 ),
                 SizedBox(height: tokens.space.s4),
-                Text('Kind *', style: Theme.of(context).textTheme.labelLarge),
+                Text(s.fuelTypeFormKind, style: Theme.of(context).textTheme.labelLarge),
                 SizedBox(height: tokens.space.s2),
                 Wrap(
                   spacing: tokens.space.s2,
@@ -155,7 +157,7 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
                   }).toList(),
                 ),
                 SizedBox(height: tokens.space.s4),
-                Text('Unit *', style: Theme.of(context).textTheme.labelLarge),
+                Text(s.fuelTypeFormUnit, style: Theme.of(context).textTheme.labelLarge),
                 SizedBox(height: tokens.space.s2),
                 Wrap(
                   spacing: tokens.space.s2,
@@ -196,7 +198,7 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
               children: [
                 Expanded(
                   child: DcoButton(
-                    label: 'Cancel',
+                    label: s.cancel,
                     variant: DcoButtonVariant.secondary,
                     onPressed: () => context.pop(),
                   ),
@@ -205,7 +207,7 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
                 Expanded(
                   child: DcoButton(
                     key: const Key('fuel-type-save'),
-                    label: 'Save',
+                    label: s.save,
                     onPressed: _save,
                     loading: _saving,
                   ),

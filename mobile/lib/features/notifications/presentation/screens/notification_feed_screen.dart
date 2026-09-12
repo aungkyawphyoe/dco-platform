@@ -7,26 +7,28 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/notifications/domain/entities/notification.dart';
 import 'package:dco_mobile/features/notifications/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 
 class NotificationFeedScreen extends ConsumerWidget {
   const NotificationFeedScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final items = ref.watch(notificationsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Notifications')),
+      appBar: AppBar(title: Text(s.notificationsTitle)),
       body: items.when(
         loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
         error: (error, _) =>
-            DcoEmptyState(title: 'Could not load notifications', body: '$error'),
+            DcoEmptyState(title: s.notificationsLoadError, body: '$error'),
         data: (list) {
           if (list.isEmpty) {
-            return const DcoEmptyState(
-              title: 'No notifications',
-              body: 'Due reminders will show up here.',
+            return DcoEmptyState(
+              title: s.notificationsEmptyTitle,
+              body: s.notificationsEmptyBody,
             );
           }
           return ListView.separated(
@@ -51,6 +53,7 @@ class _NotificationTile extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
 
@@ -90,12 +93,12 @@ class _NotificationTile extends ConsumerWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    tooltip: 'Mark done',
+                    tooltip: s.notificationsMarkDone,
                     onPressed: () => updateStatus(NotificationStatus.done),
                     icon: Icon(Icons.check_circle_outline, color: tokens.status.successFg),
                   ),
                   IconButton(
-                    tooltip: 'Dismiss',
+                    tooltip: s.notificationsDismiss,
                     onPressed: () => updateStatus(NotificationStatus.dismissed),
                     icon: Icon(Icons.close, color: tokens.text.tertiary),
                   ),
@@ -103,7 +106,7 @@ class _NotificationTile extends ConsumerWidget {
               )
             : TextButton(
                 onPressed: () => updateStatus(NotificationStatus.unread),
-                child: const Text('Restore'),
+                child: Text(s.notificationsRestore),
               ),
       ),
     );

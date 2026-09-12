@@ -6,6 +6,7 @@ import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -24,6 +25,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final expenses = ref.watch(vehicleExpensesProvider);
@@ -34,10 +36,10 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Expenses'),
+        title: Text(s.expensesTitle),
         actions: [
           IconButton(
-            tooltip: 'Add expense',
+            tooltip: s.expensesAddTooltip,
             onPressed: vehicle == null
                 ? null
                 : () => context.push(AppRoutes.expenseNew),
@@ -51,11 +53,10 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
         ],
       ),
       body: vehicle == null
-          ? const Center(
+          ? Center(
               child: DcoEmptyState(
-                title: 'No active vehicle',
-                body:
-                    'Register a vehicle to log spend. Fuel here is money only — not a fuel log.',
+                title: s.expensesNoActiveVehicle,
+                body: s.expensesNoActiveVehicleBody,
               ),
             )
           : expenses.when(
@@ -63,7 +64,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                 child: CircularProgressIndicator(color: tokens.text.accent),
               ),
               error: (error, _) => DcoEmptyState(
-                title: 'Could not load expenses',
+                title: s.expensesLoadError,
                 body: '$error',
               ),
               data: (items) {
@@ -92,19 +93,19 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                       child: items.isEmpty
                           ? Center(
                               child: DcoEmptyState(
-                                title: 'No expenses yet',
+                                title: s.expensesEmptyTitle,
                                 body:
-                                    'Log spend for ${vehicle.displayName}. Fuel is money only — not a fuel log.',
-                                actionLabel: 'Add expense',
+                                    s.expensesEmptyBody(vehicle.displayName),
+                                actionLabel: s.expensesAddExpense,
                                 onAction: () =>
                                     context.push(AppRoutes.expenseNew),
                               ),
                             )
                           : filtered.isEmpty
-                          ? const Center(
+                          ? Center(
                               child: DcoEmptyState(
-                                title: 'No matching expenses',
-                                body: 'Try a different category.',
+                                title: s.expensesNoMatching,
+                                body: s.expensesNoMatchingBody,
                               ),
                             )
                           : ListView.builder(
@@ -148,6 +149,7 @@ class _SummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -160,14 +162,14 @@ class _SummaryHeader extends StatelessWidget {
         children: [
           Expanded(
             child: _SummaryCard(
-              label: 'This month',
+              label: s.expensesThisMonth,
               value: MoneyFormat.labeled(summary.thisMonth, currency),
             ),
           ),
           SizedBox(width: tokens.space.s3),
           Expanded(
             child: _SummaryCard(
-              label: 'Total',
+              label: s.expensesTotal,
               value: MoneyFormat.labeled(summary.total, currency),
             ),
           ),
@@ -285,6 +287,7 @@ class _CategoryFilterBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     return Padding(
       padding: EdgeInsets.fromLTRB(
@@ -298,7 +301,7 @@ class _CategoryFilterBar extends StatelessWidget {
         child: Row(
           children: [
             _FilterChip(
-              label: 'All',
+              label: s.expensesAllFilter,
               selected: selected == null,
               onTap: () => onSelected(null),
             ),

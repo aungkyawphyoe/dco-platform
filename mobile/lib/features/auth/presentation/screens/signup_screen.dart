@@ -9,6 +9,8 @@ import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
 import '../../../../core/widgets/dco_error_dialog.dart';
 import '../../../../core/widgets/dco_text_field.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
+
 import '../../domain/auth_failure.dart';
 import '../../domain/auth_validators.dart';
 import '../session_controller.dart';
@@ -39,6 +41,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   }
 
   Future<void> _submit() async {
+    final s = AppLocalizations.of(context)!;
     setState(() {
       _emailError = AuthValidators.email(_email.text);
       _passwordError = AuthValidators.password(_password.text);
@@ -55,15 +58,15 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
       );
     } catch (failure) {
       final message =
-          failure is AuthFailure ? failure.message : 'Something went wrong. Try again.';
+          failure is AuthFailure ? failure.message : s.somethingWentWrongTryAgain;
       if (mounted) {
         setState(() => _formError = message);
         unawaited(
           showDcoErrorDialog(
             context,
-            title: 'Sign up failed',
+            title: s.signUpFailed,
             message: message,
-            actionLabel: failure is NetworkAuthFailure ? 'Retry' : 'OK',
+            actionLabel: failure is NetworkAuthFailure ? s.retry : s.ok,
             onAction: failure is NetworkAuthFailure ? () => _submit() : null,
           ),
         );
@@ -76,16 +79,17 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final s = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Create account')),
+      appBar: AppBar(title: Text(s.createAccount)),
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.all(tokens.space.s5),
           children: [
             DcoTextField(
-              label: 'Email',
+              label: s.emailLabel,
               controller: _email,
-              hint: 'you@example.com',
+              hint: s.emailHint,
               errorText: _emailError,
               keyboardType: TextInputType.emailAddress,
               textInputAction: TextInputAction.next,
@@ -94,7 +98,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
             SizedBox(height: tokens.space.s4),
             DcoTextField(
-              label: 'Password',
+              label: s.passwordLabel,
               controller: _password,
               obscureText: true,
               errorText: _passwordError,
@@ -104,7 +108,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
             SizedBox(height: tokens.space.s4),
             DcoTextField(
-              label: 'Confirm password',
+              label: s.confirmPasswordLabel,
               controller: _confirm,
               obscureText: true,
               errorText: _confirmError,
@@ -117,11 +121,11 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
               SizedBox(height: tokens.space.s3),
             ],
-            DcoButton(label: 'Create account', onPressed: _submit, loading: _submitting),
+            DcoButton(label: s.createAccount, onPressed: _submit, loading: _submitting),
             SizedBox(height: tokens.space.s4),
             TextButton(
               onPressed: () => context.go(AppRoutes.login),
-              child: Text('Already have an account? Sign in', style: TextStyle(color: tokens.text.link)),
+              child: Text(s.alreadyHaveAccount, style: TextStyle(color: tokens.text.link)),
             ),
           ],
         ),

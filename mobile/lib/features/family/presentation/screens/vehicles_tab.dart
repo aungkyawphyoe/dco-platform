@@ -2,6 +2,7 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/features/family/domain/entities/family.dart' as family_entities;
 import 'package:dco_mobile/features/family/presentation/providers/family_vehicle_providers.dart';
 import 'package:dco_mobile/features/garage/presentation/widgets/vehicle_card.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -12,6 +13,7 @@ class VehiclesTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final vehiclesAsync = ref.watch(familyVehiclesProvider);
 
     final isOwner = family.myRole == 'owner';
@@ -25,7 +27,7 @@ class VehiclesTab extends ConsumerWidget {
               Icon(Icons.directions_car, color: context.tokens.text.accent),
               const SizedBox(width: 8),
               Text(
-                'Family Vehicles',
+                s.vehiclesTabTitle,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -35,7 +37,7 @@ class VehiclesTab extends ConsumerWidget {
                 FilledButton.icon(
                   onPressed: () => _showAddVehicleDialog(context, ref),
                   icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add'),
+                  label: Text(s.vehiclesTabAdd),
                 ),
             ],
           ),
@@ -57,7 +59,7 @@ class VehiclesTab extends ConsumerWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'No vehicles in family',
+                        s.vehiclesTabEmptyTitle,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: context.tokens.text.secondary,
                         ),
@@ -65,8 +67,8 @@ class VehiclesTab extends ConsumerWidget {
                       const SizedBox(height: 8),
                       Text(
                         isOwner
-                            ? 'Tap "Add" to share a vehicle with your family'
-                            : 'Ask the owner to share a vehicle',
+                            ? s.vehiclesTabEmptyBodyOwner
+                            : s.vehiclesTabEmptyBodyNonOwner,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: context.tokens.text.tertiary,
                         ),
@@ -105,18 +107,19 @@ class VehiclesTab extends ConsumerWidget {
   }
 
   void _showAddVehicleDialog(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     // TODO: Implement add vehicle dialog
     // This would show a list of user's vehicles to select from
     showModalBottomSheet(
       context: context,
       builder: (context) => Container(
         padding: const EdgeInsets.all(16),
-        child: const Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Select a vehicle to share'),
-            SizedBox(height: 16),
-            Text('TODO: Vehicle list'),
+            Text(s.vehiclesTabSelectTitle),
+            const SizedBox(height: 16),
+            const Text('TODO: Vehicle list'),
           ],
         ),
       ),
@@ -124,22 +127,23 @@ class VehiclesTab extends ConsumerWidget {
   }
 
   void _confirmRemove(BuildContext context, WidgetRef ref, family_entities.FamilyVehicle vehicle) {
+    final s = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Remove Vehicle'),
-        content: Text('Remove ${vehicle.displayName} from family?'),
+        title: Text(s.vehiclesTabRemoveTitle),
+        content: Text(s.vehiclesTabRemoveBody(vehicle.displayName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(s.cancel),
           ),
           TextButton(
             onPressed: () async {
               Navigator.pop(context);
               await ref.read(familyActionsProvider).removeVehicleFromFamily(vehicle.id);
             },
-            child: const Text('Remove', style: TextStyle(color: Colors.red)),
+            child: Text(s.remove, style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),

@@ -6,6 +6,7 @@ import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_t
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -15,17 +16,18 @@ class MaintenancePlanScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan = ref.watch(maintenancePlanProvider);
     final lengthUnit = ref.watch(lengthUnitProvider);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Maintenance Plan')),
+      appBar: AppBar(title: Text(s.maintenancePlanTitle)),
       body: vehicle == null
-          ? const DcoEmptyState(
-              title: 'No active vehicle',
-              body: 'Register a vehicle to build a maintenance plan.',
+          ? DcoEmptyState(
+              title: s.maintenanceNoActiveVehicle,
+              body: s.maintenancePlanNoActiveVehicleBody,
             )
           : Column(
               children: [
@@ -35,14 +37,14 @@ class MaintenancePlanScreen extends ConsumerWidget {
                       child: CircularProgressIndicator(color: tokens.text.accent),
                     ),
                     error: (error, _) => DcoEmptyState(
-                      title: 'Could not load plan',
+                      title: s.maintenancePlanLoadError,
                       body: '$error',
                     ),
                     data: (items) {
                       if (items.isEmpty) {
-                        return const DcoEmptyState(
-                          title: 'No plan items yet',
-                          body: 'Add a custom item or pick from suggested services.',
+                        return DcoEmptyState(
+                          title: s.maintenancePlanEmptyTitle,
+                          body: s.maintenancePlanEmptyBody,
                         );
                       }
                       final now = DateTime.now();
@@ -64,9 +66,9 @@ class MaintenancePlanScreen extends ConsumerWidget {
                   ),
                 ),
                 DcoStickyActions(
-                  secondaryLabel: 'Add Maintenance Item',
+                  secondaryLabel: s.maintenancePlanAddItem,
                   onSecondary: () => context.push(AppRoutes.maintenancePlanNew),
-                  primaryLabel: 'Add Suggested Items',
+                  primaryLabel: s.maintenancePlanAddSuggested,
                   onPrimary: () => context.push(AppRoutes.maintenanceSuggested),
                 ),
               ],

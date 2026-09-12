@@ -1,4 +1,5 @@
 import 'package:dco_mobile/core/router/routes.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_logo.dart';
@@ -12,6 +13,7 @@ class WelcomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final s = AppLocalizations.of(context)!;
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -22,21 +24,21 @@ class WelcomeScreen extends StatelessWidget {
               const Spacer(),
               const DcoLogo(),
               SizedBox(height: tokens.space.s3),
-              Text('Your garage, on the phone.', style: Theme.of(context).textTheme.titleLarge),
+              Text(s.welcomeTagline, style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: tokens.space.s3),
               Text(
-                'Track maintenance, documents, and spend for every vehicle you own — even offline.',
+                s.welcomeBody,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               const Spacer(),
               DcoButton(
-                label: 'Create account',
+                label: s.createAccount,
                 onPressed: () => context.push(AppRoutes.signup),
               ),
               SizedBox(height: tokens.space.s3),
               DcoButton(
                 key: const Key('welcome-sign-in'),
-                label: 'Sign in',
+                label: s.signIn,
                 variant: DcoButtonVariant.secondary,
                 onPressed: () => context.push(AppRoutes.login),
               ),

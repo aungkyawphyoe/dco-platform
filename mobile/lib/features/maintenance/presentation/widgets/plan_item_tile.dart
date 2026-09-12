@@ -5,6 +5,7 @@ import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/service_record.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -29,6 +30,7 @@ class PlanItemTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final urgency = DueCalculator.urgency(
       item: item,
@@ -96,7 +98,7 @@ class PlanItemTile extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: tokens.space.s2),
-                      ..._dueLine(item, vehicle, overdue, lengthUnit).map(
+                      ..._dueLine(item, vehicle, overdue, lengthUnit, s).map(
                         (line) => Padding(
                           padding: EdgeInsets.only(bottom: tokens.space.s1),
                           child: Text(
@@ -109,7 +111,7 @@ class PlanItemTile extends StatelessWidget {
                       ),
                       SizedBox(height: tokens.space.s1),
                       Text(
-                        _remainingLine(item, vehicle, now, lengthUnit),
+                        _remainingLine(item, vehicle, now, lengthUnit, s),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: tokens.text.secondary,
                         ),
@@ -135,7 +137,7 @@ class PlanItemTile extends StatelessWidget {
   }
 }
 
-List<String> _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit unit) {
+List<String> _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit unit, AppLocalizations s) {
   if (overdue) {
     final parts = <String>[];
     if (item.nextDueMileage != null && vehicle.mileage > item.nextDueMileage!) {
@@ -143,19 +145,19 @@ List<String> _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit 
     }
     if (item.nextDueOn != null) {
       final days = DateTime.now().difference(DueCalculator.dateOnly(item.nextDueOn!)).inDays;
-      if (days > 0) parts.add('$days ${days == 1 ? 'day' : 'days'}');
+      if (days > 0) parts.add(s.planItemTileOverdueBy(days));
     }
-    if (parts.isEmpty) return ['Overdue'];
-    return ['Overdue by ${parts.join(' / ')}'];
+    if (parts.isEmpty) return [s.planItemTileOverdue];
+    return ['${s.planItemTileOverdue} ${s.planItemTileOverdueBy(0)}'];
   }
   final lines = <String>[];
   if (item.nextDueMileage != null) {
-    lines.add('Next Mileage: ${MileageFormat.labeled(item.nextDueMileage!, unit)}');
+    lines.add('${s.planItemTileNextMileage}${MileageFormat.labeled(item.nextDueMileage!, unit)}');
   }
   if (item.nextDueOn != null) {
-    lines.add('Next Date: ${DateFormat.yMMMd().format(item.nextDueOn!)}');
+    lines.add('${s.planItemTileNextDate}${DateFormat.yMMMd().format(item.nextDueOn!)}');
   }
-  if (lines.isEmpty) return ['No due date set'];
+  if (lines.isEmpty) return [s.planItemTileNoDueDate];
   return lines;
 }
 
@@ -186,18 +188,18 @@ double? _progress(PlanItem item, Vehicle vehicle, DateTime now) {
   return a > b ? a : b;
 }
 
-String _remainingLine(PlanItem item, Vehicle vehicle, DateTime now, MileageUnit unit) {
+String _remainingLine(PlanItem item, Vehicle vehicle, DateTime now, MileageUnit unit, AppLocalizations s) {
   final parts = <String>[];
   if (item.nextDueMileage != null) {
     final remaining = item.nextDueMileage! - vehicle.mileage;
     if (remaining >= 0) {
-      parts.add('Remaining: ${MileageFormat.labeled(remaining, unit)}');
+      parts.add('${s.planItemTileRemaining}${MileageFormat.labeled(remaining, unit)}');
     }
   }
   if (item.nextDueOn != null) {
     final days = DueCalculator.dateOnly(item.nextDueOn!).difference(DueCalculator.dateOnly(now)).inDays;
     if (days >= 0) {
-      parts.add('Time left: $days ${days == 1 ? 'day' : 'days'}');
+      parts.add('${s.planItemTileTimeLeft}$days ${days == 1 ? s.planItemTileDay : s.planItemTileDays}');
     }
   }
   return parts.join('  ·  ');

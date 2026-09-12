@@ -34,7 +34,7 @@ void main() {
 
   test('missing profile returns defaults', () async {
     final loaded = await prefs.get('user-1');
-    expect(loaded.language, AppLanguage.english);
+    expect(loaded.language, AppLanguage.myanmar);
     expect(loaded.currency, AppCurrency.mmk);
     expect(loaded.lengthUnit, MileageUnit.km);
   });

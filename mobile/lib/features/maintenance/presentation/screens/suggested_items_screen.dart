@@ -7,6 +7,7 @@ import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/suggested_catalog.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -15,6 +16,7 @@ class SuggestedItemsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const [];
@@ -22,11 +24,11 @@ class SuggestedItemsScreen extends ConsumerWidget {
     final existing = plan.map((item) => item.catalogKey).whereType<String>().toSet();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Maintenance Items')),
+      appBar: AppBar(title: Text(s.suggestedItemsTitle)),
       body: vehicle == null
-          ? const DcoEmptyState(
-              title: 'No active vehicle',
-              body: 'Register a vehicle to add suggested items.',
+          ? DcoEmptyState(
+              title: s.maintenanceNoActiveVehicle,
+              body: s.suggestedItemsNoActiveVehicleBody,
             )
           : Builder(
               builder: (context) {
@@ -34,9 +36,9 @@ class SuggestedItemsScreen extends ConsumerWidget {
                   vehicle.fuelType,
                 ).where((item) => !existing.contains(item.catalogKey)).toList();
                 if (suggestions.isEmpty) {
-                  return const DcoEmptyState(
-                    title: 'All suggested items added',
-                    body: 'You can still create a custom service item from the plan.',
+                  return DcoEmptyState(
+                    title: s.suggestedItemsAllAdded,
+                    body: s.suggestedItemsAllAddedBody,
                   );
                 }
                 return ListView.builder(
@@ -54,7 +56,7 @@ class SuggestedItemsScreen extends ConsumerWidget {
                           child: Row(
                             children: [
                               IconButton(
-                                tooltip: 'Add ${item.name}',
+                                tooltip: s.suggestedItemAdd(item.name),
                                 onPressed: () async {
                                   final userId = vehicle.userId;
                                   await ref.read(maintenanceRepositoryProvider).addSuggestedItem(

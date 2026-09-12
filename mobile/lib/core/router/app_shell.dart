@@ -1,3 +1,4 @@
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,24 +11,25 @@ class AppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = [
+    final s = AppLocalizations.of(context)!;
+    final items = [
       CustomNavItem(
-        label: 'Garage',
+        label: s.navGarage,
         icon: Icons.directions_car_outlined,
         activeIcon: Icons.directions_car,
       ),
       CustomNavItem(
-        label: 'Maintenance',
+        label: s.navMaintenance,
         icon: Icons.build_outlined,
         activeIcon: Icons.build,
       ),
       CustomNavItem(
-        label: 'Expenses',
+        label: s.navExpenses,
         icon: Icons.payments_outlined,
         activeIcon: Icons.payments,
       ),
       CustomNavItem(
-        label: 'Setting',
+        label: s.navSettings,
         icon: Icons.settings_outlined,
         activeIcon: Icons.settings,
       ),

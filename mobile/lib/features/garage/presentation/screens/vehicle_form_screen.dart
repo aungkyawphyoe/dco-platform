@@ -12,6 +12,7 @@ import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_failure.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_validators.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -50,6 +51,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
   String? _formError;
   bool _loading = true;
   bool _saving = false;
+  bool _fuelError = false;
 
   @override
   void initState() {
@@ -109,7 +111,8 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         ..['plate'] = VehicleValidators.licensePlate(_plate.text)
         ..['mileage'] = VehicleValidators.mileage(_mileage.text)
         ..['vin'] = VehicleValidators.vin(_vin.text)
-        ..['fuel'] = _fuelType == null ? 'Fuel type is required' : null;
+        ..['fuel'] = null;
+      _fuelError = _fuelType == null;
       _formError = null;
     });
     if (_errors.values.any((error) => error != null) || _fuelType == null) return null;
@@ -187,12 +190,13 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final s = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Archive this vehicle?'),
-          content: const Text('Records stay attached and hidden. This does not permanently delete them.'),
+          title: Text(s.vehicleArchiveTitle),
+          content: Text(s.vehicleArchiveBody),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Archive')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(s.cancel)),
+            TextButton(onPressed: () => Navigator.pop(context, true), child: Text(s.vehicleArchiveAction)),
           ],
         );
       },
@@ -205,17 +209,18 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? 'Edit Vehicle' : 'Register Vehicle')),
+        appBar: AppBar(title: Text(widget.isEditing ? s.vehicleEditTitle : s.vehicleRegisterTitle)),
         body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? 'Edit Vehicle' : 'Register Vehicle')),
+      appBar: AppBar(title: Text(widget.isEditing ? s.vehicleEditTitle : s.vehicleRegisterTitle)),
       body: Column(
         children: [
           Expanded(
@@ -224,11 +229,11 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
               children: [
                 _PhotoPicker(path: _photoPath, onTap: _pickPhoto),
                 SizedBox(height: tokens.space.s5),
-                Text('Required Information', style: Theme.of(context).textTheme.titleLarge),
+                Text(s.vehicleRequiredInfo, style: Theme.of(context).textTheme.titleLarge),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('vehicle-name'),
-                  label: 'Name *',
+                  label: s.vehicleNameLabel,
                   controller: _name,
                   errorText: _errors['name'],
                   textInputAction: TextInputAction.next,
@@ -240,7 +245,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                     Expanded(
                       child: DcoTextField(
                         key: const Key('vehicle-year'),
-                        label: 'Year *',
+                        label: s.vehicleYearLabel,
                         controller: _year,
                         errorText: _errors['year'],
                         keyboardType: TextInputType.number,
@@ -252,7 +257,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                     Expanded(
                       child: DcoTextField(
                         key: const Key('vehicle-make'),
-                        label: 'Make *',
+                        label: s.vehicleMakeLabel,
                         controller: _make,
                         errorText: _errors['make'],
                         textInputAction: TextInputAction.next,
@@ -264,7 +269,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('vehicle-model'),
-                  label: 'Model *',
+                  label: s.vehicleModelLabel,
                   controller: _model,
                   errorText: _errors['model'],
                   textInputAction: TextInputAction.next,
@@ -273,7 +278,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('vehicle-plate'),
-                  label: 'License Plate *',
+                  label: s.vehiclePlateLabel,
                   controller: _plate,
                   errorText: _errors['plate'],
                   maxLength: 20,
@@ -283,7 +288,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('vehicle-mileage'),
-                  label: 'Mileage *',
+                  label: s.vehicleMileageLabel,
                   controller: _mileage,
                   errorText: _errors['mileage'],
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -295,7 +300,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                   onChanged: (_) => setState(() => _errors['mileage'] = null),
                 ),
                 SizedBox(height: tokens.space.s4),
-                Text('Fuel Type *', style: Theme.of(context).textTheme.labelLarge),
+                Text(s.vehicleFuelTypeLabel, style: Theme.of(context).textTheme.labelLarge),
                 SizedBox(height: tokens.space.s2),
                 Wrap(
                   spacing: tokens.space.s2,
@@ -307,6 +312,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                       onSelected: (_) => setState(() {
                         _fuelType = type;
                         _errors['fuel'] = null;
+                        _fuelError = false;
                       }),
                       showCheckmark: false,
                       selectedColor: tokens.text.accent,
@@ -324,10 +330,10 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                     child: Text(_errors['fuel']!, style: TextStyle(color: tokens.status.dangerFg)),
                   ),
                 SizedBox(height: tokens.space.s6),
-                Text('Optional Details', style: Theme.of(context).textTheme.titleLarge),
+                Text(s.vehicleOptionalDetails, style: Theme.of(context).textTheme.titleLarge),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: 'VIN',
+                  label: s.vehicleVinLabel,
                   controller: _vin,
                   errorText: _errors['vin'],
                   maxLength: 17,
@@ -339,7 +345,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                   children: [
                     Expanded(
                       child: DcoTextField(
-                        label: 'Color',
+                        label: s.vehicleColorLabel,
                         controller: _color,
                         textInputAction: TextInputAction.next,
                       ),
@@ -347,7 +353,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                     SizedBox(width: tokens.space.s3),
                     Expanded(
                       child: DcoTextField(
-                        label: 'Nickname',
+                        label: s.vehicleNicknameLabel,
                         controller: _nickname,
                         textInputAction: TextInputAction.next,
                       ),
@@ -356,7 +362,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: 'Purchase Date',
+                  label: s.vehiclePurchaseDateLabel,
                   controller: _purchaseDate,
                   readOnly: true,
                   onTap: _pickDate,
@@ -369,7 +375,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 if (widget.isEditing) ...[
                   SizedBox(height: tokens.space.s6),
                   DcoButton(
-                    label: 'Archive vehicle',
+                    label: s.vehicleArchiveButton,
                     variant: DcoButtonVariant.destructive,
                     onPressed: _archive,
                   ),
@@ -384,7 +390,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
               children: [
                 Expanded(
                   child: DcoButton(
-                    label: 'Cancel',
+                    label: s.cancel,
                     variant: DcoButtonVariant.secondary,
                     onPressed: () => context.pop(),
                   ),
@@ -393,7 +399,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 Expanded(
                   child: DcoButton(
                     key: const Key('vehicle-save'),
-                    label: 'Save',
+                    label: s.save,
                     onPressed: _save,
                     loading: _saving,
                   ),
@@ -415,6 +421,7 @@ class _PhotoPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     return InkWell(
       onTap: onTap,
@@ -432,7 +439,7 @@ class _PhotoPicker extends StatelessWidget {
                 children: [
                   Icon(Icons.add_a_photo_outlined, color: tokens.icon.inactive),
                   SizedBox(height: tokens.space.s2),
-                  Text('Add photo', style: TextStyle(color: tokens.text.caption)),
+                  Text(s.vehicleAddPhoto, style: TextStyle(color: tokens.text.caption)),
                 ],
               )
             : ClipRRect(

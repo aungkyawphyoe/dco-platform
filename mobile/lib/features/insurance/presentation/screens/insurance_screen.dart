@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -8,14 +9,15 @@ class InsuranceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final active = ref.watch(activeVehicleProvider).valueOrNull;
     return Scaffold(
-      appBar: AppBar(title: const Text('Insurance')),
+      appBar: AppBar(title: Text(s.insuranceTitle)),
       body: DcoEmptyState(
-        title: active == null ? 'No active vehicle' : 'Insurance coming later',
+        title: active == null ? s.insuranceNoActiveVehicle : s.insuranceComingLater,
         body: active == null
-            ? 'Register a vehicle to keep policies against it.'
-            : 'Policies for ${active.displayName} will live here. For now, store insurance papers in Documents.',
+            ? s.insuranceNoActiveVehicleBody
+            : s.insuranceEmptyBody(active.displayName),
       ),
     );
   }

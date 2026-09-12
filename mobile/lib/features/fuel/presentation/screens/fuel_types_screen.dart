@@ -4,6 +4,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -20,6 +21,7 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final catalog = ref.watch(fuelCatalogProvider);
@@ -27,23 +29,23 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fuel Types'),
+        title: Text(s.fuelTypesTitle),
         actions: [
           IconButton(
-            tooltip: 'Add a fuel type',
+            tooltip: s.fuelTypesAddTooltip,
             onPressed: vehicle == null ? null : () => context.push(AppRoutes.fuelTypeNew),
             icon: Icon(Icons.add, color: vehicle == null ? tokens.icon.inactive : tokens.icon.active),
           ),
         ],
       ),
       body: vehicle == null
-          ? const DcoEmptyState(
-              title: 'No active vehicle',
-              body: 'Register a vehicle to keep a fuel type catalog.',
+          ? DcoEmptyState(
+              title: s.fuelTypesNoActiveVehicle,
+              body: s.fuelTypesNoActiveVehicleBody,
             )
           : catalog.when(
               loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-              error: (error, _) => DcoEmptyState(title: 'Could not load fuel types', body: '$error'),
+              error: (error, _) => DcoEmptyState(title: s.fuelTypesLoadError, body: '$error'),
               data: (items) {
                 final filtered = _kind == null ? items : items.where((item) => item.kind == _kind).toList();
                 return Column(
@@ -57,16 +59,16 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
                       ),
                       child: Row(
                         children: [
-                          _KindChip(label: 'All', selected: _kind == null, onTap: () => setState(() => _kind = null)),
+                          _KindChip(label: s.fuelTypesAll, selected: _kind == null, onTap: () => setState(() => _kind = null)),
                           SizedBox(width: tokens.space.s2),
                           _KindChip(
-                            label: 'Liquid',
+                            label: s.fuelTypesLiquid,
                             selected: _kind == FuelCatalogKind.liquid,
                             onTap: () => setState(() => _kind = FuelCatalogKind.liquid),
                           ),
                           SizedBox(width: tokens.space.s2),
                           _KindChip(
-                            label: 'Electric',
+                            label: s.fuelTypesElectric,
                             selected: _kind == FuelCatalogKind.electric,
                             onTap: () => setState(() => _kind = FuelCatalogKind.electric),
                           ),
@@ -76,15 +78,15 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
                     Expanded(
                       child: items.isEmpty
                           ? DcoEmptyState(
-                              title: 'No fuel types yet',
-                              body: 'Add petrol, diesel, electricity, or your own names.',
-                              actionLabel: 'Add fuel type',
+                              title: s.fuelTypesEmptyTitle,
+                              body: s.fuelTypesEmptyBody,
+                              actionLabel: s.fuelTypesAddFuelType,
                               onAction: () => context.push(AppRoutes.fuelTypeNew),
                             )
                           : filtered.isEmpty
-                          ? const DcoEmptyState(
-                              title: 'No matching types',
-                              body: 'Try a different filter or add a type.',
+                          ? DcoEmptyState(
+                              title: s.fuelTypesNoMatching,
+                              body: s.fuelTypesNoMatchingBody,
                             )
                           : ListView.builder(
                               padding: EdgeInsets.fromLTRB(

@@ -7,6 +7,7 @@ import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/domain/part_failure.dart';
 import 'package:dco_mobile/features/parts/domain/part_validators.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -107,16 +108,17 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? 'Edit Part' : 'Add Part')),
+        appBar: AppBar(title: Text(widget.isEditing ? s.partFormEditTitle : s.partFormAddTitle)),
         body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? 'Edit Part' : 'Add Part')),
+      appBar: AppBar(title: Text(widget.isEditing ? s.partFormEditTitle : s.partFormAddTitle)),
       body: Column(
         children: [
           Expanded(
@@ -125,9 +127,9 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
               children: [
                 DcoTextField(
                   key: const Key('part-name'),
-                  label: 'Name *',
+                  label: s.partFormName,
                   controller: _name,
-                  hint: 'Oil filter',
+                  hint: s.partFormNameHint,
                   errorText: _errors['name'],
                   maxLength: PartValidators.maxNameLength,
                   textInputAction: TextInputAction.next,
@@ -135,9 +137,9 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: 'Brand',
+                  label: s.partFormBrand,
                   controller: _brand,
-                  hint: 'Bosch',
+                  hint: s.partFormBrandHint,
                   errorText: _errors['brand'],
                   maxLength: PartValidators.maxBrandLength,
                   textInputAction: TextInputAction.next,
@@ -145,9 +147,9 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: 'Part number',
+                  label: s.partFormPartNumber,
                   controller: _partNumber,
-                  hint: 'OF-1234',
+                  hint: s.partFormPartNumberHint,
                   errorText: _errors['number'],
                   maxLength: PartValidators.maxPartNumberLength,
                   textInputAction: TextInputAction.next,
@@ -155,9 +157,9 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: 'Notes',
+                  label: s.partFormNotes,
                   controller: _notes,
-                  hint: 'Size, source, or fitment',
+                  hint: s.partFormNotesHint,
                   errorText: _errors['notes'],
                   maxLength: PartValidators.maxNotesLength,
                   maxLines: 4,
@@ -177,7 +179,7 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
               children: [
                 Expanded(
                   child: DcoButton(
-                    label: 'Cancel',
+                    label: s.cancel,
                     variant: DcoButtonVariant.secondary,
                     onPressed: () => context.pop(),
                   ),
@@ -186,7 +188,7 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
                 Expanded(
                   child: DcoButton(
                     key: const Key('part-save'),
-                    label: 'Save',
+                    label: s.save,
                     onPressed: _save,
                     loading: _saving,
                   ),

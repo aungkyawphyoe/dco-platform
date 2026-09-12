@@ -9,6 +9,7 @@ import 'package:dco_mobile/features/maintenance/domain/maintenance_failure.dart'
 import 'package:dco_mobile/features/maintenance/domain/plan_item_validators.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -172,17 +173,18 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final unit = ref.watch(lengthUnitProvider).label;
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? 'Edit Service Item' : 'Create Service Item')),
+        appBar: AppBar(title: Text(widget.isEditing ? s.planItemFormEditTitle : s.planItemFormCreateTitle)),
         body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? 'Edit Service Item' : 'Create Service Item')),
+      appBar: AppBar(title: Text(widget.isEditing ? s.planItemFormEditTitle : s.planItemFormCreateTitle)),
       body: Column(
         children: [
           Expanded(
@@ -191,7 +193,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
               children: [
                 DcoTextField(
                   key: const Key('plan-item-name'),
-                  label: 'Name *',
+                  label: s.planItemFormName,
                   controller: _name,
                   errorText: _errors['name'],
                   maxLength: PlanItemValidators.maxNameLength,
@@ -199,13 +201,13 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                   onChanged: (_) => setState(() => _errors['name'] = null),
                 ),
                 SizedBox(height: tokens.space.s5),
-                Text('Schedule *', style: Theme.of(context).textTheme.labelLarge),
+                Text(s.planItemFormSchedule, style: Theme.of(context).textTheme.labelLarge),
                 SizedBox(height: tokens.space.s2),
                 Row(
                   children: [
                     Expanded(
                       child: _ModeChip(
-                        label: 'active',
+                        label: s.planItemFormActive,
                         selected: !_recurring,
                         onTap: () => setState(() => _recurring = false),
                       ),
@@ -213,7 +215,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                     SizedBox(width: tokens.space.s3),
                     Expanded(
                       child: _ModeChip(
-                        label: 'recurring',
+                        label: s.planItemFormRecurring,
                         selected: _recurring,
                         onTap: () => setState(() => _recurring = true),
                       ),
@@ -227,7 +229,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                     children: [
                       Expanded(
                         child: DcoTextField(
-                          label: 'Repeat every',
+                          label: s.planItemFormRepeatEvery,
                           controller: _intervalCount,
                           hint: '1',
                           errorText: _errors['interval'],
@@ -244,7 +246,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Unit', style: Theme.of(context).textTheme.labelLarge),
+                            Text(s.planItemFormUnit, style: Theme.of(context).textTheme.labelLarge),
                             SizedBox(height: tokens.space.s2),
                             DropdownButtonFormField<TimeIntervalUnit>(
                               initialValue: _unit,
@@ -268,7 +270,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                   ),
                   SizedBox(height: tokens.space.s4),
                   DcoTextField(
-                    label: 'Every (mileage)',
+                    label: s.planItemFormEveryMileage,
                     controller: _intervalDistance,
                     hint: '15000',
                     errorText: _errors['distance'],
@@ -284,16 +286,16 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                     }),
                   ),
                   SizedBox(height: tokens.space.s5),
-                  Text('Override Tracking Start', style: Theme.of(context).textTheme.titleMedium),
+                  Text(s.planItemFormOverrideStart, style: Theme.of(context).textTheme.titleMedium),
                   SizedBox(height: tokens.space.s2),
                   Text(
-                    'The highest value out of this or your most recent service will prevail.',
+                    s.planItemFormOverrideHelper,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                   ),
                 ],
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: _recurring ? 'Date' : 'Date *',
+                  label: _recurring ? s.planItemFormDate : s.planItemFormDateRequired,
                   controller: _date,
                   hint: 'dd/mm/yyyy',
                   readOnly: true,
@@ -302,7 +304,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: _recurring ? 'Mileage' : 'Mileage *',
+                  label: _recurring ? s.planItemFormMileage : s.planItemFormMileageRequired,
                   controller: _mileage,
                   hint: '*** $unit',
                   errorText: _errors['mileage'],
@@ -319,7 +321,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: 'Notes',
+                  label: s.planItemFormNotes,
                   controller: _notes,
                   hint: 'write a message',
                   maxLines: 4,
@@ -333,9 +335,9 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
             ),
           ),
           DcoStickyActions(
-            secondaryLabel: 'Cancel',
+            secondaryLabel: s.cancel,
             onSecondary: () => context.pop(),
-            primaryLabel: 'Save',
+            primaryLabel: s.save,
             onPrimary: _save,
             primaryLoading: _saving,
             primaryKey: const Key('plan-item-save'),

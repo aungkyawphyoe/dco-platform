@@ -35,9 +35,9 @@ class VehicleRecords extends Table {
 class UserProfiles extends Table {
   TextColumn get userId => text()();
   TextColumn get activeVehicleId => text().nullable()();
-  TextColumn get language => text().withDefault(const Constant('en'))();
-  TextColumn get currency => text().withDefault(const Constant('USD'))();
-  TextColumn get lengthUnit => text().withDefault(const Constant('mi'))();
+  TextColumn get language => text().withDefault(const Constant('my'))();
+  TextColumn get currency => text().withDefault(const Constant('MMK'))();
+  TextColumn get lengthUnit => text().withDefault(const Constant('km'))();
 
   @override
   Set<Column<Object>> get primaryKey => {userId};

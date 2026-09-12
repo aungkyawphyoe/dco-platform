@@ -10,6 +10,7 @@ import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/presentation/widgets/vehicle_card.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +20,7 @@ class GarageHomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicles = ref.watch(garageVehiclesProvider);
     final active = ref.watch(activeVehicleProvider).valueOrNull;
@@ -27,10 +29,10 @@ class GarageHomeScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('My Garage'),
+        title: Text(s.garageMyGarage),
         actions: [
           IconButton(
-            tooltip: 'Register a vehicle',
+            tooltip: s.garageRegisterTooltip,
             onPressed: () => context.push(AppRoutes.vehicleNew),
             icon: Icon(Icons.add, color: tokens.icon.active),
           ),
@@ -38,13 +40,13 @@ class GarageHomeScreen extends ConsumerWidget {
       ),
       body: vehicles.when(
         loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-        error: (error, _) => DcoEmptyState(title: 'Could not load garage', body: '$error'),
+        error: (error, _) => DcoEmptyState(title: s.garageLoadError, body: '$error'),
         data: (items) {
           if (items.isEmpty) {
             return DcoEmptyState(
-              title: 'No vehicles yet',
-              body: 'Register a vehicle to start tracking maintenance, documents, and spend.',
-              actionLabel: 'Register a vehicle',
+              title: s.garageEmptyTitle,
+              body: s.garageEmptyBody,
+              actionLabel: s.garageRegisterTooltip,
               onAction: () => context.push(AppRoutes.vehicleNew),
             );
           }
@@ -73,9 +75,8 @@ class GarageHomeScreen extends ConsumerWidget {
                                 unawaited(
                                   showDcoErrorDialog(
                                     context,
-                                    title: 'Switch failed',
-                                    message:
-                                        'Could not reach the server. Your change stays on this device and syncs later.',
+                                    title: s.garageSwitchFailed,
+                                    message: s.garageSwitchFailedBody,
                                   ),
                                 );
                               }
@@ -98,12 +99,12 @@ class GarageHomeScreen extends ConsumerWidget {
                     child: Column(
                       children: [
                         Text(
-                          '+ Register Another Vehicle',
+                          s.garageAddCardTitle,
                           style: Theme.of(context).textTheme.titleMedium?.copyWith(color: tokens.text.accent),
                         ),
                         SizedBox(height: tokens.space.s2),
                         Text(
-                          'Track maintenance, expenses & documents',
+                          s.garageAddCardSubtitle,
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],

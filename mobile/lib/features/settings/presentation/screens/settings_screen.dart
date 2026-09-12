@@ -8,6 +8,7 @@ import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/features/family/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -17,6 +18,7 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final user = ref.watch(sessionControllerProvider).valueOrNull?.user;
     final mockAuth = ref.watch(appConfigProvider).mockAuth;
@@ -26,7 +28,7 @@ class SettingsScreen extends ConsumerWidget {
     final syncState = ref.watch(syncStatusProvider).valueOrNull ?? const SyncState();
     
     return Scaffold(
-      appBar: AppBar(title: const Text('Settings')),
+      appBar: AppBar(title: Text(s.settingsTitle)),
       body: Column(
         children: [
           Expanded(
@@ -57,7 +59,7 @@ class SettingsScreen extends ConsumerWidget {
                                 ),
                                 SizedBox(height: tokens.space.s1),
                                 Text(
-                                  'Free Plan',
+                                  s.settingsFreePlan,
                                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                     color: tokens.text.caption,
                                   ),
@@ -74,7 +76,7 @@ class SettingsScreen extends ConsumerWidget {
                 SizedBox(height: tokens.space.s4),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Manage vehicles'),
+                  title: Text(s.settingsManageVehicles),
                   trailing: Icon(
                     Icons.chevron_right,
                     color: tokens.icon.inactive,
@@ -83,7 +85,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Documents'),
+                  title: Text(s.settingsDocuments),
                   trailing: Icon(
                     Icons.chevron_right,
                     color: tokens.icon.inactive,
@@ -92,7 +94,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Localization'),
+                  title: Text(s.settingsLocalization),
                   subtitle: Text(
                     prefs.language.label,
                     style: Theme.of(
@@ -107,7 +109,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Unit and Format'),
+                  title: Text(s.settingsUnitFormat),
                   subtitle: Text(
                     '${prefs.currency.code}, ${prefs.lengthUnit.fullLabel.toLowerCase()}',
                     style: Theme.of(
@@ -123,7 +125,7 @@ class SettingsScreen extends ConsumerWidget {
                 SizedBox(height: tokens.space.s4),
                 if (!mockAuth) ...[
                   Text(
-                    'Sync',
+                    s.settingsSyncSection,
                     style: Theme.of(
                       context,
                     ).textTheme.titleMedium?.copyWith(color: tokens.text.primary),
@@ -133,7 +135,7 @@ class SettingsScreen extends ConsumerWidget {
                   SizedBox(height: tokens.space.s4),
                 ],
                 Text(
-                  'Family',
+                  s.settingsFamilySection,
                   style: Theme.of(
                     context,
                   ).textTheme.titleMedium?.copyWith(color: tokens.text.primary),
@@ -144,7 +146,7 @@ class SettingsScreen extends ConsumerWidget {
                     .when(
                       loading: () => ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Loading family...'),
+                        title: Text(s.settingsLoadingFamily),
                         leading: SizedBox(
                           width: 24,
                           height: 24,
@@ -153,8 +155,8 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       error: (_, _) => ListTile(
                         contentPadding: EdgeInsets.zero,
-                        title: const Text('Failed to load family'),
-                        subtitle: const Text('Tap to retry'),
+                        title: Text(s.settingsFamilyLoadError),
+                        subtitle: Text(s.settingsFamilyTapRetry),
                         onTap: () => ref.invalidate(myFamilyProvider),
                       ),
                       data: (family) {
@@ -173,12 +175,12 @@ class SettingsScreen extends ConsumerWidget {
                                       ),
                                     )
                                   : null,
-                              title: Text(family?.name ?? 'Family'),
+                              title: Text(family?.name ?? s.settingsFamilyFallback),
                               subtitle: family != null
                                   ? Text(
                                       '${family.myRole?.toUpperCase()} • Share Code: ${family.shareCode}',
                                     )
-                                  : const Text('Create or join a family to share vehicles'),
+                                  : Text(s.settingsFamilySubtitle),
                               trailing: Icon(
                                 Icons.chevron_right,
                                 color: tokens.icon.inactive,
@@ -196,7 +198,7 @@ class SettingsScreen extends ConsumerWidget {
           Padding(
             padding: EdgeInsets.all(tokens.space.s5),
             child: DcoButton(
-              label: 'Sign out',
+              label: s.settingsSignOut,
               variant: DcoButtonVariant.destructive,
               onPressed: () =>
                   ref.read(sessionControllerProvider.notifier).signOut(),
@@ -216,6 +218,7 @@ class _SyncButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final isSyncing = syncState.phase == SyncPhase.syncing;
 
@@ -243,12 +246,12 @@ class _SyncButton extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sync now',
+                      s.settingsSyncNow,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     SizedBox(height: tokens.space.s1),
                     Text(
-                      _getStatusText(syncState),
+                      _getStatusText(syncState, s),
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: syncState.hasError
                             ? tokens.status.dangerFg
@@ -273,16 +276,16 @@ class _SyncButton extends ConsumerWidget {
     );
   }
 
-  String _getStatusText(SyncState state) {
-    if (state.hasError) return state.message ?? 'Sync failed';
-    if (state.phase == SyncPhase.syncing) return 'Syncing...';
+  String _getStatusText(SyncState state, AppLocalizations s) {
+    if (state.hasError) return state.message ?? s.settingsSyncStatusFailed;
+    if (state.phase == SyncPhase.syncing) return s.settingsSyncStatusSyncing;
     if (state.lastSyncedAt != null) {
       final diff = DateTime.now().difference(state.lastSyncedAt!);
-      if (diff.inMinutes < 1) return 'Just synced';
-      if (diff.inHours < 1) return 'Synced ${diff.inMinutes}m ago';
-      if (diff.inDays < 1) return 'Synced ${diff.inHours}h ago';
-      return 'Synced ${diff.inDays}d ago';
+      if (diff.inMinutes < 1) return s.settingsSyncStatusJustSynced;
+      if (diff.inHours < 1) return s.settingsSyncStatusMinutesAgo(diff.inMinutes);
+      if (diff.inDays < 1) return s.settingsSyncStatusHoursAgo(diff.inHours);
+      return s.settingsSyncStatusDaysAgo(diff.inDays);
     }
-    return 'Tap to sync your data';
+    return s.settingsSyncTapToSync;
   }
 }

@@ -10,6 +10,7 @@ import 'package:dco_mobile/features/maintenance/presentation/widgets/section_hea
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -19,6 +20,7 @@ class MaintenanceScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final active = ref.watch(activeVehicleProvider);
     final plan = ref.watch(maintenancePlanProvider);
@@ -28,14 +30,14 @@ class MaintenanceScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Maintenance'),
+        title: Text(s.maintenanceTitle),
         actions: [
           TextButton(
             onPressed: active.valueOrNull == null
                 ? null
                 : () => _openPlan(context, ref),
             child: Text(
-              'Plan',
+              s.maintenancePlanLink,
               style: TextStyle(color: tokens.text.link, fontSize: 13),
             ),
           ),
@@ -43,12 +45,12 @@ class MaintenanceScreen extends ConsumerWidget {
       ),
       body: active.when(
         loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-        error: (error, _) => DcoEmptyState(title: 'Could not load maintenance', body: '$error'),
+        error: (error, _) => DcoEmptyState(title: s.maintenanceLoadError, body: '$error'),
         data: (vehicle) {
           if (vehicle == null) {
-            return const DcoEmptyState(
-              title: 'No active vehicle',
-              body: 'Register a vehicle to plan service and keep history.',
+            return DcoEmptyState(
+              title: s.maintenanceNoActiveVehicle,
+              body: s.maintenanceNoActiveVehicleBody,
             );
           }
           final items = plan.valueOrNull ?? const <PlanItem>[];
@@ -79,13 +81,13 @@ class MaintenanceScreen extends ConsumerWidget {
                 child: ListView(
                   children: [
                     MaintenanceSectionHeader(
-                      title: 'Upcoming Reminders',
+                      title: s.maintenanceUpcomingReminders,
                       tone: MaintenanceSectionTone.danger,
                       trailing: upcoming.isEmpty ? null : '${upcoming.length} due',
                     ),
                     SizedBox(height: tokens.space.s3),
                     if (upcoming.isEmpty)
-                      _SectionEmpty(label: 'Nothing due')
+                      _SectionEmpty(label: s.maintenanceNothingDue)
                     else
                       ...upcoming.map(
                         (item) => PlanItemTile(
@@ -97,12 +99,12 @@ class MaintenanceScreen extends ConsumerWidget {
                         ),
                       ),
                     MaintenanceSectionHeader(
-                      title: 'Scheduled',
+                      title: s.maintenanceScheduled,
                       tone: MaintenanceSectionTone.info,
                     ),
                     SizedBox(height: tokens.space.s3),
                     if (scheduled.isEmpty)
-                      _SectionEmpty(label: 'Nothing scheduled')
+                      _SectionEmpty(label: s.maintenanceNothingScheduled)
                     else
                       ...scheduled.map(
                         (item) => PlanItemTile(
@@ -113,10 +115,10 @@ class MaintenanceScreen extends ConsumerWidget {
                           onTap: () => context.push(AppRoutes.maintenanceRegisterItem(item.id)),
                         ),
                       ),
-                    const MaintenanceSectionHeader(title: 'Service History'),
+                    MaintenanceSectionHeader(title: s.maintenanceServiceHistory),
                     SizedBox(height: tokens.space.s3),
                     if (records.isEmpty)
-                      _SectionEmpty(label: 'No services logged')
+                      _SectionEmpty(label: s.maintenanceNoServicesLogged)
                     else
                       ...records.map(
                         (record) => HistoryTile(
@@ -131,9 +133,9 @@ class MaintenanceScreen extends ConsumerWidget {
                 ),
               ),
               DcoStickyActions(
-                secondaryLabel: 'Register service',
+                secondaryLabel: s.maintenanceRegisterService,
                 onSecondary: () => context.push(AppRoutes.maintenanceRegister),
-                primaryLabel: 'Load from Receipt',
+                primaryLabel: s.maintenanceLoadFromReceipt,
                 onPrimary: () {},
               ),
               SizedBox(height: 70.0)

@@ -1544,7 +1544,7 @@ class $UserProfilesTable extends UserProfiles
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultValue: const Constant('en'),
+    defaultValue: const Constant('my'),
   );
   static const VerificationMeta _currencyMeta = const VerificationMeta(
     'currency',
@@ -1556,7 +1556,7 @@ class $UserProfilesTable extends UserProfiles
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultValue: const Constant('USD'),
+    defaultValue: const Constant('MMK'),
   );
   static const VerificationMeta _lengthUnitMeta = const VerificationMeta(
     'lengthUnit',
@@ -1568,7 +1568,7 @@ class $UserProfilesTable extends UserProfiles
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: false,
-    defaultValue: const Constant('mi'),
+    defaultValue: const Constant('km'),
   );
   @override
   List<GeneratedColumn> get $columns => [

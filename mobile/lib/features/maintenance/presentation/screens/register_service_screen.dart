@@ -18,6 +18,7 @@ import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -213,6 +214,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       backgroundColor: context.tokens.background.card,
       builder: (context) {
         final tokens = context.tokens;
+        final s = AppLocalizations.of(context)!;
         return Padding(
           padding: EdgeInsets.fromLTRB(
             tokens.space.s4,
@@ -224,11 +226,11 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Add service', style: Theme.of(context).textTheme.titleLarge),
+              Text(s.registerServiceAddServiceTitle, style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: tokens.space.s3),
               if (available.isEmpty)
                 Text(
-                  'No due or scheduled items left. Add a custom service below.',
+                  s.registerServiceAddServiceEmpty,
                   style: TextStyle(color: tokens.text.caption),
                 )
               else
@@ -253,13 +255,13 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 ),
               SizedBox(height: tokens.space.s3),
               DcoTextField(
-                label: 'Custom service',
+                label: s.registerServiceCustomService,
                 controller: custom,
-                hint: 'e.g. Alignment',
+                hint: s.registerServiceCustomHint,
               ),
               SizedBox(height: tokens.space.s3),
               DcoButton(
-                label: 'Add custom',
+                label: s.registerServiceAddCustom,
                 onPressed: () {
                   _addCustomLine(custom.text);
                   Navigator.pop(context);
@@ -283,6 +285,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       backgroundColor: context.tokens.background.card,
       builder: (context) {
         final tokens = context.tokens;
+        final s = AppLocalizations.of(context)!;
         return Padding(
           padding: EdgeInsets.fromLTRB(
             tokens.space.s4,
@@ -294,16 +297,16 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Assign part', style: Theme.of(context).textTheme.titleLarge),
+              Text(s.registerServiceAssignPartTitle, style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: tokens.space.s3),
               if (catalog.isEmpty)
                 Text(
-                  'No parts in the catalog yet. Add one, then assign it here.',
+                  s.registerServiceAssignPartEmpty,
                   style: TextStyle(color: tokens.text.caption),
                 )
               else if (available.isEmpty)
                 Text(
-                  'Every part is already assigned to this service.',
+                  s.registerServiceAssignPartAllAssigned,
                   style: TextStyle(color: tokens.text.caption),
                 )
               else
@@ -322,7 +325,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 ),
               SizedBox(height: tokens.space.s3),
               DcoButton(
-                label: 'Add a new part',
+                label: s.registerServiceAddNewPart,
                 variant: DcoButtonVariant.secondary,
                 onPressed: () {
                   Navigator.pop(context);
@@ -338,6 +341,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
@@ -351,16 +355,16 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
 
     if (vehicle == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Register Service')),
-        body: const DcoEmptyState(
-          title: 'No active vehicle',
-          body: 'Register a vehicle before logging a service.',
+        appBar: AppBar(title: Text(s.registerServiceTitle)),
+        body: DcoEmptyState(
+          title: s.maintenanceNoActiveVehicle,
+          body: s.registerServiceNoActiveVehicleBody,
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Register Service')),
+      appBar: AppBar(title: Text(s.registerServiceTitle)),
       body: Column(
         children: [
           Expanded(
@@ -368,13 +372,13 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
               padding: EdgeInsets.all(tokens.space.s5),
               children: [
                 DcoTextField(
-                  label: 'Job Title',
+                  label: s.registerServiceJobTitle,
                   controller: _title,
                   hint: 'ABC123',
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: 'Date *',
+                  label: s.registerServiceDate,
                   controller: _date,
                   hint: 'dd/mm/yyyy',
                   errorText: _errors['date'],
@@ -385,7 +389,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('register-mileage'),
-                  label: 'Mileage *',
+                  label: s.registerServiceMileage,
                   controller: _mileage,
                   hint: '*** ${lengthUnit.label}',
                   errorText: _errors['mileage'],
@@ -398,14 +402,14 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
-                  label: 'Notes',
+                  label: s.registerServiceNotes,
                   controller: _notes,
                   hint: 'write a message',
                   maxLines: 4,
                   minLines: 3,
                 ),
                 SizedBox(height: tokens.space.s5),
-                Text('Service', style: Theme.of(context).textTheme.labelLarge),
+                Text(s.registerServiceSection, style: Theme.of(context).textTheme.labelLarge),
                 SizedBox(height: tokens.space.s3),
                 ..._lines.map(
                   (line) => Padding(
@@ -425,7 +429,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                               child: TextField(
                                 controller: line.costController,
                                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: const InputDecoration(hintText: 'cost'),
+                                decoration: InputDecoration(hintText: s.registerServiceCostHint),
                                 onChanged: (_) => setState(_syncTitleAndTotal),
                               ),
                             ),
@@ -443,14 +447,14 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 OutlinedButton.icon(
                   onPressed: () => _openAddService(vehicle, plan),
                   icon: Icon(Icons.add, color: tokens.icon.active),
-                  label: Text('add service', style: TextStyle(color: tokens.text.link)),
+                  label: Text(s.registerServiceAddService, style: TextStyle(color: tokens.text.link)),
                 ),
                 if (_errors['items'] != null) ...[
                   SizedBox(height: tokens.space.s2),
                   Text(_errors['items']!, style: TextStyle(color: tokens.status.dangerFg)),
                 ],
                 SizedBox(height: tokens.space.s5),
-                Text('Parts', style: Theme.of(context).textTheme.labelLarge),
+                Text(s.registerServicePartsSection, style: Theme.of(context).textTheme.labelLarge),
                 SizedBox(height: tokens.space.s3),
                 ..._parts.map(
                   (part) => Padding(
@@ -479,11 +483,11 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 OutlinedButton.icon(
                   onPressed: _openAssignPart,
                   icon: Icon(Icons.add, color: tokens.icon.active),
-                  label: Text('assign part', style: TextStyle(color: tokens.text.link)),
+                  label: Text(s.registerServiceAssignPart, style: TextStyle(color: tokens.text.link)),
                 ),
                 SizedBox(height: tokens.space.s5),
                 DcoTextField(
-                  label: 'Total',
+                  label: s.registerServiceTotal,
                   controller: _total,
                   hint: '***',
                   errorText: _errors['total'],
@@ -501,9 +505,9 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
             ),
           ),
           DcoStickyActions(
-            secondaryLabel: 'Cancel',
+            secondaryLabel: s.cancel,
             onSecondary: () => context.pop(),
-            primaryLabel: 'Save',
+            primaryLabel: s.save,
             onPrimary: _save,
             primaryLoading: _saving,
             primaryKey: const Key('register-service-save'),

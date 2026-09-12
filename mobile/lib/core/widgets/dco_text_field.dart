@@ -1,3 +1,4 @@
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 
 import '../theme/dco_tokens.dart';
@@ -75,7 +76,7 @@ class _DcoTextFieldState extends State<DcoTextField> {
             counterText: widget.maxLength == null ? '' : null,
             suffixIcon: widget.obscureText
                 ? IconButton(
-                    tooltip: _obscured ? 'Show password' : 'Hide password',
+                    tooltip: _obscured ? AppLocalizations.of(context)!.showPassword : AppLocalizations.of(context)!.hidePassword,
                     onPressed: () => setState(() => _obscured = !_obscured),
                     icon: Icon(
                       _obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,

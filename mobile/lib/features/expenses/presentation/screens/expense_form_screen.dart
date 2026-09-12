@@ -16,6 +16,7 @@ import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
@@ -151,11 +152,12 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
+        final s = AppLocalizations.of(context)!;
         return AlertDialog(
-          title: const Text('Delete this expense?'),
-          content: const Text('This removes the entry and its receipt photo. This cannot be undone.'),
+          title: Text(s.expenseFormDeleteTitle),
+          content: Text(s.expenseFormDeleteBody),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(s.cancel)),
             TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
           ],
         );
@@ -201,13 +203,14 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
       backgroundColor: context.tokens.background.card,
       builder: (context) {
         final tokens = context.tokens;
+        final s = AppLocalizations.of(context)!;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s4, tokens.space.s4, tokens.space.s2),
-                child: Text('Category', style: Theme.of(context).textTheme.titleMedium),
+                child: Text(s.expenseFormCategorySheetTitle, style: Theme.of(context).textTheme.titleMedium),
               ),
               for (final category in ExpenseCategory.values)
                 ListTile(
@@ -245,24 +248,26 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     } catch (_) {
       if (!mounted) return;
       setState(() {
-        _formError = 'Camera or photo access was denied. You can save without a photo.';
+        _formError = AppLocalizations.of(context)!.expenseFormCameraDenied;
       });
     }
   }
 
   Future<void> _chooseReceiptSource() async {
     final tokens = context.tokens;
+    final s = AppLocalizations.of(context)!;
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: tokens.background.card,
       builder: (context) {
+        final s = AppLocalizations.of(context)!;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
                 leading: Icon(Icons.photo_camera_outlined, color: tokens.icon.active),
-                title: const Text('Camera'),
+                title: Text(s.expenseFormCameraOption),
                 onTap: () {
                   Navigator.pop(context);
                   _pickReceipt(ImageSource.camera);
@@ -270,7 +275,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.photo_library_outlined, color: tokens.icon.active),
-                title: const Text('Photo library'),
+                title: Text(s.expenseFormPhotoLibraryOption),
                 onTap: () {
                   Navigator.pop(context);
                   _pickReceipt(ImageSource.gallery);
@@ -293,6 +298,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
       backgroundColor: context.tokens.background.card,
       builder: (context) {
         final tokens = context.tokens;
+        final s = AppLocalizations.of(context)!;
         return Padding(
           padding: EdgeInsets.fromLTRB(
             tokens.space.s4,
@@ -304,16 +310,16 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Assign part', style: Theme.of(context).textTheme.titleLarge),
+              Text(s.expenseFormAssignPartTitle, style: Theme.of(context).textTheme.titleLarge),
               SizedBox(height: tokens.space.s3),
               if (catalog.isEmpty)
                 Text(
-                  'No parts in the catalog yet. Add one, then assign it here.',
+                  s.expenseFormAssignPartEmpty,
                   style: TextStyle(color: tokens.text.caption),
                 )
               else if (available.isEmpty)
                 Text(
-                  'Every part is already assigned to this expense.',
+                  s.expenseFormAssignPartAllAssigned,
                   style: TextStyle(color: tokens.text.caption),
                 )
               else
@@ -332,7 +338,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 ),
               SizedBox(height: tokens.space.s3),
               DcoButton(
-                label: 'Add a new part',
+                label: s.expenseFormAddNewPart,
                 variant: DcoButtonVariant.secondary,
                 onPressed: () {
                   Navigator.pop(context);
@@ -348,6 +354,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final currency = ref.watch(currencyProvider).code;
@@ -355,33 +362,33 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? 'Edit expense' : 'Add expense')),
+        appBar: AppBar(title: Text(widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle)),
         body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
       );
     }
 
     if (vehicle == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? 'Edit expense' : 'Add expense')),
-        body: const DcoEmptyState(
-          title: 'No active vehicle',
-          body: 'Register a vehicle to log spend.',
+        appBar: AppBar(title: Text(widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle)),
+        body: DcoEmptyState(
+          title: s.expensesNoActiveVehicle,
+          body: s.expenseFormNoActiveVehicleBody,
         ),
       );
     }
 
     if (_missing) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Edit expense')),
-        body: const DcoEmptyState(
-          title: 'Expense not found',
-          body: 'It may have been deleted.',
+        appBar: AppBar(title: Text(s.expenseFormEditTitle)),
+        body: DcoEmptyState(
+          title: s.expenseFormNotFound,
+          body: s.expenseFormNotFoundBody,
         ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? 'Edit expense' : 'Add expense')),
+      appBar: AppBar(title: Text(widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle)),
       body: Column(
         children: [
           Expanded(
@@ -395,10 +402,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('expense-category'),
-                  label: 'Category *',
+                  label: s.expenseFormCategory,
                   controller: _categoryLabel,
                   readOnly: true,
-                  hint: 'Choose a category',
+                  hint: s.expenseFormCategoryHint,
                   onTap: _pickCategory,
                   errorText: _errors['category'],
                   suffix: Icon(Icons.expand_more, color: tokens.icon.inactive),
@@ -406,7 +413,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('expense-amount'),
-                  label: 'Amount *',
+                  label: s.expenseFormAmount,
                   controller: _amount,
                   hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
                   errorText: _errors['amount'],
@@ -420,7 +427,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('expense-date'),
-                  label: 'Date *',
+                  label: s.expenseFormDate,
                   controller: _date,
                   readOnly: true,
                   onTap: _pickDate,
@@ -430,9 +437,9 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('expense-notes'),
-                  label: 'Notes',
+                  label: s.expenseFormNotes,
                   controller: _notes,
-                  hint: 'Optional',
+                  hint: s.expenseFormNotesHint,
                   maxLength: ExpenseValidators.maxNotesLength,
                   maxLines: 3,
                   minLines: 2,
@@ -440,7 +447,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   onChanged: (_) => setState(() => _errors['notes'] = null),
                 ),
                 SizedBox(height: tokens.space.s5),
-                Text('Receipt', style: Theme.of(context).textTheme.labelLarge),
+                Text(s.expenseFormReceiptSection, style: Theme.of(context).textTheme.labelLarge),
                 SizedBox(height: tokens.space.s3),
                 _ReceiptPicker(
                   path: _receiptPath,
@@ -451,7 +458,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   }),
                 ),
                 SizedBox(height: tokens.space.s5),
-                Text('Parts', style: Theme.of(context).textTheme.labelLarge),
+                Text(s.expenseFormPartsSection, style: Theme.of(context).textTheme.labelLarge),
                 SizedBox(height: tokens.space.s3),
                 ..._parts.map(
                   (part) => Padding(
@@ -467,7 +474,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                               child: Text(part.name, style: Theme.of(context).textTheme.titleMedium),
                             ),
                             IconButton(
-                              tooltip: 'Remove',
+                              tooltip: s.remove,
                               onPressed: () => setState(() => _parts.remove(part)),
                               icon: Icon(Icons.close, color: tokens.icon.inactive),
                             ),
@@ -480,7 +487,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 OutlinedButton.icon(
                   onPressed: _openAssignPart,
                   icon: Icon(Icons.add, color: tokens.icon.active),
-                  label: Text('assign part', style: TextStyle(color: tokens.text.link)),
+                  label: Text(s.expenseFormAssignPart, style: TextStyle(color: tokens.text.link)),
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
@@ -490,7 +497,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   SizedBox(height: tokens.space.s5),
                   DcoButton(
                     key: const Key('expense-delete'),
-                    label: 'Delete expense',
+                    label: s.expenseFormDeleteButton,
                     variant: DcoButtonVariant.destructive,
                     onPressed: _saving ? null : _delete,
                   ),
@@ -509,7 +516,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
               children: [
                 Expanded(
                   child: DcoButton(
-                    label: 'Cancel',
+                    label: s.cancel,
                     variant: DcoButtonVariant.secondary,
                     onPressed: () => context.pop(),
                   ),
@@ -518,7 +525,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 Expanded(
                   child: DcoButton(
                     key: const Key('expense-save'),
-                    label: 'Save',
+                    label: s.save,
                     onPressed: _save,
                     loading: _saving,
                   ),
@@ -546,11 +553,12 @@ class _ReceiptPicker extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final s = AppLocalizations.of(context)!;
     if (path == null) {
       return OutlinedButton.icon(
         onPressed: onAdd,
         icon: Icon(Icons.photo_outlined, color: tokens.icon.active),
-        label: Text('Add receipt photo', style: TextStyle(color: tokens.text.link)),
+        label: Text(s.expenseFormAddReceipt, style: TextStyle(color: tokens.text.link)),
       );
     }
     return Column(
@@ -570,11 +578,11 @@ class _ReceiptPicker extends StatelessWidget {
           children: [
             TextButton(
               onPressed: onAdd,
-              child: Text('Replace', style: TextStyle(color: tokens.text.link)),
+              child: Text(s.expenseFormReplace, style: TextStyle(color: tokens.text.link)),
             ),
             TextButton(
               onPressed: onRemove,
-              child: Text('Remove', style: TextStyle(color: tokens.status.dangerFg)),
+              child: Text(s.remove, style: TextStyle(color: tokens.status.dangerFg)),
             ),
           ],
         ),

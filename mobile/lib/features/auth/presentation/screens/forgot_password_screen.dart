@@ -7,6 +7,8 @@ import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
 import '../../../../core/widgets/dco_error_dialog.dart';
 import '../../../../core/widgets/dco_text_field.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
+
 import '../../domain/auth_failure.dart';
 import '../../domain/auth_validators.dart';
 import '../session_controller.dart';
@@ -31,6 +33,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   Future<void> _submit() async {
+    final s = AppLocalizations.of(context)!;
     setState(() {
       _emailError = AuthValidators.email(_email.text);
       _info = null;
@@ -42,20 +45,20 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       await ref.read(sessionControllerProvider.notifier).requestPasswordReset(email: _email.text);
       if (mounted) {
         setState(() {
-          _info = 'If that email is registered, we sent a reset link.';
+          _info = s.resetLinkSent;
         });
       }
     } catch (failure) {
       final message =
-          failure is AuthFailure ? failure.message : 'Something went wrong. Try again.';
+          failure is AuthFailure ? failure.message : s.somethingWentWrongTryAgain;
       if (mounted) {
         setState(() => _info = message);
         unawaited(
           showDcoErrorDialog(
             context,
-            title: 'Reset failed',
+            title: s.resetFailed,
             message: message,
-            actionLabel: failure is NetworkAuthFailure ? 'Retry' : 'OK',
+            actionLabel: failure is NetworkAuthFailure ? s.retry : s.ok,
             onAction: failure is NetworkAuthFailure ? () => _submit() : null,
           ),
         );
@@ -68,19 +71,20 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final s = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset password')),
+      appBar: AppBar(title: Text(s.resetPassword)),
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.all(tokens.space.s5),
           children: [
             Text(
-              'Enter your email. We send a reset link if the account exists.',
+              s.resetPasswordBody,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
             ),
             SizedBox(height: tokens.space.s5),
             DcoTextField(
-              label: 'Email',
+              label: s.emailLabel,
               controller: _email,
               errorText: _emailError,
               keyboardType: TextInputType.emailAddress,
@@ -92,7 +96,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               Text(_info!, style: TextStyle(color: tokens.status.infoFg)),
               SizedBox(height: tokens.space.s3),
             ],
-            DcoButton(label: 'Send reset link', onPressed: _submit, loading: _submitting),
+            DcoButton(label: s.sendResetLink, onPressed: _submit, loading: _submitting),
           ],
         ),
       ),

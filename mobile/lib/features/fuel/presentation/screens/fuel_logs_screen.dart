@@ -7,6 +7,7 @@ import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -26,13 +27,14 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final kind = ref.watch(vehicleFuelLogKindProvider);
     final logs = ref.watch(vehicleFuelLogsProvider);
     final types = ref.watch(matchingFuelTypesProvider);
     final currency = ref.watch(currencyProvider).code;
-    final title = kind?.label ?? 'Refuel';
+    final title = kind?.label ?? s.fuelLogsTitle;
     ref.watch(seedFuelTypesProvider);
 
     return Scaffold(
@@ -40,7 +42,7 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
         title: Text(title),
         actions: [
           IconButton(
-            tooltip: 'Fuel Types',
+            tooltip: s.fuelLogsTypesTooltip,
             onPressed: vehicle == null ? null : () => context.push(AppRoutes.fuelTypes),
             icon: Icon(
               Icons.local_gas_station_outlined,
@@ -48,20 +50,20 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
             ),
           ),
           IconButton(
-            tooltip: kind == FuelLogKind.charge ? 'Add a charge' : 'Add a refill',
+            tooltip: kind == FuelLogKind.charge ? s.fuelLogsAddChargeTooltip : s.fuelLogsAddRefuelTooltip,
             onPressed: vehicle == null ? null : () => context.push(AppRoutes.fuelLogNew),
             icon: Icon(Icons.add, color: vehicle == null ? tokens.icon.inactive : tokens.icon.active),
           ),
         ],
       ),
       body: vehicle == null || kind == null
-          ? const DcoEmptyState(
-              title: 'No active vehicle',
-              body: 'Register a vehicle to log fuel or charging.',
+          ? DcoEmptyState(
+              title: s.fuelLogsNoActiveVehicle,
+              body: s.fuelLogsNoActiveVehicleBody,
             )
           : logs.when(
               loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-              error: (error, _) => DcoEmptyState(title: 'Could not load $title', body: '$error'),
+              error: (error, _) => DcoEmptyState(title: s.fuelLogsLoadError(title), body: '$error'),
               data: (items) {
                 final filtered = _applyFilters(items);
                 return Column(
@@ -77,17 +79,17 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
                     Expanded(
                       child: items.isEmpty
                           ? DcoEmptyState(
-                              title: kind == FuelLogKind.charge ? 'No charges yet' : 'No refuels yet',
+                              title: kind == FuelLogKind.charge ? s.fuelLogsEmptyTitleCharges : s.fuelLogsEmptyTitleRefuels,
                               body: kind == FuelLogKind.charge
-                                  ? 'Log charging for ${vehicle.displayName}.'
-                                  : 'Log a refill for ${vehicle.displayName}.',
+                                  ? s.fuelLogsEmptyBodyCharges(vehicle.displayName)
+                                  : s.fuelLogsEmptyBodyRefuels(vehicle.displayName),
                               actionLabel: kind.addLabel,
                               onAction: () => context.push(AppRoutes.fuelLogNew),
                             )
                           : filtered.isEmpty
                           ? DcoEmptyState(
-                              title: 'No matching logs',
-                              body: 'Try a different fuel type or date filter.',
+                              title: s.fuelLogsNoMatching,
+                              body: s.fuelLogsNoMatchingBody,
                             )
                           : ListView.builder(
                               padding: EdgeInsets.fromLTRB(
@@ -149,6 +151,7 @@ class _FilterBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final s = AppLocalizations.of(context)!;
     return Padding(
       padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s3, tokens.space.s4, tokens.space.s2),
       child: Column(
@@ -159,7 +162,7 @@ class _FilterBar extends StatelessWidget {
             child: Row(
               children: [
                 _FilterChip(
-                  label: 'All types',
+                  label: s.fuelLogsAllTypes,
                   selected: selectedTypeId == null,
                   onTap: () => onTypeSelected(null),
                 ),
@@ -178,13 +181,13 @@ class _FilterBar extends StatelessWidget {
           Row(
             children: [
               _FilterChip(
-                label: 'All dates',
+                label: s.fuelLogsAllDates,
                 selected: period == _LogPeriod.all,
                 onTap: () => onPeriodSelected(_LogPeriod.all),
               ),
               SizedBox(width: tokens.space.s2),
               _FilterChip(
-                label: 'This month',
+                label: s.fuelLogsThisMonth,
                 selected: period == _LogPeriod.thisMonth,
                 onTap: () => onPeriodSelected(_LogPeriod.thisMonth),
               ),

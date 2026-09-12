@@ -19,6 +19,7 @@ import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/service_record.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -32,6 +33,7 @@ class DashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final session = ref.watch(sessionControllerProvider).valueOrNull;
     final active = ref.watch(activeVehicleProvider);
@@ -47,7 +49,7 @@ class DashboardScreen extends ConsumerWidget {
               SizedBox(width: tokens.space.s2),
               Flexible(
                 child: Text(
-                  active.valueOrNull?.displayName ?? 'No vehicle',
+                  active.valueOrNull?.displayName ?? s.dashboardNoVehicle,
                   style: Theme.of(context).textTheme.titleLarge,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -58,12 +60,12 @@ class DashboardScreen extends ConsumerWidget {
         ),
         actions: [
           IconButton(
-            tooltip: 'Garage',
+            tooltip: s.dashboardGarageTooltip,
             onPressed: () => context.push(AppRoutes.garage),
             icon: Icon(Icons.garage_outlined, color: tokens.icon.inactive),
           ),
           IconButton(
-            tooltip: 'Notifications',
+            tooltip: s.dashboardNotificationsTooltip,
             onPressed: () => context.push(AppRoutes.notifications),
             icon: Icon(Icons.notifications_none, color: tokens.icon.inactive),
           ),
@@ -76,7 +78,7 @@ class DashboardScreen extends ConsumerWidget {
               color: tokens.status.warningBg,
               child: ListTile(
                 title: Text(
-                  'Verify your email',
+                  s.dashboardVerifyEmail,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: tokens.status.warningFg,
                   ),
@@ -86,7 +88,7 @@ class DashboardScreen extends ConsumerWidget {
                       .read(sessionControllerProvider.notifier)
                       .resendVerification(),
                   child: Text(
-                    'Resend',
+                    s.dashboardResend,
                     style: TextStyle(color: tokens.text.link),
                   ),
                 ),
@@ -98,16 +100,15 @@ class DashboardScreen extends ConsumerWidget {
                 child: CircularProgressIndicator(color: tokens.text.accent),
               ),
               error: (error, _) => DcoEmptyState(
-                title: 'Could not load dashboard',
+                title: s.dashboardLoadError,
                 body: '$error',
               ),
               data: (vehicle) {
                 if (vehicle == null) {
                   return DcoEmptyState(
-                    title: 'Register a vehicle',
-                    body:
-                        'Add your first car to see spend, upcoming service, and history here.',
-                    actionLabel: 'Register a vehicle',
+                    title: s.dashboardEmptyTitle,
+                    body: s.dashboardEmptyBody,
+                    actionLabel: s.dashboardEmptyTitle,
                     actionKey: const Key('register-vehicle-cta'),
                     onAction: () => context.push(AppRoutes.vehicleNew),
                   );
@@ -129,6 +130,7 @@ class _PopulatedDashboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
     final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
@@ -224,36 +226,36 @@ class _PopulatedDashboard extends ConsumerWidget {
         ),
         SizedBox(height: tokens.space.s4),
         Text(
-          'Ownership Summary',
+          s.dashboardOwnershipSummary,
           style: Theme.of(context).textTheme.titleLarge,
         ),
         SizedBox(height: tokens.space.s3),
         Row(
           children: [
             Expanded(
-              child: _StatCard(label: 'Total spent', value: moneyTotal),
+              child: _StatCard(label: s.dashboardTotalSpent, value: moneyTotal),
             ),
             SizedBox(width: tokens.space.s3),
             Expanded(
-              child: _StatCard(label: 'This month', value: moneyMonth),
+              child: _StatCard(label: s.dashboardThisMonth, value: moneyMonth),
             ),
           ],
         ),
         SizedBox(height: tokens.space.s5),
-        Text('Quick Actions', style: Theme.of(context).textTheme.titleLarge),
+        Text(s.dashboardQuickActions, style: Theme.of(context).textTheme.titleLarge),
         SizedBox(height: tokens.space.s3),
         QuickActionsGrid(
           items: [
             QuickActionItem(
-              label: 'History',
+              label: s.dashboardHistory,
               icon: Icons.build_outlined,
               color: tokens.chart.maintenance,
               onTap: () => context.push(AppRoutes.serviceHistory),
             ),
             QuickActionItem(
               label: vehicle.fuelType == FuelType.electric
-                  ? 'Charge'
-                  : 'Refuel',
+                  ? s.dashboardCharge
+                  : s.dashboardRefuel,
               icon: vehicle.fuelType == FuelType.electric
                   ? Icons.bolt_outlined
                   : Icons.local_gas_station_outlined,
@@ -261,13 +263,13 @@ class _PopulatedDashboard extends ConsumerWidget {
               onTap: () => context.push(AppRoutes.fuelLogs),
             ),
             QuickActionItem(
-              label: 'Insurance',
+              label: s.dashboardInsurance,
               icon: Icons.shield_outlined,
               color: tokens.chart.insurance,
               onTap: () => context.push(AppRoutes.insurance),
             ),
             QuickActionItem(
-              label: 'Parts',
+              label: s.dashboardParts,
               icon: Icons.settings_outlined,
               color: tokens.chart.parts,
               onTap: () => context.push(AppRoutes.parts),
@@ -275,11 +277,11 @@ class _PopulatedDashboard extends ConsumerWidget {
           ],
         ),
         // SizedBox(height: tokens.space.s5),
-        Text('Recent Activity', style: Theme.of(context).textTheme.titleLarge),
+        Text(s.dashboardRecentActivity, style: Theme.of(context).textTheme.titleLarge),
         SizedBox(height: tokens.space.s3),
         if (recent.isEmpty)
           Text(
-            'No services yet',
+            s.dashboardNoServicesYet,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
@@ -296,7 +298,7 @@ class _PopulatedDashboard extends ConsumerWidget {
             ),
           ),
         SizedBox(height: tokens.space.s5),
-        Text('Next Maintenance', style: Theme.of(context).textTheme.titleLarge),
+        Text(s.dashboardNextMaintenance, style: Theme.of(context).textTheme.titleLarge),
         SizedBox(height: tokens.space.s3),
         _NextMaintenanceCard(
           vehicle: vehicle,
@@ -388,6 +390,7 @@ class _NextMaintenanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     if (item == null) {
       return Material(
@@ -399,14 +402,14 @@ class _NextMaintenanceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'No plan items yet',
+                s.dashboardNoPlanItemsYet,
                 style: Theme.of(
                   context,
                 ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               SizedBox(height: tokens.space.s3),
               DcoButton(
-                label: 'Add a plan item',
+                label: s.dashboardAddPlanItem,
                 variant: DcoButtonVariant.secondary,
                 onPressed: onLogService,
               ),
@@ -439,13 +442,13 @@ class _NextMaintenanceCard extends StatelessWidget {
             Text(item!.name, style: Theme.of(context).textTheme.titleMedium),
             SizedBox(height: tokens.space.s2),
             Text(
-              _dueCopy(item!, vehicle, lengthUnit),
+              _dueCopy(item!, vehicle, lengthUnit, s),
               style: Theme.of(
                 context,
               ).textTheme.bodySmall?.copyWith(color: dueColor),
             ),
             SizedBox(height: tokens.space.s4),
-            DcoButton(label: 'Log Service', onPressed: onLogService),
+            DcoButton(label: s.dashboardLogService, onPressed: onLogService),
           ],
         ),
       ),
@@ -453,7 +456,7 @@ class _NextMaintenanceCard extends StatelessWidget {
   }
 }
 
-String _dueCopy(PlanItem item, Vehicle vehicle, MileageUnit unit) {
+String _dueCopy(PlanItem item, Vehicle vehicle, MileageUnit unit, AppLocalizations s) {
   final now = DateTime.now();
   final today = DueCalculator.dateOnly(now);
   final overdue =
@@ -476,10 +479,10 @@ String _dueCopy(PlanItem item, Vehicle vehicle, MileageUnit unit) {
       final days = today
           .difference(DueCalculator.dateOnly(item.nextDueOn!))
           .inDays;
-      if (days > 0) parts.add('$days ${days == 1 ? 'day' : 'days'}');
+      if (days > 0) parts.add(s.overdueBy(days));
     }
-    if (parts.isEmpty) return 'Overdue';
-    return 'Overdue by ${parts.join(' / ')}';
+    if (parts.isEmpty) return s.overdue;
+    return '${s.overdue} ${parts.join(' / ')}';
   }
 
   final remainingMiles = item.nextDueMileage == null
@@ -489,13 +492,13 @@ String _dueCopy(PlanItem item, Vehicle vehicle, MileageUnit unit) {
       ? null
       : DateFormat.MMMd().format(item.nextDueOn!);
   if (remainingMiles != null && remainingMiles > 0 && dateLabel != null) {
-    return 'Due in ${miles.format(remainingMiles)} ${unit.label} ($dateLabel)';
+    return s.dueIn('${miles.format(remainingMiles)} ${unit.label} ($dateLabel)');
   }
   if (remainingMiles != null && remainingMiles > 0) {
-    return 'Due in ${miles.format(remainingMiles)} ${unit.label}';
+    return s.dueIn('${miles.format(remainingMiles)} ${unit.label}');
   }
-  if (dateLabel != null) return 'Due $dateLabel';
-  return 'Due soon';
+  if (dateLabel != null) return s.due(dateLabel);
+  return s.dueSoon;
 }
 
 class _StatCard extends StatelessWidget {

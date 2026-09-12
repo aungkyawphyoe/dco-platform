@@ -12,6 +12,7 @@ import 'package:dco_mobile/features/fuel/domain/fuel_validators.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -206,13 +207,14 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
       backgroundColor: context.tokens.background.card,
       builder: (context) {
         final tokens = context.tokens;
+        final s = AppLocalizations.of(context)!;
         return SafeArea(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s4, tokens.space.s4, tokens.space.s2),
-                child: Text('Fuel Type', style: Theme.of(context).textTheme.titleMedium),
+                child: Text(s.fuelLogFormTypeSheetTitle, style: Theme.of(context).textTheme.titleMedium),
               ),
               for (final type in types)
                 ListTile(
@@ -223,7 +225,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                 ),
               ListTile(
                 leading: Icon(Icons.add, color: tokens.text.accent),
-                title: const Text('Add fuel type'),
+                title: Text(s.fuelLogFormAddFuelType),
                 onTap: () => Navigator.pop(context, '__add__'),
               ),
             ],
@@ -252,6 +254,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final types = ref.watch(matchingFuelTypesProvider);
     final currency = ref.watch(currencyProvider).code;
@@ -277,7 +280,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         actions: [
           TextButton(
             onPressed: () => context.push(AppRoutes.fuelTypes),
-            child: Text('Fuel Types', style: TextStyle(color: tokens.text.link)),
+            child: Text(s.fuelLogFormTypesLink, style: TextStyle(color: tokens.text.link)),
           ),
         ],
       ),
@@ -289,7 +292,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
               children: [
                 DcoTextField(
                   key: const Key('fuel-log-date'),
-                  label: 'Date *',
+                  label: s.fuelLogFormDate,
                   controller: _date,
                   readOnly: true,
                   onTap: _pickDate,
@@ -299,9 +302,9 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('fuel-log-type'),
-                  label: 'Fuel Type *',
+                  label: s.fuelLogFormFuelType,
                   controller: _fuelTypeLabel,
-                  hint: types.isEmpty ? 'Add a fuel type' : 'Select',
+                  hint: types.isEmpty ? s.fuelLogFormFuelTypeHint : s.fuelLogFormSelect,
                   readOnly: true,
                   onTap: () => _pickFuelType(types),
                   errorText: _errors['type'],
@@ -310,7 +313,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('fuel-log-amount'),
-                  label: 'Amount *',
+                  label: s.fuelLogFormAmount,
                   controller: _amount,
                   hint: widget.kind == FuelLogKind.charge ? '32' : '40',
                   keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -325,7 +328,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('fuel-log-cost'),
-                  label: 'Cost *',
+                  label: s.fuelLogFormCost,
                   controller: _cost,
                   hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
                   keyboardType: TextInputType.numberWithOptions(decimal: !MoneyFormat.isMmk(currency)),
@@ -350,7 +353,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
               children: [
                 Expanded(
                   child: DcoButton(
-                    label: 'Cancel',
+                    label: s.cancel,
                     variant: DcoButtonVariant.secondary,
                     onPressed: () => context.pop(),
                   ),
@@ -359,7 +362,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                 Expanded(
                   child: DcoButton(
                     key: const Key('fuel-log-save'),
-                    label: 'Save',
+                    label: s.save,
                     onPressed: _save,
                     loading: _saving,
                   ),

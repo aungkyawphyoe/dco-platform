@@ -5,6 +5,7 @@ import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_tile.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +15,7 @@ class ServiceHistoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final history = ref.watch(maintenanceHistoryProvider);
@@ -21,20 +23,20 @@ class ServiceHistoryScreen extends ConsumerWidget {
     final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Service History')),
+      appBar: AppBar(title: Text(s.serviceHistoryTitle)),
       body: vehicle == null
-          ? const DcoEmptyState(
-              title: 'No active vehicle',
-              body: 'Register a vehicle to see services logged against it.',
+          ? DcoEmptyState(
+              title: s.maintenanceNoActiveVehicle,
+              body: s.serviceHistoryNoActiveVehicleBody,
             )
           : history.when(
               loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-              error: (error, _) => DcoEmptyState(title: 'Could not load services', body: '$error'),
+              error: (error, _) => DcoEmptyState(title: s.serviceHistoryLoadError, body: '$error'),
               data: (records) {
                 if (records.isEmpty) {
-                  return const DcoEmptyState(
-                    title: 'No services yet',
-                    body: 'Logged services for this vehicle will show up here.',
+                  return DcoEmptyState(
+                    title: s.serviceHistoryEmptyTitle,
+                    body: s.serviceHistoryEmptyBody,
                   );
                 }
                 return ListView.builder(

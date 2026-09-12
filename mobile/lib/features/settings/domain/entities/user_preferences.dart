@@ -51,7 +51,7 @@ class UserPreferences {
   });
 
   static const defaults = UserPreferences(
-    language: AppLanguage.english,
+    language: AppLanguage.myanmar,
     currency: AppCurrency.mmk,
     lengthUnit: MileageUnit.km,
   );

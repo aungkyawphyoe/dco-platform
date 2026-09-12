@@ -4,6 +4,7 @@ import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -16,12 +17,13 @@ class ServiceDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
     final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Service')),
+      appBar: AppBar(title: Text(s.serviceDetailTitle)),
       body: FutureBuilder(
         future: ref.read(maintenanceRepositoryProvider).getServiceRecord(serviceId),
         builder: (context, snapshot) {
@@ -30,9 +32,9 @@ class ServiceDetailScreen extends ConsumerWidget {
           }
           final record = snapshot.data;
           if (record == null) {
-            return const DcoEmptyState(
-              title: 'Service not found',
-              body: 'This record is no longer available.',
+            return DcoEmptyState(
+              title: s.serviceDetailNotFound,
+              body: s.serviceDetailNotFoundBody,
             );
           }
           final money = MoneyFormat.labeled(record.totalCost, currency);
@@ -47,12 +49,12 @@ class ServiceDetailScreen extends ConsumerWidget {
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               SizedBox(height: tokens.space.s5),
-              _kv(context, 'Mileage', odometer),
-              _kv(context, 'Total', money),
-              if (record.workshopName != null) _kv(context, 'Workshop', record.workshopName!),
-              if (record.notes != null) _kv(context, 'Notes', record.notes!),
+              _kv(context, s.serviceDetailMileage, odometer),
+              _kv(context, s.serviceDetailTotal, money),
+              if (record.workshopName != null) _kv(context, s.serviceDetailWorkshop, record.workshopName!),
+              if (record.notes != null) _kv(context, s.serviceDetailNotes, record.notes!),
               SizedBox(height: tokens.space.s5),
-              Text('Services', style: Theme.of(context).textTheme.titleMedium),
+              Text(s.serviceDetailServices, style: Theme.of(context).textTheme.titleMedium),
               SizedBox(height: tokens.space.s3),
               ...record.items.map((item) {
                 final cost = item.lineCost == null
@@ -73,7 +75,7 @@ class ServiceDetailScreen extends ConsumerWidget {
               }),
               if (record.parts.isNotEmpty) ...[
                 SizedBox(height: tokens.space.s5),
-                Text('Parts', style: Theme.of(context).textTheme.titleMedium),
+                Text(s.serviceDetailParts, style: Theme.of(context).textTheme.titleMedium),
                 SizedBox(height: tokens.space.s3),
                 ...record.parts.map(
                   (part) => Padding(

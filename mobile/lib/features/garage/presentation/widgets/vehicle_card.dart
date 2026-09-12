@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -30,6 +31,7 @@ class VehicleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
     return Material(
@@ -64,7 +66,7 @@ class VehicleCard extends StatelessWidget {
                               if (isFamily || vehicle.source == VehicleSource.family) ...[
                                 SizedBox(width: tokens.space.s2),
                                 _Badge(
-                                  label: 'Family',
+                                  label: s.garageFamilyBadge,
                                   color: tokens.text.accent,
                                   background: tokens.background.card,
                                 ),
@@ -73,7 +75,7 @@ class VehicleCard extends StatelessWidget {
                           ),
                         ),
                         if (isActive)
-                          _Badge(label: 'active', color: tokens.status.infoFg, background: tokens.status.infoBg)
+                          _Badge(label: s.active, color: tokens.status.infoFg, background: tokens.status.infoBg)
                         else if (onSetActive != null)
                           TextButton(
                             onPressed: onSetActive,
@@ -81,11 +83,11 @@ class VehicleCard extends StatelessWidget {
                               minimumSize: const Size(44, 44),
                               padding: EdgeInsets.symmetric(horizontal: tokens.space.s2),
                             ),
-                            child: Text('Set active', style: TextStyle(color: tokens.text.link, fontSize: 12)),
+                            child: Text(s.vehicleSetActive, style: TextStyle(color: tokens.text.link, fontSize: 12)),
                           ),
                         if (onEdit != null)
                           IconButton(
-                            tooltip: 'Edit vehicle',
+                            tooltip: s.vehicleEditTooltip,
                             onPressed: onEdit,
                             icon: Icon(Icons.edit_outlined, size: 20, color: tokens.icon.inactive),
                             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
@@ -93,7 +95,7 @@ class VehicleCard extends StatelessWidget {
                           ),
                         if (onDelete != null)
                           IconButton(
-                            tooltip: 'Remove from family',
+                            tooltip: s.vehicleRemoveTooltip,
                             onPressed: onDelete,
                             icon: Icon(Icons.delete_outline, size: 20, color: tokens.status.dangerFg),
                             constraints: const BoxConstraints(minWidth: 44, minHeight: 44),

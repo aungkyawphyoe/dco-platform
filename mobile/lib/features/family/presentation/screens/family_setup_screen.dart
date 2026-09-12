@@ -1,4 +1,5 @@
 import 'package:dco_mobile/core/router/routes.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -43,10 +44,11 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
   }
 
   void _validateName(String value) {
+    final s = AppLocalizations.of(context)!;
     if (value.trim().isEmpty) {
-      _errorText = 'Family name is required';
+      _errorText = s.familyNameRequired;
     } else if (value.trim().length > 100) {
-      _errorText = 'Name must be 100 characters or less';
+      _errorText = s.familyNameMaxLength;
     } else {
       _errorText = null;
     }
@@ -72,9 +74,9 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
+          SnackBar(
             content: Text(
-              'Family created! Share the code with family members.',
+              AppLocalizations.of(context)!.familyCreatedSuccess,
             ),
           ),
         );
@@ -90,7 +92,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Failed to create family: $e')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.familyCreateFailed(e.toString()))));
     }
   }
 
@@ -108,7 +110,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Joined family successfully!')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.familyJoinedSuccess)),
         );
         context.go(AppRoutes.familyManage);
       }
@@ -117,14 +119,14 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
       setState(() => _isLoading = false);
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Failed to join family: $e')));
+      ).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.familyJoinFailed(e.toString()))));
     }
   }
 
   void _shareFamily() {
     if (_shareCode == null) return;
     SharePlus.instance.share(
-      ShareParams(text: 'Join my DCO family! Code: $_shareCode'),
+      ShareParams(text: AppLocalizations.of(context)!.familyShareText(_shareCode!)),
     );
   }
 
@@ -134,12 +136,13 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = Theme.of(context).extension<DcoTokens>()!;
     final showResult = _shareCode != null;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isJoinMode ? 'Join Family' : 'Create Family'),
+        title: Text(_isJoinMode ? s.familyJoinTitle : s.familyCreateTitle),
         leading: showResult
             ? IconButton(
                 icon: const Icon(Icons.arrow_back),
@@ -156,7 +159,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                     CircularProgressIndicator(color: tokens.text.accent),
                     const SizedBox(height: 16),
                     Text(
-                      'Joining family...',
+                      s.familyJoining,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: tokens.text.secondary,
                       ),
@@ -179,7 +182,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Create Your Family',
+                          s.familyCreateHeading,
                           style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(
                                 color: tokens.text.primary,
@@ -189,7 +192,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Invite members to share vehicles and manage access together.',
+                          s.familyCreateBody,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: tokens.text.secondary),
                           textAlign: TextAlign.center,
@@ -197,14 +200,14 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                         const SizedBox(height: 32),
                         DcoTextField(
                           controller: _nameController,
-                          label: 'Family Name',
-                          hint: 'e.g., Smith Family',
+                          label: s.familyNameLabel,
+                          hint: s.familyNameHint,
                           errorText: _errorText,
                           onChanged: _validateName,
                         ),
                         const SizedBox(height: 24),
                         DcoButton(
-                          label: _isLoading ? 'Creating...' : 'Create Family',
+                          label: _isLoading ? s.familyCreating : s.familyCreateButton,
                           onPressed: _isLoading ? null : _createFamily,
                           loading: _isLoading,
                         ),
@@ -216,7 +219,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Family Created!',
+                          s.familyCreatedHeading,
                           style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(
                                 color: tokens.text.primary,
@@ -226,7 +229,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Share this code with family members so they can join.',
+                          s.familyCreatedBody,
                           style: Theme.of(context).textTheme.bodyMedium
                               ?.copyWith(color: tokens.text.secondary),
                           textAlign: TextAlign.center,
@@ -244,7 +247,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                           child: Column(
                             children: [
                               Text(
-                                'Share Code',
+                                s.familyShareCode,
                                 style: Theme.of(context).textTheme.labelLarge
                                     ?.copyWith(color: tokens.text.tertiary),
                               ),
@@ -269,7 +272,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                                 ),
                               const SizedBox(height: 16),
                               Text(
-                                'Scan with DCO app to join',
+                                s.familyShareCodeHelper,
                                 style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(color: tokens.text.tertiary),
                               ),
@@ -278,14 +281,14 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                                 children: [
                                   Expanded(
                                     child: DcoButton(
-                                      label: 'Copy Code',
+                                      label: s.familyCopyCode,
                                       variant: DcoButtonVariant.secondary,
                                       onPressed: () {
                                         ScaffoldMessenger.of(
                                           context,
                                         ).showSnackBar(
-                                          const SnackBar(
-                                            content: Text('Code copied!'),
+                                          SnackBar(
+                                            content: Text(s.familyCodeCopied),
                                           ),
                                         );
                                       },
@@ -294,7 +297,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                                   const SizedBox(width: 12),
                                   Expanded(
                                     child: DcoButton(
-                                      label: 'Share',
+                                      label: s.familyShare,
                                       onPressed: _shareFamily,
                                     ),
                                   ),
@@ -305,14 +308,14 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Code expires in 7 days. Regenerating invalidates the old code.',
+                          s.familyCodeExpiryHelper,
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: tokens.text.tertiary),
                           textAlign: TextAlign.center,
                         ),
                         const SizedBox(height: 24),
                         DcoButton(
-                          label: 'Go to Family Management',
+                          label: s.familyGoToManagement,
                           onPressed: _navigateToManagement,
                         ),
                       ],

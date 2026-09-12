@@ -4,6 +4,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -13,35 +14,36 @@ class PartsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final parts = ref.watch(vehiclePartsProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Parts'),
+        title: Text(s.partsTitle),
         actions: [
           IconButton(
-            tooltip: 'Add a part',
+            tooltip: s.partsAddTooltip,
             onPressed: vehicle == null ? null : () => context.push(AppRoutes.partNew),
             icon: Icon(Icons.add, color: vehicle == null ? tokens.icon.inactive : tokens.icon.active),
           ),
         ],
       ),
       body: vehicle == null
-          ? const DcoEmptyState(
-              title: 'No active vehicle',
-              body: 'Register a vehicle to keep a parts catalog for it.',
+          ? DcoEmptyState(
+              title: s.partsNoActiveVehicle,
+              body: s.partsNoActiveVehicleBody,
             )
           : parts.when(
               loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-              error: (error, _) => DcoEmptyState(title: 'Could not load parts', body: '$error'),
+              error: (error, _) => DcoEmptyState(title: s.partsLoadError, body: '$error'),
               data: (items) {
                 if (items.isEmpty) {
                   return DcoEmptyState(
-                    title: 'No parts yet',
-                    body: 'Add parts for ${vehicle.displayName}. Assign them when you log a service or an expense.',
-                    actionLabel: 'Add a part',
+                    title: s.partsEmptyTitle,
+                    body: s.partsEmptyBody(vehicle.displayName),
+                    actionLabel: s.partsAddPart,
                     onAction: () => context.push(AppRoutes.partNew),
                   );
                 }

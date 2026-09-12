@@ -5,6 +5,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/features/family/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:dco_mobile/features/family/domain/entities/family.dart'
     as family_entities;
 
@@ -20,6 +21,7 @@ class InviteTab extends ConsumerStatefulWidget {
 class _InviteTabState extends ConsumerState<InviteTab> {
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = Theme.of(context).extension<DcoTokens>()!;
     final family = widget.family;
 
@@ -29,7 +31,7 @@ class _InviteTabState extends ConsumerState<InviteTab> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            'Share Your Family',
+            s.inviteTabHeading,
             style: Theme.of(
               context,
             ).textTheme.headlineSmall?.copyWith(color: tokens.text.primary),
@@ -37,7 +39,7 @@ class _InviteTabState extends ConsumerState<InviteTab> {
           ),
           const SizedBox(height: 8),
           Text(
-            'Invite family members to join and share vehicles.',
+            s.inviteTabBody,
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
@@ -54,7 +56,7 @@ class _InviteTabState extends ConsumerState<InviteTab> {
             child: Column(
               children: [
                 Text(
-                  'Share Code',
+                  s.inviteTabShareCode,
                   style: Theme.of(
                     context,
                   ).textTheme.labelLarge?.copyWith(color: tokens.text.tertiary),
@@ -78,7 +80,7 @@ class _InviteTabState extends ConsumerState<InviteTab> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Scan with DCO app to join',
+                  s.inviteTabShareCodeHelper,
                   style: Theme.of(
                     context,
                   ).textTheme.bodySmall?.copyWith(color: tokens.text.tertiary),
@@ -88,11 +90,11 @@ class _InviteTabState extends ConsumerState<InviteTab> {
                   children: [
                     Expanded(
                       child: DcoButton(
-                        label: 'Copy Code',
+                        label: s.inviteTabCopyCode,
                         variant: DcoButtonVariant.secondary,
                         onPressed: () {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Code copied!')),
+                            SnackBar(content: Text(s.inviteTabCodeCopied)),
                           );
                         },
                       ),
@@ -100,11 +102,10 @@ class _InviteTabState extends ConsumerState<InviteTab> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: DcoButton(
-                        label: 'Share',
+                        label: s.inviteTabShare,
                         onPressed: () => SharePlus.instance.share(
                           ShareParams(
-                            text:
-                                'Join my DCO family! Code: ${family.shareCode}',
+                            text: s.inviteTabShareText(family.shareCode),
                           ),
                         ),
                       ),
@@ -113,24 +114,24 @@ class _InviteTabState extends ConsumerState<InviteTab> {
                 ),
                 const SizedBox(height: 16),
                 DcoButton(
-                  label: 'Regenerate Code',
+                  label: s.inviteTabRegenerateButton,
                   variant: DcoButtonVariant.tertiary,
                   onPressed: () async {
                     final confirmed = await showDialog<bool>(
                       context: context,
                       builder: (context) => AlertDialog(
-                        title: const Text('Regenerate Share Code?'),
-                        content: const Text(
-                          'This will invalidate the current code. Members with the old code won\'t be able to join.',
+                        title: Text(s.inviteTabRegenerateTitle),
+                        content: Text(
+                          s.inviteTabRegenerateBody,
                         ),
                         actions: [
                           TextButton(
                             onPressed: () => Navigator.pop(context, false),
-                            child: const Text('Cancel'),
+                            child: Text(s.cancel),
                           ),
                           TextButton(
                             onPressed: () => Navigator.pop(context, true),
-                            child: const Text('Regenerate'),
+                            child: Text(s.inviteTabRegenerateAction),
                           ),
                         ],
                       ),
@@ -147,7 +148,7 @@ class _InviteTabState extends ConsumerState<InviteTab> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Code expires in 7 days. Regenerating invalidates the old code.',
+            s.inviteTabCodeExpiryHelper,
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: tokens.text.tertiary),

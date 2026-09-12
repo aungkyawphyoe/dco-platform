@@ -12,6 +12,7 @@ import 'package:dco_mobile/features/family/providers.dart';
 import 'package:dco_mobile/features/family/domain/entities/family.dart'
     as family_entities;
 import 'package:dco_mobile/features/settings/providers.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 
 class CarDetailScreen extends ConsumerStatefulWidget {
   final String vehicleId;
@@ -25,6 +26,7 @@ class CarDetailScreen extends ConsumerStatefulWidget {
 class _CarDetailScreenState extends ConsumerState<CarDetailScreen> {
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicleAsync = ref.watch(
       localVehicleDetailProvider(widget.vehicleId),
@@ -33,7 +35,7 @@ class _CarDetailScreenState extends ConsumerState<CarDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Car Detail'),
+        title: Text(s.carDetailTitle),
         actions: [
           IconButton(
             icon: Icon(Icons.edit, color: tokens.icon.active),
@@ -48,10 +50,10 @@ class _CarDetailScreenState extends ConsumerState<CarDetailScreen> {
         error: (error, _) => Center(child: Text('Error: $error')),
         data: (detail) {
           if (detail == null) {
-            return const Center(
+            return Center(
               child: DcoEmptyState(
-                title: 'Vehicle not found',
-                body: 'This vehicle could not be loaded.',
+                title: s.carDetailNotFound,
+                body: s.carDetailNotFoundBody,
               ),
             );
           }
@@ -153,7 +155,7 @@ class _VehicleIdentitySection extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Vehicle Identity',
+            AppLocalizations.of(context)!.carDetailIdentitySection,
             style: Theme.of(
               context,
             ).textTheme.labelLarge?.copyWith(color: tokens.text.tertiary),
@@ -194,7 +196,7 @@ class _VehicleIdentitySection extends StatelessWidget {
                     ),
                     if (vehicle.vin != null && vehicle.vin!.isNotEmpty)
                       Text(
-                        'VIN: ${vehicle.vin}',
+                        '${AppLocalizations.of(context)!.carDetailVinPrefix}${vehicle.vin}',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: tokens.text.tertiary,
                         ),
@@ -237,20 +239,20 @@ class _DocumentsSection extends StatelessWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text('Documents', style: Theme.of(context).textTheme.titleMedium),
+            Text(AppLocalizations.of(context)!.carDetailDocumentsSection, style: Theme.of(context).textTheme.titleMedium),
             TextButton.icon(
               onPressed: onAddDocument,
               icon: Icon(Icons.add, size: 18, color: tokens.text.accent),
-              label: Text('Add', style: TextStyle(color: tokens.text.accent)),
+              label: Text(AppLocalizations.of(context)!.carDetailAddDocument, style: TextStyle(color: tokens.text.accent)),
             ),
           ],
         ),
         SizedBox(height: tokens.space.s2),
         if (documents.isEmpty)
           DcoEmptyState(
-            title: 'No documents yet',
-            body: 'Add registration, insurance, or other documents.',
-            actionLabel: 'Add Document',
+            title: AppLocalizations.of(context)!.carDetailNoDocuments,
+            body: AppLocalizations.of(context)!.carDetailNoDocumentsBody,
+            actionLabel: AppLocalizations.of(context)!.carDetailAddDocumentAction,
             onAction: onAddDocument,
           )
         else
@@ -349,7 +351,7 @@ class _AssignedDriversSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Assigned Drivers',
+              AppLocalizations.of(context)!.carDetailDriversSection,
               style: Theme.of(context).textTheme.titleMedium,
             ),
             if (drivers.isNotEmpty)
@@ -357,7 +359,7 @@ class _AssignedDriversSection extends StatelessWidget {
                 onPressed: onManageDrivers,
                 icon: Icon(Icons.settings, size: 18, color: tokens.text.accent),
                 label: Text(
-                  'Manage',
+                  AppLocalizations.of(context)!.carDetailManageDrivers,
                   style: TextStyle(color: tokens.text.accent),
                 ),
               ),
@@ -366,9 +368,9 @@ class _AssignedDriversSection extends StatelessWidget {
         SizedBox(height: tokens.space.s2),
         if (drivers.isEmpty)
           DcoEmptyState(
-            title: 'No drivers assigned',
-            body: 'Add family members as drivers for this vehicle.',
-            actionLabel: 'Assign Driver',
+            title: AppLocalizations.of(context)!.carDetailNoDrivers,
+            body: AppLocalizations.of(context)!.carDetailNoDriversBody,
+            actionLabel: AppLocalizations.of(context)!.carDetailAssignDriver,
             onAction: onManageDrivers,
           )
         else
@@ -390,6 +392,7 @@ class _DriverTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     Color licenseColor;
     IconData licenseIcon;
     String licenseLabel;
@@ -397,22 +400,22 @@ class _DriverTile extends StatelessWidget {
       case 'valid':
         licenseColor = context.tokens.status.successFg;
         licenseIcon = Icons.check_circle;
-        licenseLabel = 'Valid';
+        licenseLabel = s.carDetailLicenseValid;
         break;
       case 'expiring_soon':
         licenseColor = context.tokens.status.warningFg;
         licenseIcon = Icons.schedule;
-        licenseLabel = 'Expiring Soon';
+        licenseLabel = s.carDetailLicenseExpiringSoon;
         break;
       case 'expired':
         licenseColor = context.tokens.status.dangerFg;
         licenseIcon = Icons.cancel;
-        licenseLabel = 'Expired';
+        licenseLabel = s.carDetailLicenseExpired;
         break;
       default:
         licenseColor = context.tokens.text.tertiary;
         licenseIcon = Icons.help;
-        licenseLabel = 'No License';
+        licenseLabel = s.carDetailLicenseNone;
     }
 
     return Container(
@@ -462,8 +465,8 @@ class _DriverTile extends StatelessWidget {
                       ),
                       child: Text(
                         driver.permission == 'full'
-                            ? 'Full Access'
-                            : 'Drive Only',
+                            ? AppLocalizations.of(context)!.carDetailFullAccess
+                            : AppLocalizations.of(context)!.carDetailDriveOnly,
                         style: TextStyle(
                           color: driver.permission == 'full'
                               ? context.tokens.status.infoFg
@@ -529,20 +532,20 @@ class _QuickActionsSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('Quick Actions', style: Theme.of(context).textTheme.titleMedium),
+        Text(AppLocalizations.of(context)!.carDetailQuickActions, style: Theme.of(context).textTheme.titleMedium),
         SizedBox(height: tokens.space.s2),
         Row(
           children: [
             Expanded(
               child: DcoButton(
-                label: 'Log Service',
+                label: AppLocalizations.of(context)!.carDetailLogService,
                 variant: DcoButtonVariant.secondary,
                 onPressed: onLogService,
               ),
             ),
             SizedBox(width: tokens.space.s2),
             Expanded(
-              child: DcoButton(label: 'Log Fuel', onPressed: onLogFuel),
+              child: DcoButton(label: AppLocalizations.of(context)!.carDetailLogFuel, onPressed: onLogFuel),
             ),
           ],
         ),
@@ -551,7 +554,7 @@ class _QuickActionsSection extends StatelessWidget {
           children: [
             Expanded(
               child: DcoButton(
-                label: 'Add Document',
+                label: AppLocalizations.of(context)!.carDetailAddDocumentButton,
                 variant: DcoButtonVariant.secondary,
                 onPressed: onAddDocument,
               ),
@@ -559,7 +562,7 @@ class _QuickActionsSection extends StatelessWidget {
             SizedBox(width: tokens.space.s2),
             Expanded(
               child: DcoButton(
-                label: 'Manage Drivers',
+                label: AppLocalizations.of(context)!.carDetailManageDriversButton,
                 variant: DcoButtonVariant.tertiary,
                 onPressed: onManageDrivers,
               ),
@@ -596,14 +599,14 @@ class _ManageDriversSheetState extends ConsumerState<_ManageDriversSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Manage Drivers',
+              AppLocalizations.of(context)!.carDetailManageDriversSheet,
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(color: tokens.text.primary),
             ),
             SizedBox(height: tokens.space.s2),
             Text(
-              'Current Drivers',
+              AppLocalizations.of(context)!.carDetailCurrentDrivers,
               style: Theme.of(context).textTheme.labelLarge,
             ),
             SizedBox(height: tokens.space.s2),
@@ -615,7 +618,7 @@ class _ManageDriversSheetState extends ConsumerState<_ManageDriversSheet> {
               ),
             ),
             SizedBox(height: tokens.space.s4),
-            Text('Add Driver', style: Theme.of(context).textTheme.labelLarge),
+            Text(AppLocalizations.of(context)!.carDetailAddDriver, style: Theme.of(context).textTheme.labelLarge),
             SizedBox(height: tokens.space.s2),
             familyMembersAsync.when(
               loading: () => Center(
@@ -632,7 +635,7 @@ class _ManageDriversSheetState extends ConsumerState<_ManageDriversSheet> {
                     .toList();
                 if (available.isEmpty) {
                   return Text(
-                    'All family members are already assigned',
+                    AppLocalizations.of(context)!.carDetailAllAssigned,
                     style: TextStyle(color: tokens.text.tertiary),
                   );
                 }
@@ -650,7 +653,7 @@ class _ManageDriversSheetState extends ConsumerState<_ManageDriversSheet> {
               },
             ),
             SizedBox(height: tokens.space.s4),
-            DcoButton(label: 'Done', onPressed: () => Navigator.pop(context)),
+            DcoButton(label: AppLocalizations.of(context)!.done, onPressed: () => Navigator.pop(context)),
           ],
         ),
       ),
@@ -685,7 +688,7 @@ class _DriverListTile extends StatelessWidget {
       ),
       title: Text(driver.displayName),
       subtitle: Text(
-        '${driver.permission == 'full' ? 'Full Access' : 'Drive Only'} • License: ${driver.licenseStatus}',
+        '${driver.permission == 'full' ? AppLocalizations.of(context)!.carDetailFullAccess : AppLocalizations.of(context)!.carDetailDriveOnly} • ${AppLocalizations.of(context)!.carDetailLicensePrefix}${driver.licenseStatus}',
       ),
       trailing: IconButton(
         icon: Icon(Icons.remove_circle_outline, color: tokens.status.dangerFg),

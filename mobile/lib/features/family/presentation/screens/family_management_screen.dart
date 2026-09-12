@@ -1,4 +1,5 @@
 import 'package:dco_mobile/core/router/routes.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -34,16 +35,17 @@ class _FamilyManagementScreenState extends ConsumerState<FamilyManagementScreen>
   }
 
   void _showJoinDialog(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final codeController = TextEditingController();
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Join Family'),
+        title: Text(s.familyManagementJoinTitle),
         content: TextField(
           controller: codeController,
-          decoration: const InputDecoration(
-            hintText: 'Enter share code',
-            labelText: 'Share Code',
+          decoration: InputDecoration(
+            hintText: s.familyManagementJoinHint,
+            labelText: s.familyManagementJoinLabel,
           ),
           textCapitalization: TextCapitalization.characters,
           autofocus: true,
@@ -51,7 +53,7 @@ class _FamilyManagementScreenState extends ConsumerState<FamilyManagementScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text(s.cancel),
           ),
           TextButton(
             onPressed: () {
@@ -61,7 +63,7 @@ class _FamilyManagementScreenState extends ConsumerState<FamilyManagementScreen>
                 context.go(AppRoutes.familyJoin(code));
               }
             },
-            child: const Text('Join'),
+            child: Text(s.familyManagementJoinButton),
           ),
         ],
       ),
@@ -70,23 +72,24 @@ class _FamilyManagementScreenState extends ConsumerState<FamilyManagementScreen>
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = Theme.of(context).extension<DcoTokens>()!;
     final familyAsync = ref.watch(myFamilyProvider);
     final membersAsync = ref.watch(familyMembersProvider);
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Family'),
+        title: Text(s.familyManagementTitle),
         bottom: familyAsync.valueOrNull != null
             ? TabBar(
                 controller: _tabController,
                 labelColor: tokens.text.accent,
                 unselectedLabelColor: tokens.text.tertiary,
                 indicatorColor: tokens.text.accent,
-                tabs: const [
-                  Tab(icon: Icon(Icons.people), text: 'Members'),
-                  Tab(icon: Icon(Icons.directions_car), text: 'Vehicles'),
-                  Tab(icon: Icon(Icons.share), text: 'Invite'),
+                tabs: [
+                  Tab(icon: const Icon(Icons.people), text: s.familyManagementMembersTab),
+                  Tab(icon: const Icon(Icons.directions_car), text: s.familyManagementVehiclesTab),
+                  Tab(icon: const Icon(Icons.share), text: s.familyManagementInviteTab),
                 ],
               )
             : null,
@@ -109,12 +112,12 @@ class _FamilyManagementScreenState extends ConsumerState<FamilyManagementScreen>
                     ),
                     SizedBox(height: tokens.space.s4),
                     Text(
-                      'No family yet',
+                      s.familyManagementNoFamily,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     SizedBox(height: tokens.space.s2),
                     Text(
-                      'Create a family to share vehicles,\nor join an existing one.',
+                      s.familyManagementNoFamilyBody,
                       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         color: tokens.text.tertiary,
                       ),
@@ -122,12 +125,12 @@ class _FamilyManagementScreenState extends ConsumerState<FamilyManagementScreen>
                     ),
                     const SizedBox(height: 24),
                     DcoButton(
-                      label: 'Create Family',
+                      label: s.familyManagementCreateButton,
                       onPressed: () => context.go('/settings/family/new'),
                     ),
                     const SizedBox(height: 12),
                     DcoButton(
-                      label: 'Join Family',
+                      label: s.familyManagementJoinFamilyButton,
                       variant: DcoButtonVariant.secondary,
                       onPressed: () => _showJoinDialog(context),
                     ),

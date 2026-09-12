@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/features/family/providers.dart';
@@ -18,6 +19,7 @@ class MembersTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final s = AppLocalizations.of(context)!;
     final tokens = Theme.of(context).extension<DcoTokens>()!;
     final currentUserId = ref.watch(currentUserIdProvider);
     final isPrimaryOwner = family.createdBy == currentUserId;
@@ -27,10 +29,10 @@ class MembersTab extends ConsumerWidget {
       error: (e, _) => Center(child: Text('Error: $e')),
       data: (members) {
         if (members.isEmpty) {
-          return const FamilyEmptyState(
+          return FamilyEmptyState(
             icon: Icons.people_outline,
-            title: 'No members yet',
-            message: 'Invite family to get started.',
+            title: s.membersTabEmptyTitle,
+            message: s.membersTabEmptyBody,
           );
         }
 
@@ -93,6 +95,7 @@ class _ManageMemberSheetState extends ConsumerState<_ManageMemberSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
     final tokens = Theme.of(context).extension<DcoTokens>()!;
 
     return SafeArea(
@@ -103,25 +106,25 @@ class _ManageMemberSheetState extends ConsumerState<_ManageMemberSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'Manage ${widget.member.displayName ?? widget.member.email}',
+              s.membersTabManageTitle(widget.member.displayName ?? widget.member.email),
               style: Theme.of(
                 context,
               ).textTheme.titleLarge?.copyWith(color: tokens.text.primary),
             ),
             const SizedBox(height: 16),
-            Text('Role', style: Theme.of(context).textTheme.labelLarge),
+            Text(s.membersTabRoleSection, style: Theme.of(context).textTheme.labelLarge),
             const SizedBox(height: 8),
             SegmentedButton<String>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: 'member',
-                  label: Text('Member'),
-                  icon: Icon(Icons.person),
+                  label: Text(s.membersTabRoleMember),
+                  icon: const Icon(Icons.person),
                 ),
                 ButtonSegment(
                   value: 'driver',
-                  label: Text('Driver'),
-                  icon: Icon(Icons.drive_eta),
+                  label: Text(s.membersTabRoleDriver),
+                  icon: const Icon(Icons.drive_eta),
                 ),
               ],
               selected: {_selectedRole},
@@ -131,7 +134,7 @@ class _ManageMemberSheetState extends ConsumerState<_ManageMemberSheet> {
             ),
             const SizedBox(height: 16),
             DcoButton(
-              label: 'Save Role',
+              label: s.membersTabSaveRole,
               onPressed: _selectedRole != widget.member.role
                   ? () async {
                       final repo = ref.read(familyRepositoryProvider);
@@ -146,25 +149,25 @@ class _ManageMemberSheetState extends ConsumerState<_ManageMemberSheet> {
             ),
             const SizedBox(height: 8),
             DcoButton(
-              label: 'Remove from Family',
+              label: s.membersTabRemoveButton,
               variant: DcoButtonVariant.destructive,
               onPressed: () async {
                 final confirmed = await showDialog<bool>(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text('Remove Member?'),
+                    title: Text(s.membersTabRemoveTitle),
                     content: Text(
-                      'Remove ${widget.member.displayName ?? widget.member.email} from the family?',
+                      s.membersTabRemoveBody(widget.member.displayName ?? widget.member.email),
                     ),
                     actions: [
                       TextButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
+                        child: Text(s.cancel),
                       ),
                       TextButton(
                         onPressed: () => Navigator.pop(context, true),
                         child: Text(
-                          'Remove',
+                          s.membersTabRemoveAction,
                           style: TextStyle(color: tokens.status.dangerFg),
                         ),
                       ),
@@ -268,7 +271,7 @@ class _MemberTile extends StatelessWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            'You',
+                            AppLocalizations.of(context)!.membersTabYouBadge,
                             style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: tokens.text.accent,
@@ -296,7 +299,7 @@ class _MemberTile extends StatelessWidget {
                             Icon(roleIcon, size: 12, color: roleColor),
                             const SizedBox(width: 4),
                             Text(
-                              _roleLabel(member.role),
+                              _roleLabel(member.role, AppLocalizations.of(context)!),
                               style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
                                     color: roleColor,
@@ -314,7 +317,7 @@ class _MemberTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${member.vehicleCount} vehicle${member.vehicleCount == 1 ? '' : 's'}',
+                    AppLocalizations.of(context)!.membersTabVehicleCount(member.vehicleCount),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: tokens.text.tertiary,
                     ),
@@ -333,14 +336,14 @@ class _MemberTile extends StatelessWidget {
     );
   }
 
-  String _roleLabel(String role) {
+  String _roleLabel(String role, AppLocalizations s) {
     switch (role) {
       case 'primary_owner':
-        return 'Primary Owner';
+        return s.membersTabPrimaryOwner;
       case 'member':
-        return 'Member';
+        return s.membersTabRoleMember;
       case 'driver':
-        return 'Driver';
+        return s.membersTabRoleDriver;
       default:
         return role;
     }
@@ -356,6 +359,7 @@ class _LicenseStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = Theme.of(context).extension<DcoTokens>()!;
 
+    final s = AppLocalizations.of(context)!;
     Color color;
     IconData icon;
     String label;
@@ -363,22 +367,22 @@ class _LicenseStatusBadge extends StatelessWidget {
       case 'valid':
         color = tokens.status.successFg;
         icon = Icons.check_circle;
-        label = 'Valid';
+        label = s.membersTabLicenseValid;
         break;
       case 'expiring_soon':
         color = tokens.status.warningFg;
         icon = Icons.schedule;
-        label = 'Expiring Soon';
+        label = s.membersTabLicenseExpiringSoon;
         break;
       case 'expired':
         color = tokens.status.dangerFg;
         icon = Icons.cancel;
-        label = 'Expired';
+        label = s.membersTabLicenseExpired;
         break;
       default:
         color = tokens.text.tertiary;
         icon = Icons.help;
-        label = 'No License';
+        label = s.membersTabLicenseNone;
     }
 
     return Container(
