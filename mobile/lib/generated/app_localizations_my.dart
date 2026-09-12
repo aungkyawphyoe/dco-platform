@@ -389,7 +389,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get vehicleAddPhoto => 'ဓာတ်ပုံထည့်မည်';
 
   @override
-  String get vehicleSetActive => 'လက်ရှိအသုံးပြုမည့် ယာဉ်အဖြစ် သတ်မှတ်မည်';
+  String get vehicleSetActive => 'active လုပ်မည်';
 
   @override
   String get vehicleEditTooltip => 'ယာဉ်အချက်အလက် ပြင်မည်';

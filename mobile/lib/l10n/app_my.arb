@@ -126,7 +126,7 @@
   "vehicleArchiveBody": "မှတ်တမ်းများကို သိမ်းဆည်းထားမည်ဖြစ်ပြီး ဝှက်ထားပါမည်။ အပြီးတိုင် ဖျက်ပစ်မည် မဟုတ်ပါ။",
   "vehicleArchiveAction": "သိမ်းဆည်းထားမည်",
   "vehicleAddPhoto": "ဓာတ်ပုံထည့်မည်",
-  "vehicleSetActive": "လက်ရှိအသုံးပြုမည့် ယာဉ်အဖြစ် သတ်မှတ်မည်",
+  "vehicleSetActive": "active လုပ်မည်",
   "vehicleEditTooltip": "ယာဉ်အချက်အလက် ပြင်မည်",
   "vehicleRemoveTooltip": "မိသားစုအကောင့်မှ ဖယ်ရှားမည်",
 
