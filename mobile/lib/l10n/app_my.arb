@@ -566,6 +566,9 @@
   "vehiclesTabEmptyBodyOwner": "သင့်မိသားစုနှင့် ယာဉ်မျှဝေရန် \"ထည့်မည်\" ကို နှိပ်ပါ",
   "vehiclesTabEmptyBodyNonOwner": "ယာဉ်မျှဝေပေးရန် ပိုင်ရှင်ထံ တောင်းဆိုပါ",
   "vehiclesTabSelectTitle": "မျှဝေမည့် ယာဉ်ကို ရွေးချယ်ပါ",
+  "vehiclesTabSelectSubtitle": "သင့်ဂိုဒေါင်မှ မိသားစုနှင့် မျှဝေရန် ယာဉ်များကို ရွေးပါ",
+  "vehiclesTabNoVehiclesToAdd": "ထည့်ရန် ယာဉ် မရှိပါ။ ပထမဦးစွာ ဂိုဒေါင်ထဲသို့ ယာဉ်များ ထည့်ပါ။",
+  "vehiclesTabAddSelected": "ရွေးထားသည့် {count} စီးကို ထည့်မည်",
   "vehiclesTabRemoveTitle": "ယာဉ်ကို ဖယ်ရှားမည်",
   "vehiclesTabRemoveBody": "{vehicleName} ကို မိသားစုမှ ဖယ်ရှားမှာ သေချာပါသလား?",
 

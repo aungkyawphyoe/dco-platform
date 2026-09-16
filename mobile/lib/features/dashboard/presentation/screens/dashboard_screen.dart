@@ -99,10 +99,8 @@ class DashboardScreen extends ConsumerWidget {
               loading: () => Center(
                 child: CircularProgressIndicator(color: tokens.text.accent),
               ),
-              error: (error, _) => DcoEmptyState(
-                title: s.dashboardLoadError,
-                body: '$error',
-              ),
+              error: (error, _) =>
+                  DcoEmptyState(title: s.dashboardLoadError, body: '$error'),
               data: (vehicle) {
                 if (vehicle == null) {
                   return DcoEmptyState(
@@ -242,7 +240,10 @@ class _PopulatedDashboard extends ConsumerWidget {
           ],
         ),
         SizedBox(height: tokens.space.s5),
-        Text(s.dashboardQuickActions, style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          s.dashboardQuickActions,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         SizedBox(height: tokens.space.s3),
         QuickActionsGrid(
           items: [
@@ -276,8 +277,11 @@ class _PopulatedDashboard extends ConsumerWidget {
             ),
           ],
         ),
-        // SizedBox(height: tokens.space.s5),
-        Text(s.dashboardRecentActivity, style: Theme.of(context).textTheme.titleLarge),
+        SizedBox(height: tokens.space.s1),
+        Text(
+          s.dashboardRecentActivity,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         SizedBox(height: tokens.space.s3),
         if (recent.isEmpty)
           Text(
@@ -298,7 +302,10 @@ class _PopulatedDashboard extends ConsumerWidget {
             ),
           ),
         SizedBox(height: tokens.space.s5),
-        Text(s.dashboardNextMaintenance, style: Theme.of(context).textTheme.titleLarge),
+        Text(
+          s.dashboardNextMaintenance,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         SizedBox(height: tokens.space.s3),
         _NextMaintenanceCard(
           vehicle: vehicle,
@@ -313,6 +320,7 @@ class _PopulatedDashboard extends ConsumerWidget {
                   context.push(AppRoutes.maintenanceRegisterItem(next.id));
                 },
         ),
+        SizedBox(height: tokens.space.s7),
       ],
     );
   }
@@ -456,7 +464,12 @@ class _NextMaintenanceCard extends StatelessWidget {
   }
 }
 
-String _dueCopy(PlanItem item, Vehicle vehicle, MileageUnit unit, AppLocalizations s) {
+String _dueCopy(
+  PlanItem item,
+  Vehicle vehicle,
+  MileageUnit unit,
+  AppLocalizations s,
+) {
   final now = DateTime.now();
   final today = DueCalculator.dateOnly(now);
   final overdue =
@@ -492,7 +505,9 @@ String _dueCopy(PlanItem item, Vehicle vehicle, MileageUnit unit, AppLocalizatio
       ? null
       : DateFormat.MMMd().format(item.nextDueOn!);
   if (remainingMiles != null && remainingMiles > 0 && dateLabel != null) {
-    return s.dueIn('${miles.format(remainingMiles)} ${unit.label} ($dateLabel)');
+    return s.dueIn(
+      '${miles.format(remainingMiles)} ${unit.label} ($dateLabel)',
+    );
   }
   if (remainingMiles != null && remainingMiles > 0) {
     return s.dueIn('${miles.format(remainingMiles)} ${unit.label}');

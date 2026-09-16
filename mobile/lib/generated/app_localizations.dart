@@ -3200,6 +3200,24 @@ abstract class AppLocalizations {
   /// **'Select a vehicle to share'**
   String get vehiclesTabSelectTitle;
 
+  /// No description provided for @vehiclesTabSelectSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose vehicles from your garage to share with your family'**
+  String get vehiclesTabSelectSubtitle;
+
+  /// No description provided for @vehiclesTabNoVehiclesToAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicles available to add. Add vehicles to your garage first.'**
+  String get vehiclesTabNoVehiclesToAdd;
+
+  /// No description provided for @vehiclesTabAddSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {count,plural, =1{1 vehicle} other{{count} vehicles}}'**
+  String vehiclesTabAddSelected(num count);
+
   /// No description provided for @vehiclesTabRemoveTitle.
   ///
   /// In en, this message translates to:

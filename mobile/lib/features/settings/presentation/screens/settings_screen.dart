@@ -25,8 +25,9 @@ class SettingsScreen extends ConsumerWidget {
     final prefs =
         ref.watch(userPreferencesProvider).valueOrNull ??
         UserPreferences.defaults;
-    final syncState = ref.watch(syncStatusProvider).valueOrNull ?? const SyncState();
-    
+    final syncState =
+        ref.watch(syncStatusProvider).valueOrNull ?? const SyncState();
+
     return Scaffold(
       appBar: AppBar(title: Text(s.settingsTitle)),
       body: Column(
@@ -55,24 +56,101 @@ class SettingsScreen extends ConsumerWidget {
                               children: [
                                 Text(
                                   user?.email ?? '',
-                                  style: Theme.of(context).textTheme.titleMedium,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
                                 ),
                                 SizedBox(height: tokens.space.s1),
                                 Text(
                                   s.settingsFreePlan,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: tokens.text.caption,
-                                  ),
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(color: tokens.text.caption),
                                 ),
                               ],
                             ),
                           ),
-                          Icon(Icons.chevron_right, color: tokens.icon.inactive),
+                          Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
                         ],
                       ),
                     ),
                   ),
                 ),
+                SizedBox(height: tokens.space.s4),
+                if (!mockAuth) ...[
+                  Text(
+                    s.settingsSyncSection,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: tokens.text.primary,
+                    ),
+                  ),
+                  SizedBox(height: tokens.space.s2),
+                  _SyncButton(syncState: syncState),
+                  SizedBox(height: tokens.space.s4),
+                ],
+                Text(
+                  s.settingsFamilySection,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleMedium?.copyWith(color: tokens.text.primary),
+                ),
+                SizedBox(height: tokens.space.s2),
+                ref
+                    .watch(myFamilyProvider)
+                    .when(
+                      loading: () => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(s.settingsLoadingFamily),
+                        leading: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      error: (_, _) => ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(s.settingsFamilyLoadError),
+                        subtitle: Text(s.settingsFamilyTapRetry),
+                        onTap: () => ref.invalidate(myFamilyProvider),
+                      ),
+                      data: (family) {
+                        return Column(
+                          children: [
+                            ListTile(
+                              contentPadding: EdgeInsets.zero,
+                              leading: family != null
+                                  ? CircleAvatar(
+                                      backgroundColor: tokens.text.accent,
+                                      child: Text(
+                                        family.name.isNotEmpty
+                                            ? family.name[0].toUpperCase()
+                                            : 'F',
+                                        style: TextStyle(
+                                          color: tokens.text.onAccent,
+                                        ),
+                                      ),
+                                    )
+                                  : null,
+                              title: Text(
+                                family?.name ?? s.settingsFamilyFallback,
+                              ),
+                              subtitle: family != null
+                                  ? Text(
+                                      '${family.myRole?.toUpperCase()} • Share Code: ${family.shareCode}',
+                                    )
+                                  : Text(s.settingsFamilySubtitle),
+                              trailing: Icon(
+                                Icons.chevron_right,
+                                color: tokens.icon.inactive,
+                              ),
+                              onTap: () => context.push(AppRoutes.familyManage),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                 SizedBox(height: tokens.space.s4),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -122,76 +200,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                   onTap: () => context.push(AppRoutes.settingsUnits),
                 ),
-                SizedBox(height: tokens.space.s4),
-                if (!mockAuth) ...[
-                  Text(
-                    s.settingsSyncSection,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.titleMedium?.copyWith(color: tokens.text.primary),
-                  ),
-                  SizedBox(height: tokens.space.s2),
-                  _SyncButton(syncState: syncState),
-                  SizedBox(height: tokens.space.s4),
-                ],
-                Text(
-                  s.settingsFamilySection,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleMedium?.copyWith(color: tokens.text.primary),
-                ),
                 SizedBox(height: tokens.space.s2),
-                ref
-                    .watch(myFamilyProvider)
-                    .when(
-                      loading: () => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(s.settingsLoadingFamily),
-                        leading: SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      ),
-                      error: (_, _) => ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(s.settingsFamilyLoadError),
-                        subtitle: Text(s.settingsFamilyTapRetry),
-                        onTap: () => ref.invalidate(myFamilyProvider),
-                      ),
-                      data: (family) {
-                        return Column(
-                          children: [
-                            ListTile(
-                              contentPadding: EdgeInsets.zero,
-                              leading: family != null
-                                  ? CircleAvatar(
-                                      backgroundColor: tokens.text.accent,
-                                      child: Text(
-                                        family.name.isNotEmpty
-                                            ? family.name[0].toUpperCase()
-                                            : 'F',
-                                        style: TextStyle(color: tokens.text.onAccent),
-                                      ),
-                                    )
-                                  : null,
-                              title: Text(family?.name ?? s.settingsFamilyFallback),
-                              subtitle: family != null
-                                  ? Text(
-                                      '${family.myRole?.toUpperCase()} • Share Code: ${family.shareCode}',
-                                    )
-                                  : Text(s.settingsFamilySubtitle),
-                              trailing: Icon(
-                                Icons.chevron_right,
-                                color: tokens.icon.inactive,
-                              ),
-                              onTap: () => context.push(AppRoutes.familyManage),
-                            ),
-                          ],
-                        );
-                      },
-                    ),
-                SizedBox(height: tokens.space.s7),
               ],
             ),
           ),
@@ -282,7 +291,8 @@ class _SyncButton extends ConsumerWidget {
     if (state.lastSyncedAt != null) {
       final diff = DateTime.now().difference(state.lastSyncedAt!);
       if (diff.inMinutes < 1) return s.settingsSyncStatusJustSynced;
-      if (diff.inHours < 1) return s.settingsSyncStatusMinutesAgo(diff.inMinutes);
+      if (diff.inHours < 1)
+        return s.settingsSyncStatusMinutesAgo(diff.inMinutes);
       if (diff.inDays < 1) return s.settingsSyncStatusHoursAgo(diff.inHours);
       return s.settingsSyncStatusDaysAgo(diff.inDays);
     }

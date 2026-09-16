@@ -1682,6 +1682,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehiclesTabSelectTitle => 'Select a vehicle to share';
 
   @override
+  String get vehiclesTabSelectSubtitle =>
+      'Choose vehicles from your garage to share with your family';
+
+  @override
+  String get vehiclesTabNoVehiclesToAdd =>
+      'No vehicles available to add. Add vehicles to your garage first.';
+
+  @override
+  String vehiclesTabAddSelected(num count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count vehicles',
+      one: '1 vehicle',
+    );
+    return 'Add $_temp0';
+  }
+
+  @override
   String get vehiclesTabRemoveTitle => 'Remove Vehicle';
 
   @override

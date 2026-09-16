@@ -1,3 +1,4 @@
+process.stderr.write("[BOOT] imports starting\n");
 import { existsSync, readFileSync } from "node:fs";
 import { loadEnv } from "./config/env.js";
 import { createPgDb } from "./db/client.js";
@@ -5,19 +6,25 @@ import { bootstrapAdmin } from "./lib/bootstrap.js";
 import { createMailer } from "./lib/mail.js";
 import { createMediaStore } from "./lib/media.js";
 import { buildApp } from "./app.js";
+process.stderr.write("[BOOT] imports done\n");
 
 loadLocalEnv();
 
 async function main() {
+  console.error("[STARTUP] Loading env...");
   const env = loadEnv();
+  console.error("[STARTUP] Connecting to DB...");
   const { db, pool } = await createPgDb(env.DATABASE_URL);
+  console.error("[STARTUP] Bootstrapping admin...");
   await bootstrapAdmin(db, env);
+  console.error("[STARTUP] Building app...");
   const app = await buildApp({
     env,
     db,
     mailer: createMailer(env),
     media: createMediaStore(env),
   });
+  console.error("[STARTUP] Listening on port " + env.PORT);
   await app.listen({ port: env.PORT, host: "0.0.0.0" });
   const shutdown = async () => {
     await app.close();
@@ -41,7 +48,16 @@ function loadLocalEnv() {
   }
 }
 
+process.on("uncaughtException", (err) => {
+  console.error("UNCAUGHT:", err);
+  process.exit(1);
+});
+process.on("unhandledRejection", (err) => {
+  console.error("UNHANDLED:", err);
+  process.exit(1);
+});
+
 main().catch((err) => {
-  console.error(err);
+  console.error("MAIN ERROR:", err);
   process.exit(1);
 });

@@ -566,6 +566,9 @@
   "vehiclesTabEmptyBodyOwner": "Tap \"Add\" to share a vehicle with your family",
   "vehiclesTabEmptyBodyNonOwner": "Ask the owner to share a vehicle",
   "vehiclesTabSelectTitle": "Select a vehicle to share",
+  "vehiclesTabSelectSubtitle": "Choose vehicles from your garage to share with your family",
+  "vehiclesTabNoVehiclesToAdd": "No vehicles available to add. Add vehicles to your garage first.",
+  "vehiclesTabAddSelected": "Add {count,plural, =1{1 vehicle} other{{count} vehicles}}",
   "vehiclesTabRemoveTitle": "Remove Vehicle",
   "vehiclesTabRemoveBody": "Remove {vehicleName} from family?",
 

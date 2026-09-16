@@ -1,7 +1,9 @@
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/features/family/domain/entities/family.dart' as family_entities;
 import 'package:dco_mobile/features/family/presentation/providers/family_vehicle_providers.dart';
+import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/presentation/widgets/vehicle_card.dart';
+import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -108,19 +110,112 @@ class VehiclesTab extends ConsumerWidget {
 
   void _showAddVehicleDialog(BuildContext context, WidgetRef ref) {
     final s = AppLocalizations.of(context)!;
-    // TODO: Implement add vehicle dialog
-    // This would show a list of user's vehicles to select from
+    final tokens = context.tokens;
+    final garageAsync = ref.read(garageVehiclesProvider);
+    final familyAsync = ref.read(familyVehiclesProvider);
+
+    final myVehicles = garageAsync.valueOrNull ?? [];
+    final familyVehicleIds = (familyAsync.valueOrNull ?? []).map((v) => v.id).toSet();
+    final available = myVehicles.where((v) => !familyVehicleIds.contains(v.id)).toList();
+
+    if (available.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(s.vehiclesTabNoVehiclesToAdd)),
+      );
+      return;
+    }
+
+    final selected = <String>{};
+
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(s.vehiclesTabSelectTitle),
-            const SizedBox(height: 16),
-            const Text('TODO: Vehicle list'),
-          ],
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setState) => ConstrainedBox(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(ctx).size.height * 2 / 3,
+          ),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(ctx).viewInsets.bottom + 16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 16),
+                decoration: BoxDecoration(
+                  color: tokens.text.tertiary,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Text(
+                s.vehiclesTabSelectTitle,
+                style: Theme.of(ctx).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                s.vehiclesTabSelectSubtitle,
+                style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                  color: tokens.text.secondary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: available.length,
+                  itemBuilder: (_, index) {
+                    final vehicle = available[index];
+                    final isSelected = selected.contains(vehicle.id);
+                    return _VehicleSelectTile(
+                      vehicle: vehicle,
+                      isSelected: isSelected,
+                      onTap: () {
+                        setState(() {
+                          if (isSelected) {
+                            selected.remove(vehicle.id);
+                          } else {
+                            selected.add(vehicle.id);
+                          }
+                        });
+                      },
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: selected.isEmpty
+                      ? null
+                      : () async {
+                          Navigator.pop(ctx);
+                          final actions = ref.read(familyActionsProvider);
+                          for (final vehicleId in selected) {
+                            await actions.addVehicleToFamily(vehicleId);
+                          }
+                          ref.invalidate(familyVehiclesProvider);
+                        },
+                  child: Text(
+                    s.vehiclesTabAddSelected(selected.length),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          ),
         ),
       ),
     );
@@ -146,6 +241,67 @@ class VehiclesTab extends ConsumerWidget {
             child: Text(s.remove, style: const TextStyle(color: Colors.red)),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _VehicleSelectTile extends StatelessWidget {
+  const _VehicleSelectTile({
+    required this.vehicle,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final Vehicle vehicle;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Material(
+      color: isSelected ? tokens.text.accent.withValues(alpha: 0.1) : tokens.background.card,
+      borderRadius: BorderRadius.circular(tokens.radius.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.s3),
+          child: Row(
+            children: [
+              Checkbox(
+                value: isSelected,
+                onChanged: (_) => onTap(),
+                activeColor: tokens.text.accent,
+              ),
+              SizedBox(width: tokens.space.s2),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      vehicle.displayName,
+                      style: Theme.of(context).textTheme.titleSmall,
+                    ),
+                    Text(
+                      vehicle.yearMakeModel,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.text.secondary,
+                      ),
+                    ),
+                    Text(
+                      vehicle.licensePlate,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.text.tertiary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

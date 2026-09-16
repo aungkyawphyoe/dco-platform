@@ -1711,6 +1711,19 @@ class AppLocalizationsMy extends AppLocalizations {
   String get vehiclesTabSelectTitle => 'မျှဝေမည့် ယာဉ်ကို ရွေးချယ်ပါ';
 
   @override
+  String get vehiclesTabSelectSubtitle =>
+      'သင့်ဂိုဒေါင်မှ မိသားစုနှင့် မျှဝေရန် ယာဉ်များကို ရွေးပါ';
+
+  @override
+  String get vehiclesTabNoVehiclesToAdd =>
+      'ထည့်ရန် ယာဉ် မရှိပါ။ ပထမဦးစွာ ဂိုဒေါင်ထဲသို့ ယာဉ်များ ထည့်ပါ။';
+
+  @override
+  String vehiclesTabAddSelected(num count) {
+    return 'ရွေးထားသည့် $count စီးကို ထည့်မည်';
+  }
+
+  @override
   String get vehiclesTabRemoveTitle => 'ယာဉ်ကို ဖယ်ရှားမည်';
 
   @override
