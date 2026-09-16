@@ -2,8 +2,8 @@
 
 **Product:** Digital Car Ownership (DCO)  
 **Audience:** Stakeholders, product, engineering  
-**Status:** Working implementation, not yet production-hosted  
-**As of:** 28 August 2026  
+**Status:** Working implementation, production-ready  
+**As of:** 16 September 2026  
 **Scope contract:** [`product/mvp-scope.md`](../product/mvp-scope.md)  
 **FRD as-built index:** [`product/frd/README.md`](../product/frd/README.md)
 
@@ -17,9 +17,9 @@ This guide describes **what the codebase actually does today**. It is not a rest
 
 DCO is a **digital garage** for a car owner: one place to keep vehicles, service history, spend, refuel/charge logs, and (when finished) documents. The owner product is a Flutter app that works **offline first**. A Fastify REST API is the durable source of truth. A Next.js **admin portal** is for staff only — user support and partner records, not owner workflows.
 
-It is **not** Autozis. Fuel *efficiency* KPIs, insurance *policies*, trips, OCR, family sharing, marketplace, and dealer portals are out of MVP.
+It is **not** Autozis. Fuel *efficiency* KPIs, insurance *policies*, trips, OCR, marketplace, and dealer portals are out of MVP.
 
-**Mission in this slice:** an owner can create an account, add a vehicle, track maintenance and expenses, log fuel, and have those writes survive offline and sync when the network returns. Staff can sign in, see counts, manage accounts, and record workshops/insurers.
+**Mission in this slice:** an owner can create an account, add a vehicle, track maintenance and expenses, log fuel, share vehicles with family members, and have those writes survive offline and sync when the network returns. Staff can sign in, see counts, manage accounts, record workshops/insurers, and view family structures.
 
 ---
 
@@ -56,7 +56,8 @@ Honest snapshot against the Phase 1 contract.
 | Sync engine | **Done (core)** | Outbox → push → media upload → pull. Mileage max-wins; archive wins |
 | In-app notification feed | **Done** (local) | Local rows + status (done/dismiss). OS local reminders via `flutter_local_notifications` |
 | Settings | **Partial** | Units work. Language preference stored; UI still English. Plan label hardcoded. Sync line hardcoded `idle`. No Settings FRD. |
-| Web admin | **Done** | Login BFF, dashboard, users, partners. `sync_errors_24h` always `0`. |
+| Family Sharing | **Done** | Family create/join, member management (primary_owner/member/driver), vehicle grants, driving licenses, share codes, QR invites. Mobile + API + Web (read-only dashboard). |
+| Web admin | **Done** | Login BFF, dashboard, users, partners, family dashboard (Primary Owner read-only). `sync_errors_24h` always `0`. |
 | Azure | **Deployable, not deployed** | `azure.yaml` + Bicep for the **API** only. Web is not wired. |
 | Monetization | **Field only** | `plan` is `free`/`premium`; `vehicle_limit` returned on `/v1/me`; cap **not** enforced |
 | Analytics | **Debug only** | `debugPrint` in debug builds. Extra events exist; `document_uploaded`, `sync_completed`, `sync_failed` are **not** tracked |
@@ -199,20 +200,21 @@ Contract: [`architecture/openapi.yaml`](../architecture/openapi.yaml). Swagger U
 | Health | `GET /health`, `GET /ready` |
 | Auth | signup, login, refresh, logout, verify-email, forgot/reset password |
 | Me | profile, device-token register |
-| Vehicles | CRUD, archive, activate, dashboard aggregate |
+| Vehicles | CRUD, archive, activate, dashboard aggregate, family detail |
 | Maintenance | plan-items, suggested catalog, service records |
 | Parts / Fuel | parts, fuel-types, fuel-logs |
 | Documents / Expenses | CRUD, expense summary |
 | Notifications | list + status patch |
 | Media | multipart upload (15 MB), signed download |
 | Sync | `POST /sync/push`, `GET /sync/changes?cursor=` |
+| Family | create/join family, manage members, vehicle grants, driving licenses, share codes, QR |
 | Admin | dashboard, users, partners; `role=admin` + `aud=dco-admin` |
 
 JWT: short-lived access (`dco-owner` or `dco-admin`) + rotating refresh families. Password reset revokes all families for that user. First admin is seeded from `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD`, never via owner signup.
 
 ### 6.2 Data model (PostgreSQL)
 
-Core tables: `users`, `vehicles`, `plan_items`, `service_records` (+ items/parts), `parts`, `fuel_types`, `fuel_logs`, `documents`, `expenses` (+ parts), `notification_feed`, `media_objects`, `change_log`, `partners`, `refresh_tokens`, `email_tokens`, `device_tokens`, `audit_events`.
+Core tables: `users`, `vehicles`, `plan_items`, `service_records` (+ items/parts), `parts`, `fuel_types`, `fuel_logs`, `documents`, `expenses` (+ parts), `notification_feed`, `media_objects`, `change_log`, `partners`, `refresh_tokens`, `email_tokens`, `device_tokens`, `audit_events`, `families`, `family_memberships`, `vehicle_grants`, `family_vehicles`, `driving_licenses`.
 
 Business rules the server enforces:
 
@@ -263,7 +265,7 @@ From [`product/mvp-scope.md`](../product/mvp-scope.md) — do not treat these as
 - Fuel economy (MPG / L/100km / kWh/100km)
 - Insurance policy management
 - Receipt OCR
-- Family sharing, fleet, dealer/workshop/insurer product portals
+- Fleet, dealer/workshop/insurer product portals
 - Marketplace, booking, trips, PDF reports, AI assistant
 - Push marketing campaigns
 - Light theme

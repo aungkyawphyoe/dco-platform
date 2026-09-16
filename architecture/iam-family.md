@@ -1,6 +1,6 @@
-# Identity and Access — Family Sharing Extension (v1.1)
+# Identity and Access — Family Sharing Extension
 
-**Status:** Planned — extends `architecture/iam.md`  
+**Status:** Accepted — extends `architecture/iam.md`  
 **Contract:** `product/frd/family-sharing.md`, `architecture/data-model-family.md`  
 **Principle:** Additive only. MVP IAM (`owner` | `admin`) unchanged. Family roles live in `family_memberships.role`, not `users.role`.
 
@@ -214,9 +214,9 @@ Returns family data without PII exposure beyond what admin already sees (email, 
 
 ---
 
-## Migration from MVP
+## Migration from Pre-Family MVP
 
-| MVP State | v1.1 State |
+| Pre-Family State | Current State |
 |-----------|------------|
 | `users.role = 'owner'` | Unchanged |
 | No family concept | `family_memberships` created on family creation/join |
@@ -228,11 +228,11 @@ No breaking changes to existing tokens. Fields are optional (null when not in fa
 
 ---
 
-## Future: Fleet/Org Extension (Not v1.1)
+## Future: Fleet/Org Extension (Phase 2)
 
 When Fleet lands (Phase 2), introduce `organizations` as new root:
 
-| Concept | Family (v1.1) | Fleet (Future) |
+| Concept | Family (MVP) | Fleet (Future) |
 |---------|---------------|----------------|
 | Root entity | `families` | `organizations` (type=fleet) |
 | Membership | `family_memberships` | `organization_members` |

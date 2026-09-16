@@ -1,6 +1,6 @@
 # Product Roadmap
 
-Phase 1 is the contract in `product/mvp-scope.md`. Do not pull v1.1 modules (fuel *efficiency* KPIs, insurance policies, extra cloud backup, receipt OCR) into MVP. Refuel/charge logs are in Phase 1.
+Phase 1 is the contract in `product/mvp-scope.md`. Do not pull v1.1 modules (fuel *efficiency* KPIs, insurance policies, extra cloud backup, receipt OCR) into MVP. Refuel/charge logs and family sharing are in Phase 1.
 
 ---
 
@@ -16,6 +16,7 @@ Phase 1 is the contract in `product/mvp-scope.md`. Do not pull v1.1 modules (fue
 - Documents
 - Local notifications
 - Offline-first sync engine
+- Family sharing (groups, roles, vehicle grants, driving licenses, web dashboard)
 
 ---
 
@@ -42,7 +43,6 @@ Phase 1 is the contract in `product/mvp-scope.md`. Do not pull v1.1 modules (fue
 
 - Workshop Booking
 - Marketplace
-- Family Sharing
 - Vehicle Health Dashboard
 
 ---

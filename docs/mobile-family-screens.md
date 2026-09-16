@@ -1,6 +1,6 @@
-# Mobile Family Screens — UI/UX Specification (v1.1)
+# Mobile Family Screens — UI/UX Specification
 
-**Status:** Planned — extends `docs/app-shell.md` and `docs/design-system.md`  
+**Status:** Accepted — extends `docs/app-shell.md` and `docs/design-system.md`  
 **Contract:** `product/frd/family-sharing.md`  
 **Theme:** Garage Minimal Dark (`docs/theme/garage-minimal-dark.json`)
 

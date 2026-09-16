@@ -53,6 +53,8 @@ Numbering follows the tldraw frame names.
 | 9 | Settings | Setting tab | Profile, notifications, manage vehicles → 4, backup & sync (status, not v1.1 backup product), export **disabled / hidden** in MVP if not built |
 | 10 | Maintenance Plan / Predefined items | From 6 | Suggested items filtered by fuel type |
 | 11 | Add Maintenance Item / Register Service | From 6 | Register service updates mileage and can complete plan items |
+| 12 | Family Setup | From Settings or invite link | Create or join a family group |
+| 13 | Family Management | From Settings | Members, vehicles, share code, QR, driving licenses |
 
 Header on Dashboard (3):
 
@@ -72,6 +74,7 @@ Keep one `StatefulShellRoute` (or equivalent) for the four tabs. Push these on t
 - Add/Edit expense, Expense detail
 - Document list (if opened from Expenses), viewer, upload
 - Notification feed, Profile, Email & password, Notification prefs, Sync status
+- Family setup, Family management (members, vehicles, share code, QR, driving licenses)
 
 Back from a nested screen returns to the tab that opened it. Switching tabs does not destroy stacks in MVP (standard Flutter shell).
 
@@ -107,13 +110,15 @@ Staff only. Online. Wireframes: tldraw **A1–A6** (cluster "WEB ADMIN (MVP)").
 | A4 User profile | `/users/:id` | |
 | A5 Partners | `/partners` | |
 | A6 Partner create/edit | `/partners/new`, `/partners/:id` | |
+| A7 Family Dashboard | `/family` | Primary Owner read-only |
 
 Sidebar (Autozis-like chrome, DCO items only):
 
 - Overview — Dashboard
 - Directory — Users, Partners
+- Family — Primary Owner read-only dashboard (members, vehicles, share code)
 - Account — Sign out
 
 No owner modules (Garage, Refuel, Trips, Insurance, Documents vault).
 
-Flow: Login → Dashboard → Users (search → profile → deactivate / reactivate / reset / plan) or Partners (create/edit status).
+Flow: Login → Dashboard → Users (search → profile → deactivate / reactivate / reset / plan) or Partners (create/edit status) or Family (read-only view for Primary Owners).

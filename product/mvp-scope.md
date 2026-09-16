@@ -2,11 +2,11 @@
 
 **Product:** Digital Car Ownership Platform (DCO)
 
-**Version:** 1.0
+**Version:** 1.1
 
-**Status:** Aligned (Phase 1 contract)
+**Status:** Aligned (Phase 1 contract) — includes Family Sharing
 
-**Last Updated:** August 2026
+**Last Updated:** September 2026
 
 This file is the source of truth for what ships in MVP. `docs/product-roadmap.md` and `product/frd/` must not contradict it. Fuel *efficiency* (MPG / kWh economy) and insurance *policy* management are Autozis-style modules deferred to v1.1. Insurance remains a document category and an expense category. Refuel / charge *logs* (date, type, amount, cost) are in MVP.
 
@@ -48,6 +48,7 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Offline Data Layer | Drift/SQLite local database, offline writes, queued sync |
 | Sync Engine | Bidirectional sync with the backend, conflict handling, automatic retry |
 | Notifications | Local reminders; push-ready infrastructure |
+| Family Sharing | Family groups with roles (primary_owner, member, driver), vehicle grants, driving licenses, share codes, QR invites |
 
 ### Dashboard
 | Feature | Description |
@@ -134,6 +135,7 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Notifications | Notification delivery queue, in-app notification feed |
 | Sync | Change-log API for offline-first bidirectional sync |
 | Partners | Workshop and insurer account records with onboarding status |
+| Family Sharing | Family CRUD, membership management, vehicle grants, driving licenses, share codes, QR invites |
 
 ## Web Portal (Admin)
 
@@ -143,6 +145,7 @@ Freemium gating (free vs premium vehicle limits) is designed into the data model
 | Dashboard | Overview of users, vehicles, and recent activity |
 | User Management | List, search, view profile, deactivate/reactivate, support actions |
 | Partner Onboarding | Create and manage workshop and insurer accounts (name, contact, status, verification) |
+| Family Dashboard | Primary Owner read-only view of family members, vehicles, and share code |
 
 ---
 
@@ -154,7 +157,6 @@ The following are explicitly deferred:
 - Insurance module (policy management, renewals, previous policies). Insurance remains a document category and an expense category.
 - Receipt OCR / auto-fill from a captured image
 - Cloud backup beyond the core sync engine
-- Family sharing / multi-driver access
 - Marketplace (parts, accessories, services)
 - Workshop booking
 - Dealer and insurance portals
@@ -265,5 +267,5 @@ Minimal instrumentation on the critical path:
 Refer to `docs/product-roadmap.md` for the full phased plan. Immediately after MVP:
 
 - **v1.1:** Fuel efficiency KPIs, Insurance module, Cloud backup, receipt OCR
-- **Phase 2:** Workshop booking, Marketplace, Family sharing, Vehicle health dashboard
+- **Phase 2:** Workshop booking, Marketplace, Vehicle health dashboard
 - **Phase 3 (Year 2):** OBD/connected cars, predictive maintenance, fleet, dealer/insurance portals

@@ -1,6 +1,6 @@
-# Family Sharing Data Model Extension (v1.1)
+# Family Sharing Data Model Extension
 
-**Status:** Planned — extends `architecture/data-model.md`  
+**Status:** Merged into `architecture/data-model.md` — this document retained for detailed schema reference  
 **Contract:** `product/frd/family-sharing.md`  
 **Migration:** Additive only — no changes to existing MVP tables
 

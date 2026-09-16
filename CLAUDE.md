@@ -4,13 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Product is in MVP definition. `product/mvp-scope.md` is the Phase 1 contract. `product/frd/` holds FRDs for Dashboard, Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, and Admin. `docs/design-system.md` and `docs/theme/garage-minimal-dark.json` are the shared Flutter + web visual tokens.
+Product is production-ready. `product/mvp-scope.md` is the Phase 1 contract (includes Family Sharing). `product/frd/` holds FRDs for Dashboard, Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, Admin, and Family Sharing. `docs/design-system.md` and `docs/theme/garage-minimal-dark.json` are the shared Flutter + web visual tokens.
 
-Must-have implementation docs are in place: `architecture/system.md`, `architecture/data-model.md`, `architecture/iam.md`, `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md` (draft). Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A6).
+Implementation docs are in place: `architecture/system.md` (Accepted), `architecture/data-model.md` (Binding), `architecture/iam.md` (Binding), `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md`. Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A7).
 
-Mobile Flutter app is scaffolded in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin stack decided: Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, second Container App.
+Mobile Flutter app is implemented in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell, offline-first sync, family sharing). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin is Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, admin dashboard, user management, partner onboarding, family read-only dashboard.
 
-The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management and partner onboarding.
+The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management, partner onboarding, and family dashboard for Primary Owners.
 
 ## Intended project layout
 
@@ -55,7 +55,7 @@ Stack: Node 22, Fastify, Drizzle, PostgreSQL, Zod, Vitest. Contract: `architectu
 
 ### Web admin (Next.js)
 
-From `web/` (once scaffolded):
+From `web/`:
 
 ```bash
 npm install

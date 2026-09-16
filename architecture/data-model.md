@@ -1,6 +1,6 @@
 # Data model / ERD (MVP)
 
-**Status:** Proposed. Honor `product/mvp-scope.md` business rules.  
+**Status:** Binding. Honor `product/mvp-scope.md` business rules.  
 **Compare target:** Autozis demo + public feature list (`https://autozis.com/`, `/app/dashboard`, `/app/garage`, `/app/expenses`).
 
 Client IDs are UUID v4 generated on device so retries are idempotent. Server `user.id` and `plan` are authoritative.
@@ -196,6 +196,58 @@ erDiagram
     jsonb detail
     timestamptz at
   }
+
+  users ||--o{ families : creates
+  users ||--o{ family_memberships : belongs_to
+  families ||--o{ family_memberships : has
+  users ||--o{ vehicle_grants : grants
+  users ||--o{ vehicle_grants : receives
+  vehicles ||--o{ vehicle_grants : granted_on
+  users ||--|| driving_licenses : has
+  driving_licenses }|--|| media_objects : front_photo
+  driving_licenses }|--|| media_objects : back_photo
+
+  families {
+    uuid id PK
+    string name
+    string share_code UK
+    jsonb qr_code_data
+    uuid created_by FK
+    timestamptz created_at
+    string status
+    timestamptz archived_at
+  }
+
+  family_memberships {
+    uuid id PK
+    uuid family_id FK
+    uuid user_id FK UK
+    enum role
+    timestamptz joined_at
+    uuid invited_by FK
+  }
+
+  vehicle_grants {
+    uuid id PK
+    uuid vehicle_id FK
+    uuid user_id FK
+    uuid granted_by FK
+    enum permission
+    timestamptz created_at
+  }
+
+  driving_licenses {
+    uuid id PK
+    uuid user_id FK UK
+    string license_number
+    string issuing_country
+    date expiry_date
+    string categories
+    uuid front_media_id FK
+    uuid back_media_id FK
+    timestamptz created_at
+    timestamptz updated_at
+  }
 ```
 
 Local-only (mobile, not a server table): **outbox** rows (`entity_type`, `entity_id`, `op`, `payload`, `client_ts`, `attempt_count`). Server equivalent is `change_log` plus ordinary CRUD.
@@ -253,7 +305,7 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 ### change_log
 
 - Append-only. Cursor is opaque (`seq` encoded, not invented by clients).
-- Entity types in MVP: `user`, `vehicle`, `plan_item`, `service_record`, `document`, `expense`, `notification`, `media`, `part`, `fuel_type`, `fuel_log`.
+- Entity types in MVP: `user`, `vehicle`, `plan_item`, `service_record`, `document`, `expense`, `notification`, `media`, `part`, `fuel_type`, `fuel_log`, `family`, `family_membership`, `vehicle_grant`, `driving_license`.
 - Duplicate create with the same client UUID → idempotent success.
 - Archive vs later edit: **archive wins**.
 

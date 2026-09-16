@@ -1,6 +1,6 @@
 # System architecture (MVP)
 
-**Status:** Proposed — proceed to implement against this document.  
+**Status:** Accepted.  
 **Contract:** `product/mvp-scope.md` and `product/frd/`.  
 **Hosting:** REST API runs on Azure Container Apps (`docs/adr/azure-hosting.md`). Local loop is Docker Compose. See `docs/environment-secrets.md` for the env map. IAM taxonomy: `architecture/iam.md`.
 
@@ -16,7 +16,7 @@ Three surfaces share one API and one database:
 | **REST API** | Serves mobile + admin | Always online | Fastify + Drizzle + PostgreSQL, REST + JWT, versioned `/v1` (`docs/adr/backend-stack.md`) |
 | **Web admin portal** | Internal staff | Online-only | Next.js 15 (`docs/adr/web-stack.md`). Visual tokens from `docs/design-system.md` |
 
-The owner product is a **digital garage**: vehicles, maintenance plan + history, documents, expenses, parts, and refuel/charge **logs**. It is **not** Autozis: fuel *efficiency* KPIs, insurance *policies*, trips, OCR, AI assistant, family sharing, and PDF reports stay out of MVP (`product/mvp-scope.md` Out of Scope). Refuel/charge logs are in Phase 1.
+The owner product is a **digital garage**: vehicles, maintenance plan + history, documents, expenses, parts, refuel/charge **logs**, and family sharing (per-vehicle grants with role-based access). It is **not** Autozis: fuel *efficiency* KPIs, insurance *policies*, trips, OCR, AI assistant, and PDF reports stay out of MVP (`product/mvp-scope.md` Out of Scope). Refuel/charge logs and family sharing are in Phase 1.
 
 ```mermaid
 flowchart LR
@@ -86,6 +86,7 @@ flowchart LR
 | Public internet → API | TLS only. No plaintext. |
 | Owner client | Untrusted. Validate every write. Client-generated UUIDs are allowed for idempotency, not for privilege. |
 | Admin client | Untrusted in the same way, plus **role `admin` on every `/v1/admin/*` call**. |
+| Family member | Untrusted. Vehicle access validated via `family_memberships` + `vehicle_grants` on each request. Primary owner can manage members and grants. |
 | Tokens | Access token short-lived. Refresh token rotated on use, stored in Keychain/Keystore (mobile) or a secure web store (admin). Never log token values. |
 | Media | Files are per-vehicle, authorized by the owning user (or admin metadata-only). Do not put long-lived public blob URLs in API JSON; use short-lived signed URLs or authenticated download. |
 | PII | Admin user list shows email/name/plan/status, not document bytes (`product/frd/admin.md`). |

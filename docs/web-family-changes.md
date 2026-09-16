@@ -1,6 +1,6 @@
-# Web Admin — Family Sharing Changes (v1.1)
+# Web Admin — Family Sharing Changes
 
-**Status:** Planned — extends `docs/app-shell.md` and `docs/adr/web-stack.md`  
+**Status:** Accepted — extends `docs/app-shell.md` and `docs/adr/web-stack.md`  
 **Contract:** `product/frd/family-sharing.md`, `architecture/iam-family.md`  
 **Theme:** Garage Minimal Dark (shared tokens)
 

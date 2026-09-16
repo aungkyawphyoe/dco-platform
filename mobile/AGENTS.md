@@ -38,9 +38,9 @@ After a successful owner login, land on **Dashboard** (tldraw screen 3) — the 
 
 Documents is reached from Expenses (header) and from vehicle flows — not a tab. Sync status is a compact indicator in the top bar or Settings — never a fifth tab.
 
-**In MVP:** auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications.
+**In MVP:** auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, family sharing.
 
-**Out of MVP (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; family sharing; Autozis assistant/PDF export; admin routes; light theme.
+**Out of MVP (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; light theme.
 
 Wireframes: [`wireframes/dco-mobile-wireframes.tldraw`](../wireframes/dco-mobile-wireframes.tldraw). Auth screens live there; do not redesign them.
 
@@ -217,6 +217,10 @@ mobile/
         domain/
         presentation/
       notifications/
+        data/
+        domain/
+        presentation/
+      family/
         data/
         domain/
         presentation/

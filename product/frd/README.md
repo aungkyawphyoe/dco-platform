@@ -44,6 +44,7 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 | Parts | [parts.md](parts.md) | Mobile + API | **Done** | Per-vehicle catalog; assign on service and expense. |
 | Fuel | [fuel.md](fuel.md) | Mobile + API | **Done** | Logs + Fuel Types. `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. No economy KPIs (deferred). |
 | Admin | [admin.md](admin.md) | Web portal + API | **Done** | Login BFF, users, partners. `sync_errors_24h` is always `0`. No web test suite. |
+| Family Sharing | [family-sharing.md](family-sharing.md) | Mobile + API + Web | **Done** | Family groups, roles (primary_owner/member/driver), vehicle grants, driving licenses, share codes, QR invites. Web Primary Owner read-only dashboard. |
 
 There is **no Settings FRD**. Localization (English/Myanmar preference, UI still English) and units (USD/MMK, mi/km) live in the owner app Settings tab. See [`docs/mvp-as-built.md`](../../docs/mvp-as-built.md) §4.10.
 

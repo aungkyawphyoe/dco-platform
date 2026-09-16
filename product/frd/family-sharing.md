@@ -1,10 +1,10 @@
-# Family Sharing Module (v1.1)
+# Family Sharing Module
 
 ## Overview
 
 Family Sharing is a **Premium feature** (available to free users for their single vehicle) that enables a Primary Owner to share vehicle access with family members. Members get role-based access to vehicle information, maintenance, documents, and expenses. This module extends the existing single-owner model to support collaborative vehicle ownership within a family unit.
 
-**Status:** Planned for v1.1 (Post-MVP).  
+**Status:** Implemented.  
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
 **Surfaces:** Mobile (Flutter), Backend (REST API), Web Admin (Next.js — read-only family view for Primary Owners).
 
