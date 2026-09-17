@@ -14,7 +14,7 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 
 **As-built** (what the code does today) lives in [`docs/mvp-as-built.md`](../../docs/mvp-as-built.md). The status column below is that snapshot against each FRD. Do not re-implement a **Done** module. Do not treat Autozis sidebar items as backlog.
 
-**As of:** 28 August 2026.
+**As of:** 17 September 2026.
 
 ---
 
@@ -37,9 +37,9 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 | Garage | [garage.md](garage.md) | Mobile + API | **Done** | Un-archive is not in the UI. Freemium one-vehicle cap is not enforced. |
 | Auth | [auth.md](auth.md) | Mobile + API | **Done** | Email/password. Debug builds mock the API. No Google/Apple (out of scope). |
 | Maintenance | [maintenance.md](maintenance.md) | Mobile + API | **Done** | Plan, suggested catalog, register service, history. OS local reminders are owned by [notifications.md](notifications.md). |
-| Documents | [documents.md](documents.md) | Mobile + API | **Partial** | **API Done.** Mobile is **Placeholder** (empty state, no Drift table, no upload/viewer). Next owner-app slice. |
+| Documents | [documents.md](documents.md) | Mobile + API | **Done** | Full vault: Drift table, CRUD, upload/viewer, sync outbox. |
 | Expenses | [expenses.md](expenses.md) | Mobile + API | **Done** | Categories, summaries, receipt photo, assign parts. |
-| Sync | [sync.md](sync.md) | Mobile + API | **Done** (core) | Outbox → push → media → pull. Settings still shows a hardcoded idle line. Documents cannot sync from mobile until the vault lands. |
+| Sync | [sync.md](sync.md) | Mobile + API | **Done** (core) | Outbox → push → media → pull. Documents sync outbox wired. Settings still shows a hardcoded idle line. |
 | Notifications | [notifications.md](notifications.md) | Mobile + API | **Done** (local) | OS local reminders (`flutter_local_notifications`) at 7 days / 100 km / 60 mi. In-app feed. No remote FCM/APNs. Device-token register exists on the API. |
 | Parts | [parts.md](parts.md) | Mobile + API | **Done** | Per-vehicle catalog; assign on service and expense. |
 | Fuel | [fuel.md](fuel.md) | Mobile + API | **Done** | Logs + Fuel Types. `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. No economy KPIs (deferred). |
@@ -52,9 +52,9 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 
 ---
 
-## Next implementation (from this index)
+## Next implementation
 
-1. Documents vault on mobile (Drift + upload + viewer) against existing `/v1` document routes.
+All MVP FRDs are **Done**. Remaining work is polish, testing, and deployment prep.
 
 Do not pull Autozis modules (trips, insurance policies, OCR, assistant, PDF, fuel *efficiency*) into these FRDs.
 

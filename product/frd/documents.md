@@ -6,7 +6,7 @@ The Document Vault stores files that belong to the active vehicle: registration,
 
 Source of truth for scope: `product/mvp-scope.md`.
 
-**As built (28 Aug 2026): Partial.** API **Done**. Mobile **Placeholder** (empty state, no Drift table, no upload/viewer). Next owner-app slice. Status index: `product/frd/README.md`.
+**As built (17 Sep 2026): Done.** API and Mobile fully implemented. Drift table, CRUD operations, upload/viewer, sync outbox wired. Status index: `product/frd/README.md`.
 
 ---
 

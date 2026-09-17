@@ -4,6 +4,8 @@ What must exist before Flutter, web, or API code starts. Theme tokens are done (
 
 Contract for *what* to build remains `product/mvp-scope.md` and `product/frd/`.
 
+**As of:** 17 September 2026. All MVP FRDs are **Done**.
+
 ---
 
 ## Must have (blockers) — done

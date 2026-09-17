@@ -4,6 +4,8 @@
 **Contract:** `product/frd/family-sharing.md`  
 **Theme:** Garage Minimal Dark (`docs/theme/garage-minimal-dark.json`)
 
+**As-built (17 Sep 2026):** Family sharing is fully implemented. Route paths differ from spec (nested under `/settings/` in GoRouter). Some UI stubs remain: leave family, remove member, add/remove driver, assign vehicles. Hero/animation transitions not implemented. API uses `/families/me/*` shortcuts (not `/families/{familyId}/*` as in OpenAPI).
+
 ---
 
 ## Design Principles

@@ -4,6 +4,8 @@
 **Contract:** `product/frd/family-sharing.md`, `architecture/iam-family.md`  
 **Theme:** Garage Minimal Dark (shared tokens)
 
+**As-built (17 Sep 2026):** Family sharing web dashboard is implemented. The dashboard uses an aggregated endpoint `GET /families/me?include=members,vehicles,grants,licenses` that is not defined in OpenAPI. QR code uses `qr_code_data` from dashboard response (no separate `/families/me/qr` endpoint). Components are inline in page.tsx, not separate shared components.
+
 ---
 
 ## Overview
