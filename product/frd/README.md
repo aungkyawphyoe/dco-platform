@@ -45,6 +45,7 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 | Fuel | [fuel.md](fuel.md) | Mobile + API | **Done** | Logs + Fuel Types. `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. No economy KPIs (deferred). |
 | Admin | [admin.md](admin.md) | Web portal + API | **Done** | Login BFF, users, partners. `sync_errors_24h` is always `0`. No web test suite. |
 | Family Sharing | [family-sharing.md](family-sharing.md) | Mobile + API + Web | **Done** | Family groups, roles (primary_owner/member/driver), vehicle grants, driving licenses, share codes, QR invites. Web Primary Owner read-only dashboard. |
+| Fleet Management | [fleet-management.md](fleet-management.md) | Mobile + API + Web Admin | **Planned** | Organizations (admin-created), vehicle inventory lifecycle, warranty templates, ownership transfer, workshop accounts, CSV import. Phase 3 (Year 2). |
 
 There is **no Settings FRD**. Localization (English/Myanmar preference, UI still English) and units (USD/MMK, mi/km) live in the owner app Settings tab. See [`docs/mvp-as-built.md`](../../docs/mvp-as-built.md) §4.10.
 
@@ -55,6 +56,8 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 ## Next implementation
 
 All MVP FRDs are **Done**. Remaining work is polish, testing, and deployment prep.
+
+**Phase 3 (Year 2):** Fleet Management (`fleet-management.md`) — Organizations, vehicle inventory, warranty, ownership transfer, workshops.
 
 Do not pull Autozis modules (trips, insurance policies, OCR, assistant, PDF, fuel *efficiency*) into these FRDs.
 
