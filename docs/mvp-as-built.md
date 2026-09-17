@@ -31,7 +31,7 @@ It is **not** Autozis. Fuel *efficiency* KPIs, insurance *policies*, trips, OCR,
 | **API** | Mobile + admin | Node 22, Fastify, Drizzle, PostgreSQL, Zod | Always online | `/v1` REST + JWT |
 | **Admin portal** | Internal staff | Next.js 15 App Router, TanStack Query, Tailwind | Online-only | Users, partners, KPIs |
 
-Visual language is **Garage Minimal Dark** (`docs/theme/garage-minimal-dark.json`): night-garage surfaces, brass accent `#EEB757`. Same tokens on mobile and web.
+Visual language is **Garage Minimal Dark** (`docs/theme/garage-minimal-dark.json`): night-garage surfaces, brass accent `#FECA1F`. Same tokens on mobile and web.
 
 ---
 

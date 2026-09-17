@@ -55,7 +55,7 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
     ),
     button: DcoButtons(
       primary: DcoButtonColors(
-        background: Color(0xFFEEB757),
+        background: Color(0xFFFECA1F),
         backgroundHover: Color(0xFFF2C36A),
         backgroundPressed: Color(0xFFD4A44A),
         backgroundDisabled: Color(0xFF5C5340),
@@ -137,15 +137,7 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
       other: Color(0xFF6C7D8A),
     ),
     radius: DcoRadius(sm: 4, md: 8, lg: 12, xl: 16, full: 999),
-    space: DcoSpace(
-      s1: 4,
-      s2: 8,
-      s3: 12,
-      s4: 16,
-      s5: 24,
-      s6: 32,
-      s7: 48,
-    ),
+    space: DcoSpace(s1: 4, s2: 8, s3: 12, s4: 16, s5: 24, s6: 32, s7: 48),
     motion: DcoMotion(fast: 120, base: 180, slow: 280),
   );
 
@@ -417,11 +409,7 @@ class DcoSpace {
 
 @immutable
 class DcoMotion {
-  const DcoMotion({
-    required this.fast,
-    required this.base,
-    required this.slow,
-  });
+  const DcoMotion({required this.fast, required this.base, required this.slow});
 
   final int fast;
   final int base;

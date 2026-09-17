@@ -272,7 +272,7 @@ Map [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.js
 - `colorScheme.error` → `status.danger.fg`
 - `navigationBarTheme` icons → `icon.active` / `icon.inactive`
 
-**Gold (`#EEB757`) allowed:** primary button, active icon, focus ring, selected vehicle chip, text links.
+**Gold (`#FECA1F`) allowed:** primary button, active icon, focus ring, selected vehicle chip, text links.
 
 **Gold not allowed:** screen backgrounds, overdue badges, chart-only decoration, large hero blocks.
 

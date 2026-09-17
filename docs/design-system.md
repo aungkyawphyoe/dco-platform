@@ -3,7 +3,7 @@
 Shared visual language for the **Flutter owner app** and the **web admin portal**. Tokens live in [`garage-minimal-dark.json`](theme/garage-minimal-dark.json). Do not invent extra hexes in UI code.
 
 **Mode:** dark only for MVP.  
-**Signature:** brass bay-light (`#EEB757`) on painted-steel navy. Gold is for primary actions and the active vehicle — not for large fills, not for overdue.
+**Signature:** brass bay-light (`#FECA1F`) on painted-steel navy. Gold is for primary actions and the active vehicle — not for large fills, not for overdue.
 
 ---
 
@@ -17,7 +17,7 @@ Shared visual language for the **Flutter owner app** and the **web admin portal*
 | text.primary | `#FFFFFF` | Titles, values |
 | text.secondary | `#A8B6C1` | Supporting copy |
 | text.tertiary | `#6C7D8A` | Icons, placeholders |
-| text.accent | `#EEB757` | Brand / active |
+| text.accent | `#FECA1F` | Brand / active |
 | button.primary | gold fill, navy text | Main action |
 | button.secondary | card fill, light border | Secondary action |
 | button.tertiary | text-only gold | Text button |
@@ -121,7 +121,7 @@ CSS variables on `:root` from the same JSON (build step or copied once). Example
   --bg-primary: #101B22;
   --bg-card: #1E2D38;
   --text-primary: #ffffff;
-  --accent: #eeb757;
+  --accent: #feca1f;
   --radius-md: 8px;
 }
 ```

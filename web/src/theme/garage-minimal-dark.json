@@ -18,15 +18,15 @@
     "secondary": "#A8B6C1",
     "tertiary": "#6C7D8A",
     "caption": "#8A9BA8",
-    "accent": "#EEB757",
+    "accent": "#FECA1F",
     "onAccent": "#101B22",
     "disabled": "#6C7D8A",
-    "link": "#EEB757",
+    "link": "#FECA1F",
     "inverse": "#101B22"
   },
   "button": {
     "primary": {
-      "background": "#EEB757",
+      "background": "#FECA1F",
       "backgroundHover": "#F2C36A",
       "backgroundPressed": "#D4A44A",
       "backgroundDisabled": "#5C5340",
@@ -47,7 +47,7 @@
       "background": "transparent",
       "backgroundHover": "#1A2832",
       "backgroundPressed": "#16242D",
-      "text": "#EEB757",
+      "text": "#FECA1F",
       "textDisabled": "#6C7D8A",
       "border": "transparent"
     },
@@ -59,7 +59,7 @@
     }
   },
   "icon": {
-    "active": "#EEB757",
+    "active": "#FECA1F",
     "inactive": "#6C7D8A",
     "onAccent": "#101B22",
     "inverse": "#FFFFFF"
@@ -68,8 +68,8 @@
     "subtle": "#1E2D38",
     "default": "#6C7D8A",
     "divider": "#2A3C48",
-    "highlight": "#EEB757",
-    "focus": "#EEB757"
+    "highlight": "#FECA1F",
+    "focus": "#FECA1F"
   },
   "status": {
     "success": {
@@ -98,7 +98,7 @@
   "input": {
     "background": "#16242D",
     "border": "#6C7D8A",
-    "borderFocus": "#EEB757",
+    "borderFocus": "#FECA1F",
     "placeholder": "#6C7D8A",
     "errorBorder": "#E07A6C"
   },

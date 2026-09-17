@@ -21,14 +21,14 @@
   --text-secondary: #a8b6c1;
   --text-tertiary: #6c7d8a; /* icons/placeholders only, not small body copy */
   --text-caption: #8a9ba8;
-  --accent: #eeb757;
+  --accent: #feca1f;
   --on-accent: #101b22;
   --text-disabled: #6c7d8a;
-  --link: #eeb757;
+  --link: #feca1f;
   --inverse: #101b22;
 
   /* button */
-  --btn-primary-bg: #eeb757;
+  --btn-primary-bg: #feca1f;
   --btn-primary-hover: #f2c36a;
   --btn-primary-pressed: #d4a44a;
   --btn-primary-disabled: #5c5340;
@@ -41,14 +41,14 @@
   --btn-destructive-hover: #3a2424;
 
   /* icon */
-  --icon-active: #eeb757;
+  --icon-active: #feca1f;
   --icon-inactive: #6c7d8a;
 
   /* border */
   --border-subtle: #1e2d38;
   --border-default: #6c7d8a;
   --border-divider: #2a3c48;
-  --border-focus: #eeb757;
+  --border-focus: #feca1f;
 
   /* status */
   --status-success: #7cb89a;
