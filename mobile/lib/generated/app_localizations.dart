@@ -1970,6 +1970,312 @@ abstract class AppLocalizations {
   /// **'Upload insurance, registration, and receipts for {vehicleName}.'**
   String documentsEmptyBody(Object vehicleName);
 
+  /// No description provided for @documentsAddTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document'**
+  String get documentsAddTooltip;
+
+  /// No description provided for @documentsNoActiveVehicleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Register a vehicle to store documents.'**
+  String get documentsNoActiveVehicleBody;
+
+  /// No description provided for @documentsLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load documents'**
+  String get documentsLoadError;
+
+  /// No description provided for @documentsAddDocument.
+  ///
+  /// In en, this message translates to:
+  /// **'Add document'**
+  String get documentsAddDocument;
+
+  /// No description provided for @documentCategoryInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get documentCategoryInsurance;
+
+  /// No description provided for @documentCategoryRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Registration'**
+  String get documentCategoryRegistration;
+
+  /// No description provided for @documentCategoryInvoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Invoice'**
+  String get documentCategoryInvoice;
+
+  /// No description provided for @documentCategoryWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty'**
+  String get documentCategoryWarranty;
+
+  /// No description provided for @documentCategoryReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Receipt'**
+  String get documentCategoryReceipt;
+
+  /// No description provided for @documentCategoryOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get documentCategoryOther;
+
+  /// No description provided for @documentFormEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Document'**
+  String get documentFormEditTitle;
+
+  /// No description provided for @documentFormAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Document'**
+  String get documentFormAddTitle;
+
+  /// No description provided for @documentFormName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name *'**
+  String get documentFormName;
+
+  /// No description provided for @documentFormNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g., Insurance Policy 2025'**
+  String get documentFormNameHint;
+
+  /// No description provided for @documentFormCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category *'**
+  String get documentFormCategory;
+
+  /// No description provided for @documentFormCategoryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a category'**
+  String get documentFormCategoryHint;
+
+  /// No description provided for @documentFormCategorySheetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get documentFormCategorySheetTitle;
+
+  /// No description provided for @documentFormNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get documentFormNotes;
+
+  /// No description provided for @documentFormNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get documentFormNotesHint;
+
+  /// No description provided for @documentFormFileSection.
+  ///
+  /// In en, this message translates to:
+  /// **'File'**
+  String get documentFormFileSection;
+
+  /// No description provided for @documentFormAddFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Add file'**
+  String get documentFormAddFile;
+
+  /// No description provided for @documentFormReplaceFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get documentFormReplaceFile;
+
+  /// No description provided for @documentFormDeleteButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete document'**
+  String get documentFormDeleteButton;
+
+  /// No description provided for @documentFormDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this document?'**
+  String get documentFormDeleteTitle;
+
+  /// No description provided for @documentFormDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This removes the document and its file. This cannot be undone.'**
+  String get documentFormDeleteBody;
+
+  /// No description provided for @documentFormFileRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Please attach a file'**
+  String get documentFormFileRequired;
+
+  /// No description provided for @documentFormCameraDenied.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera or photo access was denied. You can save without a file.'**
+  String get documentFormCameraDenied;
+
+  /// No description provided for @documentFormCameraOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get documentFormCameraOption;
+
+  /// No description provided for @documentFormGalleryOption.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo library'**
+  String get documentFormGalleryOption;
+
+  /// No description provided for @documentFormPdfOption.
+  ///
+  /// In en, this message translates to:
+  /// **'PDF'**
+  String get documentFormPdfOption;
+
+  /// No description provided for @documentFormPickError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not pick file. Try again.'**
+  String get documentFormPickError;
+
+  /// No description provided for @documentFormNoActiveVehicleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Register a vehicle to store documents.'**
+  String get documentFormNoActiveVehicleBody;
+
+  /// No description provided for @documentFormNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Document not found'**
+  String get documentFormNotFound;
+
+  /// No description provided for @documentFormNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It may have been deleted.'**
+  String get documentFormNotFoundBody;
+
+  /// No description provided for @documentFormAttachFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Attach file'**
+  String get documentFormAttachFile;
+
+  /// No description provided for @documentFormReplace.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get documentFormReplace;
+
+  /// No description provided for @documentViewerTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Document'**
+  String get documentViewerTitle;
+
+  /// No description provided for @documentViewerNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Document not found'**
+  String get documentViewerNotFound;
+
+  /// No description provided for @documentViewerNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This document could not be loaded.'**
+  String get documentViewerNotFoundBody;
+
+  /// No description provided for @documentViewerEdit.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit'**
+  String get documentViewerEdit;
+
+  /// No description provided for @documentViewerNoFile.
+  ///
+  /// In en, this message translates to:
+  /// **'No file'**
+  String get documentViewerNoFile;
+
+  /// No description provided for @documentViewerNoFileBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This document has no file attached.'**
+  String get documentViewerNoFileBody;
+
+  /// No description provided for @documentViewerRemote.
+  ///
+  /// In en, this message translates to:
+  /// **'Cloud document'**
+  String get documentViewerRemote;
+
+  /// No description provided for @documentViewerRemoteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is stored in the cloud and will sync when online.'**
+  String get documentViewerRemoteBody;
+
+  /// No description provided for @documentInfoCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get documentInfoCategory;
+
+  /// No description provided for @documentInfoAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get documentInfoAdded;
+
+  /// No description provided for @documentInfoNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get documentInfoNotes;
+
+  /// No description provided for @documentInfoStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get documentInfoStatus;
+
+  /// No description provided for @documentStatusSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced'**
+  String get documentStatusSynced;
+
+  /// No description provided for @documentStatusQueued.
+  ///
+  /// In en, this message translates to:
+  /// **'Queued'**
+  String get documentStatusQueued;
+
+  /// No description provided for @documentNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Document not found'**
+  String get documentNotFound;
+
   /// No description provided for @partsTitle.
   ///
   /// In en, this message translates to:

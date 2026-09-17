@@ -9468,11 +9468,11 @@ class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
     'syncedAt',
   );
   @override
-  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> syncedAt = GeneratedColumn<String>(
     'synced_at',
     aliasedName,
     true,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   @override
@@ -9636,7 +9636,7 @@ class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
         data['${effectivePrefix}updated_at'],
       )!,
       syncedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}synced_at'],
       ),
     );
@@ -9660,7 +9660,7 @@ class DrivingLicenseRecord extends DataClass
   final String? backMediaId;
   final DateTime createdAt;
   final DateTime updatedAt;
-  final DateTime? syncedAt;
+  final String? syncedAt;
   const DrivingLicenseRecord({
     required this.id,
     required this.userId,
@@ -9698,7 +9698,7 @@ class DrivingLicenseRecord extends DataClass
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || syncedAt != null) {
-      map['synced_at'] = Variable<DateTime>(syncedAt);
+      map['synced_at'] = Variable<String>(syncedAt);
     }
     return map;
   }
@@ -9747,7 +9747,7 @@ class DrivingLicenseRecord extends DataClass
       backMediaId: serializer.fromJson<String?>(json['backMediaId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
-      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+      syncedAt: serializer.fromJson<String?>(json['syncedAt']),
     );
   }
   @override
@@ -9764,7 +9764,7 @@ class DrivingLicenseRecord extends DataClass
       'backMediaId': serializer.toJson<String?>(backMediaId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
-      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+      'syncedAt': serializer.toJson<String?>(syncedAt),
     };
   }
 
@@ -9779,7 +9779,7 @@ class DrivingLicenseRecord extends DataClass
     Value<String?> backMediaId = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
-    Value<DateTime?> syncedAt = const Value.absent(),
+    Value<String?> syncedAt = const Value.absent(),
   }) => DrivingLicenseRecord(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -9886,7 +9886,7 @@ class DrivingLicenseRecordsCompanion
   final Value<String?> backMediaId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
-  final Value<DateTime?> syncedAt;
+  final Value<String?> syncedAt;
   final Value<int> rowid;
   const DrivingLicenseRecordsCompanion({
     this.id = const Value.absent(),
@@ -9931,7 +9931,7 @@ class DrivingLicenseRecordsCompanion
     Expression<String>? backMediaId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
-    Expression<DateTime>? syncedAt,
+    Expression<String>? syncedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -9961,7 +9961,7 @@ class DrivingLicenseRecordsCompanion
     Value<String?>? backMediaId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
-    Value<DateTime?>? syncedAt,
+    Value<String?>? syncedAt,
     Value<int>? rowid,
   }) {
     return DrivingLicenseRecordsCompanion(
@@ -10014,7 +10014,7 @@ class DrivingLicenseRecordsCompanion
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
     if (syncedAt.present) {
-      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+      map['synced_at'] = Variable<String>(syncedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -10455,6 +10455,572 @@ class FamilyVehicleRecordsCompanion
   }
 }
 
+class $DocumentRecordsTable extends DocumentRecords
+    with TableInfo<$DocumentRecordsTable, DocumentRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DocumentRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _categoryMeta = const VerificationMeta(
+    'category',
+  );
+  @override
+  late final GeneratedColumn<String> category = GeneratedColumn<String>(
+    'category',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _localFilePathMeta = const VerificationMeta(
+    'localFilePath',
+  );
+  @override
+  late final GeneratedColumn<String> localFilePath = GeneratedColumn<String>(
+    'local_file_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _mediaIdMeta = const VerificationMeta(
+    'mediaId',
+  );
+  @override
+  late final GeneratedColumn<String> mediaId = GeneratedColumn<String>(
+    'media_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    vehicleId,
+    name,
+    category,
+    notes,
+    localFilePath,
+    mediaId,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'documents';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DocumentRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('category')) {
+      context.handle(
+        _categoryMeta,
+        category.isAcceptableOrUnknown(data['category']!, _categoryMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_categoryMeta);
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('local_file_path')) {
+      context.handle(
+        _localFilePathMeta,
+        localFilePath.isAcceptableOrUnknown(
+          data['local_file_path']!,
+          _localFilePathMeta,
+        ),
+      );
+    }
+    if (data.containsKey('media_id')) {
+      context.handle(
+        _mediaIdMeta,
+        mediaId.isAcceptableOrUnknown(data['media_id']!, _mediaIdMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DocumentRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DocumentRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      category: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}category'],
+      )!,
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      localFilePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}local_file_path'],
+      ),
+      mediaId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}media_id'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $DocumentRecordsTable createAlias(String alias) {
+    return $DocumentRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
+  final String id;
+  final String vehicleId;
+  final String name;
+  final String category;
+  final String? notes;
+  final String? localFilePath;
+  final String? mediaId;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const DocumentRecord({
+    required this.id,
+    required this.vehicleId,
+    required this.name,
+    required this.category,
+    this.notes,
+    this.localFilePath,
+    this.mediaId,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    map['name'] = Variable<String>(name);
+    map['category'] = Variable<String>(category);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || localFilePath != null) {
+      map['local_file_path'] = Variable<String>(localFilePath);
+    }
+    if (!nullToAbsent || mediaId != null) {
+      map['media_id'] = Variable<String>(mediaId);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  DocumentRecordsCompanion toCompanion(bool nullToAbsent) {
+    return DocumentRecordsCompanion(
+      id: Value(id),
+      vehicleId: Value(vehicleId),
+      name: Value(name),
+      category: Value(category),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      localFilePath: localFilePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(localFilePath),
+      mediaId: mediaId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(mediaId),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory DocumentRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DocumentRecord(
+      id: serializer.fromJson<String>(json['id']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      name: serializer.fromJson<String>(json['name']),
+      category: serializer.fromJson<String>(json['category']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      localFilePath: serializer.fromJson<String?>(json['localFilePath']),
+      mediaId: serializer.fromJson<String?>(json['mediaId']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'name': serializer.toJson<String>(name),
+      'category': serializer.toJson<String>(category),
+      'notes': serializer.toJson<String?>(notes),
+      'localFilePath': serializer.toJson<String?>(localFilePath),
+      'mediaId': serializer.toJson<String?>(mediaId),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  DocumentRecord copyWith({
+    String? id,
+    String? vehicleId,
+    String? name,
+    String? category,
+    Value<String?> notes = const Value.absent(),
+    Value<String?> localFilePath = const Value.absent(),
+    Value<String?> mediaId = const Value.absent(),
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => DocumentRecord(
+    id: id ?? this.id,
+    vehicleId: vehicleId ?? this.vehicleId,
+    name: name ?? this.name,
+    category: category ?? this.category,
+    notes: notes.present ? notes.value : this.notes,
+    localFilePath: localFilePath.present
+        ? localFilePath.value
+        : this.localFilePath,
+    mediaId: mediaId.present ? mediaId.value : this.mediaId,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  DocumentRecord copyWithCompanion(DocumentRecordsCompanion data) {
+    return DocumentRecord(
+      id: data.id.present ? data.id.value : this.id,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      name: data.name.present ? data.name.value : this.name,
+      category: data.category.present ? data.category.value : this.category,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      localFilePath: data.localFilePath.present
+          ? data.localFilePath.value
+          : this.localFilePath,
+      mediaId: data.mediaId.present ? data.mediaId.value : this.mediaId,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentRecord(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('notes: $notes, ')
+          ..write('localFilePath: $localFilePath, ')
+          ..write('mediaId: $mediaId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    vehicleId,
+    name,
+    category,
+    notes,
+    localFilePath,
+    mediaId,
+    updatedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DocumentRecord &&
+          other.id == this.id &&
+          other.vehicleId == this.vehicleId &&
+          other.name == this.name &&
+          other.category == this.category &&
+          other.notes == this.notes &&
+          other.localFilePath == this.localFilePath &&
+          other.mediaId == this.mediaId &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
+  final Value<String> id;
+  final Value<String> vehicleId;
+  final Value<String> name;
+  final Value<String> category;
+  final Value<String?> notes;
+  final Value<String?> localFilePath;
+  final Value<String?> mediaId;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const DocumentRecordsCompanion({
+    this.id = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.category = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.localFilePath = const Value.absent(),
+    this.mediaId = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  DocumentRecordsCompanion.insert({
+    required String id,
+    required String vehicleId,
+    required String name,
+    required String category,
+    this.notes = const Value.absent(),
+    this.localFilePath = const Value.absent(),
+    this.mediaId = const Value.absent(),
+    required DateTime updatedAt,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       vehicleId = Value(vehicleId),
+       name = Value(name),
+       category = Value(category),
+       updatedAt = Value(updatedAt),
+       createdAt = Value(createdAt);
+  static Insertable<DocumentRecord> custom({
+    Expression<String>? id,
+    Expression<String>? vehicleId,
+    Expression<String>? name,
+    Expression<String>? category,
+    Expression<String>? notes,
+    Expression<String>? localFilePath,
+    Expression<String>? mediaId,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (name != null) 'name': name,
+      if (category != null) 'category': category,
+      if (notes != null) 'notes': notes,
+      if (localFilePath != null) 'local_file_path': localFilePath,
+      if (mediaId != null) 'media_id': mediaId,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  DocumentRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vehicleId,
+    Value<String>? name,
+    Value<String>? category,
+    Value<String?>? notes,
+    Value<String?>? localFilePath,
+    Value<String?>? mediaId,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return DocumentRecordsCompanion(
+      id: id ?? this.id,
+      vehicleId: vehicleId ?? this.vehicleId,
+      name: name ?? this.name,
+      category: category ?? this.category,
+      notes: notes ?? this.notes,
+      localFilePath: localFilePath ?? this.localFilePath,
+      mediaId: mediaId ?? this.mediaId,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (category.present) {
+      map['category'] = Variable<String>(category.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (localFilePath.present) {
+      map['local_file_path'] = Variable<String>(localFilePath.value);
+    }
+    if (mediaId.present) {
+      map['media_id'] = Variable<String>(mediaId.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DocumentRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('name: $name, ')
+          ..write('category: $category, ')
+          ..write('notes: $notes, ')
+          ..write('localFilePath: $localFilePath, ')
+          ..write('mediaId: $mediaId, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -10490,6 +11056,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $DrivingLicenseRecordsTable(this);
   late final $FamilyVehicleRecordsTable familyVehicleRecords =
       $FamilyVehicleRecordsTable(this);
+  late final $DocumentRecordsTable documentRecords = $DocumentRecordsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -10514,6 +11083,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     vehicleGrantRecords,
     drivingLicenseRecords,
     familyVehicleRecords,
+    documentRecords,
   ];
 }
 
@@ -15309,7 +15879,7 @@ typedef $$DrivingLicenseRecordsTableCreateCompanionBuilder =
       Value<String?> backMediaId,
       required DateTime createdAt,
       required DateTime updatedAt,
-      Value<DateTime?> syncedAt,
+      Value<String?> syncedAt,
       Value<int> rowid,
     });
 typedef $$DrivingLicenseRecordsTableUpdateCompanionBuilder =
@@ -15324,7 +15894,7 @@ typedef $$DrivingLicenseRecordsTableUpdateCompanionBuilder =
       Value<String?> backMediaId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
-      Value<DateTime?> syncedAt,
+      Value<String?> syncedAt,
       Value<int> rowid,
     });
 
@@ -15387,7 +15957,7 @@ class $$DrivingLicenseRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+  ColumnFilters<String> get syncedAt => $composableBuilder(
     column: $table.syncedAt,
     builder: (column) => ColumnFilters(column),
   );
@@ -15452,7 +16022,7 @@ class $$DrivingLicenseRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+  ColumnOrderings<String> get syncedAt => $composableBuilder(
     column: $table.syncedAt,
     builder: (column) => ColumnOrderings(column),
   );
@@ -15509,7 +16079,7 @@ class $$DrivingLicenseRecordsTableAnnotationComposer
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get syncedAt =>
+  GeneratedColumn<String> get syncedAt =>
       $composableBuilder(column: $table.syncedAt, builder: (column) => column);
 }
 
@@ -15569,7 +16139,7 @@ class $$DrivingLicenseRecordsTableTableManager
                 Value<String?> backMediaId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
-                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<String?> syncedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DrivingLicenseRecordsCompanion(
                 id: id,
@@ -15597,7 +16167,7 @@ class $$DrivingLicenseRecordsTableTableManager
                 Value<String?> backMediaId = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
-                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<String?> syncedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DrivingLicenseRecordsCompanion.insert(
                 id: id,
@@ -15877,6 +16447,290 @@ typedef $$FamilyVehicleRecordsTableProcessedTableManager =
       FamilyVehicleRecord,
       PrefetchHooks Function()
     >;
+typedef $$DocumentRecordsTableCreateCompanionBuilder =
+    DocumentRecordsCompanion Function({
+      required String id,
+      required String vehicleId,
+      required String name,
+      required String category,
+      Value<String?> notes,
+      Value<String?> localFilePath,
+      Value<String?> mediaId,
+      required DateTime updatedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$DocumentRecordsTableUpdateCompanionBuilder =
+    DocumentRecordsCompanion Function({
+      Value<String> id,
+      Value<String> vehicleId,
+      Value<String> name,
+      Value<String> category,
+      Value<String?> notes,
+      Value<String?> localFilePath,
+      Value<String?> mediaId,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$DocumentRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $DocumentRecordsTable> {
+  $$DocumentRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get localFilePath => $composableBuilder(
+    column: $table.localFilePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get mediaId => $composableBuilder(
+    column: $table.mediaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$DocumentRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $DocumentRecordsTable> {
+  $$DocumentRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get category => $composableBuilder(
+    column: $table.category,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get localFilePath => $composableBuilder(
+    column: $table.localFilePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mediaId => $composableBuilder(
+    column: $table.mediaId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DocumentRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $DocumentRecordsTable> {
+  $$DocumentRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get category =>
+      $composableBuilder(column: $table.category, builder: (column) => column);
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get localFilePath => $composableBuilder(
+    column: $table.localFilePath,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get mediaId =>
+      $composableBuilder(column: $table.mediaId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$DocumentRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $DocumentRecordsTable,
+          DocumentRecord,
+          $$DocumentRecordsTableFilterComposer,
+          $$DocumentRecordsTableOrderingComposer,
+          $$DocumentRecordsTableAnnotationComposer,
+          $$DocumentRecordsTableCreateCompanionBuilder,
+          $$DocumentRecordsTableUpdateCompanionBuilder,
+          (
+            DocumentRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $DocumentRecordsTable,
+              DocumentRecord
+            >,
+          ),
+          DocumentRecord,
+          PrefetchHooks Function()
+        > {
+  $$DocumentRecordsTableTableManager(
+    _$AppDatabase db,
+    $DocumentRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DocumentRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DocumentRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DocumentRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<String> category = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String?> localFilePath = const Value.absent(),
+                Value<String?> mediaId = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentRecordsCompanion(
+                id: id,
+                vehicleId: vehicleId,
+                name: name,
+                category: category,
+                notes: notes,
+                localFilePath: localFilePath,
+                mediaId: mediaId,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vehicleId,
+                required String name,
+                required String category,
+                Value<String?> notes = const Value.absent(),
+                Value<String?> localFilePath = const Value.absent(),
+                Value<String?> mediaId = const Value.absent(),
+                required DateTime updatedAt,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => DocumentRecordsCompanion.insert(
+                id: id,
+                vehicleId: vehicleId,
+                name: name,
+                category: category,
+                notes: notes,
+                localFilePath: localFilePath,
+                mediaId: mediaId,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DocumentRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $DocumentRecordsTable,
+      DocumentRecord,
+      $$DocumentRecordsTableFilterComposer,
+      $$DocumentRecordsTableOrderingComposer,
+      $$DocumentRecordsTableAnnotationComposer,
+      $$DocumentRecordsTableCreateCompanionBuilder,
+      $$DocumentRecordsTableUpdateCompanionBuilder,
+      (
+        DocumentRecord,
+        BaseReferences<_$AppDatabase, $DocumentRecordsTable, DocumentRecord>,
+      ),
+      DocumentRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -15922,4 +16776,6 @@ class $AppDatabaseManager {
       $$DrivingLicenseRecordsTableTableManager(_db, _db.drivingLicenseRecords);
   $$FamilyVehicleRecordsTableTableManager get familyVehicleRecords =>
       $$FamilyVehicleRecordsTableTableManager(_db, _db.familyVehicleRecords);
+  $$DocumentRecordsTableTableManager get documentRecords =>
+      $$DocumentRecordsTableTableManager(_db, _db.documentRecords);
 }

@@ -33,10 +33,12 @@ class ChangeApplier {
         await _applyExpense(change);
       case OutboxEntityType.notification:
         await _applyNotification(change, userId);
+      case OutboxEntityType.document:
+        await _applyDocument(change);
       case OutboxEntityType.familyVehicle:
         await _applyFamilyVehicle(change);
       default:
-      // document / media / user have no local tables yet; nothing to apply.
+      // media / user have no local tables yet; nothing to apply.
         break;
     }
   }
@@ -383,6 +385,49 @@ class ChangeApplier {
         syncedAt: Value(change.serverTs),
       ),
     );
+  }
+
+  Future<void> _applyDocument(SyncChange change) async {
+    final payload = change.payload;
+    final id = _idOf(payload, change);
+
+    if (change.op == SyncChangeOp.delete) {
+      await (_db.delete(_db.documentRecords)..where((row) => row.id.equals(id))).go();
+      return;
+    }
+
+    final existing = await (_db.select(
+      _db.documentRecords,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+
+    if (existing != null && !_isWritable(change, existing.updatedAt)) return;
+
+    final remoteUpdatedAt = _dt(payload['updated_at']) ?? change.serverTs;
+
+    if (existing != null) {
+      await (_db.update(_db.documentRecords)..where((row) => row.id.equals(id))).write(
+        DocumentRecordsCompanion(
+          name: Value(_str(payload['name'], fallback: existing.name)),
+          category: Value(_str(payload['category'], fallback: existing.category)),
+          notes: Value(_strN(payload['notes']) ?? existing.notes),
+          mediaId: Value(_strN(payload['media_id']) ?? existing.mediaId),
+          updatedAt: Value(remoteUpdatedAt),
+        ),
+      );
+    } else {
+      await _db.into(_db.documentRecords).insert(
+        DocumentRecordsCompanion.insert(
+          id: id,
+          vehicleId: _str(payload['vehicle_id']),
+          name: _str(payload['name']),
+          category: _str(payload['category'], fallback: 'other'),
+          notes: Value(_strN(payload['notes'])),
+          mediaId: Value(_strN(payload['media_id'])),
+          updatedAt: remoteUpdatedAt,
+          createdAt: _dt(payload['created_at']) ?? remoteUpdatedAt,
+        ),
+      );
+    }
   }
 
   bool _isWritable(SyncChange change, DateTime? localUpdatedAt) {

@@ -190,6 +190,7 @@ class SyncEngine {
     linked += await _flushVehiclePhotos(userId);
     linked += await _flushServiceReceipts(userId);
     linked += await _flushExpenseReceipts(userId);
+    linked += await _flushDocuments(userId);
     return linked;
   }
 
@@ -273,6 +274,32 @@ class SyncEngine {
     return linked;
   }
 
+  Future<int> _flushDocuments(String userId) async {
+    final rows = await (_db.select(_db.documentRecords)
+          ..where(
+            (row) =>
+                row.localFilePath.isNotNull() & row.mediaId.isNull(),
+          ))
+        .get();
+    var linked = 0;
+    for (final row in rows) {
+      final media = await _uploadFile(
+        file: File(row.localFilePath!),
+        purpose: MediaPurpose.document,
+      );
+      if (media == null) continue;
+      await (_db.update(_db.documentRecords)..where((r) => r.id.equals(row.id))).write(
+        DocumentRecordsCompanion(mediaId: Value(media)),
+      );
+      final refreshed = await (_db.select(
+        _db.documentRecords,
+      )..where((r) => r.id.equals(row.id))).getSingle();
+      await _enqueueDocumentUpsert(refreshed, userId);
+      linked++;
+    }
+    return linked;
+  }
+
   Future<String?> _uploadFile({required File file, required MediaPurpose purpose}) async {
     if (!file.existsSync()) return null;
     try {
@@ -322,6 +349,16 @@ class SyncEngine {
       entityId: row.id,
       op: OutboxOp.upsert,
       payload: _expenseWriteJson(row, parts),
+    );
+  }
+
+  Future<void> _enqueueDocumentUpsert(DocumentRecord row, String userId) {
+    return _outbox.enqueue(
+      userId: userId,
+      entityType: OutboxEntityType.document,
+      entityId: row.id,
+      op: OutboxOp.upsert,
+      payload: _documentWriteJson(row),
     );
   }
 
@@ -433,6 +470,14 @@ class SyncEngine {
           (part) => {'id': part.id, 'part_id': part.partId, 'name': part.name},
         )
         .toList(),
+  };
+
+  Map<String, dynamic> _documentWriteJson(DocumentRecord row) => {
+    'id': row.id,
+    'name': row.name,
+    'category': row.category,
+    'notes': row.notes,
+    'media_id': row.mediaId,
   };
 
   void _emit(SyncState newState) {

@@ -26,7 +26,10 @@ enum AnalyticsEvent {
   fuelLogUpdated('fuel_log_updated'),
   expenseAdded('expense_added'),
   expenseUpdated('expense_updated'),
-  expenseDeleted('expense_deleted');
+  expenseDeleted('expense_deleted'),
+  documentUploaded('document_uploaded'),
+  documentOpened('document_opened'),
+  documentDeleted('document_deleted');
 
   const AnalyticsEvent(this.name);
   final String name;

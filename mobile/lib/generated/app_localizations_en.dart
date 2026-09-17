@@ -1007,6 +1007,164 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get documentsAddTooltip => 'Add document';
+
+  @override
+  String get documentsNoActiveVehicleBody =>
+      'Register a vehicle to store documents.';
+
+  @override
+  String get documentsLoadError => 'Could not load documents';
+
+  @override
+  String get documentsAddDocument => 'Add document';
+
+  @override
+  String get documentCategoryInsurance => 'Insurance';
+
+  @override
+  String get documentCategoryRegistration => 'Registration';
+
+  @override
+  String get documentCategoryInvoice => 'Invoice';
+
+  @override
+  String get documentCategoryWarranty => 'Warranty';
+
+  @override
+  String get documentCategoryReceipt => 'Receipt';
+
+  @override
+  String get documentCategoryOther => 'Other';
+
+  @override
+  String get documentFormEditTitle => 'Edit Document';
+
+  @override
+  String get documentFormAddTitle => 'Add Document';
+
+  @override
+  String get documentFormName => 'Name *';
+
+  @override
+  String get documentFormNameHint => 'e.g., Insurance Policy 2025';
+
+  @override
+  String get documentFormCategory => 'Category *';
+
+  @override
+  String get documentFormCategoryHint => 'Choose a category';
+
+  @override
+  String get documentFormCategorySheetTitle => 'Category';
+
+  @override
+  String get documentFormNotes => 'Notes';
+
+  @override
+  String get documentFormNotesHint => 'Optional';
+
+  @override
+  String get documentFormFileSection => 'File';
+
+  @override
+  String get documentFormAddFile => 'Add file';
+
+  @override
+  String get documentFormReplaceFile => 'Replace';
+
+  @override
+  String get documentFormDeleteButton => 'Delete document';
+
+  @override
+  String get documentFormDeleteTitle => 'Delete this document?';
+
+  @override
+  String get documentFormDeleteBody =>
+      'This removes the document and its file. This cannot be undone.';
+
+  @override
+  String get documentFormFileRequired => 'Please attach a file';
+
+  @override
+  String get documentFormCameraDenied =>
+      'Camera or photo access was denied. You can save without a file.';
+
+  @override
+  String get documentFormCameraOption => 'Camera';
+
+  @override
+  String get documentFormGalleryOption => 'Photo library';
+
+  @override
+  String get documentFormPdfOption => 'PDF';
+
+  @override
+  String get documentFormPickError => 'Could not pick file. Try again.';
+
+  @override
+  String get documentFormNoActiveVehicleBody =>
+      'Register a vehicle to store documents.';
+
+  @override
+  String get documentFormNotFound => 'Document not found';
+
+  @override
+  String get documentFormNotFoundBody => 'It may have been deleted.';
+
+  @override
+  String get documentFormAttachFile => 'Attach file';
+
+  @override
+  String get documentFormReplace => 'Replace';
+
+  @override
+  String get documentViewerTitle => 'Document';
+
+  @override
+  String get documentViewerNotFound => 'Document not found';
+
+  @override
+  String get documentViewerNotFoundBody => 'This document could not be loaded.';
+
+  @override
+  String get documentViewerEdit => 'Edit';
+
+  @override
+  String get documentViewerNoFile => 'No file';
+
+  @override
+  String get documentViewerNoFileBody => 'This document has no file attached.';
+
+  @override
+  String get documentViewerRemote => 'Cloud document';
+
+  @override
+  String get documentViewerRemoteBody =>
+      'This file is stored in the cloud and will sync when online.';
+
+  @override
+  String get documentInfoCategory => 'Category';
+
+  @override
+  String get documentInfoAdded => 'Added';
+
+  @override
+  String get documentInfoNotes => 'Notes';
+
+  @override
+  String get documentInfoStatus => 'Status';
+
+  @override
+  String get documentStatusSynced => 'Synced';
+
+  @override
+  String get documentStatusQueued => 'Queued';
+
+  @override
+  String get documentNotFound => 'Document not found';
+
+  @override
   String get partsTitle => 'Parts';
 
   @override

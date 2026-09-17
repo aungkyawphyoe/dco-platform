@@ -10,6 +10,8 @@ import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/session_controller.dart';
 import '../../features/dashboard/presentation/screens/dashboard_screen.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
+import '../../features/documents/presentation/screens/document_form_screen.dart';
+import '../../features/documents/presentation/screens/document_viewer_screen.dart';
 import '../../features/expenses/presentation/screens/expense_form_screen.dart';
 import '../../features/expenses/presentation/screens/expenses_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
@@ -281,6 +283,27 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'documents',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const DocumentsScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'new',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => const DocumentFormScreen(),
+                      ),
+                      GoRoute(
+                        path: ':documentId/edit',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => DocumentFormScreen(
+                          documentId: state.pathParameters['documentId'],
+                        ),
+                      ),
+                      GoRoute(
+                        path: ':documentId/view',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => DocumentViewerScreen(
+                          documentId: state.pathParameters['documentId']!,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

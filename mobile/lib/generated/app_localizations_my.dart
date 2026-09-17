@@ -1029,6 +1029,164 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
+  String get documentsAddTooltip => 'စာရွက်စာတမ်း ထည့်မည်';
+
+  @override
+  String get documentsNoActiveVehicleBody =>
+      'စာရွက်စာတမ်းများ သိမ်းဆည်းရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။';
+
+  @override
+  String get documentsLoadError => 'စာရွက်စာတမ်းများကို ရယူ၍မရပါ';
+
+  @override
+  String get documentsAddDocument => 'စာရွက်စာတမ်း ထည့်မည်';
+
+  @override
+  String get documentCategoryInsurance => 'အာမခံ';
+
+  @override
+  String get documentCategoryRegistration => 'မှတ်ပုံတင်';
+
+  @override
+  String get documentCategoryInvoice => 'ငွေတောင်';
+
+  @override
+  String get documentCategoryWarranty => 'အာမခံ';
+
+  @override
+  String get documentCategoryReceipt => 'ပြေစာ';
+
+  @override
+  String get documentCategoryOther => 'အခြား';
+
+  @override
+  String get documentFormEditTitle => 'စာရွက်စာတမ်း ပြင်ဆင်မည်';
+
+  @override
+  String get documentFormAddTitle => 'စာရွက်စာတမ်း ထည့်မည်';
+
+  @override
+  String get documentFormName => 'အမည် *';
+
+  @override
+  String get documentFormNameHint => 'ဥပမာ - အာမခံမူဝါဒ ၂၀၂၅';
+
+  @override
+  String get documentFormCategory => 'အမျိုးအစား *';
+
+  @override
+  String get documentFormCategoryHint => 'အမျိုးအစား ရွေးပါ';
+
+  @override
+  String get documentFormCategorySheetTitle => 'အမျိုးအစား';
+
+  @override
+  String get documentFormNotes => 'မှတ်ချက်';
+
+  @override
+  String get documentFormNotesHint => 'စိတ်ကြိုက်';
+
+  @override
+  String get documentFormFileSection => 'ဖိုင်';
+
+  @override
+  String get documentFormAddFile => 'ဖိုင် ထည့်မည်';
+
+  @override
+  String get documentFormReplaceFile => 'အစားထိုးမည်';
+
+  @override
+  String get documentFormDeleteButton => 'စာရွက်စာတမ်း ဖျက်မည်';
+
+  @override
+  String get documentFormDeleteTitle => 'ဒီစာရွက်စာတမ်းကို ဖျက်မလား?';
+
+  @override
+  String get documentFormDeleteBody =>
+      'ဒီစာရွက်စာတမ်းနှင့် ၎င်း၏ဖိုင်ကို ဖျက်ပါမည်။ ဒါကို ပြန်ပြင်၍မရပါ။';
+
+  @override
+  String get documentFormFileRequired => 'ဖိုင် ထည့်ပေးပါ';
+
+  @override
+  String get documentFormCameraDenied =>
+      'ကင်မရာ သို့မဟုတ် ဓာတ်ပုံ access ကို ပိတ်ထားပါသည်။ ဖိုင်မပါဘဲ သိမ်းဆည်းနိုင်ပါသည်။';
+
+  @override
+  String get documentFormCameraOption => 'ကင်မရာ';
+
+  @override
+  String get documentFormGalleryOption => 'ဓာတ်ပုံ library';
+
+  @override
+  String get documentFormPdfOption => 'PDF';
+
+  @override
+  String get documentFormPickError => 'ဖိုင်ကို ရွေးမတွေ့ပါ။ ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get documentFormNoActiveVehicleBody =>
+      'စာရွက်စာတမ်းများ သိမ်းဆည်းရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။';
+
+  @override
+  String get documentFormNotFound => 'စာရွက်စာတမ်း မတွေ့ပါ';
+
+  @override
+  String get documentFormNotFoundBody => 'ဖျက်ထားခြင်း ဖြစ်နိုင်ပါသည်။';
+
+  @override
+  String get documentFormAttachFile => 'ဖိုင် ထည့်မည်';
+
+  @override
+  String get documentFormReplace => 'အစားထိုးမည်';
+
+  @override
+  String get documentViewerTitle => 'စာရွက်စာတမ်း';
+
+  @override
+  String get documentViewerNotFound => 'စာရွက်စာတမ်း မတွေ့ပါ';
+
+  @override
+  String get documentViewerNotFoundBody => 'ဒီစာရွက်စာတမ်းကို ရယူ၍မရပါ။';
+
+  @override
+  String get documentViewerEdit => 'ပြင်ဆင်မည်';
+
+  @override
+  String get documentViewerNoFile => 'ဖိုင် မရှိပါ';
+
+  @override
+  String get documentViewerNoFileBody => 'ဒီစာရွက်စာတမ်းတွင် ဖိုင် မပါဝင်ပါ။';
+
+  @override
+  String get documentViewerRemote => 'အင်တာနက်စာရွက်စာတမ်း';
+
+  @override
+  String get documentViewerRemoteBody =>
+      'ဒီဖိုင်ကို အင်တာနက်တွင် သိမ်းဆည်းထားပြီး အင်တာနက်ချိတ်ဆက်သောအခါ ချိတ်ဆက်ပေးပါမည်။';
+
+  @override
+  String get documentInfoCategory => 'အမျိုးအစား';
+
+  @override
+  String get documentInfoAdded => 'ထည့်သွင်းချိန်';
+
+  @override
+  String get documentInfoNotes => 'မှတ်ချက်';
+
+  @override
+  String get documentInfoStatus => 'အခြေအနေ';
+
+  @override
+  String get documentStatusSynced => 'ချိတ်ဆက်ပြီးပါပြီ';
+
+  @override
+  String get documentStatusQueued => 'စောင့်ဆိုင်းနေသည်';
+
+  @override
+  String get documentNotFound => 'စာရွက်စာတမ်း မတွေ့ပါ';
+
+  @override
   String get partsTitle => 'အပိုပစ္စည်းများ';
 
   @override

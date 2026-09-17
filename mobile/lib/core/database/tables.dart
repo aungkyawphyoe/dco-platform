@@ -310,7 +310,25 @@ class DrivingLicenseRecords extends Table {
   TextColumn get backMediaId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
-  DateTimeColumn get syncedAt => dateTime().nullable()();
+  TextColumn get syncedAt => text().nullable()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+class DocumentRecords extends Table {
+  @override
+  String get tableName => 'documents';
+
+  TextColumn get id => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get name => text()();
+  TextColumn get category => text()();
+  TextColumn get notes => text().nullable()();
+  TextColumn get localFilePath => text().nullable()();
+  TextColumn get mediaId => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
