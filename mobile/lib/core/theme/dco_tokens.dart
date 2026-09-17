@@ -17,6 +17,7 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
     required this.radius,
     required this.space,
     required this.motion,
+    required this.shadows,
   });
 
   final DcoBackground background;
@@ -31,6 +32,7 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
   final DcoRadius radius;
   final DcoSpace space;
   final DcoMotion motion;
+  final DcoShadows shadows;
 
   static const garageMinimalDark = DcoTokens(
     background: DcoBackground(
@@ -139,6 +141,16 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
     radius: DcoRadius(sm: 4, md: 8, lg: 12, xl: 16, full: 999),
     space: DcoSpace(s1: 4, s2: 8, s3: 12, s4: 16, s5: 24, s6: 32, s7: 48),
     motion: DcoMotion(fast: 120, base: 180, slow: 280),
+    shadows: DcoShadows(
+      card: [
+        BoxShadow(color: Color(0x1A0A1118), blurRadius: 8, offset: Offset(0, 2)),
+        BoxShadow(color: Color(0x0D0A1118), blurRadius: 16, offset: Offset(0, 4)),
+      ],
+      elevated: [
+        BoxShadow(color: Color(0x260A1118), blurRadius: 12, offset: Offset(0, 4)),
+        BoxShadow(color: Color(0x1A0A1118), blurRadius: 24, offset: Offset(0, 8)),
+      ],
+    ),
   );
 
   @override
@@ -155,6 +167,7 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
     DcoRadius? radius,
     DcoSpace? space,
     DcoMotion? motion,
+    DcoShadows? shadows,
   }) {
     return DcoTokens(
       background: background ?? this.background,
@@ -169,6 +182,7 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
       radius: radius ?? this.radius,
       space: space ?? this.space,
       motion: motion ?? this.motion,
+      shadows: shadows ?? this.shadows,
     );
   }
 
@@ -414,6 +428,14 @@ class DcoMotion {
   final int fast;
   final int base;
   final int slow;
+}
+
+@immutable
+class DcoShadows {
+  const DcoShadows({required this.card, required this.elevated});
+
+  final List<BoxShadow> card;
+  final List<BoxShadow> elevated;
 }
 
 extension DcoTokensContext on BuildContext {

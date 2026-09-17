@@ -34,91 +34,100 @@ class VehicleCard extends StatelessWidget {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
-    return Material(
-      color: tokens.background.card,
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: InkWell(
-        onTap: onOpen,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.s4),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Photo(path: vehicle.photoLocalPath),
-              SizedBox(width: tokens.space.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  vehicle.displayName,
-                                  style: Theme.of(context).textTheme.titleMedium,
-                                  overflow: TextOverflow.ellipsis,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        boxShadow: tokens.shadows.card,
+        border: isActive
+            ? Border(left: BorderSide(color: tokens.text.accent, width: 3))
+            : null,
+      ),
+      child: Material(
+        color: tokens.background.card,
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        child: InkWell(
+          onTap: onOpen,
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          child: Padding(
+            padding: EdgeInsets.all(tokens.space.s4),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _Photo(path: vehicle.photoLocalPath),
+                SizedBox(width: tokens.space.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    vehicle.displayName,
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
-                              ),
-                              if (isFamily || vehicle.source == VehicleSource.family) ...[
-                                SizedBox(width: tokens.space.s2),
-                                _Badge(
-                                  label: s.garageFamilyBadge,
-                                  color: tokens.text.accent,
-                                  background: tokens.background.card,
-                                ),
+                                if (isFamily || vehicle.source == VehicleSource.family) ...[
+                                  SizedBox(width: tokens.space.s2),
+                                  _Badge(
+                                    label: s.garageFamilyBadge,
+                                    color: tokens.text.accent,
+                                    background: tokens.background.card,
+                                  ),
+                                ],
                               ],
-                            ],
-                          ),
-                        ),
-                        if (isActive)
-                          _Badge(label: s.active, color: tokens.status.infoFg, background: tokens.status.infoBg)
-                        else if (onSetActive != null)
-                          TextButton(
-                            onPressed: onSetActive,
-                            style: TextButton.styleFrom(
-                              minimumSize: const Size(44, 44),
-                              padding: EdgeInsets.symmetric(horizontal: tokens.space.s2),
                             ),
-                            child: Text(s.vehicleSetActive, style: TextStyle(color: tokens.text.link, fontSize: 12)),
                           ),
-                        if (onEdit != null)
-                          IconButton(
-                            tooltip: s.vehicleEditTooltip,
-                            onPressed: onEdit,
-                            icon: Icon(Icons.edit_outlined, size: 20, color: tokens.icon.inactive),
-                            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                            padding: EdgeInsets.zero,
-                          ),
-                        if (onDelete != null)
-                          IconButton(
-                            tooltip: s.vehicleRemoveTooltip,
-                            onPressed: onDelete,
-                            icon: Icon(Icons.delete_outline, size: 20, color: tokens.status.dangerFg),
-                            constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
-                            padding: EdgeInsets.zero,
-                          ),
-                      ],
-                    ),
-                    Text(
-                      '${vehicle.yearMakeModel}  ${vehicle.licensePlate}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.secondary),
-                    ),
-                    SizedBox(height: tokens.space.s2),
-                    Text(
-                      mileage,
-                      style: GoogleFonts.ibmPlexMono(
-                        color: tokens.text.primary,
-                        fontSize: 13,
+                          if (isActive)
+                            _Badge(label: s.active, color: tokens.status.infoFg, background: tokens.status.infoBg)
+                          else if (onSetActive != null)
+                            TextButton(
+                              onPressed: onSetActive,
+                              style: TextButton.styleFrom(
+                                minimumSize: const Size(44, 44),
+                                padding: EdgeInsets.symmetric(horizontal: tokens.space.s2),
+                              ),
+                              child: Text(s.vehicleSetActive, style: TextStyle(color: tokens.text.link, fontSize: 12)),
+                            ),
+                          if (onEdit != null)
+                            IconButton(
+                              tooltip: s.vehicleEditTooltip,
+                              onPressed: onEdit,
+                              icon: Icon(Icons.edit_outlined, size: 20, color: tokens.icon.inactive),
+                              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                              padding: EdgeInsets.zero,
+                            ),
+                          if (onDelete != null)
+                            IconButton(
+                              tooltip: s.vehicleRemoveTooltip,
+                              onPressed: onDelete,
+                              icon: Icon(Icons.delete_outline, size: 20, color: tokens.status.dangerFg),
+                              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                              padding: EdgeInsets.zero,
+                            ),
+                        ],
                       ),
-                    ),
-                  ],
+                      Text(
+                        '${vehicle.yearMakeModel}  ${vehicle.licensePlate}',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.secondary),
+                      ),
+                      SizedBox(height: tokens.space.s2),
+                      Text(
+                        mileage,
+                        style: GoogleFonts.ibmPlexMono(
+                          color: tokens.text.primary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -164,7 +173,14 @@ class _Photo extends StatelessWidget {
                 color: tokens.background.input,
                 child: Icon(Icons.directions_car_outlined, color: tokens.icon.inactive),
               )
-            : Image.file(File(path!), fit: BoxFit.cover),
+            : Image.file(
+                File(path!),
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => ColoredBox(
+                  color: tokens.background.input,
+                  child: Icon(Icons.directions_car_outlined, color: tokens.icon.inactive),
+                ),
+              ),
       ),
     );
   }

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../theme/dco_tokens.dart';
-
 class CustomFloatingNavBar extends StatefulWidget {
   const CustomFloatingNavBar({
     super.key,
@@ -26,11 +24,11 @@ class CustomFloatingNavBar extends StatefulWidget {
 
 class _CustomFloatingNavBarState extends State<CustomFloatingNavBar> {
   static const _barBackground = Color(0xFF1A2832);
-  static const _glowBorder = Color(0xFFA855F7);
-  static const _activeFill = Color(0xFF38244B);
-  static const _inactiveIcon = Color(0xFFB3A8C1);
+  static const _glowBorder = Color(0xFFFECA1F);
+  static const _activeFill = Color(0xFF2A2518);
+  static const _inactiveIcon = Color(0xFF6C7D8A);
   static const _activeContent = Colors.white;
-  static const _dropShadow = Color(0x4411091C);
+  static const _dropShadow = Color(0x44101B22);
   static const _itemPadding = EdgeInsets.symmetric(horizontal: 14, vertical: 8);
   static const _gap = 6.0;
   static const _radius = 50.0;

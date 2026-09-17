@@ -191,8 +191,19 @@ class _SummaryCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(tokens.space.s4),
       decoration: BoxDecoration(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            tokens.background.card,
+            tokens.background.card.withValues(alpha: 0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        border: Border(
+          top: BorderSide(color: tokens.text.accent.withValues(alpha: 0.3), width: 1.5),
+        ),
+        boxShadow: tokens.shadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -337,13 +348,15 @@ class _FilterChip extends StatelessWidget {
     return Material(
       color: selected ? tokens.text.accent : tokens.background.input,
       borderRadius: BorderRadius.circular(tokens.radius.full),
+      elevation: selected ? 2 : 0,
+      shadowColor: selected ? tokens.text.accent.withValues(alpha: 0.3) : Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(tokens.radius.full),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 36),
+          constraints: const BoxConstraints(minHeight: 40),
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: tokens.space.s3),
+            padding: EdgeInsets.symmetric(horizontal: tokens.space.s4),
             child: Center(
               child: Text(
                 label,
@@ -374,77 +387,93 @@ class _ExpenseTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final color = expense.category.color(tokens);
-    return Material(
-      color: tokens.background.card,
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.s3),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(tokens.radius.sm),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        border: Border(
+          left: BorderSide(color: color, width: 3),
+        ),
+        boxShadow: tokens.shadows.card,
+      ),
+      child: Material(
+        color: tokens.background.card,
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          child: Padding(
+            padding: EdgeInsets.all(tokens.space.s3),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        color.withValues(alpha: 0.2),
+                        color.withValues(alpha: 0.08),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                  ),
+                  child: Icon(expense.category.icon, color: color, size: 22),
                 ),
-                child: Icon(expense.category.icon, color: color, size: 22),
-              ),
-              SizedBox(width: tokens.space.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      DateFormat.yMMMd().format(expense.incurredOn),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: tokens.text.caption,
-                      ),
-                    ),
-                    SizedBox(height: tokens.space.s1),
-                    Text(
-                      expense.category.label,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    if (expense.notesPreview != null) ...[
-                      SizedBox(height: tokens.space.s1),
+                SizedBox(width: tokens.space.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        expense.notesPreview!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                        DateFormat.yMMMd().format(expense.incurredOn),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: tokens.text.caption,
                         ),
                       ),
+                      SizedBox(height: tokens.space.s1),
+                      Text(
+                        expense.category.label,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      if (expense.notesPreview != null) ...[
+                        SizedBox(height: tokens.space.s1),
+                        Text(
+                          expense.notesPreview!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: tokens.text.caption,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      MoneyFormat.labeled(expense.amount, currency),
+                      style: GoogleFonts.ibmPlexMono(
+                        color: tokens.text.secondary,
+                        fontSize: 13,
+                      ),
+                    ),
+                    if (expense.hasReceipt) ...[
+                      SizedBox(height: tokens.space.s1),
+                      Icon(
+                        Icons.photo_outlined,
+                        size: 16,
+                        color: tokens.icon.inactive,
+                      ),
                     ],
                   ],
                 ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    MoneyFormat.labeled(expense.amount, currency),
-                    style: GoogleFonts.ibmPlexMono(
-                      color: tokens.text.secondary,
-                      fontSize: 13,
-                    ),
-                  ),
-                  if (expense.hasReceipt) ...[
-                    SizedBox(height: tokens.space.s1),
-                    Icon(
-                      Icons.photo_outlined,
-                      size: 16,
-                      color: tokens.icon.inactive,
-                    ),
-                  ],
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

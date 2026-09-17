@@ -153,71 +153,87 @@ class _PopulatedDashboard extends ConsumerWidget {
     return ListView(
       padding: EdgeInsets.all(tokens.space.s4),
       children: [
-        Material(
-          color: tokens.background.card,
-          borderRadius: BorderRadius.circular(tokens.radius.md),
-          child: InkWell(
-            onTap: () => context.push(AppRoutes.vehicleDetail(vehicle.id)),
-            borderRadius: BorderRadius.circular(tokens.radius.md),
-            child: Padding(
-              padding: EdgeInsets.all(tokens.space.s4),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(tokens.radius.sm),
-                    child: SizedBox(
-                      width: 88,
-                      height: 88,
-                      child: vehicle.photoLocalPath == null
-                          ? ColoredBox(
-                              color: tokens.background.input,
-                              child: Icon(
-                                Icons.directions_car_outlined,
-                                color: tokens.icon.inactive,
+        Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(tokens.radius.lg),
+            border: Border(
+              left: BorderSide(color: tokens.text.accent, width: 3),
+            ),
+            boxShadow: tokens.shadows.card,
+          ),
+          child: Material(
+            color: tokens.background.card,
+            borderRadius: BorderRadius.circular(tokens.radius.lg),
+            child: InkWell(
+              onTap: () => context.push(AppRoutes.vehicleDetail(vehicle.id)),
+              borderRadius: BorderRadius.circular(tokens.radius.lg),
+              child: Padding(
+                padding: EdgeInsets.all(tokens.space.s4),
+                child: Row(
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(tokens.radius.md),
+                      child: SizedBox(
+                        width: 88,
+                        height: 88,
+                        child: vehicle.photoLocalPath == null
+                            ? ColoredBox(
+                                color: tokens.background.input,
+                                child: Icon(
+                                  Icons.directions_car_outlined,
+                                  color: tokens.icon.inactive,
+                                ),
+                              )
+                            : Image.file(
+                                File(vehicle.photoLocalPath!),
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => ColoredBox(
+                                  color: tokens.background.input,
+                                  child: Icon(
+                                    Icons.directions_car_outlined,
+                                    color: tokens.icon.inactive,
+                                  ),
+                                ),
                               ),
-                            )
-                          : Image.file(
-                              File(vehicle.photoLocalPath!),
-                              fit: BoxFit.cover,
-                            ),
+                      ),
                     ),
-                  ),
-                  SizedBox(width: tokens.space.s4),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          vehicle.yearMakeModel,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        SizedBox(height: tokens.space.s1),
-                        Text(
-                          vehicle.licensePlate,
-                          style: GoogleFonts.ibmPlexMono(
-                            color: tokens.text.accent,
-                            fontSize: 13,
+                    SizedBox(width: tokens.space.s4),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            vehicle.yearMakeModel,
+                            style: Theme.of(context).textTheme.titleMedium,
                           ),
-                        ),
-                        SizedBox(height: tokens.space.s2),
-                        Text(
-                          mileage,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        if (vehicle.vin != null) ...[
                           SizedBox(height: tokens.space.s1),
                           Text(
-                            vehicle.vin!,
+                            vehicle.licensePlate,
                             style: GoogleFonts.ibmPlexMono(
-                              color: tokens.text.caption,
-                              fontSize: 12,
+                              color: tokens.text.accent,
+                              fontSize: 13,
                             ),
                           ),
+                          SizedBox(height: tokens.space.s2),
+                          Text(
+                            mileage,
+                            style: Theme.of(context).textTheme.bodyMedium,
+                          ),
+                          if (vehicle.vin != null) ...[
+                            SizedBox(height: tokens.space.s1),
+                            Text(
+                              vehicle.vin!,
+                              style: GoogleFonts.ibmPlexMono(
+                                color: tokens.text.caption,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -343,39 +359,48 @@ class _RecentActivityRow extends StatelessWidget {
     final title = record.items.isNotEmpty
         ? record.items.first.name
         : record.title;
-    return Material(
-      color: tokens.background.card,
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.s3),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      DateFormat.yMMMd().format(record.servicedOn),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: tokens.text.caption,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        boxShadow: tokens.shadows.card,
+      ),
+      child: Material(
+        color: tokens.background.card,
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          child: Padding(
+            padding: EdgeInsets.all(tokens.space.s3),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        DateFormat.yMMMd().format(record.servicedOn),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.caption,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: tokens.space.s1),
-                    Text(title, style: Theme.of(context).textTheme.titleMedium),
-                  ],
+                      SizedBox(height: tokens.space.s1),
+                      Text(
+                        title,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              Text(
-                MoneyFormat.labeled(record.totalCost, currency),
-                style: GoogleFonts.ibmPlexMono(
-                  color: tokens.text.secondary,
-                  fontSize: 13,
+                Text(
+                  MoneyFormat.labeled(record.totalCost, currency),
+                  style: GoogleFonts.ibmPlexMono(
+                    color: tokens.text.secondary,
+                    fontSize: 13,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -401,27 +426,33 @@ class _NextMaintenanceCard extends StatelessWidget {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     if (item == null) {
-      return Material(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.s4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                s.dashboardNoPlanItemsYet,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
-              ),
-              SizedBox(height: tokens.space.s3),
-              DcoButton(
-                label: s.dashboardAddPlanItem,
-                variant: DcoButtonVariant.secondary,
-                onPressed: onLogService,
-              ),
-            ],
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          boxShadow: tokens.shadows.card,
+        ),
+        child: Material(
+          color: tokens.background.card,
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          child: Padding(
+            padding: EdgeInsets.all(tokens.space.s4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  s.dashboardNoPlanItemsYet,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: tokens.text.secondary,
+                  ),
+                ),
+                SizedBox(height: tokens.space.s3),
+                DcoButton(
+                  label: s.dashboardAddPlanItem,
+                  variant: DcoButtonVariant.secondary,
+                  onPressed: onLogService,
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -438,26 +469,38 @@ class _NextMaintenanceCard extends StatelessWidget {
         : urgency == PlanUrgency.dueSoon
         ? tokens.feedback.dueSoon
         : tokens.text.caption;
+    final borderColor = overdue
+        ? tokens.feedback.overdue
+        : urgency == PlanUrgency.dueSoon
+        ? tokens.feedback.dueSoon
+        : tokens.status.successFg;
 
-    return Material(
-      color: tokens.background.card,
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: Padding(
-        padding: EdgeInsets.all(tokens.space.s4),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(item!.name, style: Theme.of(context).textTheme.titleMedium),
-            SizedBox(height: tokens.space.s2),
-            Text(
-              _dueCopy(item!, vehicle, lengthUnit, s),
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: dueColor),
-            ),
-            SizedBox(height: tokens.space.s4),
-            DcoButton(label: s.dashboardLogService, onPressed: onLogService),
-          ],
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        border: Border(left: BorderSide(color: borderColor, width: 3)),
+        boxShadow: tokens.shadows.card,
+      ),
+      child: Material(
+        color: tokens.background.card,
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        child: Padding(
+          padding: EdgeInsets.all(tokens.space.s4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(item!.name, style: Theme.of(context).textTheme.titleMedium),
+              SizedBox(height: tokens.space.s2),
+              Text(
+                _dueCopy(item!, vehicle, lengthUnit, s),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: dueColor),
+              ),
+              SizedBox(height: tokens.space.s4),
+              DcoButton(label: s.dashboardLogService, onPressed: onLogService),
+            ],
+          ),
         ),
       ),
     );
@@ -528,8 +571,22 @@ class _StatCard extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(tokens.space.s4),
       decoration: BoxDecoration(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            tokens.background.card,
+            tokens.background.card.withValues(alpha: 0.7),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        border: Border(
+          top: BorderSide(
+            color: tokens.text.accent.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+        ),
+        boxShadow: tokens.shadows.card,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

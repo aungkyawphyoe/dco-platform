@@ -36,6 +36,14 @@ ThemeData buildDcoTheme() {
     cardColor: tokens.background.card,
     dividerColor: tokens.border.divider,
     extensions: const [tokens],
+    cardTheme: CardThemeData(
+      color: tokens.background.card,
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+      ),
+      margin: EdgeInsets.zero,
+    ),
     textTheme: TextTheme(
       displaySmall: barlowTitle.copyWith(fontSize: 28, height: 34 / 28, letterSpacing: -0.3),
       titleLarge: barlowTitle.copyWith(fontSize: 20, height: 26 / 20),
@@ -115,6 +123,9 @@ ThemeData buildDcoTheme() {
       backgroundColor: tokens.background.secondary,
       contentTextStyle: plexBody.copyWith(color: tokens.text.primary),
       behavior: SnackBarBehavior.floating,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+      ),
     ),
   );
 }

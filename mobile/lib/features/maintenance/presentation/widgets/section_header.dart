@@ -21,8 +21,11 @@ class MaintenanceSectionHeader extends StatelessWidget {
       MaintenanceSectionTone.info => (tokens.status.infoFg, tokens.status.infoBg),
       MaintenanceSectionTone.neutral => (tokens.text.primary, tokens.background.secondary),
     };
-    return ColoredBox(
-      color: bg,
+    return Container(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+      ),
       child: Padding(
         padding: EdgeInsets.symmetric(horizontal: tokens.space.s4, vertical: tokens.space.s3),
         child: Row(

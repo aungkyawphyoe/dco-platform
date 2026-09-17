@@ -168,11 +168,12 @@ class _SectionEmpty extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(tokens.space.s4, 0, tokens.space.s4, tokens.space.s4),
       child: Container(
-        height: 72,
+        height: 80,
         alignment: Alignment.center,
         decoration: BoxDecoration(
           color: tokens.background.card,
-          borderRadius: BorderRadius.circular(tokens.radius.md),
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          boxShadow: tokens.shadows.card,
         ),
         child: Text(label, style: TextStyle(color: tokens.text.accent)),
       ),

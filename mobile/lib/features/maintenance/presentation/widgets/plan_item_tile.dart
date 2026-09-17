@@ -52,83 +52,89 @@ class PlanItemTile extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.fromLTRB(tokens.space.s4, 0, tokens.space.s4, tokens.space.s3),
-      child: Material(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(tokens.radius.md),
-          child: Padding(
-            padding: EdgeInsets.all(tokens.space.s3),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                leadingAction ??
-                    Container(
-                      width: 44,
-                      height: 44,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: accentBg,
-                        borderRadius: BorderRadius.circular(tokens.radius.sm),
-                      ),
-                      child: Icon(
-                        overdue
-                            ? Icons.priority_high
-                            : dueSoon
-                            ? Icons.schedule
-                            : Icons.info_outline,
-                        color: accent,
-                      ),
-                    ),
-                SizedBox(width: tokens.space.s3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item.name, style: Theme.of(context).textTheme.titleMedium),
-                      SizedBox(height: tokens.space.s1),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(tokens.radius.sm),
-                        child: LinearProgressIndicator(
-                          value: _progress(item, vehicle, now),
-                          minHeight: 4,
-                          backgroundColor: tokens.background.input,
-                          valueColor: AlwaysStoppedAnimation<Color>(accent),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          boxShadow: tokens.shadows.card,
+        ),
+        child: Material(
+          color: tokens.background.card,
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(tokens.radius.lg),
+            child: Padding(
+              padding: EdgeInsets.all(tokens.space.s3),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  leadingAction ??
+                      Container(
+                        width: 44,
+                        height: 44,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: accentBg,
+                          borderRadius: BorderRadius.circular(tokens.radius.sm),
+                        ),
+                        child: Icon(
+                          overdue
+                              ? Icons.priority_high
+                              : dueSoon
+                                  ? Icons.schedule
+                                  : Icons.info_outline,
+                          color: accent,
                         ),
                       ),
-                      SizedBox(height: tokens.space.s2),
-                      ..._dueLine(item, vehicle, overdue, lengthUnit, s).map(
-                        (line) => Padding(
-                          padding: EdgeInsets.only(bottom: tokens.space.s1),
-                          child: Text(
-                            line,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: overdue ? tokens.feedback.overdue : tokens.text.caption,
+                  SizedBox(width: tokens.space.s3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(item.name, style: Theme.of(context).textTheme.titleMedium),
+                        SizedBox(height: tokens.space.s1),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(tokens.radius.sm),
+                          child: LinearProgressIndicator(
+                            value: _progress(item, vehicle, now),
+                            minHeight: 4,
+                            backgroundColor: tokens.background.input,
+                            valueColor: AlwaysStoppedAnimation<Color>(accent),
+                          ),
+                        ),
+                        SizedBox(height: tokens.space.s2),
+                        ..._dueLine(item, vehicle, overdue, lengthUnit, s).map(
+                          (line) => Padding(
+                            padding: EdgeInsets.only(bottom: tokens.space.s1),
+                            child: Text(
+                              line,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                color: overdue ? tokens.feedback.overdue : tokens.text.caption,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      SizedBox(height: tokens.space.s1),
-                      Text(
-                        _remainingLine(item, vehicle, now, lengthUnit, s),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: tokens.text.secondary,
-                        ),
-                      ),
-                      if (item.notes != null && item.notes!.isNotEmpty) ...[
                         SizedBox(height: tokens.space.s1),
                         Text(
-                          item.notes!,
+                          _remainingLine(item, vehicle, now, lengthUnit, s),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: tokens.text.caption,
+                            color: tokens.text.secondary,
                           ),
                         ),
+                        if (item.notes != null && item.notes!.isNotEmpty) ...[
+                          SizedBox(height: tokens.space.s1),
+                          Text(
+                            item.notes!,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: tokens.text.caption,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -227,41 +233,47 @@ class HistoryTile extends StatelessWidget {
     final workshop = record.workshopName;
     return Padding(
       padding: EdgeInsets.fromLTRB(tokens.space.s4, 0, tokens.space.s4, tokens.space.s3),
-      child: Material(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(tokens.radius.md),
-          child: Padding(
-            padding: EdgeInsets.all(tokens.space.s3),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      DateFormat.yMMMd().format(record.servicedOn),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
-                    ),
-                    const Spacer(),
-                    Text(
-                      money,
-                      style: GoogleFonts.ibmPlexMono(
-                        color: tokens.text.secondary,
-                        fontSize: 13,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          boxShadow: tokens.shadows.card,
+        ),
+        child: Material(
+          color: tokens.background.card,
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(tokens.radius.lg),
+            child: Padding(
+              padding: EdgeInsets.all(tokens.space.s3),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        DateFormat.yMMMd().format(record.servicedOn),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                       ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: tokens.space.s1),
-                Text(record.title, style: Theme.of(context).textTheme.titleMedium),
-                SizedBox(height: tokens.space.s1),
-                Text(
-                  workshop == null || workshop.isEmpty ? odometer : '$odometer  $workshop',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
-                ),
-              ],
+                      const Spacer(),
+                      Text(
+                        money,
+                        style: GoogleFonts.ibmPlexMono(
+                          color: tokens.text.secondary,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: tokens.space.s1),
+                  Text(record.title, style: Theme.of(context).textTheme.titleMedium),
+                  SizedBox(height: tokens.space.s1),
+                  Text(
+                    workshop == null || workshop.isEmpty ? odometer : '$odometer  $workshop',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

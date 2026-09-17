@@ -36,44 +36,48 @@ class SettingsScreen extends ConsumerWidget {
             child: ListView(
               padding: EdgeInsets.all(tokens.space.s5),
               children: [
-                Material(
-                  color: tokens.background.card,
-                  borderRadius: BorderRadius.circular(tokens.radius.md),
-                  child: InkWell(
-                    onTap: user?.id != null
-                        ? () => context.push(AppRoutes.userDetail(user!.id))
-                        : null,
-                    borderRadius: BorderRadius.circular(tokens.radius.md),
-                    child: Padding(
-                      padding: EdgeInsets.all(tokens.space.s4),
-                      child: Row(
-                        children: [
-                          DcoAvatar(name: user?.email ?? '?', radius: 28),
-                          SizedBox(width: tokens.space.s3),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user?.email ?? '',
-                                  style: Theme.of(
-                                    context,
-                                  ).textTheme.titleMedium,
-                                ),
-                                SizedBox(height: tokens.space.s1),
-                                Text(
-                                  s.settingsFreePlan,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(color: tokens.text.caption),
-                                ),
-                              ],
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(tokens.radius.lg),
+                    boxShadow: tokens.shadows.card,
+                  ),
+                  child: Material(
+                    color: tokens.background.card,
+                    borderRadius: BorderRadius.circular(tokens.radius.lg),
+                    child: InkWell(
+                      onTap: user?.id != null
+                          ? () => context.push(AppRoutes.userDetail(user!.id))
+                          : null,
+                      borderRadius: BorderRadius.circular(tokens.radius.lg),
+                      child: Padding(
+                        padding: EdgeInsets.all(tokens.space.s4),
+                        child: Row(
+                          children: [
+                            DcoAvatar(name: user?.email ?? '?', radius: 28),
+                            SizedBox(width: tokens.space.s3),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    user?.email ?? '',
+                                    style: Theme.of(context).textTheme.titleMedium,
+                                  ),
+                                  SizedBox(height: tokens.space.s1),
+                                  Text(
+                                    s.settingsFreePlan,
+                                    style: Theme.of(context).textTheme.bodySmall
+                                        ?.copyWith(color: tokens.text.caption),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                        ],
+                            Icon(
+                              Icons.chevron_right,
+                              color: tokens.icon.inactive,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -152,53 +156,92 @@ class SettingsScreen extends ConsumerWidget {
                       },
                     ),
                 SizedBox(height: tokens.space.s4),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(s.settingsManageVehicles),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: tokens.icon.inactive,
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(tokens.radius.lg),
+                    boxShadow: tokens.shadows.card,
                   ),
-                  onTap: () => context.push(AppRoutes.garage),
+                  child: Material(
+                    color: tokens.background.card,
+                    borderRadius: BorderRadius.circular(tokens.radius.lg),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(tokens.radius.lg),
+                          ),
+                          title: Text(s.settingsManageVehicles),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                          onTap: () => context.push(AppRoutes.garage),
+                        ),
+                        Divider(height: 1, indent: 16, color: tokens.border.divider),
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(tokens.radius.lg),
+                          ),
+                          title: Text(s.settingsDocuments),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                          onTap: () => context.push(AppRoutes.dashboardDocuments),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(s.settingsDocuments),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: tokens.icon.inactive,
+                SizedBox(height: tokens.space.s3),
+                Container(
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(tokens.radius.lg),
+                    boxShadow: tokens.shadows.card,
                   ),
-                  onTap: () => context.push(AppRoutes.dashboardDocuments),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(s.settingsLocalization),
-                  subtitle: Text(
-                    prefs.language.label,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                  child: Material(
+                    color: tokens.background.card,
+                    borderRadius: BorderRadius.circular(tokens.radius.lg),
+                    child: Column(
+                      children: [
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(tokens.radius.lg),
+                          ),
+                          title: Text(s.settingsLocalization),
+                          subtitle: Text(
+                            prefs.language.label,
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                          onTap: () => context.push(AppRoutes.settingsLocalization),
+                        ),
+                        Divider(height: 1, indent: 16, color: tokens.border.divider),
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(tokens.radius.lg),
+                          ),
+                          title: Text(s.settingsUnitFormat),
+                          subtitle: Text(
+                            '${prefs.currency.code}, ${prefs.lengthUnit.fullLabel.toLowerCase()}',
+                            style: Theme.of(
+                              context,
+                            ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                          onTap: () => context.push(AppRoutes.settingsUnits),
+                        ),
+                      ],
+                    ),
                   ),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: tokens.icon.inactive,
-                  ),
-                  onTap: () => context.push(AppRoutes.settingsLocalization),
-                ),
-                ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  title: Text(s.settingsUnitFormat),
-                  subtitle: Text(
-                    '${prefs.currency.code}, ${prefs.lengthUnit.fullLabel.toLowerCase()}',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
-                  ),
-                  trailing: Icon(
-                    Icons.chevron_right,
-                    color: tokens.icon.inactive,
-                  ),
-                  onTap: () => context.push(AppRoutes.settingsUnits),
                 ),
                 SizedBox(height: tokens.space.s2),
               ],
@@ -231,54 +274,76 @@ class _SyncButton extends ConsumerWidget {
     final tokens = context.tokens;
     final isSyncing = syncState.phase == SyncPhase.syncing;
 
-    return Material(
-      color: tokens.background.card,
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: InkWell(
-        onTap: isSyncing
-            ? null
-            : () async {
-                await ref.read(syncEngineProvider).syncNow();
-              },
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.s4),
-          child: Row(
-            children: [
-              Icon(
-                Icons.sync,
-                color: isSyncing ? tokens.text.accent : tokens.icon.inactive,
-              ),
-              SizedBox(width: tokens.space.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      s.settingsSyncNow,
-                      style: Theme.of(context).textTheme.titleMedium,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        boxShadow: tokens.shadows.card,
+      ),
+      child: Material(
+        color: tokens.background.card,
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        child: InkWell(
+          onTap: isSyncing
+              ? null
+              : () async {
+                  await ref.read(syncEngineProvider).syncNow();
+                },
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          child: Padding(
+            padding: EdgeInsets.all(tokens.space.s4),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        tokens.text.accent.withValues(alpha: 0.2),
+                        tokens.text.accent.withValues(alpha: 0.08),
+                      ],
                     ),
-                    SizedBox(height: tokens.space.s1),
-                    Text(
-                      _getStatusText(syncState, s),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: syncState.hasError
-                            ? tokens.status.dangerFg
-                            : tokens.text.secondary,
-                      ),
-                    ),
-                  ],
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                  ),
+                  child: Icon(
+                    Icons.sync,
+                    color: isSyncing ? tokens.text.accent : tokens.icon.inactive,
+                  ),
                 ),
-              ),
-              if (isSyncing)
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              else
-                Icon(Icons.chevron_right, color: tokens.icon.inactive),
-            ],
+                SizedBox(width: tokens.space.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        s.settingsSyncNow,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      SizedBox(height: tokens.space.s1),
+                      Text(
+                        _getStatusText(syncState, s),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: syncState.hasError
+                              ? tokens.status.dangerFg
+                              : tokens.text.secondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                if (isSyncing)
+                  SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  Icon(Icons.chevron_right, color: tokens.icon.inactive),
+              ],
+            ),
           ),
         ),
       ),
@@ -291,8 +356,9 @@ class _SyncButton extends ConsumerWidget {
     if (state.lastSyncedAt != null) {
       final diff = DateTime.now().difference(state.lastSyncedAt!);
       if (diff.inMinutes < 1) return s.settingsSyncStatusJustSynced;
-      if (diff.inHours < 1)
+      if (diff.inHours < 1) {
         return s.settingsSyncStatusMinutesAgo(diff.inMinutes);
+      }
       if (diff.inDays < 1) return s.settingsSyncStatusHoursAgo(diff.inHours);
       return s.settingsSyncStatusDaysAgo(diff.inDays);
     }

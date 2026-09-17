@@ -42,24 +42,33 @@ class DcoButton extends StatelessWidget {
         : Text(label);
 
     final button = ConstrainedBox(
-      constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+      constraints: const BoxConstraints(minHeight: 48, minWidth: 44),
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: enabled ? colors.background : colors.backgroundDisabled,
-          borderRadius: BorderRadius.circular(tokens.radius.md),
+          borderRadius: BorderRadius.circular(tokens.radius.full),
           border: colors.border.a == 0
               ? null
               : Border.all(color: enabled ? colors.border : colors.textDisabled),
+          boxShadow: variant == DcoButtonVariant.primary && enabled
+              ? [
+                  BoxShadow(
+                    color: colors.background.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Material(
           type: MaterialType.transparency,
           child: InkWell(
             onTap: enabled ? onPressed : null,
-            borderRadius: BorderRadius.circular(tokens.radius.md),
+            borderRadius: BorderRadius.circular(tokens.radius.full),
             child: Padding(
               padding: EdgeInsets.symmetric(
                 horizontal: tokens.space.s5,
-                vertical: tokens.space.s3,
+                vertical: tokens.space.s4,
               ),
               child: DefaultTextStyle(
                 style: Theme.of(context).textTheme.labelLarge!.copyWith(
