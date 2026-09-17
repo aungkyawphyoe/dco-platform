@@ -228,7 +228,7 @@
   "planItemFormMileageRequired": "မိုင်နှုန်း *",
   "planItemFormNotes": "မှတ်ချက်များ",
 
-  "suggestedItemsTitle": "ပြုပြင်ထိန်းသိမ်းမှု အကြောင်းအရာများ",
+  "suggestedItemsTitle": "ပြုပြင်မှုဆိုင်ရာ အချက်များ",
   "suggestedItemsNoActiveVehicleBody": "အကြံပြုထားသော အကြောင်းအရာများ ထည့်ရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
   "suggestedItemsAllAdded": "အကြံပြုထားသည်များ အားလုံး ထည့်ပြီးပါပြီ",
   "suggestedItemsAllAddedBody": "အစီအစဉ်မှတစ်ဆင့် မိမိစိတ်ကြိုက် ဝန်ဆောင်မှု အမျိုးအစားများကိုလည်း ထည့်သွင်းနိုင်သေးသည်။",
@@ -504,7 +504,7 @@
   "settingsFreePlan": "အခမဲ့ အစီအစဉ်",
   "settingsManageVehicles": "ယာဉ်များကို စီမံခန့်ခွဲမည်",
   "settingsDocuments": "စာရွက်စာတမ်းများ",
-  "settingsLocalization": "ဘာသာစကားနှင့် ဒေသဆိုင်ရာ သတ်မှတ်ချက်",
+  "settingsLocalization": "Localization",
   "settingsUnitFormat": "ယူနစ်နှင့် ပုံစံ",
   "settingsSyncSection": "ဒေတာ ချိတ်ဆက်မှု",
   "settingsFamilySection": "မိသားစု",
@@ -523,7 +523,7 @@
   "settingsSyncStatusDaysAgo": "လွန်ခဲ့သော {days} ရက်က ဒေတာ ချိတ်ဆက်ခဲ့သည်",
   "settingsSyncTapToSync": "သင့်ဒေတာများကို ချိတ်ဆက်ရန် နှိပ်ပါ",
 
-  "localizationTitle": "ဘာသာစကားနှင့် ဒေသဆိုင်ရာ သတ်မှတ်ချက်",
+  "localizationTitle": "Localization",
   "localizationLanguage": "ဘာသာစကား",
   "localizationHelper": "အက်ပ်စာသားများသည် လက်ရှိတွင် အင်္ဂလိပ်လိုသာ ရှိသေးသည်။ ဒါက သင့်ရွေးချယ်မှုကို သိမ်းဆည်းပေးထားပါမည်။",
 

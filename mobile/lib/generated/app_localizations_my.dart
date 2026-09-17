@@ -1508,7 +1508,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsDocuments => 'စာရွက်စာတမ်းများ';
 
   @override
-  String get settingsLocalization => 'ဘာသာစကားနှင့် ဒေသဆိုင်ရာ သတ်မှတ်ချက်';
+  String get settingsLocalization => 'Localization';
 
   @override
   String get settingsUnitFormat => 'ယူနစ်နှင့် ပုံစံ';
@@ -1569,7 +1569,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsSyncTapToSync => 'သင့်ဒေတာများကို ချိတ်ဆက်ရန် နှိပ်ပါ';
 
   @override
-  String get localizationTitle => 'ဘာသာစကားနှင့် ဒေသဆိုင်ရာ သတ်မှတ်ချက်';
+  String get localizationTitle => 'Localization';
 
   @override
   String get localizationLanguage => 'ဘာသာစကား';
