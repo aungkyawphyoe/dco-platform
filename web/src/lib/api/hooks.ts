@@ -85,6 +85,54 @@ export function useSendPasswordReset() {
   });
 }
 
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      email: string;
+      temporary_password: string;
+      display_name?: string;
+      role?: "owner" | "admin";
+      plan?: "free" | "premium";
+    }) => apiPost<AdminUserProfile>("/admin/users", body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+    },
+  });
+}
+
+export function useDeleteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiPost<void>(`/admin/users/${id}/delete`),
+    onSuccess: (_data, id) => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ["admin", "users", id] });
+    },
+  });
+}
+
+export function useUpdateUserProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...body
+    }: {
+      id: string;
+      display_name?: string | null;
+      contact_phone?: string | null;
+      address?: string | null;
+      plan?: "free" | "premium";
+    }) => apiPatch<AdminUserProfile>(`/admin/users/${id}/profile`, body),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ["admin", "users", variables.id] });
+    },
+  });
+}
+
 // ── Partners ──
 
 export function useAdminPartners(query: {

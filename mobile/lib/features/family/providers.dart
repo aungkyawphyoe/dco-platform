@@ -12,26 +12,36 @@ final familyRepositoryProvider = Provider<FamilyRepository>((ref) {
 });
 
 final myFamilyProvider = FutureProvider<family_entities.Family?>((ref) {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return Future.value(null);
   final repo = ref.watch(familyRepositoryProvider);
   return repo.getMyFamily();
 });
 
 final familyMembersProvider = FutureProvider<List<family_entities.FamilyMember>>((ref) {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return Future.value(const []);
   final repo = ref.watch(familyRepositoryProvider);
   return repo.getMembers();
 });
 
 final vehicleDetailProvider = FutureProvider.family<family_entities.FamilyVehicleDetail?, String>((ref, vehicleId) {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return Future.value(null);
   final repo = ref.watch(familyRepositoryProvider);
   return repo.getVehicleDetail(vehicleId);
 });
 
 final userDetailProvider = FutureProvider.family<family_entities.UserDetail?, String>((ref, userId) {
+  final currentUserId = ref.watch(currentUserIdProvider);
+  if (currentUserId == null) return Future.value(null);
   final repo = ref.watch(familyRepositoryProvider);
   return repo.getUserDetail(userId);
 });
 
 final myLicenseProvider = FutureProvider<family_entities.DrivingLicense?>((ref) {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return Future.value(null);
   final repo = ref.watch(familyRepositoryProvider);
   return repo.getMyLicense();
 });
@@ -43,6 +53,8 @@ final vehicleDetailAsyncProvider = Provider.family<AsyncValue<family_entities.Fa
 /// Local-first vehicle detail: reads from Drift immediately, then
 /// enriches with API data (grants, documents, assigned drivers).
 final localVehicleDetailProvider = FutureProvider.family<family_entities.FamilyVehicleDetail?, String>((ref, vehicleId) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return null;
   final repo = ref.watch(familyRepositoryProvider);
 
   // Step 1: load from local Drift
@@ -62,6 +74,8 @@ final localVehicleDetailProvider = FutureProvider.family<family_entities.FamilyV
 /// Local-first user detail: reads from Drift immediately, then
 /// enriches with API data (email, plan, vehicleLimit, etc.).
 final localUserDetailProvider = FutureProvider.family<family_entities.UserDetail?, String>((ref, userId) async {
+  final currentUserId = ref.watch(currentUserIdProvider);
+  if (currentUserId == null) return null;
   final repo = ref.watch(familyRepositoryProvider);
 
   // Step 1: load from local Drift

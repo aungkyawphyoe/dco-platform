@@ -94,6 +94,25 @@ class DashboardScreen extends ConsumerWidget {
                 ),
               ),
             ),
+          if (session?.user.isProfileComplete == false)
+            Material(
+              color: tokens.status.infoBg,
+              child: ListTile(
+                title: Text(
+                  s.profileCompleteBanner,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: tokens.status.infoFg,
+                  ),
+                ),
+                trailing: TextButton(
+                  onPressed: () => context.push(AppRoutes.settingsProfile),
+                  child: Text(
+                    s.profileCompleteBannerAction,
+                    style: TextStyle(color: tokens.text.link),
+                  ),
+                ),
+              ),
+            ),
           Expanded(
             child: active.when(
               loading: () => Center(

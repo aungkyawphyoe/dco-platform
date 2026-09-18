@@ -689,7 +689,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get planItemFormNotes => 'မှတ်ချက်များ';
 
   @override
-  String get suggestedItemsTitle => 'ပြုပြင်ထိန်းသိမ်းမှု အကြောင်းအရာများ';
+  String get suggestedItemsTitle => 'ပြုပြင်မှုဆိုင်ရာ အချက်များ';
 
   @override
   String get suggestedItemsNoActiveVehicleBody =>
@@ -1567,6 +1567,77 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get settingsSyncTapToSync => 'သင့်ဒေတာများကို ချိတ်ဆက်ရန် နှိပ်ပါ';
+
+  @override
+  String get profileTitle => 'Profile';
+
+  @override
+  String get profilePhoto => 'Profile Photo';
+
+  @override
+  String get profilePhotoTapToChange => 'Tap to change photo';
+
+  @override
+  String get profileName => 'Name';
+
+  @override
+  String get profileNameHint => 'Enter your name';
+
+  @override
+  String get profileContactPhone => 'Contact Number';
+
+  @override
+  String get profileContactPhoneHint => 'Phone number (optional)';
+
+  @override
+  String get profileAddress => 'Address';
+
+  @override
+  String get profileAddressHint => 'Address (optional)';
+
+  @override
+  String get profileEmail => 'Email';
+
+  @override
+  String get profileEmailVerified => 'Verified';
+
+  @override
+  String get profileEmailNotVerified => 'Not verified';
+
+  @override
+  String get profileMemberSince => 'Member since';
+
+  @override
+  String get profileSave => 'Save Profile';
+
+  @override
+  String get profileSaved => 'Profile updated';
+
+  @override
+  String get profileCompleteBanner => 'Complete your profile';
+
+  @override
+  String get profileCompleteBannerAction => 'Set up';
+
+  @override
+  String get profileDeleteAccount => 'Delete Account';
+
+  @override
+  String get profileDeleteAccountTitle => 'Delete Account?';
+
+  @override
+  String get profileDeleteAccountBody =>
+      'This will deactivate your account and archive all your vehicles. You will not be able to sign in again.';
+
+  @override
+  String get profileDeleteAccountPassword => 'Enter your password to confirm';
+
+  @override
+  String get profileDeleteAccountBlocked =>
+      'You are the Primary Owner of a family. Transfer ownership or dissolve your family before deleting your account.';
+
+  @override
+  String get profileDeleteAccountSuccess => 'Your account has been deleted.';
 
   @override
   String get localizationTitle => 'Localization';

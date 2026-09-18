@@ -25,11 +25,28 @@ class ProfileRepositoryImpl implements ProfileRepository {
   Future<User> get() => _remote.get();
 
   @override
-  Future<User> update({String? displayName, String? activeVehicleId}) {
+  Future<User> update({
+    required String displayName,
+    String? contactPhone,
+    String? address,
+    String? activeVehicleId,
+  }) {
     return _remote.update({
-      'display_name': ?displayName,
-      'active_vehicle_id': ?activeVehicleId,
+      'display_name': displayName,
+      'contact_phone': contactPhone,
+      'address': address,
+      if (activeVehicleId != null) 'active_vehicle_id': activeVehicleId,
     });
+  }
+
+  @override
+  Future<String> uploadPhoto(String filePath) {
+    return _remote.uploadPhoto(filePath);
+  }
+
+  @override
+  Future<void> deleteAccount({required String password, String? reason}) {
+    return _remote.deleteAccount(password: password, reason: reason);
   }
 
   @override
@@ -63,7 +80,8 @@ class ProfileRepositoryImpl implements ProfileRepository {
     final vehicleId = row?.value;
     if (vehicleId == null || vehicleId.isEmpty) return;
     try {
-      await update(activeVehicleId: vehicleId);
+      final current = await get();
+      await update(displayName: current.displayName ?? '', activeVehicleId: vehicleId);
       await (_db.delete(_db.appMeta)..where((m) => m.key.equals(key))).go();
     } on ApiError catch (error) {
       if (error.code != 'network') {

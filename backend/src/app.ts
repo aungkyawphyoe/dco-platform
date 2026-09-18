@@ -17,6 +17,7 @@ import { mediaPlugin } from "./modules/media.js";
 import { syncPlugin } from "./modules/sync.js";
 import { adminPlugin } from "./modules/admin.js";
 import { docsPlugin } from "./modules/docs.js";
+import { profilePlugin } from "./modules/profile.js";
 import "./types.js";
 
 export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: MediaStore }) {
@@ -59,6 +60,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(familyPlugin);
       await v1.register(mediaPlugin);
       await v1.register(syncPlugin);
+      await v1.register(profilePlugin);
       await v1.register(adminPlugin);
     },
     { prefix: "/v1" },

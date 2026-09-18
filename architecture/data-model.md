@@ -21,11 +21,15 @@ erDiagram
     string email UK
     string password_hash
     string display_name
+    uuid profile_photo_media_id FK
+    string contact_phone
+    string address
     enum role
     enum plan
     enum status
     bool email_verified
     uuid active_vehicle_id FK
+    uuid family_id FK
     timestamptz created_at
   }
 
@@ -266,6 +270,9 @@ Local-only (mobile, not a server table): **outbox** rows (`entity_type`, `entity
 | `status` | `active` \| `deactivated`. Deactivated cannot sign in |
 | `active_vehicle_id` | Null only when the garage is empty. After the first vehicle, always one active vehicle |
 | `email_verified` | Prompt until true; does not block adding a vehicle |
+| `profile_photo_media_id` | Nullable FK to `media_objects`. Profile photo follows existing media pipeline. |
+| `contact_phone` | Optional. Max 20 chars. Free-form text. |
+| `address` | Optional. Max 500 chars. Free-form text. |
 
 ### vehicles
 
@@ -333,7 +340,7 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 | Archive vehicle | `archived=true`, `archived_at` set. Cancel local notifications. Hide from garage and dashboard switcher. Keep all child rows. |
 | Un-archive | Not in MVP UI. Do not resurrect from an older outbox edit if archive already applied. |
 | Delete document / expense | Hard-delete that row + queue remote delete + delete media. Not the same as vehicle archive. |
-| Delete user | **Forbidden** in MVP. Deactivate instead. |
+| Delete user | **Soft-delete** (deactivate). Vehicles archived, family dissolved/removed. Admin can reactivate. |
 | Logout | Tokens discarded. Outbox remains encrypted, bound to `user_id`. |
 
 ---

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics.dart';
 import '../../../core/providers.dart';
+import '../../family/providers.dart';
 import '../domain/auth_failure.dart';
 import '../domain/entities/session.dart';
 
@@ -45,6 +46,9 @@ class SessionController extends AsyncNotifier<Session?> {
   Future<void> signOut() async {
     await ref.read(authRepositoryProvider).signOut();
     ref.read(analyticsProvider).track(AnalyticsEvent.authSignedOut);
+    try {
+      await ref.read(familyRepositoryProvider).clearFamilyCache();
+    } catch (_) {}
     state = const AsyncData(null);
   }
 
@@ -55,6 +59,12 @@ class SessionController extends AsyncNotifier<Session?> {
 
   Future<void> resendVerification() {
     return ref.read(authRepositoryProvider).resendVerification();
+  }
+
+  void updateUser(User user) {
+    final current = state.valueOrNull;
+    if (current == null) return;
+    state = AsyncData(current.copyWithUser(user));
   }
 
   void _throwIfError() {

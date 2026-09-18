@@ -29,4 +29,5 @@ abstract class FamilyRepository {
   Future<UserDetail?> getUserDetail(String userId);
   Future<FamilyVehicleDetail?> getLocalVehicleDetail(String vehicleId);
   Future<UserDetail?> getLocalUserDetail(String userId);
+  Future<void> clearFamilyCache();
 }

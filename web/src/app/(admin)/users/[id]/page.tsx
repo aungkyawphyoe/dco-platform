@@ -26,6 +26,7 @@ import {
   useDeactivateUser,
   useReactivateUser,
   useSendPasswordReset,
+  useDeleteUser,
 } from "@/lib/api/hooks";
 
 export default function UserProfilePage({
@@ -41,9 +42,11 @@ export default function UserProfilePage({
   const deactivate = useDeactivateUser();
   const reactivate = useReactivateUser();
   const sendReset = useSendPasswordReset();
+  const deleteUser = useDeleteUser();
 
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showReactivateModal, setShowReactivateModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   if (isLoading) {
@@ -113,6 +116,14 @@ export default function UserProfilePage({
             <div className="flex justify-between">
               <dt className="text-ink-caption">Display name</dt>
               <dd className="text-ink">{user.display_name ?? "—"}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-ink-caption">Contact phone</dt>
+              <dd className="text-ink">{user.contact_phone ?? "—"}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-ink-caption">Address</dt>
+              <dd className="text-ink max-w-xs truncate">{user.address ?? "—"}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-ink-caption">Plan</dt>
@@ -221,14 +232,24 @@ export default function UserProfilePage({
               Reactivate account
             </Button>
           ) : (
-            <Button
-              variant="destructive"
-              size="sm"
-              disabled={deactivate.isPending}
-              onClick={() => setShowDeactivateModal(true)}
-            >
-              Deactivate account
-            </Button>
+            <>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={deactivate.isPending}
+                onClick={() => setShowDeactivateModal(true)}
+              >
+                Deactivate account
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                disabled={deleteUser.isPending}
+                onClick={() => setShowDeleteModal(true)}
+              >
+                Delete user
+              </Button>
+            </>
           )}
         </div>
       </Card>
@@ -273,6 +294,30 @@ export default function UserProfilePage({
         <p>
           This will restore access to the app for{" "}
           <strong>{user.email}</strong>.
+        </p>
+      </Modal>
+
+      <Modal
+        open={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        title="Delete user"
+        confirmLabel="Delete"
+        destructive
+        loading={deleteUser.isPending}
+        onConfirm={() =>
+          deleteUser.mutate(id, {
+            onSuccess: () => {
+              setShowDeleteModal(false);
+              router.push("/users");
+            },
+          })
+        }
+      >
+        <p>
+          This will permanently deactivate <strong>{user.email}</strong>,
+          archive all their vehicles, and dissolve their family if they are a
+          Primary Owner. This action can be reversed by reactivating the
+          account.
         </p>
       </Modal>
     </div>

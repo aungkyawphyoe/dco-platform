@@ -23,13 +23,14 @@ typedef SetActiveVehicle = Future<void> Function(String vehicleId);
 final setActiveVehicleProvider = Provider<SetActiveVehicle>((ref) {
   return (vehicleId) async {
     final userId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    final displayName = ref.read(sessionControllerProvider).valueOrNull?.user.displayName ?? '';
     if (userId == null) return;
     final profile = ref.read(profileRepositoryProvider);
     await ref
         .read(vehicleRepositoryProvider)
         .setActive(userId: userId, vehicleId: vehicleId);
     try {
-      await profile.update(activeVehicleId: vehicleId);
+      await profile.update(displayName: displayName, activeVehicleId: vehicleId);
     } on ApiError catch (error) {
       if (error.code == 'network') {
         await profile.markPendingActiveVehicle(

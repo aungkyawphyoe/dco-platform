@@ -3,7 +3,16 @@ import '../entities/session.dart';
 abstract class ProfileRepository {
   Future<User> get();
 
-  Future<User> update({String? displayName, String? activeVehicleId});
+  Future<User> update({
+    required String displayName,
+    String? contactPhone,
+    String? address,
+    String? activeVehicleId,
+  });
+
+  Future<String> uploadPhoto(String filePath);
+
+  Future<void> deleteAccount({required String password, String? reason});
 
   Future<void> registerDeviceToken({
     required String token,

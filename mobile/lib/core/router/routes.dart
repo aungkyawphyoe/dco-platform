@@ -26,6 +26,7 @@ abstract final class AppRoutes {
   static String documentEdit(String id) => '/expenses/documents/$id/edit';
   static String documentView(String id) => '/expenses/documents/$id/view';
   static const settings = '/settings';
+  static const settingsProfile = '/settings/profile';
   static const settingsLocalization = '/settings/localization';
   static const settingsUnits = '/settings/units';
   static const serviceHistory = '/dashboard/services';

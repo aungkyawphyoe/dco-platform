@@ -45,9 +45,7 @@ class SettingsScreen extends ConsumerWidget {
                     color: tokens.background.card,
                     borderRadius: BorderRadius.circular(tokens.radius.lg),
                     child: InkWell(
-                      onTap: user?.id != null
-                          ? () => context.push(AppRoutes.userDetail(user!.id))
-                          : null,
+                      onTap: () => context.push(AppRoutes.settingsProfile),
                       borderRadius: BorderRadius.circular(tokens.radius.lg),
                       child: Padding(
                         padding: EdgeInsets.all(tokens.space.s4),
@@ -60,7 +58,7 @@ class SettingsScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    user?.email ?? '',
+                                    user?.displayName ?? user?.email ?? '',
                                     style: Theme.of(context).textTheme.titleMedium,
                                   ),
                                   SizedBox(height: tokens.space.s1),

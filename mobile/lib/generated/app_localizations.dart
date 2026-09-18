@@ -2972,6 +2972,144 @@ abstract class AppLocalizations {
   /// **'Tap to sync your data'**
   String get settingsSyncTapToSync;
 
+  /// No description provided for @profileTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profileTitle;
+
+  /// No description provided for @profilePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile Photo'**
+  String get profilePhoto;
+
+  /// No description provided for @profilePhotoTapToChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to change photo'**
+  String get profilePhotoTapToChange;
+
+  /// No description provided for @profileName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get profileName;
+
+  /// No description provided for @profileNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your name'**
+  String get profileNameHint;
+
+  /// No description provided for @profileContactPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact Number'**
+  String get profileContactPhone;
+
+  /// No description provided for @profileContactPhoneHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Phone number (optional)'**
+  String get profileContactPhoneHint;
+
+  /// No description provided for @profileAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Address'**
+  String get profileAddress;
+
+  /// No description provided for @profileAddressHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Address (optional)'**
+  String get profileAddressHint;
+
+  /// No description provided for @profileEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Email'**
+  String get profileEmail;
+
+  /// No description provided for @profileEmailVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Verified'**
+  String get profileEmailVerified;
+
+  /// No description provided for @profileEmailNotVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Not verified'**
+  String get profileEmailNotVerified;
+
+  /// No description provided for @profileMemberSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Member since'**
+  String get profileMemberSince;
+
+  /// No description provided for @profileSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Profile'**
+  String get profileSave;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile updated'**
+  String get profileSaved;
+
+  /// No description provided for @profileCompleteBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Complete your profile'**
+  String get profileCompleteBanner;
+
+  /// No description provided for @profileCompleteBannerAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get profileCompleteBannerAction;
+
+  /// No description provided for @profileDeleteAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account'**
+  String get profileDeleteAccount;
+
+  /// No description provided for @profileDeleteAccountTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete Account?'**
+  String get profileDeleteAccountTitle;
+
+  /// No description provided for @profileDeleteAccountBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This will deactivate your account and archive all your vehicles. You will not be able to sign in again.'**
+  String get profileDeleteAccountBody;
+
+  /// No description provided for @profileDeleteAccountPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your password to confirm'**
+  String get profileDeleteAccountPassword;
+
+  /// No description provided for @profileDeleteAccountBlocked.
+  ///
+  /// In en, this message translates to:
+  /// **'You are the Primary Owner of a family. Transfer ownership or dissolve your family before deleting your account.'**
+  String get profileDeleteAccountBlocked;
+
+  /// No description provided for @profileDeleteAccountSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your account has been deleted.'**
+  String get profileDeleteAccountSuccess;
+
   /// No description provided for @localizationTitle.
   ///
   /// In en, this message translates to:

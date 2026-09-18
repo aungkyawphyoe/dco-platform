@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
@@ -40,27 +41,32 @@ export default function UsersPage() {
         description="Search, view, and support owner accounts"
       />
 
-      <div className="flex flex-wrap items-end gap-3">
-        <SearchInput
-          value={q}
-          onChange={(val) => {
-            setQ(val);
-            handleSearch(val);
-          }}
-          placeholder="Search by email or name..."
-          className="w-72"
-        />
-        <Select
-          label="Status"
-          placeholder="All statuses"
-          options={[
-            { value: "active", label: "Active" },
-            { value: "deactivated", label: "Deactivated" },
-          ]}
-          value={status}
-          onChange={setStatus}
-          className="w-44"
-        />
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-wrap items-end gap-3">
+          <SearchInput
+            value={q}
+            onChange={(val) => {
+              setQ(val);
+              handleSearch(val);
+            }}
+            placeholder="Search by email, name, or phone..."
+            className="w-72"
+          />
+          <Select
+            label="Status"
+            placeholder="All statuses"
+            options={[
+              { value: "active", label: "Active" },
+              { value: "deactivated", label: "Deactivated" },
+            ]}
+            value={status}
+            onChange={setStatus}
+            className="w-44"
+          />
+        </div>
+        <Link href="/users/new">
+          <Button size="sm">Create user</Button>
+        </Link>
       </div>
 
       {error ? (
@@ -91,6 +97,7 @@ export default function UsersPage() {
               <TableRow>
                 <TableHeadCell>Email</TableHeadCell>
                 <TableHeadCell>Name</TableHeadCell>
+                <TableHeadCell>Phone</TableHeadCell>
                 <TableHeadCell>Plan</TableHeadCell>
                 <TableHeadCell>Status</TableHeadCell>
                 <TableHeadCell>Vehicles</TableHeadCell>
@@ -110,6 +117,9 @@ export default function UsersPage() {
                   </TableCell>
                   <TableCell className="text-ink-muted">
                     {user.display_name ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-ink-muted">
+                    {user.contact_phone ?? "—"}
                   </TableCell>
                   <TableCell>
                     <PlanBadge plan={user.plan} />

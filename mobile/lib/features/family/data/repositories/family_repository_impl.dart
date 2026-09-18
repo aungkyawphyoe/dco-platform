@@ -62,7 +62,7 @@ class FamilyRepositoryImpl implements FamilyRepository {
   @override
   Future<void> archiveFamily() async {
     await _dio.delete('/families/me');
-    await _clearFamilyCache();
+    await clearFamilyCache();
   }
 
   @override
@@ -339,7 +339,8 @@ class FamilyRepositoryImpl implements FamilyRepository {
     return rows.map((r) => r.toFamilyMember()).toList();
   }
 
-  Future<void> _clearFamilyCache() async {
+  @override
+  Future<void> clearFamilyCache() async {
     await _db.delete(_db.familyRecords).go();
     await _db.delete(_db.familyMembershipRecords).go();
     await _db.delete(_db.vehicleGrantRecords).go();

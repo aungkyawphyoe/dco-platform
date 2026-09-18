@@ -46,6 +46,9 @@ CREATE TABLE IF NOT EXISTS users (
   email text NOT NULL UNIQUE,
   password_hash text NOT NULL,
   display_name text,
+  profile_photo_media_id uuid,
+  contact_phone text,
+  address text,
   role user_role NOT NULL DEFAULT 'owner',
   plan user_plan NOT NULL DEFAULT 'free',
   status account_status NOT NULL DEFAULT 'active',
@@ -323,3 +326,8 @@ CREATE TABLE IF NOT EXISTS family_vehicles (
   added_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (family_id, vehicle_id)
 );
+
+-- User profile fields
+ALTER TABLE users ADD COLUMN IF NOT EXISTS profile_photo_media_id uuid;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS contact_phone text;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS address text;

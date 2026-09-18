@@ -33,6 +33,12 @@ class FakeProfileRemoteDataSource implements ProfileRemoteDataSource {
   }
 
   @override
+  Future<String> uploadPhoto(String filePath) async => '';
+
+  @override
+  Future<void> deleteAccount({required String password, String? reason}) async {}
+
+  @override
   Future<void> registerDeviceToken({
     required String token,
     required String platform,
@@ -56,6 +62,8 @@ void main() {
     await repo.update(displayName: 'Alex', activeVehicleId: 'v1');
     expect(remote.recordedPatches.single, {
       'display_name': 'Alex',
+      'contact_phone': null,
+      'address': null,
       'active_vehicle_id': 'v1',
     });
   });
