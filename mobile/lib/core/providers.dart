@@ -22,7 +22,9 @@ import '../../features/fuel/data/repositories/fuel_repository_impl.dart';
 import '../../features/fuel/domain/repositories/fuel_repository.dart';
 import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
 import '../../features/garage/domain/repositories/vehicle_repository.dart';
+import '../../features/maintenance/data/repositories/maintenance_catalog_repository_impl.dart';
 import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
+import '../../features/maintenance/domain/repositories/maintenance_catalog_repository.dart';
 import '../../features/maintenance/domain/repositories/maintenance_repository.dart';
 import '../../features/notifications/data/reminder_schedule_store.dart';
 import '../../features/notifications/data/reminder_sync_service.dart';
@@ -181,6 +183,13 @@ final maintenanceRepositoryProvider = Provider<MaintenanceRepository>((ref) {
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
     expenseRepository: ref.watch(expenseRepositoryProvider),
+  );
+});
+
+final maintenanceCatalogRepositoryProvider = Provider<MaintenanceCatalogRepository>((ref) {
+  return MaintenanceCatalogRepositoryImpl(
+    db: ref.watch(appDatabaseProvider),
+    dio: ref.watch(dioProvider),
   );
 });
 

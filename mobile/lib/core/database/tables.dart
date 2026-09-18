@@ -333,3 +333,22 @@ class DocumentRecords extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+class MaintenanceCatalogRecords extends Table {
+  @override
+  String get tableName => 'maintenance_catalog';
+
+  TextColumn get id => text()();
+  TextColumn get catalogKey => text()();
+  TextColumn get name => text()();
+  IntColumn get intervalDays => integer().nullable()();
+  RealColumn get intervalDistance => real().nullable()();
+  TextColumn get fuelTypes => text()(); // JSON array stored as text
+  IntColumn get sortOrder => integer().withDefault(const Constant(0))();
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}

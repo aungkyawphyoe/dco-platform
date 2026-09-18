@@ -2,7 +2,6 @@ import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/plan_item_validators.dart';
-import 'package:dco_mobile/features/maintenance/domain/suggested_catalog.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 PlanItem _item({
@@ -179,16 +178,6 @@ void main() {
         PlanItemValidators.schedule(recurring: false, mileage: 15000),
         isNull,
       );
-    });
-  });
-
-  group('SuggestedCatalog', () {
-    test('hides engine items for electric vehicles', () {
-      final petrol = SuggestedCatalog.forFuelType(FuelType.petrol);
-      final electric = SuggestedCatalog.forFuelType(FuelType.electric);
-      expect(petrol.any((item) => item.catalogKey == 'oil_change'), isTrue);
-      expect(electric.any((item) => item.catalogKey == 'oil_change'), isFalse);
-      expect(electric.any((item) => item.catalogKey == 'rotate_tires'), isTrue);
     });
   });
 }

@@ -15,6 +15,12 @@ const nav = [
       { href: "/partners", label: "Partners", exact: false },
     ],
   },
+  {
+    section: "Configuration",
+    items: [
+      { href: "/catalog", label: "Maintenance Catalog", exact: false },
+    ],
+  },
 ];
 
 export function Sidebar() {

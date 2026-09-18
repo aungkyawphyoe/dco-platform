@@ -11021,6 +11021,634 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
   }
 }
 
+class $MaintenanceCatalogRecordsTable extends MaintenanceCatalogRecords
+    with TableInfo<$MaintenanceCatalogRecordsTable, MaintenanceCatalogRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MaintenanceCatalogRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _catalogKeyMeta = const VerificationMeta(
+    'catalogKey',
+  );
+  @override
+  late final GeneratedColumn<String> catalogKey = GeneratedColumn<String>(
+    'catalog_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _intervalDaysMeta = const VerificationMeta(
+    'intervalDays',
+  );
+  @override
+  late final GeneratedColumn<int> intervalDays = GeneratedColumn<int>(
+    'interval_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _intervalDistanceMeta = const VerificationMeta(
+    'intervalDistance',
+  );
+  @override
+  late final GeneratedColumn<double> intervalDistance = GeneratedColumn<double>(
+    'interval_distance',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fuelTypesMeta = const VerificationMeta(
+    'fuelTypes',
+  );
+  @override
+  late final GeneratedColumn<String> fuelTypes = GeneratedColumn<String>(
+    'fuel_types',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sortOrderMeta = const VerificationMeta(
+    'sortOrder',
+  );
+  @override
+  late final GeneratedColumn<int> sortOrder = GeneratedColumn<int>(
+    'sort_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _enabledMeta = const VerificationMeta(
+    'enabled',
+  );
+  @override
+  late final GeneratedColumn<bool> enabled = GeneratedColumn<bool>(
+    'enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    catalogKey,
+    name,
+    intervalDays,
+    intervalDistance,
+    fuelTypes,
+    sortOrder,
+    enabled,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'maintenance_catalog';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MaintenanceCatalogRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('catalog_key')) {
+      context.handle(
+        _catalogKeyMeta,
+        catalogKey.isAcceptableOrUnknown(data['catalog_key']!, _catalogKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_catalogKeyMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    if (data.containsKey('interval_days')) {
+      context.handle(
+        _intervalDaysMeta,
+        intervalDays.isAcceptableOrUnknown(
+          data['interval_days']!,
+          _intervalDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('interval_distance')) {
+      context.handle(
+        _intervalDistanceMeta,
+        intervalDistance.isAcceptableOrUnknown(
+          data['interval_distance']!,
+          _intervalDistanceMeta,
+        ),
+      );
+    }
+    if (data.containsKey('fuel_types')) {
+      context.handle(
+        _fuelTypesMeta,
+        fuelTypes.isAcceptableOrUnknown(data['fuel_types']!, _fuelTypesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fuelTypesMeta);
+    }
+    if (data.containsKey('sort_order')) {
+      context.handle(
+        _sortOrderMeta,
+        sortOrder.isAcceptableOrUnknown(data['sort_order']!, _sortOrderMeta),
+      );
+    }
+    if (data.containsKey('enabled')) {
+      context.handle(
+        _enabledMeta,
+        enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  MaintenanceCatalogRecord map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MaintenanceCatalogRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      catalogKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}catalog_key'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      intervalDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval_days'],
+      ),
+      intervalDistance: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}interval_distance'],
+      ),
+      fuelTypes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}fuel_types'],
+      )!,
+      sortOrder: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}sort_order'],
+      )!,
+      enabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}enabled'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $MaintenanceCatalogRecordsTable createAlias(String alias) {
+    return $MaintenanceCatalogRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class MaintenanceCatalogRecord extends DataClass
+    implements Insertable<MaintenanceCatalogRecord> {
+  final String id;
+  final String catalogKey;
+  final String name;
+  final int? intervalDays;
+  final double? intervalDistance;
+  final String fuelTypes;
+  final int sortOrder;
+  final bool enabled;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const MaintenanceCatalogRecord({
+    required this.id,
+    required this.catalogKey,
+    required this.name,
+    this.intervalDays,
+    this.intervalDistance,
+    required this.fuelTypes,
+    required this.sortOrder,
+    required this.enabled,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['catalog_key'] = Variable<String>(catalogKey);
+    map['name'] = Variable<String>(name);
+    if (!nullToAbsent || intervalDays != null) {
+      map['interval_days'] = Variable<int>(intervalDays);
+    }
+    if (!nullToAbsent || intervalDistance != null) {
+      map['interval_distance'] = Variable<double>(intervalDistance);
+    }
+    map['fuel_types'] = Variable<String>(fuelTypes);
+    map['sort_order'] = Variable<int>(sortOrder);
+    map['enabled'] = Variable<bool>(enabled);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  MaintenanceCatalogRecordsCompanion toCompanion(bool nullToAbsent) {
+    return MaintenanceCatalogRecordsCompanion(
+      id: Value(id),
+      catalogKey: Value(catalogKey),
+      name: Value(name),
+      intervalDays: intervalDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(intervalDays),
+      intervalDistance: intervalDistance == null && nullToAbsent
+          ? const Value.absent()
+          : Value(intervalDistance),
+      fuelTypes: Value(fuelTypes),
+      sortOrder: Value(sortOrder),
+      enabled: Value(enabled),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory MaintenanceCatalogRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MaintenanceCatalogRecord(
+      id: serializer.fromJson<String>(json['id']),
+      catalogKey: serializer.fromJson<String>(json['catalogKey']),
+      name: serializer.fromJson<String>(json['name']),
+      intervalDays: serializer.fromJson<int?>(json['intervalDays']),
+      intervalDistance: serializer.fromJson<double?>(json['intervalDistance']),
+      fuelTypes: serializer.fromJson<String>(json['fuelTypes']),
+      sortOrder: serializer.fromJson<int>(json['sortOrder']),
+      enabled: serializer.fromJson<bool>(json['enabled']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'catalogKey': serializer.toJson<String>(catalogKey),
+      'name': serializer.toJson<String>(name),
+      'intervalDays': serializer.toJson<int?>(intervalDays),
+      'intervalDistance': serializer.toJson<double?>(intervalDistance),
+      'fuelTypes': serializer.toJson<String>(fuelTypes),
+      'sortOrder': serializer.toJson<int>(sortOrder),
+      'enabled': serializer.toJson<bool>(enabled),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  MaintenanceCatalogRecord copyWith({
+    String? id,
+    String? catalogKey,
+    String? name,
+    Value<int?> intervalDays = const Value.absent(),
+    Value<double?> intervalDistance = const Value.absent(),
+    String? fuelTypes,
+    int? sortOrder,
+    bool? enabled,
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => MaintenanceCatalogRecord(
+    id: id ?? this.id,
+    catalogKey: catalogKey ?? this.catalogKey,
+    name: name ?? this.name,
+    intervalDays: intervalDays.present ? intervalDays.value : this.intervalDays,
+    intervalDistance: intervalDistance.present
+        ? intervalDistance.value
+        : this.intervalDistance,
+    fuelTypes: fuelTypes ?? this.fuelTypes,
+    sortOrder: sortOrder ?? this.sortOrder,
+    enabled: enabled ?? this.enabled,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  MaintenanceCatalogRecord copyWithCompanion(
+    MaintenanceCatalogRecordsCompanion data,
+  ) {
+    return MaintenanceCatalogRecord(
+      id: data.id.present ? data.id.value : this.id,
+      catalogKey: data.catalogKey.present
+          ? data.catalogKey.value
+          : this.catalogKey,
+      name: data.name.present ? data.name.value : this.name,
+      intervalDays: data.intervalDays.present
+          ? data.intervalDays.value
+          : this.intervalDays,
+      intervalDistance: data.intervalDistance.present
+          ? data.intervalDistance.value
+          : this.intervalDistance,
+      fuelTypes: data.fuelTypes.present ? data.fuelTypes.value : this.fuelTypes,
+      sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
+      enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MaintenanceCatalogRecord(')
+          ..write('id: $id, ')
+          ..write('catalogKey: $catalogKey, ')
+          ..write('name: $name, ')
+          ..write('intervalDays: $intervalDays, ')
+          ..write('intervalDistance: $intervalDistance, ')
+          ..write('fuelTypes: $fuelTypes, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('enabled: $enabled, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    catalogKey,
+    name,
+    intervalDays,
+    intervalDistance,
+    fuelTypes,
+    sortOrder,
+    enabled,
+    updatedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MaintenanceCatalogRecord &&
+          other.id == this.id &&
+          other.catalogKey == this.catalogKey &&
+          other.name == this.name &&
+          other.intervalDays == this.intervalDays &&
+          other.intervalDistance == this.intervalDistance &&
+          other.fuelTypes == this.fuelTypes &&
+          other.sortOrder == this.sortOrder &&
+          other.enabled == this.enabled &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class MaintenanceCatalogRecordsCompanion
+    extends UpdateCompanion<MaintenanceCatalogRecord> {
+  final Value<String> id;
+  final Value<String> catalogKey;
+  final Value<String> name;
+  final Value<int?> intervalDays;
+  final Value<double?> intervalDistance;
+  final Value<String> fuelTypes;
+  final Value<int> sortOrder;
+  final Value<bool> enabled;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const MaintenanceCatalogRecordsCompanion({
+    this.id = const Value.absent(),
+    this.catalogKey = const Value.absent(),
+    this.name = const Value.absent(),
+    this.intervalDays = const Value.absent(),
+    this.intervalDistance = const Value.absent(),
+    this.fuelTypes = const Value.absent(),
+    this.sortOrder = const Value.absent(),
+    this.enabled = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MaintenanceCatalogRecordsCompanion.insert({
+    required String id,
+    required String catalogKey,
+    required String name,
+    this.intervalDays = const Value.absent(),
+    this.intervalDistance = const Value.absent(),
+    required String fuelTypes,
+    this.sortOrder = const Value.absent(),
+    this.enabled = const Value.absent(),
+    required DateTime updatedAt,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       catalogKey = Value(catalogKey),
+       name = Value(name),
+       fuelTypes = Value(fuelTypes),
+       updatedAt = Value(updatedAt),
+       createdAt = Value(createdAt);
+  static Insertable<MaintenanceCatalogRecord> custom({
+    Expression<String>? id,
+    Expression<String>? catalogKey,
+    Expression<String>? name,
+    Expression<int>? intervalDays,
+    Expression<double>? intervalDistance,
+    Expression<String>? fuelTypes,
+    Expression<int>? sortOrder,
+    Expression<bool>? enabled,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (catalogKey != null) 'catalog_key': catalogKey,
+      if (name != null) 'name': name,
+      if (intervalDays != null) 'interval_days': intervalDays,
+      if (intervalDistance != null) 'interval_distance': intervalDistance,
+      if (fuelTypes != null) 'fuel_types': fuelTypes,
+      if (sortOrder != null) 'sort_order': sortOrder,
+      if (enabled != null) 'enabled': enabled,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MaintenanceCatalogRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? catalogKey,
+    Value<String>? name,
+    Value<int?>? intervalDays,
+    Value<double?>? intervalDistance,
+    Value<String>? fuelTypes,
+    Value<int>? sortOrder,
+    Value<bool>? enabled,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return MaintenanceCatalogRecordsCompanion(
+      id: id ?? this.id,
+      catalogKey: catalogKey ?? this.catalogKey,
+      name: name ?? this.name,
+      intervalDays: intervalDays ?? this.intervalDays,
+      intervalDistance: intervalDistance ?? this.intervalDistance,
+      fuelTypes: fuelTypes ?? this.fuelTypes,
+      sortOrder: sortOrder ?? this.sortOrder,
+      enabled: enabled ?? this.enabled,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (catalogKey.present) {
+      map['catalog_key'] = Variable<String>(catalogKey.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (intervalDays.present) {
+      map['interval_days'] = Variable<int>(intervalDays.value);
+    }
+    if (intervalDistance.present) {
+      map['interval_distance'] = Variable<double>(intervalDistance.value);
+    }
+    if (fuelTypes.present) {
+      map['fuel_types'] = Variable<String>(fuelTypes.value);
+    }
+    if (sortOrder.present) {
+      map['sort_order'] = Variable<int>(sortOrder.value);
+    }
+    if (enabled.present) {
+      map['enabled'] = Variable<bool>(enabled.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MaintenanceCatalogRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('catalogKey: $catalogKey, ')
+          ..write('name: $name, ')
+          ..write('intervalDays: $intervalDays, ')
+          ..write('intervalDistance: $intervalDistance, ')
+          ..write('fuelTypes: $fuelTypes, ')
+          ..write('sortOrder: $sortOrder, ')
+          ..write('enabled: $enabled, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -11059,6 +11687,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $DocumentRecordsTable documentRecords = $DocumentRecordsTable(
     this,
   );
+  late final $MaintenanceCatalogRecordsTable maintenanceCatalogRecords =
+      $MaintenanceCatalogRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -11084,6 +11714,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     drivingLicenseRecords,
     familyVehicleRecords,
     documentRecords,
+    maintenanceCatalogRecords,
   ];
 }
 
@@ -16731,6 +17362,326 @@ typedef $$DocumentRecordsTableProcessedTableManager =
       DocumentRecord,
       PrefetchHooks Function()
     >;
+typedef $$MaintenanceCatalogRecordsTableCreateCompanionBuilder =
+    MaintenanceCatalogRecordsCompanion Function({
+      required String id,
+      required String catalogKey,
+      required String name,
+      Value<int?> intervalDays,
+      Value<double?> intervalDistance,
+      required String fuelTypes,
+      Value<int> sortOrder,
+      Value<bool> enabled,
+      required DateTime updatedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$MaintenanceCatalogRecordsTableUpdateCompanionBuilder =
+    MaintenanceCatalogRecordsCompanion Function({
+      Value<String> id,
+      Value<String> catalogKey,
+      Value<String> name,
+      Value<int?> intervalDays,
+      Value<double?> intervalDistance,
+      Value<String> fuelTypes,
+      Value<int> sortOrder,
+      Value<bool> enabled,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$MaintenanceCatalogRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $MaintenanceCatalogRecordsTable> {
+  $$MaintenanceCatalogRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get catalogKey => $composableBuilder(
+    column: $table.catalogKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get intervalDistance => $composableBuilder(
+    column: $table.intervalDistance,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fuelTypes => $composableBuilder(
+    column: $table.fuelTypes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$MaintenanceCatalogRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $MaintenanceCatalogRecordsTable> {
+  $$MaintenanceCatalogRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get catalogKey => $composableBuilder(
+    column: $table.catalogKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get intervalDistance => $composableBuilder(
+    column: $table.intervalDistance,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fuelTypes => $composableBuilder(
+    column: $table.fuelTypes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sortOrder => $composableBuilder(
+    column: $table.sortOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get enabled => $composableBuilder(
+    column: $table.enabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$MaintenanceCatalogRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $MaintenanceCatalogRecordsTable> {
+  $$MaintenanceCatalogRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get catalogKey => $composableBuilder(
+    column: $table.catalogKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<int> get intervalDays => $composableBuilder(
+    column: $table.intervalDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get intervalDistance => $composableBuilder(
+    column: $table.intervalDistance,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get fuelTypes =>
+      $composableBuilder(column: $table.fuelTypes, builder: (column) => column);
+
+  GeneratedColumn<int> get sortOrder =>
+      $composableBuilder(column: $table.sortOrder, builder: (column) => column);
+
+  GeneratedColumn<bool> get enabled =>
+      $composableBuilder(column: $table.enabled, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$MaintenanceCatalogRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $MaintenanceCatalogRecordsTable,
+          MaintenanceCatalogRecord,
+          $$MaintenanceCatalogRecordsTableFilterComposer,
+          $$MaintenanceCatalogRecordsTableOrderingComposer,
+          $$MaintenanceCatalogRecordsTableAnnotationComposer,
+          $$MaintenanceCatalogRecordsTableCreateCompanionBuilder,
+          $$MaintenanceCatalogRecordsTableUpdateCompanionBuilder,
+          (
+            MaintenanceCatalogRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $MaintenanceCatalogRecordsTable,
+              MaintenanceCatalogRecord
+            >,
+          ),
+          MaintenanceCatalogRecord,
+          PrefetchHooks Function()
+        > {
+  $$MaintenanceCatalogRecordsTableTableManager(
+    _$AppDatabase db,
+    $MaintenanceCatalogRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MaintenanceCatalogRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$MaintenanceCatalogRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$MaintenanceCatalogRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> catalogKey = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int?> intervalDays = const Value.absent(),
+                Value<double?> intervalDistance = const Value.absent(),
+                Value<String> fuelTypes = const Value.absent(),
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MaintenanceCatalogRecordsCompanion(
+                id: id,
+                catalogKey: catalogKey,
+                name: name,
+                intervalDays: intervalDays,
+                intervalDistance: intervalDistance,
+                fuelTypes: fuelTypes,
+                sortOrder: sortOrder,
+                enabled: enabled,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String catalogKey,
+                required String name,
+                Value<int?> intervalDays = const Value.absent(),
+                Value<double?> intervalDistance = const Value.absent(),
+                required String fuelTypes,
+                Value<int> sortOrder = const Value.absent(),
+                Value<bool> enabled = const Value.absent(),
+                required DateTime updatedAt,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => MaintenanceCatalogRecordsCompanion.insert(
+                id: id,
+                catalogKey: catalogKey,
+                name: name,
+                intervalDays: intervalDays,
+                intervalDistance: intervalDistance,
+                fuelTypes: fuelTypes,
+                sortOrder: sortOrder,
+                enabled: enabled,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$MaintenanceCatalogRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $MaintenanceCatalogRecordsTable,
+      MaintenanceCatalogRecord,
+      $$MaintenanceCatalogRecordsTableFilterComposer,
+      $$MaintenanceCatalogRecordsTableOrderingComposer,
+      $$MaintenanceCatalogRecordsTableAnnotationComposer,
+      $$MaintenanceCatalogRecordsTableCreateCompanionBuilder,
+      $$MaintenanceCatalogRecordsTableUpdateCompanionBuilder,
+      (
+        MaintenanceCatalogRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $MaintenanceCatalogRecordsTable,
+          MaintenanceCatalogRecord
+        >,
+      ),
+      MaintenanceCatalogRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -16778,4 +17729,9 @@ class $AppDatabaseManager {
       $$FamilyVehicleRecordsTableTableManager(_db, _db.familyVehicleRecords);
   $$DocumentRecordsTableTableManager get documentRecords =>
       $$DocumentRecordsTableTableManager(_db, _db.documentRecords);
+  $$MaintenanceCatalogRecordsTableTableManager get maintenanceCatalogRecords =>
+      $$MaintenanceCatalogRecordsTableTableManager(
+        _db,
+        _db.maintenanceCatalogRecords,
+      );
 }

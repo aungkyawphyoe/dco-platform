@@ -6,8 +6,8 @@ import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/data/repositories/maintenance_repository_impl.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/service_record.dart';
+import 'package:dco_mobile/features/maintenance/domain/entities/suggested_plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/maintenance_failure.dart';
-import 'package:dco_mobile/features/maintenance/domain/suggested_catalog.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -120,7 +120,13 @@ void main() {
 
   test('suggested catalog items become user-owned copies', () async {
     final vehicle = await addVehicle();
-    final suggestion = SuggestedCatalog.items.firstWhere((item) => item.catalogKey == 'oil_change');
+    const suggestion = SuggestedPlanItem(
+      catalogKey: 'oil_change',
+      name: 'Oil Change',
+      intervalDays: 365,
+      intervalDistance: 15000,
+      fuelTypes: {FuelType.petrol, FuelType.hybridPlugin},
+    );
     await maintenance.addSuggestedItem(
       userId: 'user-1',
       vehicle: vehicle,

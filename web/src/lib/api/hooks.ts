@@ -183,3 +183,48 @@ export function useUpdatePartner() {
     },
   });
 }
+
+// ── Maintenance Catalog ──
+
+type CatalogItem = components["schemas"]["MaintenanceCatalogItem"];
+type CatalogItemWrite = components["schemas"]["MaintenanceCatalogItemWrite"];
+
+export function useCatalogItems() {
+  return useQuery({
+    queryKey: ["admin", "catalog"],
+    queryFn: () => apiGet<{ items?: CatalogItem[] }>("/admin/maintenance-catalog"),
+  });
+}
+
+export function useCreateCatalogItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: CatalogItemWrite) =>
+      apiPost<CatalogItem>("/admin/maintenance-catalog", body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "catalog"] });
+    },
+  });
+}
+
+export function useUpdateCatalogItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, ...body }: CatalogItemWrite & { id: string }) =>
+      apiPatch<CatalogItem>(`/admin/maintenance-catalog/${id}`, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "catalog"] });
+    },
+  });
+}
+
+export function useDeleteCatalogItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) =>
+      apiDelete(`/admin/maintenance-catalog/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["admin", "catalog"] });
+    },
+  });
+}

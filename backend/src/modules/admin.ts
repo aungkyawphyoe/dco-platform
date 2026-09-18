@@ -1,7 +1,7 @@
 import { desc, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { auditEvents, documents, families, familyMemberships, familyVehicles, partners, refreshTokens, users, vehicles, vehicleGrants } from "../db/schema.js";
+import { auditEvents, documents, families, familyMemberships, familyVehicles, maintenanceCatalog, partners, refreshTokens, users, vehicles, vehicleGrants } from "../db/schema.js";
 import { hashPassword, newId, randomToken, sha256 } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { emailTokens } from "../db/schema.js";
@@ -346,6 +346,105 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
       .returning();
     await audit(app, request.authUser!.sub, "partner.update", { partnerId, status: updated.status });
     return publicPartner(updated);
+  });
+
+  // ── Maintenance Catalog ──
+
+  const publicCatalogItem = (row: typeof maintenanceCatalog.$inferSelect) => ({
+    id: row.id,
+    catalog_key: row.catalogKey,
+    name: row.name,
+    interval_days: row.intervalDays,
+    interval_distance: row.intervalDistance != null ? Number(row.intervalDistance) : null,
+    fuel_types: row.fuelTypes,
+    sort_order: row.sortOrder,
+    enabled: row.enabled,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+  });
+
+  app.get("/admin/maintenance-catalog", async () => {
+    const rows = await app.db.select().from(maintenanceCatalog).orderBy(maintenanceCatalog.sortOrder);
+    return { items: rows.map(publicCatalogItem) };
+  });
+
+  app.post("/admin/maintenance-catalog", async (request, reply) => {
+    const body = z
+      .object({
+        catalog_key: z.string().min(1).max(50),
+        name: z.string().min(1).max(80),
+        interval_days: z.number().int().positive().optional().nullable(),
+        interval_distance: z.number().positive().optional().nullable(),
+        fuel_types: z.array(z.enum(["petrol", "electric", "hybrid_plugin"])).min(1),
+        sort_order: z.number().int().optional(),
+        enabled: z.boolean().optional(),
+      })
+      .parse(request.body);
+
+    const [existing] = await app.db
+      .select()
+      .from(maintenanceCatalog)
+      .where(eq(maintenanceCatalog.catalogKey, body.catalog_key))
+      .limit(1);
+    if (existing) throw new AppError(409, "key_taken", "Catalog key already exists");
+
+    const [row] = await app.db
+      .insert(maintenanceCatalog)
+      .values({
+        id: newId(),
+        catalogKey: body.catalog_key,
+        name: body.name,
+        intervalDays: body.interval_days ?? null,
+        intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null,
+        fuelTypes: body.fuel_types,
+        sortOrder: body.sort_order ?? 0,
+        enabled: body.enabled ?? true,
+      })
+      .returning();
+    await audit(app, request.authUser!.sub, "catalog.create", { catalogKey: row.catalogKey });
+    return reply.code(201).send(publicCatalogItem(row));
+  });
+
+  app.patch("/admin/maintenance-catalog/:itemId", async (request) => {
+    const { itemId } = request.params as { itemId: string };
+    const [row] = await app.db.select().from(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId)).limit(1);
+    if (!row) throw new AppError(404, "not_found", "Catalog item not found");
+    const body = z
+      .object({
+        name: z.string().min(1).max(80).optional(),
+        interval_days: z.number().int().positive().optional().nullable(),
+        interval_distance: z.number().positive().optional().nullable(),
+        fuel_types: z.array(z.enum(["petrol", "electric", "hybrid_plugin"])).min(1).optional(),
+        sort_order: z.number().int().optional(),
+        enabled: z.boolean().optional(),
+      })
+      .parse(request.body ?? {});
+    const [updated] = await app.db
+      .update(maintenanceCatalog)
+      .set({
+        ...(body.name !== undefined ? { name: body.name } : {}),
+        ...(body.interval_days !== undefined ? { intervalDays: body.interval_days } : {}),
+        ...(body.interval_distance !== undefined
+          ? { intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null }
+          : {}),
+        ...(body.fuel_types !== undefined ? { fuelTypes: body.fuel_types } : {}),
+        ...(body.sort_order !== undefined ? { sortOrder: body.sort_order } : {}),
+        ...(body.enabled !== undefined ? { enabled: body.enabled } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(maintenanceCatalog.id, itemId))
+      .returning();
+    await audit(app, request.authUser!.sub, "catalog.update", { catalogKey: updated.catalogKey });
+    return publicCatalogItem(updated);
+  });
+
+  app.delete("/admin/maintenance-catalog/:itemId", async (request, reply) => {
+    const { itemId } = request.params as { itemId: string };
+    const [row] = await app.db.select().from(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId)).limit(1);
+    if (!row) throw new AppError(404, "not_found", "Catalog item not found");
+    await app.db.delete(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId));
+    await audit(app, request.authUser!.sub, "catalog.delete", { catalogKey: row.catalogKey });
+    return reply.code(204).send();
   });
 };
 

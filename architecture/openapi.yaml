@@ -1146,6 +1146,73 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Partner'
+  /admin/maintenance-catalog:
+    get:
+      tags: [Admin]
+      summary: List all maintenance catalog items
+      responses:
+        '200':
+          description: Catalog items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MaintenanceCatalogItem'
+    post:
+      tags: [Admin]
+      summary: Create a maintenance catalog item
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceCatalogItemWrite'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceCatalogItem'
+        '409':
+          $ref: '#/components/responses/Error'
+  /admin/maintenance-catalog/{itemId}:
+    parameters:
+      - name: itemId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [Admin]
+      summary: Update a maintenance catalog item
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MaintenanceCatalogItemWrite'
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MaintenanceCatalogItem'
+        '404':
+          $ref: '#/components/responses/Error'
+    delete:
+      tags: [Admin]
+      summary: Delete a maintenance catalog item
+      responses:
+        '204':
+          description: Deleted
+        '404':
+          $ref: '#/components/responses/Error'
   /families:
     post:
       tags: [Family]
@@ -2025,6 +2092,7 @@ components:
         interval_distance:
           type: number
           nullable: true
+          description: Interval distance in kilometers (km)
         next_due_mileage:
           type: number
           nullable: true
@@ -2053,6 +2121,7 @@ components:
           type: integer
         interval_distance:
           type: number
+          description: Interval distance in kilometers (km)
         notes:
           type: string
         catalog_key:
@@ -2071,6 +2140,7 @@ components:
         interval_distance:
           type: number
           nullable: true
+          description: Interval distance in kilometers (km)
         notes:
           type: string
         enabled:
@@ -2088,6 +2158,7 @@ components:
         interval_distance:
           type: number
           nullable: true
+          description: Interval distance in kilometers (km)
         fuel_type:
           $ref: '#/components/schemas/FuelType'
     ServiceRecord:
@@ -2702,6 +2773,68 @@ components:
           type: string
         notes:
           type: string
+    MaintenanceCatalogItem:
+      type: object
+      required: [id, catalog_key, name, fuel_types, sort_order, enabled, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        catalog_key:
+          type: string
+        name:
+          type: string
+        interval_days:
+          type: integer
+          nullable: true
+        interval_distance:
+          type: number
+          nullable: true
+          description: Interval distance in kilometers (km)
+        fuel_types:
+          type: array
+          items:
+            type: string
+            enum: [petrol, electric, hybrid_plugin]
+        sort_order:
+          type: integer
+        enabled:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    MaintenanceCatalogItemWrite:
+      type: object
+      required: [catalog_key, name, fuel_types]
+      properties:
+        catalog_key:
+          type: string
+          minLength: 1
+          maxLength: 50
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        interval_days:
+          type: integer
+          nullable: true
+        interval_distance:
+          type: number
+          nullable: true
+          description: Interval distance in kilometers (km)
+        fuel_types:
+          type: array
+          items:
+            type: string
+            enum: [petrol, electric, hybrid_plugin]
+          minItems: 1
+        sort_order:
+          type: integer
+        enabled:
+          type: boolean
     FamilyRole:
       type: string
       enum: [primary_owner, member, driver]

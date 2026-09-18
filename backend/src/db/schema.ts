@@ -389,3 +389,16 @@ export const drivingLicenses = pgTable("driving_licenses", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const maintenanceCatalog = pgTable("maintenance_catalog", {
+  id: uuid("id").primaryKey(),
+  catalogKey: text("catalog_key").notNull().unique(),
+  name: text("name").notNull(),
+  intervalDays: integer("interval_days"),
+  intervalDistance: numeric("interval_distance", { precision: 12, scale: 1 }),
+  fuelTypes: text("fuel_types").array().notNull(),
+  sortOrder: integer("sort_order").notNull().default(0),
+  enabled: boolean("enabled").notNull().default(true),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});

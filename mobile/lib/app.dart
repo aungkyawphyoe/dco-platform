@@ -65,6 +65,11 @@ class _DcoAppState extends ConsumerState<DcoApp> {
       if (userId != null && userId != previousUserId) {
         ref.read(syncEngineProvider).syncNow();
         ref.read(profileRepositoryProvider).flushPendingActiveVehicle(userId);
+        // Fetch maintenance catalog after login
+        final activeVehicleId = next.valueOrNull?.user.activeVehicleId;
+        if (activeVehicleId != null) {
+          ref.read(maintenanceCatalogRepositoryProvider).fetchAndCache(activeVehicleId);
+        }
       }
     });
 

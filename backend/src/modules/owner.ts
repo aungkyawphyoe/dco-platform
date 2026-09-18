@@ -1,4 +1,4 @@
-import { asc, desc, eq } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
@@ -8,6 +8,7 @@ import {
   expenses,
   fuelLogs,
   fuelTypes,
+  maintenanceCatalog,
   notificationFeed,
   parts,
   planItems,
@@ -16,7 +17,6 @@ import {
   serviceRecords,
   vehicles,
 } from "../db/schema.js";
-import { suggestedForFuel } from "../lib/catalog.js";
 import { newId } from "../lib/crypto.js";
 import { dateOnly, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
@@ -170,7 +170,20 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     const vehicle = await getOwnedVehicle(db(), uid(request), vehicleId);
-    return { items: suggestedForFuel(vehicle.fuelType) };
+    const rows = await db()
+      .select()
+      .from(maintenanceCatalog)
+      .where(sql`${vehicle.fuelType} = ANY(${maintenanceCatalog.fuelTypes}) AND ${maintenanceCatalog.enabled} = true`)
+      .orderBy(maintenanceCatalog.sortOrder);
+    return {
+      items: rows.map((row) => ({
+        catalog_key: row.catalogKey,
+        name: row.name,
+        interval_days: row.intervalDays,
+        interval_distance: row.intervalDistance != null ? Number(row.intervalDistance) : null,
+        fuel_type: vehicle.fuelType,
+      })),
+    };
   });
 
   app.patch("/plan-items/:planItemId", async (request) => {
