@@ -6,7 +6,7 @@ Fleet Management enables **business accounts** (showrooms, dealerships, taxi fle
 
 **Status:** Planned (Phase 3, Year 2).  
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
-**Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Web Admin (Next.js — org creation, management, and analytics for DCO staff).
+**Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — user management only for DCO staff).
 
 ---
 
@@ -68,14 +68,25 @@ Enable organizations to:
 - **Reports Screen**: Per-vehicle and fleet-wide cost analytics (TCO, cost-per-mile, lemon flags)
 - **Driver Assignment Screen**: Owner assigns/reassigns vehicles to drivers
 
-### Web Admin (Next.js)
-- **Organization Creation**: Form with name, admin email, contact details, status, CSV import
-- **Organization Management**: List/search orgs, edit, suspend, archive, view fleet stats
-- **Org Detail**: Members, vehicles, warranty templates, transferred vehicles audit
-- **Invite Management**: Re-send invite emails to Org Admin
-- **Fleet Analytics Dashboard**: TCO, cost-per-mile, lemon flags across all orgs
-- **Lifecycle Template Management**: View/edit predefined templates
-- Route guard: `admin` → admin routes including org management
+### Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
+- **Authentication**: SSO with DCO mobile credentials (same `dco-owner` JWT audience)
+- **Desktop-optimized layout**: Data tables, charts, bulk actions, sidebar navigation
+- **Fleet Owner/Manager**: Full fleet management (read + write) — vehicles, work orders, inspections, assignments, analytics, reports, warranty templates, driver management
+- **DCO Admin**: Read-only fleet visibility for support (cross-org view)
+- **Vehicle Inventory**: Table view with filters, sorting, bulk status changes
+- **Work Orders**: Table + detail view with approve/assign/resolve actions
+- **Inspections**: Template management, inspection history, failure review
+- **Driver Assignments**: Assignment table, bulk assign/unassign
+- **Cost Analytics**: Per-vehicle TCO, cost-per-mile, lemon flags, fleet summary with charts
+- **Reports**: Export to CSV, time range filters, vehicle comparison
+- **Warranty Templates**: CRUD management
+- **Org Settings**: Name, contact details, lemon threshold config
+
+### Web Admin (Next.js — `admin.yourdomain.com`)
+- **User Management**: List/search users, view profile, deactivate/reactivate accounts
+- **Fleet Owner Support**: Re-send invite emails to Org Admin
+- **Read-only Fleet Access**: DCO Admin can view fleet data for support purposes (no write actions)
+- Route guard: `admin` → admin routes; `dco-owner` with org → read-only fleet routes
 
 ---
 
@@ -98,9 +109,8 @@ Enable organizations to:
 - Org creation via mobile app
 - Real-time vehicle tracking / GPS
 - Driver scheduling / shift management
-- Insurance premium tracking
-- Depreciation calculations
-- Revenue analytics (label only, no financial calculations)
+- Mobile-responsive Fleet Dashboard (desktop-optimized only for MVP)
+- Fleet Dashboard mobile app (mobile app handles fleet ops for now)
 
 ---
 
@@ -652,6 +662,7 @@ Enable organizations to:
 
 ### 17. API Endpoints (v1)
 
+**Fleet Dashboard + Mobile (shared API — `dco-owner` audience):**
 | Method | Path | Audience | Description |
 |--------|------|----------|-------------|
 | GET | `/v1/organizations/me` | `dco-owner` | Get my organization |
@@ -698,17 +709,15 @@ Enable organizations to:
 | GET | `/v1/drivers/my-work-orders` | `dco-owner` | Driver sees own work orders |
 | GET | `/v1/drivers/my-inspections` | `dco-owner` | Driver sees own inspections |
 
-**Web Admin (Org creation, management, and analytics):**
+**Web Admin (User management only — `dco-admin` audience):**
 | Method | Path | Audience | Description |
 |--------|------|----------|-------------|
-| POST | `/v1/admin/organizations` | `dco-admin` | Create organization (name, admin email, contact details, status, CSV import) |
-| GET | `/v1/admin/organizations` | `dco-admin` | List all orgs with search/filter |
-| GET | `/v1/admin/organizations/:id` | `dco-admin` | Org detail (members, vehicles, templates, transferred) |
-| PATCH | `/v1/admin/organizations/:id` | `dco-admin` | Edit org (name, contact details, status) |
-| DELETE | `/v1/admin/organizations/:id` | `dco-admin` | Archive org (revert vehicles to owners) |
-| POST | `/v1/admin/organizations/:id/invite` | `dco-admin` | Re-send invite email to Org Admin |
-| GET | `/v1/admin/organizations/:id/stats` | `dco-admin` | Org fleet stats |
-| GET | `/v1/admin/analytics/fleet` | `dco-admin` | Cross-org fleet analytics dashboard |
+| GET | `/v1/admin/users` | `dco-admin` | List users with search/filter |
+| GET | `/v1/admin/users/:id` | `dco-admin` | User detail (profile, org, activity) |
+| PATCH | `/v1/admin/users/:id/status` | `dco-admin` | Deactivate/reactivate user |
+| POST | `/v1/admin/support/invite-resend` | `dco-admin` | Re-send invite email to Org Admin |
+| GET | `/v1/admin/support/org-lookup` | `dco-admin` | Search org by name or admin email |
+| GET | `/v1/admin/fleet-view` | `dco-admin` | Read-only fleet data for support (cross-org) |
 
 ### 18. Mobile Screens
 
@@ -834,55 +843,97 @@ Enable organizations to:
 - "Log Service" → Service form (date, odometer, cost, items, notes)
 - Cannot see: buyer info, other org vehicles, org member list
 
-### 19. Web Admin Changes
+### 19. Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
+
+#### Auth
+- SSO with DCO mobile credentials (same `dco-owner` JWT audience)
+- Route guard: `dco-owner` + org membership → fleet routes; `dco-admin` → read-only fleet view
+
+#### Layout
+- Desktop-optimized: sidebar navigation, data tables, charts, bulk actions
+- Sidebar items: Dashboard, Vehicles, Work Orders, Inspections, Drivers, Analytics, Settings
+- NOT a mobile clone — designed for large screens and productivity
+
+#### Dashboard (Home)
+- Summary cards: Total vehicles, Active assignments, Open work orders, Upcoming maintenance, Lemon count
+- Recent activity feed: Latest work orders, inspections, status changes
+- Quick links: Add vehicle, Assign driver, View reports
+
+#### Vehicle Inventory — Route: `/vehicles`
+- **Table view**: Name, plate, make/model, status badge, mileage, assigned driver, lifecycle template, last service
+- **Filters**: Status, lifecycle template, assigned driver, maintenance due
+- **Sorting**: Any column
+- **Bulk actions**: Change status, assign driver, export selected
+- **Row actions**: View detail, edit, transfer to buyer
+- **Add Vehicle**: Modal or separate page (reuse mobile form, desktop-optimized)
+- **CSV Import**: Upload with preview, validation, async processing
+
+#### Work Orders — Route: `/work-orders`
+- **Table view**: ID, vehicle, driver, issue type, urgency badge, status badge, reported date, assigned to
+- **Filters**: Status (reported/in_progress/completed), urgency, vehicle, driver, date range
+- **Bulk actions**: Assign to mechanic, mark in-progress
+- **Row actions**: View detail, assign, resolve
+- **Detail view**: Driver info, vehicle info, issue description, photos, status timeline, resolution notes
+- **Actions**: "Start" (→ in_progress), "Resolve" (→ completed + notes)
+
+#### Inspections — Route: `/inspections`
+- **Table view**: ID, vehicle, driver, type (pre/post/random), status badge, date, items failed
+- **Filters**: Status, type, vehicle, driver, date range
+- **Row actions**: View detail, review failure
+- **Detail view**: Checklist items with OK/Not OK status, photos, notes
+- **Failed inspections**: Link to auto-generated work order
+- **Template Management**: Create/edit/delete inspection templates, manage checklist items
+
+#### Driver Assignments — Route: `/drivers`
+- **Active assignments table**: Driver name, vehicle, assigned date, duration
+- **Available drivers list**: Drivers without active assignments
+- **Available vehicles list**: Vehicles without active driver
+- **Assign action**: Select vehicle + driver → confirm
+- **Unassign action**: Confirmation → assignment completed
+- **Assignment history**: Past assignments with dates
+
+#### Cost Analytics — Route: `/analytics`
+- **Per Vehicle tab**: Select vehicle → TCO breakdown (maintenance/fuel/wear), cost-per-mile, utilization, trend chart
+- **Fleet Summary tab**: Total spend, average cost-per-mile, lemon count, top/bottom performers
+- **Lemon Flags tab**: Vehicles exceeding threshold with cost comparison
+- **Time range filter**: This Month / This Quarter / This Year / All Time
+- **Export**: CSV download of analytics data
+
+#### Warranty Templates — Route: `/warranty-templates`
+- **Template list**: Name, duration, mileage, coverage categories, workshop count
+- **Create/Edit**: Form with all template fields
+- **Delete**: Confirmation required
+
+#### Org Settings — Route: `/settings`
+- **Org info**: Name, contact details (read-only — edit requires DCO admin)
+- **Lemon threshold**: Configure multiplier or absolute value
+- **Revenue labels**: View/manage revenue labels per vehicle
+
+---
+
+### 20. Web Admin Changes (Next.js — `admin.yourdomain.com`)
 
 #### Auth
 - No changes — existing `admin` role with `dco-admin` audience
+- Fleet Owner/Manager can sign in for user management only
 
-#### Organization Management — New Route: `/organizations`
-- **Organizations List**: Table with name, status (pending/active/suspended), admin email, member count, vehicle count, created date
-- **Search**: By org name or admin email
-- **Create Button**: Opens org creation form
-- **Actions per row**: Edit, Suspend/Activate, Archive, Re-send Invite
+#### User Management — Route: `/users`
+- **Users list**: Table with name, email, role, status, org membership, last login
+- **Search**: By name, email, role
+- **Filters**: Status (active/inactive), role, has org membership
+- **Row actions**: View profile, deactivate/reactivate
+- **User detail**: Profile info, org membership, vehicles owned, activity summary
 
-#### Organization Creation Form (New — Modal or Separate Page)
-- Fields:
-  - **Org Name**: Required, text
-  - **Org Type**: Required, dropdown (`fleet` default)
-  - **Admin Email**: Required, email — the showroom owner's DCO email
-  - **Contact Email**: Optional, email (business contact)
-  - **Contact Phone**: Optional, phone
-  - **Initial Status**: Required, dropdown (`active` / `pending` / `suspended`)
-- **Vehicle Import**: Optional CSV upload during creation
-  - CSV preview: shows parsed rows with validation
-  - Import runs async; results shown after org is created
-- **Submit**: Creates org, links/invites user, imports vehicles (if uploaded)
-- **Post-creation**: System sends info email to admin user: "Your organization [Name] has been created. Log in to the mobile app and enable Fleet mode in Settings."
+#### Fleet Owner Support — Route: `/support`
+- **Pending invites**: List of org admins who haven't set up yet
+- **Re-send invite**: Action to re-send invitation email
+- **Org lookup**: Search org by name or admin email → link to Fleet Dashboard (read-only)
 
-#### Organization Detail — New Route: `/organizations/:id`
-- **Header**: Org name, status badge, admin email, member count, vehicle count
-- **Members Table**: Name, email, role, joined date
-- **Vehicles Table**: Name, plate, status, mileage, assigned driver, lifecycle template, added date
-- **Warranty Templates Table**: Name, duration, mileage, workshop count
-- **Transferred Vehicles Table**: Vehicle name, buyer (anonymized), transfer date, warranty status
-- **Stats**: Total vehicles, active warranty count, transferred count, active assignments, lemon count
-- **Actions**: Edit org, Suspend/Activate, Archive, Re-send Invite, Add Vehicle, Import CSV
-
-#### Organization Edit Form (New — Modal)
-- Fields: Org name, contact email, contact phone, status
-- Save updates org record
-
-#### Organization Archive Flow (New — Confirmation Dialog)
-- Warning: "Archiving this organization will revert all vehicles to their original owners. This action cannot be undone."
-- Confirmation required (type org name)
-- Vehicles revert: `organization_vehicles` deleted, vehicles become personal again
-- Members removed from org
-
-#### Fleet Analytics Dashboard — New Route: `/analytics`
-- **Cross-org fleet analytics** (DCO admin view)
-- **Summary cards**: Total orgs, total vehicles, fleet-wide avg cost-per-mile, total lemons
-- **Org comparison table**: Org name, vehicle count, avg cost-per-mile, lemon count
-- **Export**: CSV download of analytics data
+#### Read-only Fleet Access — Route: `/fleet-view`
+- **DCO Admin** can view fleet data for support purposes
+- **Read-only**: No write actions (approve work orders, assign drivers, etc.)
+- **Cross-org view**: See all organizations and their fleet data
+- **Use case**: Support tickets, troubleshooting, auditing
 
 ---
 
@@ -1242,7 +1293,7 @@ Platform Admin (Web Admin Portal)
 
 ## Dependencies
 
-- Auth (JWT, roles, audiences — new `workshop` role or extension)
+- Auth (JWT, roles, audiences — `dco-owner` for Fleet Dashboard + Mobile, `dco-admin` for Web Admin)
 - Users API (profile, org membership, email lookup)
 - Vehicles API (vehicle CRUD, grants, status)
 - Documents API (vault reuse for transferred vehicles)
@@ -1251,7 +1302,8 @@ Platform Admin (Web Admin Portal)
 - Notifications (warranty expiry reminders, org created email, work order updates)
 - Email service (invite emails, org creation notifications)
 - Sync (org, membership, vehicle, template, warranty, work order, inspection, assignment entities)
-- Admin API (org creation, management, verification, analytics)
+- Admin API (user management only — list, search, deactivate, reactivate)
+- Fleet Dashboard API (org CRUD, vehicles, work orders, inspections, assignments, analytics — shared with mobile)
 - Existing Maintenance module (plan items, service records — reused for fleet maintenance rules)
 - Existing Fuel module (fuel logs, fuel types — reused for driver fuel logging)
 - Existing Expenses module (expense categories — reused for cost analytics wear items)
@@ -1301,8 +1353,10 @@ Platform Admin (Web Admin Portal)
 - **Partners table**: Add `workshop_account` flag for workshop DCO accounts
 - **Sync**: New entity types `organization`, `organization_member`, `organization_vehicle`, `warranty_template`, `vehicle_warranty`, `transferred_vehicle`, `work_order`, `inspection`, `inspection_template`, `driver_assignment`, `shift_mileage`
 - **Mobile Drift**: New tables for offline org/vehicles/work_orders/inspections/assignments
-- **Web Admin**: New `/organizations` route tree with creation form, edit, archive; new `/analytics` route
-- **Admin API**: New `/v1/admin/organizations` for org CRUD, vehicle import, invite management; `/v1/admin/analytics` for fleet analytics
+- **Fleet Dashboard (fleet.yourdomain.com)**: New Next.js app with desktop-optimized layout, sidebar navigation, data tables, charts. SSO with DCO credentials (`dco-owner` audience). Full fleet management (read + write).
+- **Web Admin (admin.yourdomain.com)**: Shrunk to user management only. New routes: `/users` (list, search, deactivate), `/support` (invite resend, org lookup), `/fleet-view` (read-only fleet access for DCO admin support).
+- **Admin API**: Reduced to user management endpoints only (`/v1/admin/users/*`, `/v1/admin/support/*`, `/v1/admin/fleet-view`)
+- **Fleet API**: Shared between Fleet Dashboard and Mobile (`/v1/organizations/*`, `/v1/drivers/*`). Same endpoints, different consumers.
 - **Email templates**: New "Org Created" email template for admin user notification
 - **Cost analytics**: Computed on demand initially; consider caching layer for large fleets (100+ vehicles)
 
@@ -1328,3 +1382,7 @@ Platform Admin (Web Admin Portal)
 16. **Multi-vehicle shifts**: Can a driver use multiple vehicles in one shift (e.g., swap vehicles mid-day)?
 17. **Inspection photo requirement**: Should photos be required for `not_ok` inspection items, or just recommended?
 18. **Work order urgency escalation**: Should `critical` urgency work orders trigger push notifications or SMS to the Fleet Owner?
+19. **Fleet Dashboard vs Mobile parity**: Should the Fleet Dashboard have 100% feature parity with mobile, or are some features web-only (bulk actions, advanced filters) and some mobile-only (quick actions, push notifications)?
+20. **Fleet Dashboard deployment**: Same Vercel project as Web Admin with different subdomains, or separate Vercel projects?
+21. **DCO Admin org creation**: Since org management moved to Fleet Dashboard, does the DCO Admin still create orgs via Web Admin, or does the Fleet Owner self-serve?
+22. **Fleet Dashboard theme**: Should it use the same Garage Minimal Dark theme as mobile, or a different theme optimized for desktop/data-heavy UIs?
