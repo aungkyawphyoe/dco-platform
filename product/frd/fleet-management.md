@@ -53,20 +53,20 @@ Enable organizations to:
 - API endpoints for org management, membership, vehicles, warranties, transfers, workshops, work orders, inspections, assignments, analytics
 
 ### Mobile (Flutter)
-- **Mode Switch**: Settings toggle between Personal and Fleet mode
+- **Mode Switch**: **Hamburger menu** → Fleet toggle between Personal and Fleet mode
 - **Fleet Mode**: Same 4-tab structure (Garage/Maintenance/Expenses/Settings) scoped to org vehicles
-- **Org Management Screen**: Manage members, vehicles, workshops
-- **Vehicle Inventory Screen**: List vehicles with status badges (template-specific), counts
+- **Org Management Screen**: **Hamburger menu** → Fleet → Manage members, vehicles, workshops
+- **Vehicle Inventory Screen**: Fleet mode → Garage tab (replaces personal Garage)
 - **Add Vehicle Screen**: One-by-one vehicle add (reuse existing flow) + CSV import
 - **Warranty Template Screen**: Create/edit warranty templates
-- **Transfer Vehicle Screen**: Enter buyer email, select warranty template, confirm transfer
-- **Buyer Claim Flow**: Auto-assigned vehicle appears in buyer's garage with full history
+- **Transfer Vehicle Screen**: Vehicle Detail → "Transfer to Buyer" (Admin only)
+- **Buyer Claim Flow**: Auto-assigned vehicle appears in buyer's personal garage with full history
 - **Workshop Account**: Limited view — current vehicle only, warranty scope only
-- **Driver Mode**: Restricted view for assigned vehicles — log mileage, inspections, fuel, report issues
+- **Driver Mode**: Restricted 3-tab view for assigned vehicles — log mileage, inspections, fuel, report issues
 - **Work Order Screen**: Driver creates reports, owner/manager reviews and resolves
 - **Inspection Screen**: Template-based checklist completion (pre-trip/post-trip)
-- **Reports Screen**: Per-vehicle and fleet-wide cost analytics (TCO, cost-per-mile, lemon flags)
-- **Driver Assignment Screen**: Owner assigns/reassigns vehicles to drivers
+- **Reports Screen**: Fleet mode → Expenses tab → "Analytics" → Per-vehicle and fleet-wide cost analytics
+- **Driver Assignment Screen**: **Hamburger menu** → Fleet → Driver Assignments
 
 ### Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
 - **Authentication**: SSO with DCO mobile credentials (same `dco-owner` JWT audience)
@@ -721,8 +721,8 @@ Enable organizations to:
 
 ### 18. Mobile Screens
 
-#### Mode Switch (Settings)
-- Entry: Settings tab → "Switch to Fleet" toggle
+#### Mode Switch (Hamburger Menu)
+- Entry: **Hamburger menu** → Fleet → "Switch to Fleet" toggle
 - Toggle visible only if user is org member
 - Switching reloads the 4-tab structure with org-scoped content
 - Personal mode: same as current (personal vehicles)
@@ -731,7 +731,7 @@ Enable organizations to:
 - Org must be `active` for toggle to appear; `pending` shows "Your organization is being set up" message
 
 #### Org Management Screen (New)
-- Entry: Settings → Fleet (after org exists and is active)
+- Entry: **Hamburger menu** → Fleet → Org Management (after org exists and is active)
 - Tabs: Members / Vehicles / Workshops / Settings
 - **Members tab**: List with name, role badge, "Change Role" / "Remove" (Admin only)
 - **Vehicles tab**: List with status badges (template-specific), counts, "Add Vehicle" / "Import CSV"
@@ -769,7 +769,7 @@ Enable organizations to:
 - Free plan exempt from 1-vehicle limit for transferred vehicles
 
 #### Driver Mode (New — Restricted View)
-- Entry: Settings → Fleet mode toggle (if user has `org_driver` role)
+- Entry: **Hamburger menu** → Fleet toggle (if user has `org_driver` role)
 - Simplified 3-tab structure: My Vehicle / My Reports / Settings
 - **My Vehicle tab**: Assigned vehicle info (make, plate, photo, documents, maintenance schedule)
 - **My Reports tab**: Own work orders and inspections (history + create new)
@@ -821,7 +821,7 @@ Enable organizations to:
   - Can assign to mechanic or handle directly
 
 #### Fleet Owner/Manager - Assignments Screen (New)
-- Entry: Fleet mode → Settings → "Driver Assignments"
+- Entry: **Hamburger menu** → Fleet → Driver Assignments
 - List of active assignments: Driver name, vehicle name, assigned date
 - "Assign Vehicle" → Select vehicle (dropdown) → Select driver (dropdown, org_driver only) → Confirm
 - "Unassign" → Confirmation → Assignment completed

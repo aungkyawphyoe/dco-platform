@@ -24,6 +24,7 @@ Source of truth for scope: `product/mvp-scope.md`.
 - Assign parts when registering a service
 - Assign parts when logging an expense
 - Show assigned parts on service detail and the expense form
+- **Navigation**: Accessed via **hamburger menu** → Parts (additional entry point), or from Dashboard quick actions
 
 # Out of Scope
 

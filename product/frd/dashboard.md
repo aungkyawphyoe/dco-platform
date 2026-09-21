@@ -18,7 +18,7 @@ Enable users to:
 
 - See which vehicle they are working on
 - Read a truthful ownership cost snapshot
-- Open Services, Documents, Insurance, Refuel/Charge, and Parts from Quick Actions
+- Open Services, Documents, Refuel/Charge, and Parts from Quick Actions (Insurance is now in the hamburger menu)
 - Jump to the next due service
 - Scan the last three maintenance events
 - Register a vehicle when the garage is empty
@@ -31,7 +31,7 @@ Enable users to:
 - Vehicle switcher → Garage Home
 - Vehicle identity block (photo, plate, year/make/model, mileage, VIN if present)
 - Ownership summary: total spent, this month spent
-- Quick Actions: Services (full history), Documents, Insurance (placeholder), Refuel/Charge, Parts
+- Quick Actions: Services (full history), Documents, Refuel/Charge, Parts (Insurance moved to hamburger menu)
 - Recent activity: **3** maintenance history rows
 - Next maintenance: the most due plan item + Log Service
 - Empty garage dashboard
@@ -105,10 +105,10 @@ So that Dashboard is still usable as the home tab.
 
 ## Header
 
+- Leading: **hamburger icon** → opens drawer menu (sync, notifications, documents, parts, maintenance plan, insurance, stats, family, fleet, profile, sign out).
 - Vehicle chip shows nickname (fallback: name). Tap → My Garage (screen 4).
 - Garage affordance (wireframe label `garage`) → same destination.
 - `Noti` → in-app notification feed.
-- Compact sync indicator may sit here or on Settings; it must not replace the chip.
 
 ## Vehicle identity (populated)
 
@@ -141,11 +141,10 @@ No fuel volume, no MPG, no insurance premium field.
 |------|-------------|
 | Services | Service History — full service list for the active vehicle |
 | Documents | Document vault (UI only until the documents slice) |
-| Insurance | Insurance screen (placeholder; policy module is later) |
 | Refuel / Charge | Fuel logs for the active vehicle. Label is **Charge** when the vehicle fuel type is electric; otherwise **Refuel**. Placed before Parts. |
 | Parts | Parts catalog for the active vehicle |
 
-Tiles are shortcuts, not KPI counts.
+Tiles are shortcuts, not KPI counts. Insurance is accessed via the **hamburger menu** → Insurance.
 
 ## Recent activity
 

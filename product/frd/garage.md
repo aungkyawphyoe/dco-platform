@@ -39,7 +39,7 @@ Enable users to:
 - Fleet management
 - Vehicle financing
 - Fuel tracking *efficiency* (MPG / kWh economy). Refuel / charge logs are a separate module (`fuel.md`).
-- Insurance policy management (keep insurance as a document and expense category only)
+- Insurance policy management as a dedicated module. Insurance documents are stored in Documents vault. Insurance status is accessible via the **hamburger menu** → Insurance entry.
 
 ---
 
@@ -289,7 +289,7 @@ vehicle_updated
 - VIN decoder
 - License plate OCR
 - Fuel tracking
-- Insurance module
+- Insurance policy management (dedicated module beyond document storage)
 - Vehicle valuation
 - Connected car integrations
 - EV battery health

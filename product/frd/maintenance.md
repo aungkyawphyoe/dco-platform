@@ -112,7 +112,21 @@ So that I do not miss service.
 
 ---
 
+### US-MNT-006
+
+As a user,
+
+I want to view maintenance statistics and charts
+
+So that I can understand my spending patterns and service frequency.
+
+---
+
 # Functional Requirements
+
+## Navigation
+
+The Maintenance Plan (Upcoming / Scheduled / History) is accessed via the **hamburger menu**, not directly from the Maintenance tab. The Maintenance tab focuses on quick actions and recent activity. The hamburger menu provides access to the full Maintenance Plan screen.
 
 ## Tabs
 

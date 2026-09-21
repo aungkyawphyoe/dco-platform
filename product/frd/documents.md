@@ -29,6 +29,7 @@ Enable users to:
 - View / open a stored document
 - Edit name, category, and notes
 - Delete a document (user-confirmed)
+- **Navigation**: Accessed via **hamburger menu** → Documents (primary entry point), or from Dashboard quick actions and vehicle detail screens
 
 ---
 

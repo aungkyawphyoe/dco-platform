@@ -6,18 +6,46 @@ Default after a successful owner login: **Dashboard** (frame `3. Dashboard (Defa
 
 ---
 
-## Owner app — bottom navigation
+## Owner app — bottom navigation + hamburger menu
 
-Four tabs. Labels match the wireframe chrome (Garage / Maintenance / Expenses / Setting). The first tab **is** Dashboard; it is named Garage in the tab bar because the working context is the garage's active vehicle.
+Four bottom tabs (consistent for normal users and fleet owners) plus a hamburger menu (drawer) for additional features.
+
+### Bottom tabs
 
 | Tab (UI) | GoRouter path | Tldraw frame | Role |
 |----------|---------------|--------------|------|
 | **Garage** | `/dashboard` | **3** Dashboard (and **3** empty) | Home. Active vehicle summary. Default after login. |
 | **Maintenance** | `/maintenance` | **6** Maintenance (and **6** empty) | Plan + history for the active vehicle. |
-| **Expenses** | `/expenses` | **7** Expenses | Spend for the active vehicle. Documents is reached from here (header) and from garage detail, not as a fifth tab. |
-| **Setting** | `/settings` | **9** Settings | Account, vehicles, sync. |
+| **Expenses** | `/expenses` | **7** Expenses | Spend for the active vehicle. |
+| **Setting** | `/settings` | **9** Settings | Account, fleet toggle. Minimal — most features moved to hamburger. |
 
-Active tab icon uses design-token gold (`icon.active`). Inactive uses slate (`icon.inactive`). Sync status is a compact indicator in the top bar or settings — never a fifth tab.
+Active tab icon uses design-token gold (`icon.active`). Inactive uses slate (`icon.inactive`).
+
+### Hamburger menu (drawer)
+
+Accessible from **any screen** via the leading hamburger icon in the app bar. Opens a side drawer with the following sections:
+
+#### Quick Access (top section)
+| Menu Item | Icon | Destination | Notes |
+|-----------|------|-------------|-------|
+| **Sync** | refresh | Sync Status screen | Moved from Settings. Compact status indicator + manual sync button. |
+
+#### Features (middle section)
+| Menu Item | Icon | Destination | Notes |
+|-----------|------|-------------|-------|
+| **Documents** | folder | Document List | Moved from Settings. Per-vault document management. |
+| **Parts** | wrench | Parts List | Entry point also kept on Dashboard quick actions. |
+| **Maintenance Plan** | clipboard-list | Maintenance Plan | Moved from Maintenance tab. Upcoming/Scheduled/History. |
+| **Insurance** | shield | Insurance section | Moved from Garage. Vehicle insurance documents/status. |
+| **Refuel Stats** | chart-bar | Refuel Stats screen | **NEW.** Charts for refuel/charge history, cost trends, fuel efficiency. |
+| **Maintenance Stats** | chart-bar | Maintenance Stats screen | **NEW.** Charts for maintenance costs, service frequency, upcoming schedule. |
+| **Expense Stats** | chart-bar | Expense Stats screen | **NEW.** Charts for spending by category, monthly trends, lifetime summary. |
+
+#### Family & Fleet (bottom section — conditional)
+| Menu Item | Icon | Destination | Notes |
+|-----------|------|-------------|-------|
+| **Family** | people | Family Setup / Management | Moved from Settings. Only visible if user has family or is Premium. |
+| **Fleet** | truck | Fleet Mode / Org Management | Only visible if user is org member. Toggles fleet mode. |
 
 ```text
 Auth (online)
@@ -26,11 +54,23 @@ Auth (online)
         │  success
         ▼
   ┌─────────────────────────────────────────┐
-  │  Shell (bottom nav)                     │
+  │  Shell (bottom nav + hamburger)         │
   │                                         │
-  │  [Garage]  Maintenance  Expenses  Setting
+  │  ☰ [Garage]  Maintenance  Expenses  Setting
   │     ▲                                   │
   │     └── default: screen 3 Dashboard     │
+  │                                         │
+  │  Hamburger drawer:                      │
+  │  ├─ Sync                               │
+  │  ├─ Documents                          │
+  │  ├─ Parts                              │
+  │  ├─ Maintenance Plan                   │
+  │  ├─ Insurance                          │
+  │  ├─ Refuel Stats (NEW)                 │
+  │  ├─ Maintenance Stats (NEW)            │
+  │  ├─ Expense Stats (NEW)                │
+  │  ├─ Family (conditional)               │
+  │  └─ Fleet (conditional)                │
   └─────────────────────────────────────────┘
 ```
 
@@ -49,17 +89,24 @@ Numbering follows the tldraw frame names.
 | 5 | Add/Edit Vehicle | `+` on 4 or Register on empty 3 | After first save: set active, go to 3 |
 | 6 | Maintenance | Maintenance tab | Upcoming / Scheduled / History. Stack: plan list, add item, suggested catalog, register service |
 | 7 | Expenses | Expenses tab | Month/total, by category, recent list |
-| 8 | Documents | Header **Documents** on 7; also from vehicle flows that open the vault | Not a bottom-nav root |
-| 9 | Settings | Setting tab | Profile, notifications, manage vehicles → 4, backup & sync (status, not v1.1 backup product), export **disabled / hidden** in MVP if not built |
-| 10 | Maintenance Plan / Predefined items | From 6 | Suggested items filtered by fuel type |
-| 11 | Add Maintenance Item / Register Service | From 6 | Register service updates mileage and can complete plan items |
-| 12 | Family Setup | From Settings or invite link | Create or join a family group |
-| 13 | Family Management | From Settings | Members, vehicles, share code, QR, driving licenses |
+| 8 | Documents | **Hamburger menu** → Documents | Moved from header on 7. Per-vault document management. |
+| 9 | Settings | Setting tab | Profile, Fleet toggle, Sign Out. Most features moved to hamburger. |
+| 10 | Maintenance Plan | **Hamburger menu** → Maintenance Plan | Moved from Maintenance tab. Suggested items filtered by fuel type. |
+| 11 | Add Maintenance Item / Register Service | From 6 or from Hamburger → Maintenance Plan | Register service updates mileage and can complete plan items |
+| 12 | Family Setup | **Hamburger menu** → Family | Moved from Settings. Create or join a family group. |
+| 13 | Family Management | **Hamburger menu** → Family | Moved from Settings. Members, vehicles, share code, QR, driving licenses. |
+| 14 | Insurance | **Hamburger menu** → Insurance | Moved from Garage. Vehicle insurance documents/status. |
+| 15 | Parts | **Hamburger menu** → Parts (also from Dashboard quick actions) | Per-vehicle parts catalog. |
+| 16 | Sync Status | **Hamburger menu** → Sync | Moved from Settings. Sync status indicator + manual sync. |
+| 17 | Refuel Stats | **Hamburger menu** → Refuel Stats | **NEW.** Charts: refuel cost trends, fuel efficiency, cost per km. |
+| 18 | Maintenance Stats | **Hamburger menu** → Maintenance Stats | **NEW.** Charts: maintenance cost trends, service frequency, upcoming schedule. |
+| 19 | Expense Stats | **Hamburger menu** → Expense Stats | **NEW.** Charts: spending by category, monthly trends, lifetime summary. |
+| 20 | Fleet Mode / Org Management | **Hamburger menu** → Fleet | Only for org members. Toggle fleet mode, manage org. |
 
 Header on Dashboard (3):
 
-- Leading: **vehicle chip** (nickname, e.g. "Daily Driver") → screen 4.
-- Trailing: **garage** affordance (same destination as chip) and **Noti** → in-app notification feed (not a tab).
+- Leading: **hamburger icon** → opens drawer menu.
+- Trailing: **vehicle chip** (nickname, e.g. "Daily Driver") → screen 4, and **Noti** → in-app notification feed.
 
 Empty garage: Dashboard still is the default route. Maintenance, Expenses, and Documents show their "no active vehicle" empty states until a vehicle exists.
 
@@ -69,14 +116,17 @@ Empty garage: Dashboard still is the default route. Maintenance, Expenses, and D
 
 Keep one `StatefulShellRoute` (or equivalent) for the four tabs. Push these on the active tab's stack:
 
-- My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Refuel/Charge, Fuel Types, Parts
-- Maintenance Plan, Suggested items, Add item, Register Service, Service detail
+- My Garage, Add/Edit Vehicle, Service History, Insurance, Refuel/Charge, Fuel Types
 - Add/Edit expense, Expense detail
-- Document list (if opened from Expenses), viewer, upload
-- Notification feed, Profile, Email & password, Notification prefs, Sync status
+- Document list, viewer, upload
+- Maintenance Plan, Suggested items, Add item, Register Service, Service detail
+- Notification feed, Profile, Email & password, Notification prefs
 - Family setup, Family management (members, vehicles, share code, QR, driving licenses)
+- Refuel Stats, Maintenance Stats, Expense Stats (new chart screens)
+- Sync Status
+- Fleet Mode, Org Management, Vehicle Inventory, Work Orders, Inspections, Assignments, Reports
 
-Back from a nested screen returns to the tab that opened it. Switching tabs does not destroy stacks in MVP (standard Flutter shell).
+Back from a nested screen returns to the tab or hamburger that opened it. Switching tabs does not destroy stacks in MVP (standard Flutter shell).
 
 ---
 
@@ -94,7 +144,7 @@ From `product/frd/auth.md`:
 
 Autozis web demo uses a **left sidebar** (Manage: Garage, Assistant, Maintenance Plan, Insurance, Notes, Documents; Stats: Insights, Refuel, Maintenance, Expenses, Trips; Catalogs; Account) plus a **bottom module dock** (Dashboard, Refuel, Maintenance, Expenses, Trips, Reminders).
 
-DCO mobile **does not copy that IA**. Owners get four tabs. Fuel, trips, insurance, assistant, and catalogs are absent. "Garage" in the tab bar is the Autozis *dashboard* idea (active vehicle home), not Autozis's garage list — the list is screen 4, one tap off the chip.
+DCO mobile uses **four bottom tabs + hamburger menu**. The hamburger menu provides access to secondary features (Documents, Parts, Maintenance Plan, Insurance, Stats, Family, Fleet) while the bottom tabs remain the primary navigation. This is a hybrid approach — bottom tabs for daily use, hamburger for less frequent actions.
 
 ---
 

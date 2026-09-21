@@ -37,7 +37,7 @@ Enable users to:
 - **Family Management Screen**: View members, roles, invite via code/QR
 - **Car Detail Screen**: Vehicle info, documents (reuse Documents vault), assigned drivers
 - **User Detail Screen**: Profile, driving license (image + expiry), access level, family management actions
-- Settings integration: Family section
+- **Navigation**: Accessed via **hamburger menu** → Family (moved from Settings)
 
 ### Web Admin (Next.js)
 - **Normal User Login**: Primary Owners can sign in (email/password, `dco-owner` audience)
@@ -219,13 +219,13 @@ Enable users to:
 ### 6. Mobile Screens
 
 #### Family Setup Screen (New)
-- Entry: Settings → Family → "Create Family"
+- Entry: **Hamburger menu** → Family → "Create Family"
 - Input: Family name
 - Output: Share code (copy button), QR code (share sheet), "Invite Members" button
 - State: Empty family → shows only Primary Owner
 
 #### Family Management Screen (New)
-- Entry: Settings → Family (after family exists)
+- Entry: **Hamburger menu** → Family (after family exists)
 - Tabs: Members / Vehicles / Invite
 - **Members tab**: List with avatar, name, role badge, vehicle count, "Change Role" / "Remove" (Primary Owner only)
 - **Vehicles tab**: List vehicles with assigned drivers badges
@@ -286,13 +286,13 @@ Enable users to:
 ### Create Family → Invite → Join
 ```
 Primary Owner (Mobile)
-  Settings → Family → Create Family
+  Hamburger menu → Family → Create Family
   → Enter name → Family created
   → Share code/QR displayed
   → Tap "Invite" → Share sheet (code + QR)
 
 Member (Mobile)
-  Settings → Family → Join Family
+  Hamburger menu → Family → Join Family
   → Enter code OR scan QR
   → "Joining [Family Name] as Member" confirmation
   → Success → Family Management screen

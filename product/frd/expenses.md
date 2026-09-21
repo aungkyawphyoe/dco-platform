@@ -33,6 +33,7 @@ Enable users to:
 - Amount, date, notes, optional receipt photo
 - Monthly summary and lifetime total per vehicle
 - Empty state
+- **Expense Stats screen** (accessed via **hamburger menu** → Expense Stats): Charts for spending by category, monthly trends, lifetime summary
 
 ---
 
@@ -86,6 +87,16 @@ As a user,
 I want monthly and total spend
 
 So that the dashboard ownership summary is truthful.
+
+---
+
+### US-EXP-004
+
+As a user,
+
+I want to view expense statistics and charts
+
+So that I can understand my spending patterns and identify cost trends.
 
 ---
 
