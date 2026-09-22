@@ -938,11 +938,11 @@ abstract class AppLocalizations {
   /// **'Maintenance'**
   String get maintenanceTitle;
 
-  /// No description provided for @maintenancePlanLink.
+  /// No description provided for @maintenanceHistoryTooltip.
   ///
   /// In en, this message translates to:
-  /// **'Plan'**
-  String get maintenancePlanLink;
+  /// **'History'**
+  String get maintenanceHistoryTooltip;
 
   /// No description provided for @maintenanceLoadError.
   ///
@@ -4399,6 +4399,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Driver'**
   String get familyRoleDriver;
+
+  /// No description provided for @drawerQuickAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Access'**
+  String get drawerQuickAccess;
+
+  /// No description provided for @drawerFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Features'**
+  String get drawerFeatures;
+
+  /// No description provided for @drawerStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get drawerStats;
+
+  /// No description provided for @drawerFamilyFleet.
+  ///
+  /// In en, this message translates to:
+  /// **'Family & Fleet'**
+  String get drawerFamilyFleet;
+
+  /// No description provided for @drawerSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync'**
+  String get drawerSync;
+
+  /// No description provided for @drawerDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get drawerDocuments;
+
+  /// No description provided for @drawerParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts'**
+  String get drawerParts;
+
+  /// No description provided for @drawerMaintenancePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance Plan'**
+  String get drawerMaintenancePlan;
+
+  /// No description provided for @drawerInsurance.
+  ///
+  /// In en, this message translates to:
+  /// **'Insurance'**
+  String get drawerInsurance;
+
+  /// No description provided for @drawerRefuelStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Refuel Stats'**
+  String get drawerRefuelStats;
+
+  /// No description provided for @drawerMaintenanceStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance Stats'**
+  String get drawerMaintenanceStats;
+
+  /// No description provided for @drawerExpenseStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense Stats'**
+  String get drawerExpenseStats;
+
+  /// No description provided for @drawerFamily.
+  ///
+  /// In en, this message translates to:
+  /// **'Family'**
+  String get drawerFamily;
+
+  /// No description provided for @drawerFleet.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleet'**
+  String get drawerFleet;
+
+  /// No description provided for @refuelStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refuel Stats'**
+  String get refuelStatsTitle;
+
+  /// No description provided for @maintenanceStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance Stats'**
+  String get maintenanceStatsTitle;
+
+  /// No description provided for @expenseStatsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense Stats'**
+  String get expenseStatsTitle;
+
+  /// No description provided for @fleetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleet Mode'**
+  String get fleetTitle;
+
+  /// No description provided for @syncStatusTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Status'**
+  String get syncStatusTitle;
 }
 
 class _AppLocalizationsDelegate

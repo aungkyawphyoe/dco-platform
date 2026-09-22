@@ -152,7 +152,7 @@
   "fuelHybridPlugin": "Hybrid plugin",
 
   "maintenanceTitle": "Maintenance",
-  "maintenancePlanLink": "Plan",
+  "maintenanceHistoryTooltip": "History",
   "maintenanceLoadError": "Could not load maintenance",
   "maintenanceNoActiveVehicle": "No active vehicle",
   "maintenanceNoActiveVehicleBody": "Register a vehicle to plan service and keep history.",
@@ -775,5 +775,26 @@
 
   "familyRolePrimaryOwner": "Primary Owner",
   "familyRoleMember": "Member",
-  "familyRoleDriver": "Driver"
+  "familyRoleDriver": "Driver",
+
+  "drawerQuickAccess": "Quick Access",
+  "drawerFeatures": "Features",
+  "drawerStats": "Stats",
+  "drawerFamilyFleet": "Family & Fleet",
+  "drawerSync": "Sync",
+  "drawerDocuments": "Documents",
+  "drawerParts": "Parts",
+  "drawerMaintenancePlan": "Maintenance Plan",
+  "drawerInsurance": "Insurance",
+  "drawerRefuelStats": "Refuel Stats",
+  "drawerMaintenanceStats": "Maintenance Stats",
+  "drawerExpenseStats": "Expense Stats",
+  "drawerFamily": "Family",
+  "drawerFleet": "Fleet",
+
+  "refuelStatsTitle": "Refuel Stats",
+  "maintenanceStatsTitle": "Maintenance Stats",
+  "expenseStatsTitle": "Expense Stats",
+  "fleetTitle": "Fleet Mode",
+  "syncStatusTitle": "Sync Status"
 }

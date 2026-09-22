@@ -40,12 +40,16 @@ class DashboardScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.menu, color: tokens.icon.active),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
         titleSpacing: tokens.space.s4,
         title: InkWell(
           onTap: () => context.push(AppRoutes.garage),
           child: Row(
             children: [
-              Icon(Icons.directions_car_outlined, color: tokens.icon.inactive),
+              Icon(Icons.directions_car_outlined, color: tokens.icon.active),
               SizedBox(width: tokens.space.s2),
               Flexible(
                 child: Text(
@@ -54,20 +58,15 @@ class DashboardScreen extends ConsumerWidget {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              Icon(Icons.expand_more, color: tokens.icon.inactive),
+              Icon(Icons.chevron_right, color: tokens.icon.active),
             ],
           ),
         ),
         actions: [
           IconButton(
-            tooltip: s.dashboardGarageTooltip,
-            onPressed: () => context.push(AppRoutes.garage),
-            icon: Icon(Icons.garage_outlined, color: tokens.icon.inactive),
-          ),
-          IconButton(
             tooltip: s.dashboardNotificationsTooltip,
             onPressed: () => context.push(AppRoutes.notifications),
-            icon: Icon(Icons.notifications_none, color: tokens.icon.inactive),
+            icon: Icon(Icons.notifications_none, color: tokens.icon.active),
           ),
         ],
       ),
@@ -100,9 +99,9 @@ class DashboardScreen extends ConsumerWidget {
               child: ListTile(
                 title: Text(
                   s.profileCompleteBanner,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: tokens.status.infoFg,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: tokens.status.infoFg),
                 ),
                 trailing: TextButton(
                   onPressed: () => context.push(AppRoutes.settingsProfile),
@@ -152,11 +151,11 @@ class _PopulatedDashboard extends ConsumerWidget {
     final lengthUnit = ref.watch(lengthUnitProvider);
     final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
     final currency = ref.watch(currencyProvider).code;
-    final summary =
-        ref.watch(vehicleExpenseSummaryProvider).valueOrNull ??
-        ExpenseSummary.empty;
-    final moneyTotal = MoneyFormat.labeled(summary.total, currency);
-    final moneyMonth = MoneyFormat.labeled(summary.thisMonth, currency);
+    // final summary =
+    //     ref.watch(vehicleExpenseSummaryProvider).valueOrNull ??
+    //     ExpenseSummary.empty;
+    // final moneyTotal = MoneyFormat.labeled(summary.total, currency);
+    // final moneyMonth = MoneyFormat.labeled(summary.thisMonth, currency);
     final history =
         ref.watch(maintenanceHistoryProvider).valueOrNull ??
         const <ServiceRecord>[];
@@ -257,24 +256,24 @@ class _PopulatedDashboard extends ConsumerWidget {
             ),
           ),
         ),
-        SizedBox(height: tokens.space.s4),
-        Text(
-          s.dashboardOwnershipSummary,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        SizedBox(height: tokens.space.s3),
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(label: s.dashboardTotalSpent, value: moneyTotal),
-            ),
-            SizedBox(width: tokens.space.s3),
-            Expanded(
-              child: _StatCard(label: s.dashboardThisMonth, value: moneyMonth),
-            ),
-          ],
-        ),
         SizedBox(height: tokens.space.s5),
+        // Text(
+        //   s.dashboardOwnershipSummary,
+        //   style: Theme.of(context).textTheme.titleLarge,
+        // ),
+        // SizedBox(height: tokens.space.s3),
+        // Row(
+        //   children: [
+        //     Expanded(
+        //       child: _StatCard(label: s.dashboardTotalSpent, value: moneyTotal),
+        //     ),
+        //     SizedBox(width: tokens.space.s3),
+        //     Expanded(
+        //       child: _StatCard(label: s.dashboardThisMonth, value: moneyMonth),
+        //     ),
+        //   ],
+        // ),
+        // SizedBox(height: tokens.space.s5),
         Text(
           s.dashboardQuickActions,
           style: Theme.of(context).textTheme.titleLarge,
@@ -283,8 +282,14 @@ class _PopulatedDashboard extends ConsumerWidget {
         QuickActionsGrid(
           items: [
             QuickActionItem(
+              label: s.dashboardLogService,
+              icon: Icons.car_repair,
+              color: tokens.chart.maintenance,
+              onTap: () => context.push(AppRoutes.maintenanceRegister),
+            ),
+            QuickActionItem(
               label: s.dashboardHistory,
-              icon: Icons.build_outlined,
+              icon: Icons.work_history_outlined,
               color: tokens.chart.maintenance,
               onTap: () => context.push(AppRoutes.serviceHistory),
             ),
@@ -297,12 +302,6 @@ class _PopulatedDashboard extends ConsumerWidget {
                   : Icons.local_gas_station_outlined,
               color: tokens.chart.fuel,
               onTap: () => context.push(AppRoutes.fuelLogs),
-            ),
-            QuickActionItem(
-              label: s.dashboardInsurance,
-              icon: Icons.shield_outlined,
-              color: tokens.chart.insurance,
-              onTap: () => context.push(AppRoutes.insurance),
             ),
             QuickActionItem(
               label: s.dashboardParts,

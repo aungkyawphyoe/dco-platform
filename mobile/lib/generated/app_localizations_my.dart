@@ -462,7 +462,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get maintenanceTitle => 'ပြုပြင်ထိန်းသိမ်းမှု';
 
   @override
-  String get maintenancePlanLink => 'အစီအစဉ်';
+  String get maintenanceHistoryTooltip => 'မှတ်တမ်း';
 
   @override
   String get maintenanceLoadError =>
@@ -2352,4 +2352,61 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get familyRoleDriver => 'ယာဉ်မောင်း';
+
+  @override
+  String get drawerQuickAccess => 'အမြန်ဆုံး ဝင်ရောက်';
+
+  @override
+  String get drawerFeatures => 'လုပ်ဆောင်ချက်များ';
+
+  @override
+  String get drawerStats => 'စာရင်းအင်းများ';
+
+  @override
+  String get drawerFamilyFleet => 'မိသားစု နှင့် ဖလီး';
+
+  @override
+  String get drawerSync => 'Sync';
+
+  @override
+  String get drawerDocuments => 'စာရွက်စာတမ်းများ';
+
+  @override
+  String get drawerParts => 'အစိတ်အပိုင်းများ';
+
+  @override
+  String get drawerMaintenancePlan => 'ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ်';
+
+  @override
+  String get drawerInsurance => 'အာမခံ';
+
+  @override
+  String get drawerRefuelStats => 'လောင်စာဆီ စာရင်းဇယား';
+
+  @override
+  String get drawerMaintenanceStats => 'ပြုပြင်ထိန်းသိမ်းမှု စာရင်းဇယား';
+
+  @override
+  String get drawerExpenseStats => 'အသုံးစရိတ် စာရင်းဇယား';
+
+  @override
+  String get drawerFamily => 'မိသားစု';
+
+  @override
+  String get drawerFleet => 'ဖလီး';
+
+  @override
+  String get refuelStatsTitle => 'လောင်စာဆီ စာရင်းဇယား';
+
+  @override
+  String get maintenanceStatsTitle => 'ပြုပြင်ထိန်းသိမ်းမှု စာရင်းဇယား';
+
+  @override
+  String get expenseStatsTitle => 'အသုံးစရိတ် စာရင်းဇယား';
+
+  @override
+  String get fleetTitle => 'ဖလီး မုဒ်';
+
+  @override
+  String get syncStatusTitle => 'Sync အခြေအနေ';
 }

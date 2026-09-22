@@ -87,7 +87,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
       final message = e.toString();
       if (message.contains('409') || message.contains('already_in_family')) {
         ref.invalidate(myFamilyProvider);
-        if (mounted) context.go(AppRoutes.familyManage);
+        if (mounted) context.go(AppRoutes.family);
         return;
       }
       ScaffoldMessenger.of(
@@ -112,7 +112,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context)!.familyJoinedSuccess)),
         );
-        context.go(AppRoutes.familyManage);
+        context.go(AppRoutes.family);
       }
     } catch (e) {
       if (!mounted) return;
@@ -131,7 +131,7 @@ class _FamilySetupScreenState extends ConsumerState<FamilySetupScreen> {
   }
 
   void _navigateToManagement() {
-    context.go(AppRoutes.familyManage);
+    context.go(AppRoutes.family);
   }
 
   @override

@@ -452,7 +452,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get maintenanceTitle => 'Maintenance';
 
   @override
-  String get maintenancePlanLink => 'Plan';
+  String get maintenanceHistoryTooltip => 'History';
 
   @override
   String get maintenanceLoadError => 'Could not load maintenance';
@@ -2313,4 +2313,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get familyRoleDriver => 'Driver';
+
+  @override
+  String get drawerQuickAccess => 'Quick Access';
+
+  @override
+  String get drawerFeatures => 'Features';
+
+  @override
+  String get drawerStats => 'Stats';
+
+  @override
+  String get drawerFamilyFleet => 'Family & Fleet';
+
+  @override
+  String get drawerSync => 'Sync';
+
+  @override
+  String get drawerDocuments => 'Documents';
+
+  @override
+  String get drawerParts => 'Parts';
+
+  @override
+  String get drawerMaintenancePlan => 'Maintenance Plan';
+
+  @override
+  String get drawerInsurance => 'Insurance';
+
+  @override
+  String get drawerRefuelStats => 'Refuel Stats';
+
+  @override
+  String get drawerMaintenanceStats => 'Maintenance Stats';
+
+  @override
+  String get drawerExpenseStats => 'Expense Stats';
+
+  @override
+  String get drawerFamily => 'Family';
+
+  @override
+  String get drawerFleet => 'Fleet';
+
+  @override
+  String get refuelStatsTitle => 'Refuel Stats';
+
+  @override
+  String get maintenanceStatsTitle => 'Maintenance Stats';
+
+  @override
+  String get expenseStatsTitle => 'Expense Stats';
+
+  @override
+  String get fleetTitle => 'Fleet Mode';
+
+  @override
+  String get syncStatusTitle => 'Sync Status';
 }

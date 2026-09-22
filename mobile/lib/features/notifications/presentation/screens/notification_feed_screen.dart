@@ -21,14 +21,20 @@ class NotificationFeedScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: Text(s.notificationsTitle)),
       body: items.when(
-        loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
         error: (error, _) =>
             DcoEmptyState(title: s.notificationsLoadError, body: '$error'),
         data: (list) {
           if (list.isEmpty) {
-            return DcoEmptyState(
-              title: s.notificationsEmptyTitle,
-              body: s.notificationsEmptyBody,
+            return Center(
+              child: Padding(
+                padding: EdgeInsets.all(tokens.space.s5),
+                child: DcoEmptyState(
+                  title: s.notificationsEmptyTitle,
+                  body: s.notificationsEmptyBody,
+                ),
+              ),
             );
           }
           return ListView.separated(
@@ -59,15 +65,17 @@ class _NotificationTile extends ConsumerWidget {
 
     Future<void> updateStatus(NotificationStatus status) async {
       if (userId == null) return;
-      await ref.read(notificationRepositoryProvider).setStatus(
-        userId: userId,
-        notificationId: item.id,
-        status: status,
-      );
+      await ref
+          .read(notificationRepositoryProvider)
+          .setStatus(userId: userId, notificationId: item.id, status: status);
       if (status == NotificationStatus.done) {
-        ref.read(analyticsProvider).track(AnalyticsEvent.maintenanceReminderCompleted);
+        ref
+            .read(analyticsProvider)
+            .track(AnalyticsEvent.maintenanceReminderCompleted);
       } else if (status == NotificationStatus.dismissed) {
-        ref.read(analyticsProvider).track(AnalyticsEvent.maintenanceReminderDismissed);
+        ref
+            .read(analyticsProvider)
+            .track(AnalyticsEvent.maintenanceReminderDismissed);
       }
     }
 
@@ -83,11 +91,7 @@ class _NotificationTile extends ConsumerWidget {
       child: ListTile(
         leading: Icon(icon, color: tokens.icon.active),
         title: Text(item.title),
-        subtitle: Text(
-          item.body,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
+        subtitle: Text(item.body, maxLines: 2, overflow: TextOverflow.ellipsis),
         trailing: item.isOpen
             ? Row(
                 mainAxisSize: MainAxisSize.min,
@@ -95,7 +99,10 @@ class _NotificationTile extends ConsumerWidget {
                   IconButton(
                     tooltip: s.notificationsMarkDone,
                     onPressed: () => updateStatus(NotificationStatus.done),
-                    icon: Icon(Icons.check_circle_outline, color: tokens.status.successFg),
+                    icon: Icon(
+                      Icons.check_circle_outline,
+                      color: tokens.status.successFg,
+                    ),
                   ),
                   IconButton(
                     tooltip: s.notificationsDismiss,

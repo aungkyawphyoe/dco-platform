@@ -152,7 +152,7 @@
   "fuelHybridPlugin": "Plug-in ဟိုက်ဘရစ်",
 
   "maintenanceTitle": "ပြုပြင်ထိန်းသိမ်းမှု",
-  "maintenancePlanLink": "အစီအစဉ်",
+  "maintenanceHistoryTooltip": "မှတ်တမ်း",
   "maintenanceLoadError": "ပြုပြင်ထိန်းသိမ်းမှု အချက်အလက်များကို ရယူ၍မရပါ",
   "maintenanceNoActiveVehicle": "အသုံးပြုနေသော ယာဉ် မရှိပါ",
   "maintenanceNoActiveVehicleBody": "ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ်ဆွဲရန်နှင့် မှတ်တမ်းထိန်းသိမ်းရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
@@ -751,5 +751,26 @@
 
   "familyRolePrimaryOwner": "ပင်မ ပိုင်ရှင်",
   "familyRoleMember": "အဖွဲ့ဝင်",
-  "familyRoleDriver": "ယာဉ်မောင်း"
+  "familyRoleDriver": "ယာဉ်မောင်း",
+
+  "drawerQuickAccess": "အမြန်ဆုံး ဝင်ရောက်",
+  "drawerFeatures": "လုပ်ဆောင်ချက်များ",
+  "drawerStats": "စာရင်းအင်းများ",
+  "drawerFamilyFleet": "မိသားစု နှင့် ဖလီး",
+  "drawerSync": "Sync",
+  "drawerDocuments": "စာရွက်စာတမ်းများ",
+  "drawerParts": "အစိတ်အပိုင်းများ",
+  "drawerMaintenancePlan": "ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ်",
+  "drawerInsurance": "အာမခံ",
+  "drawerRefuelStats": "လောင်စာဆီ စာရင်းဇယား",
+  "drawerMaintenanceStats": "ပြုပြင်ထိန်းသိမ်းမှု စာရင်းဇယား",
+  "drawerExpenseStats": "အသုံးစရိတ် စာရင်းဇယား",
+  "drawerFamily": "မိသားစု",
+  "drawerFleet": "ဖလီး",
+
+  "refuelStatsTitle": "လောင်စာဆီ စာရင်းဇယား",
+  "maintenanceStatsTitle": "ပြုပြင်ထိန်းသိမ်းမှု စာရင်းဇယား",
+  "expenseStatsTitle": "အသုံးစရိတ် စာရင်းဇယား",
+  "fleetTitle": "ဖလီး မုဒ်",
+  "syncStatusTitle": "Sync အခြေအနေ"
 }

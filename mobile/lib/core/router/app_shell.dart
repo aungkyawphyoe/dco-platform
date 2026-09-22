@@ -2,6 +2,7 @@ import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import 'app_drawer.dart';
 import '../widgets/custom_floating_nav_bar.dart';
 
 class AppShell extends StatelessWidget {
@@ -36,6 +37,7 @@ class AppShell extends StatelessWidget {
     ];
 
     return Scaffold(
+      drawer: const AppDrawer(),
       body: Stack(
         children: [
           Positioned.fill(child: navigationShell),

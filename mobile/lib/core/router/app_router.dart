@@ -14,16 +14,19 @@ import '../../features/documents/presentation/screens/document_form_screen.dart'
 import '../../features/documents/presentation/screens/document_viewer_screen.dart';
 import '../../features/expenses/presentation/screens/expense_form_screen.dart';
 import '../../features/expenses/presentation/screens/expenses_screen.dart';
+import '../../features/fleet/presentation/screens/fleet_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
 import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_logs_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_type_form_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_types_screen.dart';
+import '../../features/fuel/presentation/screens/refuel_stats_screen.dart';
 import '../../features/garage/presentation/screens/garage_home_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
 import '../../features/insurance/presentation/screens/insurance_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_plan_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_screen.dart';
+import '../../features/maintenance/presentation/screens/maintenance_stats_screen.dart';
 import '../../features/maintenance/presentation/screens/plan_item_form_screen.dart';
 import '../../features/maintenance/presentation/screens/register_service_screen.dart';
 import '../../features/maintenance/presentation/screens/service_detail_screen.dart';
@@ -36,10 +39,12 @@ import '../../features/settings/presentation/screens/localization_screen.dart';
 import '../../features/settings/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/units_formats_screen.dart';
+import '../../features/expenses/presentation/screens/expense_stats_screen.dart';
 import '../../features/family/presentation/screens/family_setup_screen.dart';
 import '../../features/family/presentation/screens/family_management_screen.dart';
 import '../../features/family/presentation/screens/car_detail_screen.dart';
 import '../../features/family/presentation/screens/user_detail_screen.dart';
+import '../../features/sync/presentation/screens/sync_status_screen.dart';
 import 'app_shell.dart';
 import 'routes.dart';
 
@@ -131,22 +136,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'notifications',
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const NotificationFeedScreen(),
+                    builder: (context, state) =>
+                        const NotificationFeedScreen(),
                   ),
                   GoRoute(
                     path: 'services',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const ServiceHistoryScreen(),
-                  ),
-                  GoRoute(
-                    path: 'documents',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const DocumentsScreen(),
-                  ),
-                  GoRoute(
-                    path: 'insurance',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const InsuranceScreen(),
                   ),
                   GoRoute(
                     path: 'fuel',
@@ -156,12 +152,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       GoRoute(
                         path: 'new',
                         parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => const FuelLogEntryScreen(),
+                        builder: (context, state) =>
+                            const FuelLogEntryScreen(),
                       ),
                       GoRoute(
                         path: 'types',
                         parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => const FuelTypesScreen(),
+                        builder: (context, state) =>
+                            const FuelTypesScreen(),
                         routes: [
                           GoRoute(
                             path: 'new',
@@ -176,7 +174,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                             path: ':fuelTypeId/edit',
                             parentNavigatorKey: rootNavigatorKey,
                             builder: (context, state) => FuelTypeFormScreen(
-                              fuelTypeId: state.pathParameters['fuelTypeId'],
+                              fuelTypeId:
+                                  state.pathParameters['fuelTypeId'],
                             ),
                           ),
                         ],
@@ -186,25 +185,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => FuelLogEntryScreen(
                           logId: state.pathParameters['logId'],
-                        ),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
-                    path: 'parts',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const PartsScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => const PartFormScreen(),
-                      ),
-                      GoRoute(
-                        path: ':partId/edit',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => PartFormScreen(
-                          partId: state.pathParameters['partId'],
                         ),
                       ),
                     ],
@@ -220,35 +200,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const MaintenanceScreen(),
                 routes: [
                   GoRoute(
-                    path: 'plan',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const MaintenancePlanScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => const PlanItemFormScreen(),
-                      ),
-                      GoRoute(
-                        path: 'suggested',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) =>
-                            const SuggestedItemsScreen(),
-                      ),
-                      GoRoute(
-                        path: ':planItemId/edit',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => PlanItemFormScreen(
-                          planItemId: state.pathParameters['planItemId'],
-                        ),
-                      ),
-                    ],
-                  ),
-                  GoRoute(
                     path: 'register',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => RegisterServiceScreen(
-                      preselectedPlanItemId: state.uri.queryParameters['item'],
+                      preselectedPlanItemId:
+                          state.uri.queryParameters['item'],
                     ),
                   ),
                   GoRoute(
@@ -280,32 +236,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                       expenseId: state.pathParameters['expenseId'],
                     ),
                   ),
-                  GoRoute(
-                    path: 'documents',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const DocumentsScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'new',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => const DocumentFormScreen(),
-                      ),
-                      GoRoute(
-                        path: ':documentId/edit',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => DocumentFormScreen(
-                          documentId: state.pathParameters['documentId'],
-                        ),
-                      ),
-                      GoRoute(
-                        path: ':documentId/view',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => DocumentViewerScreen(
-                          documentId: state.pathParameters['documentId']!,
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             ],
@@ -324,45 +254,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'localization',
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const LocalizationScreen(),
+                    builder: (context, state) =>
+                        const LocalizationScreen(),
                   ),
                   GoRoute(
                     path: 'units',
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const UnitsFormatsScreen(),
-                  ),
-                  GoRoute(
-                    path: 'family/new',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const FamilySetupScreen(),
-                  ),
-                  GoRoute(
-                    path: 'family/join/:code',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => FamilySetupScreen(
-                      joinCode: state.pathParameters['code']!,
-                    ),
-                  ),
-                  GoRoute(
-                    path: 'family',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const FamilyManagementScreen(),
-                    routes: [
-                      GoRoute(
-                        path: 'vehicle/:id',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => CarDetailScreen(
-                          vehicleId: state.pathParameters['id']!,
-                        ),
-                      ),
-                      GoRoute(
-                        path: 'user/:id',
-                        parentNavigatorKey: rootNavigatorKey,
-                        builder: (context, state) => UserDetailScreen(
-                          userId: state.pathParameters['id']!,
-                        ),
-                      ),
-                    ],
+                    builder: (context, state) =>
+                        const UnitsFormatsScreen(),
                   ),
                 ],
               ),
@@ -370,6 +269,158 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           ),
         ],
       ),
+
+      // ── Drawer routes (top-level, overlay shell) ──
+
+      // Documents
+      GoRoute(
+        path: AppRoutes.documents,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const DocumentsScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => const DocumentFormScreen(),
+          ),
+          GoRoute(
+            path: ':documentId/edit',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => DocumentFormScreen(
+              documentId: state.pathParameters['documentId'],
+            ),
+          ),
+          GoRoute(
+            path: ':documentId/view',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => DocumentViewerScreen(
+              documentId: state.pathParameters['documentId']!,
+            ),
+          ),
+        ],
+      ),
+
+      // Parts
+      GoRoute(
+        path: AppRoutes.parts,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const PartsScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => const PartFormScreen(),
+          ),
+          GoRoute(
+            path: ':partId/edit',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => PartFormScreen(
+              partId: state.pathParameters['partId'],
+            ),
+          ),
+        ],
+      ),
+
+      // Maintenance Plan
+      GoRoute(
+        path: AppRoutes.maintenancePlan,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const MaintenancePlanScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => const PlanItemFormScreen(),
+          ),
+          GoRoute(
+            path: 'suggested',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => const SuggestedItemsScreen(),
+          ),
+          GoRoute(
+            path: ':planItemId/edit',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => PlanItemFormScreen(
+              planItemId: state.pathParameters['planItemId'],
+            ),
+          ),
+        ],
+      ),
+
+      // Insurance
+      GoRoute(
+        path: AppRoutes.insurance,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const InsuranceScreen(),
+      ),
+
+      // Stats
+      GoRoute(
+        path: AppRoutes.refuelStats,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const RefuelStatsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.maintenanceStats,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const MaintenanceStatsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.expenseStats,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const ExpenseStatsScreen(),
+      ),
+
+      // Sync
+      GoRoute(
+        path: AppRoutes.sync,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const SyncStatusScreen(),
+      ),
+
+      // Family
+      GoRoute(
+        path: AppRoutes.family,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const FamilyManagementScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => const FamilySetupScreen(),
+          ),
+          GoRoute(
+            path: 'join/:code',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => FamilySetupScreen(
+              joinCode: state.pathParameters['code']!,
+            ),
+          ),
+          GoRoute(
+            path: 'vehicle/:id',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => CarDetailScreen(
+              vehicleId: state.pathParameters['id']!,
+            ),
+          ),
+          GoRoute(
+            path: 'user/:id',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => UserDetailScreen(
+              userId: state.pathParameters['id']!,
+            ),
+          ),
+        ],
+      ),
+
+      // Fleet
+      GoRoute(
+        path: AppRoutes.fleet,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const FleetScreen(),
+      ),
+
+      // Detail screens
       GoRoute(
         path: AppRoutes.vehicleDetail(':id'),
         parentNavigatorKey: rootNavigatorKey,

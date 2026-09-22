@@ -36,6 +36,10 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.menu, color: tokens.icon.active),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
         title: Text(s.expensesTitle),
         actions: [
           IconButton(
@@ -63,10 +67,8 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
               loading: () => Center(
                 child: CircularProgressIndicator(color: tokens.text.accent),
               ),
-              error: (error, _) => DcoEmptyState(
-                title: s.expensesLoadError,
-                body: '$error',
-              ),
+              error: (error, _) =>
+                  DcoEmptyState(title: s.expensesLoadError, body: '$error'),
               data: (items) {
                 final filtered = _category == null
                     ? items
@@ -94,8 +96,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                           ? Center(
                               child: DcoEmptyState(
                                 title: s.expensesEmptyTitle,
-                                body:
-                                    s.expensesEmptyBody(vehicle.displayName),
+                                body: s.expensesEmptyBody(vehicle.displayName),
                                 actionLabel: s.expensesAddExpense,
                                 onAction: () =>
                                     context.push(AppRoutes.expenseNew),
@@ -201,7 +202,10 @@ class _SummaryCard extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(tokens.radius.lg),
         border: Border(
-          top: BorderSide(color: tokens.text.accent.withValues(alpha: 0.3), width: 1.5),
+          top: BorderSide(
+            color: tokens.text.accent.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
         ),
         boxShadow: tokens.shadows.card,
       ),
@@ -349,7 +353,9 @@ class _FilterChip extends StatelessWidget {
       color: selected ? tokens.text.accent : tokens.background.input,
       borderRadius: BorderRadius.circular(tokens.radius.full),
       elevation: selected ? 2 : 0,
-      shadowColor: selected ? tokens.text.accent.withValues(alpha: 0.3) : Colors.transparent,
+      shadowColor: selected
+          ? tokens.text.accent.withValues(alpha: 0.3)
+          : Colors.transparent,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(tokens.radius.full),
@@ -390,9 +396,7 @@ class _ExpenseTile extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(tokens.radius.lg),
-        border: Border(
-          left: BorderSide(color: color, width: 3),
-        ),
+        border: Border(left: BorderSide(color: color, width: 3)),
         boxShadow: tokens.shadows.card,
       ),
       child: Material(
@@ -444,9 +448,8 @@ class _ExpenseTile extends StatelessWidget {
                           expense.notesPreview!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: tokens.text.caption,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: tokens.text.caption),
                         ),
                       ],
                     ],

@@ -17,32 +17,42 @@ class MaintenanceSectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final (fg, bg) = switch (tone) {
-      MaintenanceSectionTone.danger => (tokens.status.dangerFg, tokens.status.dangerBg),
-      MaintenanceSectionTone.info => (tokens.status.infoFg, tokens.status.infoBg),
-      MaintenanceSectionTone.neutral => (tokens.text.primary, tokens.background.secondary),
-    };
-    return Container(
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(tokens.radius.lg),
+      MaintenanceSectionTone.danger => (
+        tokens.status.dangerFg,
+        tokens.status.dangerBg,
       ),
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: tokens.space.s4, vertical: tokens.space.s3),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(color: fg),
-              ),
+      MaintenanceSectionTone.info => (
+        tokens.status.infoFg,
+        tokens.status.infoBg,
+      ),
+      MaintenanceSectionTone.neutral => (
+        tokens.text.primary,
+        tokens.background.secondary,
+      ),
+    };
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: tokens.space.s4,
+        vertical: tokens.space.s1,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(color: fg),
             ),
-            if (trailing != null)
-              Text(
-                trailing!,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(color: fg),
-              ),
-          ],
-        ),
+          ),
+          if (trailing != null)
+            Text(
+              trailing!,
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: fg),
+            ),
+        ],
       ),
     );
   }

@@ -1,4 +1,3 @@
-import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
@@ -7,7 +6,7 @@ import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_tile.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/section_header.dart';
-import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
+
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -24,28 +23,29 @@ class MaintenanceScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final active = ref.watch(activeVehicleProvider);
     final plan = ref.watch(maintenancePlanProvider);
-    final history = ref.watch(maintenanceHistoryProvider);
     final lengthUnit = ref.watch(lengthUnitProvider);
     final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.menu, color: tokens.icon.active),
+          onPressed: () => Scaffold.of(context).openDrawer(),
+        ),
         title: Text(s.maintenanceTitle),
         actions: [
-          TextButton(
-            onPressed: active.valueOrNull == null
-                ? null
-                : () => _openPlan(context, ref),
-            child: Text(
-              s.maintenancePlanLink,
-              style: TextStyle(color: tokens.text.link, fontSize: 13),
-            ),
+          IconButton(
+            tooltip: s.maintenanceHistoryTooltip,
+            onPressed: () => context.push(AppRoutes.serviceHistory),
+            icon: Icon(Icons.work_history_outlined, color: tokens.icon.active),
           ),
         ],
       ),
       body: active.when(
-        loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-        error: (error, _) => DcoEmptyState(title: s.maintenanceLoadError, body: '$error'),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        error: (error, _) =>
+            DcoEmptyState(title: s.maintenanceLoadError, body: '$error'),
         data: (vehicle) {
           if (vehicle == null) {
             return DcoEmptyState(
@@ -54,7 +54,6 @@ class MaintenanceScreen extends ConsumerWidget {
             );
           }
           final items = plan.valueOrNull ?? const <PlanItem>[];
-          final records = history.valueOrNull ?? const [];
           final now = DateTime.now();
           final upcoming = items.where((item) {
             final urgency = DueCalculator.urgency(
@@ -72,88 +71,99 @@ class MaintenanceScreen extends ConsumerWidget {
                 ) ==
                 PlanUrgency.scheduled;
           }).toList();
-          upcoming.sort((a, b) => DueCalculator.compareSoonest(a, b, vehicle.mileage, now));
-          scheduled.sort((a, b) => DueCalculator.compareSoonest(a, b, vehicle.mileage, now));
+          upcoming.sort(
+            (a, b) => DueCalculator.compareSoonest(a, b, vehicle.mileage, now),
+          );
+          scheduled.sort(
+            (a, b) => DueCalculator.compareSoonest(a, b, vehicle.mileage, now),
+          );
 
-          return Column(
+          return Stack(
             children: [
-              Expanded(
-                child: ListView(
-                  children: [
-                    MaintenanceSectionHeader(
-                      title: s.maintenanceUpcomingReminders,
-                      tone: MaintenanceSectionTone.danger,
-                      trailing: upcoming.isEmpty ? null : '${upcoming.length} due',
+              Column(
+                children: [
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        MaintenanceSectionHeader(
+                          title: s.maintenanceUpcomingReminders,
+                          tone: MaintenanceSectionTone.danger,
+                          trailing: upcoming.isEmpty
+                              ? null
+                              : '${upcoming.length} due',
+                        ),
+                        SizedBox(height: tokens.space.s3),
+                        if (upcoming.isEmpty)
+                          _SectionEmpty(label: s.maintenanceNothingDue)
+                        else
+                          ...upcoming.map(
+                            (item) => PlanItemTile(
+                              item: item,
+                              vehicle: vehicle,
+                              now: now,
+                              lengthUnit: lengthUnit,
+                              onTap: () => context.push(
+                                AppRoutes.maintenanceRegisterItem(item.id),
+                              ),
+                            ),
+                          ),
+                        MaintenanceSectionHeader(
+                          title: s.maintenanceScheduled,
+                          tone: MaintenanceSectionTone.info,
+                        ),
+                        SizedBox(height: tokens.space.s3),
+                        if (scheduled.isEmpty)
+                          _SectionEmpty(label: s.maintenanceNothingScheduled)
+                        else
+                          ...scheduled.map(
+                            (item) => PlanItemTile(
+                              item: item,
+                              vehicle: vehicle,
+                              now: now,
+                              lengthUnit: lengthUnit,
+                              onTap: () => context.push(
+                                AppRoutes.maintenanceRegisterItem(item.id),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 80),
+                      ],
                     ),
-                    SizedBox(height: tokens.space.s3),
-                    if (upcoming.isEmpty)
-                      _SectionEmpty(label: s.maintenanceNothingDue)
-                    else
-                      ...upcoming.map(
-                        (item) => PlanItemTile(
-                          item: item,
-                          vehicle: vehicle,
-                          now: now,
-                          lengthUnit: lengthUnit,
-                          onTap: () => context.push(AppRoutes.maintenanceRegisterItem(item.id)),
-                        ),
-                      ),
-                    MaintenanceSectionHeader(
-                      title: s.maintenanceScheduled,
-                      tone: MaintenanceSectionTone.info,
+                  ),
+
+                  // DcoStickyActions(
+                  //   secondaryLabel: s.maintenanceRegisterService,
+                  //   onSecondary: () => context.push(AppRoutes.maintenanceRegister),
+                  //   primaryLabel: s.maintenanceLoadFromReceipt,
+                  //   onPrimary: () {},
+                  // ),
+                  // SizedBox(height: 70.0),
+                ],
+              ),
+              Positioned(
+                right: 16,
+                bottom: 90,
+                child: SizedBox(
+                  width: 150.0,
+                  height: 56.0,
+                  child: FloatingActionButton.extended(
+                    backgroundColor: tokens.button.primary.background,
+                    foregroundColor: tokens.text.inverse,
+                    onPressed: () =>
+                        context.push(AppRoutes.maintenanceRegister),
+                    label: Text(s.dashboardLogService),
+                    icon: const Icon(Icons.car_repair),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(tokens.radius.full),
                     ),
-                    SizedBox(height: tokens.space.s3),
-                    if (scheduled.isEmpty)
-                      _SectionEmpty(label: s.maintenanceNothingScheduled)
-                    else
-                      ...scheduled.map(
-                        (item) => PlanItemTile(
-                          item: item,
-                          vehicle: vehicle,
-                          now: now,
-                          lengthUnit: lengthUnit,
-                          onTap: () => context.push(AppRoutes.maintenanceRegisterItem(item.id)),
-                        ),
-                      ),
-                    MaintenanceSectionHeader(title: s.maintenanceServiceHistory),
-                    SizedBox(height: tokens.space.s3),
-                    if (records.isEmpty)
-                      _SectionEmpty(label: s.maintenanceNoServicesLogged)
-                    else
-                      ...records.map(
-                        (record) => HistoryTile(
-                          record: record,
-                          lengthUnit: lengthUnit,
-                          currency: currency,
-                          onTap: () => context.push(AppRoutes.serviceDetail(record.id)),
-                        ),
-                      ),
-                    SizedBox(height: tokens.space.s4),
-                  ],
+                  ),
                 ),
               ),
-              DcoStickyActions(
-                secondaryLabel: s.maintenanceRegisterService,
-                onSecondary: () => context.push(AppRoutes.maintenanceRegister),
-                primaryLabel: s.maintenanceLoadFromReceipt,
-                onPrimary: () {},
-              ),
-              SizedBox(height: 70.0)
             ],
           );
         },
       ),
     );
-  }
-
-  Future<void> _openPlan(BuildContext context, WidgetRef ref) async {
-    final vehicle = ref.read(activeVehicleProvider).valueOrNull;
-    if (vehicle == null) return;
-    await ref.read(maintenanceRepositoryProvider).ensureDefaultPlan(
-      userId: vehicle.userId,
-      vehicle: vehicle,
-    );
-    if (context.mounted) context.push(AppRoutes.maintenancePlan    );
   }
 }
 
@@ -166,7 +176,12 @@ class _SectionEmpty extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Padding(
-      padding: EdgeInsets.fromLTRB(tokens.space.s4, 0, tokens.space.s4, tokens.space.s4),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s4,
+        0,
+        tokens.space.s4,
+        tokens.space.s4,
+      ),
       child: Container(
         height: 80,
         alignment: Alignment.center,
