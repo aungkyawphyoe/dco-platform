@@ -4513,6 +4513,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Sync Status'**
   String get syncStatusTitle;
+
+  /// No description provided for @syncAutoSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Auto Sync'**
+  String get syncAutoSync;
+
+  /// No description provided for @syncAutoSyncDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Automatically sync data when connected'**
+  String get syncAutoSyncDescription;
+
+  /// No description provided for @syncManualSync.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync Now'**
+  String get syncManualSync;
+
+  /// No description provided for @syncPendingItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending Items'**
+  String get syncPendingItems;
+
+  /// No description provided for @syncPendingItemsDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Changes waiting to be synced to the server'**
+  String get syncPendingItemsDescription;
+
+  /// No description provided for @syncNoPendingItems.
+  ///
+  /// In en, this message translates to:
+  /// **'All changes synced'**
+  String get syncNoPendingItems;
+
+  /// No description provided for @syncStatusConnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get syncStatusConnected;
+
+  /// No description provided for @syncStatusOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Offline'**
+  String get syncStatusOffline;
+
+  /// No description provided for @syncLastSynced.
+  ///
+  /// In en, this message translates to:
+  /// **'Last synced'**
+  String get syncLastSynced;
+
+  /// No description provided for @syncNever.
+  ///
+  /// In en, this message translates to:
+  /// **'Never'**
+  String get syncNever;
+
+  /// No description provided for @syncHowItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How syncing works'**
+  String get syncHowItWorks;
+
+  /// No description provided for @syncHowItWorksDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data is stored locally first, then synced to the server when connected. Offline changes are queued and sent automatically.'**
+  String get syncHowItWorksDescription;
+
+  /// No description provided for @syncVehicles.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicles'**
+  String get syncVehicles;
+
+  /// No description provided for @syncMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get syncMaintenance;
+
+  /// No description provided for @syncExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get syncExpenses;
+
+  /// No description provided for @syncDocuments.
+  ///
+  /// In en, this message translates to:
+  /// **'Documents'**
+  String get syncDocuments;
+
+  /// No description provided for @syncParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts'**
+  String get syncParts;
+
+  /// No description provided for @syncFuelLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel Logs'**
+  String get syncFuelLogs;
+
+  /// No description provided for @syncOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get syncOther;
 }
 
 class _AppLocalizationsDelegate

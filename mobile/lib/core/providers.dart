@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
+import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
@@ -258,4 +259,74 @@ final currentUserIdProvider = Provider<String?>((ref) {
 final authUserProvider = Provider((ref) {
   final session = ref.watch(sessionControllerProvider).valueOrNull;
   return session?.user;
+});
+
+// ---------------------------------------------------------------------------
+// Auto-sync preference (persisted in AppMeta, per user)
+// ---------------------------------------------------------------------------
+
+class AutoSyncNotifier extends StateNotifier<bool> {
+  AutoSyncNotifier(this._db, this._userId) : super(true) {
+    _load();
+  }
+
+  final AppDatabase _db;
+  final String? _userId;
+
+  Future<void> _load() async {
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) return;
+    final key = 'auto_sync:$userId';
+    final row =
+        await (_db.select(_db.appMeta)..where((m) => m.key.equals(key)))
+            .getSingleOrNull();
+    if (row != null) {
+      state = row.value != 'false';
+    }
+  }
+
+  Future<void> toggle() async {
+    state = !state;
+    final userId = _userId;
+    if (userId == null || userId.isEmpty) return;
+    final key = 'auto_sync:$userId';
+    final existing =
+        await (_db.select(_db.appMeta)..where((m) => m.key.equals(key)))
+            .getSingleOrNull();
+    if (existing != null) {
+      await (_db.update(_db.appMeta)..where((m) => m.id.equals(existing.id)))
+          .write(AppMetaCompanion(value: Value<String?>(state ? 'true' : 'false')));
+    } else {
+      await _db.into(_db.appMeta).insert(
+            AppMetaCompanion.insert(
+              key: key,
+              value: Value<String?>(state ? 'true' : 'false'),
+            ),
+          );
+    }
+  }
+}
+
+final autoSyncProvider =
+    StateNotifierProvider<AutoSyncNotifier, bool>((ref) {
+  final userId = ref.watch(currentUserIdProvider);
+  final db = ref.watch(appDatabaseProvider);
+  return AutoSyncNotifier(db, userId);
+});
+
+// ---------------------------------------------------------------------------
+// Pending outbox count (reactive — recalculated on each sync cycle)
+// ---------------------------------------------------------------------------
+
+final pendingOutboxCountProvider = FutureProvider<int>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null || userId.isEmpty) return 0;
+  final db = ref.watch(appDatabaseProvider);
+  final rows = await (db.select(db.outboxEntries)
+        ..where(
+          (row) => row.userId.equals(userId) &
+              row.attemptCount.isSmallerOrEqualValue(4),
+        ))
+      .get();
+  return rows.length;
 });

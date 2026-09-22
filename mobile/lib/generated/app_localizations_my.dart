@@ -2409,4 +2409,64 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get syncStatusTitle => 'Sync အခြေအနေ';
+
+  @override
+  String get syncAutoSync => 'အလိုအလျောက် ချိတ်ဆက်မှု';
+
+  @override
+  String get syncAutoSyncDescription =>
+      'ချိတ်ဆက်ထားသည့်အခါ ဒေတာများကို အလိုအလျောက် ချိတ်ဆက်ပေးပါမည်';
+
+  @override
+  String get syncManualSync => 'ယခု ချိတ်ဆက်မည်';
+
+  @override
+  String get syncPendingItems => 'စောင့်ဆိုင်းနေသည့် အကြောင်းအရာများ';
+
+  @override
+  String get syncPendingItemsDescription =>
+      'ဆာဗာသို့ ချိတ်ဆက်ရန် စောင့်ဆိုင်းနေသည့် ပြောင်းလဲမှုများ';
+
+  @override
+  String get syncNoPendingItems => 'ပြောင်းလဲမှု အားလုံး ချိတ်ဆက်ပြီးပါပြီ';
+
+  @override
+  String get syncStatusConnected => 'ချိတ်ဆက်ပြီး';
+
+  @override
+  String get syncStatusOffline => 'အော့ဖ်လိုင်း';
+
+  @override
+  String get syncLastSynced => 'နောက်ဆုံး ချိတ်ဆက်ချိန်';
+
+  @override
+  String get syncNever => 'ဘယ်တုန်းကမှ မချိတ်ဆက်ရသေးပါ';
+
+  @override
+  String get syncHowItWorks => 'ချိတ်ဆက်မှု ဘယ်လို အလုပ်လုပ်သလဲ';
+
+  @override
+  String get syncHowItWorksDescription =>
+      'သင့်ဒေတာများကို အရင်လက်တွင်းတွင် သိမ်းဆည်းပြီး ချိတ်ဆက်ထားသည့်အခါ ဆာဗာသို့ ပို့ဆောင်ပေးပါမည်။ အော့ဖ်လိုင်းတွင် ပြောင်းလဲထားသည်များကို သိမ်းဆည်းထားပြီး အလိုအလျောက် ပို့ဆောင်ပေးပါမည်။';
+
+  @override
+  String get syncVehicles => 'ယာဉ်များ';
+
+  @override
+  String get syncMaintenance => 'ပြုပြင်ထိန်းသိမ်းမှု';
+
+  @override
+  String get syncExpenses => 'ကုန်ကျစရိတ်များ';
+
+  @override
+  String get syncDocuments => 'စာရွက်စာတမ်းများ';
+
+  @override
+  String get syncParts => 'အပိုပစ္စည်းများ';
+
+  @override
+  String get syncFuelLogs => 'လောင်စာဆီ မှတ်တမ်း';
+
+  @override
+  String get syncOther => 'အခြား';
 }

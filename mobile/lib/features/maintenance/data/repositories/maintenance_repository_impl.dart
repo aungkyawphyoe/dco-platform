@@ -388,16 +388,18 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         payload: record.toWriteJson(),
       );
     });
-    // Auto-create expense for maintenance cost
-    await _expenseRepository.add(
-      userId: userId,
-      vehicleId: vehicle.id,
-      draft: ExpenseDraft(
-        category: ExpenseCategory.maintenance,
-        amount: draft.totalCost,
-        incurredOn: draft.servicedOn,
-      ),
-    );
+    // Auto-create expense for maintenance cost (skip if zero — e.g. mileage-only updates)
+    if (draft.totalCost > 0) {
+      await _expenseRepository.add(
+        userId: userId,
+        vehicleId: vehicle.id,
+        draft: ExpenseDraft(
+          category: ExpenseCategory.maintenance,
+          amount: draft.totalCost,
+          incurredOn: draft.servicedOn,
+        ),
+      );
+    }
     _sync?.requestSync();
     return record;
   }

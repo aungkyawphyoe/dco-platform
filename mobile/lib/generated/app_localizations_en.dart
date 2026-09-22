@@ -2370,4 +2370,64 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncStatusTitle => 'Sync Status';
+
+  @override
+  String get syncAutoSync => 'Auto Sync';
+
+  @override
+  String get syncAutoSyncDescription =>
+      'Automatically sync data when connected';
+
+  @override
+  String get syncManualSync => 'Sync Now';
+
+  @override
+  String get syncPendingItems => 'Pending Items';
+
+  @override
+  String get syncPendingItemsDescription =>
+      'Changes waiting to be synced to the server';
+
+  @override
+  String get syncNoPendingItems => 'All changes synced';
+
+  @override
+  String get syncStatusConnected => 'Connected';
+
+  @override
+  String get syncStatusOffline => 'Offline';
+
+  @override
+  String get syncLastSynced => 'Last synced';
+
+  @override
+  String get syncNever => 'Never';
+
+  @override
+  String get syncHowItWorks => 'How syncing works';
+
+  @override
+  String get syncHowItWorksDescription =>
+      'Your data is stored locally first, then synced to the server when connected. Offline changes are queued and sent automatically.';
+
+  @override
+  String get syncVehicles => 'Vehicles';
+
+  @override
+  String get syncMaintenance => 'Maintenance';
+
+  @override
+  String get syncExpenses => 'Expenses';
+
+  @override
+  String get syncDocuments => 'Documents';
+
+  @override
+  String get syncParts => 'Parts';
+
+  @override
+  String get syncFuelLogs => 'Fuel Logs';
+
+  @override
+  String get syncOther => 'Other';
 }

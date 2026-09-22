@@ -23,19 +23,27 @@ class SyncState {
     this.phase = SyncPhase.idle,
     this.lastSyncedAt,
     this.message,
+    this.autoSyncEnabled = true,
   });
 
   final SyncPhase phase;
   final DateTime? lastSyncedAt;
   final String? message;
+  final bool autoSyncEnabled;
 
   bool get hasError => phase == SyncPhase.error;
 
-  SyncState copyWith({SyncPhase? phase, DateTime? lastSyncedAt, String? message}) {
+  SyncState copyWith({
+    SyncPhase? phase,
+    DateTime? lastSyncedAt,
+    String? message,
+    bool? autoSyncEnabled,
+  }) {
     return SyncState(
       phase: phase ?? this.phase,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
       message: message,
+      autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
     );
   }
 
