@@ -43,7 +43,9 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
       setState(() => _loading = false);
       return;
     }
-    final note = await ref.read(notesRepositoryProvider).getById(widget.noteId!);
+    final note = await ref
+        .read(notesRepositoryProvider)
+        .getById(widget.noteId!);
     if (!mounted) return;
     if (note != null) {
       _note = note;
@@ -107,9 +109,9 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
       await repo.delete(userId: userId, noteId: note.id);
     } on NoteFailure catch (failure) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
       }
       return;
     }
@@ -119,8 +121,10 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
     messenger.showSnackBar(
       SnackBar(
         content: Text(s.noteDeleted),
+        duration: const Duration(seconds: 1),
         action: SnackBarAction(
           label: s.noteUndo,
+          textColor: DcoTokens.garageMinimalDark.text.primary,
           onPressed: () {
             repo.restore(note);
           },
@@ -136,15 +140,21 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
     if (_loading) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(widget.isEditing ? s.noteFormEditTitle : s.noteFormAddTitle),
+          title: Text(
+            widget.isEditing ? s.noteFormEditTitle : s.noteFormAddTitle,
+          ),
         ),
-        body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        body: Center(
+          child: CircularProgressIndicator(color: tokens.text.accent),
+        ),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? s.noteFormEditTitle : s.noteFormAddTitle),
+        title: Text(
+          widget.isEditing ? s.noteFormEditTitle : s.noteFormAddTitle,
+        ),
         actions: [
           if (widget.isEditing)
             IconButton(
@@ -183,7 +193,10 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+                  Text(
+                    _formError!,
+                    style: TextStyle(color: tokens.status.dangerFg),
+                  ),
                 ],
               ],
             ),

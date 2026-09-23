@@ -41,20 +41,6 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
         title: Text(s.expensesTitle),
-        actions: [
-          IconButton(
-            tooltip: s.expensesAddTooltip,
-            onPressed: vehicle == null
-                ? null
-                : () => context.push(AppRoutes.expenseNew),
-            icon: Icon(
-              Icons.add,
-              color: vehicle == null
-                  ? tokens.icon.inactive
-                  : tokens.icon.active,
-            ),
-          ),
-        ],
       ),
       body: vehicle == null
           ? Center(
@@ -75,64 +61,90 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                     : items
                           .where((item) => item.category == _category)
                           .toList();
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                return Stack(
                   children: [
-                    _SummaryHeader(summary: summary, currency: currency),
-                    if (items.isNotEmpty) ...[
-                      if (summary.byCategory.isNotEmpty)
-                        _CategoryBreakdown(
-                          summary: summary,
-                          currency: currency,
-                        ),
-                      _CategoryFilterBar(
-                        selected: _category,
-                        onSelected: (category) =>
-                            setState(() => _category = category),
-                      ),
-                    ],
-                    Expanded(
-                      child: items.isEmpty
-                          ? Center(
-                              child: DcoEmptyState(
-                                title: s.expensesEmptyTitle,
-                                body: s.expensesEmptyBody(vehicle.displayName),
-                                actionLabel: s.expensesAddExpense,
-                                onAction: () =>
-                                    context.push(AppRoutes.expenseNew),
-                              ),
-                            )
-                          : filtered.isEmpty
-                          ? Center(
-                              child: DcoEmptyState(
-                                title: s.expensesNoMatching,
-                                body: s.expensesNoMatchingBody,
-                              ),
-                            )
-                          : ListView.builder(
-                              padding: EdgeInsets.fromLTRB(
-                                tokens.space.s4,
-                                tokens.space.s2,
-                                tokens.space.s4,
-                                tokens.space.s5,
-                              ),
-                              itemCount: filtered.length,
-                              itemBuilder: (context, index) {
-                                final expense = filtered[index];
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: tokens.space.s3,
-                                  ),
-                                  child: _ExpenseTile(
-                                    expense: expense,
-                                    currency: currency,
-                                    onTap: () => context.push(
-                                      AppRoutes.expenseEdit(expense.id),
-                                    ),
-                                  ),
-                                );
-                              },
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _SummaryHeader(summary: summary, currency: currency),
+                        if (items.isNotEmpty) ...[
+                          if (summary.byCategory.isNotEmpty)
+                            _CategoryBreakdown(
+                              summary: summary,
+                              currency: currency,
                             ),
+                          _CategoryFilterBar(
+                            selected: _category,
+                            onSelected: (category) =>
+                                setState(() => _category = category),
+                          ),
+                        ],
+                        Expanded(
+                          child: items.isEmpty
+                              ? Center(
+                                  child: DcoEmptyState(
+                                    title: s.expensesEmptyTitle,
+                                    body: s.expensesEmptyBody(
+                                      vehicle.displayName,
+                                    ),
+                                    actionLabel: s.expensesAddExpense,
+                                    onAction: () =>
+                                        context.push(AppRoutes.expenseNew),
+                                  ),
+                                )
+                              : filtered.isEmpty
+                              ? Center(
+                                  child: DcoEmptyState(
+                                    title: s.expensesNoMatching,
+                                    body: s.expensesNoMatchingBody,
+                                  ),
+                                )
+                              : ListView.builder(
+                                  padding: EdgeInsets.fromLTRB(
+                                    tokens.space.s4,
+                                    tokens.space.s2,
+                                    tokens.space.s4,
+                                    tokens.space.s5,
+                                  ),
+                                  itemCount: filtered.length,
+                                  itemBuilder: (context, index) {
+                                    final expense = filtered[index];
+                                    return Padding(
+                                      padding: EdgeInsets.only(
+                                        bottom: tokens.space.s3,
+                                      ),
+                                      child: _ExpenseTile(
+                                        expense: expense,
+                                        currency: currency,
+                                        onTap: () => context.push(
+                                          AppRoutes.expenseEdit(expense.id),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                    Positioned(
+                      right: 16,
+                      bottom: 90,
+                      child: SizedBox(
+                        width: 150.0,
+                        height: 56.0,
+                        child: FloatingActionButton.extended(
+                          backgroundColor: tokens.button.primary.background,
+                          foregroundColor: tokens.text.inverse,
+                          onPressed: () => context.push(AppRoutes.expenseNew),
+                          label: Text(s.expensesAddExpense),
+                          icon: const Icon(Icons.add),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              tokens.radius.full,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 );
