@@ -29,7 +29,10 @@ enum AnalyticsEvent {
   expenseDeleted('expense_deleted'),
   documentUploaded('document_uploaded'),
   documentOpened('document_opened'),
-  documentDeleted('document_deleted');
+  documentDeleted('document_deleted'),
+  noteAdded('note_added'),
+  noteUpdated('note_updated'),
+  noteDeleted('note_deleted');
 
   const AnalyticsEvent(this.name);
   final String name;

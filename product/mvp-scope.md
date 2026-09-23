@@ -4,11 +4,13 @@
 
 **Version:** 1.1
 
-**Status:** Aligned (Phase 1 contract) — includes Family Sharing
+**Status:** Closed — Phase 1 contract, shipped. Historical record only; does not gate new work.
 
 **Last Updated:** September 2026
 
-This file is the source of truth for what ships in MVP. `docs/product-roadmap.md` and `product/frd/` must not contradict it. Fuel *efficiency* (MPG / kWh economy) and insurance *policy* management are Autozis-style modules deferred to v1.1. Insurance remains a document category and an expense category. Refuel / charge *logs* (date, type, amount, cost) are in MVP.
+> **Superseded for scope decisions:** [`product/production-scope.md`](production-scope.md) is the source of truth for what ships now. This file remains the record of what the MVP committed to and what shipped in Phase 1. Do not add new features here.
+
+This file was the source of truth for what shipped in MVP. `docs/product-roadmap.md` and `product/frd/` must not contradict the shipped MVP baseline. Fuel *efficiency* (MPG / kWh economy) and insurance *policy* management are Autozis-style modules deferred past MVP. Insurance remains a document category and an expense category. Refuel / charge *logs* (date, type, amount, cost) shipped in MVP.
 
 ---
 

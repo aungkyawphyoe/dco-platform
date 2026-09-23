@@ -43,6 +43,10 @@ abstract final class AppRoutes {
   static const partNew = '/parts/new';
   static String partEdit(String id) => '/parts/$id/edit';
 
+  static const notes = '/notes';
+  static const noteNew = '/notes/new';
+  static String noteEdit(String id) => '/notes/$id';
+
   static const maintenancePlan = '/maintenance-plan';
   static const maintenancePlanNew = '/maintenance-plan/new';
   static const maintenanceSuggested = '/maintenance-plan/suggested';

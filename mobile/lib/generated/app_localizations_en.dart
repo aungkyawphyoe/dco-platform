@@ -235,7 +235,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardInsurance => 'Insurance';
 
   @override
-  String get dashboardParts => 'Parts';
+  String get dashboardNotes => 'Notes';
 
   @override
   String get dashboardRecentActivity => 'Recent Activity';
@@ -2446,4 +2446,53 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get registerErrorGeneric => 'Something went wrong. Please try again.';
+
+  @override
+  String get notesTitle => 'Notes';
+
+  @override
+  String get notesEmptyTitle => 'No notes yet';
+
+  @override
+  String get notesEmptyBody =>
+      'Capture ideas, checklists, and reminders in one place.';
+
+  @override
+  String get notesNewNote => 'New note';
+
+  @override
+  String get notesLoadError => 'Could not load notes';
+
+  @override
+  String get noteFormAddTitle => 'New note';
+
+  @override
+  String get noteFormEditTitle => 'Edit note';
+
+  @override
+  String get noteFormTitle => 'Title';
+
+  @override
+  String get noteFormTitleHint => 'Note title (optional)';
+
+  @override
+  String get noteFormBody => 'Note';
+
+  @override
+  String get noteFormBodyHint => 'Start writing…';
+
+  @override
+  String get noteUntitled => 'Untitled';
+
+  @override
+  String get noteEmptyError => 'Note cannot be empty';
+
+  @override
+  String get noteDeleted => 'Note deleted';
+
+  @override
+  String get noteUndo => 'Undo';
+
+  @override
+  String get noteDelete => 'Delete';
 }

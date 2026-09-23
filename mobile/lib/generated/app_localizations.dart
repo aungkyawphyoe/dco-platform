@@ -542,11 +542,11 @@ abstract class AppLocalizations {
   /// **'Insurance'**
   String get dashboardInsurance;
 
-  /// No description provided for @dashboardParts.
+  /// No description provided for @dashboardNotes.
   ///
   /// In en, this message translates to:
-  /// **'Parts'**
-  String get dashboardParts;
+  /// **'Notes'**
+  String get dashboardNotes;
 
   /// No description provided for @dashboardRecentActivity.
   ///
@@ -4657,6 +4657,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Something went wrong. Please try again.'**
   String get registerErrorGeneric;
+
+  /// No description provided for @notesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notesTitle;
+
+  /// No description provided for @notesEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No notes yet'**
+  String get notesEmptyTitle;
+
+  /// No description provided for @notesEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Capture ideas, checklists, and reminders in one place.'**
+  String get notesEmptyBody;
+
+  /// No description provided for @notesNewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get notesNewNote;
+
+  /// No description provided for @notesLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load notes'**
+  String get notesLoadError;
+
+  /// No description provided for @noteFormAddTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New note'**
+  String get noteFormAddTitle;
+
+  /// No description provided for @noteFormEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit note'**
+  String get noteFormEditTitle;
+
+  /// No description provided for @noteFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get noteFormTitle;
+
+  /// No description provided for @noteFormTitleHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Note title (optional)'**
+  String get noteFormTitleHint;
+
+  /// No description provided for @noteFormBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Note'**
+  String get noteFormBody;
+
+  /// No description provided for @noteFormBodyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Start writing…'**
+  String get noteFormBodyHint;
+
+  /// No description provided for @noteUntitled.
+  ///
+  /// In en, this message translates to:
+  /// **'Untitled'**
+  String get noteUntitled;
+
+  /// No description provided for @noteEmptyError.
+  ///
+  /// In en, this message translates to:
+  /// **'Note cannot be empty'**
+  String get noteEmptyError;
+
+  /// No description provided for @noteDeleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Note deleted'**
+  String get noteDeleted;
+
+  /// No description provided for @noteUndo.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get noteUndo;
+
+  /// No description provided for @noteDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get noteDelete;
 }
 
 class _AppLocalizationsDelegate

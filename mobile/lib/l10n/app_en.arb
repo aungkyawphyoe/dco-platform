@@ -81,7 +81,7 @@
   "dashboardCharge": "Charge",
   "dashboardRefuel": "Refuel",
   "dashboardInsurance": "Insurance",
-  "dashboardParts": "Parts",
+  "dashboardNotes": "Notes",
   "dashboardRecentActivity": "Recent Activity",
   "dashboardNoServicesYet": "No services yet",
   "dashboardNextMaintenance": "Next Maintenance",
@@ -821,5 +821,22 @@
   "registerSuccessSubtitle": "Your maintenance record has been saved successfully.",
   "registerSuccessDetails": "Logged Details",
   "registerSuccessBackHome": "Back to Home",
-  "registerErrorGeneric": "Something went wrong. Please try again."
+  "registerErrorGeneric": "Something went wrong. Please try again.",
+
+  "notesTitle": "Notes",
+  "notesEmptyTitle": "No notes yet",
+  "notesEmptyBody": "Capture ideas, checklists, and reminders in one place.",
+  "notesNewNote": "New note",
+  "notesLoadError": "Could not load notes",
+  "noteFormAddTitle": "New note",
+  "noteFormEditTitle": "Edit note",
+  "noteFormTitle": "Title",
+  "noteFormTitleHint": "Note title (optional)",
+  "noteFormBody": "Note",
+  "noteFormBodyHint": "Start writing…",
+  "noteUntitled": "Untitled",
+  "noteEmptyError": "Note cannot be empty",
+  "noteDeleted": "Note deleted",
+  "noteUndo": "Undo",
+  "noteDelete": "Delete"
 }

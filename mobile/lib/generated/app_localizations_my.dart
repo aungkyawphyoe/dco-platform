@@ -242,7 +242,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get dashboardInsurance => 'အာမခံ';
 
   @override
-  String get dashboardParts => 'အပိုပစ္စည်းများ';
+  String get dashboardNotes => 'မှတ်စုများ';
 
   @override
   String get dashboardRecentActivity => 'လတ်တလော လုပ်ဆောင်ချက်များ';
@@ -2485,4 +2485,53 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get registerErrorGeneric => 'တစ်ခုခု မှားယွင်းနေသည်။ ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get notesTitle => 'မှတ်စုများ';
+
+  @override
+  String get notesEmptyTitle => 'မှတ်စု မရှိသေးပါ';
+
+  @override
+  String get notesEmptyBody =>
+      'အကြံဉာဏ်များ၊ စာရင်းများ၊ သတိပေးချက်များကို ဤနေရာတွင် သိမ်းဆည်းပါ။';
+
+  @override
+  String get notesNewNote => 'မှတ်စုအသစ်';
+
+  @override
+  String get notesLoadError => 'မှတ်စုများ ဖွင့်၍ မရပါ';
+
+  @override
+  String get noteFormAddTitle => 'မှတ်စုအသစ်';
+
+  @override
+  String get noteFormEditTitle => 'မှတ်စု ပြင်ဆင်ရန်';
+
+  @override
+  String get noteFormTitle => 'ခေါင်းစဉ်';
+
+  @override
+  String get noteFormTitleHint => 'မှတ်စုခေါင်းစဉ် (မဖြည့်လည်းရသည်)';
+
+  @override
+  String get noteFormBody => 'မှတ်စု';
+
+  @override
+  String get noteFormBodyHint => 'ရေးရန် စတင်ပါ…';
+
+  @override
+  String get noteUntitled => 'ခေါင်းစဉ်မရှိ';
+
+  @override
+  String get noteEmptyError => 'မှတ်စု ဗလာ မဖြစ်ရပါ';
+
+  @override
+  String get noteDeleted => 'မှတ်စု ဖျက်ပြီးပါပြီ';
+
+  @override
+  String get noteUndo => 'ပြန်လည်ရယူရန်';
+
+  @override
+  String get noteDelete => 'ဖျက်ရန်';
 }

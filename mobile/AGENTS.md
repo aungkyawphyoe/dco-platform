@@ -4,7 +4,7 @@ Working contract for the Flutter **owner app**. Do not copy FRDs into this file.
 
 This is the primary product surface. The web admin portal is a separate app and is **not** implemented here.
 
-**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), four-tab shell, local Drift persistence (vehicles + outbox), register/edit vehicle, maintenance plan + history, parts, fuel logs, expenses, and local OS maintenance reminders are implemented. Next: documents vault, then sync engine drain.
+**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), four-tab shell, local Drift persistence (vehicles + outbox), register/edit vehicle, maintenance plan + history, parts, fuel logs, expenses, local OS maintenance reminders, sync status/auto-sync, maintenance success flow, and local-only Notes are implemented.
 
 ---
 
@@ -14,7 +14,8 @@ If this file and a source disagree, the source wins and this file must be update
 
 | Concern | Source |
 |---------|--------|
-| What ships in MVP | [`product/mvp-scope.md`](../product/mvp-scope.md) |
+| What ships now | [`product/production-scope.md`](../product/production-scope.md) |
+| MVP baseline (closed) | [`product/mvp-scope.md`](../product/mvp-scope.md) |
 | Feature behavior | [`product/frd/`](../product/frd/) |
 | Surfaces, JWT, offline vs online, media | [`architecture/system.md`](../architecture/system.md) |
 | Entities, mileage, archive | [`architecture/data-model.md`](../architecture/data-model.md) |
@@ -26,7 +27,7 @@ If this file and a source disagree, the source wins and this file must be update
 | Env / secrets | [`docs/environment-secrets.md`](../docs/environment-secrets.md) |
 | Build order | [`docs/implementation-readiness.md`](../docs/implementation-readiness.md) |
 
-MVP scope wins over an FRD. If they disagree, update the FRD. OpenAPI wins over FRD prose for HTTP shapes; update both in the same change.
+Production scope wins over an FRD. If they disagree, update the FRD. OpenAPI wins over FRD prose for HTTP shapes; update both in the same change. MVP scope is closed — add new work to production scope, not `mvp-scope.md`.
 
 ---
 
@@ -38,9 +39,9 @@ After a successful owner login, land on **Dashboard** (tldraw screen 3) — the 
 
 Documents is reached from Expenses (header) and from vehicle flows — not a tab. Sync status is a compact indicator in the top bar or Settings — never a fifth tab.
 
-**In MVP:** auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, family sharing.
+**In production scope:** everything that shipped in MVP — auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, family sharing — plus **Notes** (local-only personal notebook; see `product/production-scope.md`).
 
-**Out of MVP (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; light theme.
+**Still out of scope (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; light theme; note sync / server-side notes.
 
 Wireframes: [`wireframes/dco-mobile-wireframes.tldraw`](../wireframes/dco-mobile-wireframes.tldraw). Auth screens live there; do not redesign them.
 
@@ -118,7 +119,7 @@ flowchart TB
 ### Data flow (non-negotiable)
 
 1. Widgets read **local Drift only** via a repository / use case. The network is never the UI source of truth.
-2. Write: local row → outbox row → UI updates from local.
+2. Write: local row → outbox row → UI updates from local. **Exception:** local-only entities (Notes) write the Drift row alone — no outbox, no sync nudge.
 3. Sync engine (cold start after auth, reconnect, debounce ~1s after local write, manual retry): **push then pull**.
 4. Auth (signup / login / reset) is **online-only**. After a session exists, Garage / Maintenance / Documents / Expenses work offline.
 5. Sync status is informational and must not block navigation.
@@ -174,7 +175,7 @@ mobile/
       media/                       # compress, local path, upload queue
       notifications/               # local OS schedule
       widgets/                     # shared: buttons, cards, empty, shimmer, errors
-      analytics/                   # MVP events from product/mvp-scope.md
+      analytics/                   # events from product/production-scope.md
     features/
       auth/
         data/
@@ -224,6 +225,10 @@ mobile/
         data/
         domain/
         presentation/
+      notes/
+        data/
+        domain/
+        presentation/
   test/
     core/
     features/
@@ -253,7 +258,7 @@ From [`docs/app-shell.md`](../docs/app-shell.md). Keep one `StatefulShellRoute` 
 
 Unauthenticated: login / signup / password-reset only.
 
-Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Refuel/Charge, Fuel Types, Parts; Maintenance Plan, Suggested items, Add item, Register Service, Service detail; Add/Edit expense, Expense detail; Document list / viewer / upload; Notification feed, Profile, Email & password, Notification prefs, Sync status.
+Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Refuel/Charge, Fuel Types, Parts, Notes; Maintenance Plan, Suggested items, Add item, Register Service, Service detail; Add/Edit expense, Expense detail; Document list / viewer / upload; Notification feed, Profile, Email & password, Notification prefs, Sync status.
 
 Empty garage: Dashboard is still the default route. Maintenance, Expenses, and Documents show their "no active vehicle" empty states until a vehicle exists.
 
@@ -286,15 +291,15 @@ Tertiary text is for icons and placeholders, not small body copy on cards (use `
 
 ## Agent operating rules
 
-1. Honor [`product/mvp-scope.md`](../product/mvp-scope.md) over an FRD if they disagree; then update the FRD.
+1. Honor [`product/production-scope.md`](../product/production-scope.md) over an FRD if they disagree; then update the FRD. [`product/mvp-scope.md`](../product/mvp-scope.md) is closed — do not add new work there.
 2. Implement HTTP against [`architecture/openapi.yaml`](../architecture/openapi.yaml).
 3. Client UUIDs for creates. Archive vehicles; do not hard-delete them.
-4. UI reads Drift. Writes go local + outbox. Do not bind lists to Dio responses.
-5. Do not add Autozis modules (trips, insurance policies, OCR, assistant, PDF reports, fuel *efficiency* KPIs). Refuel/charge logs and Fuel Types are in MVP.
+4. UI reads Drift. Writes go local + outbox (except local-only entities like Notes, which stay Drift-only). Do not bind lists to Dio responses.
+5. Do not add Autozis modules (trips, insurance policies, OCR, assistant/PDF reports, fuel *efficiency* KPIs) or server-side notes sync. Refuel/charge logs, Fuel Types, and Notes are in scope.
 6. Do not implement admin portal URLs, admin JWT audience, or partner onboarding in this app.
 7. Do not commit secrets. Use `--dart-define` / flavors for `API_BASE_URL` and `JWT_OWNER_AUD`.
 8. Keep workflows consistent: same empty / error / loading language across features; design-system tokens only.
-9. Domain rules (mileage, VIN, plate, fuel type, archive) get automated tests. Test use cases without Flutter.
+9. Domain rules (mileage, VIN, plate, fuel type, archive, note title length) get automated tests. Test use cases without Flutter.
 
 ### Suggested build order
 
@@ -309,4 +314,4 @@ From [`docs/implementation-readiness.md`](../docs/implementation-readiness.md):
 
 ### Analytics (MVP)
 
-Instrument the critical path only: `auth_signed_up`, `auth_signed_in`, `garage_opened`, `vehicle_added`, `vehicle_deleted`, `vehicle_switched`, `vehicle_updated`, `maintenance_record_added`, `maintenance_reminder_completed`, `document_uploaded`, `expense_added`, `sync_completed`, `sync_failed`.
+Instrument the critical path only: `auth_signed_up`, `auth_signed_in`, `garage_opened`, `vehicle_added`, `vehicle_deleted`, `vehicle_switched`, `vehicle_updated`, `maintenance_record_added`, `maintenance_reminder_completed`, `document_uploaded`, `expense_added`, `sync_completed`, `sync_failed`, `note_added`, `note_updated`, `note_deleted`.

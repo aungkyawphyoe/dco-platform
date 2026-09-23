@@ -143,12 +143,28 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
     motion: DcoMotion(fast: 120, base: 180, slow: 280),
     shadows: DcoShadows(
       card: [
-        BoxShadow(color: Color(0x1A0A1118), blurRadius: 8, offset: Offset(0, 2)),
-        BoxShadow(color: Color(0x0D0A1118), blurRadius: 16, offset: Offset(0, 4)),
+        BoxShadow(
+          color: Color(0x1A0A1118),
+          blurRadius: 8,
+          offset: Offset(0, 2),
+        ),
+        BoxShadow(
+          color: Color(0x0D0A1118),
+          blurRadius: 16,
+          offset: Offset(0, 4),
+        ),
       ],
       elevated: [
-        BoxShadow(color: Color(0x260A1118), blurRadius: 12, offset: Offset(0, 4)),
-        BoxShadow(color: Color(0x1A0A1118), blurRadius: 24, offset: Offset(0, 8)),
+        BoxShadow(
+          color: Color(0x260A1118),
+          blurRadius: 12,
+          offset: Offset(0, 4),
+        ),
+        BoxShadow(
+          color: Color(0x1A0A1118),
+          blurRadius: 24,
+          offset: Offset(0, 8),
+        ),
       ],
     ),
   );

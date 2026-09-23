@@ -81,7 +81,7 @@
   "dashboardCharge": "အားသွင်းရန်",
   "dashboardRefuel": "ဆီဖြည့်ရန်",
   "dashboardInsurance": "အာမခံ",
-  "dashboardParts": "အပိုပစ္စည်းများ",
+  "dashboardNotes": "မှတ်စုများ",
   "dashboardRecentActivity": "လတ်တလော လုပ်ဆောင်ချက်များ",
   "dashboardNoServicesYet": "ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်း မရှိသေးပါ",
   "dashboardNextMaintenance": "နောက်တစ်ကြိမ် ပြုပြင်ထိန်းသိမ်းရန်",
@@ -797,5 +797,22 @@
   "registerSuccessSubtitle": "သင့်ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။",
   "registerSuccessDetails": "မှတ်တမ်း အသေးစိတ်",
   "registerSuccessBackHome": "ပင်မစာမျက်နှာသို့ ပြန်သွားမည်",
-  "registerErrorGeneric": "တစ်ခုခု မှားယွင်းနေသည်။ ပြန်ကြိုးစားပါ။"
+  "registerErrorGeneric": "တစ်ခုခု မှားယွင်းနေသည်။ ပြန်ကြိုးစားပါ။",
+
+  "notesTitle": "မှတ်စုများ",
+  "notesEmptyTitle": "မှတ်စု မရှိသေးပါ",
+  "notesEmptyBody": "အကြံဉာဏ်များ၊ စာရင်းများ၊ သတိပေးချက်များကို ဤနေရာတွင် သိမ်းဆည်းပါ။",
+  "notesNewNote": "မှတ်စုအသစ်",
+  "notesLoadError": "မှတ်စုများ ဖွင့်၍ မရပါ",
+  "noteFormAddTitle": "မှတ်စုအသစ်",
+  "noteFormEditTitle": "မှတ်စု ပြင်ဆင်ရန်",
+  "noteFormTitle": "ခေါင်းစဉ်",
+  "noteFormTitleHint": "မှတ်စုခေါင်းစဉ် (မဖြည့်လည်းရသည်)",
+  "noteFormBody": "မှတ်စု",
+  "noteFormBodyHint": "ရေးရန် စတင်ပါ…",
+  "noteUntitled": "ခေါင်းစဉ်မရှိ",
+  "noteEmptyError": "မှတ်စု ဗလာ မဖြစ်ရပါ",
+  "noteDeleted": "မှတ်စု ဖျက်ပြီးပါပြီ",
+  "noteUndo": "ပြန်လည်ရယူရန်",
+  "noteDelete": "ဖျက်ရန်"
 }

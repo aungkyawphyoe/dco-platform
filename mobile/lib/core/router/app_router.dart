@@ -35,6 +35,8 @@ import '../../features/maintenance/presentation/screens/service_detail_screen.da
 import '../../features/maintenance/presentation/screens/service_history_screen.dart';
 import '../../features/maintenance/presentation/screens/suggested_items_screen.dart';
 import '../../features/notifications/presentation/screens/notification_feed_screen.dart';
+import '../../features/notes/presentation/screens/note_form_screen.dart';
+import '../../features/notes/presentation/screens/notes_screen.dart';
 import '../../features/parts/presentation/screens/part_form_screen.dart';
 import '../../features/parts/presentation/screens/parts_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
@@ -325,6 +327,27 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             parentNavigatorKey: rootNavigatorKey,
             builder: (context, state) => PartFormScreen(
               partId: state.pathParameters['partId'],
+            ),
+          ),
+        ],
+      ),
+
+      // Notes (local-only notebook)
+      GoRoute(
+        path: AppRoutes.notes,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const NotesScreen(),
+        routes: [
+          GoRoute(
+            path: 'new',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => const NoteFormScreen(),
+          ),
+          GoRoute(
+            path: ':noteId',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => NoteFormScreen(
+              noteId: state.pathParameters['noteId'],
             ),
           ),
         ],

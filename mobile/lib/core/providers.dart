@@ -31,6 +31,8 @@ import '../../features/notifications/data/reminder_schedule_store.dart';
 import '../../features/notifications/data/reminder_sync_service.dart';
 import '../../features/notifications/data/repositories/notification_repository_impl.dart';
 import '../../features/notifications/domain/repositories/notification_repository.dart';
+import '../../features/notes/data/repositories/notes_repository_impl.dart';
+import '../../features/notes/domain/repositories/notes_repository.dart';
 import '../../features/parts/data/repositories/parts_repository_impl.dart';
 import '../../features/parts/domain/repositories/parts_repository.dart';
 import '../../features/settings/data/repositories/preferences_repository_impl.dart';
@@ -200,6 +202,10 @@ final partsRepositoryProvider = Provider<PartsRepository>((ref) {
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
   );
+});
+
+final notesRepositoryProvider = Provider<NotesRepository>((ref) {
+  return NotesRepositoryImpl(db: ref.watch(appDatabaseProvider));
 });
 
 final fuelRepositoryProvider = Provider<FuelRepository>((ref) {

@@ -352,3 +352,18 @@ class MaintenanceCatalogRecords extends Table {
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
+
+class NoteRecords extends Table {
+  @override
+  String get tableName => 'notes';
+
+  TextColumn get id => text()();
+  TextColumn get userId => text()();
+  TextColumn get title => text().withDefault(const Constant(''))();
+  TextColumn get body => text().withDefault(const Constant(''))();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
