@@ -17,7 +17,7 @@ Four bottom tabs (consistent for normal users and fleet owners) plus a hamburger
 | **Garage** | `/dashboard` | **3** Dashboard (and **3** empty) | Home. Active vehicle summary. Default after login. |
 | **Maintenance** | `/maintenance` | **6** Maintenance (and **6** empty) | Plan + history for the active vehicle. |
 | **Expenses** | `/expenses` | **7** Expenses | Spend for the active vehicle. |
-| **Setting** | `/settings` | **9** Settings | Account, fleet toggle. Minimal — most features moved to hamburger. |
+| **Setting** | `/settings` | **9** Settings | Account and profile. Minimal — most features moved to hamburger. |
 
 Active tab icon uses design-token gold (`icon.active`). Inactive uses slate (`icon.inactive`).
 
@@ -44,8 +44,8 @@ Accessible from **any screen** via the leading hamburger icon in the app bar. Op
 #### Family & Fleet (bottom section — conditional)
 | Menu Item | Icon | Destination | Notes |
 |-----------|------|-------------|-------|
-| **Family** | people | Family Setup / Management | Moved from Settings. Only visible if user has family or is Premium. |
-| **Fleet** | truck | Fleet Mode / Org Management | Only visible if user is org member. Toggles fleet mode. |
+| **Family** | people | Family Setup / Management | Visible to Premium users and active family members; invited members do not need Premium. |
+| **Fleet** | truck | Fleet Mode / Org Management | Visible only to members of an active Enterprise organization; role limits actions. |
 
 ```text
 Auth (online)
@@ -90,7 +90,7 @@ Numbering follows the tldraw frame names.
 | 6 | Maintenance | Maintenance tab | Upcoming / Scheduled / History. Stack: plan list, add item, suggested catalog, register service |
 | 7 | Expenses | Expenses tab | Month/total, by category, recent list |
 | 8 | Documents | **Hamburger menu** → Documents | Moved from header on 7. Per-vault document management. |
-| 9 | Settings | Setting tab | Profile, Fleet toggle, Sign Out. Most features moved to hamburger. |
+| 9 | Settings | Setting tab | Profile, account, Sign Out. Fleet context switch is in the conditional hamburger menu. |
 | 10 | Maintenance Plan | **Hamburger menu** → Maintenance Plan | Moved from Maintenance tab. Suggested items filtered by fuel type. |
 | 11 | Add Maintenance Item / Register Service | From 6 or from Hamburger → Maintenance Plan | Register service updates mileage and can complete plan items |
 | 12 | Family Setup | **Hamburger menu** → Family | Moved from Settings. Create or join a family group. |

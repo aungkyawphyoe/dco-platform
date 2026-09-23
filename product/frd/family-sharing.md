@@ -2,9 +2,9 @@
 
 ## Overview
 
-Family Sharing is a **Premium feature** (available to free users for their single vehicle) that enables a Primary Owner to share vehicle access with family members. Members get role-based access to vehicle information, maintenance, documents, and expenses. This module extends the existing single-owner model to support collaborative vehicle ownership within a family unit.
+Family Sharing is a **Premium-gated feature for the Primary Owner**: Premium is required to create and manage a family. Invited members do not need their own Premium plan; they can join and use access granted by an active family membership. Members get role-based access to vehicle information, maintenance, documents, and expenses. This module extends the existing single-owner model to support collaborative vehicle ownership within a family unit.
 
-**Status:** Implemented.  
+**Status:** Implemented; Premium entitlement enforcement is planned and is not currently enforced by the shipped app/API.
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
 **Surfaces:** Mobile (Flutter), Backend (REST API), Web Admin (Next.js — read-only family view for Primary Owners).
 
@@ -33,7 +33,7 @@ Enable users to:
 - API endpoints for family CRUD, membership, vehicle grants, licenses
 
 ### Mobile (Flutter)
-- **Family Setup Screen**: Create family, generate share code/QR
+- **Family Setup Screen**: Premium Primary Owner creates family and generates share code/QR; invited users can join without Premium
 - **Family Management Screen**: View members, roles, invite via code/QR
 - **Car Detail Screen**: Vehicle info, documents (reuse Documents vault), assigned drivers
 - **User Detail Screen**: Profile, driving license (image + expiry), access level, family management actions
@@ -63,7 +63,7 @@ Enable users to:
 
 | Persona | Description | Primary Surface |
 |---------|-------------|-----------------|
-| **Primary Owner** | Creates family, owns vehicles, manages members/roles, pays (later) | Mobile + Web (read-only) |
+| **Primary Owner** | Premium account holder who creates family, owns vehicles, and manages members/roles; plan is DCO-admin-managed for this phase | Mobile + Web (read-only) |
 | **Member (Secondary Owner)** | Full vehicle access except ownership transfer; can manage maintenance, expenses, documents | Mobile |
 | **Driver** | View-only access to assigned vehicles; can log fuel, view documents, see maintenance due | Mobile |
 | **Platform Admin** | Manages users, partners; can view family structures for support | Web Admin |
@@ -147,6 +147,9 @@ Enable users to:
 **Rules:**
 - Exactly one `primary_owner` per family
 - A user can have only one membership across all families (unique `user_id`)
+- Creating a family and performing Primary Owner management actions requires `users.plan=premium`
+- Joining a family and using an active member/driver membership does not require the invited user's plan to be Premium
+- If the Primary Owner's plan changes from `premium` to `free`, archive the family, revoke/delete its active vehicle grants, and invalidate family-authenticated sessions immediately; retain each user's own vehicles and records
 - `member` = Secondary Owner (full access except ownership transfer)
 - `driver` = Assigned driver access (view + fuel log + document view)
 
@@ -209,6 +212,8 @@ Enable users to:
 | GET | `/v1/vehicles/:id/detail` | `dco-owner` | Vehicle detail with grants, documents, assigned drivers |
 | GET | `/v1/users/:id/detail` | `dco-owner` | User detail with license, family role, owned vehicles |
 
+Authorization: `POST /v1/families` and Primary Owner management mutations require Premium. Family-code lookup, joining by invitation, and access through an active family membership do not require the invitee to be Premium. The server checks plan, family status, membership role, and vehicle grants; client route visibility is not sufficient authorization.
+
 **Web Admin (Primary Owner read-only):**
 | Method | Path | Audience | Description |
 |--------|------|----------|-------------|
@@ -268,16 +273,19 @@ Enable users to:
 
 ## Business Rules
 
-1. **Free users can share** their single vehicle with family members
-2. **One family per user** — enforced at membership level
-3. **Primary Owner must transfer** before leaving or deleting account
-4. **Vehicle grants are additive** — Primary Owner retains full access; grants add Member/Driver access
-5. **Driving license expiry** triggers local notifications at 30/14/7 days (reuse `notifications.md` engine)
-6. **Share code is case-insensitive** but stored uppercase
-7. **QR code contains deep link**: `dco://family/join?code=XXXXXXXX`
-8. **Archive family** = soft delete; members revert to individual accounts; vehicles stay with original `vehicles.user_id`
-9. **License images** follow existing media pipeline (compression, signed URLs)
-10. **Web Primary Owner login** uses same BFF cookie flow as admin; audience `dco-owner`
+1. **Free users can participate when invited** — an active family membership provides only the role/grant-scoped access granted by the Premium Primary Owner
+2. **Primary Owner Premium entitlement** — only a Premium user can create/manage a family; Premium is DCO-admin-managed for this phase, with no purchase or billing flow
+3. **Invited members do not need Premium** — family membership and vehicle grants govern their scoped access
+4. **Premium revocation archives the family** — archive the family, revoke/delete active vehicle grants, invalidate family-authenticated sessions, and remove member access without deleting accounts, personally owned vehicles, or history
+5. **One family per user** — enforced at membership level
+6. **Primary Owner must transfer** before leaving or deleting account; a new Primary Owner must have Premium
+7. **Vehicle grants are additive** — Primary Owner retains full access; grants add Member/Driver access
+8. **Driving license expiry** triggers local notifications at 30/14/7 days (reuse `notifications.md` engine)
+9. **Share code is case-insensitive** but stored uppercase
+10. **QR code contains deep link**: `dco://family/join?code=XXXXXXXX`
+11. **Archive family** = soft delete; members revert to individual accounts; vehicles stay with original `vehicles.user_id`
+12. **License images** follow existing media pipeline (compression, signed URLs)
+13. **Web Primary Owner login** uses same BFF cookie flow as admin; audience `dco-owner`
 
 ---
 
@@ -286,15 +294,15 @@ Enable users to:
 ### Create Family → Invite → Join
 ```
 Primary Owner (Mobile)
-  Hamburger menu → Family → Create Family
+  Premium user: Hamburger menu → Family → Create Family
   → Enter name → Family created
   → Share code/QR displayed
   → Tap "Invite" → Share sheet (code + QR)
+  Free user without an active family membership: Family entry is hidden
 
 Member (Mobile)
-  Hamburger menu → Family → Join Family
-  → Enter code OR scan QR
-  → "Joining [Family Name] as Member" confirmation
+  Opens shared family join link / scans QR (joining does not require Premium)
+  → If needed, logs in or signs up → confirms "Joining [Family Name] as Member"
   → Success → Family Management screen
 
 Driver (Mobile)
@@ -323,7 +331,10 @@ Primary Owner (Web)
 
 ## Validation Rules
 
-### Family Creation
+### Family Creation and Management
+- Creator/manager must have `users.plan=premium`
+- Family management mutations require Primary Owner role plus Premium entitlement
+- Invited members can join and use their scoped grants without Premium
 - Name: required, 1-100 chars
 - Share code: auto-generated, unique, 8 chars alphanumeric
 
@@ -353,6 +364,8 @@ Primary Owner (Web)
 
 | Scenario | Response |
 |----------|----------|
+| Family create/manage attempted without Premium | 403 `premium_required` |
+| Primary Owner plan downgraded | Family archived; member access revoked |
 | Join code invalid/expired | 404 `family_not_found` |
 | User already in family | 409 `already_in_family` |
 | Family inactive/archived | 410 `family_archived` |

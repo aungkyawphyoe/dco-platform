@@ -6,7 +6,26 @@ Fleet Management enables **business accounts** (showrooms, dealerships, taxi fle
 
 **Status:** Planned (Phase 3, Year 2).  
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
-**Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — user management only for DCO staff).
+**Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — DCO user management, organization provisioning/activation, and read-only fleet support).
+
+### Account Plans and Feature Entitlements
+
+| Account/context | Entitlement source | Available capabilities |
+|-----------------|--------------------|------------------------|
+| Normal user (`users.plan=free`) | User account | Basic personal app functionality. No Family setup or Fleet entry point unless the user has an active family membership or active organization membership. |
+| Premium user (`users.plan=premium`) | User account | Basic personal app functionality + Family creation/management. Premium is assigned by DCO Admin for this phase; in-app billing and subscription management are out of scope. |
+| Enterprise user | Organization (`organizations.plan=enterprise`) | Basic personal app functionality + Fleet context while the user has an active membership in an `active` Enterprise organization. Organization role limits Fleet actions. Enterprise is not a value of `users.plan`. |
+
+**Entitlement rules:**
+- User plan and organization entitlement are independent. An Enterprise member retains their personal plan; Enterprise does not imply Premium or Family Management.
+- A Premium user who belongs to an active Enterprise organization can use both Personal and Fleet contexts. Personal mode remains available; Fleet membership does not replace or transfer ownership of personal vehicles.
+- The Premium Primary Owner unlocks Family creation/management. Invited family members do not need their own Premium plan to use access granted by an active family membership.
+- If a Primary Owner loses Premium, the family is archived and family access is revoked for all members. Personal vehicle ownership and records remain with their owners.
+- Hide Family/Fleet entry points when the user has no applicable entitlement or active membership. Membership-based access for an invited family member remains visible even when that member is on the free plan.
+- The API is authoritative: it validates user plan for Premium-only Family operations and organization plan, status, membership, and role for every Fleet operation. UI visibility is not an authorization boundary.
+- Organization provisioning is DCO-admin-only. New Enterprise organizations start `pending`; only DCO Admin activation changes status to `active` and enables Fleet access. Suspension removes Fleet access for all members but does not affect their personal app access.
+
+**Audience boundary:** Mobile owner clients use `dco-owner`. The Fleet Dashboard uses `dco-fleet`. Both can call shared Fleet API routes, which independently validate organization membership and role. DCO support uses `dco-admin` through Web Admin read-only routes.
 
 ---
 
@@ -69,10 +88,10 @@ Enable organizations to:
 - **Driver Assignment Screen**: **Hamburger menu** → Fleet → Driver Assignments
 
 ### Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
-- **Authentication**: SSO with DCO mobile credentials (same `dco-owner` JWT audience)
+- **Authentication**: SSO with DCO credentials; Fleet Dashboard token audience is `dco-fleet`
 - **Desktop-optimized layout**: Data tables, charts, bulk actions, sidebar navigation
 - **Fleet Owner/Manager**: Full fleet management (read + write) — vehicles, work orders, inspections, assignments, analytics, reports, warranty templates, driver management
-- **DCO Admin**: Read-only fleet visibility for support (cross-org view)
+- **DCO Admin**: Read-only fleet visibility for support through the Web Admin portal only (`dco-admin`)
 - **Vehicle Inventory**: Table view with filters, sorting, bulk status changes
 - **Work Orders**: Table + detail view with approve/assign/resolve actions
 - **Inspections**: Template management, inspection history, failure review
@@ -84,9 +103,10 @@ Enable organizations to:
 
 ### Web Admin (Next.js — `admin.yourdomain.com`)
 - **User Management**: List/search users, view profile, deactivate/reactivate accounts
+- **Organization Management**: Create Enterprise organizations in `pending`, link/invite the Org Admin, import initial vehicles, activate/suspend/archive organizations
 - **Fleet Owner Support**: Re-send invite emails to Org Admin
 - **Read-only Fleet Access**: DCO Admin can view fleet data for support purposes (no write actions)
-- Route guard: `admin` → admin routes; `dco-owner` with org → read-only fleet routes
+- Route guard: `admin` + `dco-admin` audience → Web Admin routes; Fleet members use the separate Fleet Dashboard
 
 ---
 
@@ -207,7 +227,7 @@ Enable organizations to:
 
 ### US-FLT-016: Switch to Fleet Mode
 > As an Org Member,  
-> I want to switch between Personal and Fleet mode in Settings  
+> I want to switch between Personal and Fleet mode from the hamburger menu
 > So that I can manage both my personal vehicles and org vehicles.
 
 ### US-FLT-017: Admin Manages Organizations
@@ -227,7 +247,7 @@ Enable organizations to:
 
 ### US-FLT-020: Org Admin Receives Invitation
 > As an Org Admin (showroom owner),  
-> I want to receive an email when my organization is created, with instructions to log in and enable Fleet mode  
+> I want to receive an email when my organization is created and activated, with instructions to log in and enable Fleet mode
 > So that I know my account is ready without contacting support.
 
 ### US-FLT-021: Driver Logs Mileage
@@ -300,6 +320,11 @@ Enable organizations to:
 > I want to configure the lemon detection threshold (default 2x fleet average, with override)  
 > So that the definition of "lemon" matches my business criteria.
 
+### US-FLT-035: DCO Admin Activates Enterprise Organization
+> As a DCO Admin,
+> I want to activate a provisioned Enterprise organization after reviewing its setup
+> So that Fleet access becomes available to its invited members only when the organization is ready.
+
 ---
 
 ## Functional Requirements
@@ -310,10 +335,13 @@ Enable organizations to:
 |-------|------|
 | `id` | UUID, PK |
 | `name` | String, required, max 200 |
-| `type` | `fleet` (future: `rental`, `logistics`) |
-| `status` | `pending` \| `active` \| `suspended` |
+| `type` | `showroom` \| `dealership` \| `taxi_fleet` \| `rental` \| `commercial` (future: `logistics`) |
+| `plan` | `enterprise` (DCO-admin assigned; no billing in this phase) |
+| `status` | `pending` \| `active` \| `suspended` \| `archived` |
 | `admin_user_id` | FK → `users.id` (Org Admin — showroom owner) |
 | `created_by` | FK → `users.id` (DCO admin who created it) |
+| `activated_by` | FK → `users.id` (nullable; DCO admin who activated it) |
+| `activated_at` | Timestamp (nullable until activation) |
 | `contact_email` | String, optional |
 | `contact_phone` | String, optional |
 | `created_at` | Timestamp |
@@ -323,10 +351,14 @@ Enable organizations to:
 - Created exclusively by DCO admins via the Admin Portal
 - `admin_user_id` is the showroom owner (linked by email match or invited)
 - `created_by` is the DCO admin who performed the creation
+- `plan=enterprise` is an organization entitlement; it is distinct from the organization's business `type` and from each member's `users.plan`
+- Organization `type` records the business use case; it does not grant or remove features. Vehicle lifecycle template remains a separate per-vehicle choice.
+- New organizations are created in `pending`; a DCO admin explicitly activates them after provisioning is ready
 - One organization per `admin_user_id` (enforced by unique `admin_user_id` where `status != archived`)
 - A user can belong to only one organization at a time
-- `pending` status: org exists but owner hasn't set up yet; members cannot be invited
-- `active` status: owner has logged in, Fleet mode available
+- `pending` status: org exists but has not been activated by DCO; Fleet mode and Fleet API access are unavailable
+- While pending, only the linked Org Admin may be invited/linked; the Org Admin cannot invite other members until the organization is active
+- `active` status: DCO admin has activated the org; active members can enter Fleet mode subject to their org roles
 - `suspended` status: DCO admin has suspended the org; members lose fleet access
 - Organization name must be unique per admin (not globally unique)
 - Contact details stored for DCO admin reference
@@ -349,6 +381,8 @@ Enable organizations to:
 - `org_mechanic`: Log service, view vehicles. Cannot add vehicles, manage templates, or transfer
 - `org_driver` (Driver): Log mileage, complete inspections, report issues, log fuel, view assigned vehicle only. Cannot see costs, analytics, or other vehicles
 - A user can only be invited if they don't already belong to an org
+- Any member role grants access to the Fleet context only while the organization is active; the role grants only the operations listed for that role
+- `organization_members.role` is separate from `users.role` and does not grant DCO Admin privileges
 - Driver must have `org_driver` role to be eligible for vehicle assignment
 
 ### 3. Organization Vehicles
@@ -662,10 +696,23 @@ Enable organizations to:
 
 ### 17. API Endpoints (v1)
 
-**Fleet Dashboard + Mobile (shared API — `dco-owner` audience):**
+**Fleet Dashboard + Mobile (shared API):** The audience column lists the mobile audience (`dco-owner`) by default. Entitlement and organization/driver routes also accept the Fleet Dashboard audience (`dco-fleet`). Audience identifies the client surface and does not grant organization access. Workshop routes use `dco-workshop`.
+
+`GET /v1/me/entitlements` returns a navigation snapshot such as:
+```json
+{
+  "plan": "free",
+  "family": { "available": true, "role": "member", "can_create": false, "can_manage": false },
+  "organization": { "id": "uuid", "plan": "enterprise", "status": "active", "role": "org_driver" },
+  "features": { "family": true, "fleet": true }
+}
+```
+`family.available` is true for Premium users eligible to create/manage Family or for users with active family membership. `features.fleet` is true only for active Enterprise org members. This payload controls navigation visibility only; operation-level role and entitlement checks remain server-side.
+
 | Method | Path | Audience | Description |
 |--------|------|----------|-------------|
-| GET | `/v1/organizations/me` | `dco-owner` | Get my organization |
+| GET | `/v1/me/entitlements` | `dco-owner` | Return plan, Family availability/permissions, and active organization context for conditional navigation; a UI hint only |
+| GET | `/v1/organizations/me` | `dco-owner` | Get my organization and membership; returns `organization: null` when not a member |
 | GET | `/v1/organizations/:id/members` | `dco-owner` | List members with roles |
 | POST | `/v1/organizations/:id/members` | `dco-owner` | Invite member — Admin only |
 | PATCH | `/v1/organizations/:id/members/:userId` | `dco-owner` | Update member role / remove — Admin only |
@@ -683,8 +730,8 @@ Enable organizations to:
 | GET | `/v1/organizations/:id/workshops` | `dco-owner` | List approved workshops |
 | POST | `/v1/organizations/:id/workshops` | `dco-owner` | Add workshop — Admin only |
 | DELETE | `/v1/organizations/:id/workshops/:partnerId` | `dco-owner` | Remove workshop — Admin only |
-| POST | `/v1/workshops/:vehicleId/service` | `dco-owner` | Workshop logs service on vehicle |
-| GET | `/v1/workshops/my-vehicles` | `dco-owner` | Workshop sees assigned vehicles |
+| POST | `/v1/workshops/:vehicleId/service` | `dco-workshop` | Workshop logs service on vehicle |
+| GET | `/v1/workshops/my-vehicles` | `dco-workshop` | Workshop sees assigned vehicles |
 | POST | `/v1/organizations/:id/work-orders` | `dco-owner` | Create work order — Driver only |
 | GET | `/v1/organizations/:id/work-orders` | `dco-owner` | List work orders (filtered by role) |
 | GET | `/v1/organizations/:id/work-orders/:workOrderId` | `dco-owner` | View work order detail |
@@ -709,9 +756,13 @@ Enable organizations to:
 | GET | `/v1/drivers/my-work-orders` | `dco-owner` | Driver sees own work orders |
 | GET | `/v1/drivers/my-inspections` | `dco-owner` | Driver sees own inspections |
 
-**Web Admin (User management only — `dco-admin` audience):**
+**Web Admin (user and organization management — `dco-admin` audience):**
 | Method | Path | Audience | Description |
 |--------|------|----------|-------------|
+| POST | `/v1/admin/organizations` | `dco-admin` | Create Enterprise organization in `pending` status |
+| PATCH | `/v1/admin/organizations/:id` | `dco-admin` | Edit organization contact/details |
+| PATCH | `/v1/admin/organizations/:id/status` | `dco-admin` | Activate, suspend, or archive organization; activation records actor and timestamp |
+| GET | `/v1/admin/organizations` | `dco-admin` | List/search organizations and provisioning status |
 | GET | `/v1/admin/users` | `dco-admin` | List users with search/filter |
 | GET | `/v1/admin/users/:id` | `dco-admin` | User detail (profile, org, activity) |
 | PATCH | `/v1/admin/users/:id/status` | `dco-admin` | Deactivate/reactivate user |
@@ -723,12 +774,13 @@ Enable organizations to:
 
 #### Mode Switch (Hamburger Menu)
 - Entry: **Hamburger menu** → Fleet → "Switch to Fleet" toggle
-- Toggle visible only if user is org member
+- Fleet entry is visible only when the user has an active membership in an `active` Enterprise organization
+- Entry is hidden for non-members and for members of `pending` or `suspended` organizations; no self-serve upgrade CTA is shown for Fleet
 - Switching reloads the 4-tab structure with org-scoped content
 - Personal mode: same as current (personal vehicles)
 - Fleet mode: same tabs (Garage/Maintenance/Expenses/Settings) but filtered to org vehicles
 - Driver mode: restricted view (see Driver Mode below)
-- Org must be `active` for toggle to appear; `pending` shows "Your organization is being set up" message
+- API checks organization plan, status, membership, and role on every Fleet request; hiding the entry point is presentation only
 
 #### Org Management Screen (New)
 - Entry: **Hamburger menu** → Fleet → Org Management (after org exists and is active)
@@ -846,8 +898,10 @@ Enable organizations to:
 ### 19. Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
 
 #### Auth
-- SSO with DCO mobile credentials (same `dco-owner` JWT audience)
-- Route guard: `dco-owner` + org membership → fleet routes; `dco-admin` → read-only fleet view
+- SSO with DCO credentials; Fleet Dashboard receives the dedicated `dco-fleet` JWT audience
+- Route guard: `dco-fleet` + active membership in an active Enterprise organization → organization Fleet routes
+- Organization role authorization applies to every page action and API request
+- DCO Admin read-only support access is available only through Web Admin (`dco-admin`), not through Fleet Dashboard routes
 
 #### Layout
 - Desktop-optimized: sidebar navigation, data tables, charts, bulk actions
@@ -915,7 +969,7 @@ Enable organizations to:
 
 #### Auth
 - No changes — existing `admin` role with `dco-admin` audience
-- Fleet Owner/Manager can sign in for user management only
+- Fleet Owner/Manager do not gain Web Admin access; Fleet operations are in the Fleet Dashboard
 
 #### User Management — Route: `/users`
 - **Users list**: Table with name, email, role, status, org membership, last login
@@ -963,25 +1017,51 @@ Enable organizations to:
 22. **Lemon threshold default** — 2x fleet average cost-per-mile, org can override
 23. **Cost analytics uses existing data** — maintenance costs (service records), fuel costs (fuel logs), wear items (expenses)
 24. **Revenue label is informational only** — no payment processing or financial calculations
+25. **Enterprise is organization-scoped** — set `organizations.plan=enterprise`; never encode Enterprise as a user plan or user role
+26. **Fleet entitlement requires active org membership** — both organization plan and `status=active` are required; org role determines allowed operations
+27. **DCO Admin activates organizations** — creation starts `pending`; owner login does not activate the org
+28. **Org suspension revokes Fleet access** — all members lose Fleet context/API access while personal access remains unchanged
+29. **Premium and Enterprise are independent** — an Enterprise member receives Fleet access from membership, not Premium; Family requires separate Premium eligibility for the Primary Owner
+30. **Invited family members do not need Premium** — role and vehicle-grant checks govern their access to an active family
+31. **Premium revocation archives the family** — revoke all family access; do not delete users, personal vehicles, or vehicle history
+32. **Feature entry points are hidden when unavailable** — app UI mirrors entitlement, and backend authorization remains authoritative
 
 ---
 
 ## User Flow
 
-### Admin Creates Org → Owner Activates Fleet → Manages Vehicles
+### Login → Resolve Entitlements → Show Available Features
+```
+User (Mobile)
+  Logs in → app loads account plan and current family/org membership
+  → Normal (`free`) user: basic personal app; no Family/Fleet entry unless invited to an active family or org
+  → Premium (`premium`) user: basic personal app + Family setup/management entry
+  → Enterprise org member: basic personal app + Fleet entry only when org is active
+  → Premium user who is also an active org member: both Family and Fleet are available
+  → Invited family member on `free`: Family entry is available for their granted membership scope; no Premium required
+  → User may switch Personal/Fleet contexts; personal vehicles remain in Personal mode
+
+Backend (every protected request)
+  → Validates user plan, family membership/role, organization plan/status/membership/role
+  → Rejects unauthorized actions even if a client presents a stale or forged navigation state
+```
+
+### DCO Admin Creates and Activates Org → Owner Uses Fleet → Manages Vehicles
 ```
 Platform Admin (Web Admin Portal)
   /organizations → "Create Organization"
   → Enter org name, admin email, contact details
-  → Select initial status (active/pending/suspended)
+  → Assign organization plan: Enterprise
+  → Create organization with status: pending
   → Optionally upload CSV of vehicles
-  → Submit → Org created
-  → System sends info email to admin user
+  → Submit → Org created; DCO admin reviews provisioning
+  → DCO admin activates organization → status: active
+  → System sends activation email to linked Org Admin
 
 Fleet Owner (Mobile - receives email)
-  "Your organization [Name] has been created."
+  "Your organization [Name] is active."
   → Logs in to mobile app
-  → Settings → Fleet toggle appears (if org is active)
+  → Hamburger menu → Fleet entry appears (active org membership)
   → Enables Fleet mode → Sees imported vehicles
 
 Fleet Owner (Mobile - Fleet Mode)
@@ -1008,12 +1088,13 @@ Buyer (Mobile - Personal Mode)
 ```
 Platform Admin (Web Admin Portal)
   /organizations → "Create Organization"
-  → Enter org details
+  → Enter org details; plan=enterprise; status=pending
   → Upload CSV: 15 vehicles
   → Preview: 15 rows parsed, 14 valid, 1 warning (duplicate VIN)
-  → Submit → Org created, 14 vehicles imported
+  → Submit → Org created, 14 vehicles imported; status=pending
   → 1 failed row logged for review
-  → Email sent to admin user
+  → DCO admin reviews setup and activates organization
+  → Activation email sent to Org Admin; Fleet access becomes available
 ```
 
 ### Fleet Owner Assigns Driver → Driver Uses Vehicle
@@ -1026,7 +1107,7 @@ Fleet Owner (Mobile - Fleet Mode)
   → Confirm → Assignment created
 
 Driver (Mobile - Driver Mode)
-  Settings → Fleet toggle → Driver Mode
+  Hamburger menu → Fleet → Driver Mode
   → My Vehicle: Shows Toyota Camry
   → "Log Mileage" → Start odometer: 50000 → "Start Shift"
   → ... drives ...
@@ -1103,11 +1184,19 @@ Platform Admin (Web Admin Portal)
 
 ### Organization Creation (Admin Portal Only)
 - Name: required, 1-200 chars
-- Type: required, must be `fleet`
+- Type: required, one of `showroom`, `dealership`, `taxi_fleet`, `rental`, `commercial`
+- Plan: required, `enterprise`, assigned by DCO Admin; no billing flow in this phase
 - Admin email: required, valid email format
-- Initial status: required, must be `active`, `pending`, or `suspended`
+- Initial status: server sets `pending`; only a DCO Admin can transition it to `active` after provisioning
 - Contact email: optional, valid email format
 - Contact phone: optional, max 20 chars
+
+### Feature Access
+- Fleet access requires `organizations.plan=enterprise`, `status=active`, and an active membership for the authenticated user
+- Role checks apply after entitlement checks; user-level `plan` does not grant Fleet access
+- Premium-only Family creation/management requires `users.plan=premium` and the required family role
+- Existing family participants retain role/grant-scoped access without their own Premium plan
+- `GET /v1/me/entitlements` is a display/navigation hint; protected API routes independently enforce access
 
 ### Member Invitation
 - Email: required, valid email format
@@ -1178,6 +1267,11 @@ Platform Admin (Web Admin Portal)
 
 | Scenario | Response |
 |----------|----------|
+| User lacks Premium for Family creation/management | 403 `premium_required` |
+| User lacks active Enterprise organization membership | 403 `fleet_access_required` |
+| Organization is not Enterprise-entitled | 403 `enterprise_org_required` |
+| User has no active membership in requested org | 403 `not_org_member` |
+| User's org role does not permit requested operation | 403 `insufficient_org_role` |
 | User already belongs to an org | 409 `already_in_org` |
 | Org pending (not active) | 403 `org_not_active` |
 | Org suspended | 403 `org_suspended` |
@@ -1231,7 +1325,8 @@ Platform Admin (Web Admin Portal)
 
 | Event | Properties |
 |-------|------------|
-| `admin_org_created` | `org_id`, `admin_user_id`, `vehicle_count`, `initial_status` |
+| `admin_org_created` | `org_id`, `admin_user_id`, `plan`, `vehicle_count`, `status` (`pending`) |
+| `admin_org_activated` | `org_id`, `activated_by`, `activated_at` |
 | `admin_org_edited` | `org_id`, `fields_changed` |
 | `admin_org_suspended` | `org_id`, `reason` |
 | `admin_org_archived` | `org_id`, `vehicle_count`, `member_count` |
@@ -1302,8 +1397,8 @@ Platform Admin (Web Admin Portal)
 - Notifications (warranty expiry reminders, org created email, work order updates)
 - Email service (invite emails, org creation notifications)
 - Sync (org, membership, vehicle, template, warranty, work order, inspection, assignment entities)
-- Admin API (user management only — list, search, deactivate, reactivate)
-- Fleet Dashboard API (org CRUD, vehicles, work orders, inspections, assignments, analytics — shared with mobile)
+- Admin API (user management plus organization provisioning/activation and read-only support lookup)
+- Fleet Dashboard API (org operations, vehicles, work orders, inspections, assignments, analytics — shared with mobile)
 - Existing Maintenance module (plan items, service records — reused for fleet maintenance rules)
 - Existing Fuel module (fuel logs, fuel types — reused for driver fuel logging)
 - Existing Expenses module (expense categories — reused for cost analytics wear items)
@@ -1345,7 +1440,7 @@ Platform Admin (Web Admin Portal)
 ## Migration Notes
 
 - **Schema**: Add `organizations`, `organization_members`, `organization_vehicles`, `warranty_templates`, `warranty_template_workshops`, `vehicle_warranties`, `transferred_vehicles`, `work_orders`, `inspections`, `inspection_templates`, `driver_assignments`, `shift_mileage` tables
-- **Organizations table**: `admin_user_id` (FK → users.id, the Fleet Owner), `created_by` (FK → users.id, the DCO admin), `contact_email`, `contact_phone`, `settings` (JSON — lemon threshold config)
+- **Organizations table**: `plan=enterprise`, `status` (starts `pending`), `admin_user_id` (FK → users.id, the Fleet Owner), `created_by` and nullable `activated_by` (DCO admin FKs), `activated_at`, `contact_email`, `contact_phone`, `settings` (JSON — lemon threshold config)
 - **Organization members**: Add `org_driver` to role enum
 - **Organization vehicles**: Add `lifecycle_template`, `revenue_label` fields; status becomes free-form string
 - **Users table**: Add `org_id` nullable FK (denormalized for quick "my org" lookup)
@@ -1353,36 +1448,42 @@ Platform Admin (Web Admin Portal)
 - **Partners table**: Add `workshop_account` flag for workshop DCO accounts
 - **Sync**: New entity types `organization`, `organization_member`, `organization_vehicle`, `warranty_template`, `vehicle_warranty`, `transferred_vehicle`, `work_order`, `inspection`, `inspection_template`, `driver_assignment`, `shift_mileage`
 - **Mobile Drift**: New tables for offline org/vehicles/work_orders/inspections/assignments
-- **Fleet Dashboard (fleet.yourdomain.com)**: New Next.js app with desktop-optimized layout, sidebar navigation, data tables, charts. SSO with DCO credentials (`dco-owner` audience). Full fleet management (read + write).
-- **Web Admin (admin.yourdomain.com)**: Shrunk to user management only. New routes: `/users` (list, search, deactivate), `/support` (invite resend, org lookup), `/fleet-view` (read-only fleet access for DCO admin support).
-- **Admin API**: Reduced to user management endpoints only (`/v1/admin/users/*`, `/v1/admin/support/*`, `/v1/admin/fleet-view`)
-- **Fleet API**: Shared between Fleet Dashboard and Mobile (`/v1/organizations/*`, `/v1/drivers/*`). Same endpoints, different consumers.
-- **Email templates**: New "Org Created" email template for admin user notification
+- **Fleet Dashboard (fleet.yourdomain.com)**: New Next.js app with desktop-optimized layout, sidebar navigation, data tables, charts. SSO uses `dco-fleet`; full fleet management requires active Enterprise membership.
+- **Web Admin (admin.yourdomain.com)**: User management plus DCO-only org provisioning/activation. Routes include `/users`, `/support`, `/organizations`, and `/fleet-view` (read-only fleet support).
+- **Admin API**: User and organization management endpoints (`/v1/admin/users/*`, `/v1/admin/organizations/*`, `/v1/admin/support/*`, `/v1/admin/fleet-view`)
+- **Fleet API**: Shared between Fleet Dashboard (`dco-fleet`) and Mobile (`dco-owner`) for `/v1/organizations/*` and `/v1/drivers/*`; both enforce the same org plan/status/membership/role checks.
+- **Email templates**: Org created/provisioning and organization activated notifications to the linked Org Admin
 - **Cost analytics**: Computed on demand initially; consider caching layer for large fleets (100+ vehicles)
 
 ---
 
-## Open Decisions
+## Confirmed Access Decisions
 
-1. **Workshop JWT audience**: Should workshops get a new `dco-workshop` audience, or extend `dco-owner` with a workshop flag?
-2. **Buyer auto-creation**: If the buyer email doesn't exist, should we auto-create a pending account (requires email verification) or reject the transfer?
-3. **Warranty mileage tracking**: Who updates the vehicle's mileage to check against warranty limits — the workshop on each service, or the owner on each fuel log?
-4. **Fleet Owner ownership transfer**: Can the Fleet Owner transfer admin role to another member (like Primary Owner transfer in families)?
-5. **Bulk status update**: Can the Fleet Owner change status of multiple vehicles at once (e.g., mark 5 vehicles as `listed`)?
-6. **Workshop service on non-warranty vehicles**: Should workshops be able to log service on vehicles not under warranty (general service)?
-7. **CSV template download**: Should we provide a CSV template file for import?
-8. **Transferred vehicle reversal**: If the buyer returns the vehicle within X days, can the org reclaim it?
-9. **Invite expiry**: How long is the invite email valid? Should it expire? Can it be re-sent?
-10. **Org suspension effect**: When an org is suspended, should existing vehicles be locked (no status changes) or just new vehicles blocked?
-11. **Inspection template sharing**: Can inspection templates be shared across orgs, or are they always org-scoped?
-12. **Work order assignment**: Can a work order be assigned to a specific mechanic, or just to the org generally?
-13. **Driver fuel cost tracking**: Should the driver's fuel cost be visible to the Fleet Owner in the cost analytics, or just the org-level fuel total?
-14. **Cost analytics caching**: Should TCO/cost-per-mile be computed on demand or cached? At what fleet size does caching become necessary?
-15. **Lemon threshold notification**: Should the system auto-notify the Fleet Owner when a vehicle crosses the lemon threshold?
-16. **Multi-vehicle shifts**: Can a driver use multiple vehicles in one shift (e.g., swap vehicles mid-day)?
-17. **Inspection photo requirement**: Should photos be required for `not_ok` inspection items, or just recommended?
-18. **Work order urgency escalation**: Should `critical` urgency work orders trigger push notifications or SMS to the Fleet Owner?
-19. **Fleet Dashboard vs Mobile parity**: Should the Fleet Dashboard have 100% feature parity with mobile, or are some features web-only (bulk actions, advanced filters) and some mobile-only (quick actions, push notifications)?
-20. **Fleet Dashboard deployment**: Same Vercel project as Web Admin with different subdomains, or separate Vercel projects?
-21. **DCO Admin org creation**: Since org management moved to Fleet Dashboard, does the DCO Admin still create orgs via Web Admin, or does the Fleet Owner self-serve?
-22. **Fleet Dashboard theme**: Should it use the same Garage Minimal Dark theme as mobile, or a different theme optimized for desktop/data-heavy UIs?
+1. Enterprise entitlement belongs to the organization (`organizations.plan=enterprise`); it is not a user plan or user role.
+2. Enterprise and Premium are independent. Premium is DCO-admin-managed for this phase; no purchase/billing flow is included.
+3. Premium is required for Family creation/management by the Primary Owner; invited members use granted access without their own Premium plan. A Primary Owner downgrade archives the family and revokes family access.
+4. Fleet access requires active membership in an active Enterprise organization; membership role limits actions. Organization provisioning starts pending and DCO Admin explicitly activates it.
+5. Hide unavailable Family/Fleet entry points. API authorization is authoritative and re-checks entitlement, membership, status, and role.
+6. Flutter uses `dco-owner`; Fleet Dashboard uses `dco-fleet`; DCO support uses `dco-admin` through Web Admin. Workshop accounts follow the separate `dco-workshop` audience in `architecture/iam.md`.
+
+## Remaining Open Decisions
+
+1. **Buyer auto-creation**: If the buyer email doesn't exist, should we auto-create a pending account (requires email verification) or reject the transfer?
+2. **Warranty mileage tracking**: Who updates the vehicle's mileage to check against warranty limits — the workshop on each service, or the owner on each fuel log?
+3. **Fleet Owner ownership transfer**: Can the Fleet Owner transfer admin role to another member (like Primary Owner transfer in families)?
+4. **Bulk status update**: Can the Fleet Owner change status of multiple vehicles at once (e.g., mark 5 vehicles as `listed`)?
+5. **Workshop service on non-warranty vehicles**: Should workshops be able to log service on vehicles not under warranty (general service)?
+6. **CSV template download**: Should we provide a CSV template file for import?
+7. **Transferred vehicle reversal**: If the buyer returns the vehicle within X days, can the org reclaim it?
+8. **Invite expiry**: How long is the invite email valid? Should it expire? Can it be re-sent?
+9. **Inspection template sharing**: Can inspection templates be shared across orgs, or are they always org-scoped?
+10. **Work order assignment**: Can a work order be assigned to a specific mechanic, or just to the org generally?
+11. **Driver fuel cost tracking**: Should the driver's fuel cost be visible to the Fleet Owner in the cost analytics, or just the org-level fuel total?
+12. **Cost analytics caching**: Should TCO/cost-per-mile be computed on demand or cached? At what fleet size does caching become necessary?
+13. **Lemon threshold notification**: Should the system auto-notify the Fleet Owner when a vehicle crosses the lemon threshold?
+14. **Multi-vehicle shifts**: Can a driver use multiple vehicles in one shift (e.g., swap vehicles mid-day)?
+15. **Inspection photo requirement**: Should photos be required for `not_ok` inspection items, or just recommended?
+16. **Work order urgency escalation**: Should `critical` urgency work orders trigger push notifications or SMS to the Fleet Owner?
+17. **Fleet Dashboard vs Mobile parity**: Should the Fleet Dashboard have 100% feature parity with mobile, or are some features web-only (bulk actions, advanced filters) and some mobile-only (quick actions, push notifications)?
+18. **Fleet Dashboard deployment**: Same Vercel project as Web Admin with different subdomains, or separate Vercel projects?
+19. **Fleet Dashboard theme**: Should it use the same Garage Minimal Dark theme as mobile, or a different theme optimized for desktop/data-heavy UIs?

@@ -23,6 +23,8 @@
 2. **Same JWT audience (`dco-owner`)** for all family roles — the Flutter app doesn't split. Authorization checks `family_memberships` + `vehicle_grants` on each request.
 3. **Web Primary Owner** uses same `dco-owner` JWT via BFF cookie. Route guard checks `family_memberships.role = primary_owner`.
 4. **No new audiences** — avoids token fragmentation. Admin stays `dco-admin`.
+5. **Family entitlement is owned by the Primary Owner** — creation and management require `users.plan=premium`; invited members do not need Premium for their scoped membership/grants.
+6. **Premium revocation closes family access** — downgrade of the Primary Owner archives the family and revokes member access; personal users and vehicles remain intact.
 
 ---
 
@@ -115,6 +117,7 @@ async function requireWebAccess(request, required: 'admin' | 'family' | 'none') 
   if (required === 'family') {
     if (claims.role !== 'owner' || claims.aud !== 'dco-owner') throw 403;
     if (!claims.family_id || claims.family_role !== 'primary_owner') throw 403;
+    if (claims.plan !== 'premium') throw 403;
     return;
   }
   
@@ -151,9 +154,9 @@ enum FamilyFeature { create, manage, view, join }
 bool canAccessFamilyFeature(FamilyFeature feature, AuthUser user) {
   switch (feature) {
     case FamilyFeature.create:
-      return user.familyId == null; // Not already in a family
+      return user.familyId == null && user.plan == 'premium';
     case FamilyFeature.manage:
-      return user.familyRole == 'primary_owner';
+      return user.familyRole == 'primary_owner' && user.plan == 'premium';
     case FamilyFeature.view:
       return user.familyId != null;
     case FamilyFeature.join:
@@ -182,6 +185,7 @@ bool canAccessVehicle(String vehicleId, AuthUser user, {required String permissi
 | Primary Owner transfers ownership | Old PO: `family_role=member`; New PO: `family_role=primary_owner` |
 | Member removed from family | Next refresh: `family_id=null`, `family_role=null` |
 | Family archived | All members: `family_id=null`, `family_role=null` |
+| Primary Owner plan downgraded from Premium | Family archived; active vehicle grants revoked/deleted; family sessions invalidated; users' own vehicles and data remain |
 
 **Implementation:** On family membership change, revoke user's refresh token family (existing `familyId` in `refresh_tokens`). Forces re-auth with new claims.
 
@@ -211,6 +215,8 @@ Returns family data without PII exposure beyond what admin already sees (email, 
 4. **License images**: Same media pipeline as documents — signed URLs, no public access
 5. **Token denormalization**: `family_id`/`family_role` in JWT are hints; server re-validates on mutating operations
 6. **One family per user**: Enforced by unique constraint on `family_memberships.user_id`
+7. **Plan claims are hints**: API validates Premium for Family create/manage and validates active family membership/grants for invitees on every protected operation
+8. **Family archive revokes authorization state**: revoke/delete active vehicle grants and invalidate family sessions so stale JWT claims cannot preserve access
 
 ---
 
@@ -236,7 +242,7 @@ When Fleet lands (Phase 2), introduce `organizations` as new root:
 |---------|---------------|----------------|
 | Root entity | `families` | `organizations` (type=fleet) |
 | Membership | `family_memberships` | `organization_members` |
-| Roles | `primary_owner`/`member`/`driver` | `org_admin`/`dispatcher`/`driver` |
+| Roles | `primary_owner`/`member`/`driver` | `org_admin`/`org_manager`/`org_mechanic`/`org_driver` |
 | Vehicle link | `vehicle_grants` | `vehicle_grants` (org-scoped) |
 | JWT audience | `dco-owner` (same) | `dco-fleet` (new) |
 | App | Flutter (same) | Web Fleet Portal (new) |
