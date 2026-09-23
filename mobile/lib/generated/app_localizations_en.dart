@@ -2430,4 +2430,20 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncOther => 'Other';
+
+  @override
+  String get registerSuccessTitle => 'Service Logged!';
+
+  @override
+  String get registerSuccessSubtitle =>
+      'Your maintenance record has been saved successfully.';
+
+  @override
+  String get registerSuccessDetails => 'Logged Details';
+
+  @override
+  String get registerSuccessBackHome => 'Back to Home';
+
+  @override
+  String get registerErrorGeneric => 'Something went wrong. Please try again.';
 }

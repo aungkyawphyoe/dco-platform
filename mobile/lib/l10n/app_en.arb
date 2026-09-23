@@ -815,5 +815,11 @@
   "syncDocuments": "Documents",
   "syncParts": "Parts",
   "syncFuelLogs": "Fuel Logs",
-  "syncOther": "Other"
+  "syncOther": "Other",
+
+  "registerSuccessTitle": "Service Logged!",
+  "registerSuccessSubtitle": "Your maintenance record has been saved successfully.",
+  "registerSuccessDetails": "Logged Details",
+  "registerSuccessBackHome": "Back to Home",
+  "registerErrorGeneric": "Something went wrong. Please try again."
 }

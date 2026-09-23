@@ -4627,6 +4627,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get syncOther;
+
+  /// No description provided for @registerSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Logged!'**
+  String get registerSuccessTitle;
+
+  /// No description provided for @registerSuccessSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your maintenance record has been saved successfully.'**
+  String get registerSuccessSubtitle;
+
+  /// No description provided for @registerSuccessDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged Details'**
+  String get registerSuccessDetails;
+
+  /// No description provided for @registerSuccessBackHome.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to Home'**
+  String get registerSuccessBackHome;
+
+  /// No description provided for @registerErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Please try again.'**
+  String get registerErrorGeneric;
 }
 
 class _AppLocalizationsDelegate

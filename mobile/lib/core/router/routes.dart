@@ -19,6 +19,7 @@ abstract final class AppRoutes {
 
   static const maintenance = '/maintenance';
   static const maintenanceRegister = '/maintenance/register';
+  static const maintenanceSuccess = '/maintenance/success';
   static String maintenanceRegisterItem(String planItemId) =>
       '/maintenance/register?item=$planItemId';
   static String serviceDetail(String id) => '/maintenance/history/$id';

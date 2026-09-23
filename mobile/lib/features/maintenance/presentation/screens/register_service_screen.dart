@@ -162,7 +162,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     if (vehicle == null) return;
     setState(() => _saving = true);
     try {
-      await ref.read(maintenanceRepositoryProvider).registerService(
+      final record = await ref.read(maintenanceRepositoryProvider).registerService(
         userId: vehicle.userId,
         vehicle: vehicle,
         draft: draft,
@@ -171,9 +171,27 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       if (draft.items.any((item) => item.planItemId != null)) {
         ref.read(analyticsProvider).track(AnalyticsEvent.maintenanceReminderCompleted);
       }
-      if (mounted) context.pop();
+      if (mounted) {
+        context.pushReplacement(
+          AppRoutes.maintenanceSuccess,
+          extra: record,
+        );
+      }
     } on MaintenanceFailure catch (failure) {
-      if (mounted) setState(() => _formError = failure.message);
+      if (mounted) {
+        setState(() => _formError = failure.message);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(failure.message)),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        final message = AppLocalizations.of(context)!.registerErrorGeneric;
+        setState(() => _formError = message);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }

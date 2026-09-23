@@ -2469,4 +2469,20 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get syncOther => 'အခြား';
+
+  @override
+  String get registerSuccessTitle => 'ဝန်ဆောင်မှု မှတ်တမ်းတင်ပြီးပါပြီ!';
+
+  @override
+  String get registerSuccessSubtitle =>
+      'သင့်ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။';
+
+  @override
+  String get registerSuccessDetails => 'မှတ်တမ်း အသေးစိတ်';
+
+  @override
+  String get registerSuccessBackHome => 'ပင်မစာမျက်နှာသို့ ပြန်သွားမည်';
+
+  @override
+  String get registerErrorGeneric => 'တစ်ခုခု မှားယွင်းနေသည်။ ပြန်ကြိုးစားပါ။';
 }

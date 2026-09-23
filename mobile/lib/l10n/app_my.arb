@@ -791,5 +791,11 @@
   "syncDocuments": "စာရွက်စာတမ်းများ",
   "syncParts": "အပိုပစ္စည်းများ",
   "syncFuelLogs": "လောင်စာဆီ မှတ်တမ်း",
-  "syncOther": "အခြား"
+  "syncOther": "အခြား",
+
+  "registerSuccessTitle": "ဝန်ဆောင်မှု မှတ်တမ်းတင်ပြီးပါပြီ!",
+  "registerSuccessSubtitle": "သင့်ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။",
+  "registerSuccessDetails": "မှတ်တမ်း အသေးစိတ်",
+  "registerSuccessBackHome": "ပင်မစာမျက်နှာသို့ ပြန်သွားမည်",
+  "registerErrorGeneric": "တစ်ခုခု မှားယွင်းနေသည်။ ပြန်ကြိုးစားပါ။"
 }

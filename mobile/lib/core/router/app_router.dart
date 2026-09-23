@@ -24,9 +24,11 @@ import '../../features/fuel/presentation/screens/refuel_stats_screen.dart';
 import '../../features/garage/presentation/screens/garage_home_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
 import '../../features/insurance/presentation/screens/insurance_screen.dart';
+import '../../features/maintenance/domain/entities/service_record.dart';
 import '../../features/maintenance/presentation/screens/maintenance_plan_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_stats_screen.dart';
+import '../../features/maintenance/presentation/screens/maintenance_success_screen.dart';
 import '../../features/maintenance/presentation/screens/plan_item_form_screen.dart';
 import '../../features/maintenance/presentation/screens/register_service_screen.dart';
 import '../../features/maintenance/presentation/screens/service_detail_screen.dart';
@@ -205,6 +207,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => RegisterServiceScreen(
                       preselectedPlanItemId:
                           state.uri.queryParameters['item'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'success',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => MaintenanceSuccessScreen(
+                      record: state.extra! as ServiceRecord,
                     ),
                   ),
                   GoRoute(
