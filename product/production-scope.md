@@ -35,6 +35,14 @@ Auth, app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, docu
 |---------|-------------|------|
 | **Notes** | Personal notebook: title + plain-text body, CRUD, 2-column uniform grid (Google Keep–style layout, clamped 3-line preview), sorted `updated_at DESC`. Global per-user (not vehicle-scoped). Entry point: Dashboard Quick Actions (replaces Parts tile; Parts remains reachable from the hamburger menu). Routes `/notes`, `/notes/new`, `/notes/:id`. | **Local-only** — Drift table `notes`, **no outbox**, no server API. Scoped by `user_id` like other tables so a different account on the same device does not see another account's notes. No extra wipe on logout or uninstall (SQLite lives in the app container; logout behavior matches the rest of the local DB). |
 
+### Account and feature entitlements
+
+- **Normal (`users.plan=free`)**: basic personal garage, maintenance, expenses, documents, and fuel features. Family and Fleet entry points are hidden unless the user has an active membership.
+- **Premium (`users.plan=premium`)**: basic personal features plus Family creation/management for the Primary Owner. Premium is DCO-admin-managed for now; no in-app purchase or subscription billing flow.
+- **Enterprise (`organizations.plan=enterprise`)**: organization-level Fleet access for active members of an active organization, with actions restricted by organization role. DCO Admin provisions the organization and explicitly activates it. Enterprise does not change a member's personal `users.plan`.
+- Family invitees do not need Premium to use their active role/grant-scoped access. If the Primary Owner loses Premium, the family is archived and shared access is revoked.
+- Backend authorization is authoritative. Hiding unavailable feature entry points in the mobile/web clients is a separate client requirement.
+
 Notes rules:
 
 - `id` UUID v4, `title` (optional — untitled allowed; max 500 chars), `body` (plain text), `created_at`, `updated_at`, `user_id`.

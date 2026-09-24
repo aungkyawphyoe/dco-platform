@@ -215,6 +215,8 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'APP_ENV', value: 'prod' }
             { name: 'PORT', value: '8080' }
             { name: 'JWT_OWNER_AUD', value: 'dco-owner' }
+            { name: 'JWT_FLEET_AUD', value: 'dco-fleet' }
+            { name: 'JWT_WORKSHOP_AUD', value: 'dco-workshop' }
             { name: 'JWT_ADMIN_AUD', value: 'dco-admin' }
             { name: 'JWT_ACCESS_TTL', value: '15m' }
             { name: 'JWT_REFRESH_TTL', value: '720h' }

@@ -183,7 +183,7 @@ Staff-only. Owner JWTs are rejected at login.
 
 **Users:** search, filter by status, open profile (email, plan, vehicles, document count). Actions: change plan, deactivate (revokes refresh tokens), reactivate, send password-reset email.
 
-**Partners:** workshops and insurers as CRM rows (`draft` / `pending_verification` / `verified` / `rejected`). Creating a partner does **not** issue a login. No booking or claims product.
+**Partners:** workshops and insurers as CRM rows (`draft` / `pending_verification` / `verified` / `rejected`). Creating a partner does **not** issue a login by itself; DCO Admin can link a sign-in account for a **verified workshop** (Fleet warranty workflows, `dco-workshop` audience). No booking or claims product.
 
 Admin never streams owner document bytes in the default profile view.
 

@@ -2,11 +2,12 @@ import { eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import { deviceTokens, users, vehicles } from "../db/schema.js";
+import { families, familyMemberships, organizationMembers, organizations } from "../db/schema.js";
 import { newId } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { getUser } from "../lib/dbx.js";
 import { publicUser } from "../lib/serialize.js";
-import { requireOwner } from "./auth.js";
+import { requireFleetClient, requireOwner } from "./auth.js";
 import { getUserDetail } from "./family.js";
 
 export const mePlugin: FastifyPluginAsync = async (app) => {
@@ -14,6 +15,48 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     const user = await getUser(app.db, request.authUser!.sub);
     if (!user) throw new AppError(401, "unauthorized", "Unknown user");
     return publicUser(user);
+  });
+
+  app.get("/me/entitlements", async (request) => {
+    requireFleetClient(request);
+    const userId = request.authUser!.sub;
+    const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) throw new AppError(401, "unauthorized", "Unknown user");
+
+    const [familyMembership] = await app.db.select().from(familyMemberships)
+      .where(eq(familyMemberships.userId, userId)).limit(1);
+    const [activeFamily] = familyMembership
+      ? await app.db.select().from(families)
+        .where(eq(families.id, familyMembership.familyId)).limit(1)
+      : [];
+    const familyIsActive = Boolean(activeFamily && activeFamily.status === "active");
+
+    const [organizationMembership] = await app.db.select({ membership: organizationMembers, organization: organizations })
+      .from(organizationMembers)
+      .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
+      .where(eq(organizationMembers.userId, userId))
+      .limit(1);
+    const organization = organizationMembership?.organization ?? null;
+    const familyFeature = user.plan === "premium" || familyIsActive;
+    const fleetFeature = Boolean(organization && organization.plan === "enterprise" && organization.status === "active");
+
+    return {
+      plan: user.plan,
+      family: {
+        available: familyFeature,
+        role: familyIsActive ? familyMembership?.role ?? null : null,
+        can_create: user.plan === "premium" && !familyMembership,
+        can_manage: user.plan === "premium" && familyIsActive && familyMembership?.role === "primary_owner",
+      },
+      organization: organization && organizationMembership ? {
+        id: organization.id,
+        type: organization.type,
+        plan: organization.plan,
+        status: organization.status,
+        role: organizationMembership.membership.role,
+      } : null,
+      features: { family: familyFeature, fleet: fleetFeature },
+    };
   });
 
   app.patch("/me", async (request) => {

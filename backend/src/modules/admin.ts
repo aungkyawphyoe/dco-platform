@@ -1,12 +1,33 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { auditEvents, documents, families, familyMemberships, familyVehicles, maintenanceCatalog, partners, refreshTokens, users, vehicles, vehicleGrants } from "../db/schema.js";
+import { auditEvents, documents, families, familyMemberships, familyVehicles, maintenanceCatalog, organizationMembers, organizationVehicles, organizations, partners, refreshTokens, users, vehicles, vehicleGrants, workshopMembers } from "../db/schema.js";
 import { hashPassword, newId, randomToken, sha256 } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { emailTokens } from "../db/schema.js";
 import { publicUser } from "../lib/serialize.js";
+import { changeUserPlan } from "../lib/entitlements.js";
+import { createInvitedOwnerAccount } from "../lib/account-invites.js";
 import { requireAdmin } from "./auth.js";
+
+function publicOrganization(row: typeof organizations.$inferSelect) {
+  return {
+    id: row.id,
+    name: row.name,
+    type: row.type,
+    plan: row.plan,
+    status: row.status,
+    admin_user_id: row.adminUserId,
+    created_by: row.createdBy,
+    activated_by: row.activatedBy,
+    activated_at: row.activatedAt?.toISOString() ?? null,
+    contact_email: row.contactEmail,
+    contact_phone: row.contactPhone,
+    settings: row.settings,
+    created_at: row.createdAt.toISOString(),
+    updated_at: row.updatedAt.toISOString(),
+  };
+}
 
 export const adminPlugin: FastifyPluginAsync = async (app) => {
   app.addHook("preHandler", async (request) => {
@@ -34,6 +55,224 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     };
   });
 
+  app.get("/admin/organizations", async (request) => {
+    const query = z.object({ q: z.string().optional(), status: z.enum(["pending", "active", "suspended", "archived"]).optional() })
+      .parse(request.query ?? {});
+    let rows = await app.db.select().from(organizations);
+    if (query.status) rows = rows.filter((row) => row.status === query.status);
+    if (query.q) {
+      const needle = query.q.toLowerCase();
+      rows = rows.filter((row) => row.name.toLowerCase().includes(needle) || row.contactEmail?.toLowerCase().includes(needle));
+    }
+    const items = [];
+    for (const organization of rows) {
+      const [adminUser] = await app.db.select().from(users).where(eq(users.id, organization.adminUserId)).limit(1);
+      items.push({ ...publicOrganization(organization), admin_email: adminUser?.email ?? null });
+    }
+    return { items };
+  });
+
+  app.get("/admin/organizations/:organizationId", async (request) => {
+    const { organizationId } = request.params as { organizationId: string };
+    const [organization] = await app.db.select().from(organizations).where(eq(organizations.id, organizationId)).limit(1);
+    if (!organization) throw new AppError(404, "organization_not_found", "Organization not found");
+    const [adminUser] = await app.db.select().from(users).where(eq(users.id, organization.adminUserId)).limit(1);
+    const members = await app.db.select().from(organizationMembers).where(eq(organizationMembers.orgId, organizationId));
+    return {
+      ...publicOrganization(organization),
+      admin_email: adminUser?.email ?? null,
+      member_count: members.length,
+    };
+  });
+
+  app.post("/admin/organizations", async (request, reply) => {
+    const body = z.object({
+      name: z.string().trim().min(1).max(200),
+      type: z.enum(["showroom", "dealership", "taxi_fleet", "rental", "commercial", "logistics"]),
+      admin_email: z.string().email().max(254),
+      contact_email: z.string().email().optional().nullable(),
+      contact_phone: z.string().max(20).optional().nullable(),
+    }).parse(request.body);
+    const adminEmail = body.admin_email.toLowerCase();
+    let [orgAdmin] = await app.db.select().from(users).where(eq(users.email, adminEmail)).limit(1);
+    let accountInvitationSent = false;
+    if (!orgAdmin) {
+      const invited = await createInvitedOwnerAccount(app.db, app.mailer, adminEmail);
+      orgAdmin = invited.user;
+      accountInvitationSent = invited.created;
+    }
+    if (orgAdmin.role !== "owner" || orgAdmin.status !== "active") {
+      throw new AppError(409, "invalid_org_admin_account", "Org Admin must be an active owner account");
+    }
+    const [existingOrganization] = await app.db.select().from(organizations)
+      .where(and(eq(organizations.adminUserId, orgAdmin.id), sql`${organizations.status} <> 'archived'`)).limit(1);
+    if (existingOrganization) throw new AppError(409, "org_already_exists", "An active organization already exists for this Org Admin");
+    const [existingMembership] = await app.db.select().from(organizationMembers)
+      .where(eq(organizationMembers.userId, orgAdmin.id)).limit(1);
+    if (existingMembership) throw new AppError(409, "already_in_org", "Org Admin already belongs to an organization");
+
+    const actorId = request.authUser!.sub;
+    const organizationId = newId();
+    const organization = await app.db.transaction(async (tx) => {
+      const [created] = await tx.insert(organizations).values({
+        id: organizationId,
+        name: body.name,
+        type: body.type,
+        plan: "enterprise",
+        status: "pending",
+        adminUserId: orgAdmin.id,
+        createdBy: actorId,
+        contactEmail: body.contact_email ?? null,
+        contactPhone: body.contact_phone ?? null,
+      }).returning();
+      await tx.insert(organizationMembers).values({
+        id: newId(),
+        orgId: organizationId,
+        userId: orgAdmin.id,
+        role: "org_admin",
+        invitedBy: actorId,
+      });
+      return created;
+    });
+    await audit(app, actorId, "organization.create", { organizationId, adminUserId: orgAdmin.id, plan: "enterprise" });
+    let organizationInvitationSent = true;
+    try {
+      await app.mailer.sendOrganizationInvitation(orgAdmin.email, organization.name, "org_admin");
+    } catch (error) {
+      organizationInvitationSent = false;
+      app.log.error(error);
+    }
+    return reply.code(201).send({
+      ...publicOrganization(organization),
+      admin_email: orgAdmin.email,
+      account_invitation_sent: accountInvitationSent,
+      organization_invitation_sent: organizationInvitationSent,
+    });
+  });
+
+  app.patch("/admin/organizations/:organizationId", async (request) => {
+    const { organizationId } = request.params as { organizationId: string };
+    const body = z.object({
+      name: z.string().trim().min(1).max(200).optional(),
+      type: z.enum(["showroom", "dealership", "taxi_fleet", "rental", "commercial", "logistics"]).optional(),
+      contact_email: z.string().email().nullable().optional(),
+      contact_phone: z.string().max(20).nullable().optional(),
+    }).parse(request.body ?? {});
+    const [organization] = await app.db.select().from(organizations).where(eq(organizations.id, organizationId)).limit(1);
+    if (!organization) throw new AppError(404, "organization_not_found", "Organization not found");
+    if (organization.status === "archived") throw new AppError(410, "org_archived", "Archived organizations cannot be edited");
+    const [updated] = await app.db.update(organizations).set({
+      ...(body.name !== undefined ? { name: body.name } : {}),
+      ...(body.type !== undefined ? { type: body.type } : {}),
+      ...(body.contact_email !== undefined ? { contactEmail: body.contact_email } : {}),
+      ...(body.contact_phone !== undefined ? { contactPhone: body.contact_phone } : {}),
+      updatedAt: new Date(),
+    }).where(eq(organizations.id, organizationId)).returning();
+    await audit(app, request.authUser!.sub, "organization.update", { organizationId });
+    return publicOrganization(updated);
+  });
+
+  app.patch("/admin/organizations/:organizationId/status", async (request) => {
+    const { organizationId } = request.params as { organizationId: string };
+    const body = z.object({ status: z.enum(["active", "suspended", "archived"]) }).parse(request.body);
+    const [organization] = await app.db.select().from(organizations).where(eq(organizations.id, organizationId)).limit(1);
+    if (!organization) throw new AppError(404, "organization_not_found", "Organization not found");
+    if (organization.status === "archived") throw new AppError(410, "org_archived", "Archived organizations cannot be reactivated");
+    if (body.status === "active" && organization.status === "active") return publicOrganization(organization);
+
+    const actorId = request.authUser!.sub;
+    const now = new Date();
+    const [updated] = await app.db.transaction(async (tx) => {
+      const [row] = await tx.update(organizations).set({
+        status: body.status,
+        ...(body.status === "active" && organization.status !== "active" ? { activatedBy: actorId, activatedAt: now } : {}),
+        updatedAt: now,
+      }).where(eq(organizations.id, organizationId)).returning();
+      if (body.status === "archived") {
+        await tx.delete(organizationMembers).where(eq(organizationMembers.orgId, organizationId));
+        await tx.delete(organizationVehicles).where(eq(organizationVehicles.orgId, organizationId));
+      }
+      return [row];
+    });
+    await audit(app, actorId, `organization.${body.status}`, { organizationId, previousStatus: organization.status });
+    let activationEmailSent: boolean | null = null;
+    if (body.status === "active" && organization.status !== "active") {
+      activationEmailSent = true;
+      const [orgAdmin] = await app.db.select().from(users).where(eq(users.id, organization.adminUserId)).limit(1);
+      if (orgAdmin) {
+        try {
+          await app.mailer.sendOrganizationActivated(orgAdmin.email, organization.name);
+        } catch (error) {
+          activationEmailSent = false;
+          app.log.error(error);
+        }
+      }
+    }
+    return { ...publicOrganization(updated), activation_email_sent: activationEmailSent };
+  });
+
+  app.post("/admin/support/invite-resend", async (request, reply) => {
+    const body = z.object({ organization_id: z.string().uuid() }).parse(request.body);
+    const [organization] = await app.db.select().from(organizations).where(eq(organizations.id, body.organization_id)).limit(1);
+    if (!organization) throw new AppError(404, "organization_not_found", "Organization not found");
+    const [orgAdmin] = await app.db.select().from(users).where(eq(users.id, organization.adminUserId)).limit(1);
+    if (!orgAdmin) throw new AppError(404, "user_not_found", "Organization admin account not found");
+    await app.mailer.sendOrganizationInvitation(orgAdmin.email, organization.name, "org_admin");
+    await audit(app, request.authUser!.sub, "organization.invite_resend", { organizationId: organization.id });
+    return reply.code(202).send();
+  });
+
+  app.get("/admin/support/org-lookup", async (request) => {
+    const query = z.object({ q: z.string().min(1) }).parse(request.query ?? {});
+    const needle = query.q.toLowerCase();
+    const rows = await app.db.select().from(organizations);
+    const items = [];
+    for (const organization of rows) {
+      const [orgAdmin] = await app.db.select().from(users).where(eq(users.id, organization.adminUserId)).limit(1);
+      if (organization.name.toLowerCase().includes(needle) || (orgAdmin?.email ?? "").toLowerCase().includes(needle)) {
+        items.push({ ...publicOrganization(organization), admin_email: orgAdmin?.email ?? null });
+      }
+    }
+    return { items };
+  });
+
+  app.get("/admin/fleet-view", async (request) => {
+    const query = z.object({ organization_id: z.string().uuid().optional() }).parse(request.query ?? {});
+    let rows = await app.db.select().from(organizations);
+    if (query.organization_id) rows = rows.filter((row) => row.id === query.organization_id);
+    const items = [];
+    for (const organization of rows) {
+      const members = await app.db.select().from(organizationMembers).where(eq(organizationMembers.orgId, organization.id));
+      const fleetVehicles = await app.db.select().from(organizationVehicles).where(eq(organizationVehicles.orgId, organization.id));
+      items.push({ ...publicOrganization(organization), member_count: members.length, vehicle_count: fleetVehicles.length });
+    }
+    return { items, read_only: true };
+  });
+
+  app.post("/admin/partners/:partnerId/workshop-accounts", async (request, reply) => {
+    const { partnerId } = request.params as { partnerId: string };
+    const body = z.object({ email: z.string().email().max(254) }).parse(request.body);
+    const [partner] = await app.db.select().from(partners).where(eq(partners.id, partnerId)).limit(1);
+    if (!partner || partner.type !== "workshop") throw new AppError(404, "workshop_not_found", "Workshop partner not found");
+    if (partner.status !== "verified") throw new AppError(409, "workshop_not_verified", "Workshop must be verified before sign-in is enabled");
+    let [user] = await app.db.select().from(users).where(eq(users.email, body.email.toLowerCase())).limit(1);
+    let accountInvitationSent = false;
+    if (!user) {
+      const invited = await createInvitedOwnerAccount(app.db, app.mailer, body.email);
+      user = invited.user;
+      accountInvitationSent = invited.created;
+    }
+    if (user.role !== "owner" || user.status !== "active") throw new AppError(409, "invalid_workshop_account", "Workshop users must use an active owner account");
+    const [existing] = await app.db.select().from(workshopMembers).where(eq(workshopMembers.userId, user.id)).limit(1);
+    if (existing) throw new AppError(409, "workshop_account_already_linked", "User is already linked to a workshop account");
+    await app.db.insert(workshopMembers).values({
+      id: newId(), partnerId, userId: user.id, invitedBy: request.authUser!.sub,
+    });
+    await app.mailer.sendWorkshopInvitation(user.email, partner.name);
+    await audit(app, request.authUser!.sub, "workshop.account_link", { partnerId, userId: user.id });
+    return reply.code(201).send({ user_id: user.id, email: user.email, partner_id: partnerId, account_invitation_sent: accountInvitationSent });
+  });
+
   app.get("/admin/users", async (request) => {
     const q = request.query as { q?: string; status?: "active" | "deactivated" };
     let rows = await app.db.select().from(users);
@@ -50,6 +289,11 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     const items = [];
     for (const u of rows) {
       const v = await app.db.select().from(vehicles).where(eq(vehicles.userId, u.id));
+      const [organizationMembership] = await app.db.select({ membership: organizationMembers, organization: organizations })
+        .from(organizationMembers)
+        .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
+        .where(eq(organizationMembers.userId, u.id))
+        .limit(1);
       items.push({
         id: u.id,
         email: u.email,
@@ -57,6 +301,13 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
         contact_phone: u.contactPhone,
         plan: u.plan,
         status: u.status,
+        organization: organizationMembership ? {
+          id: organizationMembership.organization.id,
+          name: organizationMembership.organization.name,
+          plan: organizationMembership.organization.plan,
+          status: organizationMembership.organization.status,
+          role: organizationMembership.membership.role,
+        } : null,
         vehicle_count: v.filter((x) => !x.archived).length,
         created_at: u.createdAt.toISOString(),
       });
@@ -86,6 +337,11 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
         family = { id: fam.id, name: fam.name, role: membership?.role ?? null };
       }
     }
+    const [organizationMembership] = await app.db.select({ membership: organizationMembers, organization: organizations })
+      .from(organizationMembers)
+      .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
+      .where(eq(organizationMembers.userId, userId))
+      .limit(1);
     return {
       id: u.id,
       email: u.email,
@@ -99,6 +355,13 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
       created_at: u.createdAt.toISOString(),
       email_verified: u.emailVerified,
       family,
+      organization: organizationMembership ? {
+        id: organizationMembership.organization.id,
+        name: organizationMembership.organization.name,
+        plan: organizationMembership.organization.plan,
+        status: organizationMembership.organization.status,
+        role: organizationMembership.membership.role,
+      } : null,
       vehicles: v.map((veh) => ({
         id: veh.id,
         nickname: veh.nickname ?? veh.name,
@@ -113,11 +376,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     const body = z.object({ plan: z.enum(["free", "premium"]).optional() }).parse(request.body ?? {});
     const [u] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!u) throw new AppError(404, "not_found", "User not found");
-    const [updated] = await app.db
-      .update(users)
-      .set({ ...(body.plan ? { plan: body.plan } : {}) })
-      .where(eq(users.id, userId))
-      .returning();
+    const updated = body.plan ? await changeUserPlan(app.db, userId, body.plan) : u;
     await audit(app, request.authUser!.sub, "user.plan_change", { userId, plan: updated.plan });
     return { id: updated.id, plan: updated.plan, email: updated.email, status: updated.status };
   });
@@ -255,11 +514,13 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     if (body.display_name !== undefined) set.displayName = body.display_name;
     if (body.contact_phone !== undefined) set.contactPhone = body.contact_phone;
     if (body.address !== undefined) set.address = body.address;
-    if (body.plan !== undefined) set.plan = body.plan;
+    const planUpdated = body.plan !== undefined ? await changeUserPlan(app.db, userId, body.plan) : null;
 
-    const [updated] = await app.db.update(users).set(set).where(eq(users.id, userId)).returning();
+    const [profileUpdated] = Object.keys(set).length
+      ? await app.db.update(users).set(set).where(eq(users.id, userId)).returning()
+      : [u];
     await audit(app, request.authUser!.sub, "user.profile_update", { userId });
-    return publicUser(updated);
+    return publicUser(planUpdated ? { ...profileUpdated, plan: planUpdated.plan } : profileUpdated);
   });
 
   const publicPartner = (row: typeof partners.$inferSelect) => ({

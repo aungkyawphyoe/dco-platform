@@ -266,7 +266,7 @@ Local-only (mobile, not a server table): **outbox** rows (`entity_type`, `entity
 |-------|------|
 | `email` | Unique, stored lowercase, max 254 |
 | `role` | `owner` (default on signup) or `admin` (granted by an existing admin / seed) |
-| `plan` | `free` \| `premium`. Billing off. Free → one non-archived vehicle when gating is later enforced; field must exist now |
+| `plan` | `free` \| `premium`, DCO-admin-managed until billing is added. Premium is required for a Primary Owner to create/manage Family; invited Family members need no Premium. Free vehicle-count gating remains off. |
 | `status` | `active` \| `deactivated`. Deactivated cannot sign in |
 | `active_vehicle_id` | Null only when the garage is empty. After the first vehicle, always one active vehicle |
 | `email_verified` | Prompt until true; does not block adding a vehicle |
@@ -322,6 +322,28 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 - Partners cannot sign in. `verified` does not unlock booking.
 - Every admin write gets an `audit_events` row.
 
+### Enterprise Fleet backend extension
+
+Fleet entitlement is **organization-scoped**, not a `users.plan` value or `users.role`. The schema added by `backend/drizzle/0003_fleet_foundation.sql` keeps personal ownership on `vehicles.user_id` and links managed inventory through `organization_vehicles`.
+
+| Entity | Key fields and constraints |
+|--------|----------------------------|
+| `organizations` | `type` (showroom/dealership/taxi_fleet/rental/commercial/logistics), `plan=enterprise`, `status` (pending/active/suspended/archived), linked `admin_user_id`, created/activated audit fields, contacts, settings. One non-archived organization per Org Admin. |
+| `organization_members` | `org_id`, `user_id`, role (`org_admin`/`org_manager`/`org_mechanic`/`org_driver`), inviter and join time. One organization per user; one Org Admin per org. |
+| `organization_vehicles` | Organization ↔ existing `vehicles` link, lifecycle template/state, revenue label. One organization per vehicle. Fleet vehicles are excluded from personal-owner vehicle routes while linked. |
+| `driver_assignments` | Organization, vehicle, driver, assigning user, active/completed timestamps. At most one active vehicle per driver and one active driver per vehicle. |
+| `work_orders` | Organization/vehicle, reporting driver, odometer, issue, urgency, photos, status, assignee and resolution fields. Driver visibility is own-only; managers can review fleet-wide. |
+| `inspections` / `inspection_templates` | Organization-scoped checklist definitions and submitted results. Required items must be answered; a `not_ok` result creates a work order. |
+| `shift_mileage` | Organization, assigned vehicle/driver, start/end odometers and timestamps, computed km. One open shift per driver and vehicle. |
+| `warranty_templates` / `vehicle_warranties` | Organization template terms and per-vehicle time/mileage limits, created on showroom transfer when selected. |
+| `warranty_template_workshops` | Template ↔ approved workshop partner link. Only workshops on this list may log warranty service for vehicles using the template. |
+| `organization_workshops` | Organization ↔ verified workshop partner approval list. Warranty templates may only reference workshops approved here; removal also clears the partner from the org's templates. |
+| `workshop_members` | Workshop partner ↔ user account link, created by DCO Admin for verified workshop partners. One workshop per user. Workshop sign-in uses the `dco-workshop` audience. |
+| `transferred_vehicles` | Read-only organization audit row linking vehicle, buyer, transfer actor/time, and optional warranty instance. `vehicles.user_id` changes to the buyer. |
+| `vehicle_import_jobs` | Persistent CSV import status/results, limited to 100 rows per job and polled by job ID. |
+
+Authorization checks run against the live database for each request: Fleet requires Enterprise plan + active organization + membership; role controls each operation. Fleet Dashboard tokens use `dco-fleet`, mobile remains `dco-owner`, and verified workshop accounts use `dco-workshop` (scoped to active approved-warranty vehicles only; buyer personal data is not exposed). Premium downgrade archives the Primary Owner's family, revokes family grants/membership, and expires refresh tokens; invited family participants retain access only while the family is active.
+
 ---
 
 ## Mileage monotonicity
@@ -364,7 +386,7 @@ Observed in the Autozis demo (Toyota Camry dashboard, multi-vehicle garage, expe
 | Vehicle sharing, import/export, PDF reports, AI assistant | — | **Defer** |
 | Online web owner app, instant sync | Flutter offline-first + change log | **Different architecture** (intentional) |
 | No staff admin | Users + partners + audit | **DCO-only** |
-| Freemium (advanced features gated) | `plan` field, gating not activated | **Adopt field only** |
+| Freemium (advanced features gated) | `plan` field; Family management requires Premium, no billing yet; vehicle-count gate remains off | **Adopt plan + Family entitlement gate** |
 
 Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to this schema. Fuel logs are a DCO slice (`fuel_types`, `fuel_logs`), not Autozis efficiency tracking.
 

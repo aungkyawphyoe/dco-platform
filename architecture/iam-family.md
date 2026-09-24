@@ -234,9 +234,9 @@ No breaking changes to existing tokens. Fields are optional (null when not in fa
 
 ---
 
-## Future: Fleet/Org Extension (Phase 2)
+## Fleet/Org Extension (backend foundation)
 
-When Fleet lands (Phase 2), introduce `organizations` as new root:
+Fleet introduces `organizations` as a separate root alongside personal users and families:
 
 | Concept | Family (MVP) | Fleet (Future) |
 |---------|---------------|----------------|

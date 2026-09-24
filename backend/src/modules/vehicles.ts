@@ -2,12 +2,12 @@ import { and, asc, desc, eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
-import { documents, expenses, planItems, serviceRecords, users, vehicles } from "../db/schema.js";
+import { documents, expenses, organizationVehicles, planItems, serviceRecords, users, vehicleWarranties, vehicles } from "../db/schema.js";
 import { AppError } from "../lib/errors.js";
 import { dateOnly, getUser, num, recordChange, reqNum } from "../lib/dbx.js";
 import { publicUser, publicVehicle } from "../lib/serialize.js";
 import { requireOwner } from "./auth.js";
-import { getFamilyVehicleDetail } from "./family.js";
+import { getFamilyVehicleDetail, requireVehicleAccess } from "./family.js";
 
 const fuelEnum = z.enum(["petrol", "electric", "hybrid_plugin"]);
 
@@ -70,7 +70,24 @@ export async function nextMaintenance(db: Db, vehicleId: string, mileage: number
 export async function getOwnedVehicle(db: Db, userId: string, vehicleId: string, includeArchived = false) {
   const [row] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
   if (!row || row.userId !== userId) throw new AppError(404, "not_found", "Vehicle not found");
+  const [organizationLink] = await db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId)).limit(1);
+  if (organizationLink) throw new AppError(404, "not_found", "Vehicle is managed in Fleet mode");
   if (!includeArchived && row.archived) throw new AppError(404, "not_found", "Vehicle not found");
+  return row;
+}
+
+export async function getAccessibleVehicle(
+  db: Db,
+  userId: string,
+  vehicleId: string,
+  requiredPermission: "full" | "drive_only",
+  includeArchived = false,
+) {
+  const [row] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
+  if (!row || (!includeArchived && row.archived)) throw new AppError(404, "not_found", "Vehicle not found");
+  const [organizationLink] = await db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId)).limit(1);
+  if (organizationLink) throw new AppError(404, "not_found", "Vehicle is managed in Fleet mode");
+  await requireVehicleAccess(db, userId, vehicleId, requiredPermission);
   return row;
 }
 
@@ -93,7 +110,9 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     const includeArchived = (request.query as { include_archived?: string }).include_archived === "true";
     const userId = request.authUser!.sub;
     const rows = await app.db.select().from(vehicles).where(eq(vehicles.userId, userId));
-    const filtered = includeArchived ? rows : rows.filter((v) => !v.archived);
+    const organizationRows = await app.db.select({ vehicleId: organizationVehicles.vehicleId }).from(organizationVehicles);
+    const organizationVehicleIds = new Set(organizationRows.map((row) => row.vehicleId));
+    const filtered = rows.filter((vehicle) => !organizationVehicleIds.has(vehicle.id) && (includeArchived || !vehicle.archived));
     const items = [];
     for (const row of filtered) {
       items.push(publicVehicle(row, await nextMaintenance(app.db, row.id, reqNum(row.mileage))));
@@ -284,5 +303,27 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     const detail = await getFamilyVehicleDetail(app.db, vehicleId, request.authUser!.sub);
     if (!detail) throw new AppError(403, "no_vehicle_access", "No access to this vehicle");
     return detail;
+  });
+
+  app.get("/vehicles/:vehicleId/warranty", async (request) => {
+    requireOwner(request);
+    const { vehicleId } = request.params as { vehicleId: string };
+    const vehicle = await getOwnedVehicle(app.db, request.authUser!.sub, vehicleId);
+    const [warranty] = await app.db.select().from(vehicleWarranties).where(eq(vehicleWarranties.vehicleId, vehicleId)).limit(1);
+    if (!warranty) throw new AppError(404, "warranty_not_found", "Vehicle has no warranty record");
+    const expiredByDate = (dateOnly(warranty.warrantyEndDate) ?? "9999-12-31") < new Date().toISOString().slice(0, 10);
+    const expiredByMileage = reqNum(vehicle.mileage) > warranty.warrantyEndMileage;
+    const status = warranty.status === "active" && (expiredByDate || expiredByMileage) ? "expired" : warranty.status;
+    return {
+      id: warranty.id,
+      vehicle_id: warranty.vehicleId,
+      template_id: warranty.templateId,
+      sale_date: dateOnly(warranty.saleDate),
+      sale_mileage_km: warranty.saleMileageKm,
+      warranty_end_date: dateOnly(warranty.warrantyEndDate),
+      warranty_end_mileage: warranty.warrantyEndMileage,
+      status,
+      expired_by: status === "expired" ? (expiredByDate ? "time" : "mileage") : null,
+    };
   });
 };

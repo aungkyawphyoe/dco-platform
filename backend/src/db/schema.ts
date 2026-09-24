@@ -10,8 +10,11 @@ import {
   text,
   timestamp,
   uuid,
+  index,
   unique,
+  uniqueIndex,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 export const roleEnum = pgEnum("user_role", ["owner", "admin"]);
 export const planEnum = pgEnum("user_plan", ["free", "premium"]);
@@ -55,6 +58,26 @@ export const dueReasonEnum = pgEnum("due_reason", ["date", "mileage", "both"]);
 export const familyRoleEnum = pgEnum("family_role", ["primary_owner", "member", "driver"]);
 export const grantPermissionEnum = pgEnum("grant_permission", ["full", "drive_only"]);
 export const familyStatusEnum = pgEnum("family_status", ["active", "archived"]);
+export const organizationTypeEnum = pgEnum("organization_type", [
+  "showroom",
+  "dealership",
+  "taxi_fleet",
+  "rental",
+  "commercial",
+  "logistics",
+]);
+export const organizationPlanEnum = pgEnum("organization_plan", ["enterprise"]);
+export const organizationStatusEnum = pgEnum("organization_status", ["pending", "active", "suspended", "archived"]);
+export const organizationRoleEnum = pgEnum("organization_role", ["org_admin", "org_manager", "org_mechanic", "org_driver"]);
+export const lifecycleTemplateEnum = pgEnum("lifecycle_template", ["showroom", "taxi_fleet", "rental", "commercial"]);
+export const assignmentStatusEnum = pgEnum("assignment_status", ["active", "completed"]);
+export const workOrderIssueTypeEnum = pgEnum("work_order_issue_type", ["breakdown", "accident", "wear_tear", "scheduled_service", "other"]);
+export const workOrderUrgencyEnum = pgEnum("work_order_urgency", ["low", "medium", "high", "critical"]);
+export const workOrderStatusEnum = pgEnum("work_order_status", ["reported", "in_progress", "completed"]);
+export const warrantyStatusEnum = pgEnum("warranty_status", ["active", "expired", "voided"]);
+export const inspectionTypeEnum = pgEnum("inspection_type", ["pre_trip", "post_trip", "random"]);
+export const inspectionStatusEnum = pgEnum("inspection_status", ["in_progress", "completed", "failed"]);
+export const vehicleImportStatusEnum = pgEnum("vehicle_import_status", ["processing", "completed", "failed"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
@@ -104,6 +127,7 @@ export const refreshTokens = pgTable("refresh_tokens", {
     .references(() => users.id),
   familyId: uuid("family_id").notNull(),
   tokenHash: text("token_hash").notNull(),
+  audience: text("audience").notNull().default("dco-owner"),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   revokedAt: timestamp("revoked_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -390,6 +414,98 @@ export const drivingLicenses = pgTable("driving_licenses", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const organizations = pgTable("organizations", {
+  id: uuid("id").primaryKey(),
+  name: text("name").notNull(),
+  type: organizationTypeEnum("type").notNull(),
+  plan: organizationPlanEnum("plan").notNull().default("enterprise"),
+  status: organizationStatusEnum("status").notNull().default("pending"),
+  adminUserId: uuid("admin_user_id").notNull().references(() => users.id),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  activatedBy: uuid("activated_by").references(() => users.id),
+  activatedAt: timestamp("activated_at", { withTimezone: true }),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  settings: jsonb("settings").notNull().default(sql`'{}'::jsonb`),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  activeAdminUnique: uniqueIndex("organizations_admin_active_unique")
+    .on(table.adminUserId)
+    .where(sql`${table.status} <> 'archived'`),
+  statusIndex: index("organizations_status_idx").on(table.status),
+}));
+
+export const organizationMembers = pgTable("organization_members", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  role: organizationRoleEnum("role").notNull(),
+  joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+  invitedBy: uuid("invited_by").references(() => users.id),
+}, (table) => ({
+  oneOrganizationPerUser: unique().on(table.userId),
+  organizationMemberUnique: unique().on(table.orgId, table.userId),
+  orgIndex: index("organization_members_org_idx").on(table.orgId),
+}));
+
+export const organizationVehicles = pgTable("organization_vehicles", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  lifecycleTemplate: lifecycleTemplateEnum("lifecycle_template").notNull(),
+  status: text("status").notNull(),
+  revenueLabel: text("revenue_label"),
+  addedBy: uuid("added_by").notNull().references(() => users.id),
+  addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  vehicleUnique: unique().on(table.vehicleId),
+  organizationIndex: index("organization_vehicles_org_idx").on(table.orgId),
+}));
+
+export const driverAssignments = pgTable("driver_assignments", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  driverId: uuid("driver_id").notNull().references(() => users.id),
+  assignedBy: uuid("assigned_by").notNull().references(() => users.id),
+  assignedAt: timestamp("assigned_at", { withTimezone: true }).notNull().defaultNow(),
+  unassignedAt: timestamp("unassigned_at", { withTimezone: true }),
+  status: assignmentStatusEnum("status").notNull().default("active"),
+}, (table) => ({
+  orgIndex: index("driver_assignments_org_idx").on(table.orgId),
+  activeDriverUnique: uniqueIndex("driver_assignments_active_driver_unique")
+    .on(table.driverId)
+    .where(sql`${table.status} = 'active'`),
+  activeVehicleUnique: uniqueIndex("driver_assignments_active_vehicle_unique")
+    .on(table.vehicleId)
+    .where(sql`${table.status} = 'active'`),
+}));
+
+export const workOrders = pgTable("work_orders", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  reportedBy: uuid("reported_by").notNull().references(() => users.id),
+  reportedAt: timestamp("reported_at", { withTimezone: true }).notNull().defaultNow(),
+  odometerKm: integer("odometer_km").notNull(),
+  issueType: workOrderIssueTypeEnum("issue_type").notNull(),
+  description: text("description").notNull(),
+  urgency: workOrderUrgencyEnum("urgency").notNull(),
+  photos: jsonb("photos").notNull().default(sql`'[]'::jsonb`),
+  status: workOrderStatusEnum("status").notNull().default("reported"),
+  assignedTo: uuid("assigned_to").references(() => users.id),
+  resolvedBy: uuid("resolved_by").references(() => users.id),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+  resolutionNotes: text("resolution_notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  orgIndex: index("work_orders_org_idx").on(table.orgId),
+  vehicleIndex: index("work_orders_vehicle_idx").on(table.vehicleId),
+}));
+
 export const maintenanceCatalog = pgTable("maintenance_catalog", {
   id: uuid("id").primaryKey(),
   catalogKey: text("catalog_key").notNull().unique(),
@@ -402,3 +518,131 @@ export const maintenanceCatalog = pgTable("maintenance_catalog", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const warrantyTemplates = pgTable("warranty_templates", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  durationYears: integer("duration_years").notNull(),
+  mileageLimitKm: integer("mileage_limit_km").notNull(),
+  coverageCategories: jsonb("coverage_categories").notNull().default(sql`'[]'::jsonb`),
+  exclusions: text("exclusions"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const warrantyTemplateWorkshops = pgTable("warranty_template_workshops", {
+  id: uuid("id").primaryKey(),
+  templateId: uuid("template_id").notNull().references(() => warrantyTemplates.id, { onDelete: "cascade" }),
+  partnerId: uuid("partner_id").notNull().references(() => partners.id),
+}, (table) => ({
+  uniqueTemplatePartner: unique().on(table.templateId, table.partnerId),
+}));
+
+export const vehicleWarranties = pgTable("vehicle_warranties", {
+  id: uuid("id").primaryKey(),
+  vehicleId: uuid("vehicle_id").notNull().unique().references(() => vehicles.id),
+  templateId: uuid("template_id").notNull().references(() => warrantyTemplates.id),
+  saleDate: date("sale_date").notNull(),
+  saleMileageKm: integer("sale_mileage_km").notNull(),
+  warrantyEndDate: date("warranty_end_date").notNull(),
+  warrantyEndMileage: integer("warranty_end_mileage").notNull(),
+  status: warrantyStatusEnum("status").notNull().default("active"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const transferredVehicles = pgTable("transferred_vehicles", {
+  id: uuid("id").primaryKey(),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  orgId: uuid("org_id").notNull().references(() => organizations.id),
+  buyerUserId: uuid("buyer_user_id").notNull().references(() => users.id),
+  transferredBy: uuid("transferred_by").notNull().references(() => users.id),
+  transferredAt: timestamp("transferred_at", { withTimezone: true }).notNull().defaultNow(),
+  warrantyInstanceId: uuid("warranty_instance_id").references(() => vehicleWarranties.id),
+}, (table) => ({
+  orgIndex: index("transferred_vehicles_org_idx").on(table.orgId),
+}));
+
+export const inspectionTemplates = pgTable("inspection_templates", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  items: jsonb("items").notNull().default(sql`'[]'::jsonb`),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const inspections = pgTable("inspections", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  driverId: uuid("driver_id").notNull().references(() => users.id),
+  templateId: uuid("template_id").notNull().references(() => inspectionTemplates.id),
+  inspectionType: inspectionTypeEnum("inspection_type").notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  status: inspectionStatusEnum("status").notNull().default("in_progress"),
+  items: jsonb("items").notNull().default(sql`'[]'::jsonb`),
+  notes: text("notes"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  orgIndex: index("inspections_org_idx").on(table.orgId),
+  vehicleIndex: index("inspections_vehicle_idx").on(table.vehicleId),
+}));
+
+export const shiftMileage = pgTable("shift_mileage", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  driverId: uuid("driver_id").notNull().references(() => users.id),
+  startOdometerKm: integer("start_odometer_km").notNull(),
+  endOdometerKm: integer("end_odometer_km"),
+  startAt: timestamp("start_at", { withTimezone: true }).notNull().defaultNow(),
+  endAt: timestamp("end_at", { withTimezone: true }),
+  kmDriven: integer("km_driven"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  orgIndex: index("shift_mileage_org_idx").on(table.orgId),
+  activeDriverUnique: uniqueIndex("shift_mileage_active_driver_unique")
+    .on(table.driverId)
+    .where(sql`${table.endAt} IS NULL`),
+  activeVehicleUnique: uniqueIndex("shift_mileage_active_vehicle_unique")
+    .on(table.vehicleId)
+    .where(sql`${table.endAt} IS NULL`),
+}));
+
+export const vehicleImportJobs = pgTable("vehicle_import_jobs", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  fileName: text("file_name").notNull(),
+  totalRows: integer("total_rows").notNull(),
+  status: vehicleImportStatusEnum("status").notNull().default("processing"),
+  results: jsonb("results").notNull().default(sql`'[]'::jsonb`),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+}, (table) => ({
+  orgIndex: index("vehicle_import_jobs_org_idx").on(table.orgId),
+}));
+
+export const organizationWorkshops = pgTable("organization_workshops", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  partnerId: uuid("partner_id").notNull().references(() => partners.id, { onDelete: "cascade" }),
+  addedBy: uuid("added_by").notNull().references(() => users.id),
+  addedAt: timestamp("added_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  uniqueOrganizationPartner: unique().on(table.orgId, table.partnerId),
+  orgIndex: index("organization_workshops_org_idx").on(table.orgId),
+}));
+
+export const workshopMembers = pgTable("workshop_members", {
+  id: uuid("id").primaryKey(),
+  partnerId: uuid("partner_id").notNull().references(() => partners.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").notNull().unique().references(() => users.id, { onDelete: "cascade" }),
+  invitedBy: uuid("invited_by").references(() => users.id),
+  joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  uniquePartnerMember: unique().on(table.partnerId, table.userId),
+  partnerIndex: index("workshop_members_partner_idx").on(table.partnerId),
+}));

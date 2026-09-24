@@ -9,6 +9,7 @@ import {
   familyMemberships,
   familyVehicles,
   mediaObjects,
+  organizationVehicles,
   users,
   vehicleGrants,
   vehicles,
@@ -20,6 +21,17 @@ import { AppError } from "../lib/errors.js";
 import { requireOwner } from "./auth.js";
 
 const uuid = z.string().uuid();
+
+async function requirePremiumPlan(db: Db, userId: string): Promise<void> {
+  const [user] = await db.select({ plan: users.plan }).from(users).where(eq(users.id, userId)).limit(1);
+  if (!user || user.plan !== "premium") {
+    throw new AppError(403, "premium_required", "Premium is required to create or manage a family");
+  }
+}
+
+async function requirePremiumForPrimaryOwner(db: Db, userId: string, role: string): Promise<void> {
+  if (role === "primary_owner") await requirePremiumPlan(db, userId);
+}
 
 function generateShareCode(): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -102,6 +114,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
   app.post("/families", async (request, reply) => {
     requireOwner(request);
     const userId = uid(request);
+    await requirePremiumPlan(db(), userId);
     const body = z.object({ name: z.string().min(1).max(100) }).parse(request.body);
 
     // Check if user already in a family
@@ -215,6 +228,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     // Verify Primary Owner
     const [membership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, userId))).limit(1);
     if (!membership || membership.role !== "primary_owner") throw new AppError(403, "not_primary_owner", "Only the Primary Owner can update the family");
+    await requirePremiumPlan(db(), userId);
 
     const updates: Record<string, unknown> = {};
     if (body.name) updates.name = body.name;
@@ -238,6 +252,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     // Verify Primary Owner
     const [membership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, userId))).limit(1);
     if (!membership || membership.role !== "primary_owner") throw new AppError(403, "not_primary_owner", "Only the Primary Owner can archive the family");
+    await requirePremiumPlan(db(), userId);
 
     // Check if ownership was transferred (there should be another primary_owner)
     const [otherPrimary] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.role, "primary_owner"), sql`${familyMemberships.userId} != ${userId}`)).limit(1);
@@ -281,6 +296,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     // Verify Primary Owner
     const [myMembership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, userId))).limit(1);
     if (!myMembership || myMembership.role !== "primary_owner") throw new AppError(403, "not_primary_owner", "Only the Primary Owner can manage members");
+    await requirePremiumPlan(db(), userId);
 
     // Cannot change Primary Owner role via this endpoint
     const [targetMembership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, targetUserId))).limit(1);
@@ -310,6 +326,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     // Verify Primary Owner
     const [myMembership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, userId))).limit(1);
     if (!myMembership || myMembership.role !== "primary_owner") throw new AppError(403, "not_primary_owner", "Only the Primary Owner can remove members");
+    await requirePremiumPlan(db(), userId);
 
     const [targetMembership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, targetUserId))).limit(1);
     if (!targetMembership) throw new AppError(404, "member_not_found", "Member not found in this family");
@@ -336,6 +353,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     // Verify membership
     const [myMembership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, userId))).limit(1);
     if (!myMembership) throw new AppError(403, "not_family_member", "Not a member of this family");
+    await requirePremiumForPrimaryOwner(db(), userId, myMembership.role);
 
     // Verify target is family member
     const [targetMembership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, body.user_id))).limit(1);
@@ -384,6 +402,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     // Verify membership
     const [myMembership] = await db().select().from(familyMemberships).where(and(eq(familyMemberships.familyId, familyId), eq(familyMemberships.userId, userId))).limit(1);
     if (!myMembership) throw new AppError(403, "not_family_member", "Not a member of this family");
+    await requirePremiumForPrimaryOwner(db(), userId, myMembership.role);
 
     const [grant] = await db().select().from(vehicleGrants).where(eq(vehicleGrants.id, grantId)).limit(1);
     if (!grant) throw new AppError(404, "grant_not_found", "Grant not found");
@@ -476,6 +495,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     const [membership] = await db().select().from(familyMemberships)
       .where(and(eq(familyMemberships.userId, userId), eq(familyMemberships.role, "primary_owner"))).limit(1);
     if (!membership) throw new AppError(403, "not_primary_owner", "Only Primary Owner can add vehicles");
+    await requirePremiumPlan(db(), userId);
 
     // Verify vehicle belongs to the requesting user and is not archived
     const [vehicle] = await db().select().from(vehicles)
@@ -521,6 +541,7 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     const [membership] = await db().select().from(familyMemberships)
       .where(and(eq(familyMemberships.userId, userId), eq(familyMemberships.role, "primary_owner"))).limit(1);
     if (!membership) throw new AppError(403, "not_primary_owner", "Only Primary Owner can remove vehicles");
+    await requirePremiumPlan(db(), userId);
 
     const [fv] = await db().select().from(familyVehicles)
       .where(and(eq(familyVehicles.familyId, membership.familyId), eq(familyVehicles.vehicleId, vehicleId))).limit(1);
@@ -676,10 +697,24 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
 export async function getVehicleAccessLevel(db: Db, userId: string, vehicleId: string): Promise<"owner" | "full" | "drive_only" | null> {
   const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
   if (!vehicle) return null;
+  const [organizationLink] = await db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId)).limit(1);
+  if (organizationLink) return null;
   if (vehicle.userId === userId) return "owner";
 
   const [grant] = await db.select().from(vehicleGrants).where(and(eq(vehicleGrants.vehicleId, vehicleId), eq(vehicleGrants.userId, userId))).limit(1);
-  return grant?.permission ?? null;
+  if (!grant) return null;
+  const [membership] = await db.select().from(familyMemberships).where(eq(familyMemberships.userId, userId)).limit(1);
+  if (!membership) return null;
+  const [family] = await db.select().from(families).where(and(eq(families.id, membership.familyId), eq(families.status, "active"))).limit(1);
+  if (!family) return null;
+  const [vehicleLink] = await db.select().from(familyVehicles).where(and(
+    eq(familyVehicles.familyId, family.id), eq(familyVehicles.vehicleId, vehicleId),
+  )).limit(1);
+  if (!vehicleLink) return null;
+  const [ownerMembership] = await db.select().from(familyMemberships).where(and(
+    eq(familyMemberships.familyId, family.id), eq(familyMemberships.userId, vehicle.userId),
+  )).limit(1);
+  return ownerMembership ? grant.permission : null;
 }
 
 export async function requireVehicleAccess(

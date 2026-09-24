@@ -9,6 +9,8 @@ const schema = z.object({
   JWT_ACCESS_TTL: z.string().default("15m"),
   JWT_REFRESH_TTL: z.string().default("720h"),
   JWT_OWNER_AUD: z.string().default("dco-owner"),
+  JWT_FLEET_AUD: z.string().default("dco-fleet"),
+  JWT_WORKSHOP_AUD: z.string().default("dco-workshop"),
   JWT_ADMIN_AUD: z.string().default("dco-admin"),
   BOOTSTRAP_ADMIN_EMAIL: z.string().email().optional(),
   BOOTSTRAP_ADMIN_PASSWORD: z.string().optional(),

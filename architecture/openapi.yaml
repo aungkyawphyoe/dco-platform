@@ -4,7 +4,7 @@ info:
   version: 1.0.0
   description: |
     Versioned REST API for the Digital Car Ownership MVP.
-    Owner clients (Flutter) use audience `dco-owner`. Admin portal uses `dco-admin`.
+    Personal Flutter clients use audience `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified Workshop accounts use `dco-workshop`; DCO Admin uses `dco-admin`.
     Client-generated UUIDs on create are idempotent. Mileage never decreases.
     Azure hostname is environment-specific and is not part of this contract.
 servers:
@@ -28,6 +28,7 @@ tags:
   - name: Sync
   - name: Admin
   - name: Family
+  - name: Fleet
 security:
   - bearerAuth: []
 paths:
@@ -244,6 +245,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
+  /me/entitlements:
+    get:
+      tags: [Me]
+      summary: Current account and Family/Fleet entitlements for navigation
+      description: Navigation hints only; protected operations re-check plan, membership, organization status, and role.
+      responses:
+        '200':
+          description: Entitlements
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan:
+                    $ref: '#/components/schemas/Plan'
+                  family:
+                    type: object
+                  organization:
+                    type: object
+                    nullable: true
+                  features:
+                    type: object
+                    properties:
+                      family:
+                        type: boolean
+                      fleet:
+                        type: boolean
   /me/device-tokens:
     post:
       tags: [Me]
@@ -1217,6 +1245,7 @@ paths:
     post:
       tags: [Family]
       summary: Create a new family
+      description: Requires a Premium user plan. Joining an existing family is available to invited users without Premium.
       requestBody:
         required: true
         content:
@@ -1237,6 +1266,8 @@ paths:
               schema:
                 $ref: '#/components/schemas/Family'
         '409':
+          $ref: '#/components/responses/Error'
+        '403':
           $ref: '#/components/responses/Error'
   /families/me:
     get:
@@ -1274,7 +1305,7 @@ paths:
   /families/{familyId}/join:
     post:
       tags: [Family]
-      summary: Join a family by share code
+      summary: Join a family by share code (invitee does not need Premium)
       parameters:
         - $ref: '#/components/parameters/familyId'
       requestBody:
@@ -1664,6 +1695,826 @@ paths:
                 $ref: '#/components/schemas/UserDetail'
         '404':
           $ref: '#/components/responses/Error'
+  /admin/organizations:
+    get:
+      tags: [Admin]
+      summary: List and search Enterprise organizations
+      responses:
+        '200':
+          description: Organization list
+    post:
+      tags: [Admin]
+      summary: Provision an Enterprise organization and link or create an invited Org Admin account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, type, admin_email]
+              properties:
+                name: {type: string, minLength: 1, maxLength: 200}
+                type: {type: string, enum: [showroom, dealership, taxi_fleet, rental, commercial, logistics]}
+                admin_email: {type: string, format: email}
+                contact_email: {type: string, format: email, nullable: true}
+                contact_phone: {type: string, maxLength: 20, nullable: true}
+      responses:
+        '201':
+          description: Enterprise organization created in pending status
+        '409':
+          $ref: '#/components/responses/Error'
+  /admin/organizations/{organizationId}:
+    parameters:
+      - in: path
+        name: organizationId
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Admin]
+      summary: Organization detail for provisioning support
+      responses:
+        '200': {description: Organization detail}
+        '404': {$ref: '#/components/responses/Error'}
+    patch:
+      tags: [Admin]
+      summary: Update Enterprise organization details
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '200': {description: Updated organization}
+        '404': {$ref: '#/components/responses/Error'}
+  /admin/organizations/{organizationId}/status:
+    patch:
+      tags: [Admin]
+      summary: Activate, suspend, or archive an organization
+      parameters:
+        - in: path
+          name: organizationId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: {type: string, enum: [active, suspended, archived]}
+      responses:
+        '200': {description: Updated organization status}
+        '410': {$ref: '#/components/responses/Error'}
+  /organizations/me:
+    get:
+      tags: [Fleet]
+      summary: Current organization membership and Fleet availability
+      responses:
+        '200': {description: Organization context, or null when not a member}
+  /organizations/{id}/members:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Fleet]
+      summary: List organization members
+      responses:
+        '200': {description: Member list}
+        '403': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Fleet]
+      summary: Invite a member by email and role
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, role]
+              properties:
+                email: {type: string, format: email}
+                role: {type: string, enum: [org_manager, org_mechanic, org_driver]}
+      responses:
+        '201': {description: Member added; new accounts receive a password setup email}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/members/{userId}:
+    patch:
+      tags: [Fleet]
+      summary: Change member role or remove member
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role: {type: string, enum: [org_manager, org_mechanic, org_driver]}
+                remove: {type: boolean}
+      responses:
+        '200': {description: Updated membership}
+        '204': {description: Member removed}
+        '403': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicles:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Fleet]
+      summary: List organization inventory (driver results are assignment-scoped)
+      responses:
+        '200': {description: Fleet vehicle inventory}
+    post:
+      tags: [Fleet]
+      summary: Add a vehicle to organization inventory
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '201': {description: Vehicle added}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicles/import:
+    post:
+      tags: [Fleet]
+      summary: Import up to 100 vehicles from CSV
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file: {type: string, format: binary}
+      responses:
+        '202': {description: Import job queued}
+        '400': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicles/import/{jobId}:
+    get:
+      tags: [Fleet]
+      summary: Poll vehicle CSV import job results
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: jobId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Current import status and per-row results}
+        '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicles/{vehicleId}:
+    patch:
+      tags: [Fleet]
+      summary: Change lifecycle status or revenue label
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [status]}
+      responses:
+        '200': {description: Updated fleet vehicle}
+        '400': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicles/{vehicleId}/service-records:
+    post:
+      tags: [Fleet, Maintenance]
+      summary: Record maintenance performed by owner, manager, or mechanic
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '201': {description: Maintenance record created}
+        '403': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicles/{vehicleId}/transfer:
+    post:
+      tags: [Fleet]
+      summary: Transfer reserved showroom inventory to a buyer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [buyer_email, sale_date, current_mileage_km]
+              properties:
+                buyer_email: {type: string, format: email}
+                sale_date: {type: string, format: date}
+                current_mileage_km: {type: integer, minimum: 0}
+                warranty_template_id: {type: string, format: uuid, nullable: true}
+      responses:
+        '201': {description: Vehicle transferred with audit and optional warranty}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/assignments:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Fleet]
+      summary: List driver assignments
+      responses:
+        '200': {description: Assignment list}
+    post:
+      tags: [Fleet]
+      summary: Assign an organization vehicle to a driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [vehicle_id, driver_id]
+              properties:
+                vehicle_id: {type: string, format: uuid}
+                driver_id: {type: string, format: uuid}
+      responses:
+        '201': {description: Assignment created}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/assignments/{assignmentId}:
+    delete:
+      tags: [Fleet]
+      summary: Complete/unassign an active driver assignment
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: assignmentId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Completed assignment}
+        '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/work-orders:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Fleet]
+      summary: List work orders; drivers see their own
+      responses:
+        '200': {description: Work orders}
+    post:
+      tags: [Fleet]
+      summary: Report an issue from an assigned driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '201': {description: Work order reported}
+        '403': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/work-orders/{workOrderId}:
+    patch:
+      tags: [Fleet]
+      summary: Advance work order to in-progress or completed
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: workOrderId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [status]}
+      responses:
+        '200': {description: Updated work order}
+        '400': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/inspection-templates:
+    get:
+      tags: [Fleet]
+      summary: List inspection templates
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Templates}
+    post:
+      tags: [Fleet]
+      summary: Create an inspection template
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [name, items]}
+      responses:
+        '201': {description: Template created}
+  /organizations/{id}/inspection-templates/{templateId}:
+    patch:
+      tags: [Fleet]
+      summary: Update an inspection template
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: templateId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '200': {description: Updated template}
+        '404': {$ref: '#/components/responses/Error'}
+    delete:
+      tags: [Fleet]
+      summary: Delete an unused inspection template
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: templateId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '204': {description: Deleted}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/inspections:
+    get:
+      tags: [Fleet]
+      summary: List organization inspections; drivers see their own
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Inspections}
+    post:
+      tags: [Fleet]
+      summary: Start an inspection for an assigned vehicle
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [vehicle_id, template_id, inspection_type]}
+      responses:
+        '201': {description: Inspection started}
+  /organizations/{id}/inspections/{inspectionId}:
+    patch:
+      tags: [Fleet]
+      summary: Complete an inspection and create a work order if failed
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: inspectionId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [items]}
+      responses:
+        '200': {description: Completed or failed inspection}
+        '400': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/shift-mileage:
+    get:
+      tags: [Fleet]
+      summary: List shift mileage records
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Shift mileage records}
+    post:
+      tags: [Fleet]
+      summary: Start a driver shift with odometer reading
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [vehicle_id, start_odometer_km]}
+      responses:
+        '201': {description: Shift started}
+  /organizations/{id}/fuel-logs:
+    post:
+      tags: [Fleet, Fuel]
+      summary: Log fuel or charge for an assigned vehicle
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [vehicle_id, fuel_type_id, logged_on, amount, cost, odometer_km]}
+      responses:
+        '201': {description: Fuel entry recorded}
+        '403': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/shift-mileage/{shiftId}:
+    patch:
+      tags: [Fleet]
+      summary: End a driver shift
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: shiftId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [end_odometer_km]}
+      responses:
+        '200': {description: Shift ended with computed distance}
+  /organizations/{id}/warranty-templates:
+    get:
+      tags: [Fleet]
+      summary: List warranty templates
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Warranty templates}
+    post:
+      tags: [Fleet]
+      summary: Create warranty template
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [name, duration_years, mileage_limit_km]}
+      responses:
+        '201': {description: Warranty template created}
+  /organizations/{id}/warranty-templates/{templateId}:
+    patch:
+      tags: [Fleet]
+      summary: Update warranty terms and approved workshops
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: templateId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        content:
+          application/json:
+            schema: {type: object}
+      responses:
+        '200': {description: Updated warranty template}
+        '404': {$ref: '#/components/responses/Error'}
+    delete:
+      tags: [Fleet]
+      summary: Delete an unused warranty template
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: templateId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '204': {description: Deleted}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/workshops:
+    get:
+      tags: [Fleet]
+      summary: List organization-approved verified workshops
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Approved workshop partners}
+    post:
+      tags: [Fleet]
+      summary: Approve a verified Workshop partner for this organization
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [partner_id]
+              properties:
+                partner_id: {type: string, format: uuid}
+      responses:
+        '201': {description: Workshop approved}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/workshops/{partnerId}:
+    delete:
+      tags: [Fleet]
+      summary: Remove an approved Workshop
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/partnerId'
+      responses:
+        '204': {description: Workshop unapproved}
+        '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicle-warranties:
+    get:
+      tags: [Fleet]
+      summary: List organization vehicle warranties
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Vehicle warranties}
+  /organizations/{id}/transferred:
+    get:
+      tags: [Fleet]
+      summary: List transferred vehicles retained for audit
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Transfer audit entries}
+  /organizations/{id}/transferred/{vehicleId}/history:
+    get:
+      tags: [Fleet]
+      summary: Read-only history for a transferred vehicle
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200': {description: Vehicle history and warranty}
+        '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/analytics/vehicle/{vehicleId}:
+    get:
+      tags: [Fleet]
+      summary: Per-vehicle TCO and cost-per-kilometer
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200': {description: Vehicle cost metrics}
+  /organizations/{id}/analytics/fleet:
+    get:
+      tags: [Fleet]
+      summary: Fleet-wide cost and operations summary
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Fleet analytics}
+  /organizations/{id}/analytics/lemons:
+    get:
+      tags: [Fleet]
+      summary: List vehicles exceeding lemon threshold
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Lemon-flagged vehicles}
+  /organizations/{id}/reports/export:
+    get:
+      tags: [Fleet]
+      summary: Export inventory or analytics report as CSV
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: type
+          required: true
+          schema: {type: string, enum: [vehicles, fleet, lemons]}
+      responses:
+        '200':
+          description: CSV file
+          content:
+            text/csv:
+              schema: {type: string}
+  /organizations/{id}/analytics/lemon-threshold:
+    post:
+      tags: [Fleet]
+      summary: Configure organization lemon threshold
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                multiplier: {type: number, minimum: 1}
+                absolute_cost_per_km: {type: number, minimum: 0}
+      responses:
+        '200': {description: Threshold saved}
+  /vehicles/{vehicleId}/warranty:
+    get:
+      tags: [Vehicles]
+      summary: Current transferred vehicle warranty status
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200': {description: Warranty status}
+        '404': {$ref: '#/components/responses/Error'}
+  /drivers/my-vehicle:
+    get:
+      tags: [Fleet]
+      summary: Current driver's active vehicle assignment
+      responses:
+        '200': {description: Driver context and assigned vehicle, if any}
+        '403': {$ref: '#/components/responses/Error'}
+  /drivers/my-work-orders:
+    get:
+      tags: [Fleet]
+      summary: Current driver's own issue reports
+      responses:
+        '200': {description: Driver work orders}
+  /drivers/my-inspections:
+    get:
+      tags: [Fleet]
+      summary: Current driver's own inspections
+      responses:
+        '200': {description: Driver inspections}
+  /workshops/my-vehicles:
+    get:
+      tags: [Fleet]
+      summary: Current verified workshop's vehicles under active approved warranty
+      responses:
+        '200': {description: In-warranty vehicle list; buyer personal information is excluded}
+        '403': {$ref: '#/components/responses/Error'}
+  /workshops/{vehicleId}/service:
+    post:
+      tags: [Fleet, Maintenance]
+      summary: Log warranty service for a vehicle assigned to the workshop
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {type: object, required: [serviced_on, odometer_km, total_cost, items]}
+      responses:
+        '201': {description: Warranty service recorded}
+        '403': {$ref: '#/components/responses/Error'}
+  /admin/support/org-lookup:
+    get:
+      tags: [Admin]
+      summary: Search organizations by name or Org Admin email
+      parameters:
+        - in: query
+          name: q
+          required: true
+          schema: {type: string, minLength: 1}
+      responses:
+        '200': {description: Matching organizations}
+  /admin/support/invite-resend:
+    post:
+      tags: [Admin]
+      summary: Resend Org Admin organization invitation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [organization_id]
+              properties:
+                organization_id: {type: string, format: uuid}
+      responses:
+        '202': {description: Invitation queued}
+  /admin/partners/{partnerId}/workshop-accounts:
+    post:
+      tags: [Admin]
+      summary: Link or invite an account for a verified Workshop partner
+      parameters:
+        - $ref: '#/components/parameters/partnerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email: {type: string, format: email}
+      responses:
+        '201': {description: Workshop account linked}
+        '409': {$ref: '#/components/responses/Error'}
+  /admin/fleet-view:
+    get:
+      tags: [Admin]
+      summary: Read-only cross-organization Fleet support view
+      parameters:
+        - in: query
+          name: organization_id
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Read-only organization and inventory summaries}
 components:
   securitySchemes:
     bearerAuth:
@@ -1855,6 +2706,11 @@ components:
           format: email
         password:
           type: string
+        surface:
+          type: string
+          enum: [owner, fleet, workshop]
+          default: owner
+          description: Owner accounts may request dco-fleet or dco-workshop only when provisioned for that tenant. Platform Admin sign-in remains dco-admin.
     SessionResponse:
       type: object
       required: [access_token, refresh_token, user]
@@ -1895,7 +2751,7 @@ components:
         vehicle_limit:
           type: integer
           nullable: true
-          description: 1 for free, null for unlimited premium (gating off in MVP)
+          description: 1 for free, null for unlimited premium; vehicle-count gating is still not enforced.
         created_at:
           type: string
           format: date-time

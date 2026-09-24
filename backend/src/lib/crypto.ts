@@ -13,6 +13,7 @@ export type FamilyRole = "primary_owner" | "member" | "driver" | null;
 export type AccessClaims = {
   sub: string;
   aud: string;
+  surface?: "owner" | "fleet" | "workshop" | "admin";
   role: Role;
   plan: Plan;
   family_id: string | null;
@@ -51,7 +52,7 @@ function ttlToSeconds(ttl: string): number {
   return n * 86400;
 }
 
-export async function signAccess(env: Env, input: Omit<AccessClaims, "typ" | "aud"> & { aud?: string }) {
+export async function signAccess(env: Env, input: Omit<AccessClaims, "typ" | "aud" | "surface"> & { aud?: string }) {
   const aud = input.aud ?? (input.role === "admin" ? env.JWT_ADMIN_AUD : env.JWT_OWNER_AUD);
   const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
   const expiresIn = ttlToSeconds(env.JWT_ACCESS_TTL);
@@ -87,12 +88,19 @@ export async function signRefresh(env: Env, userId: string, familyId: string, jt
 export async function verifyAccess(env: Env, token: string): Promise<AccessClaims & JWTPayload> {
   const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
   const { payload } = await jwtVerify(token, secret, {
-    audience: [env.JWT_OWNER_AUD, env.JWT_ADMIN_AUD],
+    audience: [env.JWT_OWNER_AUD, env.JWT_FLEET_AUD, env.JWT_WORKSHOP_AUD, env.JWT_ADMIN_AUD],
   });
   if (payload.typ !== ACCESS_TYP || !payload.sub || !payload.aud) {
     throw new Error("invalid_access");
   }
-  return payload as AccessClaims & JWTPayload;
+  const surface = payload.aud === env.JWT_OWNER_AUD
+    ? "owner"
+    : payload.aud === env.JWT_FLEET_AUD
+      ? "fleet"
+      : payload.aud === env.JWT_WORKSHOP_AUD
+        ? "workshop"
+      : "admin";
+  return { ...payload, surface } as AccessClaims & JWTPayload;
 }
 
 export async function verifyRefresh(env: Env, token: string) {

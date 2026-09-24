@@ -21,7 +21,7 @@ import { newId } from "../lib/crypto.js";
 import { dateOnly, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
 import { requireOwner } from "./auth.js";
-import { getOwnedVehicle } from "./vehicles.js";
+import { getAccessibleVehicle } from "./vehicles.js";
 
 const uuid = z.string().uuid();
 
@@ -120,7 +120,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/plan-items", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const items = await db().select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
     return { items: items.map(publicPlan) };
   });
@@ -128,7 +128,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/plan-items", async (request, reply) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const vehicle = await getOwnedVehicle(db(), uid(request), vehicleId);
+    const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = z
       .object({
         id: uuid,
@@ -169,7 +169,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/suggested-plan-items", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const vehicle = await getOwnedVehicle(db(), uid(request), vehicleId);
+    const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only");
     const rows = await db()
       .select()
       .from(maintenanceCatalog)
@@ -191,7 +191,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { planItemId } = request.params as { planItemId: string };
     const [row] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
     if (!row) throw new AppError(404, "not_found", "Plan item not found");
-    await getOwnedVehicle(db(), uid(request), row.vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
     const body = z
       .object({
         name: z.string().optional(),
@@ -224,7 +224,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { planItemId } = request.params as { planItemId: string };
     const [row] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
     if (!row) return reply.code(204).send();
-    await getOwnedVehicle(db(), uid(request), row.vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
     await db().delete(planItems).where(eq(planItems.id, planItemId));
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "plan_item", entityId: planItemId, op: "delete", payload: { id: planItemId } });
     return reply.code(204).send();
@@ -250,7 +250,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/service-records", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
     const rows = await db().select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId)).orderBy(desc(serviceRecords.servicedOn));
     const items = [];
     for (const row of rows) items.push(await loadService(db(), row.id));
@@ -260,7 +260,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/service-records", async (request, reply) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const vehicle = await getOwnedVehicle(db(), uid(request), vehicleId);
+    const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = serviceBody.parse(request.body);
     const [existing] = await db().select().from(serviceRecords).where(eq(serviceRecords.id, body.id)).limit(1);
     if (existing) return reply.code(201).send(await loadService(db(), existing.id));
@@ -320,7 +320,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { serviceRecordId } = request.params as { serviceRecordId: string };
     const payload = await loadService(db(), serviceRecordId);
     if (!payload) throw new AppError(404, "not_found", "Service record not found");
-    await getOwnedVehicle(db(), uid(request), payload.vehicle_id, true);
+    await getAccessibleVehicle(db(), uid(request), payload.vehicle_id, "full", true);
     return payload;
   });
 
@@ -329,7 +329,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { serviceRecordId } = request.params as { serviceRecordId: string };
     const existing = await loadService(db(), serviceRecordId);
     if (!existing) throw new AppError(404, "not_found", "Service record not found");
-    await getOwnedVehicle(db(), uid(request), existing.vehicle_id);
+    await getAccessibleVehicle(db(), uid(request), existing.vehicle_id, "full");
     const body = serviceBody.partial().parse(request.body ?? {});
     await db()
       .update(serviceRecords)
@@ -350,7 +350,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/parts", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
     const items = await db().select().from(parts).where(eq(parts.vehicleId, vehicleId)).orderBy(asc(parts.name));
     return {
       items: items.map((p) => ({
@@ -367,7 +367,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/parts", async (request, reply) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = z.object({
       id: uuid,
       name: z.string().min(1),
@@ -414,7 +414,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { partId } = request.params as { partId: string };
     const [row] = await db().select().from(parts).where(eq(parts.id, partId)).limit(1);
     if (!row) throw new AppError(404, "not_found", "Part not found");
-    await getOwnedVehicle(db(), uid(request), row.vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
     const body = z.object({
       name: z.string().optional(),
       brand: z.string().optional().nullable(),
@@ -520,7 +520,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/fuel-logs", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const q = request.query as { fuel_type_id?: string; month?: string };
     let rows = await db().select().from(fuelLogs).where(eq(fuelLogs.vehicleId, vehicleId)).orderBy(desc(fuelLogs.loggedOn));
     if (q.fuel_type_id) rows = rows.filter((r) => r.fuelTypeId === q.fuel_type_id);
@@ -534,7 +534,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/fuel-logs", async (request, reply) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const vehicle = await getOwnedVehicle(db(), uid(request), vehicleId);
+    const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only");
     const body = z.object({
       id: uuid,
       fuel_type_id: uuid,
@@ -635,7 +635,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/documents", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const category = (request.query as { category?: string }).category;
     let rows = await db().select().from(documents).where(eq(documents.vehicleId, vehicleId));
     if (category) rows = rows.filter((r) => r.category === category);
@@ -645,7 +645,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/documents", async (request, reply) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = z.object({
       id: uuid,
       name: z.string().min(1).max(120),
@@ -676,7 +676,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { documentId } = request.params as { documentId: string };
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
     if (!row) throw new AppError(404, "not_found", "Document not found");
-    await getOwnedVehicle(db(), uid(request), row.vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "drive_only", true);
     return publicDoc(row);
   });
 
@@ -685,7 +685,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { documentId } = request.params as { documentId: string };
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
     if (!row) throw new AppError(404, "not_found", "Document not found");
-    await getOwnedVehicle(db(), uid(request), row.vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
     const body = z.object({
       name: z.string().optional(),
       category: z.enum(["insurance", "registration", "invoice", "warranty", "receipt", "other"]).optional(),
@@ -712,7 +712,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { documentId } = request.params as { documentId: string };
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
     if (row) {
-      await getOwnedVehicle(db(), uid(request), row.vehicleId, true);
+      await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
       await db().delete(documents).where(eq(documents.id, documentId));
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "document", entityId: documentId, op: "delete", payload: { id: documentId } });
     }
@@ -748,7 +748,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/expenses", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
     const category = (request.query as { category?: string }).category;
     let rows = await db().select().from(expenses).where(eq(expenses.vehicleId, vehicleId)).orderBy(desc(expenses.incurredOn));
     if (category) rows = rows.filter((r) => r.category === category);
@@ -760,7 +760,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/expenses", async (request, reply) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = expenseBody.parse(request.body);
     const [existing] = await db().select().from(expenses).where(eq(expenses.id, body.id)).limit(1);
     if (existing) return reply.code(201).send(await publicExpense(existing.id));
@@ -789,7 +789,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/expenses/summary", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(db(), uid(request), vehicleId, true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
     const rows = await db().select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
     const prefix = new Date().toISOString().slice(0, 7);
     const total = rows.reduce((s, e) => s + reqNum(e.amount), 0);
@@ -812,7 +812,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { expenseId } = request.params as { expenseId: string };
     const current = await publicExpense(expenseId);
     if (!current) throw new AppError(404, "not_found", "Expense not found");
-    await getOwnedVehicle(db(), uid(request), current.vehicle_id, true);
+    await getAccessibleVehicle(db(), uid(request), current.vehicle_id, "full", true);
     const body = expenseBody.partial().parse(request.body ?? {});
     await db()
       .update(expenses)
@@ -834,7 +834,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { expenseId } = request.params as { expenseId: string };
     const current = await publicExpense(expenseId);
     if (current) {
-      await getOwnedVehicle(db(), uid(request), current.vehicle_id, true);
+      await getAccessibleVehicle(db(), uid(request), current.vehicle_id, "full", true);
       await db().delete(expenseParts).where(eq(expenseParts.expenseId, expenseId));
       await db().delete(expenses).where(eq(expenses.id, expenseId));
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: current.vehicle_id, entityType: "expense", entityId: expenseId, op: "delete", payload: { id: expenseId } });

@@ -44,9 +44,9 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 | Parts | [parts.md](parts.md) | Mobile + API | **Done** | Per-vehicle catalog; assign on service and expense. |
 | Fuel | [fuel.md](fuel.md) | Mobile + API | **Done** | Logs + Fuel Types. `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. No economy KPIs (deferred). |
 | Admin | [admin.md](admin.md) | Web portal + API | **Done** | Login BFF, users, partners. `sync_errors_24h` is always `0`. No web test suite. |
-| Family Sharing | [family-sharing.md](family-sharing.md) | Mobile + API + Web | **Done** | Family groups, roles (primary_owner/member/driver), vehicle grants, driving licenses, share codes, QR invites. Web Primary Owner read-only dashboard. Premium entitlement enforcement is planned and not currently enforced. |
+| Family Sharing | [family-sharing.md](family-sharing.md) | Mobile + API + Web | **Partial** | Family flows and backend Premium checks are implemented. Mobile navigation gating remains; billing is out of scope. |
 | User Profile & Account Management | [user-profile.md](user-profile.md) | Mobile + API + Web Admin | **Planned** | Post-signup profile completion (photo, name, phone, address), user-initiated account deletion, admin user creation with temp passwords, admin user deletion. |
-| Fleet Management | [fleet-management.md](fleet-management.md) | Mobile + Fleet Dashboard + Web Admin + API | **Planned** | Organizations (admin-created), lifecycle templates, vehicle inventory, driver assignments, work orders, inspections, cost analytics (TCO/lemon), warranty templates, ownership transfer, workshop accounts, CSV import. Fleet Dashboard (`fleet.yourdomain.com`) is separate SaaS platform for full fleet management. Web Admin (`admin.yourdomain.com`) handles user management, org provisioning, and read-only fleet support. Phase 3 (Year 2). |
+| Fleet Management | [fleet-management.md](fleet-management.md) | Mobile + Fleet Dashboard + Web Admin + API | **Partial** | Backend implemented: org provisioning/activation, roles, inventory + CSV, driver assignments, work orders, inspections, analytics, warranty templates, transfer, approved workshops, workshop accounts (`dco-workshop`), workshop warranty service. Surfaces still missing: Fleet Dashboard (`fleet.yourdomain.com`), Workshop Portal, mobile Fleet mode. Web Admin (`admin.yourdomain.com`) handles user management, org provisioning, partner records, and read-only fleet support. |
 
 There is **no Settings FRD**. Localization (English/Myanmar preference, UI still English) and units (USD/MMK, mi/km) live in the owner app Settings tab. See [`docs/mvp-as-built.md`](../../docs/mvp-as-built.md) §4.10.
 
@@ -56,7 +56,7 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 
 ## Next implementation
 
-All MVP FRDs are **Done**. Remaining work is polish, testing, and deployment prep.
+MVP core functionality is shipped. Current follow-ups include User Profile & Account Management and Family entitlement-driven mobile navigation. Fleet backend (organizations, inventory, warranty, transfer, approved workshops, workshop accounts) is implemented; Fleet Portal, Workshop Portal, and mobile Fleet mode remain planned surfaces.
 
 **Next:** User Profile & Account Management (`user-profile.md`) — Post-signup profile completion, account deletion, admin user creation.
 

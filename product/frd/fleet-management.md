@@ -489,7 +489,7 @@ Enable organizations to:
 | `assigned_vehicle_ids` | Array of vehicle IDs currently under warranty at this workshop |
 
 **Rules:**
-- Workshop gets a DCO account with role `workshop` (new JWT audience or extension of `dco-owner`)
+- Workshop gets a DCO account linked by DCO Admin (verified partner only); sign-in uses the separate `dco-workshop` audience (`JWT_WORKSHOP_AUD`)
 - Workshop can only see vehicles currently assigned to them under active warranty
 - Workshop can log service on assigned vehicles
 - Workshop cannot see buyer personal info (name, email) — only vehicle info

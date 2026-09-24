@@ -1,9 +1,9 @@
 # Identity and access (MVP + extension map)
 
-**Status:** Binding for MVP. Family sharing is implemented; fleet, dealer, and partner logins are documentation only.  
+**Status:** Binding for the shipped owner/Admin IAM baseline; backend Family Premium, Enterprise Fleet, and verified-workshop access gates are implemented. Fleet/Workshop Portal and mobile Fleet UI remain pending.
 **Contract:** `product/mvp-scope.md`.
 
-This file is the IAM taxonomy. The runtime model stays as `architecture/data-model.md`: `users.role` is `owner` | `admin`, vehicles belong to `user_id`, partners cannot sign in.
+This file is the IAM taxonomy. `users.role` remains `owner` | `admin`; Enterprise privileges come from organization membership and role. Personal `vehicles.user_id` remains the owner of record. Partner rows remain non-login records until a dedicated partner account flow is built.
 
 Family sharing uses `family_memberships.role` (`primary_owner` | `member` | `driver`) for per-vehicle authorization, not a new `users.role` value. All family participants use the same `dco-owner` JWT audience.
 
@@ -21,44 +21,44 @@ Rules:
 
 - Owner signup always creates `role=owner`. Admins are seeded out of band (`BOOTSTRAP_ADMIN_*`), never via `/v1/auth/signup`.
 - An owner JWT must not call `/v1/admin/*`. An admin JWT must not call owner garage routes.
-- User `plan` (`free` \| `premium`) lives on the **user**. Gating is not enforced in the shipped MVP; the field must exist. Planned access contract: Premium unlocks Family creation/management for the Primary Owner; invited family members use their granted access without their own Premium plan.
+- User `plan` (`free` \| `premium`) lives on the **user**. The shipped MVP did not enforce plan gates. The production backend now requires Premium for Family creation/Primary Owner management; invited family members retain their granted access without their own Premium plan. Billing remains out of scope.
 - Partner rows (`workshop` \| `insurer`) are CRM records. `verified` does not issue tokens or unlock booking/claims.
 - Family authorization uses `family_memberships.role` + `vehicle_grants`. See `architecture/iam-family.md`.
 - Sync outbox and `change_log` are bound to `user_id`. After logout, another account on the same device must not push the previous outbox.
 
-Audiences in env: `JWT_OWNER_AUD=dco-owner`, `JWT_ADMIN_AUD=dco-admin`. See `docs/environment-secrets.md`.
+Audiences in env: `JWT_OWNER_AUD=dco-owner`, `JWT_FLEET_AUD=dco-fleet`, `JWT_WORKSHOP_AUD=dco-workshop`, `JWT_ADMIN_AUD=dco-admin`. See `docs/environment-secrets.md`.
 
 ---
 
-## Future map (do not implement)
+## B2B extension
 
 These personas exist in `docs/vision.md` and `docs/personas.md`. They are **not** Phase 1 products. When they land, introduce organizations as a **new** root — do not migrate every owner into a 1-person org as a prerequisite for the first family share.
 
-| Persona | Future tenant | Future JWT `aud` | App | Notes |
+| Persona | Tenant | JWT `aud` | App | Status |
 |---------|---------------|------------------|-----|--------|
-| Fleet operator | org `type=fleet` | `dco-fleet` | Web Fleet Portal + Flutter | First B2B follow-on after Phase 1. Roles: `org_admin`, `org_manager`, `org_mechanic`, `org_driver`. |
-| Dealership | org `type=dealership` | `dco-fleet` (or `dco-dealer` if the portal forks) | Web (fleet-shaped) + Flutter | Same access model as fleet, not a separate product. |
-| Workshop staff | partner tenant | `dco-workshop` | Web Workshop Portal | Post-MVP SaaS. Booking is still out. |
-| Insurance agent | partner tenant | `dco-insurer` | Web Insurance Portal | Post-MVP SaaS. Policy/claims modules still out. |
+| Fleet operator | org (`taxi_fleet`, `rental`, `commercial`) | `dco-fleet` on portal; `dco-owner` in Flutter | Fleet Portal + Flutter | Backend foundation implemented. Roles: `org_admin`, `org_manager`, `org_mechanic`, `org_driver`. |
+| Dealership | org `type=dealership` or `showroom` | Same audiences as Fleet | Fleet-shaped portal + Flutter | Same access model as fleet, not a separate product. |
+| Workshop staff | verified workshop partner | `dco-workshop` | Web Workshop Portal | Backend account link and active-warranty service logging implemented; portal and booking remain pending. |
+| Insurance agent | partner tenant | `dco-insurer` | Web Insurance Portal | Not implemented. Policy/claims modules still out. |
 
-Insurance, Workshop, and Analytics portals remain B2B SaaS after MVP. Fleet Portal is the first documented B2B follow-on; it is not built in this slice.
+Fleet and verified-workshop REST/auth/schema foundations are implemented. Fleet/Workshop Portal and Flutter Fleet surfaces, workshop booking, and insurer portals remain follow-up work.
 
-### Extension plan (when fleet starts)
+### Fleet backend contract
 
-1. Add `organizations` (`id`, `type`, `name`, `plan`, `status`, activation audit fields) and `organization_members` (`org_id`, `user_id`, `org_role`). Enterprise is `organizations.plan=enterprise`, not a user plan or `users.role`.
-2. Add `vehicle_grants` (`vehicle_id`, `user_id` or `org_id`, permission). Keep `vehicles.user_id` as the billing/owner of record for existing personal garages. (`vehicle_grants` already exists for family sharing; fleet grants would be org-scoped.)
-3. Mobile continues to use `dco-owner`; Fleet Dashboard uses `dco-fleet`; workshop/insurer use separate partner audiences when implemented. Do not reuse `dco-admin` for partners.
-4. Change-log cursor stays per acting `user_id` unless a later ADR introduces org-scoped sync.
-5. Entra External ID is an option for B2B tenants; MVP stays custom email/password JWT.
+1. `organizations` and `organization_members` are the Enterprise access root. Enterprise is `organizations.plan=enterprise`, not a user plan or `users.role`.
+2. Keep Family `vehicle_grants` family-scoped. Fleet inventory is linked through `organization_vehicles`; `vehicles.user_id` remains the owner of record and changes to the buyer on transfer.
+3. Mobile continues to use `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified workshop accounts use `dco-workshop`. Insurers get a separate partner audience when claims are implemented. Do not reuse `dco-admin` for partners.
+4. Change-log cursor stays per acting `user_id`; full offline Fleet sync remains to be completed.
+5. Entra External ID remains an option for B2B tenants; current backend uses the existing email/password JWT flow.
 
-### Planned Entitlement Resolution (Family + Fleet)
+### Implemented Backend Entitlements (Family + Fleet)
 
 - Keep `users.plan` as `free` or `premium`; Premium remains DCO-admin-managed until billing is explicitly added.
 - Resolve Family and Fleet as separate entitlements. Enterprise membership does not set or imply a user's Premium plan.
 - Fleet access requires an Enterprise organization, organization `status=active`, and active membership; organization role authorizes the requested operation.
 - Family creation and Primary Owner management require Premium. An invited user does not need Premium to join or use role/grant-scoped access.
 - If the Primary Owner is downgraded from Premium, archive the family and revoke member access; retain personal user/vehicle data.
-- The app may use an entitlement response to hide unavailable entry points, but every protected API operation re-checks plan, membership, org status, and role server-side.
+- `GET /v1/me/entitlements` provides navigation hints. Every protected API operation re-checks plan, membership, org status, and role server-side; mobile/portal navigation wiring remains pending.
 - DCO Admin creates Enterprise organizations in `pending` and explicitly activates them after provisioning. A user's login does not activate an organization.
 - Fleet Dashboard receives `dco-fleet`; Flutter remains on `dco-owner`. Shared Fleet APIs authorize by organization membership/role independently of audience.
 

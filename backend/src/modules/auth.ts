@@ -1,7 +1,7 @@
 import { and, eq, gt, isNull } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { emailTokens, familyMemberships, fuelTypes, refreshTokens, users } from "../db/schema.js";
+import { emailTokens, families, familyMemberships, fuelTypes, organizationMembers, organizations, partners, refreshTokens, users, workshopMembers } from "../db/schema.js";
 import { DEFAULT_FUEL_TYPES } from "../lib/catalog.js";
 import {
   hashPassword,
@@ -29,6 +29,7 @@ const signupBody = z.object({
 const loginBody = z.object({
   email: z.string().email(),
   password: z.string(),
+  surface: z.enum(["owner", "fleet", "workshop"]).optional().default("owner"),
 });
 
 const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -89,7 +90,34 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     if (user.status === "deactivated") {
       throw new AppError(401, "deactivated", "Account is deactivated");
     }
-    return issueSession(app, user);
+    if (user.role === "admin") {
+      if (body.surface !== "owner") throw new AppError(403, "forbidden", "Business audiences are for their provisioned accounts");
+      return issueSession(app, user);
+    }
+    if (body.surface === "workshop") {
+      const [workshop] = await app.db.select({ member: workshopMembers, partner: partners })
+        .from(workshopMembers)
+        .innerJoin(partners, eq(workshopMembers.partnerId, partners.id))
+        .where(and(eq(workshopMembers.userId, user.id), eq(partners.type, "workshop"), eq(partners.status, "verified")))
+        .limit(1);
+      if (!workshop) throw new AppError(403, "workshop_access_required", "A verified workshop account is required");
+      return issueSession(app, user, undefined, app.env.JWT_WORKSHOP_AUD);
+    }
+    if (body.surface === "fleet") {
+      const [membership] = await app.db
+        .select({ org: organizations })
+        .from(organizationMembers)
+        .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
+        .where(and(
+          eq(organizationMembers.userId, user.id),
+          eq(organizations.plan, "enterprise"),
+          eq(organizations.status, "active"),
+        ))
+        .limit(1);
+      if (!membership) throw new AppError(403, "fleet_access_required", "An active Enterprise organization membership is required");
+      return issueSession(app, user, undefined, app.env.JWT_FLEET_AUD);
+    }
+    return issueSession(app, user, undefined, app.env.JWT_OWNER_AUD);
   });
 
   app.post("/auth/refresh", { config: { public: true } }, async (request) => {
@@ -116,7 +144,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.id, stored.id));
     const [user] = await app.db.select().from(users).where(eq(users.id, stored.userId)).limit(1);
     if (!user || user.status === "deactivated") throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
-    return issueSession(app, user, stored.familyId);
+    return issueSession(app, user, stored.familyId, stored.audience);
   });
 
   app.post("/auth/logout", { config: { public: true } }, async (request, reply) => {
@@ -253,7 +281,7 @@ export async function attachAuth(app: Parameters<FastifyPluginAsync>[0]): Promis
 
 export function requireOwner(request: { authUser?: AccessClaims & { sub: string } }) {
   if (!request.authUser) throw new AppError(401, "unauthorized", "Missing access token");
-  if (request.authUser.role !== "owner") {
+  if (request.authUser.role !== "owner" || request.authUser.surface !== "owner") {
     throw new AppError(403, "forbidden", "Owner audience required");
   }
 }
@@ -265,10 +293,25 @@ export function requireAdmin(request: { authUser?: AccessClaims & { sub: string 
   }
 }
 
+export function requireFleetClient(request: { authUser?: AccessClaims & { sub: string } }) {
+  if (!request.authUser) throw new AppError(401, "unauthorized", "Missing access token");
+  if (request.authUser.role !== "owner" || (request.authUser.surface !== "owner" && request.authUser.surface !== "fleet")) {
+    throw new AppError(403, "forbidden", "Owner or Fleet audience required");
+  }
+}
+
+export function requireWorkshopClient(request: { authUser?: AccessClaims & { sub: string } }) {
+  if (!request.authUser) throw new AppError(401, "unauthorized", "Missing access token");
+  if (request.authUser.role !== "owner" || request.authUser.surface !== "workshop") {
+    throw new AppError(403, "forbidden", "Workshop audience required");
+  }
+}
+
 async function issueSession(
   app: { env: import("../config/env.js").Env; db: import("../db/client.js").Db },
   user: typeof users.$inferSelect,
   familyId = newId(),
+  audience = user.role === "admin" ? app.env.JWT_ADMIN_AUD : app.env.JWT_OWNER_AUD,
 ) {
   // Fetch family membership for the user
   let family_id: string | null = null;
@@ -277,7 +320,8 @@ async function issueSession(
     const [membership] = await app.db
       .select({ familyId: familyMemberships.familyId, role: familyMemberships.role })
       .from(familyMemberships)
-      .where(eq(familyMemberships.userId, user.id))
+      .innerJoin(families, eq(familyMemberships.familyId, families.id))
+      .where(and(eq(familyMemberships.userId, user.id), eq(families.status, "active")))
       .limit(1);
     if (membership) {
       family_id = membership.familyId;
@@ -291,6 +335,7 @@ async function issueSession(
     plan: user.plan,
     family_id,
     family_role,
+    aud: audience,
   });
   const jti = newId();
   const refresh = await signRefresh(app.env, user.id, familyId, jti);
@@ -298,6 +343,7 @@ async function issueSession(
     id: jti,
     userId: user.id,
     familyId,
+    audience,
     tokenHash: sha256(refresh.token),
     expiresAt: refresh.expiresAt,
   });

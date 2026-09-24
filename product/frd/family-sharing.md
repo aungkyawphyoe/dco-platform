@@ -4,7 +4,7 @@
 
 Family Sharing is a **Premium-gated feature for the Primary Owner**: Premium is required to create and manage a family. Invited members do not need their own Premium plan; they can join and use access granted by an active family membership. Members get role-based access to vehicle information, maintenance, documents, and expenses. This module extends the existing single-owner model to support collaborative vehicle ownership within a family unit.
 
-**Status:** Implemented; Premium entitlement enforcement is planned and is not currently enforced by the shipped app/API.
+**Status:** Core family flows implemented; backend Premium enforcement implemented. Mobile navigation gating is pending; billing remains out of scope.
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
 **Surfaces:** Mobile (Flutter), Backend (REST API), Web Admin (Next.js — read-only family view for Primary Owners).
 

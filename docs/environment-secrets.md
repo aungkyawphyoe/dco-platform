@@ -25,11 +25,13 @@ Placeholders only. Store in Key Vault (Azure) or a local ignored `.env` (`chmod 
 |----------|-------------|--------|
 | `APP_ENV` | API | `local` \| `dev` \| `stage` \| `prod` |
 | `DATABASE_URL` | API | Connection string. Local may be Docker Postgres. |
-| `JWT_ACCESS_SECRET` | API | Signs owner + admin access tokens. Rotate by minting a new key and dual-verifying for one TTL. |
+| `JWT_ACCESS_SECRET` | API | Signs owner, Fleet, workshop, and admin access tokens. Rotate by minting a new key and dual-verifying for one TTL. |
 | `JWT_REFRESH_SECRET` | API | Separate from access secret. |
 | `JWT_ACCESS_TTL` | API | Draft: `15m` |
 | `JWT_REFRESH_TTL` | API | Draft: `720h` (30 days) |
 | `JWT_OWNER_AUD` | API / mobile | Draft: `dco-owner` |
+| `JWT_FLEET_AUD` | API / Fleet Portal | Draft: `dco-fleet` |
+| `JWT_WORKSHOP_AUD` | API / Workshop Portal | Draft: `dco-workshop` |
 | `JWT_ADMIN_AUD` | API / web | Draft: `dco-admin` |
 | `BOOTSTRAP_ADMIN_EMAIL` | API once | Seed first admin. Remove or disable after first login. |
 | `BOOTSTRAP_ADMIN_PASSWORD` | API once | Single-use. Rotate immediately. |
