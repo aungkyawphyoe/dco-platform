@@ -30,6 +30,7 @@ It is **not** Autozis. Fuel *efficiency* KPIs, insurance *policies*, trips, OCR,
 | **Owner app** | Car owners | Flutter, Riverpod, GoRouter, Drift/SQLite, Dio | Offline-first after login | Primary product |
 | **API** | Mobile + admin | Node 22, Fastify, Drizzle, PostgreSQL, Zod | Always online | `/v1` REST + JWT |
 | **Admin portal** | Internal staff | Next.js 15 App Router, TanStack Query, Tailwind | Online-only | Users, partners, KPIs |
+| **Fleet portal** | Enterprise org members | Next.js 15 App Router, TanStack Query, Tailwind (`fleet-portal/`) | Online-only | Fleet dashboard, inventory, work orders, inspections, assignments, members, workshops, warranty templates, reports |
 
 Visual language is **Garage Minimal Dark** (`docs/theme/garage-minimal-dark.json`): night-garage surfaces, brass accent `#FECA1F`. Same tokens on mobile and web.
 
@@ -58,6 +59,7 @@ Honest snapshot against the Phase 1 contract.
 | Settings | **Partial** | Units work. Language preference stored; UI still English. Plan label hardcoded. Sync line hardcoded `idle`. No Settings FRD. |
 | Family Sharing | **Done** | Family create/join, member management (primary_owner/member/driver), vehicle grants, driving licenses, share codes, QR invites. Mobile + API + Web (read-only dashboard). |
 | Web admin | **Done** | Login BFF, dashboard, users, partners, family dashboard (Primary Owner read-only). `sync_errors_24h` always `0`. |
+| Fleet portal | **Done** | Separate Next.js app (`fleet-portal/`): `surface: "fleet"` BFF login (`dco-fleet`), dashboard analytics + lemon flags, vehicle inventory + CSV import, work orders, inspection templates/history, driver assignments, members, workshops, warranty templates, transferred audit, CSV reports, org settings (lemon threshold). Workshop Portal and mobile Fleet mode remain out of this surface. |
 | Azure | **Deployable, not deployed** | `azure.yaml` + Bicep for the **API** only. Web is not wired. |
 | Monetization | **Field only** | `plan` is `free`/`premium`; `vehicle_limit` returned on `/v1/me`; cap **not** enforced |
 | Analytics | **Debug only** | `debugPrint` in debug builds. Extra events exist; `document_uploaded`, `sync_completed`, `sync_failed` are **not** tracked |

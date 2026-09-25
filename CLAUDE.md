@@ -8,7 +8,7 @@ Product is production-ready. `product/production-scope.md` is the active scope c
 
 Implementation docs are in place: `architecture/system.md` (Accepted), `architecture/data-model.md` (Binding), `architecture/iam.md` (Binding), `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md`. Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A7).
 
-Mobile Flutter app is implemented in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell, offline-first sync, family sharing, local-only Notes). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin is Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, admin dashboard, user management, partner onboarding, family read-only dashboard.
+Mobile Flutter app is implemented in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell, offline-first sync, family sharing, local-only Notes). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin is Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, admin dashboard, user management, partner onboarding, family read-only dashboard. Fleet portal is a separate Next.js 15 app in `fleet-portal/` (JWT audience `dco-fleet`, BFF session with `surface: "fleet"`) — fleet dashboard, vehicles, work orders, inspections, assignments, members, workshops, warranty templates, reports.
 
 The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management, partner onboarding, and family dashboard for Primary Owners.
 
@@ -17,7 +17,8 @@ The working plan is: mobile app (Flutter) is the primary surface (Dashboard afte
 `dco-platform` is planned as a full-stack product spanning web, mobile, and a backend service. The directory structure encodes the intended shape:
 
 - `backend/` — server / API layer
-- `web/` — web frontend
+- `web/` — web frontend (admin + family dashboard)
+- `fleet-portal/` — Fleet management web portal (separate Next.js app)
 - `mobile/` — Flutter owner app (see `mobile/AGENTS.md`)
 - `architecture/` — system design / architectural docs
 - `product/` — product definitions, requirements
@@ -64,6 +65,20 @@ npm test
 ```
 
 Stack: Next.js 15 App Router, TanStack Query, Tailwind + tokens from `docs/theme/garage-minimal-dark.json`, types generated from `architecture/openapi.yaml`. Session: httpOnly cookies via Route Handler BFF (`/api/auth/*`); see `docs/adr/web-stack.md`.
+
+### Fleet portal (Next.js)
+
+From `fleet-portal/`:
+
+```bash
+npm install
+npm run gen:api
+npm run dev
+npm run lint
+npm run build
+```
+
+Stack: same as `web/` (Next.js 15, TanStack Query, Tailwind, generated OpenAPI types). Login BFF posts `surface: "fleet"` → `dco-fleet` JWT; cookies `dco_fleet_access` / `dco_fleet_refresh`.
 
 - Mobile: Flutter owner app, offline-first, JWT audience `dco-owner`
 - Backend: REST `/v1` + JWT (Fastify, PostgreSQL, `aud` `dco-owner` / `dco-admin`)

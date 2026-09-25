@@ -4,7 +4,7 @@
 
 Fleet Management enables **business accounts** (showrooms, dealerships, taxi fleets, rental companies, commercial fleets) to manage multiple vehicles under an organization, track warranty periods with approved workshops, and transfer vehicle ownership to buyers with full maintenance history. Organizations are created exclusively by DCO administrators via the Admin Portal (sales-led onboarding). This module extends the existing single-owner model to support multi-vehicle business operations with role-based access, warranty enforcement, ownership transfer, driver work orders, vehicle inspections, and cost analytics.
 
-**Status:** Planned (Phase 3, Year 2).  
+**Status:** Partial — backend + Fleet Portal (`fleet-portal/`, `dco-fleet`) implemented; Workshop Portal and mobile Fleet mode still planned (Phase 3, Year 2).
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
 **Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — DCO user management, organization provisioning/activation, and read-only fleet support).
 

@@ -42,6 +42,7 @@ One small backend addition was required: `POST /auth/logout` now also accepts `{
 ## Consequences
 
 - `web/` is a second standalone Node package in this monorepo.
+- The Fleet Portal (`fleet-portal/`) is a third package that follows this same stack and session model, with cookies `dco_fleet_access` / `dco_fleet_refresh` and login `surface: "fleet"` → JWT audience `dco-fleet`.
 - No SSR benefit is assumed for data; Next.js was chosen for its router, middleware guards, route handlers as BFF, and first-class fonts/images.
 - Deploy order matters: the web container receives `API_BASE_URL` from the api service's `apiUrl` output.
 - `CORS_ORIGINS` must include the web FQDN for direct Bearer calls to `/v1/admin/*`.
