@@ -135,6 +135,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                         child: FloatingActionButton.extended(
                           backgroundColor: tokens.button.primary.background,
                           foregroundColor: tokens.text.inverse,
+                          heroTag: 'btn-add-expense',
                           onPressed: () => context.push(AppRoutes.expenseNew),
                           label: Text(s.expensesAddExpense),
                           icon: const Icon(Icons.add),

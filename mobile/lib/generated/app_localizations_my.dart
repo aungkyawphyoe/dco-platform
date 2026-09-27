@@ -2534,4 +2534,657 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get noteDelete => 'ဖျက်ရန်';
+
+  @override
+  String get fleetHubModeSection => 'မုဒ်';
+
+  @override
+  String get fleetModePersonalTitle => 'ကိုယ်ပိုင်';
+
+  @override
+  String get fleetModePersonalBody =>
+      'သင်၏ ကိုယ်ပိုင်ယာဉ်များနှင့် မှတ်တမ်းများ';
+
+  @override
+  String get fleetModeFleetTitle => 'ဖလီးမုဒ်';
+
+  @override
+  String get fleetModeFleetBody => 'အဖွဲ့အစည်း ယာဉ်များနှင့် လုပ်ဆောင်ချက်များ';
+
+  @override
+  String get fleetModeDriverTitle => 'မောင်းသူမုဒ်';
+
+  @override
+  String get fleetModeDriverBody =>
+      'သင်အပ်နှင်းထားသော ယာဉ်နှင့် အစီရင်ခံစာများ';
+
+  @override
+  String get fleetHubManageSection => 'စီမံရန်';
+
+  @override
+  String get fleetHubOrgManagement => 'အဖွဲ့အစည်း စီမံခန့်ခွဲမှု';
+
+  @override
+  String get fleetHubAssignments => 'မောင်းသူ တာဝန်ပေးချက်များ';
+
+  @override
+  String get fleetHubWarrantyTemplates => 'အာမခံ ပုံစံမူများ';
+
+  @override
+  String get fleetNoAccessTitle => 'ဖလီး ဝင်ရောက်ခွင့် မရှိပါ';
+
+  @override
+  String get fleetNoAccessBody =>
+      'သင့်အဖွဲ့အစည်း မတက်ကြွသေးပါ သို့မဟုတ် သင်သည် အဖွဲ့ဝင် မဟုတ်ပါ။';
+
+  @override
+  String get fleetHubOrgContact => 'ဆက်သွယ်ရန်';
+
+  @override
+  String get fleetRoleOrgAdmin => 'စီမံခန့်ခွဲသူ';
+
+  @override
+  String get fleetRoleOrgManager => 'စီမံသူ';
+
+  @override
+  String get fleetRoleOrgMechanic => 'စက်ပြင်သူ';
+
+  @override
+  String get fleetRoleOrgDriver => 'မောင်းသူ';
+
+  @override
+  String get fleetStatusActive => 'အသုံးပြုနေဆဲ';
+
+  @override
+  String get fleetStatusPending => 'စောင့်ဆိုင်းဆဲ';
+
+  @override
+  String get fleetStatusSuspended => 'ရပ်ဆိုင်းထား';
+
+  @override
+  String get fleetStatusArchived => 'သိမ်းဆည်းထား';
+
+  @override
+  String get fleetOrgTitle => 'အဖွဲ့အစည်း';
+
+  @override
+  String get fleetOrgMembersTab => 'အဖွဲ့ဝင်များ';
+
+  @override
+  String get fleetOrgVehiclesTab => 'ယာဉ်များ';
+
+  @override
+  String get fleetOrgWorkshopsTab => 'အလုပ်ရုံများ';
+
+  @override
+  String get fleetOrgSettingsTab => 'ဆက်တင်များ';
+
+  @override
+  String get fleetOrgMembersEmpty => 'အဖွဲ့ဝင် မရှိသေးပါ';
+
+  @override
+  String get fleetOrgVehiclesEmpty => 'ဤအဖွဲ့အစည်းတွင် ယာဉ် မရှိသေးပါ';
+
+  @override
+  String get fleetOrgWorkshopsEmpty => 'အတည်ပြုထားသော အလုပ်ရုံ မရှိပါ';
+
+  @override
+  String get fleetOrgChangeRole => 'အခန်းကဏ္ဍ ပြောင်းရန်';
+
+  @override
+  String get fleetOrgRemoveMember => 'အဖွဲ့ဝင် ဖယ်ရှားရန်';
+
+  @override
+  String get fleetOrgRemoveConfirmTitle => 'ဤအဖွဲ့ဝင်ကို ဖယ်ရှားမလား?';
+
+  @override
+  String get fleetOrgRemoveConfirmBody =>
+      '၎င်းတို့သည် ဤအဖွဲ့အစည်း၏ ဖလီးအချက်အလက်များ ဝင်ရောက်ခွင့် ဆုံးရှုံးပါမည်။';
+
+  @override
+  String get fleetOrgNotPermitted => 'ဤစာရင်းကို ဝင်ရောက်ခွင့် မရှိပါ';
+
+  @override
+  String get fleetOrgNotPermittedBody =>
+      'စီမံခန့်ခွဲသူ သို့မဟုတ် စီမံသူထံ ဝင်ရောက်ခွင့် တောင်းဆိုပါ။';
+
+  @override
+  String get fleetOrgSettingsPlan => 'အစီအစဉ်';
+
+  @override
+  String get fleetOrgSettingsStatus => 'အခြေအနေ';
+
+  @override
+  String get fleetOrgSettingsEmail => 'ဆက်သွယ်ရန် အီးမေးလ်';
+
+  @override
+  String get fleetOrgSettingsPhone => 'ဆက်သွယ်ရန် ဖုန်း';
+
+  @override
+  String get fleetOrgSettingsReadonly =>
+      'ဆက်သွယ်ရန် အချက်အလက်များကို DCO စီမံခန့်ခွဲသူက စီမံပါသည်။';
+
+  @override
+  String get fleetInventoryTitle => 'ယာဉ် စာရင်း';
+
+  @override
+  String get fleetInventoryEmpty => 'ဤအဖွဲ့အစည်းတွင် ယာဉ် မရှိပါ';
+
+  @override
+  String get fleetInventoryEmptyBody =>
+      'စတင်ရန် ယာဉ်တစ်စင်း ထည့်ပါ သို့မဟုတ် CSV သွင်းပါ။';
+
+  @override
+  String get fleetInventoryAdd => 'ယာဉ် ထည့်ရန်';
+
+  @override
+  String get fleetInventoryImport => 'CSV သွင်းရန်';
+
+  @override
+  String get fleetInventoryUnassigned => 'တာဝန်ပေးထားခြင်း မရှိ';
+
+  @override
+  String get fleetInventoryImportTitle => 'ယာဉ်များ သွင်းရန်';
+
+  @override
+  String get fleetInventoryImportBody =>
+      'name, make, model, year, plate, vin, fuel_type ကောင်းများပါသော CSV ရွေးပါ။';
+
+  @override
+  String fleetInventoryImportStarted(Object count) {
+    return 'စုစုပေါင်း $count လုံးအတွက် သွင်းမှု စတင်ပြီးပါပြီ';
+  }
+
+  @override
+  String fleetInventoryImportResult(Object failed, Object success) {
+    return 'သွင်းမှု ပြီးပါပြီ - $success ထည့်ပြီး၊ $failed မအောင်မြင်ပါ';
+  }
+
+  @override
+  String get fleetInventoryImportPending =>
+      'သွင်းမှု ဆက်လက် လုပ်ဆောင်နေပါသည်...';
+
+  @override
+  String get fleetVehicleDetailTitle => 'ယာဉ်';
+
+  @override
+  String get fleetVehicleStatus => 'အခြေအနေ';
+
+  @override
+  String get fleetVehicleTemplate => 'ဘဝသက်တမ်း';
+
+  @override
+  String get fleetVehicleRevenue => 'ဝင်ငွေ တံဆိပ်';
+
+  @override
+  String get fleetVehicleDriver => 'တာဝန်ပေးထားသော မောင်းသူ';
+
+  @override
+  String get fleetVehicleTransfer => 'ဝယ်သူထံ လွှဲပြောင်းရန်';
+
+  @override
+  String get fleetVehicleTransferHint =>
+      'showroom ဘဝသက်တမ်း၊ reserved အခြေအနေရှိ ယာဉ်များသာ။';
+
+  @override
+  String get fleetTransferTitle => 'ဝယ်သူထံ လွှဲပြောင်းရန်';
+
+  @override
+  String get fleetTransferBuyerEmail => 'ဝယ်သူ အီးမေးလ် *';
+
+  @override
+  String get fleetTransferSaleDate => 'ရောင်းချသည့်ရက် *';
+
+  @override
+  String get fleetTransferMileage => 'လက်ရှိ မိုင်အတိုင်းစက် (ကီမိုမီတာ) *';
+
+  @override
+  String get fleetTransferWarranty => 'အာမခံ ပုံစံမူ';
+
+  @override
+  String get fleetTransferNoWarranty => 'အာမခံ မရှိ';
+
+  @override
+  String get fleetTransferConfirm => 'လွှဲပြောင်းမှု အတည်ပြုရန်';
+
+  @override
+  String get fleetTransferSuccess => 'ယာဉ်ကို ဝယ်သံထံ လွှဲပြောင်းပြီးပါပြီ';
+
+  @override
+  String fleetTransferReviewBody(Object email, Object name) {
+    return '$name ကို $email ထံ လွှဲပြောင်းမလား?';
+  }
+
+  @override
+  String get fleetVehicleFormTitle => 'ဖလီးယာဉ် ထည့်ရန်';
+
+  @override
+  String get fleetVehicleLifecycle => 'ဘဝသက်တမ်း ပုံစံ *';
+
+  @override
+  String get fleetVehicleLifecycleShowroom => 'ပြသရုံ';
+
+  @override
+  String get fleetVehicleLifecycleTaxi => 'တက္ကစီ ယာဉ်တန်း';
+
+  @override
+  String get fleetVehicleLifecycleRental => 'ငှားရမ်း';
+
+  @override
+  String get fleetVehicleLifecycleCommercial => 'စီးပွားရေး';
+
+  @override
+  String get fleetVehicleRevenueLabel => 'ဝင်ငွေ တံဆိပ်';
+
+  @override
+  String get fleetVehicleAdded => 'ယာဉ် ထည့်ပြီးပါပြီ';
+
+  @override
+  String get fleetWorkOrdersTitle => 'အလုပ်အမှာစာများ';
+
+  @override
+  String get fleetWorkOrdersEmpty => 'အလုပ်အမှာစာ မရှိသေးပါ';
+
+  @override
+  String get fleetWorkOrdersEmptyBody =>
+      'မောင်းသူများ ဤနေရာတွင် ပြဿနာ တင်ပြကြပြီး စိစစ်ရန် ပေါ်လာပါမည်။';
+
+  @override
+  String get fleetWoFilterAll => 'အားလုံး';
+
+  @override
+  String get fleetWoStatusReported => 'တင်ပြထား';
+
+  @override
+  String get fleetWoStatusInProgress => 'လုပ်ဆောင်နေဆဲ';
+
+  @override
+  String get fleetWoStatusCompleted => 'ပြီးဆုံး';
+
+  @override
+  String get fleetUrgencyLow => 'နိမ့်';
+
+  @override
+  String get fleetUrgencyMedium => 'သင့်တင့်';
+
+  @override
+  String get fleetUrgencyHigh => 'မြင့်';
+
+  @override
+  String get fleetUrgencyCritical => 'အရေးကြီး';
+
+  @override
+  String get fleetWoDetailTitle => 'အလုပ်အမှာစာ';
+
+  @override
+  String get fleetWoStart => 'စတင်ရန်';
+
+  @override
+  String get fleetWoResolve => 'ဖြေရှင်းရန်';
+
+  @override
+  String get fleetWoResolutionNotes => 'ဖြေရှင်းချက် မှတ်စု';
+
+  @override
+  String get fleetWoResolutionNotesHint => 'ဘာကြောင့် ပြုပြင်ခဲ့ပါသလဲ?';
+
+  @override
+  String get fleetWoOdometerKm => 'မိုင်အတိုင်းစက် (ကီမိုမီတာ)';
+
+  @override
+  String get fleetWoReportTitle => 'ပြဿနာ တင်ပြရန်';
+
+  @override
+  String get fleetWoIssueType => 'ပြဿနာ အမျိုးအစား';
+
+  @override
+  String get fleetWoDescription => 'ဖော်ပြချက်';
+
+  @override
+  String get fleetWoDescriptionHint =>
+      'ပြဿနာကို ရှင်းလင်းစွာ ရေးပါ (အနည်းဆုံး စာလုံး ၁၀)';
+
+  @override
+  String get fleetWoUrgency => 'အရေးတကြီးမှု';
+
+  @override
+  String get fleetWoReportSubmit => 'တင်သွင်းရန်';
+
+  @override
+  String get fleetWoReported => 'ပြဿနာ တင်ပြပြီးပါပြီ';
+
+  @override
+  String get fleetIssueBreakdown => 'ပျက်စီးမှု';
+
+  @override
+  String get fleetIssueAccident => 'မတော်တဆမှု';
+
+  @override
+  String get fleetIssueWearTear => 'သုံးစွဲမှုကြောင့်';
+
+  @override
+  String get fleetIssueScheduledService => 'စနစ်တကျ ပြုပြင်မှု';
+
+  @override
+  String get fleetIssueOther => 'အခြား';
+
+  @override
+  String get fleetWoVehicle => 'ယာဉ်';
+
+  @override
+  String get fleetWoReportedBy => 'တင်ပြသူ';
+
+  @override
+  String get fleetWoAssignedTo => 'တာဝန်ပေးထားသူ';
+
+  @override
+  String get fleetReportsTitle => 'ခွဲခြမ်းစိတ်ဖြာမှု';
+
+  @override
+  String get fleetReportsTabVehicles => 'ယာဉ်အလိုက်';
+
+  @override
+  String get fleetReportsTabFleet => 'ဖလီး အနှစ်ချုပ်';
+
+  @override
+  String get fleetReportsTabLemons => 'Lemon မီးပွိုင့်များ';
+
+  @override
+  String get fleetReportsExport => 'CSV ထုတ်ရန်';
+
+  @override
+  String get fleetReportsSpend => 'စုစုပေါင်း အသုံးစရိတ်';
+
+  @override
+  String get fleetReportsCostPerKm => 'ပျမ်းမျှ ကုန်ကျ / ကီမိုမီတာ';
+
+  @override
+  String get fleetReportsLemons => 'Lemon များ';
+
+  @override
+  String get fleetReportsOpenWorkOrders => 'ဖွင့်ထားသော အလုပ်အမှာစာများ';
+
+  @override
+  String get fleetReportsAssignments => 'အသုံးပြုနေသော တာဝန်ပေးချက်များ';
+
+  @override
+  String get fleetReportsUpcoming => 'လာမည့် ပြုပြင်မှုများ';
+
+  @override
+  String get fleetReportsVehicles => 'ယာဉ်များ';
+
+  @override
+  String get fleetReportsNoLemons => 'Lemon မီးပွိုင့် မရှိပါ';
+
+  @override
+  String get fleetReportsNoLemonsBody =>
+      'ကုန်ကျငွေ/ကီမိုမီတာ သတ်မှတ်ချက်ကို ကျော်လွန်သော ယာဉ် မရှိပါ။';
+
+  @override
+  String get fleetReportsThreshold => 'သတ်မှတ်ချက်';
+
+  @override
+  String get fleetReportsTco => 'စုစုပေါင်း ကုန်ကျစရိတ်';
+
+  @override
+  String get fleetReportsCostPerKmShort => 'ကုန်ကျ / ကီမိုမီတာ';
+
+  @override
+  String get fleetReportsKm => 'မောင်းနှင်သည့် ကီမိုမီတာ';
+
+  @override
+  String get fleetReportsUtilization => 'အသုံးချမှု';
+
+  @override
+  String get fleetReportsMaintenance => 'ပြုပြင်မှု';
+
+  @override
+  String get fleetReportsFuel => 'လောင်စာ';
+
+  @override
+  String get fleetReportsWear => 'သုံးစွဲမှု';
+
+  @override
+  String get fleetReportsEmpty => 'ဖလီးအချက်အလက် မရှိသေးပါ';
+
+  @override
+  String get fleetAssignmentsEmpty => 'တာဝန်ပေးချက် မရှိသေးပါ';
+
+  @override
+  String get fleetAssignmentsEmptyBody =>
+      'စတင်ရန် မောင်းသူတစ်ဦးကို ယာဉ်နှင့် တွဲပေးပါ။';
+
+  @override
+  String get fleetAssignAssign => 'ယာဉ် တာဝန်ပေးရန်';
+
+  @override
+  String get fleetAssignDriverLabel => 'မောင်းသူ';
+
+  @override
+  String get fleetAssignVehicleLabel => 'ယာဉ်';
+
+  @override
+  String get fleetAssignUnassign => 'တာဝန် ပြန်ရုပ်ရန်';
+
+  @override
+  String get fleetAssignUnassignConfirmTitle =>
+      'ဤယာဉ်၏ တာဝန်ပေးချက်ကို ပြန်ရုပ်မလား?';
+
+  @override
+  String get fleetAssignUnassignConfirmBody =>
+      'မောင်းသူသည် ဤယာဉ် ဝင်ရောက်ခွင့် ဆုံးရှုံးပါမည်။';
+
+  @override
+  String get fleetAssignActive => 'အသုံးပြုနေဆဲ';
+
+  @override
+  String get fleetAssignHistory => 'မှတ်တမ်း';
+
+  @override
+  String get fleetAssignNoDrivers => 'ဤအဖွဲ့အစည်းတွင် မောင်းသူ မရှိပါ';
+
+  @override
+  String get fleetAssignNoVehicles => 'ရွေးချယ်ရန် ယာဉ် မရှိပါ';
+
+  @override
+  String get fleetAssignDone => 'တာဝန်ပေးချက် သိမ်းဆည်းပြီးပါပြီ';
+
+  @override
+  String get fleetWarrantyEmpty => 'အာမခံ ပုံစံမူ မရှိသေးပါ';
+
+  @override
+  String get fleetWarrantyEmptyBody =>
+      'ပုံစံမူများက လွှဲပြောင်းချိန်တွင် ကာလနှင့် မိုင်အကွာအဝေး ဖုံးလွှမ်းမှုကို သတ်မှတ်ပါသည်။';
+
+  @override
+  String get fleetWarrantyNew => 'ပုံစံမူ အသစ်';
+
+  @override
+  String get fleetWarrantyFormTitle => 'အာမခံ ပုံစံမူ အသစ်';
+
+  @override
+  String get fleetWarrantyName => 'အမည် *';
+
+  @override
+  String get fleetWarrantyNameHint => 'ပုံမှန် ၂ နှစ် အာမခံ';
+
+  @override
+  String get fleetWarrantyDuration => 'ကာလ (နှစ်) *';
+
+  @override
+  String get fleetWarrantyMileageLimit =>
+      'မိုင်အကွာအဝေး ကန့်သတ်ချက် (ကီမိုမီတာ) *';
+
+  @override
+  String get fleetWarrantyCoverage => 'ဖုံးလွှမ်းမှု အမျိုးအစားများ';
+
+  @override
+  String get fleetWarrantyCoverageHint =>
+      'ဖြတ်လေးမျဉ်းဖြင့် ခွဲပါ၊ ဥပမာ - engine, gearbox';
+
+  @override
+  String get fleetWarrantyExclusions => 'ချန်လှပ်ခွင့်များ';
+
+  @override
+  String get fleetWarrantyExclusionsHint => 'ဖြတ်လေးမျဉ်းဖြင့် ခွဲပါ';
+
+  @override
+  String get fleetWarrantyCreated => 'အာမခံ ပုံစံမူ ဖန်တီးပြီးပါပြီ';
+
+  @override
+  String get fleetWarrantyDeleteTitle => 'ဤပုံစံမူကို ဖျက်မလား?';
+
+  @override
+  String get fleetWarrantyDeleteBody =>
+      'ရှိပြီးသား အာမခံများ၏ ဖုံးလွှမ်းမှု ဆက်လက်ရှိပါမည်။';
+
+  @override
+  String fleetWarrantyYearsKm(Object km, Object years) {
+    return '$years နှစ် · $km ကီမိုမီတာ';
+  }
+
+  @override
+  String get driverMyVehicleTab => 'ကျွန်ုပ်၏ ယာဉ်';
+
+  @override
+  String get driverMyReportsTab => 'ကျွန်ုပ်၏ အစီရင်ခံစာများ';
+
+  @override
+  String get driverNoVehicleTitle => 'အပ်နှင်းထားသော ယာဉ် မရှိပါ';
+
+  @override
+  String get driverNoVehicleBody => 'ဖလီးစီမံသူထံ ယာဉ် တောင်းဆိုပါ။';
+
+  @override
+  String get driverLogMileage => 'မိုင်အတိုင်းစက် မှတ်ရန်';
+
+  @override
+  String get driverLogFuel => 'လောင်စာ မှတ်ရန်';
+
+  @override
+  String get driverVehicleDetails => 'ယာဉ် အသေးစိတ်';
+
+  @override
+  String get driverVin => 'VIN';
+
+  @override
+  String get driverPlate => 'မှတ်ပုံတင်';
+
+  @override
+  String get driverShiftTitle => 'မိုင်အတိုင်းစက် မှတ်ရန်';
+
+  @override
+  String get driverShiftStartTitle => 'အလုပ်ဆင်း စတင်ရန်';
+
+  @override
+  String get driverShiftEndTitle => 'အလုပ်ဆင်း ပြီးဆုံးရန်';
+
+  @override
+  String get driverShiftStartOdo => 'စတင် မိုင်အတိုင်းစက် (ကီမိုမီတာ)';
+
+  @override
+  String get driverShiftEndOdo => 'ပြီးဆုံး မိုင်အတိုင်းစက် (ကီမိုမီတာ)';
+
+  @override
+  String get driverShiftActive => 'အလုပ်ဆင်း လုပ်ဆောင်နေဆဲ';
+
+  @override
+  String driverShiftKmDriven(Object km) {
+    return '$km ကီမိုမီတာ မောင်းနှင်ပြီး';
+  }
+
+  @override
+  String get driverShiftHistory => 'မကြာသေးမီက အလုပ်ဆင်းများ';
+
+  @override
+  String get driverShiftEmpty => 'အလုပ်ဆင်း မှတ်တမ်း မရှိသေးပါ';
+
+  @override
+  String get driverShiftStarted => 'အလုပ်ဆင်း စတင်ပြီးပါပြီ';
+
+  @override
+  String driverShiftEnded(Object km) {
+    return 'အလုပ်ဆင်း ပြီးဆုံးပါပြီ · $km ကီမိုမီတာ';
+  }
+
+  @override
+  String get driverInspectionStart => 'စစ်ဆေးမှု စတင်ရန်';
+
+  @override
+  String get driverInspectionType => 'စစ်ဆေးမှု အမျိုးအစား';
+
+  @override
+  String get driverInspectionTypePre => 'ထွက်ခွာမီ';
+
+  @override
+  String get driverInspectionTypePost => 'ပြန်ရောက်ပြီးနောက်';
+
+  @override
+  String get driverInspectionTemplateLabel => 'စစ်ဆေးရန် စာရင်း ပုံစံ';
+
+  @override
+  String get driverInspectionNoTemplates => 'စစ်ဆေးမှု ပုံစံမူ မရှိပါ';
+
+  @override
+  String get driverInspectionNoTemplatesBody =>
+      'စီမံခန့်ခွဲသံထံ စာရင်း ပုံစံမူ ဖန်တီးရန် မေးမြန်းပါ။';
+
+  @override
+  String get driverInspectionRequired => 'လိုအပ်';
+
+  @override
+  String get driverInspectionSubmit => 'စစ်ဆေးမှု တင်သွင်းရန်';
+
+  @override
+  String get driverInspectionOk => 'OK';
+
+  @override
+  String get driverInspectionNotOk => 'OK မဟုတ်';
+
+  @override
+  String get driverInspectionCompleted => 'စစ်ဆေးမှု ပြီးဆုံးပါပြီ';
+
+  @override
+  String get driverInspectionFailed =>
+      'စစ်ဆေးမှု မအောင်မြင်ပါ - အလုပ်အမှာစာ ဖန်တီးပြီးပါပြီ';
+
+  @override
+  String get driverInspectionsEmpty => 'စစ်ဆေးမှု မရှိသေးပါ';
+
+  @override
+  String get driverInspectionNotes => 'မှတ်စုများ';
+
+  @override
+  String get driverFuelTitle => 'လောင်စာ မှတ်ရန်';
+
+  @override
+  String get driverFuelAmount => 'ပမာဏ';
+
+  @override
+  String get driverFuelCost => 'ကုန်ကျငွေ';
+
+  @override
+  String get driverFuelDate => 'ရက်စွဲ';
+
+  @override
+  String get driverFuelNoTypes => 'လောင်စာအမျိုးအစား မရှိသေးပါ';
+
+  @override
+  String get driverFuelLogged => 'လောင်စာ မှတ်ပြီးပါပြီ';
+
+  @override
+  String get driverReportsWorkOrders => 'အလုပ်အမှာစာများ';
+
+  @override
+  String get driverReportsInspections => 'စစ်ဆေးမှုများ';
+
+  @override
+  String get driverMyWorkOrdersEmpty => 'တင်ပြချက် မရှိသေးပါ';
+
+  @override
+  String get driverMyWorkOrdersEmptyBody =>
+      'ပြဿနာ တင်ပြပြီး ၎င်း၏ အခြေအနေကို ဤနေရာတွင် ကြည့်ပါ။';
+
+  @override
+  String get fleetActionFailed => 'လုပ်ဆောင်ချက် မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။';
 }

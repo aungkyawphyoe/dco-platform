@@ -130,6 +130,28 @@ Back from a nested screen returns to the tab or hamburger that opened it. Switch
 
 ---
 
+## Fleet mode and Driver mode
+
+The drawer's **Fleet** entry (visible only to members of an `active` Enterprise organization; role limits actions) opens the **Fleet hub** (`/fleet`): organization card, mode switch, and manage entries (Org Management, Assignments, Warranty Templates — gated by role). The selected mode is stored per user in `AppMeta` and re-validated against live entitlements on every read; losing access degrades back to personal mode. Personal data keeps the offline-first Drift + outbox path; fleet and driver data is **online-first** — lists read the API (HTTP 403 → access-denied empty state), and only the mode string is cached locally.
+
+Mode changes swap the *contents* of the existing tab branches — the shell does not change shape in personal or fleet mode:
+
+| Tab slot | Personal | Fleet | Driver |
+|----------|----------|-------|--------|
+| 1 | Garage (Dashboard) | Vehicle Inventory | My Vehicle |
+| 2 | Maintenance | Work Orders | My Reports |
+| 3 | Expenses | Reports (analytics + CSV export) | *hidden* |
+| 4 | Setting | Setting | Setting |
+
+Driver mode shows a **three-item** bottom nav (My Vehicle / My Reports / Setting). Entering driver mode while the Expenses tab is active jumps to the first tab.
+
+Fleet and driver detail screens push on the **root** navigator (not a tab stack):
+
+- Fleet: Fleet hub, Org Management (Members / Vehicles / Workshops / Settings), Add/Edit vehicle, Vehicle detail (status transition, Transfer to buyer), Work order detail (start/resolve), Driver assignments, Warranty templates → New.
+- Driver: Start/end shift, Report issue, Log fuel, Start inspection (checklist built from the org's inspection template).
+
+---
+
 ## Route guards
 
 From `product/frd/auth.md`:

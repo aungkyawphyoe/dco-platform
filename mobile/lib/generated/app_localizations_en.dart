@@ -2495,4 +2495,653 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get noteDelete => 'Delete';
+
+  @override
+  String get fleetHubModeSection => 'Mode';
+
+  @override
+  String get fleetModePersonalTitle => 'Personal';
+
+  @override
+  String get fleetModePersonalBody => 'Your own vehicles and records';
+
+  @override
+  String get fleetModeFleetTitle => 'Fleet mode';
+
+  @override
+  String get fleetModeFleetBody => 'Organization vehicles and operations';
+
+  @override
+  String get fleetModeDriverTitle => 'Driver mode';
+
+  @override
+  String get fleetModeDriverBody => 'Your assigned vehicle and reports';
+
+  @override
+  String get fleetHubManageSection => 'Manage';
+
+  @override
+  String get fleetHubOrgManagement => 'Organization management';
+
+  @override
+  String get fleetHubAssignments => 'Driver assignments';
+
+  @override
+  String get fleetHubWarrantyTemplates => 'Warranty templates';
+
+  @override
+  String get fleetNoAccessTitle => 'No fleet access';
+
+  @override
+  String get fleetNoAccessBody =>
+      'Your organization is not active, or you are not a member.';
+
+  @override
+  String get fleetHubOrgContact => 'Contact';
+
+  @override
+  String get fleetRoleOrgAdmin => 'Admin';
+
+  @override
+  String get fleetRoleOrgManager => 'Manager';
+
+  @override
+  String get fleetRoleOrgMechanic => 'Mechanic';
+
+  @override
+  String get fleetRoleOrgDriver => 'Driver';
+
+  @override
+  String get fleetStatusActive => 'Active';
+
+  @override
+  String get fleetStatusPending => 'Pending';
+
+  @override
+  String get fleetStatusSuspended => 'Suspended';
+
+  @override
+  String get fleetStatusArchived => 'Archived';
+
+  @override
+  String get fleetOrgTitle => 'Organization';
+
+  @override
+  String get fleetOrgMembersTab => 'Members';
+
+  @override
+  String get fleetOrgVehiclesTab => 'Vehicles';
+
+  @override
+  String get fleetOrgWorkshopsTab => 'Workshops';
+
+  @override
+  String get fleetOrgSettingsTab => 'Settings';
+
+  @override
+  String get fleetOrgMembersEmpty => 'No members yet';
+
+  @override
+  String get fleetOrgVehiclesEmpty => 'No vehicles in this organization yet';
+
+  @override
+  String get fleetOrgWorkshopsEmpty => 'No approved workshops yet';
+
+  @override
+  String get fleetOrgChangeRole => 'Change role';
+
+  @override
+  String get fleetOrgRemoveMember => 'Remove member';
+
+  @override
+  String get fleetOrgRemoveConfirmTitle => 'Remove this member?';
+
+  @override
+  String get fleetOrgRemoveConfirmBody =>
+      'They will lose access to this organization\'s fleet data.';
+
+  @override
+  String get fleetOrgNotPermitted => 'You do not have access to this list';
+
+  @override
+  String get fleetOrgNotPermittedBody =>
+      'Ask an org admin or manager for access.';
+
+  @override
+  String get fleetOrgSettingsPlan => 'Plan';
+
+  @override
+  String get fleetOrgSettingsStatus => 'Status';
+
+  @override
+  String get fleetOrgSettingsEmail => 'Contact email';
+
+  @override
+  String get fleetOrgSettingsPhone => 'Contact phone';
+
+  @override
+  String get fleetOrgSettingsReadonly =>
+      'Contact details are managed by DCO admin.';
+
+  @override
+  String get fleetInventoryTitle => 'Vehicle inventory';
+
+  @override
+  String get fleetInventoryEmpty => 'No vehicles in this organization';
+
+  @override
+  String get fleetInventoryEmptyBody =>
+      'Add a vehicle or import a CSV to get started.';
+
+  @override
+  String get fleetInventoryAdd => 'Add vehicle';
+
+  @override
+  String get fleetInventoryImport => 'Import CSV';
+
+  @override
+  String get fleetInventoryUnassigned => 'Unassigned';
+
+  @override
+  String get fleetInventoryImportTitle => 'Import vehicles';
+
+  @override
+  String get fleetInventoryImportBody =>
+      'Pick a CSV with name, make, model, year, plate, vin, fuel_type columns.';
+
+  @override
+  String fleetInventoryImportStarted(Object count) {
+    return 'Import started for $count rows';
+  }
+
+  @override
+  String fleetInventoryImportResult(Object failed, Object success) {
+    return 'Import finished: $success added, $failed failed';
+  }
+
+  @override
+  String get fleetInventoryImportPending => 'Import is still processing...';
+
+  @override
+  String get fleetVehicleDetailTitle => 'Vehicle';
+
+  @override
+  String get fleetVehicleStatus => 'Status';
+
+  @override
+  String get fleetVehicleTemplate => 'Lifecycle';
+
+  @override
+  String get fleetVehicleRevenue => 'Revenue label';
+
+  @override
+  String get fleetVehicleDriver => 'Assigned driver';
+
+  @override
+  String get fleetVehicleTransfer => 'Transfer to buyer';
+
+  @override
+  String get fleetVehicleTransferHint =>
+      'Showroom vehicles in reserved status only.';
+
+  @override
+  String get fleetTransferTitle => 'Transfer to buyer';
+
+  @override
+  String get fleetTransferBuyerEmail => 'Buyer email *';
+
+  @override
+  String get fleetTransferSaleDate => 'Sale date *';
+
+  @override
+  String get fleetTransferMileage => 'Current mileage (km) *';
+
+  @override
+  String get fleetTransferWarranty => 'Warranty template';
+
+  @override
+  String get fleetTransferNoWarranty => 'No warranty';
+
+  @override
+  String get fleetTransferConfirm => 'Confirm transfer';
+
+  @override
+  String get fleetTransferSuccess => 'Vehicle transferred to the buyer';
+
+  @override
+  String fleetTransferReviewBody(Object email, Object name) {
+    return 'Transfer $name to $email?';
+  }
+
+  @override
+  String get fleetVehicleFormTitle => 'Add fleet vehicle';
+
+  @override
+  String get fleetVehicleLifecycle => 'Lifecycle template *';
+
+  @override
+  String get fleetVehicleLifecycleShowroom => 'Showroom';
+
+  @override
+  String get fleetVehicleLifecycleTaxi => 'Taxi fleet';
+
+  @override
+  String get fleetVehicleLifecycleRental => 'Rental';
+
+  @override
+  String get fleetVehicleLifecycleCommercial => 'Commercial';
+
+  @override
+  String get fleetVehicleRevenueLabel => 'Revenue label';
+
+  @override
+  String get fleetVehicleAdded => 'Vehicle added';
+
+  @override
+  String get fleetWorkOrdersTitle => 'Work orders';
+
+  @override
+  String get fleetWorkOrdersEmpty => 'No work orders yet';
+
+  @override
+  String get fleetWorkOrdersEmptyBody =>
+      'Drivers report issues here; they appear for review.';
+
+  @override
+  String get fleetWoFilterAll => 'All';
+
+  @override
+  String get fleetWoStatusReported => 'Reported';
+
+  @override
+  String get fleetWoStatusInProgress => 'In progress';
+
+  @override
+  String get fleetWoStatusCompleted => 'Completed';
+
+  @override
+  String get fleetUrgencyLow => 'Low';
+
+  @override
+  String get fleetUrgencyMedium => 'Medium';
+
+  @override
+  String get fleetUrgencyHigh => 'High';
+
+  @override
+  String get fleetUrgencyCritical => 'Critical';
+
+  @override
+  String get fleetWoDetailTitle => 'Work order';
+
+  @override
+  String get fleetWoStart => 'Start';
+
+  @override
+  String get fleetWoResolve => 'Resolve';
+
+  @override
+  String get fleetWoResolutionNotes => 'Resolution notes';
+
+  @override
+  String get fleetWoResolutionNotesHint => 'What fixed it?';
+
+  @override
+  String get fleetWoOdometerKm => 'Odometer (km)';
+
+  @override
+  String get fleetWoReportTitle => 'Report issue';
+
+  @override
+  String get fleetWoIssueType => 'Issue type';
+
+  @override
+  String get fleetWoDescription => 'Description';
+
+  @override
+  String get fleetWoDescriptionHint =>
+      'Describe the problem (at least 10 characters)';
+
+  @override
+  String get fleetWoUrgency => 'Urgency';
+
+  @override
+  String get fleetWoReportSubmit => 'Submit report';
+
+  @override
+  String get fleetWoReported => 'Issue reported';
+
+  @override
+  String get fleetIssueBreakdown => 'Breakdown';
+
+  @override
+  String get fleetIssueAccident => 'Accident';
+
+  @override
+  String get fleetIssueWearTear => 'Wear and tear';
+
+  @override
+  String get fleetIssueScheduledService => 'Scheduled service';
+
+  @override
+  String get fleetIssueOther => 'Other';
+
+  @override
+  String get fleetWoVehicle => 'Vehicle';
+
+  @override
+  String get fleetWoReportedBy => 'Reported by';
+
+  @override
+  String get fleetWoAssignedTo => 'Assigned to';
+
+  @override
+  String get fleetReportsTitle => 'Analytics';
+
+  @override
+  String get fleetReportsTabVehicles => 'Per vehicle';
+
+  @override
+  String get fleetReportsTabFleet => 'Fleet summary';
+
+  @override
+  String get fleetReportsTabLemons => 'Lemon flags';
+
+  @override
+  String get fleetReportsExport => 'Export CSV';
+
+  @override
+  String get fleetReportsSpend => 'Total spend';
+
+  @override
+  String get fleetReportsCostPerKm => 'Avg cost / km';
+
+  @override
+  String get fleetReportsLemons => 'Lemons';
+
+  @override
+  String get fleetReportsOpenWorkOrders => 'Open work orders';
+
+  @override
+  String get fleetReportsAssignments => 'Active assignments';
+
+  @override
+  String get fleetReportsUpcoming => 'Upcoming maintenance';
+
+  @override
+  String get fleetReportsVehicles => 'Vehicles';
+
+  @override
+  String get fleetReportsNoLemons => 'No lemon flags';
+
+  @override
+  String get fleetReportsNoLemonsBody =>
+      'No vehicle exceeds the cost-per-km threshold.';
+
+  @override
+  String get fleetReportsThreshold => 'Threshold';
+
+  @override
+  String get fleetReportsTco => 'TCO';
+
+  @override
+  String get fleetReportsCostPerKmShort => 'Cost / km';
+
+  @override
+  String get fleetReportsKm => 'Km driven';
+
+  @override
+  String get fleetReportsUtilization => 'Utilization';
+
+  @override
+  String get fleetReportsMaintenance => 'Maintenance';
+
+  @override
+  String get fleetReportsFuel => 'Fuel';
+
+  @override
+  String get fleetReportsWear => 'Wear';
+
+  @override
+  String get fleetReportsEmpty => 'No fleet data yet';
+
+  @override
+  String get fleetAssignmentsEmpty => 'No assignments yet';
+
+  @override
+  String get fleetAssignmentsEmptyBody =>
+      'Assign a driver to a vehicle to get started.';
+
+  @override
+  String get fleetAssignAssign => 'Assign vehicle';
+
+  @override
+  String get fleetAssignDriverLabel => 'Driver';
+
+  @override
+  String get fleetAssignVehicleLabel => 'Vehicle';
+
+  @override
+  String get fleetAssignUnassign => 'Unassign';
+
+  @override
+  String get fleetAssignUnassignConfirmTitle => 'Unassign this vehicle?';
+
+  @override
+  String get fleetAssignUnassignConfirmBody =>
+      'The driver will no longer have access to this vehicle.';
+
+  @override
+  String get fleetAssignActive => 'Active';
+
+  @override
+  String get fleetAssignHistory => 'History';
+
+  @override
+  String get fleetAssignNoDrivers => 'No drivers in this organization';
+
+  @override
+  String get fleetAssignNoVehicles => 'No vehicles available';
+
+  @override
+  String get fleetAssignDone => 'Assignment saved';
+
+  @override
+  String get fleetWarrantyEmpty => 'No warranty templates yet';
+
+  @override
+  String get fleetWarrantyEmptyBody =>
+      'Templates define duration and mileage coverage for transfers.';
+
+  @override
+  String get fleetWarrantyNew => 'New template';
+
+  @override
+  String get fleetWarrantyFormTitle => 'New warranty template';
+
+  @override
+  String get fleetWarrantyName => 'Name *';
+
+  @override
+  String get fleetWarrantyNameHint => 'Standard 2-year cover';
+
+  @override
+  String get fleetWarrantyDuration => 'Duration (years) *';
+
+  @override
+  String get fleetWarrantyMileageLimit => 'Mileage limit (km) *';
+
+  @override
+  String get fleetWarrantyCoverage => 'Coverage categories';
+
+  @override
+  String get fleetWarrantyCoverageHint =>
+      'Comma-separated, e.g. engine, gearbox';
+
+  @override
+  String get fleetWarrantyExclusions => 'Exclusions';
+
+  @override
+  String get fleetWarrantyExclusionsHint => 'Comma-separated exclusions';
+
+  @override
+  String get fleetWarrantyCreated => 'Warranty template created';
+
+  @override
+  String get fleetWarrantyDeleteTitle => 'Delete this template?';
+
+  @override
+  String get fleetWarrantyDeleteBody =>
+      'Existing warranties keep their coverage.';
+
+  @override
+  String fleetWarrantyYearsKm(Object km, Object years) {
+    return '$years yr · $km km';
+  }
+
+  @override
+  String get driverMyVehicleTab => 'My vehicle';
+
+  @override
+  String get driverMyReportsTab => 'My reports';
+
+  @override
+  String get driverNoVehicleTitle => 'No assigned vehicle';
+
+  @override
+  String get driverNoVehicleBody =>
+      'Ask your fleet manager to assign you a vehicle.';
+
+  @override
+  String get driverLogMileage => 'Log mileage';
+
+  @override
+  String get driverLogFuel => 'Log fuel';
+
+  @override
+  String get driverVehicleDetails => 'Vehicle details';
+
+  @override
+  String get driverVin => 'VIN';
+
+  @override
+  String get driverPlate => 'Plate';
+
+  @override
+  String get driverShiftTitle => 'Log mileage';
+
+  @override
+  String get driverShiftStartTitle => 'Start shift';
+
+  @override
+  String get driverShiftEndTitle => 'End shift';
+
+  @override
+  String get driverShiftStartOdo => 'Start odometer (km)';
+
+  @override
+  String get driverShiftEndOdo => 'End odometer (km)';
+
+  @override
+  String get driverShiftActive => 'Shift in progress';
+
+  @override
+  String driverShiftKmDriven(Object km) {
+    return '$km km driven';
+  }
+
+  @override
+  String get driverShiftHistory => 'Recent shifts';
+
+  @override
+  String get driverShiftEmpty => 'No shifts logged yet';
+
+  @override
+  String get driverShiftStarted => 'Shift started';
+
+  @override
+  String driverShiftEnded(Object km) {
+    return 'Shift ended · $km km';
+  }
+
+  @override
+  String get driverInspectionStart => 'Start inspection';
+
+  @override
+  String get driverInspectionType => 'Inspection type';
+
+  @override
+  String get driverInspectionTypePre => 'Pre-trip';
+
+  @override
+  String get driverInspectionTypePost => 'Post-trip';
+
+  @override
+  String get driverInspectionTemplateLabel => 'Checklist template';
+
+  @override
+  String get driverInspectionNoTemplates => 'No inspection templates';
+
+  @override
+  String get driverInspectionNoTemplatesBody =>
+      'Ask an org admin to create a checklist template.';
+
+  @override
+  String get driverInspectionRequired => 'required';
+
+  @override
+  String get driverInspectionSubmit => 'Submit inspection';
+
+  @override
+  String get driverInspectionOk => 'OK';
+
+  @override
+  String get driverInspectionNotOk => 'Not OK';
+
+  @override
+  String get driverInspectionCompleted => 'Inspection completed';
+
+  @override
+  String get driverInspectionFailed =>
+      'Inspection failed - a work order was created';
+
+  @override
+  String get driverInspectionsEmpty => 'No inspections yet';
+
+  @override
+  String get driverInspectionNotes => 'Notes';
+
+  @override
+  String get driverFuelTitle => 'Log fuel';
+
+  @override
+  String get driverFuelAmount => 'Amount';
+
+  @override
+  String get driverFuelCost => 'Cost';
+
+  @override
+  String get driverFuelDate => 'Date';
+
+  @override
+  String get driverFuelNoTypes => 'No fuel types yet';
+
+  @override
+  String get driverFuelLogged => 'Fuel logged';
+
+  @override
+  String get driverReportsWorkOrders => 'Work orders';
+
+  @override
+  String get driverReportsInspections => 'Inspections';
+
+  @override
+  String get driverMyWorkOrdersEmpty => 'No reports yet';
+
+  @override
+  String get driverMyWorkOrdersEmptyBody =>
+      'Report an issue and track its status here.';
+
+  @override
+  String get fleetActionFailed => 'Action failed. Please try again.';
 }

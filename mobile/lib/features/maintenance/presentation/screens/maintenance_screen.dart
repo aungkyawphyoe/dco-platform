@@ -149,6 +149,7 @@ class MaintenanceScreen extends ConsumerWidget {
                   child: FloatingActionButton.extended(
                     backgroundColor: tokens.button.primary.background,
                     foregroundColor: tokens.text.inverse,
+                    heroTag: 'btn-add-maintenance',
                     onPressed: () =>
                         context.push(AppRoutes.maintenanceRegister),
                     label: Text(s.dashboardLogService),

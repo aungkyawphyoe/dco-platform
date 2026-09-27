@@ -68,6 +68,7 @@ class NotesScreen extends ConsumerWidget {
               child: FloatingActionButton.extended(
                 backgroundColor: tokens.button.primary.background,
                 foregroundColor: tokens.text.inverse,
+                heroTag: 'btn-add-note',
                 onPressed: () => context.push(AppRoutes.noteNew),
                 label: Text(s.notesNewNote),
                 icon: const Icon(Icons.add),

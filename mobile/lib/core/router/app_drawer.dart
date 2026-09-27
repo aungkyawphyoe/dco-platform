@@ -1,6 +1,7 @@
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
+import 'package:dco_mobile/features/fleet/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,6 +15,8 @@ class AppDrawer extends ConsumerWidget {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final user = ref.watch(sessionControllerProvider).valueOrNull?.user;
+    final entitlements = ref.watch(entitlementsProvider).valueOrNull;
+    final showFleet = entitlements?.canUseFleet ?? false;
 
     return Drawer(
       backgroundColor: tokens.background.primary,
@@ -103,11 +106,14 @@ class AppDrawer extends ConsumerWidget {
                       title: s.drawerFamily,
                       onTap: () => _navigate(context, AppRoutes.family),
                     ),
-                    _DrawerTile(
-                      icon: Icons.local_shipping_outlined,
-                      title: s.drawerFleet,
-                      onTap: () => _navigate(context, AppRoutes.fleet),
-                    ),
+                    // Fleet entry is presentation-only gating: the API
+                    // re-checks plan, membership, org status, and role.
+                    if (showFleet)
+                      _DrawerTile(
+                        icon: Icons.local_shipping_outlined,
+                        title: s.drawerFleet,
+                        onTap: () => _navigate(context, AppRoutes.fleet),
+                      ),
                   ],
                 ),
               ),

@@ -4753,6 +4753,1242 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete'**
   String get noteDelete;
+
+  /// No description provided for @fleetHubModeSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get fleetHubModeSection;
+
+  /// No description provided for @fleetModePersonalTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal'**
+  String get fleetModePersonalTitle;
+
+  /// No description provided for @fleetModePersonalBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your own vehicles and records'**
+  String get fleetModePersonalBody;
+
+  /// No description provided for @fleetModeFleetTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleet mode'**
+  String get fleetModeFleetTitle;
+
+  /// No description provided for @fleetModeFleetBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization vehicles and operations'**
+  String get fleetModeFleetBody;
+
+  /// No description provided for @fleetModeDriverTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver mode'**
+  String get fleetModeDriverTitle;
+
+  /// No description provided for @fleetModeDriverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your assigned vehicle and reports'**
+  String get fleetModeDriverBody;
+
+  /// No description provided for @fleetHubManageSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage'**
+  String get fleetHubManageSection;
+
+  /// No description provided for @fleetHubOrgManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization management'**
+  String get fleetHubOrgManagement;
+
+  /// No description provided for @fleetHubAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver assignments'**
+  String get fleetHubAssignments;
+
+  /// No description provided for @fleetHubWarrantyTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty templates'**
+  String get fleetHubWarrantyTemplates;
+
+  /// No description provided for @fleetNoAccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No fleet access'**
+  String get fleetNoAccessTitle;
+
+  /// No description provided for @fleetNoAccessBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your organization is not active, or you are not a member.'**
+  String get fleetNoAccessBody;
+
+  /// No description provided for @fleetHubOrgContact.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get fleetHubOrgContact;
+
+  /// No description provided for @fleetRoleOrgAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin'**
+  String get fleetRoleOrgAdmin;
+
+  /// No description provided for @fleetRoleOrgManager.
+  ///
+  /// In en, this message translates to:
+  /// **'Manager'**
+  String get fleetRoleOrgManager;
+
+  /// No description provided for @fleetRoleOrgMechanic.
+  ///
+  /// In en, this message translates to:
+  /// **'Mechanic'**
+  String get fleetRoleOrgMechanic;
+
+  /// No description provided for @fleetRoleOrgDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver'**
+  String get fleetRoleOrgDriver;
+
+  /// No description provided for @fleetStatusActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get fleetStatusActive;
+
+  /// No description provided for @fleetStatusPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get fleetStatusPending;
+
+  /// No description provided for @fleetStatusSuspended.
+  ///
+  /// In en, this message translates to:
+  /// **'Suspended'**
+  String get fleetStatusSuspended;
+
+  /// No description provided for @fleetStatusArchived.
+  ///
+  /// In en, this message translates to:
+  /// **'Archived'**
+  String get fleetStatusArchived;
+
+  /// No description provided for @fleetOrgTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Organization'**
+  String get fleetOrgTitle;
+
+  /// No description provided for @fleetOrgMembersTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Members'**
+  String get fleetOrgMembersTab;
+
+  /// No description provided for @fleetOrgVehiclesTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicles'**
+  String get fleetOrgVehiclesTab;
+
+  /// No description provided for @fleetOrgWorkshopsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Workshops'**
+  String get fleetOrgWorkshopsTab;
+
+  /// No description provided for @fleetOrgSettingsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get fleetOrgSettingsTab;
+
+  /// No description provided for @fleetOrgMembersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No members yet'**
+  String get fleetOrgMembersEmpty;
+
+  /// No description provided for @fleetOrgVehiclesEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicles in this organization yet'**
+  String get fleetOrgVehiclesEmpty;
+
+  /// No description provided for @fleetOrgWorkshopsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No approved workshops yet'**
+  String get fleetOrgWorkshopsEmpty;
+
+  /// No description provided for @fleetOrgChangeRole.
+  ///
+  /// In en, this message translates to:
+  /// **'Change role'**
+  String get fleetOrgChangeRole;
+
+  /// No description provided for @fleetOrgRemoveMember.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove member'**
+  String get fleetOrgRemoveMember;
+
+  /// No description provided for @fleetOrgRemoveConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove this member?'**
+  String get fleetOrgRemoveConfirmTitle;
+
+  /// No description provided for @fleetOrgRemoveConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'They will lose access to this organization\'s fleet data.'**
+  String get fleetOrgRemoveConfirmBody;
+
+  /// No description provided for @fleetOrgNotPermitted.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to this list'**
+  String get fleetOrgNotPermitted;
+
+  /// No description provided for @fleetOrgNotPermittedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask an org admin or manager for access.'**
+  String get fleetOrgNotPermittedBody;
+
+  /// No description provided for @fleetOrgSettingsPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan'**
+  String get fleetOrgSettingsPlan;
+
+  /// No description provided for @fleetOrgSettingsStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get fleetOrgSettingsStatus;
+
+  /// No description provided for @fleetOrgSettingsEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact email'**
+  String get fleetOrgSettingsEmail;
+
+  /// No description provided for @fleetOrgSettingsPhone.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact phone'**
+  String get fleetOrgSettingsPhone;
+
+  /// No description provided for @fleetOrgSettingsReadonly.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact details are managed by DCO admin.'**
+  String get fleetOrgSettingsReadonly;
+
+  /// No description provided for @fleetInventoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle inventory'**
+  String get fleetInventoryTitle;
+
+  /// No description provided for @fleetInventoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicles in this organization'**
+  String get fleetInventoryEmpty;
+
+  /// No description provided for @fleetInventoryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a vehicle or import a CSV to get started.'**
+  String get fleetInventoryEmptyBody;
+
+  /// No description provided for @fleetInventoryAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add vehicle'**
+  String get fleetInventoryAdd;
+
+  /// No description provided for @fleetInventoryImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import CSV'**
+  String get fleetInventoryImport;
+
+  /// No description provided for @fleetInventoryUnassigned.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassigned'**
+  String get fleetInventoryUnassigned;
+
+  /// No description provided for @fleetInventoryImportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import vehicles'**
+  String get fleetInventoryImportTitle;
+
+  /// No description provided for @fleetInventoryImportBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a CSV with name, make, model, year, plate, vin, fuel_type columns.'**
+  String get fleetInventoryImportBody;
+
+  /// No description provided for @fleetInventoryImportStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Import started for {count} rows'**
+  String fleetInventoryImportStarted(Object count);
+
+  /// No description provided for @fleetInventoryImportResult.
+  ///
+  /// In en, this message translates to:
+  /// **'Import finished: {success} added, {failed} failed'**
+  String fleetInventoryImportResult(Object failed, Object success);
+
+  /// No description provided for @fleetInventoryImportPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Import is still processing...'**
+  String get fleetInventoryImportPending;
+
+  /// No description provided for @fleetVehicleDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get fleetVehicleDetailTitle;
+
+  /// No description provided for @fleetVehicleStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get fleetVehicleStatus;
+
+  /// No description provided for @fleetVehicleTemplate.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifecycle'**
+  String get fleetVehicleTemplate;
+
+  /// No description provided for @fleetVehicleRevenue.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue label'**
+  String get fleetVehicleRevenue;
+
+  /// No description provided for @fleetVehicleDriver.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned driver'**
+  String get fleetVehicleDriver;
+
+  /// No description provided for @fleetVehicleTransfer.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to buyer'**
+  String get fleetVehicleTransfer;
+
+  /// No description provided for @fleetVehicleTransferHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Showroom vehicles in reserved status only.'**
+  String get fleetVehicleTransferHint;
+
+  /// No description provided for @fleetTransferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer to buyer'**
+  String get fleetTransferTitle;
+
+  /// No description provided for @fleetTransferBuyerEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Buyer email *'**
+  String get fleetTransferBuyerEmail;
+
+  /// No description provided for @fleetTransferSaleDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale date *'**
+  String get fleetTransferSaleDate;
+
+  /// No description provided for @fleetTransferMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'Current mileage (km) *'**
+  String get fleetTransferMileage;
+
+  /// No description provided for @fleetTransferWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty template'**
+  String get fleetTransferWarranty;
+
+  /// No description provided for @fleetTransferNoWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'No warranty'**
+  String get fleetTransferNoWarranty;
+
+  /// No description provided for @fleetTransferConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirm transfer'**
+  String get fleetTransferConfirm;
+
+  /// No description provided for @fleetTransferSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle transferred to the buyer'**
+  String get fleetTransferSuccess;
+
+  /// No description provided for @fleetTransferReviewBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Transfer {name} to {email}?'**
+  String fleetTransferReviewBody(Object email, Object name);
+
+  /// No description provided for @fleetVehicleFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add fleet vehicle'**
+  String get fleetVehicleFormTitle;
+
+  /// No description provided for @fleetVehicleLifecycle.
+  ///
+  /// In en, this message translates to:
+  /// **'Lifecycle template *'**
+  String get fleetVehicleLifecycle;
+
+  /// No description provided for @fleetVehicleLifecycleShowroom.
+  ///
+  /// In en, this message translates to:
+  /// **'Showroom'**
+  String get fleetVehicleLifecycleShowroom;
+
+  /// No description provided for @fleetVehicleLifecycleTaxi.
+  ///
+  /// In en, this message translates to:
+  /// **'Taxi fleet'**
+  String get fleetVehicleLifecycleTaxi;
+
+  /// No description provided for @fleetVehicleLifecycleRental.
+  ///
+  /// In en, this message translates to:
+  /// **'Rental'**
+  String get fleetVehicleLifecycleRental;
+
+  /// No description provided for @fleetVehicleLifecycleCommercial.
+  ///
+  /// In en, this message translates to:
+  /// **'Commercial'**
+  String get fleetVehicleLifecycleCommercial;
+
+  /// No description provided for @fleetVehicleRevenueLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Revenue label'**
+  String get fleetVehicleRevenueLabel;
+
+  /// No description provided for @fleetVehicleAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle added'**
+  String get fleetVehicleAdded;
+
+  /// No description provided for @fleetWorkOrdersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work orders'**
+  String get fleetWorkOrdersTitle;
+
+  /// No description provided for @fleetWorkOrdersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No work orders yet'**
+  String get fleetWorkOrdersEmpty;
+
+  /// No description provided for @fleetWorkOrdersEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Drivers report issues here; they appear for review.'**
+  String get fleetWorkOrdersEmptyBody;
+
+  /// No description provided for @fleetWoFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get fleetWoFilterAll;
+
+  /// No description provided for @fleetWoStatusReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported'**
+  String get fleetWoStatusReported;
+
+  /// No description provided for @fleetWoStatusInProgress.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get fleetWoStatusInProgress;
+
+  /// No description provided for @fleetWoStatusCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get fleetWoStatusCompleted;
+
+  /// No description provided for @fleetUrgencyLow.
+  ///
+  /// In en, this message translates to:
+  /// **'Low'**
+  String get fleetUrgencyLow;
+
+  /// No description provided for @fleetUrgencyMedium.
+  ///
+  /// In en, this message translates to:
+  /// **'Medium'**
+  String get fleetUrgencyMedium;
+
+  /// No description provided for @fleetUrgencyHigh.
+  ///
+  /// In en, this message translates to:
+  /// **'High'**
+  String get fleetUrgencyHigh;
+
+  /// No description provided for @fleetUrgencyCritical.
+  ///
+  /// In en, this message translates to:
+  /// **'Critical'**
+  String get fleetUrgencyCritical;
+
+  /// No description provided for @fleetWoDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Work order'**
+  String get fleetWoDetailTitle;
+
+  /// No description provided for @fleetWoStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get fleetWoStart;
+
+  /// No description provided for @fleetWoResolve.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolve'**
+  String get fleetWoResolve;
+
+  /// No description provided for @fleetWoResolutionNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Resolution notes'**
+  String get fleetWoResolutionNotes;
+
+  /// No description provided for @fleetWoResolutionNotesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'What fixed it?'**
+  String get fleetWoResolutionNotesHint;
+
+  /// No description provided for @fleetWoOdometerKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer (km)'**
+  String get fleetWoOdometerKm;
+
+  /// No description provided for @fleetWoReportTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Report issue'**
+  String get fleetWoReportTitle;
+
+  /// No description provided for @fleetWoIssueType.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue type'**
+  String get fleetWoIssueType;
+
+  /// No description provided for @fleetWoDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get fleetWoDescription;
+
+  /// No description provided for @fleetWoDescriptionHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Describe the problem (at least 10 characters)'**
+  String get fleetWoDescriptionHint;
+
+  /// No description provided for @fleetWoUrgency.
+  ///
+  /// In en, this message translates to:
+  /// **'Urgency'**
+  String get fleetWoUrgency;
+
+  /// No description provided for @fleetWoReportSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit report'**
+  String get fleetWoReportSubmit;
+
+  /// No description provided for @fleetWoReported.
+  ///
+  /// In en, this message translates to:
+  /// **'Issue reported'**
+  String get fleetWoReported;
+
+  /// No description provided for @fleetIssueBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakdown'**
+  String get fleetIssueBreakdown;
+
+  /// No description provided for @fleetIssueAccident.
+  ///
+  /// In en, this message translates to:
+  /// **'Accident'**
+  String get fleetIssueAccident;
+
+  /// No description provided for @fleetIssueWearTear.
+  ///
+  /// In en, this message translates to:
+  /// **'Wear and tear'**
+  String get fleetIssueWearTear;
+
+  /// No description provided for @fleetIssueScheduledService.
+  ///
+  /// In en, this message translates to:
+  /// **'Scheduled service'**
+  String get fleetIssueScheduledService;
+
+  /// No description provided for @fleetIssueOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get fleetIssueOther;
+
+  /// No description provided for @fleetWoVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get fleetWoVehicle;
+
+  /// No description provided for @fleetWoReportedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Reported by'**
+  String get fleetWoReportedBy;
+
+  /// No description provided for @fleetWoAssignedTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Assigned to'**
+  String get fleetWoAssignedTo;
+
+  /// No description provided for @fleetReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Analytics'**
+  String get fleetReportsTitle;
+
+  /// No description provided for @fleetReportsTabVehicles.
+  ///
+  /// In en, this message translates to:
+  /// **'Per vehicle'**
+  String get fleetReportsTabVehicles;
+
+  /// No description provided for @fleetReportsTabFleet.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleet summary'**
+  String get fleetReportsTabFleet;
+
+  /// No description provided for @fleetReportsTabLemons.
+  ///
+  /// In en, this message translates to:
+  /// **'Lemon flags'**
+  String get fleetReportsTabLemons;
+
+  /// No description provided for @fleetReportsExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export CSV'**
+  String get fleetReportsExport;
+
+  /// No description provided for @fleetReportsSpend.
+  ///
+  /// In en, this message translates to:
+  /// **'Total spend'**
+  String get fleetReportsSpend;
+
+  /// No description provided for @fleetReportsCostPerKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg cost / km'**
+  String get fleetReportsCostPerKm;
+
+  /// No description provided for @fleetReportsLemons.
+  ///
+  /// In en, this message translates to:
+  /// **'Lemons'**
+  String get fleetReportsLemons;
+
+  /// No description provided for @fleetReportsOpenWorkOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Open work orders'**
+  String get fleetReportsOpenWorkOrders;
+
+  /// No description provided for @fleetReportsAssignments.
+  ///
+  /// In en, this message translates to:
+  /// **'Active assignments'**
+  String get fleetReportsAssignments;
+
+  /// No description provided for @fleetReportsUpcoming.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming maintenance'**
+  String get fleetReportsUpcoming;
+
+  /// No description provided for @fleetReportsVehicles.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicles'**
+  String get fleetReportsVehicles;
+
+  /// No description provided for @fleetReportsNoLemons.
+  ///
+  /// In en, this message translates to:
+  /// **'No lemon flags'**
+  String get fleetReportsNoLemons;
+
+  /// No description provided for @fleetReportsNoLemonsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicle exceeds the cost-per-km threshold.'**
+  String get fleetReportsNoLemonsBody;
+
+  /// No description provided for @fleetReportsThreshold.
+  ///
+  /// In en, this message translates to:
+  /// **'Threshold'**
+  String get fleetReportsThreshold;
+
+  /// No description provided for @fleetReportsTco.
+  ///
+  /// In en, this message translates to:
+  /// **'TCO'**
+  String get fleetReportsTco;
+
+  /// No description provided for @fleetReportsCostPerKmShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost / km'**
+  String get fleetReportsCostPerKmShort;
+
+  /// No description provided for @fleetReportsKm.
+  ///
+  /// In en, this message translates to:
+  /// **'Km driven'**
+  String get fleetReportsKm;
+
+  /// No description provided for @fleetReportsUtilization.
+  ///
+  /// In en, this message translates to:
+  /// **'Utilization'**
+  String get fleetReportsUtilization;
+
+  /// No description provided for @fleetReportsMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get fleetReportsMaintenance;
+
+  /// No description provided for @fleetReportsFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel'**
+  String get fleetReportsFuel;
+
+  /// No description provided for @fleetReportsWear.
+  ///
+  /// In en, this message translates to:
+  /// **'Wear'**
+  String get fleetReportsWear;
+
+  /// No description provided for @fleetReportsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No fleet data yet'**
+  String get fleetReportsEmpty;
+
+  /// No description provided for @fleetAssignmentsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No assignments yet'**
+  String get fleetAssignmentsEmpty;
+
+  /// No description provided for @fleetAssignmentsEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign a driver to a vehicle to get started.'**
+  String get fleetAssignmentsEmptyBody;
+
+  /// No description provided for @fleetAssignAssign.
+  ///
+  /// In en, this message translates to:
+  /// **'Assign vehicle'**
+  String get fleetAssignAssign;
+
+  /// No description provided for @fleetAssignDriverLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver'**
+  String get fleetAssignDriverLabel;
+
+  /// No description provided for @fleetAssignVehicleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get fleetAssignVehicleLabel;
+
+  /// No description provided for @fleetAssignUnassign.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassign'**
+  String get fleetAssignUnassign;
+
+  /// No description provided for @fleetAssignUnassignConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Unassign this vehicle?'**
+  String get fleetAssignUnassignConfirmTitle;
+
+  /// No description provided for @fleetAssignUnassignConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The driver will no longer have access to this vehicle.'**
+  String get fleetAssignUnassignConfirmBody;
+
+  /// No description provided for @fleetAssignActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get fleetAssignActive;
+
+  /// No description provided for @fleetAssignHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get fleetAssignHistory;
+
+  /// No description provided for @fleetAssignNoDrivers.
+  ///
+  /// In en, this message translates to:
+  /// **'No drivers in this organization'**
+  String get fleetAssignNoDrivers;
+
+  /// No description provided for @fleetAssignNoVehicles.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicles available'**
+  String get fleetAssignNoVehicles;
+
+  /// No description provided for @fleetAssignDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Assignment saved'**
+  String get fleetAssignDone;
+
+  /// No description provided for @fleetWarrantyEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No warranty templates yet'**
+  String get fleetWarrantyEmpty;
+
+  /// No description provided for @fleetWarrantyEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Templates define duration and mileage coverage for transfers.'**
+  String get fleetWarrantyEmptyBody;
+
+  /// No description provided for @fleetWarrantyNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New template'**
+  String get fleetWarrantyNew;
+
+  /// No description provided for @fleetWarrantyFormTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'New warranty template'**
+  String get fleetWarrantyFormTitle;
+
+  /// No description provided for @fleetWarrantyName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name *'**
+  String get fleetWarrantyName;
+
+  /// No description provided for @fleetWarrantyNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard 2-year cover'**
+  String get fleetWarrantyNameHint;
+
+  /// No description provided for @fleetWarrantyDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'Duration (years) *'**
+  String get fleetWarrantyDuration;
+
+  /// No description provided for @fleetWarrantyMileageLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Mileage limit (km) *'**
+  String get fleetWarrantyMileageLimit;
+
+  /// No description provided for @fleetWarrantyCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage categories'**
+  String get fleetWarrantyCoverage;
+
+  /// No description provided for @fleetWarrantyCoverageHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Comma-separated, e.g. engine, gearbox'**
+  String get fleetWarrantyCoverageHint;
+
+  /// No description provided for @fleetWarrantyExclusions.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclusions'**
+  String get fleetWarrantyExclusions;
+
+  /// No description provided for @fleetWarrantyExclusionsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Comma-separated exclusions'**
+  String get fleetWarrantyExclusionsHint;
+
+  /// No description provided for @fleetWarrantyCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty template created'**
+  String get fleetWarrantyCreated;
+
+  /// No description provided for @fleetWarrantyDeleteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this template?'**
+  String get fleetWarrantyDeleteTitle;
+
+  /// No description provided for @fleetWarrantyDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Existing warranties keep their coverage.'**
+  String get fleetWarrantyDeleteBody;
+
+  /// No description provided for @fleetWarrantyYearsKm.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} yr · {km} km'**
+  String fleetWarrantyYearsKm(Object km, Object years);
+
+  /// No description provided for @driverMyVehicleTab.
+  ///
+  /// In en, this message translates to:
+  /// **'My vehicle'**
+  String get driverMyVehicleTab;
+
+  /// No description provided for @driverMyReportsTab.
+  ///
+  /// In en, this message translates to:
+  /// **'My reports'**
+  String get driverMyReportsTab;
+
+  /// No description provided for @driverNoVehicleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No assigned vehicle'**
+  String get driverNoVehicleTitle;
+
+  /// No description provided for @driverNoVehicleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask your fleet manager to assign you a vehicle.'**
+  String get driverNoVehicleBody;
+
+  /// No description provided for @driverLogMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'Log mileage'**
+  String get driverLogMileage;
+
+  /// No description provided for @driverLogFuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Log fuel'**
+  String get driverLogFuel;
+
+  /// No description provided for @driverVehicleDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle details'**
+  String get driverVehicleDetails;
+
+  /// No description provided for @driverVin.
+  ///
+  /// In en, this message translates to:
+  /// **'VIN'**
+  String get driverVin;
+
+  /// No description provided for @driverPlate.
+  ///
+  /// In en, this message translates to:
+  /// **'Plate'**
+  String get driverPlate;
+
+  /// No description provided for @driverShiftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log mileage'**
+  String get driverShiftTitle;
+
+  /// No description provided for @driverShiftStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Start shift'**
+  String get driverShiftStartTitle;
+
+  /// No description provided for @driverShiftEndTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End shift'**
+  String get driverShiftEndTitle;
+
+  /// No description provided for @driverShiftStartOdo.
+  ///
+  /// In en, this message translates to:
+  /// **'Start odometer (km)'**
+  String get driverShiftStartOdo;
+
+  /// No description provided for @driverShiftEndOdo.
+  ///
+  /// In en, this message translates to:
+  /// **'End odometer (km)'**
+  String get driverShiftEndOdo;
+
+  /// No description provided for @driverShiftActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift in progress'**
+  String get driverShiftActive;
+
+  /// No description provided for @driverShiftKmDriven.
+  ///
+  /// In en, this message translates to:
+  /// **'{km} km driven'**
+  String driverShiftKmDriven(Object km);
+
+  /// No description provided for @driverShiftHistory.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent shifts'**
+  String get driverShiftHistory;
+
+  /// No description provided for @driverShiftEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No shifts logged yet'**
+  String get driverShiftEmpty;
+
+  /// No description provided for @driverShiftStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift started'**
+  String get driverShiftStarted;
+
+  /// No description provided for @driverShiftEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Shift ended · {km} km'**
+  String driverShiftEnded(Object km);
+
+  /// No description provided for @driverInspectionStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start inspection'**
+  String get driverInspectionStart;
+
+  /// No description provided for @driverInspectionType.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection type'**
+  String get driverInspectionType;
+
+  /// No description provided for @driverInspectionTypePre.
+  ///
+  /// In en, this message translates to:
+  /// **'Pre-trip'**
+  String get driverInspectionTypePre;
+
+  /// No description provided for @driverInspectionTypePost.
+  ///
+  /// In en, this message translates to:
+  /// **'Post-trip'**
+  String get driverInspectionTypePost;
+
+  /// No description provided for @driverInspectionTemplateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Checklist template'**
+  String get driverInspectionTemplateLabel;
+
+  /// No description provided for @driverInspectionNoTemplates.
+  ///
+  /// In en, this message translates to:
+  /// **'No inspection templates'**
+  String get driverInspectionNoTemplates;
+
+  /// No description provided for @driverInspectionNoTemplatesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Ask an org admin to create a checklist template.'**
+  String get driverInspectionNoTemplatesBody;
+
+  /// No description provided for @driverInspectionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'required'**
+  String get driverInspectionRequired;
+
+  /// No description provided for @driverInspectionSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit inspection'**
+  String get driverInspectionSubmit;
+
+  /// No description provided for @driverInspectionOk.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get driverInspectionOk;
+
+  /// No description provided for @driverInspectionNotOk.
+  ///
+  /// In en, this message translates to:
+  /// **'Not OK'**
+  String get driverInspectionNotOk;
+
+  /// No description provided for @driverInspectionCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection completed'**
+  String get driverInspectionCompleted;
+
+  /// No description provided for @driverInspectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspection failed - a work order was created'**
+  String get driverInspectionFailed;
+
+  /// No description provided for @driverInspectionsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No inspections yet'**
+  String get driverInspectionsEmpty;
+
+  /// No description provided for @driverInspectionNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get driverInspectionNotes;
+
+  /// No description provided for @driverFuelTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log fuel'**
+  String get driverFuelTitle;
+
+  /// No description provided for @driverFuelAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get driverFuelAmount;
+
+  /// No description provided for @driverFuelCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get driverFuelCost;
+
+  /// No description provided for @driverFuelDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get driverFuelDate;
+
+  /// No description provided for @driverFuelNoTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'No fuel types yet'**
+  String get driverFuelNoTypes;
+
+  /// No description provided for @driverFuelLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel logged'**
+  String get driverFuelLogged;
+
+  /// No description provided for @driverReportsWorkOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Work orders'**
+  String get driverReportsWorkOrders;
+
+  /// No description provided for @driverReportsInspections.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspections'**
+  String get driverReportsInspections;
+
+  /// No description provided for @driverMyWorkOrdersEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No reports yet'**
+  String get driverMyWorkOrdersEmpty;
+
+  /// No description provided for @driverMyWorkOrdersEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Report an issue and track its status here.'**
+  String get driverMyWorkOrdersEmptyBody;
+
+  /// No description provided for @fleetActionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Action failed. Please try again.'**
+  String get fleetActionFailed;
 }
 
 class _AppLocalizationsDelegate
