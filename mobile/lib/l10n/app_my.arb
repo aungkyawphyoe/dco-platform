@@ -551,6 +551,11 @@
   "notificationsMarkDone": "ပြီးစီးကြောင်း မှတ်သားမည်",
   "notificationsDismiss": "ဖယ်ရှားမည်",
   "notificationsRestore": "မူလအတိုင်း ပြန်ထားမည်",
+  "notificationsReminderUpcomingTitle": "လာမည့် ပြုပြင်ထိန်းသိမ်းမှု သတိပေးချက်",
+  "notificationsReminderDueTitle": "ပြုပြင်ထိန်းသိမ်းမှု ရက်တော်ကပ်ပါပြီ",
+  "notificationsReminderBodyDate": "{name} — {date} တွင် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်",
+  "notificationsReminderBodyMileage": "{name} — {mileage}အရောက် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်",
+  "notificationsReminderBodyBoth": "{name} — {date} · {mileage} တွင် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်",
 
   "insuranceTitle": "အာမခံ",
   "insuranceNoActiveVehicle": "အသုံးပြုနေသော ယာဉ် မရှိပါ",

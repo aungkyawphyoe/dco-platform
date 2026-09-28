@@ -74,7 +74,11 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
         tokenHash: sha256(verify),
         expiresAt: new Date(Date.now() + TOKEN_TTL_MS),
       });
-      await app.mailer.sendVerification(email, verify);
+      try {
+        await app.mailer.sendVerification(email, verify);
+      } catch (err) {
+        app.log.error({ err, userId: id }, "verification email send failed; signup continues");
+      }
     }
     const session = await issueSession(app, user);
     return reply.code(201).send(session);

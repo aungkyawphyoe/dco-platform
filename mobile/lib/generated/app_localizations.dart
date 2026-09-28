@@ -3248,6 +3248,40 @@ abstract class AppLocalizations {
   /// **'Restore'**
   String get notificationsRestore;
 
+  /// No description provided for @notificationsReminderUpcomingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Upcoming maintenance'**
+  String get notificationsReminderUpcomingTitle;
+
+  /// No description provided for @notificationsReminderDueTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance due'**
+  String get notificationsReminderDueTitle;
+
+  /// No description provided for @notificationsReminderBodyDate.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} — due {date}'**
+  String notificationsReminderBodyDate(Object date, Object name);
+
+  /// No description provided for @notificationsReminderBodyMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} — due at {mileage}'**
+  String notificationsReminderBodyMileage(Object mileage, Object name);
+
+  /// No description provided for @notificationsReminderBodyBoth.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} — due {date} · {mileage}'**
+  String notificationsReminderBodyBoth(
+    Object date,
+    Object mileage,
+    Object name,
+  );
+
   /// No description provided for @insuranceTitle.
   ///
   /// In en, this message translates to:

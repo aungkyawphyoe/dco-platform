@@ -6,7 +6,7 @@ Notifications tell the owner that a maintenance plan item is due. MVP delivery i
 
 Source of truth for scope: `product/mvp-scope.md`.
 
-**As built (28 Aug 2026): Done (local).** OS local reminders via `flutter_local_notifications`. No remote FCM/APNs. Status index: `product/frd/README.md`.
+**As built (28 Aug 2026): Done (local).** OS local reminders via `flutter_local_notifications`. No remote FCM/APNs. Extended 28 Sep 2026: two reminder phases (upcoming + due) with localized banner copy. Status index: `product/frd/README.md`.
 
 ---
 
@@ -14,7 +14,7 @@ Source of truth for scope: `product/mvp-scope.md`.
 
 Enable users to:
 
-- Be alerted when a plan item is due by date and/or mileage
+- Be alerted when a plan item is upcoming, or due by date and/or mileage
 - Mark the reminder done or dismiss it
 - See recent alerts in an in-app feed
 
@@ -27,7 +27,7 @@ Enable the platform to:
 
 # In Scope
 
-- Local scheduled notifications for due plan items
+- Local scheduled notifications for upcoming and due plan items
 - Notification permission request (OS)
 - Mark done / dismiss from the notification or in-app
 - In-app notification feed (list)
@@ -92,36 +92,39 @@ So that I can catch what I missed if I ignored the banner.
 
 ## Scheduling (local)
 
-- Fire when remaining time is less than 7 days **or** remaining mileage is less than 100 km / 60 mi (owner length unit). Whichever condition hits first.
-- When a plan item's next due date is known, schedule a local notification at local 09:00 on the day remaining time first drops below 7 days (or immediately if already inside that window / overdue)
-- When a plan item is due by mileage only, evaluate on app start and after mileage updates; if remaining distance is under 100 km or 60 mi, fire once
-- When both date and mileage exist, fire on whichever condition hits first
-- OS banner title is `Maintenance Reminder`; body is the service / plan item name
-- Reschedule when the plan item, vehicle mileage, or last service changes
+- Two reminder phases per due cycle: **upcoming** and **due**.
+- **Upcoming** — when a plan item's next due date is known, schedule a local notification at local 09:00, 30 days before the due date (or show it immediately if already inside that window).
+- **Due (date)** — schedule a second local notification at local 09:00 on the due date itself (or show it immediately when overdue).
+- **Due (mileage)** — evaluate on app start and after mileage updates; if remaining distance is under 100 km or 60 mi (owner length unit), fire once.
+- When both date and mileage exist, the due reminder fires on whichever condition hits first.
+- Each phase fires at most once per due cycle; when the due reminder fires inside the upcoming window, the upcoming banner for that cycle is suppressed (no double banner).
+- Banner copy is localized (en/my): phase-specific title, body carries the plan item name plus its due date and/or due mileage (e.g. `Oil Change — due Mar 15, 2026`, `Oil Change — due at 120,000 km`).
+- Reschedule when the plan item, vehicle mileage, last service, owner length unit, or locale changes
 - Cancel local notifications for disabled or archived items
 
 ## Permission
 
-- Request notification permission on first plan item save if not yet determined
+- Request notification permission on the first reminder sync when an enabled plan item has a due date or mileage, if not yet determined
 - If denied, still show in-app feed and Upcoming tab; do not spam the OS prompt
 
 ## Actions
 
 - **Done** — completes the reminder, offers Register Service (see `maintenance.md`), writes a feed item as completed
 - **Dismiss** — clears the notification, leaves the plan item active, may re-fire on the next interval after a new service or after a cooldown of 7 days if still overdue
-- Tapping the notification opens Maintenance for the active vehicle and the relevant item
+- Tapping the notification opens the Maintenance tab for the notification's vehicle (the active vehicle is switched when it differs)
 
 ## In-app feed
 
 Display newest first
 
-- Title (plan item name)
+- Title (phase-specific: upcoming / due)
+- Plan item name and due date / due mileage (body)
 - Vehicle name / nickname
 - Due reason (date, mileage, or both)
 - Status: unread, done, dismissed
 - Time received
 
-Mark as read on open. Empty state: "Nothing due soon."
+Both phases write a feed row (upcoming and due dedupe independently). Mark as read on open. Empty state: "Nothing due soon."
 
 ## Backend
 
@@ -133,23 +136,24 @@ Mark as read on open. Empty state: "Nothing due soon."
 ## Copy
 
 - No promotional text
-- Example: "Oil Change is due" / "Oil Change is overdue by 500 mi"
+- Localized in en/my; titles distinguish the phases: "Upcoming maintenance" / "Maintenance due"
+- Body example: "Oil Change — due Mar 15, 2026" / "Oil Change — due at 120,000 km"
 
 ---
 
 # Business Rules
 
-- A reminder is always tied to one plan item and one vehicle
+- A reminder is always tied to one plan item and one vehicle, and to one phase (upcoming or due)
 - Switching active vehicle does not cancel other vehicles' local schedules
 - Archived vehicles: cancel their scheduled locals and hide feed items
-- Mileage-based fire at most once per due cycle until a service is logged or the item is updated
+- Each phase fires at most once per due cycle until a service is logged or the item is updated
 - Feed retains 90 days in MVP then may prune locally
 
 ---
 
 # User Flow
 
-Plan item becomes due
+Plan item becomes upcoming or due
 
 ↓
 
@@ -161,7 +165,7 @@ User taps
 
 ↓
 
-Maintenance item
+Maintenance tab (notification's vehicle active)
 
 ↓
 
@@ -183,7 +187,7 @@ Done (optional Register Service) or Dismiss
 - Permission denied (in-app only; not a crash)
 - Notification plugin unavailable on the platform (feed still works)
 - Offline: local schedule still works; feed rows sync later
-- Duplicate fire for the same due cycle (dedupe by plan item + cycle id)
+- Duplicate fire for the same phase and due cycle (dedupe by plan item + phase + cycle id)
 
 ---
 
@@ -193,7 +197,7 @@ Done (optional Register Service) or Dismiss
 - Feed is offline-first and synced
 - Accessible notification content (OS + in-app)
 - No PII in notification bodies beyond vehicle nickname and item name
-- Tests for date-due, mileage-due, and first-of-either logic
+- Tests for date-due, mileage-due, upcoming-window, and first-of-either logic
 
 ---
 

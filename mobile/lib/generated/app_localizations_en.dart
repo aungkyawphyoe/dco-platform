@@ -1686,6 +1686,31 @@ class AppLocalizationsEn extends AppLocalizations {
   String get notificationsRestore => 'Restore';
 
   @override
+  String get notificationsReminderUpcomingTitle => 'Upcoming maintenance';
+
+  @override
+  String get notificationsReminderDueTitle => 'Maintenance due';
+
+  @override
+  String notificationsReminderBodyDate(Object date, Object name) {
+    return '$name — due $date';
+  }
+
+  @override
+  String notificationsReminderBodyMileage(Object mileage, Object name) {
+    return '$name — due at $mileage';
+  }
+
+  @override
+  String notificationsReminderBodyBoth(
+    Object date,
+    Object mileage,
+    Object name,
+  ) {
+    return '$name — due $date · $mileage';
+  }
+
+  @override
   String get insuranceTitle => 'Insurance';
 
   @override

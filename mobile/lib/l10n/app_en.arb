@@ -575,6 +575,11 @@
   "notificationsMarkDone": "Mark done",
   "notificationsDismiss": "Dismiss",
   "notificationsRestore": "Restore",
+  "notificationsReminderUpcomingTitle": "Upcoming maintenance",
+  "notificationsReminderDueTitle": "Maintenance due",
+  "notificationsReminderBodyDate": "{name} — due {date}",
+  "notificationsReminderBodyMileage": "{name} — due at {mileage}",
+  "notificationsReminderBodyBoth": "{name} — due {date} · {mileage}",
 
   "insuranceTitle": "Insurance",
   "insuranceNoActiveVehicle": "No active vehicle",

@@ -2,11 +2,13 @@
 // ignore_for_file: prefer_initializing_formals
 
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/notifications/local_notification_client.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
+import 'package:dco_mobile/features/notifications/data/reminder_copy.dart';
 import 'package:dco_mobile/features/notifications/data/reminder_schedule_store.dart';
 import 'package:dco_mobile/features/notifications/domain/reminder_planner.dart';
 import 'package:dco_mobile/features/notifications/domain/reminder_policy.dart';
@@ -33,6 +35,7 @@ class ReminderSyncService {
     required List<Vehicle> garage,
     required List<PlanItem> items,
     required MileageUnit lengthUnit,
+    required Locale locale,
     DateTime? now,
   }) async {
     final at = now ?? DateTime.now();
@@ -45,6 +48,9 @@ class ReminderSyncService {
       allowed = await _notifications.requestPermissionIfNeeded();
       await _schedules.markPermissionAsked();
     }
+
+    final copy = ReminderCopy(locale);
+    await copy.ensureInitialized();
 
     final delivered = await _repo.deliveredCycleKeys(userId);
     final scheduled = await _schedules.all();
@@ -59,11 +65,18 @@ class ReminderSyncService {
 
     final keepIds = <int>{};
     for (final action in actions) {
-      final id = ReminderPolicy.osId(action.planItemId);
+      final id = ReminderPolicy.osId(action.planItemId, phase: action.phase);
+      final title = copy.title(action.phase);
+      final body = copy.body(
+        name: action.serviceName,
+        dueOn: action.dueOn,
+        dueMileage: action.dueMileage,
+        unit: lengthUnit,
+      );
       switch (action.kind) {
         case ReminderActionKind.cancel:
           await _notifications.cancel(id);
-          await _schedules.clear(action.planItemId);
+          await _schedules.clear(action.planItemId, action.phase);
         case ReminderActionKind.schedule:
           keepIds.add(id);
           final fireAt = action.fireAt;
@@ -71,14 +84,15 @@ class ReminderSyncService {
           if (allowed) {
             await _notifications.schedule(
               id: id,
-              title: ReminderPolicy.clip(ReminderPolicy.osTitle, ReminderPolicy.titleMax),
-              body: ReminderPolicy.osBody(action.serviceName),
+              title: title,
+              body: body,
               fireAt: fireAt,
               payload: _payload(action),
             );
           }
           await _schedules.markScheduled(
             planItemId: action.planItemId,
+            phase: action.phase,
             cycleKey: action.cycleKey,
             fireAt: fireAt,
           );
@@ -87,20 +101,21 @@ class ReminderSyncService {
           if (allowed) {
             await _notifications.show(
               id: id,
-              title: ReminderPolicy.clip(ReminderPolicy.osTitle, ReminderPolicy.titleMax),
-              body: ReminderPolicy.osBody(action.serviceName),
+              title: title,
+              body: body,
               payload: _payload(action),
             );
             _analytics.track(AnalyticsEvent.notificationShown, {
               'plan_item_id': action.planItemId,
+              'phase': action.phase.name,
             });
           }
-          await _recordFeed(userId: userId, action: action);
-          await _schedules.clear(action.planItemId);
+          await _recordFeed(userId: userId, action: action, title: title, body: body);
+          await _schedules.clear(action.planItemId, action.phase);
         case ReminderActionKind.recordFeedOnly:
           keepIds.add(id);
-          await _recordFeed(userId: userId, action: action);
-          await _schedules.clear(action.planItemId);
+          await _recordFeed(userId: userId, action: action, title: title, body: body);
+          await _schedules.clear(action.planItemId, action.phase);
       }
     }
 
@@ -114,14 +129,16 @@ class ReminderSyncService {
   Future<void> _recordFeed({
     required String userId,
     required ReminderAction action,
+    required String title,
+    required String body,
   }) {
     return _repo.recordDue(
       userId: userId,
       vehicleId: action.vehicleId,
       planItemId: action.planItemId,
       cycleKey: action.cycleKey,
-      title: ReminderPolicy.clip(ReminderPolicy.osTitle, ReminderPolicy.titleMax),
-      body: ReminderPolicy.osBody(action.serviceName),
+      title: title,
+      body: body,
       dueReason: action.dueReason,
     );
   }
@@ -130,6 +147,7 @@ class ReminderSyncService {
     return jsonEncode({
       'vehicleId': action.vehicleId,
       'planItemId': action.planItemId,
+      'phase': action.phase.name,
     });
   }
 }

@@ -1,9 +1,14 @@
 import 'package:drift/drift.dart';
 
 import '../../../core/database/app_database.dart';
+import '../domain/reminder_policy.dart';
 import '../domain/reminder_planner.dart';
 
-/// Persists which plan-item cycles already have a future OS alarm.
+/// Persists which plan-item phases already have a future OS alarm.
+///
+/// Key: `reminder.schedule.<planItemId>.<phase>` → `"<cycleKey>|<fireAt ISO8601>"`.
+/// Legacy keys without a phase suffix (`reminder.schedule.<planItemId>`) are
+/// read as [ReminderPhase.due] and removed on the next write.
 class ReminderScheduleStore {
   ReminderScheduleStore(this._db);
 
@@ -22,12 +27,23 @@ class ReminderScheduleStore {
       if (value == null || value.isEmpty) continue;
       final parts = value.split('|');
       if (parts.length < 2) continue;
-      final fireAt = DateTime.tryParse(parts.sublist(1).join('|'));
+      // The cycle key itself contains one `|` (`<date>|<miles>`), so the
+      // fire time is the trailing segment and the rest is the cycle key.
+      final fireAt = DateTime.tryParse(parts.last);
       if (fireAt == null) continue;
+      final cycleKey = parts.sublist(0, parts.length - 1).join('|');
+      final rest = row.key.substring(_prefix.length);
+      final dot = rest.lastIndexOf('.');
+      final planItemId = dot == -1 ? rest : rest.substring(0, dot);
+      final phase = dot == -1
+          ? ReminderPhase.due
+          : ReminderPhase.values.asNameMap()[rest.substring(dot + 1)];
+      if (planItemId.isEmpty || phase == null) continue;
       result.add(
         ScheduledReminder(
-          planItemId: row.key.substring(_prefix.length),
-          cycleKey: parts[0],
+          planItemId: planItemId,
+          phase: phase,
+          cycleKey: cycleKey,
           fireAt: fireAt,
         ),
       );
@@ -37,14 +53,21 @@ class ReminderScheduleStore {
 
   Future<void> markScheduled({
     required String planItemId,
+    required ReminderPhase phase,
     required String cycleKey,
     required DateTime fireAt,
-  }) {
-    return _upsert('$_prefix$planItemId', '$cycleKey|${fireAt.toIso8601String()}');
+  }) async {
+    await _deleteLegacy(planItemId);
+    return _upsert(
+      _key(planItemId, phase),
+      '$cycleKey|${fireAt.toIso8601String()}',
+    );
   }
 
-  Future<void> clear(String planItemId) {
-    return (_db.delete(_db.appMeta)..where((row) => row.key.equals('$_prefix$planItemId'))).go();
+  Future<void> clear(String planItemId, ReminderPhase phase) async {
+    await _deleteLegacy(planItemId);
+    await (_db.delete(_db.appMeta)..where((row) => row.key.equals(_key(planItemId, phase))))
+        .go();
   }
 
   Future<bool> get permissionAsked async {
@@ -55,6 +78,14 @@ class ReminderScheduleStore {
   }
 
   Future<void> markPermissionAsked() => _upsert(_permissionAskedKey, '1');
+
+  String _key(String planItemId, ReminderPhase phase) =>
+      '$_prefix$planItemId.${phase.name}';
+
+  Future<void> _deleteLegacy(String planItemId) {
+    return (_db.delete(_db.appMeta)..where((row) => row.key.equals('$_prefix$planItemId')))
+        .go();
+  }
 
   Future<void> _upsert(String key, String value) async {
     final existing = await (_db.select(_db.appMeta)..where((row) => row.key.equals(key)))

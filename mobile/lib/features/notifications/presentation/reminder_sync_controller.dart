@@ -54,11 +54,13 @@ class ReminderSyncController {
     final items = await _ref.read(maintenanceRepositoryProvider).watchAllPlans(userId).first;
     if (_disposed) return;
     final unit = _ref.read(lengthUnitProvider);
+    final locale = _ref.read(localeProvider);
     await _ref.read(reminderSyncServiceProvider).sync(
       userId: userId,
       garage: garage,
       items: items,
       lengthUnit: unit,
+      locale: locale,
     );
   }
 
@@ -69,19 +71,35 @@ class ReminderSyncController {
     _ref.read(analyticsProvider).track(AnalyticsEvent.notificationOpened, {
       'plan_item_id': tap.planItemId,
     });
-    final userId = _ref.read(sessionControllerProvider).valueOrNull?.user.id;
-    if (userId != null) {
-      final active = await _ref.read(vehicleRepositoryProvider).watchActive(userId).first;
-      if (_disposed) return;
-      if (active?.id != tap.vehicleId) {
-        await _ref.read(vehicleRepositoryProvider).setActive(
-          userId: userId,
-          vehicleId: tap.vehicleId,
-        );
-      }
+    final userId = await _waitForUserId();
+    if (_disposed || userId == null) return;
+    final active = await _ref.read(vehicleRepositoryProvider).watchActive(userId).first;
+    if (_disposed) return;
+    if (active?.id != tap.vehicleId) {
+      await _ref.read(vehicleRepositoryProvider).setActive(
+        userId: userId,
+        vehicleId: tap.vehicleId,
+      );
     }
     if (_disposed) return;
     _ref.read(goRouterProvider).go(AppRoutes.maintenance);
+  }
+
+  /// The router redirects while the session resolves on cold start, so tap
+  /// navigation must wait for a signed-in session or it bounces to splash.
+  /// Returns null when the user is signed out or the session fails.
+  Future<String?> _waitForUserId({
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    final deadline = DateTime.now().add(timeout);
+    while (!_disposed) {
+      final session = _ref.read(sessionControllerProvider);
+      if (session.hasValue) return session.valueOrNull?.user.id;
+      if (session.hasError) return null;
+      if (!DateTime.now().isBefore(deadline)) return null;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+    return null;
   }
 
   void dispose() {
@@ -98,6 +116,7 @@ final reminderSyncControllerProvider = Provider<ReminderSyncController>((ref) {
   ref.listen(garageVehiclesProvider, (_, _) => controller.schedule());
   ref.listen(allPlanItemsProvider, (_, _) => controller.schedule());
   ref.listen(lengthUnitProvider, (_, _) => controller.schedule());
+  ref.listen(localeProvider, (_, _) => controller.schedule());
   unawaited(controller.start());
   return controller;
 });

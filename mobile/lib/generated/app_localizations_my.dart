@@ -1713,6 +1713,33 @@ class AppLocalizationsMy extends AppLocalizations {
   String get notificationsRestore => 'မူလအတိုင်း ပြန်ထားမည်';
 
   @override
+  String get notificationsReminderUpcomingTitle =>
+      'လာမည့် ပြုပြင်ထိန်းသိမ်းမှု သတိပေးချက်';
+
+  @override
+  String get notificationsReminderDueTitle =>
+      'ပြုပြင်ထိန်းသိမ်းမှု ရက်တော်ကပ်ပါပြီ';
+
+  @override
+  String notificationsReminderBodyDate(Object date, Object name) {
+    return '$name — $date တွင် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်';
+  }
+
+  @override
+  String notificationsReminderBodyMileage(Object mileage, Object name) {
+    return '$name — $mileageအရောက် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်';
+  }
+
+  @override
+  String notificationsReminderBodyBoth(
+    Object date,
+    Object mileage,
+    Object name,
+  ) {
+    return '$name — $date · $mileage တွင် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်';
+  }
+
+  @override
   String get insuranceTitle => 'အာမခံ';
 
   @override
