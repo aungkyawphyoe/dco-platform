@@ -13,6 +13,7 @@ const nav = [
     items: [
       { href: "/users", label: "Users", exact: false },
       { href: "/partners", label: "Partners", exact: false },
+      { href: "/organizations", label: "Organizations", exact: false },
     ],
   },
   {

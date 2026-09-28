@@ -16,7 +16,12 @@ export function middleware(request: NextRequest) {
   }
 
   // Admin routes
-  if (pathname === "/" || pathname.startsWith("/users") || pathname.startsWith("/partners")) {
+  if (
+    pathname === "/" ||
+    pathname.startsWith("/users") ||
+    pathname.startsWith("/partners") ||
+    pathname.startsWith("/organizations")
+  ) {
     if (!hasAdminSession) {
       return NextResponse.redirect(new URL("/login", request.url));
     }

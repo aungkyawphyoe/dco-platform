@@ -11,6 +11,7 @@ export function Select({
   value,
   onChange,
   className = "",
+  disabled = false,
 }: {
   label: string;
   options: Option[];
@@ -18,6 +19,7 @@ export function Select({
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
@@ -32,8 +34,9 @@ export function Select({
         <select
           id={id}
           value={value}
+          disabled={disabled}
           onChange={(e) => onChange(e.target.value)}
-          className="h-11 w-full appearance-none rounded-md bg-field px-3 pr-10 text-body text-ink border border-line-strong transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-focus"
+          className="h-11 w-full appearance-none rounded-md bg-field px-3 pr-10 text-body text-ink border border-line-strong transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-focus disabled:cursor-not-allowed disabled:opacity-60"
         >
           {placeholder && (
             <option value="">{placeholder}</option>

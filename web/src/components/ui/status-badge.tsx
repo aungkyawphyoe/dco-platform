@@ -58,3 +58,35 @@ export function PartnerTypeBadge({ type }: { type?: string }) {
     </Badge>
   );
 }
+
+type OrgStatus = "pending" | "active" | "suspended" | "archived";
+
+const orgStatusTone: Record<OrgStatus, BadgeTone> = {
+  pending: "warning",
+  active: "success",
+  suspended: "danger",
+  archived: "neutral",
+};
+
+const orgStatusLabel: Record<OrgStatus, string> = {
+  pending: "Pending",
+  active: "Active",
+  suspended: "Suspended",
+  archived: "Archived",
+};
+
+export function OrganizationStatusBadge({ status }: { status?: string }) {
+  const tone = orgStatusTone[status as OrgStatus] ?? "neutral";
+  const label = orgStatusLabel[status as OrgStatus] ?? status ?? "—";
+  return <Badge tone={tone}>{label}</Badge>;
+}
+
+export function OrganizationTypeBadge({ type }: { type?: string }) {
+  const label = type
+    ? type
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+    : "—";
+  return <Badge tone="info">{label}</Badge>;
+}

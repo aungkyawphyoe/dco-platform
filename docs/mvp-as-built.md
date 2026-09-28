@@ -58,7 +58,7 @@ Honest snapshot against the Phase 1 contract.
 | In-app notification feed | **Done** (local) | Local rows + status (done/dismiss). OS local reminders via `flutter_local_notifications` |
 | Settings | **Partial** | Units work. Language preference stored; UI still English. Plan label hardcoded. Sync line hardcoded `idle`. No Settings FRD. |
 | Family Sharing | **Done** | Family create/join, member management (primary_owner/member/driver), vehicle grants, driving licenses, share codes, QR invites. Mobile + API + Web (read-only dashboard). |
-| Web admin | **Done** | Login BFF, dashboard, users, partners, family dashboard (Primary Owner read-only). `sync_errors_24h` always `0`. |
+| Web admin | **Done** | Login BFF, dashboard, users, partners, organizations (create Enterprise org in `pending` + link/invite Org Admin, list/filter, edit details, activate/suspend/archive, resend invite), family dashboard (Primary Owner read-only). `sync_errors_24h` always `0`. |
 | Fleet portal | **Done** | Separate Next.js app (`fleet-portal/`): `surface: "fleet"` BFF login (`dco-fleet`), dashboard analytics + lemon flags, vehicle inventory + CSV import, work orders, inspection templates/history, driver assignments, members, workshops, warranty templates, transferred audit, CSV reports, org settings (lemon threshold). Workshop Portal remains out of this surface. |
 | Fleet mobile modes | **Done** | Owner app drawer → Fleet hub: entitlement-gated entry, Personal/Fleet/Driver mode switch (persisted per user, entitlement-validated), org management (members/vehicles/workshops/settings), vehicle inventory + add/edit + CSV import + status transitions + transfer, work orders + resolve, reports/analytics + CSV export, assignments, warranty templates; Driver mode: restricted 3-tab view with my vehicle, my reports, shift start/end, issue reporting, fuel log, template inspections. Online-first (no new Drift tables). Workshop mobile screen not implemented. |
 | Azure | **Deployable, not deployed** | `azure.yaml` + Bicep for the **API** only. Web is not wired. |
@@ -303,7 +303,10 @@ npm install
 npm run db:migrate
 npm run dev
 npm test
+npm run seed:org        # optional: full-access Fleet test account (prints credentials)
 ```
+
+`npm run seed:org` creates an owner account + an **active** Enterprise organization with an `org_admin` membership in one step, so Fleet access works without invitation emails (`MAIL_PROVIDER=stdout` only prints mail to the server log). Defaults: `orgadmin@example.com` / `OrgAdmin123!` (org "Acme Motors"). Flags: `--email --password --name --type --role --reset --force-role`, e.g. `npm run seed:org -- --email driver@example.com --role org_driver --name "Acme Motors"` joins a driver to the same org.
 
 **Owner app**
 

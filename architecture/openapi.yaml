@@ -1699,9 +1699,27 @@ paths:
     get:
       tags: [Admin]
       summary: List and search Enterprise organizations
+      parameters:
+        - in: query
+          name: q
+          schema: {type: string}
+          description: Case-insensitive match on organization name or contact email
+        - in: query
+          name: status
+          schema: {type: string, enum: [pending, active, suspended, archived]}
       responses:
         '200':
           description: Organization list
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminOrganization'
     post:
       tags: [Admin]
       summary: Provision an Enterprise organization and link or create an invited Org Admin account
@@ -1710,17 +1728,14 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              required: [name, type, admin_email]
-              properties:
-                name: {type: string, minLength: 1, maxLength: 200}
-                type: {type: string, enum: [showroom, dealership, taxi_fleet, rental, commercial, logistics]}
-                admin_email: {type: string, format: email}
-                contact_email: {type: string, format: email, nullable: true}
-                contact_phone: {type: string, maxLength: 20, nullable: true}
+              $ref: '#/components/schemas/AdminOrganizationWrite'
       responses:
         '201':
           description: Enterprise organization created in pending status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrganizationCreated'
         '409':
           $ref: '#/components/responses/Error'
   /admin/organizations/{organizationId}:
@@ -1733,18 +1748,39 @@ paths:
       tags: [Admin]
       summary: Organization detail for provisioning support
       responses:
-        '200': {description: Organization detail}
-        '404': {$ref: '#/components/responses/Error'}
+        '200':
+          description: Organization detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrganizationDetail'
+        '404':
+          $ref: '#/components/responses/Error'
     patch:
       tags: [Admin]
       summary: Update Enterprise organization details
       requestBody:
+        required: true
         content:
           application/json:
-            schema: {type: object}
+            schema:
+              type: object
+              properties:
+                name: {type: string, minLength: 1, maxLength: 200}
+                type: {type: string, enum: [showroom, dealership, taxi_fleet, rental, commercial, logistics]}
+                contact_email: {type: string, format: email, nullable: true}
+                contact_phone: {type: string, maxLength: 20, nullable: true}
       responses:
-        '200': {description: Updated organization}
-        '404': {$ref: '#/components/responses/Error'}
+        '200':
+          description: Updated organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrganization'
+        '404':
+          $ref: '#/components/responses/Error'
+        '410':
+          $ref: '#/components/responses/Error'
   /admin/organizations/{organizationId}/status:
     patch:
       tags: [Admin]
@@ -1764,8 +1800,16 @@ paths:
               properties:
                 status: {type: string, enum: [active, suspended, archived]}
       responses:
-        '200': {description: Updated organization status}
-        '410': {$ref: '#/components/responses/Error'}
+        '200':
+          description: Updated organization status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminOrganizationStatus'
+        '404':
+          $ref: '#/components/responses/Error'
+        '410':
+          $ref: '#/components/responses/Error'
   /organizations/me:
     get:
       tags: [Fleet]
@@ -3555,6 +3599,9 @@ components:
         display_name:
           type: string
           nullable: true
+        contact_phone:
+          type: string
+          nullable: true
         plan:
           $ref: '#/components/schemas/Plan'
         status:
@@ -3569,6 +3616,9 @@ components:
         - $ref: '#/components/schemas/AdminUserListItem'
         - type: object
           properties:
+            address:
+              type: string
+              nullable: true
             email_verified:
               type: boolean
             vehicles:
@@ -3586,6 +3636,106 @@ components:
             documents_count:
               type: integer
               description: Metadata count only
+    AdminOrganization:
+      type: object
+      required: [id, name, type, plan, status, admin_user_id, created_by, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 200
+        type:
+          type: string
+          enum: [showroom, dealership, taxi_fleet, rental, commercial, logistics]
+        plan:
+          type: string
+          enum: [enterprise]
+        status:
+          type: string
+          enum: [pending, active, suspended, archived]
+        admin_user_id:
+          type: string
+          format: uuid
+        admin_email:
+          type: string
+          format: email
+          nullable: true
+        created_by:
+          type: string
+          format: uuid
+        activated_by:
+          type: string
+          format: uuid
+          nullable: true
+        activated_at:
+          type: string
+          format: date-time
+          nullable: true
+        contact_email:
+          type: string
+          nullable: true
+        contact_phone:
+          type: string
+          nullable: true
+        settings:
+          type: object
+          additionalProperties: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    AdminOrganizationDetail:
+      allOf:
+        - $ref: '#/components/schemas/AdminOrganization'
+        - type: object
+          required: [member_count]
+          properties:
+            member_count:
+              type: integer
+    AdminOrganizationWrite:
+      type: object
+      required: [name, type, admin_email]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        type:
+          type: string
+          enum: [showroom, dealership, taxi_fleet, rental, commercial, logistics]
+        admin_email:
+          type: string
+          format: email
+        contact_email:
+          type: string
+          format: email
+          nullable: true
+        contact_phone:
+          type: string
+          maxLength: 20
+          nullable: true
+    AdminOrganizationCreated:
+      allOf:
+        - $ref: '#/components/schemas/AdminOrganization'
+        - type: object
+          properties:
+            account_invitation_sent:
+              type: boolean
+              description: True when a new invited owner account was created for the Org Admin email
+            organization_invitation_sent:
+              type: boolean
+    AdminOrganizationStatus:
+      allOf:
+        - $ref: '#/components/schemas/AdminOrganization'
+        - type: object
+          properties:
+            activation_email_sent:
+              type: boolean
+              nullable: true
     Partner:
       type: object
       required: [id, name, type, status]

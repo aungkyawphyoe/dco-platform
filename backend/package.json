@@ -12,7 +12,8 @@
     "start": "node dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:migrate": "tsx src/db/run-migrate.ts"
+    "db:migrate": "tsx src/db/run-migrate.ts",
+    "seed:org": "tsx src/scripts/seed-org.ts"
   },
   "dependencies": {
     "@azure/communication-email": "^1.0.0",

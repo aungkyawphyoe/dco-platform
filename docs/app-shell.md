@@ -187,7 +187,7 @@ Staff only. Online. Wireframes: tldraw **A1–A6** (cluster "WEB ADMIN (MVP)").
 Sidebar (Autozis-like chrome, DCO items only):
 
 - Overview — Dashboard
-- Directory — Users, Partners
+- Directory — Users, Partners, Organizations
 - Family — Primary Owner read-only dashboard (members, vehicles, share code)
 - Account — Sign out
 

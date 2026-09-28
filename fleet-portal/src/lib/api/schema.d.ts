@@ -3386,7 +3386,11 @@ export interface paths {
         /** List and search Enterprise organizations */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Case-insensitive match on organization name or contact email */
+                    q?: string;
+                    status?: "pending" | "active" | "suspended" | "archived";
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -3398,7 +3402,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["AdminOrganization"][];
+                        };
+                    };
                 };
             };
         };
@@ -3413,16 +3421,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": {
-                        name: string;
-                        /** @enum {string} */
-                        type: "showroom" | "dealership" | "taxi_fleet" | "rental" | "commercial" | "logistics";
-                        /** Format: email */
-                        admin_email: string;
-                        /** Format: email */
-                        contact_email?: string | null;
-                        contact_phone?: string | null;
-                    };
+                    "application/json": components["schemas"]["AdminOrganizationWrite"];
                 };
             };
             responses: {
@@ -3431,7 +3430,9 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationCreated"];
+                    };
                 };
                 409: components["responses"]["Error"];
             };
@@ -3468,7 +3469,9 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationDetail"];
+                    };
                 };
                 404: components["responses"]["Error"];
             };
@@ -3488,9 +3491,16 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: {
+            requestBody: {
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        name?: string;
+                        /** @enum {string} */
+                        type?: "showroom" | "dealership" | "taxi_fleet" | "rental" | "commercial" | "logistics";
+                        /** Format: email */
+                        contact_email?: string | null;
+                        contact_phone?: string | null;
+                    };
                 };
             };
             responses: {
@@ -3499,9 +3509,12 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganization"];
+                    };
                 };
                 404: components["responses"]["Error"];
+                410: components["responses"]["Error"];
             };
         };
         trace?: never;
@@ -3543,8 +3556,11 @@ export interface paths {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["AdminOrganizationStatus"];
+                    };
                 };
+                404: components["responses"]["Error"];
                 410: components["responses"]["Error"];
             };
         };
@@ -5965,6 +5981,7 @@ export interface components {
             id?: string;
             email?: string;
             display_name?: string | null;
+            contact_phone?: string | null;
             plan?: components["schemas"]["Plan"];
             status?: components["schemas"]["AccountStatus"];
             vehicle_count?: number;
@@ -5972,6 +5989,7 @@ export interface components {
             created_at?: string;
         };
         AdminUserProfile: components["schemas"]["AdminUserListItem"] & {
+            address?: string | null;
             email_verified?: boolean;
             vehicles?: {
                 /** Format: uuid */
@@ -5981,6 +5999,57 @@ export interface components {
             }[];
             /** @description Metadata count only */
             documents_count?: number;
+        };
+        AdminOrganization: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            type: "showroom" | "dealership" | "taxi_fleet" | "rental" | "commercial" | "logistics";
+            /** @enum {string} */
+            plan: "enterprise";
+            /** @enum {string} */
+            status: "pending" | "active" | "suspended" | "archived";
+            /** Format: uuid */
+            admin_user_id: string;
+            /** Format: email */
+            admin_email?: string | null;
+            /** Format: uuid */
+            created_by: string;
+            /** Format: uuid */
+            activated_by?: string | null;
+            /** Format: date-time */
+            activated_at?: string | null;
+            contact_email?: string | null;
+            contact_phone?: string | null;
+            settings?: {
+                [key: string]: unknown;
+            };
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        AdminOrganizationDetail: components["schemas"]["AdminOrganization"] & {
+            member_count: number;
+        };
+        AdminOrganizationWrite: {
+            name: string;
+            /** @enum {string} */
+            type: "showroom" | "dealership" | "taxi_fleet" | "rental" | "commercial" | "logistics";
+            /** Format: email */
+            admin_email: string;
+            /** Format: email */
+            contact_email?: string | null;
+            contact_phone?: string | null;
+        };
+        AdminOrganizationCreated: components["schemas"]["AdminOrganization"] & {
+            /** @description True when a new invited owner account was created for the Org Admin email */
+            account_invitation_sent?: boolean;
+            organization_invitation_sent?: boolean;
+        };
+        AdminOrganizationStatus: components["schemas"]["AdminOrganization"] & {
+            activation_email_sent?: boolean | null;
         };
         Partner: {
             /** Format: uuid */

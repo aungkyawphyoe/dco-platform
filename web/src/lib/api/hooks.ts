@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPatch, apiPost } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost } from "./client";
 import type { components } from "./schema";
 
 type AdminDashboard = components["schemas"]["AdminDashboard"];
@@ -181,6 +181,101 @@ export function useUpdatePartner() {
       qc.invalidateQueries({ queryKey: ["admin", "partners"] });
       qc.invalidateQueries({ queryKey: ["admin", "partners", variables.id] });
     },
+  });
+}
+
+// ── Organizations ──
+
+type AdminOrganization = components["schemas"]["AdminOrganization"];
+type AdminOrganizationDetail = components["schemas"]["AdminOrganizationDetail"];
+type AdminOrganizationCreated = components["schemas"]["AdminOrganizationCreated"];
+type AdminOrganizationStatus = components["schemas"]["AdminOrganizationStatus"];
+
+export function useAdminOrganizations(query: { q?: string; status?: string }) {
+  const params = new URLSearchParams();
+  if (query.q) params.set("q", query.q);
+  if (query.status) params.set("status", query.status);
+  const qs = params.toString();
+  const path = `/admin/organizations${qs ? `?${qs}` : ""}`;
+
+  return useQuery({
+    queryKey: ["admin", "organizations", query],
+    queryFn: () => apiGet<{ items?: AdminOrganization[] }>(path),
+  });
+}
+
+export function useAdminOrganization(id: string | null) {
+  return useQuery({
+    queryKey: ["admin", "organizations", id],
+    queryFn: () => apiGet<AdminOrganizationDetail>(`/admin/organizations/${id}`),
+    enabled: Boolean(id),
+  });
+}
+
+export function useCreateOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      name: string;
+      type: AdminOrganization["type"];
+      admin_email: string;
+      contact_email?: string;
+      contact_phone?: string;
+    }) => apiPost<AdminOrganizationCreated>("/admin/organizations", body),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: ["admin", "organizations"] });
+      qc.invalidateQueries({ queryKey: ["admin", "dashboard"] });
+      return data;
+    },
+  });
+}
+
+export function useUpdateOrganization() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...body
+    }: {
+      id: string;
+      name?: string;
+      type?: AdminOrganization["type"];
+      contact_email?: string | null;
+      contact_phone?: string | null;
+    }) => apiPatch<AdminOrganization>(`/admin/organizations/${id}`, body),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin", "organizations"] });
+      qc.invalidateQueries({ queryKey: ["admin", "organizations", variables.id] });
+    },
+  });
+}
+
+export function useUpdateOrganizationStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      status,
+    }: {
+      id: string;
+      status: "active" | "suspended" | "archived";
+    }) =>
+      apiPatch<AdminOrganizationStatus>(`/admin/organizations/${id}/status`, {
+        status,
+      }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin", "organizations"] });
+      qc.invalidateQueries({ queryKey: ["admin", "organizations", variables.id] });
+    },
+  });
+}
+
+export function useResendOrganizationInvite() {
+  return useMutation({
+    mutationFn: (organizationId: string) =>
+      apiPost<void>("/admin/support/invite-resend", {
+        organization_id: organizationId,
+      }),
   });
 }
 

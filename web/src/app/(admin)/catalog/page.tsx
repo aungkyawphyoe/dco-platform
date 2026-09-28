@@ -117,7 +117,7 @@ export default function CatalogPage() {
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {item.fuel_types.map((ft) => (
-                        <Badge key={ft} variant="secondary">
+                        <Badge key={ft} tone="neutral">
                           {FUEL_LABELS[ft] ?? ft}
                         </Badge>
                       ))}
@@ -128,7 +128,7 @@ export default function CatalogPage() {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={item.enabled ? "default" : "destructive"}
+                      tone={item.enabled ? "success" : "danger"}
                     >
                       {item.enabled ? "Active" : "Disabled"}
                     </Badge>
@@ -137,7 +137,18 @@ export default function CatalogPage() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setEditItem(item)}
+                      onClick={() =>
+                        setEditItem({
+                          id: item.id,
+                          catalog_key: item.catalog_key,
+                          name: item.name,
+                          interval_days: item.interval_days ?? null,
+                          interval_distance: item.interval_distance ?? null,
+                          fuel_types: item.fuel_types,
+                          sort_order: item.sort_order,
+                          enabled: item.enabled,
+                        })
+                      }
                     >
                       Edit
                     </Button>
