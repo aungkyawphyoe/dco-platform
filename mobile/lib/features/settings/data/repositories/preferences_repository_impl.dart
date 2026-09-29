@@ -45,6 +45,8 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
               language: Value(preferences.language.code),
               currency: Value(preferences.currency.code),
               lengthUnit: Value(preferences.lengthUnit.name),
+              soonDays: Value(preferences.soonDays),
+              soonDistanceKm: Value(preferences.soonDistanceKm),
             ),
           );
       return;
@@ -54,6 +56,8 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
         language: Value(preferences.language.code),
         currency: Value(preferences.currency.code),
         lengthUnit: Value(preferences.lengthUnit.name),
+        soonDays: Value(preferences.soonDays),
+        soonDistanceKm: Value(preferences.soonDistanceKm),
       ),
     );
   }
@@ -63,6 +67,8 @@ class PreferencesRepositoryImpl implements PreferencesRepository {
       language: AppLanguage.parse(row.language),
       currency: AppCurrency.parse(row.currency),
       lengthUnit: MileageUnit.parse(row.lengthUnit),
+      soonDays: row.soonDays,
+      soonDistanceKm: row.soonDistanceKm,
     );
   }
 }

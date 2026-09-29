@@ -1,3 +1,4 @@
+import '../../../core/units/mileage_unit.dart';
 import 'entities/plan_item.dart';
 
 enum PlanUrgency { overdue, dueSoon, scheduled, hidden }
@@ -9,11 +10,59 @@ class NextDue {
   final double? mileage;
 }
 
+/// How far in advance a plan item counts as "soon" (upcoming).
+///
+/// User-configurable in Settings → Reminders; drives both the in-app
+/// Upcoming grouping and the local OS reminder schedule.
+class DueThresholds {
+  const DueThresholds({required this.soonDays, required this.soonDistanceKm});
+
+  static const minDays = 7;
+  static const maxDays = 60;
+  static const minKm = 100.0;
+  static const maxKm = 1000.0;
+  static const stepKm = 100.0;
+
+  static const defaults = DueThresholds(soonDays: 30, soonDistanceKm: 500);
+
+  /// Days before the due date (7–60) that a plan item becomes upcoming.
+  final int soonDays;
+
+  /// Remaining distance in km (100–1000, 100 km steps) that a plan item
+  /// becomes upcoming. Stored in km; compared against the odometer after
+  /// converting to the canonical storage unit (miles).
+  final double soonDistanceKm;
+
+  /// Clamps [soonDays] to 7–60 and snaps [soonDistanceKm] to the 100 km grid
+  /// between 100 and 1000.
+  static DueThresholds fromValues({
+    required int soonDays,
+    required double soonDistanceKm,
+  }) {
+    final days = soonDays.clamp(minDays, maxDays).toInt();
+    var km = (soonDistanceKm / stepKm).round() * stepKm;
+    km = km.clamp(minKm, maxKm).toDouble();
+    return DueThresholds(soonDays: days, soonDistanceKm: km);
+  }
+
+  /// Threshold converted to the canonical stored unit (miles).
+  double get soonDistanceMiles => MileageUnit.km.toStorage(soonDistanceKm);
+
+  @override
+  bool operator ==(Object other) =>
+      other is DueThresholds &&
+      other.soonDays == soonDays &&
+      other.soonDistanceKm == soonDistanceKm;
+
+  @override
+  int get hashCode => Object.hash(soonDays, soonDistanceKm);
+
+  @override
+  String toString() => 'DueThresholds($soonDays days, $soonDistanceKm km)';
+}
+
 /// Pure due-date / due-mileage math. Upcoming = overdue or due-soon.
 abstract final class DueCalculator {
-  static const soonDays = 30;
-  static const soonDistance = 500.0;
-
   static DateTime dateOnly(DateTime value) => DateTime(value.year, value.month, value.day);
 
   static NextDue fromDraft({
@@ -52,6 +101,7 @@ abstract final class DueCalculator {
     required PlanItem item,
     required double vehicleMileage,
     required DateTime now,
+    required DueThresholds thresholds,
   }) {
     if (!item.enabled) return PlanUrgency.hidden;
     final today = dateOnly(now);
@@ -64,14 +114,14 @@ abstract final class DueCalculator {
     if (dueOn != null) {
       if (!dueOn.isAfter(today)) {
         overdue = true;
-      } else if (dueOn.difference(today).inDays <= soonDays) {
+      } else if (dueOn.difference(today).inDays <= thresholds.soonDays) {
         dueSoon = true;
       }
     }
     if (dueMiles != null) {
       if (vehicleMileage >= dueMiles) {
         overdue = true;
-      } else if (dueMiles - vehicleMileage <= soonDistance) {
+      } else if (dueMiles - vehicleMileage <= thresholds.soonDistanceMiles) {
         dueSoon = true;
       }
     }
@@ -93,13 +143,20 @@ abstract final class DueCalculator {
     return days < miles ? days : miles;
   }
 
-  static int compareSoonest(PlanItem a, PlanItem b, double mileage, DateTime now) {
+  static int compareSoonest(
+    PlanItem a,
+    PlanItem b,
+    double mileage,
+    DateTime now,
+    DueThresholds thresholds,
+  ) {
     final urgencyDelta = urgency(
       item: a,
       vehicleMileage: mileage,
       now: now,
+      thresholds: thresholds,
     ).index.compareTo(
-      urgency(item: b, vehicleMileage: mileage, now: now).index,
+      urgency(item: b, vehicleMileage: mileage, now: now, thresholds: thresholds).index,
     );
     if (urgencyDelta != 0) return urgencyDelta;
     return remainingScore(a, mileage, now).compareTo(remainingScore(b, mileage, now));
@@ -109,15 +166,22 @@ abstract final class DueCalculator {
     required List<PlanItem> items,
     required double vehicleMileage,
     required DateTime now,
+    required DueThresholds thresholds,
   }) {
     final visible = items
         .where(
           (item) =>
-              urgency(item: item, vehicleMileage: vehicleMileage, now: now) != PlanUrgency.hidden,
+              urgency(
+                item: item,
+                vehicleMileage: vehicleMileage,
+                now: now,
+                thresholds: thresholds,
+              ) !=
+              PlanUrgency.hidden,
         )
         .toList();
     if (visible.isEmpty) return null;
-    visible.sort((a, b) => compareSoonest(a, b, vehicleMileage, now));
+    visible.sort((a, b) => compareSoonest(a, b, vehicleMileage, now, thresholds));
     return visible.first;
   }
 

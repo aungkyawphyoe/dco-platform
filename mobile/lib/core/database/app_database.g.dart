@@ -1570,6 +1570,30 @@ class $UserProfilesTable extends UserProfiles
     requiredDuringInsert: false,
     defaultValue: const Constant('km'),
   );
+  static const VerificationMeta _soonDaysMeta = const VerificationMeta(
+    'soonDays',
+  );
+  @override
+  late final GeneratedColumn<int> soonDays = GeneratedColumn<int>(
+    'soon_days',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(30),
+  );
+  static const VerificationMeta _soonDistanceKmMeta = const VerificationMeta(
+    'soonDistanceKm',
+  );
+  @override
+  late final GeneratedColumn<double> soonDistanceKm = GeneratedColumn<double>(
+    'soon_distance_km',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(500),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     userId,
@@ -1577,6 +1601,8 @@ class $UserProfilesTable extends UserProfiles
     language,
     currency,
     lengthUnit,
+    soonDays,
+    soonDistanceKm,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -1625,6 +1651,21 @@ class $UserProfilesTable extends UserProfiles
         lengthUnit.isAcceptableOrUnknown(data['length_unit']!, _lengthUnitMeta),
       );
     }
+    if (data.containsKey('soon_days')) {
+      context.handle(
+        _soonDaysMeta,
+        soonDays.isAcceptableOrUnknown(data['soon_days']!, _soonDaysMeta),
+      );
+    }
+    if (data.containsKey('soon_distance_km')) {
+      context.handle(
+        _soonDistanceKmMeta,
+        soonDistanceKm.isAcceptableOrUnknown(
+          data['soon_distance_km']!,
+          _soonDistanceKmMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -1654,6 +1695,14 @@ class $UserProfilesTable extends UserProfiles
         DriftSqlType.string,
         data['${effectivePrefix}length_unit'],
       )!,
+      soonDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}soon_days'],
+      )!,
+      soonDistanceKm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}soon_distance_km'],
+      )!,
     );
   }
 
@@ -1669,12 +1718,16 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
   final String language;
   final String currency;
   final String lengthUnit;
+  final int soonDays;
+  final double soonDistanceKm;
   const UserProfile({
     required this.userId,
     this.activeVehicleId,
     required this.language,
     required this.currency,
     required this.lengthUnit,
+    required this.soonDays,
+    required this.soonDistanceKm,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1686,6 +1739,8 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     map['language'] = Variable<String>(language);
     map['currency'] = Variable<String>(currency);
     map['length_unit'] = Variable<String>(lengthUnit);
+    map['soon_days'] = Variable<int>(soonDays);
+    map['soon_distance_km'] = Variable<double>(soonDistanceKm);
     return map;
   }
 
@@ -1698,6 +1753,8 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       language: Value(language),
       currency: Value(currency),
       lengthUnit: Value(lengthUnit),
+      soonDays: Value(soonDays),
+      soonDistanceKm: Value(soonDistanceKm),
     );
   }
 
@@ -1712,6 +1769,8 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       language: serializer.fromJson<String>(json['language']),
       currency: serializer.fromJson<String>(json['currency']),
       lengthUnit: serializer.fromJson<String>(json['lengthUnit']),
+      soonDays: serializer.fromJson<int>(json['soonDays']),
+      soonDistanceKm: serializer.fromJson<double>(json['soonDistanceKm']),
     );
   }
   @override
@@ -1723,6 +1782,8 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       'language': serializer.toJson<String>(language),
       'currency': serializer.toJson<String>(currency),
       'lengthUnit': serializer.toJson<String>(lengthUnit),
+      'soonDays': serializer.toJson<int>(soonDays),
+      'soonDistanceKm': serializer.toJson<double>(soonDistanceKm),
     };
   }
 
@@ -1732,6 +1793,8 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     String? language,
     String? currency,
     String? lengthUnit,
+    int? soonDays,
+    double? soonDistanceKm,
   }) => UserProfile(
     userId: userId ?? this.userId,
     activeVehicleId: activeVehicleId.present
@@ -1740,6 +1803,8 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     language: language ?? this.language,
     currency: currency ?? this.currency,
     lengthUnit: lengthUnit ?? this.lengthUnit,
+    soonDays: soonDays ?? this.soonDays,
+    soonDistanceKm: soonDistanceKm ?? this.soonDistanceKm,
   );
   UserProfile copyWithCompanion(UserProfilesCompanion data) {
     return UserProfile(
@@ -1752,6 +1817,10 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       lengthUnit: data.lengthUnit.present
           ? data.lengthUnit.value
           : this.lengthUnit,
+      soonDays: data.soonDays.present ? data.soonDays.value : this.soonDays,
+      soonDistanceKm: data.soonDistanceKm.present
+          ? data.soonDistanceKm.value
+          : this.soonDistanceKm,
     );
   }
 
@@ -1762,14 +1831,23 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
           ..write('activeVehicleId: $activeVehicleId, ')
           ..write('language: $language, ')
           ..write('currency: $currency, ')
-          ..write('lengthUnit: $lengthUnit')
+          ..write('lengthUnit: $lengthUnit, ')
+          ..write('soonDays: $soonDays, ')
+          ..write('soonDistanceKm: $soonDistanceKm')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(userId, activeVehicleId, language, currency, lengthUnit);
+  int get hashCode => Object.hash(
+    userId,
+    activeVehicleId,
+    language,
+    currency,
+    lengthUnit,
+    soonDays,
+    soonDistanceKm,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1778,7 +1856,9 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
           other.activeVehicleId == this.activeVehicleId &&
           other.language == this.language &&
           other.currency == this.currency &&
-          other.lengthUnit == this.lengthUnit);
+          other.lengthUnit == this.lengthUnit &&
+          other.soonDays == this.soonDays &&
+          other.soonDistanceKm == this.soonDistanceKm);
 }
 
 class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
@@ -1787,6 +1867,8 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
   final Value<String> language;
   final Value<String> currency;
   final Value<String> lengthUnit;
+  final Value<int> soonDays;
+  final Value<double> soonDistanceKm;
   final Value<int> rowid;
   const UserProfilesCompanion({
     this.userId = const Value.absent(),
@@ -1794,6 +1876,8 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     this.language = const Value.absent(),
     this.currency = const Value.absent(),
     this.lengthUnit = const Value.absent(),
+    this.soonDays = const Value.absent(),
+    this.soonDistanceKm = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   UserProfilesCompanion.insert({
@@ -1802,6 +1886,8 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     this.language = const Value.absent(),
     this.currency = const Value.absent(),
     this.lengthUnit = const Value.absent(),
+    this.soonDays = const Value.absent(),
+    this.soonDistanceKm = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : userId = Value(userId);
   static Insertable<UserProfile> custom({
@@ -1810,6 +1896,8 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     Expression<String>? language,
     Expression<String>? currency,
     Expression<String>? lengthUnit,
+    Expression<int>? soonDays,
+    Expression<double>? soonDistanceKm,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1818,6 +1906,8 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
       if (language != null) 'language': language,
       if (currency != null) 'currency': currency,
       if (lengthUnit != null) 'length_unit': lengthUnit,
+      if (soonDays != null) 'soon_days': soonDays,
+      if (soonDistanceKm != null) 'soon_distance_km': soonDistanceKm,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1828,6 +1918,8 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     Value<String>? language,
     Value<String>? currency,
     Value<String>? lengthUnit,
+    Value<int>? soonDays,
+    Value<double>? soonDistanceKm,
     Value<int>? rowid,
   }) {
     return UserProfilesCompanion(
@@ -1836,6 +1928,8 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
       language: language ?? this.language,
       currency: currency ?? this.currency,
       lengthUnit: lengthUnit ?? this.lengthUnit,
+      soonDays: soonDays ?? this.soonDays,
+      soonDistanceKm: soonDistanceKm ?? this.soonDistanceKm,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1858,6 +1952,12 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     if (lengthUnit.present) {
       map['length_unit'] = Variable<String>(lengthUnit.value);
     }
+    if (soonDays.present) {
+      map['soon_days'] = Variable<int>(soonDays.value);
+    }
+    if (soonDistanceKm.present) {
+      map['soon_distance_km'] = Variable<double>(soonDistanceKm.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1872,6 +1972,8 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
           ..write('language: $language, ')
           ..write('currency: $currency, ')
           ..write('lengthUnit: $lengthUnit, ')
+          ..write('soonDays: $soonDays, ')
+          ..write('soonDistanceKm: $soonDistanceKm, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -12832,6 +12934,8 @@ typedef $$UserProfilesTableCreateCompanionBuilder =
       Value<String> language,
       Value<String> currency,
       Value<String> lengthUnit,
+      Value<int> soonDays,
+      Value<double> soonDistanceKm,
       Value<int> rowid,
     });
 typedef $$UserProfilesTableUpdateCompanionBuilder =
@@ -12841,6 +12945,8 @@ typedef $$UserProfilesTableUpdateCompanionBuilder =
       Value<String> language,
       Value<String> currency,
       Value<String> lengthUnit,
+      Value<int> soonDays,
+      Value<double> soonDistanceKm,
       Value<int> rowid,
     });
 
@@ -12875,6 +12981,16 @@ class $$UserProfilesTableFilterComposer
 
   ColumnFilters<String> get lengthUnit => $composableBuilder(
     column: $table.lengthUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get soonDays => $composableBuilder(
+    column: $table.soonDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get soonDistanceKm => $composableBuilder(
+    column: $table.soonDistanceKm,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -12912,6 +13028,16 @@ class $$UserProfilesTableOrderingComposer
     column: $table.lengthUnit,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<int> get soonDays => $composableBuilder(
+    column: $table.soonDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get soonDistanceKm => $composableBuilder(
+    column: $table.soonDistanceKm,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$UserProfilesTableAnnotationComposer
@@ -12939,6 +13065,14 @@ class $$UserProfilesTableAnnotationComposer
 
   GeneratedColumn<String> get lengthUnit => $composableBuilder(
     column: $table.lengthUnit,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get soonDays =>
+      $composableBuilder(column: $table.soonDays, builder: (column) => column);
+
+  GeneratedColumn<double> get soonDistanceKm => $composableBuilder(
+    column: $table.soonDistanceKm,
     builder: (column) => column,
   );
 }
@@ -12979,6 +13113,8 @@ class $$UserProfilesTableTableManager
                 Value<String> language = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<String> lengthUnit = const Value.absent(),
+                Value<int> soonDays = const Value.absent(),
+                Value<double> soonDistanceKm = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserProfilesCompanion(
                 userId: userId,
@@ -12986,6 +13122,8 @@ class $$UserProfilesTableTableManager
                 language: language,
                 currency: currency,
                 lengthUnit: lengthUnit,
+                soonDays: soonDays,
+                soonDistanceKm: soonDistanceKm,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12995,6 +13133,8 @@ class $$UserProfilesTableTableManager
                 Value<String> language = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<String> lengthUnit = const Value.absent(),
+                Value<int> soonDays = const Value.absent(),
+                Value<double> soonDistanceKm = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => UserProfilesCompanion.insert(
                 userId: userId,
@@ -13002,6 +13142,8 @@ class $$UserProfilesTableTableManager
                 language: language,
                 currency: currency,
                 lengthUnit: lengthUnit,
+                soonDays: soonDays,
+                soonDistanceKm: soonDistanceKm,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

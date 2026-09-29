@@ -24,6 +24,7 @@ class MaintenanceScreen extends ConsumerWidget {
     final active = ref.watch(activeVehicleProvider);
     final plan = ref.watch(maintenancePlanProvider);
     final lengthUnit = ref.watch(lengthUnitProvider);
+    final thresholds = ref.watch(reminderThresholdsProvider);
     final currency = ref.watch(currencyProvider).code;
 
     return Scaffold(
@@ -60,6 +61,7 @@ class MaintenanceScreen extends ConsumerWidget {
               item: item,
               vehicleMileage: vehicle.mileage,
               now: now,
+              thresholds: thresholds,
             );
             return DueCalculator.isUpcoming(urgency);
           }).toList();
@@ -68,14 +70,17 @@ class MaintenanceScreen extends ConsumerWidget {
                   item: item,
                   vehicleMileage: vehicle.mileage,
                   now: now,
+                  thresholds: thresholds,
                 ) ==
                 PlanUrgency.scheduled;
           }).toList();
           upcoming.sort(
-            (a, b) => DueCalculator.compareSoonest(a, b, vehicle.mileage, now),
+            (a, b) =>
+                DueCalculator.compareSoonest(a, b, vehicle.mileage, now, thresholds),
           );
           scheduled.sort(
-            (a, b) => DueCalculator.compareSoonest(a, b, vehicle.mileage, now),
+            (a, b) =>
+                DueCalculator.compareSoonest(a, b, vehicle.mileage, now, thresholds),
           );
 
           return Stack(
@@ -102,6 +107,7 @@ class MaintenanceScreen extends ConsumerWidget {
                               vehicle: vehicle,
                               now: now,
                               lengthUnit: lengthUnit,
+                              thresholds: thresholds,
                               onTap: () => context.push(
                                 AppRoutes.maintenanceRegisterItem(item.id),
                               ),
@@ -121,6 +127,7 @@ class MaintenanceScreen extends ConsumerWidget {
                               vehicle: vehicle,
                               now: now,
                               lengthUnit: lengthUnit,
+                              thresholds: thresholds,
                               onTap: () => context.push(
                                 AppRoutes.maintenanceRegisterItem(item.id),
                               ),

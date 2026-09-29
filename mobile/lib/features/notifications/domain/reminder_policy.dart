@@ -1,11 +1,10 @@
-import '../../../core/units/mileage_unit.dart';
 import '../../maintenance/domain/due_calculator.dart';
 import '../../maintenance/domain/entities/plan_item.dart';
 import 'entities/notification.dart';
 
 /// The two local OS reminders a plan item gets per due cycle.
 enum ReminderPhase {
-  /// Fires 30 days before the due date (date-based items only).
+  /// Fires [DueThresholds.soonDays] before the due date (date-based items only).
   upcoming,
 
   /// Fires on the due date, or immediately when remaining mileage drops to
@@ -15,14 +14,11 @@ enum ReminderPhase {
 
 /// When a local OS reminder should fire for a plan item.
 ///
-/// Time: upcoming at local 09:00, 30 days before [PlanItem.nextDueOn]; due at
-/// local 09:00 on [PlanItem.nextDueOn]. Mileage: remaining distance < 100 km
-/// or 60 mi, using the owner's length unit, evaluated in the foreground.
-/// Whichever condition hits first.
+/// Time: upcoming at local 09:00, [DueThresholds.soonDays] days before
+/// [PlanItem.nextDueOn]; due at local 09:00 on [PlanItem.nextDueOn]. Mileage:
+/// remaining distance <= [DueThresholds.soonDistanceKm], evaluated in the
+/// foreground. Whichever condition hits first.
 abstract final class ReminderPolicy {
-  static const upcomingDays = 30;
-  static const soonMiles = 60.0;
-  static const soonKilometers = 100.0;
   static const titleMax = 80;
   static const bodyMax = 140;
   static const fireHour = 9;
@@ -67,28 +63,28 @@ abstract final class ReminderPolicy {
     return phase == ReminderPhase.upcoming ? base | 0x40000000 : base;
   }
 
-  /// Stored-miles remaining at or below this value is "due soon" for [unit].
-  static double soonDistanceMiles(MileageUnit unit) {
-    return unit == MileageUnit.km ? MileageUnit.km.toStorage(soonKilometers) : soonMiles;
-  }
-
+  /// Whether a mileage-only item has crossed its due-soon threshold.
   static bool mileageDueSoon({
     required double? nextDueMileage,
     required double vehicleMileage,
-    required MileageUnit lengthUnit,
+    required DueThresholds thresholds,
   }) {
     if (nextDueMileage == null) return false;
-    return nextDueMileage - vehicleMileage <= soonDistanceMiles(lengthUnit);
+    return nextDueMileage - vehicleMileage <= thresholds.soonDistanceMiles;
   }
 
-  /// Local 09:00 fire time for [phase]: 30 days before the due date for
-  /// [ReminderPhase.upcoming], the due date itself for [ReminderPhase.due].
-  /// Null when the item has no due date.
-  static DateTime? windowStart(DateTime? nextDueOn, {required ReminderPhase phase}) {
+  /// Local 09:00 fire time for [phase]: [DueThresholds.soonDays] days before
+  /// the due date for [ReminderPhase.upcoming], the due date itself for
+  /// [ReminderPhase.due]. Null when the item has no due date.
+  static DateTime? windowStart(
+    DateTime? nextDueOn, {
+    required ReminderPhase phase,
+    required DueThresholds thresholds,
+  }) {
     if (nextDueOn == null) return null;
     final due = DueCalculator.dateOnly(nextDueOn);
     final day = phase == ReminderPhase.upcoming
-        ? due.subtract(Duration(days: upcomingDays))
+        ? due.subtract(Duration(days: thresholds.soonDays))
         : due;
     return DateTime(day.year, day.month, day.day, fireHour);
   }

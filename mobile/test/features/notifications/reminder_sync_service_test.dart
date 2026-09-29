@@ -8,6 +8,7 @@ import 'package:dco_mobile/features/expenses/data/repositories/expense_repositor
 import 'package:dco_mobile/features/garage/data/repositories/vehicle_repository_impl.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/maintenance/data/repositories/maintenance_repository_impl.dart';
+import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/notifications/data/reminder_schedule_store.dart';
 import 'package:dco_mobile/features/notifications/data/reminder_sync_service.dart';
@@ -85,6 +86,7 @@ void main() {
       garage: [vehicle],
       items: [item],
       lengthUnit: MileageUnit.mi,
+      thresholds: DueThresholds.defaults,
       locale: locale,
     );
 
@@ -115,6 +117,7 @@ void main() {
       garage: [vehicle],
       items: [item],
       lengthUnit: MileageUnit.mi,
+      thresholds: DueThresholds.defaults,
       locale: locale,
     );
     client.shown.clear();
@@ -123,6 +126,7 @@ void main() {
       garage: [vehicle],
       items: [item],
       lengthUnit: MileageUnit.mi,
+      thresholds: DueThresholds.defaults,
       locale: locale,
     );
 
@@ -139,6 +143,7 @@ void main() {
       garage: [vehicle],
       items: [item],
       lengthUnit: MileageUnit.mi,
+      thresholds: DueThresholds.defaults,
       locale: locale,
     );
 
@@ -157,6 +162,7 @@ void main() {
       garage: [vehicle],
       items: [item],
       lengthUnit: MileageUnit.mi,
+      thresholds: DueThresholds.defaults,
       locale: locale,
     );
 
@@ -173,6 +179,7 @@ void main() {
       garage: [vehicle],
       items: [item],
       lengthUnit: MileageUnit.mi,
+      thresholds: DueThresholds.defaults,
       locale: locale,
     );
 
@@ -187,6 +194,40 @@ void main() {
     expect(await notifications.watch('u1').first, isEmpty);
   });
 
+  test('a wider soon-days window fires early and drops the stale alarm', () async {
+    final vehicle = await addVehicle();
+    final item = await addPlanItem(vehicle, DateTime.now().add(const Duration(days: 45)));
+
+    // Default 30-day window: both phases are still scheduled.
+    await service.sync(
+      userId: 'u1',
+      garage: [vehicle],
+      items: [item],
+      lengthUnit: MileageUnit.mi,
+      thresholds: DueThresholds.defaults,
+      locale: locale,
+    );
+    final upcomingId = ReminderPolicy.osId(item.id, phase: ReminderPhase.upcoming);
+    final dueId = ReminderPolicy.osId(item.id, phase: ReminderPhase.due);
+    expect(client.shown, isEmpty);
+    expect(client.scheduled, containsAll({dueId, upcomingId}));
+    expect(await notifications.watch('u1').first, isEmpty);
+
+    // Raising soonDays to 60 puts the item inside the window today.
+    await service.sync(
+      userId: 'u1',
+      garage: [vehicle],
+      items: [item],
+      lengthUnit: MileageUnit.mi,
+      thresholds: const DueThresholds(soonDays: 60, soonDistanceKm: 500),
+      locale: locale,
+    );
+    expect(client.shown, [upcomingId]);
+    // The stale upcoming alarm is gone; only the due alarm stays pending.
+    expect(client.scheduled.toSet(), {dueId});
+    expect(await notifications.watch('u1').first, hasLength(1));
+  });
+
   test('renders Burmese copy when the locale is my', () async {
     final vehicle = await addVehicle();
     final item = await addPlanItem(vehicle, DateTime.now().add(const Duration(days: 3)));
@@ -196,6 +237,7 @@ void main() {
       garage: [vehicle],
       items: [item],
       lengthUnit: MileageUnit.mi,
+      thresholds: DueThresholds.defaults,
       locale: const Locale('my'),
     );
 

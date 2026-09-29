@@ -162,10 +162,12 @@ class _PopulatedDashboard extends ConsumerWidget {
     final plan =
         ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
     final recent = history.take(DashboardScreen.recentActivityLimit).toList();
+    final thresholds = ref.watch(reminderThresholdsProvider);
     final next = DueCalculator.nearest(
       items: plan,
       vehicleMileage: vehicle.mileage,
       now: DateTime.now(),
+      thresholds: thresholds,
     );
 
     return ListView(
@@ -345,6 +347,7 @@ class _PopulatedDashboard extends ConsumerWidget {
           vehicle: vehicle,
           item: next,
           lengthUnit: lengthUnit,
+          thresholds: thresholds,
           onLogService: next == null
               ? () => context.push(AppRoutes.maintenancePlan)
               : () {
@@ -431,12 +434,14 @@ class _NextMaintenanceCard extends StatelessWidget {
     required this.vehicle,
     required this.item,
     required this.lengthUnit,
+    required this.thresholds,
     required this.onLogService,
   });
 
   final Vehicle vehicle;
   final PlanItem? item;
   final MileageUnit lengthUnit;
+  final DueThresholds thresholds;
   final VoidCallback onLogService;
 
   @override
@@ -480,6 +485,7 @@ class _NextMaintenanceCard extends StatelessWidget {
       item: item!,
       vehicleMileage: vehicle.mileage,
       now: DateTime.now(),
+      thresholds: thresholds,
     );
     final overdue = urgency == PlanUrgency.overdue;
     final dueColor = overdue
@@ -510,7 +516,7 @@ class _NextMaintenanceCard extends StatelessWidget {
               Text(item!.name, style: Theme.of(context).textTheme.titleMedium),
               SizedBox(height: tokens.space.s2),
               Text(
-                _dueCopy(item!, vehicle, lengthUnit, s),
+                _dueCopy(item!, vehicle, lengthUnit, s, thresholds),
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: dueColor),
@@ -530,6 +536,7 @@ String _dueCopy(
   Vehicle vehicle,
   MileageUnit unit,
   AppLocalizations s,
+  DueThresholds thresholds,
 ) {
   final now = DateTime.now();
   final today = DueCalculator.dateOnly(now);
@@ -538,6 +545,7 @@ String _dueCopy(
         item: item,
         vehicleMileage: vehicle.mileage,
         now: now,
+        thresholds: thresholds,
       ) ==
       PlanUrgency.overdue;
   final miles = NumberFormat('#,###');

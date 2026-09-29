@@ -132,7 +132,7 @@ The Maintenance Plan (Upcoming / Scheduled / History) is accessed via the **hamb
 
 Three lists on the Maintenance surface, each with its own empty view:
 
-- **Upcoming** — plan items past due or due soon (by date and/or remaining distance)
+- **Upcoming** — plan items past due or due soon (by date and/or remaining distance). "Due soon" uses the owner's reminder thresholds: within `soonDays` (default 30) of the due date, or remaining distance at or below `soonDistance` (default 500 km) — see Settings → Reminders and `notifications.md`.
 - **Scheduled** — plan items with a future date or mileage target that are not yet upcoming
 - **Service History** — completed service records, newest first
 
@@ -186,6 +186,7 @@ Behavior
 ## Reminders
 
 - A plan item with a due date and/or due mileage creates a local notification when due
+- The upcoming window and the mileage "due soon" boundary come from the same thresholds as the Upcoming list (Settings → Reminders; default 30 days / 500 km)
 - User can mark done (opens or completes toward a service record) or dismiss
 - Dismiss does not delete the plan item
 - See `notifications.md` for delivery

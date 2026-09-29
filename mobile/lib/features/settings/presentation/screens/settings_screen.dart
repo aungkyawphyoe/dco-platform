@@ -1,5 +1,7 @@
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
+import 'package:dco_mobile/core/units/mileage_unit.dart';
 import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
@@ -134,6 +136,36 @@ class SettingsScreen extends ConsumerWidget {
                             color: tokens.icon.inactive,
                           ),
                           onTap: () => context.push(AppRoutes.settingsUnits),
+                        ),
+                        Divider(
+                          height: 1,
+                          indent: 16,
+                          color: tokens.border.divider,
+                        ),
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              tokens.radius.lg,
+                            ),
+                          ),
+                          title: Text(s.settingsReminders),
+                          subtitle: Text(
+                            s.settingsRemindersSummary(
+                              prefs.soonDays,
+                              MileageFormat.labeled(
+                                MileageUnit.km.toStorage(prefs.soonDistanceKm),
+                                prefs.lengthUnit,
+                              ),
+                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: tokens.text.caption),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                          onTap: () =>
+                              context.push(AppRoutes.settingsReminders),
                         ),
                       ],
                     ),

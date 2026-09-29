@@ -1,4 +1,5 @@
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
+import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/notifications/domain/entities/notification.dart';
 import 'package:dco_mobile/features/notifications/domain/reminder_planner.dart';
@@ -52,10 +53,11 @@ void main() {
   final now = DateTime(2026, 8, 28, 12);
 
   group('ReminderPolicy', () {
-    test('upcoming window opens 30 days before the due date at 09:00', () {
+    test('upcoming window opens at soon days before the due date at 09:00', () {
       final start = ReminderPolicy.windowStart(
         DateTime(2026, 10, 15),
         phase: ReminderPhase.upcoming,
+        thresholds: DueThresholds.defaults,
       );
       expect(start, DateTime(2026, 9, 15, 9));
     });
@@ -64,52 +66,72 @@ void main() {
       final start = ReminderPolicy.windowStart(
         DateTime(2026, 10, 15),
         phase: ReminderPhase.due,
+        thresholds: DueThresholds.defaults,
       );
       expect(start, DateTime(2026, 10, 15, 9));
     });
 
     test('windows are null when the item has no due date', () {
       expect(
-        ReminderPolicy.windowStart(null, phase: ReminderPhase.upcoming),
+        ReminderPolicy.windowStart(
+          null,
+          phase: ReminderPhase.upcoming,
+          thresholds: DueThresholds.defaults,
+        ),
         isNull,
       );
-      expect(ReminderPolicy.windowStart(null, phase: ReminderPhase.due), isNull);
+      expect(
+        ReminderPolicy.windowStart(
+          null,
+          phase: ReminderPhase.due,
+          thresholds: DueThresholds.defaults,
+        ),
+        isNull,
+      );
     });
 
-    test('mileage due-soon uses 60 mi when the owner prefers miles', () {
+    test('mileage due-soon compares against the configured threshold', () {
       expect(
         ReminderPolicy.mileageDueSoon(
-          nextDueMileage: 10059,
+          nextDueMileage: 10310,
           vehicleMileage: 10000,
-          lengthUnit: MileageUnit.mi,
+          thresholds: DueThresholds.defaults,
         ),
         isTrue,
       );
       expect(
         ReminderPolicy.mileageDueSoon(
-          nextDueMileage: 10061,
+          nextDueMileage: 10320,
           vehicleMileage: 10000,
-          lengthUnit: MileageUnit.mi,
+          thresholds: DueThresholds.defaults,
+        ),
+        isFalse,
+      );
+      expect(
+        ReminderPolicy.mileageDueSoon(
+          nextDueMileage: null,
+          vehicleMileage: 10000,
+          thresholds: DueThresholds.defaults,
         ),
         isFalse,
       );
     });
 
-    test('mileage due-soon uses 100 km when the owner prefers kilometers', () {
-      final due = 10000 + MileageUnit.km.toStorage(100);
+    test('mileage due-soon honors a custom threshold', () {
+      const strict = DueThresholds(soonDays: 7, soonDistanceKm: 100);
       expect(
         ReminderPolicy.mileageDueSoon(
-          nextDueMileage: due,
+          nextDueMileage: 10060,
           vehicleMileage: 10000,
-          lengthUnit: MileageUnit.km,
+          thresholds: strict,
         ),
         isTrue,
       );
       expect(
         ReminderPolicy.mileageDueSoon(
-          nextDueMileage: due + 1,
+          nextDueMileage: 10070,
           vehicleMileage: 10000,
-          lengthUnit: MileageUnit.km,
+          thresholds: strict,
         ),
         isFalse,
       );
@@ -153,7 +175,7 @@ void main() {
         deliveredCycleKeys: const {},
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       expect(actions, hasLength(2));
       final due = _phase(actions, ReminderPhase.due);
@@ -173,7 +195,7 @@ void main() {
         deliveredCycleKeys: const {},
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       final upcoming = _phase(actions, ReminderPhase.upcoming);
       expect(upcoming.kind, ReminderActionKind.showNow);
@@ -183,6 +205,23 @@ void main() {
       expect(due.fireAt, DateTime(2026, 9, 20, 9));
     });
 
+    test('a narrow soon-days window schedules the upcoming reminder', () {
+      const strict = DueThresholds(soonDays: 7, soonDistanceKm: 500);
+      final actions = ReminderPlanner.plan(
+        garage: [_vehicle()],
+        items: [_item(nextDueOn: DateTime(2026, 9, 20))],
+        deliveredCycleKeys: const {},
+        scheduled: const [],
+        now: now,
+        thresholds: strict,
+      );
+      // 23 days out: outside a 7-day window, so nothing shows yet.
+      final upcoming = _phase(actions, ReminderPhase.upcoming);
+      expect(upcoming.kind, ReminderActionKind.schedule);
+      expect(upcoming.fireAt, DateTime(2026, 9, 13, 9));
+      expect(_phase(actions, ReminderPhase.due).kind, ReminderActionKind.schedule);
+    });
+
     test('shows the due banner on the due date and suppresses upcoming', () {
       final actions = ReminderPlanner.plan(
         garage: [_vehicle()],
@@ -190,7 +229,7 @@ void main() {
         deliveredCycleKeys: const {},
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       final due = _phase(actions, ReminderPhase.due);
       expect(due.kind, ReminderActionKind.showNow);
@@ -199,14 +238,14 @@ void main() {
           ReminderActionKind.cancel);
     });
 
-    test('shows the due banner when remaining mileage is under 60 mi', () {
+    test('shows the due banner when remaining mileage is under the soon distance', () {
       final actions = ReminderPlanner.plan(
         garage: [_vehicle(mileage: 10000)],
         items: [_item(nextDueMileage: 10040)],
         deliveredCycleKeys: const {},
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       final due = _phase(actions, ReminderPhase.due);
       expect(due.kind, ReminderActionKind.showNow);
@@ -224,7 +263,7 @@ void main() {
         deliveredCycleKeys: const {},
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       expect(
         _phase(actions, ReminderPhase.due).dueReason,
@@ -241,7 +280,7 @@ void main() {
         deliveredCycleKeys: const {},
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       expect(_phase(actions, ReminderPhase.due).kind, ReminderActionKind.showNow);
       final upcoming = _phase(actions, ReminderPhase.upcoming);
@@ -262,7 +301,7 @@ void main() {
         },
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       expect(
         actions.map((action) => action.kind),
@@ -285,7 +324,7 @@ void main() {
           ),
         ],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       expect(_phase(actions, ReminderPhase.due).kind,
           ReminderActionKind.recordFeedOnly);
@@ -308,7 +347,7 @@ void main() {
           ),
         ],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       expect(_phase(actions, ReminderPhase.upcoming).kind,
           ReminderActionKind.recordFeedOnly);
@@ -323,7 +362,7 @@ void main() {
         deliveredCycleKeys: const {},
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       expect(disabled, hasLength(2));
       expect(
@@ -337,7 +376,7 @@ void main() {
         deliveredCycleKeys: const {},
         scheduled: const [],
         now: now,
-        lengthUnit: MileageUnit.mi,
+        thresholds: DueThresholds.defaults,
       );
       expect(archived, hasLength(2));
       expect(

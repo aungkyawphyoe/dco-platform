@@ -69,30 +69,92 @@ void main() {
         item: _item(nextDueOn: DateTime(2026, 8, 1)),
         vehicleMileage: 1000,
         now: now,
+        thresholds: DueThresholds.defaults,
       );
       final overdueMiles = DueCalculator.urgency(
         item: _item(nextDueMileage: 9000),
         vehicleMileage: 10000,
         now: now,
+        thresholds: DueThresholds.defaults,
       );
       expect(overdueDate, PlanUrgency.overdue);
       expect(overdueMiles, PlanUrgency.overdue);
       expect(DueCalculator.isUpcoming(overdueDate), isTrue);
     });
 
-    test('due within 30 days or 500 miles is upcoming', () {
+    test('due within soon days or soon distance is upcoming', () {
       final soonDate = DueCalculator.urgency(
         item: _item(nextDueOn: DateTime(2026, 9, 1)),
         vehicleMileage: 1000,
         now: now,
+        thresholds: DueThresholds.defaults,
       );
       final soonMiles = DueCalculator.urgency(
-        item: _item(nextDueMileage: 10400),
+        item: _item(nextDueMileage: 10200),
         vehicleMileage: 10000,
         now: now,
+        thresholds: DueThresholds.defaults,
       );
       expect(soonDate, PlanUrgency.dueSoon);
       expect(soonMiles, PlanUrgency.dueSoon);
+    });
+
+    test('custom thresholds move the due-soon boundary', () {
+      final strict = DueThresholds(soonDays: 7, soonDistanceKm: 100);
+      final loose = DueThresholds(soonDays: 60, soonDistanceKm: 1000);
+      // 100 mi remaining sits between the 100 km and 1000 km thresholds.
+      final item = _item(nextDueMileage: 10100);
+      expect(
+        DueCalculator.urgency(
+          item: item,
+          vehicleMileage: 10000,
+          now: now,
+          thresholds: strict,
+        ),
+        PlanUrgency.scheduled,
+      );
+      expect(
+        DueCalculator.urgency(
+          item: item,
+          vehicleMileage: 10000,
+          now: now,
+          thresholds: loose,
+        ),
+        PlanUrgency.dueSoon,
+      );
+      // 45 days out is upcoming only when soonDays allows it.
+      final dated = _item(nextDueOn: DateTime(2026, 10, 3));
+      expect(
+        DueCalculator.urgency(
+          item: dated,
+          vehicleMileage: 0,
+          now: now,
+          thresholds: strict,
+        ),
+        PlanUrgency.scheduled,
+      );
+      expect(
+        DueCalculator.urgency(
+          item: dated,
+          vehicleMileage: 0,
+          now: now,
+          thresholds: loose,
+        ),
+        PlanUrgency.dueSoon,
+      );
+    });
+
+    test('thresholds clamp to the supported ranges', () {
+      final low = DueThresholds.fromValues(soonDays: 1, soonDistanceKm: 10);
+      expect(low.soonDays, DueThresholds.minDays);
+      expect(low.soonDistanceKm, DueThresholds.minKm);
+      final high = DueThresholds.fromValues(soonDays: 900, soonDistanceKm: 9999);
+      expect(high.soonDays, DueThresholds.maxDays);
+      expect(high.soonDistanceKm, DueThresholds.maxKm);
+      final snapped = DueThresholds.fromValues(soonDays: 30, soonDistanceKm: 540);
+      expect(snapped.soonDistanceKm, 500);
+      final valid = DueThresholds.fromValues(soonDays: 30, soonDistanceKm: 500);
+      expect(valid, DueThresholds.defaults);
     });
 
     test('far-future items are scheduled', () {
@@ -100,6 +162,7 @@ void main() {
         item: _item(nextDueOn: DateTime(2027, 1, 1), nextDueMileage: 20000),
         vehicleMileage: 10000,
         now: now,
+        thresholds: DueThresholds.defaults,
       );
       expect(status, PlanUrgency.scheduled);
     });
@@ -132,6 +195,7 @@ void main() {
         ],
         vehicleMileage: 10000,
         now: now,
+        thresholds: DueThresholds.defaults,
       );
       expect(next?.name, 'Oil Change');
     });
@@ -149,6 +213,7 @@ void main() {
         ],
         vehicleMileage: 10000,
         now: now,
+        thresholds: DueThresholds.defaults,
       );
       expect(next?.name, 'Wash');
     });

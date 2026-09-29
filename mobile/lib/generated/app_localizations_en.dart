@@ -1488,6 +1488,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsUnitFormat => 'Unit and Format';
 
   @override
+  String get settingsReminders => 'Reminders';
+
+  @override
+  String settingsRemindersSummary(Object days, Object distance) {
+    return '$days days · $distance';
+  }
+
+  @override
   String get settingsSyncSection => 'Sync';
 
   @override
@@ -1639,6 +1647,36 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get unitsFormatsLengthUnitHelper =>
       'Odometer, service intervals, and due mileage follow this unit.';
+
+  @override
+  String get remindersTitle => 'Reminders';
+
+  @override
+  String remindersIntro(Object days, Object distance) {
+    return 'Each service reminder sends two notifications: one $days before the due date, and one when it is due or the odometer is within $distance.';
+  }
+
+  @override
+  String get remindersSoonDaysLabel => 'Days before due';
+
+  @override
+  String get remindersSoonDaysHelp =>
+      'An upcoming reminder fires this many days before a due date.';
+
+  @override
+  String remindersSoonDaysValue(Object days) {
+    return '$days days';
+  }
+
+  @override
+  String get remindersSoonDistanceLabel => 'Distance before due';
+
+  @override
+  String get remindersSoonDistanceHelp =>
+      'A mileage reminder fires when the remaining distance is at or below this.';
+
+  @override
+  String get remindersReset => 'Reset to defaults';
 
   @override
   String get languageEnglish => 'English';

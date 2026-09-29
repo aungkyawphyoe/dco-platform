@@ -16,6 +16,7 @@ class PlanItemTile extends StatelessWidget {
     required this.item,
     required this.vehicle,
     required this.now,
+    required this.thresholds,
     this.lengthUnit = MileageUnit.km,
     this.onTap,
     this.leadingAction,
@@ -24,6 +25,7 @@ class PlanItemTile extends StatelessWidget {
   final PlanItem item;
   final Vehicle vehicle;
   final DateTime now;
+  final DueThresholds thresholds;
   final MileageUnit lengthUnit;
   final VoidCallback? onTap;
   final Widget? leadingAction;
@@ -36,6 +38,7 @@ class PlanItemTile extends StatelessWidget {
       item: item,
       vehicleMileage: vehicle.mileage,
       now: now,
+      thresholds: thresholds,
     );
     final overdue = urgency == PlanUrgency.overdue;
     final dueSoon = urgency == PlanUrgency.dueSoon;

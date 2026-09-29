@@ -215,6 +215,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   Future<void> _openAddService(Vehicle vehicle, List<PlanItem> plan) async {
     final now = DateTime.now();
     final lengthUnit = ref.read(lengthUnitProvider);
+    final thresholds = ref.read(reminderThresholdsProvider);
     final available = plan.where((item) {
       if (!item.enabled) return false;
       if (_lines.any((line) => line.planItemId == item.id)) return false;
@@ -222,6 +223,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
         item: item,
         vehicleMileage: vehicle.mileage,
         now: now,
+        thresholds: thresholds,
       );
       return urgency != PlanUrgency.hidden;
     }).toList();

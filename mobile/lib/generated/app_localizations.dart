@@ -2876,6 +2876,18 @@ abstract class AppLocalizations {
   /// **'Unit and Format'**
   String get settingsUnitFormat;
 
+  /// No description provided for @settingsReminders.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get settingsReminders;
+
+  /// No description provided for @settingsRemindersSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days · {distance}'**
+  String settingsRemindersSummary(Object days, Object distance);
+
   /// No description provided for @settingsSyncSection.
   ///
   /// In en, this message translates to:
@@ -3157,6 +3169,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Odometer, service intervals, and due mileage follow this unit.'**
   String get unitsFormatsLengthUnitHelper;
+
+  /// No description provided for @remindersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reminders'**
+  String get remindersTitle;
+
+  /// No description provided for @remindersIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Each service reminder sends two notifications: one {days} before the due date, and one when it is due or the odometer is within {distance}.'**
+  String remindersIntro(Object days, Object distance);
+
+  /// No description provided for @remindersSoonDaysLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Days before due'**
+  String get remindersSoonDaysLabel;
+
+  /// No description provided for @remindersSoonDaysHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'An upcoming reminder fires this many days before a due date.'**
+  String get remindersSoonDaysHelp;
+
+  /// No description provided for @remindersSoonDaysValue.
+  ///
+  /// In en, this message translates to:
+  /// **'{days} days'**
+  String remindersSoonDaysValue(Object days);
+
+  /// No description provided for @remindersSoonDistanceLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance before due'**
+  String get remindersSoonDistanceLabel;
+
+  /// No description provided for @remindersSoonDistanceHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'A mileage reminder fires when the remaining distance is at or below this.'**
+  String get remindersSoonDistanceHelp;
+
+  /// No description provided for @remindersReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to defaults'**
+  String get remindersReset;
 
   /// No description provided for @languageEnglish.
   ///

@@ -21,6 +21,7 @@ class MaintenancePlanScreen extends ConsumerWidget {
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan = ref.watch(maintenancePlanProvider);
     final lengthUnit = ref.watch(lengthUnitProvider);
+    final thresholds = ref.watch(reminderThresholdsProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(s.maintenancePlanTitle)),
@@ -57,6 +58,7 @@ class MaintenancePlanScreen extends ConsumerWidget {
                               vehicle: vehicle,
                               now: now,
                               lengthUnit: lengthUnit,
+                              thresholds: thresholds,
                               onTap: () => context.push(AppRoutes.maintenancePlanEdit(item.id)),
                             ),
                           ),

@@ -54,12 +54,14 @@ class ReminderSyncController {
     final items = await _ref.read(maintenanceRepositoryProvider).watchAllPlans(userId).first;
     if (_disposed) return;
     final unit = _ref.read(lengthUnitProvider);
+    final thresholds = _ref.read(reminderThresholdsProvider);
     final locale = _ref.read(localeProvider);
     await _ref.read(reminderSyncServiceProvider).sync(
       userId: userId,
       garage: garage,
       items: items,
       lengthUnit: unit,
+      thresholds: thresholds,
       locale: locale,
     );
   }
@@ -117,6 +119,7 @@ final reminderSyncControllerProvider = Provider<ReminderSyncController>((ref) {
   ref.listen(allPlanItemsProvider, (_, _) => controller.schedule());
   ref.listen(lengthUnitProvider, (_, _) => controller.schedule());
   ref.listen(localeProvider, (_, _) => controller.schedule());
+  ref.listen(reminderThresholdsProvider, (_, _) => controller.schedule());
   unawaited(controller.start());
   return controller;
 });

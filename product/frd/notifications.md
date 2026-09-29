@@ -6,7 +6,7 @@ Notifications tell the owner that a maintenance plan item is due. MVP delivery i
 
 Source of truth for scope: `product/mvp-scope.md`.
 
-**As built (28 Aug 2026): Done (local).** OS local reminders via `flutter_local_notifications`. No remote FCM/APNs. Extended 28 Sep 2026: two reminder phases (upcoming + due) with localized banner copy. Status index: `product/frd/README.md`.
+**As built (28 Aug 2026): Done (local).** OS local reminders via `flutter_local_notifications`. No remote FCM/APNs. Extended 28 Sep 2026: two reminder phases (upcoming + due) with localized banner copy, and user-configurable soon thresholds (Settings → Reminders) shared with the in-app Upcoming grouping. Status index: `product/frd/README.md`.
 
 ---
 
@@ -93,14 +93,26 @@ So that I can catch what I missed if I ignored the banner.
 ## Scheduling (local)
 
 - Two reminder phases per due cycle: **upcoming** and **due**.
-- **Upcoming** — when a plan item's next due date is known, schedule a local notification at local 09:00, 30 days before the due date (or show it immediately if already inside that window).
+- **Upcoming** — when a plan item's next due date is known, schedule a local notification at local 09:00, `soonDays` before the due date (default 30; or show it immediately if already inside that window).
 - **Due (date)** — schedule a second local notification at local 09:00 on the due date itself (or show it immediately when overdue).
-- **Due (mileage)** — evaluate on app start and after mileage updates; if remaining distance is under 100 km or 60 mi (owner length unit), fire once.
+- **Due (mileage)** — evaluate on app start and after mileage updates; if remaining distance is at or below `soonDistance` (default 500 km), fire once. The threshold is stored in km regardless of the owner's display unit.
 - When both date and mileage exist, the due reminder fires on whichever condition hits first.
 - Each phase fires at most once per due cycle; when the due reminder fires inside the upcoming window, the upcoming banner for that cycle is suppressed (no double banner).
 - Banner copy is localized (en/my): phase-specific title, body carries the plan item name plus its due date and/or due mileage (e.g. `Oil Change — due Mar 15, 2026`, `Oil Change — due at 120,000 km`).
-- Reschedule when the plan item, vehicle mileage, last service, owner length unit, or locale changes
+- Reschedule when the plan item, vehicle mileage, last service, owner length unit, locale, or the reminder thresholds change
 - Cancel local notifications for disabled or archived items
+
+## Configurable thresholds (Settings → Reminders)
+
+- Two sliders, one profile row summarizing both values:
+  - **Days before due** (`soonDays`): 7–60 days, step 1, default **30**.
+  - **Distance before due** (`soonDistance`): 100–1000 km, step 100 km, default **500 km**. Displayed in the owner's length unit (mi users see 62/124/…/621 mi on the same km grid).
+- The thresholds are **shared**: they drive the OS reminder schedule (upcoming fires at due date − `soonDays`; the mileage reminder fires at remaining ≤ `soonDistance`) *and* the in-app Upcoming grouping in `DueCalculator` (see `maintenance.md`).
+- Values are clamped to the supported ranges on read (`soonDays` 7–60, `soonDistance` snapped to the 100 km grid between 100 and 1000).
+- Stored on the local `user_profiles` row only — local preference, no outbox, no API (same treatment as language/currency/length unit).
+- Changing a value re-syncs local reminders immediately (reschedules pending OS alarms, cancels an upcoming alarm that is no longer in the window).
+- **Behavior change vs MVP:** the mileage reminder used to fire at 100 km remaining; the default is now 500 km.
+- Screen also offers **Reset to defaults** (30 days / 500 km).
 
 ## Permission
 
@@ -147,6 +159,7 @@ Both phases write a feed row (upcoming and due dedupe independently). Mark as re
 - Switching active vehicle does not cancel other vehicles' local schedules
 - Archived vehicles: cancel their scheduled locals and hide feed items
 - Each phase fires at most once per due cycle until a service is logged or the item is updated
+- The soon thresholds are per-device preferences; changing them reschedules but never re-fires an already delivered phase
 - Feed retains 90 days in MVP then may prune locally
 
 ---
@@ -198,6 +211,7 @@ Done (optional Register Service) or Dismiss
 - Accessible notification content (OS + in-app)
 - No PII in notification bodies beyond vehicle nickname and item name
 - Tests for date-due, mileage-due, upcoming-window, and first-of-either logic
+- Tests for threshold clamping/snapping and for the schedule reacting to a threshold change
 
 ---
 

@@ -1514,6 +1514,14 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsUnitFormat => 'ယူနစ်နှင့် ပုံစံ';
 
   @override
+  String get settingsReminders => 'အသိပေးချက်များ';
+
+  @override
+  String settingsRemindersSummary(Object days, Object distance) {
+    return '$days ရက် · $distance';
+  }
+
+  @override
   String get settingsSyncSection => 'ဒေတာ ချိတ်ဆက်မှု';
 
   @override
@@ -1665,6 +1673,36 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get unitsFormatsLengthUnitHelper =>
       'မိုင်နှုန်း၊ ပြုပြင်ထိန်းသိမ်းမှု အပိုင်းအခြားနှင့် ပြုလုပ်ရမည့် မိုင်နှုန်းများသည် ဒီယူနစ်အတိုင်း ပြသမည်။';
+
+  @override
+  String get remindersTitle => 'အသိပေးချက်များ';
+
+  @override
+  String remindersIntro(Object days, Object distance) {
+    return 'ဝန်ဆောင်မှု သတိပေးချက်တစ်ခုစီတွင် အသိပေးချက် ၂ ခု ရှိပါသည် - သတ်မှတ်ရက် $days ရက် အလိုတွင် တစ်ခုနှင့် ရောက်ရှိသည့်အခါ သို့မဟုတ် လက်ကျန်အကွာအဝေး $distance အတွင်းရောက်သည့်အခါ တစ်ခု။';
+  }
+
+  @override
+  String get remindersSoonDaysLabel => 'သတ်မှတ်ရက်အလို ရက်အရေအတွက်';
+
+  @override
+  String get remindersSoonDaysHelp =>
+      'သတ်မှတ်ရက်မတိုင်မီ ရက်အရေအတွက်ကြာ သတိပေးပါမည်။';
+
+  @override
+  String remindersSoonDaysValue(Object days) {
+    return '$days ရက်';
+  }
+
+  @override
+  String get remindersSoonDistanceLabel => 'လက်ကျန် အကွာအဝေး';
+
+  @override
+  String get remindersSoonDistanceHelp =>
+      'လက်ကျန်အကွာအဝေးဤတန်ဖိုးအောက် ရောက်သည့်အခါ သတိပေးပါမည်။';
+
+  @override
+  String get remindersReset => 'မူလအတိုင်း ပြန်ထားမည်';
 
   @override
   String get languageEnglish => 'အင်္ဂလိပ်';

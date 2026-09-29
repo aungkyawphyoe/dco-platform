@@ -34,6 +34,7 @@ Auth, app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, docu
 | Feature | Description | Sync |
 |---------|-------------|------|
 | **Notes** | Personal notebook: title + plain-text body, CRUD, 2-column uniform grid (Google Keep–style layout, clamped 3-line preview), sorted `updated_at DESC`. Global per-user (not vehicle-scoped). Entry point: Dashboard Quick Actions (replaces Parts tile; Parts remains reachable from the hamburger menu). Routes `/notes`, `/notes/new`, `/notes/:id`. | **Local-only** — Drift table `notes`, **no outbox**, no server API. Scoped by `user_id` like other tables so a different account on the same device does not see another account's notes. No extra wipe on logout or uninstall (SQLite lives in the app container; logout behavior matches the rest of the local DB). |
+| **Reminder thresholds** | Settings → Reminders (`/settings/reminders`): sliders for the upcoming window (7–60 days, default 30) and the mileage due-soon distance (100–1000 km in 100 km steps, default **500 km** — raised from the MVP 100 km) plus Reset to defaults. Shared by the OS reminder schedule and the in-app Upcoming grouping (`DueThresholds`). | **Local-only** — stored on `user_profiles` (`soon_days`, `soon_distance_km`), no outbox, no API (same treatment as language/currency/length unit). |
 
 ### Account and feature entitlements
 

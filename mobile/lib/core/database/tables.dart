@@ -38,6 +38,8 @@ class UserProfiles extends Table {
   TextColumn get language => text().withDefault(const Constant('my'))();
   TextColumn get currency => text().withDefault(const Constant('MMK'))();
   TextColumn get lengthUnit => text().withDefault(const Constant('km'))();
+  IntColumn get soonDays => integer().withDefault(const Constant(30))();
+  RealColumn get soonDistanceKm => real().withDefault(const Constant(500))();
 
   @override
   Set<Column<Object>> get primaryKey => {userId};

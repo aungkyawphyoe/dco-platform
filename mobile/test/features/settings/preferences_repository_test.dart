@@ -37,14 +37,18 @@ void main() {
     expect(loaded.language, AppLanguage.myanmar);
     expect(loaded.currency, AppCurrency.mmk);
     expect(loaded.lengthUnit, MileageUnit.km);
+    expect(loaded.soonDays, 30);
+    expect(loaded.soonDistanceKm, 500);
   });
 
-  test('save persists language, currency, and length unit', () async {
+  test('save persists language, currency, length unit, and thresholds', () async {
     const userId = 'user-1';
     const next = UserPreferences(
       language: AppLanguage.myanmar,
       currency: AppCurrency.mmk,
       lengthUnit: MileageUnit.km,
+      soonDays: 14,
+      soonDistanceKm: 200,
     );
 
     await prefs.save(userId: userId, preferences: next);
@@ -53,6 +57,8 @@ void main() {
       expect(loaded.language, next.language);
       expect(loaded.currency, next.currency);
       expect(loaded.lengthUnit, next.lengthUnit);
+      expect(loaded.soonDays, next.soonDays);
+      expect(loaded.soonDistanceKm, next.soonDistanceKm);
     }
 
     await expectSaved(await prefs.get(userId));
@@ -69,6 +75,8 @@ void main() {
         language: AppLanguage.myanmar,
         currency: AppCurrency.mmk,
         lengthUnit: MileageUnit.km,
+        soonDays: 21,
+        soonDistanceKm: 300,
       ),
     );
 
@@ -83,6 +91,8 @@ void main() {
       language: AppLanguage.myanmar,
       currency: AppCurrency.mmk,
       lengthUnit: MileageUnit.km,
+      soonDays: 21,
+      soonDistanceKm: 300,
     );
     await prefs.save(userId: userId, preferences: saved);
 
@@ -104,5 +114,7 @@ void main() {
     expect(loaded.language, saved.language);
     expect(loaded.currency, saved.currency);
     expect(loaded.lengthUnit, saved.lengthUnit);
+    expect(loaded.soonDays, saved.soonDays);
+    expect(loaded.soonDistanceKm, saved.soonDistanceKm);
   });
 }

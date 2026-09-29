@@ -50,6 +50,7 @@ import '../../features/parts/presentation/screens/part_form_screen.dart';
 import '../../features/parts/presentation/screens/parts_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
 import '../../features/settings/presentation/screens/profile_screen.dart';
+import '../../features/settings/presentation/screens/reminders_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/units_formats_screen.dart';
 import '../../features/expenses/presentation/screens/expense_stats_screen.dart';
@@ -276,6 +277,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'units',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const UnitsFormatsScreen(),
+                  ),
+                  GoRoute(
+                    path: 'reminders',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const RemindersScreen(),
                   ),
                 ],
               ),

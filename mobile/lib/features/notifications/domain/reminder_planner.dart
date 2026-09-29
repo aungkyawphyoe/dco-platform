@@ -1,4 +1,5 @@
 import '../../garage/domain/entities/vehicle.dart';
+import '../../maintenance/domain/due_calculator.dart';
 import '../../maintenance/domain/entities/plan_item.dart';
 import 'entities/notification.dart';
 import 'reminder_policy.dart';
@@ -72,7 +73,7 @@ abstract final class ReminderPlanner {
     required Set<String> deliveredCycleKeys,
     required List<ScheduledReminder> scheduled,
     required DateTime now,
-    required MileageUnit lengthUnit,
+    required DueThresholds thresholds,
   }) {
     final vehicles = {for (final vehicle in garage) vehicle.id: vehicle};
     final scheduledByPhase = {
@@ -87,7 +88,7 @@ abstract final class ReminderPlanner {
           delivered: deliveredCycleKeys,
           scheduled: scheduledByPhase,
           now: now,
-          lengthUnit: lengthUnit,
+          thresholds: thresholds,
         ),
     ];
   }
@@ -98,7 +99,7 @@ abstract final class ReminderPlanner {
     required Set<String> delivered,
     required Map<(String, ReminderPhase), ScheduledReminder> scheduled,
     required DateTime now,
-    required MileageUnit lengthUnit,
+    required DueThresholds thresholds,
   }) {
     if (vehicle == null || !item.enabled || _noDueValue(item)) {
       return [for (final phase in ReminderPhase.values) _cancel(item, phase)];
@@ -107,12 +108,17 @@ abstract final class ReminderPlanner {
     final mileageHit = ReminderPolicy.mileageDueSoon(
       nextDueMileage: item.nextDueMileage,
       vehicleMileage: vehicle.mileage,
-      lengthUnit: lengthUnit,
+      thresholds: thresholds,
     );
-    final dueAt = ReminderPolicy.windowStart(item.nextDueOn, phase: ReminderPhase.due);
+    final dueAt = ReminderPolicy.windowStart(
+      item.nextDueOn,
+      phase: ReminderPhase.due,
+      thresholds: thresholds,
+    );
     final upcomingAt = ReminderPolicy.windowStart(
       item.nextDueOn,
       phase: ReminderPhase.upcoming,
+      thresholds: thresholds,
     );
     final dateHit = dueAt != null && !dueAt.isAfter(now);
     final dueHit = mileageHit || dateHit;

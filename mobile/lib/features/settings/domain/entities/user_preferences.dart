@@ -48,27 +48,41 @@ class UserPreferences {
     required this.language,
     required this.currency,
     required this.lengthUnit,
+    this.soonDays = 30,
+    this.soonDistanceKm = 500,
   });
 
   static const defaults = UserPreferences(
     language: AppLanguage.myanmar,
     currency: AppCurrency.mmk,
     lengthUnit: MileageUnit.km,
+    soonDays: 30,
+    soonDistanceKm: 500,
   );
 
   final AppLanguage language;
   final AppCurrency currency;
   final MileageUnit lengthUnit;
 
+  /// How many days before the due date a plan item counts as upcoming.
+  final int soonDays;
+
+  /// Remaining distance (km) at which a plan item counts as upcoming.
+  final double soonDistanceKm;
+
   UserPreferences copyWith({
     AppLanguage? language,
     AppCurrency? currency,
     MileageUnit? lengthUnit,
+    int? soonDays,
+    double? soonDistanceKm,
   }) {
     return UserPreferences(
       language: language ?? this.language,
       currency: currency ?? this.currency,
       lengthUnit: lengthUnit ?? this.lengthUnit,
+      soonDays: soonDays ?? this.soonDays,
+      soonDistanceKm: soonDistanceKm ?? this.soonDistanceKm,
     );
   }
 }

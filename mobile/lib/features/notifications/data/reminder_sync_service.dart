@@ -7,6 +7,7 @@ import 'dart:ui';
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/notifications/local_notification_client.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
+import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/notifications/data/reminder_copy.dart';
 import 'package:dco_mobile/features/notifications/data/reminder_schedule_store.dart';
@@ -35,6 +36,7 @@ class ReminderSyncService {
     required List<Vehicle> garage,
     required List<PlanItem> items,
     required MileageUnit lengthUnit,
+    required DueThresholds thresholds,
     required Locale locale,
     DateTime? now,
   }) async {
@@ -60,7 +62,7 @@ class ReminderSyncService {
       deliveredCycleKeys: delivered,
       scheduled: scheduled,
       now: at,
-      lengthUnit: lengthUnit,
+      thresholds: thresholds,
     );
 
     final keepIds = <int>{};
@@ -98,6 +100,9 @@ class ReminderSyncService {
           );
         case ReminderActionKind.showNow:
           keepIds.add(id);
+          // Drop a stale pending alarm for this phase (e.g. the upcoming
+          // window opened early after the owner raised soonDays).
+          await _notifications.cancel(id);
           if (allowed) {
             await _notifications.show(
               id: id,
