@@ -53,6 +53,11 @@ class AppDrawer extends ConsumerWidget {
                     // Features
                     _SectionLabel(label: s.drawerFeatures),
                     _DrawerTile(
+                      icon: Icons.directions_car_outlined,
+                      title: s.garageMyGarage,
+                      onTap: () => _navigate(context, AppRoutes.garage),
+                    ),
+                    _DrawerTile(
                       icon: Icons.checklist_outlined,
                       title: s.drawerMaintenancePlan,
                       onTap: () =>
@@ -68,12 +73,12 @@ class AppDrawer extends ConsumerWidget {
                       title: s.drawerDocuments,
                       onTap: () => _navigate(context, AppRoutes.documents),
                     ),
-                    _DrawerTile(
-                      icon: Icons.shield_outlined,
-                      title: s.drawerInsurance,
-                      onTap: () => _navigate(context, AppRoutes.insurance),
-                    ),
 
+                    // _DrawerTile(
+                    //   icon: Icons.shield_outlined,
+                    //   title: s.drawerInsurance,
+                    //   onTap: () => _navigate(context, AppRoutes.insurance),
+                    // ),
                     Divider(height: 1, color: tokens.border.divider),
                     SizedBox(height: tokens.space.s2),
 
