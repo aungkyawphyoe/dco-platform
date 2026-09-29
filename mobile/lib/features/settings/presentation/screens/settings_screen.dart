@@ -53,25 +53,42 @@ class SettingsScreen extends ConsumerWidget {
                         padding: EdgeInsets.all(tokens.space.s4),
                         child: Row(
                           children: [
-                            DcoAvatar(name: user?.email ?? '?', radius: 28),
+                            Stack(
+                              clipBehavior: Clip.none,
+                              children: [
+                                DcoAvatar(name: user?.email ?? '?', radius: 28),
+                                if (user?.plan == 'premium')
+                                  Positioned(
+                                    right: -2,
+                                    bottom: -2,
+                                    child: Container(
+                                      padding: EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        color: tokens.background.card,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Container(
+                                        width: 18,
+                                        height: 18,
+                                        decoration: BoxDecoration(
+                                          color: tokens.text.accent,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(
+                                          Icons.star,
+                                          size: 12,
+                                          color: tokens.text.onAccent,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                             SizedBox(width: tokens.space.s3),
                             Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    user?.displayName ?? user?.email ?? '',
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.titleMedium,
-                                  ),
-                                  SizedBox(height: tokens.space.s1),
-                                  Text(
-                                    s.settingsFreePlan,
-                                    style: Theme.of(context).textTheme.bodySmall
-                                        ?.copyWith(color: tokens.text.caption),
-                                  ),
-                                ],
+                              child: Text(
+                                user?.displayName ?? user?.email ?? '',
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
                             Icon(
