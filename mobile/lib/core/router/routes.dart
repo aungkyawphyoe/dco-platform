@@ -49,6 +49,7 @@ abstract final class AppRoutes {
   static String noteEdit(String id) => '/notes/$id';
 
   static const maintenancePlan = '/maintenance-plan';
+  static const maintenancePlanRegistered = '/maintenance-plan?registered=1';
   static const maintenancePlanNew = '/maintenance-plan/new';
   static const maintenanceSuggested = '/maintenance-plan/suggested';
   static String maintenancePlanEdit(String id) => '/maintenance-plan/$id/edit';

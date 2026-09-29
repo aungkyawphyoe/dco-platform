@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
+import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_tile.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
@@ -11,11 +15,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class MaintenancePlanScreen extends ConsumerWidget {
-  const MaintenancePlanScreen({super.key});
+class MaintenancePlanScreen extends ConsumerStatefulWidget {
+  const MaintenancePlanScreen({super.key, this.showDone = false});
+
+  final bool showDone;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MaintenancePlanScreen> createState() =>
+      _MaintenancePlanScreenState();
+}
+
+class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
+  final _seededVehicleIds = <String>{};
+
+  void _seedDefaults(Vehicle vehicle) {
+    if (!_seededVehicleIds.add(vehicle.id)) return;
+    unawaited(
+      ref.read(maintenanceRepositoryProvider).ensureDefaultPlan(
+        userId: vehicle.userId,
+        vehicle: vehicle,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
@@ -24,18 +48,30 @@ class MaintenancePlanScreen extends ConsumerWidget {
     final thresholds = ref.watch(reminderThresholdsProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.maintenancePlanTitle)),
-      body: vehicle == null
-          ? DcoEmptyState(
-              title: s.maintenanceNoActiveVehicle,
-              body: s.maintenancePlanNoActiveVehicleBody,
-            )
-          : Column(
-              children: [
-                Expanded(
-                  child: plan.when(
+      appBar: AppBar(
+        title: Text(s.maintenancePlanTitle),
+        actions: [
+          if (widget.showDone)
+            TextButton(
+              key: const Key('maintenance-plan-done'),
+              onPressed: () => context.go(AppRoutes.garage),
+              child: Text(s.done, style: TextStyle(color: tokens.text.link)),
+            ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: vehicle == null
+                ? DcoEmptyState(
+                    title: s.maintenanceNoActiveVehicle,
+                    body: s.maintenancePlanNoActiveVehicleBody,
+                  )
+                : plan.when(
                     loading: () => Center(
-                      child: CircularProgressIndicator(color: tokens.text.accent),
+                      child: CircularProgressIndicator(
+                        color: tokens.text.accent,
+                      ),
                     ),
                     error: (error, _) => DcoEmptyState(
                       title: s.maintenancePlanLoadError,
@@ -43,6 +79,7 @@ class MaintenancePlanScreen extends ConsumerWidget {
                     ),
                     data: (items) {
                       if (items.isEmpty) {
+                        _seedDefaults(vehicle);
                         return DcoEmptyState(
                           title: s.maintenancePlanEmptyTitle,
                           body: s.maintenancePlanEmptyBody,
@@ -59,22 +96,25 @@ class MaintenancePlanScreen extends ConsumerWidget {
                               now: now,
                               lengthUnit: lengthUnit,
                               thresholds: thresholds,
-                              onTap: () => context.push(AppRoutes.maintenancePlanEdit(item.id)),
+                              onTap: () => context.push(
+                                AppRoutes.maintenancePlanEdit(item.id),
+                              ),
                             ),
                           ),
                         ],
                       );
                     },
                   ),
-                ),
-                DcoStickyActions(
-                  secondaryLabel: s.maintenancePlanAddItem,
-                  onSecondary: () => context.push(AppRoutes.maintenancePlanNew),
-                  primaryLabel: s.maintenancePlanAddSuggested,
-                  onPrimary: () => context.push(AppRoutes.maintenanceSuggested),
-                ),
-              ],
+          ),
+          if (vehicle != null)
+            DcoStickyActions(
+              secondaryLabel: s.maintenancePlanAddItem,
+              onSecondary: () => context.push(AppRoutes.maintenancePlanNew),
+              primaryLabel: s.maintenancePlanAddSuggested,
+              onPrimary: () => context.push(AppRoutes.maintenanceSuggested),
             ),
+        ],
+      ),
     );
   }
 }

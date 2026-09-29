@@ -364,7 +364,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.maintenancePlan,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const MaintenancePlanScreen(),
+        builder: (context, state) => MaintenancePlanScreen(
+          showDone: state.uri.queryParameters['registered'] == '1',
+        ),
         routes: [
           GoRoute(
             path: 'new',

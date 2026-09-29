@@ -3,7 +3,10 @@ import 'package:dco_mobile/core/config/app_config.dart';
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/core/notifications/local_notification_client.dart';
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/core/router/app_router.dart';
+import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/storage/memory_token_store.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,7 +32,10 @@ void main() {
           ),
           tokenStoreProvider.overrideWithValue(MemoryTokenStore()),
           appDatabaseProvider.overrideWithValue(database),
-          localNotificationClientProvider.overrideWithValue(NoopLocalNotificationClient()),
+          localNotificationClientProvider.overrideWithValue(
+            NoopLocalNotificationClient(),
+          ),
+          localeProvider.overrideWithValue(const Locale('en')),
         ],
         child: const DcoApp(),
       ),
@@ -72,8 +78,30 @@ void main() {
     await tester.tap(find.byKey(const Key('vehicle-save')));
     await tester.pumpAndSettle();
 
+    expect(find.text('Maintenance Plan'), findsOneWidget);
+    expect(find.text('No plan items yet'), findsNothing);
+    expect(find.text('Mileage Update'), findsOneWidget);
+    expect(find.text('Routine'), findsOneWidget);
+    expect(find.byKey(const Key('maintenance-plan-done')), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('maintenance-plan-done')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('My Garage'), findsOneWidget);
     expect(find.text('Daily Driver'), findsWidgets);
     expect(find.textContaining('Toyota Camry'), findsOneWidget);
+
+    await database.delete(database.planItemRecords).go();
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DcoApp)),
+    );
+    container.read(goRouterProvider).push(AppRoutes.maintenancePlan);
+    await tester.pumpAndSettle();
+
+    expect(find.text('No plan items yet'), findsNothing);
+    expect(find.text('Mileage Update'), findsOneWidget);
+    expect(find.text('Routine'), findsOneWidget);
+    expect(find.byKey(const Key('maintenance-plan-done')), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(Duration.zero);

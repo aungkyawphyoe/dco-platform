@@ -11,6 +11,7 @@ import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_failure.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_validators.dart';
+import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -146,12 +147,26 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       if (widget.isEditing) {
         await repo.update(userId: userId, vehicleId: widget.vehicleId!, draft: draft);
         ref.read(analyticsProvider).track(AnalyticsEvent.vehicleUpdated);
-      } else {
-        await repo.add(userId: userId, draft: draft);
-        ref.read(analyticsProvider).track(AnalyticsEvent.vehicleAdded);
+        if (!mounted) return;
+        context.go(AppRoutes.dashboard);
+        return;
+      }
+
+      final previousActiveId = ref.read(activeVehicleProvider).valueOrNull?.id;
+      final vehicle = await repo.add(userId: userId, draft: draft);
+      ref.read(analyticsProvider).track(AnalyticsEvent.vehicleAdded);
+      await ref.read(maintenanceRepositoryProvider).ensureDefaultPlan(
+        userId: userId,
+        vehicle: vehicle,
+      );
+      if (previousActiveId != null && previousActiveId != vehicle.id) {
+        try {
+          await ref.read(setActiveVehicleProvider)(vehicle.id);
+          ref.read(analyticsProvider).track(AnalyticsEvent.vehicleSwitched);
+        } catch (_) {}
       }
       if (!mounted) return;
-      context.go(AppRoutes.dashboard);
+      context.pushReplacement(AppRoutes.maintenancePlanRegistered);
     } on VehicleFailure catch (failure) {
       if (mounted) setState(() => _formError = failure.message);
     } finally {

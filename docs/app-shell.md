@@ -86,12 +86,12 @@ Numbering follows the tldraw frame names.
 | 2 | Login | Unauthenticated | Out of this nav spec |
 | 3 | Dashboard | Login success; Garage tab; picking a vehicle in My Garage | Empty variant: CTA **Register A Vehicle**, shimmer while local DB hydrates |
 | 4 | Garage Home (My Garage) | Header **garage** / vehicle chip on 3 | List + add. Switching a card sets active vehicle and **pops back to 3** |
-| 5 | Add/Edit Vehicle | `+` on 4 or Register on empty 3 | After first save: set active, go to 3 |
+| 5 | Add/Edit Vehicle | `+` on 4 or Register on empty 3 | New: save → set active → Maintenance Plan (registration flow). Edit: save → 3 |
 | 6 | Maintenance | Maintenance tab | Upcoming / Scheduled / History. Stack: plan list, add item, suggested catalog, register service |
 | 7 | Expenses | Expenses tab | Month/total, by category, recent list |
 | 8 | Documents | **Hamburger menu** → Documents | Moved from header on 7. Per-vault document management. |
 | 9 | Settings | Setting tab | Profile, account, Sign Out. Fleet context switch is in the conditional hamburger menu. |
-| 10 | Maintenance Plan | **Hamburger menu** → Maintenance Plan | Moved from Maintenance tab. Suggested items filtered by fuel type. |
+| 10 | Maintenance Plan | **Hamburger menu** → Maintenance Plan; after registering a vehicle | Moved from Maintenance tab. Suggested items filtered by fuel type. In the registration flow it shows an extra **Done** button → My Garage (4). |
 | 11 | Add Maintenance Item / Register Service | From 6 or from Hamburger → Maintenance Plan | Register service updates mileage and can complete plan items |
 | 12 | Family Setup | **Hamburger menu** → Family | Moved from Settings. Create or join a family group. |
 | 13 | Family Management | **Hamburger menu** → Family | Moved from Settings. Members, vehicles, share code, QR, driving licenses. |
