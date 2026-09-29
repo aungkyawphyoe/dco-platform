@@ -33,10 +33,11 @@ Accessible from **any screen** via the leading hamburger icon in the app bar. Op
 #### Features (middle section)
 | Menu Item | Icon | Destination | Notes |
 |-----------|------|-------------|-------|
+| **My Garage** | Car |  My Garage | List of viehicle screen. Add new, detail can be checked. |
 | **Documents** | folder | Document List | Moved from Settings. Per-vault document management. |
 | **Parts** | wrench | Parts List | Entry point also kept on Dashboard quick actions. |
 | **Maintenance Plan** | clipboard-list | Maintenance Plan | Moved from Maintenance tab. Upcoming/Scheduled/History. |
-| **Insurance** | shield | Insurance section | Moved from Garage. Vehicle insurance documents/status. |
+| **Insurance** | shield | Insurance section | Moved from Garage. Vehicle insurance documents/status. *Not Implemented* Hide for now. |
 | **Refuel Stats** | chart-bar | Refuel Stats screen | **NEW.** Charts for refuel/charge history, cost trends, fuel efficiency. |
 | **Maintenance Stats** | chart-bar | Maintenance Stats screen | **NEW.** Charts for maintenance costs, service frequency, upcoming schedule. |
 | **Expense Stats** | chart-bar | Expense Stats screen | **NEW.** Charts for spending by category, monthly trends, lifetime summary. |

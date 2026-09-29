@@ -4,7 +4,9 @@ import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
+import 'package:dco_mobile/core/widgets/swipe_to_reveal.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
+import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/notifications/domain/entities/notification.dart';
 import 'package:dco_mobile/features/notifications/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -57,11 +59,23 @@ class _NotificationTile extends ConsumerWidget {
 
   final NotificationItem item;
 
+  String? _sourceLabel(WidgetRef ref) {
+    final vehicleId = item.vehicleId;
+    if (vehicleId == null) return null;
+    final vehicles = ref.watch(garageVehiclesProvider).valueOrNull;
+    if (vehicles == null) return null;
+    for (final vehicle in vehicles) {
+      if (vehicle.id == vehicleId) return vehicle.displayName;
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
+    final source = _sourceLabel(ref);
 
     Future<void> updateStatus(NotificationStatus status) async {
       if (userId == null) return;
@@ -85,36 +99,87 @@ class _NotificationTile extends ConsumerWidget {
       _ => Icons.event_outlined,
     };
 
-    return Material(
+    final tile = Material(
       color: tokens.background.card,
       borderRadius: BorderRadius.circular(tokens.radius.md),
       child: ListTile(
         leading: Icon(icon, color: tokens.icon.active),
-        title: Text(item.title),
-        subtitle: Text(item.body, maxLines: 2, overflow: TextOverflow.ellipsis),
-        trailing: item.isOpen
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
+        title: source == null
+            ? Text(item.title)
+            : Row(
                 children: [
-                  IconButton(
-                    tooltip: s.notificationsMarkDone,
-                    onPressed: () => updateStatus(NotificationStatus.done),
-                    icon: Icon(
-                      Icons.check_circle_outline,
-                      color: tokens.status.successFg,
+                  Expanded(
+                    child: Text(
+                      item.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  IconButton(
-                    tooltip: s.notificationsDismiss,
-                    onPressed: () => updateStatus(NotificationStatus.dismissed),
-                    icon: Icon(Icons.close, color: tokens.text.tertiary),
+                  SizedBox(width: tokens.space.s2),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 140),
+                    child: _SourceBadge(label: source),
                   ),
                 ],
-              )
+              ),
+        subtitle: Text(item.body, maxLines: 2, overflow: TextOverflow.ellipsis),
+        trailing: item.isOpen
+            ? null
             : TextButton(
                 onPressed: () => updateStatus(NotificationStatus.unread),
                 child: Text(s.notificationsRestore),
               ),
+      ),
+    );
+
+    if (!item.isOpen) return tile;
+
+    return SwipeToReveal(
+      child: tile,
+      actionsBuilder: (close) => [
+        IconButton(
+          tooltip: s.notificationsMarkDone,
+          onPressed: () {
+            close();
+            updateStatus(NotificationStatus.done);
+          },
+          icon: Icon(
+            Icons.check_circle_outline,
+            color: tokens.status.successFg,
+          ),
+        ),
+        IconButton(
+          tooltip: s.notificationsDismiss,
+          onPressed: () {
+            close();
+            updateStatus(NotificationStatus.dismissed);
+          },
+          icon: Icon(Icons.close, color: tokens.text.tertiary),
+        ),
+      ],
+    );
+  }
+}
+
+class _SourceBadge extends StatelessWidget {
+  const _SourceBadge({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: tokens.space.s2, vertical: 2),
+      decoration: BoxDecoration(
+        color: tokens.background.input,
+        borderRadius: BorderRadius.circular(tokens.radius.full),
+      ),
+      child: Text(
+        label,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(color: tokens.text.caption, fontSize: 11),
       ),
     );
   }

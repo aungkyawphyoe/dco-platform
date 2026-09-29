@@ -6,6 +6,10 @@ import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/app_router.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/storage/memory_token_store.dart';
+import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
+import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
+import 'package:dco_mobile/features/notifications/domain/entities/notification.dart';
+import 'package:dco_mobile/features/notifications/presentation/screens/notification_feed_screen.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +21,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
 
-  testWidgets('welcome to dashboard via mock sign in', (tester) async {
+  Future<AppDatabase> pumpSignedInApp(WidgetTester tester) async {
     final database = AppDatabase(NativeDatabase.memory());
 
     await tester.pumpWidget(
@@ -42,6 +46,7 @@ void main() {
     );
 
     await tester.pumpAndSettle();
+
     expect(find.text('Your garage, on the phone.'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('welcome-sign-in')));
@@ -51,6 +56,12 @@ void main() {
     await tester.enterText(find.byType(TextField).at(1), 'password12');
     await tester.tap(find.byKey(const Key('login-submit')));
     await tester.pumpAndSettle();
+
+    return database;
+  }
+
+  testWidgets('welcome to dashboard via mock sign in', (tester) async {
+    final database = await pumpSignedInApp(tester);
 
     expect(find.text('Register a vehicle'), findsWidgets);
 
@@ -102,6 +113,81 @@ void main() {
     expect(find.text('Mileage Update'), findsOneWidget);
     expect(find.text('Routine'), findsOneWidget);
     expect(find.byKey(const Key('maintenance-plan-done')), findsNothing);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    await tester.pump(Duration.zero);
+    await database.close();
+  });
+
+  testWidgets('notification feed shows source badge and swipe actions', (
+    tester,
+  ) async {
+    final database = await pumpSignedInApp(tester);
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DcoApp)),
+    );
+
+    final userId = container
+        .read(sessionControllerProvider)
+        .valueOrNull!
+        .user
+        .id;
+    final vehicle = await container
+        .read(vehicleRepositoryProvider)
+        .add(
+          userId: userId,
+          draft: const VehicleDraft(
+            name: 'Weekend Car',
+            nickname: 'Daily Car',
+            make: 'Toyota',
+            model: 'Camry',
+            year: 2022,
+            licensePlate: 'XYZ789',
+            fuelType: FuelType.petrol,
+            mileage: 12000,
+          ),
+        );
+
+    await container
+        .read(notificationRepositoryProvider)
+        .recordDue(
+          userId: userId,
+          vehicleId: vehicle.id,
+          planItemId: 'plan-1',
+          cycleKey: 'plan-1::cycle-1',
+          title: 'Oil change due',
+          body: 'Due in 30 days',
+          dueReason: NotificationDueReason.date,
+        );
+
+    container.read(goRouterProvider).push(AppRoutes.notifications);
+    await tester.pumpAndSettle();
+
+    final feed = find.byType(NotificationFeedScreen);
+    final feedTile = find.descendant(of: feed, matching: find.byType(ListTile));
+
+    expect(
+      find.descendant(of: feed, matching: find.text('Oil change due')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: feed, matching: find.text('Daily Car')),
+      findsOneWidget,
+    );
+
+    final dxBefore = tester.getTopLeft(feedTile).dx;
+    await tester.drag(feedTile, const Offset(-400, 0));
+    await tester.pumpAndSettle();
+    final dxAfter = tester.getTopLeft(feedTile).dx;
+    expect(dxAfter, lessThan(dxBefore - 40));
+
+    await tester.tap(find.byTooltip('Mark done'));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.descendant(of: feed, matching: find.text('Restore')),
+      findsOneWidget,
+    );
 
     await tester.pumpWidget(const SizedBox.shrink());
     await tester.pump(Duration.zero);
