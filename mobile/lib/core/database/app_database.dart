@@ -36,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'dco_owner'));
 
   @override
-  int get schemaVersion => 15;
+  int get schemaVersion => 16;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -98,6 +98,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 15) {
         await migrator.addColumn(userProfiles, userProfiles.soonDays);
         await migrator.addColumn(userProfiles, userProfiles.soonDistanceKm);
+      }
+      if (from < 16) {
+        await migrator.addColumn(fuelLogRecords, fuelLogRecords.odometer);
       }
     },
   );

@@ -185,4 +185,124 @@ void main() {
     expect(updated.cost, 48);
     expect(updated.loggedOn, DateTime(2026, 8, 2));
   });
+
+  test('addLog stores odometer and bumps vehicle mileage when higher', () async {
+    final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
+    await fuel.ensureDefaultFuelTypes('user-1');
+    final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
+        .firstWhere((type) => type.name == 'Petrol');
+
+    final log = await fuel.addLog(
+      userId: 'user-1',
+      vehicleId: vehicle.id,
+      kind: FuelLogKind.refuel,
+      draft: FuelLogDraft(
+        loggedOn: DateTime(2026, 8, 20),
+        fuelTypeId: petrol.id,
+        amount: 40,
+        cost: 52.5,
+        odometer: 10500,
+      ),
+    );
+
+    expect(log.odometer, 10500);
+
+    final reloaded = await vehicles.getById(vehicle.id);
+    expect(reloaded!.mileage, 10500);
+
+    final logs = await fuel.watchLogs(vehicleId: vehicle.id, kind: FuelLogKind.refuel).first;
+    expect(logs.single.odometer, 10500);
+  });
+
+  test('odometer at or below vehicle mileage is kept without a bump', () async {
+    final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
+    await fuel.ensureDefaultFuelTypes('user-1');
+    final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
+        .firstWhere((type) => type.name == 'Petrol');
+
+    final log = await fuel.addLog(
+      userId: 'user-1',
+      vehicleId: vehicle.id,
+      kind: FuelLogKind.refuel,
+      draft: FuelLogDraft(
+        loggedOn: DateTime(2026, 8, 20),
+        fuelTypeId: petrol.id,
+        amount: 40,
+        cost: 52.5,
+        odometer: 10000,
+      ),
+    );
+
+    expect(log.odometer, 10000);
+    final reloaded = await vehicles.getById(vehicle.id);
+    expect(reloaded!.mileage, 10000);
+  });
+
+  test('odometer below vehicle mileage is rejected', () async {
+    final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
+    await fuel.ensureDefaultFuelTypes('user-1');
+    final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
+        .firstWhere((type) => type.name == 'Petrol');
+
+    await expectLater(
+      fuel.addLog(
+        userId: 'user-1',
+        vehicleId: vehicle.id,
+        kind: FuelLogKind.refuel,
+        draft: FuelLogDraft(
+          loggedOn: DateTime(2026, 8, 20),
+          fuelTypeId: petrol.id,
+          amount: 40,
+          cost: 52.5,
+          odometer: 9999,
+        ),
+      ),
+      throwsA(
+        isA<FuelValidationFailure>().having(
+          (failure) => failure.message,
+          'message',
+          'Odometer cannot be below vehicle mileage',
+        ),
+      ),
+    );
+
+    final reloaded = await vehicles.getById(vehicle.id);
+    expect(reloaded!.mileage, 10000);
+  });
+
+  test('updateLog persists odometer changes', () async {
+    final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
+    await fuel.ensureDefaultFuelTypes('user-1');
+    final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
+        .firstWhere((type) => type.name == 'Petrol');
+    final log = await fuel.addLog(
+      userId: 'user-1',
+      vehicleId: vehicle.id,
+      kind: FuelLogKind.refuel,
+      draft: FuelLogDraft(
+        loggedOn: DateTime(2026, 8, 1),
+        fuelTypeId: petrol.id,
+        amount: 30,
+        cost: 40,
+      ),
+    );
+    expect(log.odometer, isNull);
+
+    final updated = await fuel.updateLog(
+      userId: 'user-1',
+      logId: log.id,
+      kind: FuelLogKind.refuel,
+      draft: FuelLogDraft(
+        loggedOn: DateTime(2026, 8, 1),
+        fuelTypeId: petrol.id,
+        amount: 30,
+        cost: 40,
+        odometer: 10750,
+      ),
+    );
+
+    expect(updated.odometer, 10750);
+    final reloaded = await vehicles.getById(vehicle.id);
+    expect(reloaded!.mileage, 10750);
+  });
 }

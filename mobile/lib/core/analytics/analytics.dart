@@ -32,7 +32,10 @@ enum AnalyticsEvent {
   documentDeleted('document_deleted'),
   noteAdded('note_added'),
   noteUpdated('note_updated'),
-  noteDeleted('note_deleted');
+  noteDeleted('note_deleted'),
+  statsOpened('stats_opened'),
+  statsPeriodChanged('stats_period_changed'),
+  statsDefinitionsOpened('stats_definitions_opened');
 
   const AnalyticsEvent(this.name);
   final String name;

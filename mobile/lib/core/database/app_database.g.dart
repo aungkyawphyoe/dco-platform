@@ -5779,6 +5779,17 @@ class $FuelLogRecordsTable extends FuelLogRecords
     type: DriftSqlType.double,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _odometerMeta = const VerificationMeta(
+    'odometer',
+  );
+  @override
+  late final GeneratedColumn<double> odometer = GeneratedColumn<double>(
+    'odometer',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -5813,6 +5824,7 @@ class $FuelLogRecordsTable extends FuelLogRecords
     loggedOn,
     amount,
     cost,
+    odometer,
     updatedAt,
     createdAt,
   ];
@@ -5911,6 +5923,12 @@ class $FuelLogRecordsTable extends FuelLogRecords
     } else if (isInserting) {
       context.missing(_costMeta);
     }
+    if (data.containsKey('odometer')) {
+      context.handle(
+        _odometerMeta,
+        odometer.isAcceptableOrUnknown(data['odometer']!, _odometerMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -5976,6 +5994,10 @@ class $FuelLogRecordsTable extends FuelLogRecords
         DriftSqlType.double,
         data['${effectivePrefix}cost'],
       )!,
+      odometer: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}odometer'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -6004,6 +6026,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   final DateTime loggedOn;
   final double amount;
   final double cost;
+  final double? odometer;
   final DateTime updatedAt;
   final DateTime createdAt;
   const FuelLogRecord({
@@ -6017,6 +6040,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     required this.loggedOn,
     required this.amount,
     required this.cost,
+    this.odometer,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -6033,6 +6057,9 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     map['logged_on'] = Variable<DateTime>(loggedOn);
     map['amount'] = Variable<double>(amount);
     map['cost'] = Variable<double>(cost);
+    if (!nullToAbsent || odometer != null) {
+      map['odometer'] = Variable<double>(odometer);
+    }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
     return map;
@@ -6050,6 +6077,9 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
       loggedOn: Value(loggedOn),
       amount: Value(amount),
       cost: Value(cost),
+      odometer: odometer == null && nullToAbsent
+          ? const Value.absent()
+          : Value(odometer),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -6071,6 +6101,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
       loggedOn: serializer.fromJson<DateTime>(json['loggedOn']),
       amount: serializer.fromJson<double>(json['amount']),
       cost: serializer.fromJson<double>(json['cost']),
+      odometer: serializer.fromJson<double?>(json['odometer']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -6089,6 +6120,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
       'loggedOn': serializer.toJson<DateTime>(loggedOn),
       'amount': serializer.toJson<double>(amount),
       'cost': serializer.toJson<double>(cost),
+      'odometer': serializer.toJson<double?>(odometer),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -6105,6 +6137,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     DateTime? loggedOn,
     double? amount,
     double? cost,
+    Value<double?> odometer = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => FuelLogRecord(
@@ -6118,6 +6151,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     loggedOn: loggedOn ?? this.loggedOn,
     amount: amount ?? this.amount,
     cost: cost ?? this.cost,
+    odometer: odometer.present ? odometer.value : this.odometer,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -6137,6 +6171,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
       loggedOn: data.loggedOn.present ? data.loggedOn.value : this.loggedOn,
       amount: data.amount.present ? data.amount.value : this.amount,
       cost: data.cost.present ? data.cost.value : this.cost,
+      odometer: data.odometer.present ? data.odometer.value : this.odometer,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -6155,6 +6190,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
           ..write('loggedOn: $loggedOn, ')
           ..write('amount: $amount, ')
           ..write('cost: $cost, ')
+          ..write('odometer: $odometer, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -6173,6 +6209,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     loggedOn,
     amount,
     cost,
+    odometer,
     updatedAt,
     createdAt,
   );
@@ -6190,6 +6227,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
           other.loggedOn == this.loggedOn &&
           other.amount == this.amount &&
           other.cost == this.cost &&
+          other.odometer == this.odometer &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -6205,6 +6243,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
   final Value<DateTime> loggedOn;
   final Value<double> amount;
   final Value<double> cost;
+  final Value<double?> odometer;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -6219,6 +6258,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     this.loggedOn = const Value.absent(),
     this.amount = const Value.absent(),
     this.cost = const Value.absent(),
+    this.odometer = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -6234,6 +6274,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     required DateTime loggedOn,
     required double amount,
     required double cost,
+    this.odometer = const Value.absent(),
     required DateTime updatedAt,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -6260,6 +6301,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     Expression<DateTime>? loggedOn,
     Expression<double>? amount,
     Expression<double>? cost,
+    Expression<double>? odometer,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -6275,6 +6317,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
       if (loggedOn != null) 'logged_on': loggedOn,
       if (amount != null) 'amount': amount,
       if (cost != null) 'cost': cost,
+      if (odometer != null) 'odometer': odometer,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -6292,6 +6335,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     Value<DateTime>? loggedOn,
     Value<double>? amount,
     Value<double>? cost,
+    Value<double?>? odometer,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -6307,6 +6351,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
       loggedOn: loggedOn ?? this.loggedOn,
       amount: amount ?? this.amount,
       cost: cost ?? this.cost,
+      odometer: odometer ?? this.odometer,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -6346,6 +6391,9 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     if (cost.present) {
       map['cost'] = Variable<double>(cost.value);
     }
+    if (odometer.present) {
+      map['odometer'] = Variable<double>(odometer.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -6371,6 +6419,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
           ..write('loggedOn: $loggedOn, ')
           ..write('amount: $amount, ')
           ..write('cost: $cost, ')
+          ..write('odometer: $odometer, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -15093,6 +15142,7 @@ typedef $$FuelLogRecordsTableCreateCompanionBuilder =
       required DateTime loggedOn,
       required double amount,
       required double cost,
+      Value<double?> odometer,
       required DateTime updatedAt,
       required DateTime createdAt,
       Value<int> rowid,
@@ -15109,6 +15159,7 @@ typedef $$FuelLogRecordsTableUpdateCompanionBuilder =
       Value<DateTime> loggedOn,
       Value<double> amount,
       Value<double> cost,
+      Value<double?> odometer,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -15170,6 +15221,11 @@ class $$FuelLogRecordsTableFilterComposer
 
   ColumnFilters<double> get cost => $composableBuilder(
     column: $table.cost,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get odometer => $composableBuilder(
+    column: $table.odometer,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15243,6 +15299,11 @@ class $$FuelLogRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<double> get odometer => $composableBuilder(
+    column: $table.odometer,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -15297,6 +15358,9 @@ class $$FuelLogRecordsTableAnnotationComposer
   GeneratedColumn<double> get cost =>
       $composableBuilder(column: $table.cost, builder: (column) => column);
 
+  GeneratedColumn<double> get odometer =>
+      $composableBuilder(column: $table.odometer, builder: (column) => column);
+
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
@@ -15347,6 +15411,7 @@ class $$FuelLogRecordsTableTableManager
                 Value<DateTime> loggedOn = const Value.absent(),
                 Value<double> amount = const Value.absent(),
                 Value<double> cost = const Value.absent(),
+                Value<double?> odometer = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -15361,6 +15426,7 @@ class $$FuelLogRecordsTableTableManager
                 loggedOn: loggedOn,
                 amount: amount,
                 cost: cost,
+                odometer: odometer,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -15377,6 +15443,7 @@ class $$FuelLogRecordsTableTableManager
                 required DateTime loggedOn,
                 required double amount,
                 required double cost,
+                Value<double?> odometer = const Value.absent(),
                 required DateTime updatedAt,
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -15391,6 +15458,7 @@ class $$FuelLogRecordsTableTableManager
                 loggedOn: loggedOn,
                 amount: amount,
                 cost: cost,
+                odometer: odometer,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,

@@ -2576,6 +2576,18 @@ abstract class AppLocalizations {
   /// **'Cost *'**
   String get fuelLogFormCost;
 
+  /// No description provided for @fuelLogFormOdometer.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer'**
+  String get fuelLogFormOdometer;
+
+  /// No description provided for @fuelLogFormOdometerHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Optional'**
+  String get fuelLogFormOdometerHint;
+
   /// No description provided for @fuelTypesTitle.
   ///
   /// In en, this message translates to:
@@ -4548,11 +4560,11 @@ abstract class AppLocalizations {
   /// **'Insurance'**
   String get drawerInsurance;
 
-  /// No description provided for @drawerRefuelStats.
+  /// No description provided for @drawerFuelStats.
   ///
   /// In en, this message translates to:
   /// **'Refuel Stats'**
-  String get drawerRefuelStats;
+  String get drawerFuelStats;
 
   /// No description provided for @drawerMaintenanceStats.
   ///
@@ -4578,11 +4590,11 @@ abstract class AppLocalizations {
   /// **'Fleet'**
   String get drawerFleet;
 
-  /// No description provided for @refuelStatsTitle.
+  /// No description provided for @fuelStatsTitle.
   ///
   /// In en, this message translates to:
   /// **'Refuel Stats'**
-  String get refuelStatsTitle;
+  String get fuelStatsTitle;
 
   /// No description provided for @maintenanceStatsTitle.
   ///
@@ -6083,6 +6095,402 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Action failed. Please try again.'**
   String get fleetActionFailed;
+
+  /// No description provided for @statsYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get statsYear;
+
+  /// No description provided for @statsMonth.
+  ///
+  /// In en, this message translates to:
+  /// **'Month'**
+  String get statsMonth;
+
+  /// No description provided for @statsAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get statsAll;
+
+  /// No description provided for @statsNoActiveVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'No active vehicle'**
+  String get statsNoActiveVehicle;
+
+  /// No description provided for @statsNoActiveVehicleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Register a vehicle to see its stats.'**
+  String get statsNoActiveVehicleBody;
+
+  /// No description provided for @statsDefinitionsAction.
+  ///
+  /// In en, this message translates to:
+  /// **'What do these stats mean?'**
+  String get statsDefinitionsAction;
+
+  /// No description provided for @statsNoRecordsPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'No records in this period'**
+  String get statsNoRecordsPeriod;
+
+  /// No description provided for @statsNoRecordsPeriodBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Change the year or month, or clear the filters.'**
+  String get statsNoRecordsPeriodBody;
+
+  /// No description provided for @statsClearFilters.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear filters'**
+  String get statsClearFilters;
+
+  /// No description provided for @statsOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get statsOther;
+
+  /// No description provided for @statsChartNoData.
+  ///
+  /// In en, this message translates to:
+  /// **'No data for this period'**
+  String get statsChartNoData;
+
+  /// No description provided for @statsEmptyFuelBodyRefuels.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a refill for {vehicleName} to see its stats.'**
+  String statsEmptyFuelBodyRefuels(Object vehicleName);
+
+  /// No description provided for @statsEmptyFuelBodyCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Log charging for {vehicleName} to see its stats.'**
+  String statsEmptyFuelBodyCharges(Object vehicleName);
+
+  /// No description provided for @statsEmptyMaintenanceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log a service for {vehicleName} to see its stats.'**
+  String statsEmptyMaintenanceBody(Object vehicleName);
+
+  /// No description provided for @statsEmptyExpensesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Log spend for {vehicleName} to see its stats.'**
+  String statsEmptyExpensesBody(Object vehicleName);
+
+  /// No description provided for @statsTotalRefuels.
+  ///
+  /// In en, this message translates to:
+  /// **'Total refuels'**
+  String get statsTotalRefuels;
+
+  /// No description provided for @statsTotalCharges.
+  ///
+  /// In en, this message translates to:
+  /// **'Total charges'**
+  String get statsTotalCharges;
+
+  /// No description provided for @statsTotalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cost'**
+  String get statsTotalCost;
+
+  /// No description provided for @statsTotalVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Total volume'**
+  String get statsTotalVolume;
+
+  /// No description provided for @statsTotalKwh.
+  ///
+  /// In en, this message translates to:
+  /// **'Total kWh'**
+  String get statsTotalKwh;
+
+  /// No description provided for @statsTotalDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Total distance'**
+  String get statsTotalDistance;
+
+  /// No description provided for @statsAvgConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg consumption'**
+  String get statsAvgConsumption;
+
+  /// No description provided for @statsAvgEfficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Avg efficiency'**
+  String get statsAvgEfficiency;
+
+  /// No description provided for @statsCostPer100.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost per 100 {unit}'**
+  String statsCostPer100(Object unit);
+
+  /// No description provided for @statsMostExpensiveRefuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Most expensive refuel'**
+  String get statsMostExpensiveRefuel;
+
+  /// No description provided for @statsMostExpensiveCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'Most expensive charge'**
+  String get statsMostExpensiveCharge;
+
+  /// No description provided for @statsTotalJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Total jobs'**
+  String get statsTotalJobs;
+
+  /// No description provided for @statsTotalServiceItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Total service items'**
+  String get statsTotalServiceItems;
+
+  /// No description provided for @statsTopServiceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Top service type'**
+  String get statsTopServiceType;
+
+  /// No description provided for @statsMostExpensiveJob.
+  ///
+  /// In en, this message translates to:
+  /// **'Most expensive job'**
+  String get statsMostExpensiveJob;
+
+  /// No description provided for @statsTotalExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total expenses'**
+  String get statsTotalExpenses;
+
+  /// No description provided for @statsTopCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Top category'**
+  String get statsTopCategory;
+
+  /// No description provided for @statsMostExpensiveExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Most expensive expense'**
+  String get statsMostExpensiveExpense;
+
+  /// No description provided for @statsMonthlyCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly cost'**
+  String get statsMonthlyCost;
+
+  /// No description provided for @statsEfficiencyTrend.
+  ///
+  /// In en, this message translates to:
+  /// **'Efficiency trend'**
+  String get statsEfficiencyTrend;
+
+  /// No description provided for @statsCostByServiceType.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost by service type'**
+  String get statsCostByServiceType;
+
+  /// No description provided for @statsCostByCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost by category'**
+  String get statsCostByCategory;
+
+  /// No description provided for @statsDefPeriod.
+  ///
+  /// In en, this message translates to:
+  /// **'Figures follow the selected Year and Month. — means there is not enough data yet.'**
+  String get statsDefPeriod;
+
+  /// No description provided for @statsDefFuelCount.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of fuel logs in the period.'**
+  String get statsDefFuelCount;
+
+  /// No description provided for @statsDefTotalCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Sum of all costs in the period.'**
+  String get statsDefTotalCost;
+
+  /// No description provided for @statsDefAvgCostPerUnit.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cost divided by total volume.'**
+  String get statsDefAvgCostPerUnit;
+
+  /// No description provided for @statsDefAvgCostPerKwh.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cost divided by total kWh.'**
+  String get statsDefAvgCostPerKwh;
+
+  /// No description provided for @statsDefTotalVolume.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel volume logged in the period; mixed units show one line per unit.'**
+  String get statsDefTotalVolume;
+
+  /// No description provided for @statsDefTotalKwh.
+  ///
+  /// In en, this message translates to:
+  /// **'Energy logged in the period.'**
+  String get statsDefTotalKwh;
+
+  /// No description provided for @statsDefTotalDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance between odometer readings in the period; needs at least two segments.'**
+  String get statsDefTotalDistance;
+
+  /// No description provided for @statsDefAvgConsumption.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel used per 100 km (or miles per gallon) between odometer readings; approximate when a tank is not filled to full.'**
+  String get statsDefAvgConsumption;
+
+  /// No description provided for @statsDefAvgEfficiency.
+  ///
+  /// In en, this message translates to:
+  /// **'Distance driven per kWh between odometer readings.'**
+  String get statsDefAvgEfficiency;
+
+  /// No description provided for @statsDefCostPer100.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost between odometer readings, scaled to 100 km (or 100 miles).'**
+  String get statsDefCostPer100;
+
+  /// No description provided for @statsDefMostExpensiveRefuel.
+  ///
+  /// In en, this message translates to:
+  /// **'The most expensive refuel in the period, with its date.'**
+  String get statsDefMostExpensiveRefuel;
+
+  /// No description provided for @statsDefMostExpensiveCharge.
+  ///
+  /// In en, this message translates to:
+  /// **'The most expensive charge in the period, with its date.'**
+  String get statsDefMostExpensiveCharge;
+
+  /// No description provided for @statsDefSegments.
+  ///
+  /// In en, this message translates to:
+  /// **'A segment is the distance between two consecutive odometer readings. Distance and consumption KPIs need at least two segments in the period.'**
+  String get statsDefSegments;
+
+  /// No description provided for @statsDefUnits.
+  ///
+  /// In en, this message translates to:
+  /// **'Distances follow your Settings length unit; money follows your currency.'**
+  String get statsDefUnits;
+
+  /// No description provided for @statsDefMonthLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Month labels use MMM when a year is selected, and MMM YY for All.'**
+  String get statsDefMonthLabel;
+
+  /// No description provided for @statsDefMonthlyCostChart.
+  ///
+  /// In en, this message translates to:
+  /// **'One bar per month showing total cost in the period.'**
+  String get statsDefMonthlyCostChart;
+
+  /// No description provided for @statsDefEfficiencyChart.
+  ///
+  /// In en, this message translates to:
+  /// **'One point per month with a usable segment; months without one are gaps.'**
+  String get statsDefEfficiencyChart;
+
+  /// No description provided for @statsDefTotalJobs.
+  ///
+  /// In en, this message translates to:
+  /// **'Service records saved in the period.'**
+  String get statsDefTotalJobs;
+
+  /// No description provided for @statsDefTotalServiceItems.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual service line items on those records.'**
+  String get statsDefTotalServiceItems;
+
+  /// No description provided for @statsDefAvgJobCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cost divided by the number of jobs.'**
+  String get statsDefAvgJobCost;
+
+  /// No description provided for @statsDefTopServiceType.
+  ///
+  /// In en, this message translates to:
+  /// **'The service item name with the highest combined cost.'**
+  String get statsDefTopServiceType;
+
+  /// No description provided for @statsDefMostExpensiveJob.
+  ///
+  /// In en, this message translates to:
+  /// **'The most expensive service record in the period, with its date.'**
+  String get statsDefMostExpensiveJob;
+
+  /// No description provided for @statsDefDonutService.
+  ///
+  /// In en, this message translates to:
+  /// **'Combined line-item cost grouped by service name; smaller groups combine into Other.'**
+  String get statsDefDonutService;
+
+  /// No description provided for @statsDefTotalExpenses.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense records in the period.'**
+  String get statsDefTotalExpenses;
+
+  /// No description provided for @statsDefAvgPerExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'Total divided by the number of expenses.'**
+  String get statsDefAvgPerExpense;
+
+  /// No description provided for @statsDefTopCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'The category with the highest combined spend.'**
+  String get statsDefTopCategory;
+
+  /// No description provided for @statsDefMostExpensiveExpense.
+  ///
+  /// In en, this message translates to:
+  /// **'The single most expensive expense in the period, with its date.'**
+  String get statsDefMostExpensiveExpense;
+
+  /// No description provided for @statsDefDonutCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Spend grouped by category; smaller groups combine into Other.'**
+  String get statsDefDonutCategory;
 }
 
 class _AppLocalizationsDelegate

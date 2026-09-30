@@ -72,6 +72,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   final _fuelTypeLabel = TextEditingController();
   final _amount = TextEditingController();
   final _cost = TextEditingController();
+  final _odometer = TextEditingController();
   final _errors = <String, String?>{};
 
   DateTime _loggedOn = DateTime.now();
@@ -102,6 +103,10 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         _fuelTypeLabel.text = log.fuelTypeName;
         _amount.text = _formatNumber(log.amount);
         _cost.text = MoneyFormat.input(log.cost, ref.read(currencyProvider).code);
+        if (log.odometer != null) {
+          final display = ref.read(lengthUnitProvider).toDisplay(log.odometer!);
+          _odometer.text = _formatNumber(display);
+        }
       }
     } else if (vehicle != null) {
       final types = await ref
@@ -123,6 +128,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     _fuelTypeLabel.dispose();
     _amount.dispose();
     _cost.dispose();
+    _odometer.dispose();
     super.dispose();
   }
 
@@ -136,15 +142,18 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         ..['date'] = FuelLogValidators.date(_loggedOn, now: DateTime.now())
         ..['type'] = FuelLogValidators.fuelTypeId(_fuelTypeId)
         ..['amount'] = FuelLogValidators.amount(_amount.text)
-        ..['cost'] = FuelLogValidators.cost(_cost.text);
+        ..['cost'] = FuelLogValidators.cost(_cost.text)
+        ..['odometer'] = FuelLogValidators.odometer(_odometer.text);
       _formError = null;
     });
     if (_errors.values.any((error) => error != null)) return null;
+    final odometerDisplay = FuelLogValidators.parseOdometer(_odometer.text);
     return FuelLogDraft(
       loggedOn: _loggedOn,
       fuelTypeId: _fuelTypeId!,
       amount: FuelLogValidators.parseDecimal(_amount.text)!,
       cost: FuelLogValidators.parseDecimal(_cost.text)!,
+      odometer: odometerDisplay == null ? null : ref.read(lengthUnitProvider).toStorage(odometerDisplay),
     );
   }
 
@@ -258,6 +267,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     final tokens = context.tokens;
     final types = ref.watch(matchingFuelTypesProvider);
     final currency = ref.watch(currencyProvider).code;
+    final lengthUnit = ref.watch(lengthUnitProvider);
     FuelCatalogType? selected;
     for (final type in types) {
       if (type.id == _fuelTypeId) {
@@ -332,13 +342,28 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   controller: _cost,
                   hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
                   keyboardType: TextInputType.numberWithOptions(decimal: !MoneyFormat.isMmk(currency)),
-                  textInputAction: TextInputAction.done,
+                  textInputAction: TextInputAction.next,
                   errorText: _errors['cost'],
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 12, top: 12),
                     child: Text(currency, style: TextStyle(color: tokens.text.caption)),
                   ),
                   onChanged: (_) => setState(() => _errors['cost'] = null),
+                ),
+                SizedBox(height: tokens.space.s4),
+                DcoTextField(
+                  key: const Key('fuel-log-odometer'),
+                  label: s.fuelLogFormOdometer,
+                  controller: _odometer,
+                  hint: s.fuelLogFormOdometerHint,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  textInputAction: TextInputAction.done,
+                  errorText: _errors['odometer'],
+                  suffix: Padding(
+                    padding: const EdgeInsets.only(right: 12, top: 12),
+                    child: Text(lengthUnit.label, style: TextStyle(color: tokens.text.caption)),
+                  ),
+                  onChanged: (_) => setState(() => _errors['odometer'] = null),
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),

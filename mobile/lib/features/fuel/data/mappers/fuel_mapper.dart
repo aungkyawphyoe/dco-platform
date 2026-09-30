@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/fuel_catalog_type.dart';
 import '../../domain/entities/fuel_log.dart';
@@ -38,6 +40,7 @@ FuelLog fuelLogFromDrift(FuelLogRecord row) {
     loggedOn: row.loggedOn,
     amount: row.amount,
     cost: row.cost,
+    odometer: row.odometer,
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
   );
@@ -55,6 +58,7 @@ FuelLogRecordsCompanion fuelLogToCompanion(FuelLog log) {
     loggedOn: log.loggedOn,
     amount: log.amount,
     cost: log.cost,
+    odometer: Value(log.odometer),
     updatedAt: log.updatedAt,
     createdAt: log.createdAt,
   );

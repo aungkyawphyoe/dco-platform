@@ -284,6 +284,9 @@ class ChangeApplier {
         loggedOn: _date(payload['logged_on']),
         amount: _dbl(payload['amount']) ?? 0,
         cost: _dbl(payload['cost']) ?? 0,
+        odometer: Value(
+          payload.containsKey('odometer') ? _dbl(payload['odometer']) : existing?.odometer,
+        ),
         updatedAt: change.serverTs,
         createdAt: existing?.createdAt ?? change.serverTs,
       ),

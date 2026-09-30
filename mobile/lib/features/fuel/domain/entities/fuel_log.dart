@@ -52,6 +52,7 @@ class FuelLog {
     required this.cost,
     required this.updatedAt,
     required this.createdAt,
+    this.odometer,
   });
 
   final String id;
@@ -64,6 +65,9 @@ class FuelLog {
   final DateTime loggedOn;
   final double amount;
   final double cost;
+
+  /// Optional reading in storage units (miles). Feeds `stats.md` distance KPIs.
+  final double? odometer;
   final DateTime updatedAt;
   final DateTime createdAt;
 
@@ -82,6 +86,7 @@ class FuelLog {
     'logged_on': loggedOn.toIso8601String(),
     'amount': amount,
     'cost': cost,
+    'odometer': odometer,
   };
 }
 
@@ -91,10 +96,12 @@ class FuelLogDraft {
     required this.fuelTypeId,
     required this.amount,
     required this.cost,
+    this.odometer,
   });
 
   final DateTime loggedOn;
   final String fuelTypeId;
   final double amount;
   final double cost;
+  final double? odometer;
 }

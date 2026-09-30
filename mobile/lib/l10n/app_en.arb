@@ -1,7 +1,6 @@
 {
   "@@locale": "en",
   "appTitle": "DCO",
-
   "ok": "OK",
   "cancel": "Cancel",
   "save": "Save",
@@ -24,21 +23,17 @@
   "required": "Required",
   "active": "active",
   "inactive": "inactive",
-
   "showPassword": "Show password",
   "hidePassword": "Hide password",
-
   "syncFailed": "Sync failed",
   "retryAction": "Retry",
   "syncDefaultError": "Your changes will retry automatically.",
   "somethingWentWrong": "Something went wrong",
   "somethingWentWrongTryAgain": "Something went wrong. Try again.",
-
   "navGarage": "Garage",
   "navMaintenance": "Maintenance",
   "navExpenses": "Expenses",
   "navSettings": "Setting",
-
   "welcomeTagline": "Your garage, on the phone.",
   "welcomeBody": "Track maintenance, documents, and spend for every vehicle you own — even offline.",
   "createAccount": "Create account",
@@ -57,14 +52,12 @@
   "resetLinkSent": "If that email is registered, we sent a reset link.",
   "resetFailed": "Reset failed",
   "sendResetLink": "Send reset link",
-
   "authIncorrectCredentials": "Email or password is incorrect",
   "authEmailAlreadyRegistered": "That email is already registered",
   "authNetworkError": "Check your connection and try again",
   "authTooManyAttempts": "Too many attempts. Try again shortly",
   "authSessionExpired": "Session expired. Sign in again",
   "authUnknownError": "Something went wrong",
-
   "dashboardNoVehicle": "No vehicle",
   "dashboardGarageTooltip": "Garage",
   "dashboardNotificationsTooltip": "Notifications",
@@ -93,7 +86,6 @@
   "dueIn": "Due in {distance}",
   "dueSoon": "Due soon",
   "due": "Due {distance}",
-
   "garageMyGarage": "My Garage",
   "garageRegisterTooltip": "Register a vehicle",
   "garageLoadError": "Could not load garage",
@@ -104,7 +96,6 @@
   "garageAddCardTitle": "+ Register Another Vehicle",
   "garageAddCardSubtitle": "Track maintenance, expenses & documents",
   "garageFamilyBadge": "Family",
-
   "vehicleEditTitle": "Edit Vehicle",
   "vehicleRegisterTitle": "Register Vehicle",
   "vehicleRequiredInfo": "Required Information",
@@ -129,7 +120,6 @@
   "vehicleSetActive": "Set active",
   "vehicleEditTooltip": "Edit vehicle",
   "vehicleRemoveTooltip": "Remove from family",
-
   "vehiclePlateDuplicate": "That license plate is already in your garage",
   "vehicleVinDuplicate": "That VIN already belongs to a vehicle",
   "vehicleMileageDecrease": "Mileage cannot decrease",
@@ -146,11 +136,9 @@
   "vehicleMileageInvalid": "Enter a valid mileage",
   "vehicleMileageNegative": "Mileage cannot be negative",
   "vehicleVinLength": "VIN must be 17 characters",
-
   "fuelPetrol": "Petrol",
   "fuelElectric": "Electric",
   "fuelHybridPlugin": "Hybrid plugin",
-
   "maintenanceTitle": "Maintenance",
   "maintenanceHistoryTooltip": "History",
   "maintenanceLoadError": "Could not load maintenance",
@@ -164,7 +152,6 @@
   "maintenanceNoServicesLogged": "No services logged",
   "maintenanceRegisterService": "Register service",
   "maintenanceLoadFromReceipt": "Load from Receipt",
-
   "maintenancePlanTitle": "Maintenance Plan",
   "maintenancePlanNoActiveVehicleBody": "Register a vehicle to build a maintenance plan.",
   "maintenancePlanLoadError": "Could not load plan",
@@ -172,13 +159,11 @@
   "maintenancePlanEmptyBody": "Add a custom item or pick from suggested services.",
   "maintenancePlanAddItem": "Add Maintenance Item",
   "maintenancePlanAddSuggested": "Add Suggested Items",
-
   "serviceHistoryTitle": "Service History",
   "serviceHistoryNoActiveVehicleBody": "Register a vehicle to see services logged against it.",
   "serviceHistoryLoadError": "Could not load services",
   "serviceHistoryEmptyTitle": "No services yet",
   "serviceHistoryEmptyBody": "Logged services for this vehicle will show up here.",
-
   "serviceDetailTitle": "Service",
   "serviceDetailNotFound": "Service not found",
   "serviceDetailNotFoundBody": "This record is no longer available.",
@@ -188,7 +173,6 @@
   "serviceDetailNotes": "Notes",
   "serviceDetailServices": "Services",
   "serviceDetailParts": "Parts",
-
   "registerServiceTitle": "Register Service",
   "registerServiceNoActiveVehicleBody": "Register a vehicle before logging a service.",
   "registerServiceJobTitle": "Job Title",
@@ -210,7 +194,6 @@
   "registerServiceAssignPartEmpty": "No parts in the catalog yet. Add one, then assign it here.",
   "registerServiceAssignPartAllAssigned": "Every part is already assigned to this service.",
   "registerServiceAddNewPart": "Add a new part",
-
   "planItemFormEditTitle": "Edit Service Item",
   "planItemFormCreateTitle": "Create Service Item",
   "planItemFormName": "Name *",
@@ -227,13 +210,11 @@
   "planItemFormMileage": "Mileage",
   "planItemFormMileageRequired": "Mileage *",
   "planItemFormNotes": "Notes",
-
   "suggestedItemsTitle": "Maintenance Items",
   "suggestedItemsNoActiveVehicleBody": "Register a vehicle to add suggested items.",
   "suggestedItemsAllAdded": "All suggested items added",
   "suggestedItemsAllAddedBody": "You can still create a custom service item from the plan.",
   "suggestedItemAdd": "Add {itemName}",
-
   "planItemTileOverdue": "Overdue",
   "planItemTileOverdueBy": "Overdue by {count, plural, =1{# day} other{# days}}",
   "planItemTileNextMileage": "Next Mileage: ",
@@ -243,12 +224,10 @@
   "planItemTileTimeLeft": "Time left: ",
   "planItemTileDay": "day",
   "planItemTileDays": "days",
-
   "maintenanceMileageDecrease": "Mileage cannot decrease",
   "maintenanceVehicleNotFound": "Vehicle not found",
   "maintenancePlanItemNotFound": "Plan item not found",
   "maintenanceServiceRecordNotFound": "Service record not found",
-
   "planItemNameRequired": "Name is required",
   "planItemNameMaxLength": "Name must be {max} characters or fewer",
   "planItemScheduleRequired": "Set a time interval, a mileage interval, or both",
@@ -260,7 +239,6 @@
   "planItemAtLeastOneService": "Add at least one service",
   "planItemTotalRequired": "Total is required",
   "planItemAmountInvalid": "Enter a valid amount",
-
   "catalogMileageUpdate": "Mileage Update",
   "catalogRoutine": "Routine",
   "catalogOilChange": "Oil Change",
@@ -274,7 +252,6 @@
   "catalogBattery": "Battery",
   "catalogAirConditioning": "Air Conditioning",
   "catalogRotateTires": "Rotate Tires",
-
   "expensesTitle": "Expenses",
   "expensesAddTooltip": "Add expense",
   "expensesNoActiveVehicle": "No active vehicle",
@@ -288,7 +265,6 @@
   "expensesThisMonth": "This month",
   "expensesTotal": "Total",
   "expensesAllFilter": "All",
-
   "expenseFormEditTitle": "Edit expense",
   "expenseFormAddTitle": "Add expense",
   "expenseFormNoActiveVehicleBody": "Register a vehicle to log spend.",
@@ -316,9 +292,7 @@
   "expenseFormCameraDenied": "Camera or photo access was denied. You can save without a photo.",
   "expenseFormCameraOption": "Camera",
   "expenseFormPhotoLibraryOption": "Photo library",
-
   "expenseNotFound": "Expense not found",
-
   "expenseCategoryFuel": "Fuel",
   "expenseCategoryMaintenance": "Maintenance",
   "expenseCategoryInsurance": "Insurance",
@@ -326,7 +300,6 @@
   "expenseCategoryTolls": "Tolls",
   "expenseCategoryParts": "Parts",
   "expenseCategoryOther": "Other",
-
   "expenseCategoryRequired": "Category is required",
   "expenseAmountRequired": "Amount is required",
   "expenseAmountTooSmall": "Enter an amount greater than 0",
@@ -334,7 +307,6 @@
   "expenseDateRequired": "Date is required",
   "expenseDateTooFarFuture": "Date cannot be more than one day in the future",
   "expenseNotesMaxLength": "Notes must be {max} characters or fewer",
-
   "documentsTitle": "Documents",
   "documentsNoActiveVehicle": "No active vehicle",
   "documentsEmptyTitle": "No documents yet",
@@ -344,14 +316,12 @@
   "documentsNoActiveVehicleBody": "Register a vehicle to store documents.",
   "documentsLoadError": "Could not load documents",
   "documentsAddDocument": "Add document",
-
   "documentCategoryInsurance": "Insurance",
   "documentCategoryRegistration": "Registration",
   "documentCategoryInvoice": "Invoice",
   "documentCategoryWarranty": "Warranty",
   "documentCategoryReceipt": "Receipt",
   "documentCategoryOther": "Other",
-
   "documentFormEditTitle": "Edit Document",
   "documentFormAddTitle": "Add Document",
   "documentFormName": "Name *",
@@ -378,7 +348,6 @@
   "documentFormNotFoundBody": "It may have been deleted.",
   "documentFormAttachFile": "Attach file",
   "documentFormReplace": "Replace",
-
   "documentViewerTitle": "Document",
   "documentViewerNotFound": "Document not found",
   "documentViewerNotFoundBody": "This document could not be loaded.",
@@ -387,16 +356,13 @@
   "documentViewerNoFileBody": "This document has no file attached.",
   "documentViewerRemote": "Cloud document",
   "documentViewerRemoteBody": "This file is stored in the cloud and will sync when online.",
-
   "documentInfoCategory": "Category",
   "documentInfoAdded": "Added",
   "documentInfoNotes": "Notes",
   "documentInfoStatus": "Status",
   "documentStatusSynced": "Synced",
   "documentStatusQueued": "Queued",
-
   "documentNotFound": "Document not found",
-
   "partsTitle": "Parts",
   "partsAddTooltip": "Add a part",
   "partsNoActiveVehicle": "No active vehicle",
@@ -405,7 +371,6 @@
   "partsEmptyTitle": "No parts yet",
   "partsEmptyBody": "Add parts for {vehicleName}. Assign them when you log a service or an expense.",
   "partsAddPart": "Add a part",
-
   "partFormEditTitle": "Edit Part",
   "partFormAddTitle": "Add Part",
   "partFormName": "Name *",
@@ -416,7 +381,6 @@
   "partFormPartNumberHint": "OF-1234",
   "partFormNotes": "Notes",
   "partFormNotesHint": "Size, source, or fitment",
-
   "partDuplicate": "That part is already in this vehicle",
   "partNotFound": "Part not found",
   "partNameRequired": "Name is required",
@@ -424,7 +388,6 @@
   "partBrandMaxLength": "Brand must be {max} characters or fewer",
   "partNumberMaxLength": "Part number must be {max} characters or fewer",
   "partNotesMaxLength": "Notes must be {max} characters or fewer",
-
   "fuelLogsTitle": "Refuel",
   "fuelLogsTypesTooltip": "Fuel Types",
   "fuelLogsAddChargeTooltip": "Add a charge",
@@ -441,7 +404,6 @@
   "fuelLogsAllTypes": "All types",
   "fuelLogsAllDates": "All dates",
   "fuelLogsThisMonth": "This month",
-
   "fuelLogFormTypeSheetTitle": "Fuel Type",
   "fuelLogFormAddFuelType": "Add fuel type",
   "fuelLogFormTypesLink": "Fuel Types",
@@ -451,7 +413,8 @@
   "fuelLogFormSelect": "Select",
   "fuelLogFormAmount": "Amount *",
   "fuelLogFormCost": "Cost *",
-
+  "fuelLogFormOdometer": "Odometer",
+  "fuelLogFormOdometerHint": "Optional",
   "fuelTypesTitle": "Fuel Types",
   "fuelTypesAddTooltip": "Add a fuel type",
   "fuelTypesNoActiveVehicle": "No active vehicle",
@@ -465,7 +428,6 @@
   "fuelTypesAll": "All",
   "fuelTypesLiquid": "Liquid",
   "fuelTypesElectric": "Electric",
-
   "fuelTypeFormEditTitle": "Edit Fuel Type",
   "fuelTypeFormAddTitle": "Add Fuel Type",
   "fuelTypeFormName": "Name *",
@@ -473,7 +435,6 @@
   "fuelTypeFormNameHintPetrol": "Petrol",
   "fuelTypeFormKind": "Kind *",
   "fuelTypeFormUnit": "Unit *",
-
   "fuelTypeDuplicate": "That fuel type is already in your catalog",
   "fuelTypeNotFound": "Fuel type not found",
   "fuelLogNotFound": "Log not found",
@@ -490,7 +451,6 @@
   "fuelCostRequired": "Cost is required",
   "fuelCostInvalid": "Enter a valid cost",
   "fuelCostTooLarge": "Cost is too large",
-
   "fuelKindLiquid": "Liquid",
   "fuelKindElectric": "Electric",
   "fuelLogRefuel": "Refuel",
@@ -499,7 +459,6 @@
   "fuelLogAddCharge": "Add Charge",
   "fuelLogEditRefuel": "Edit Refuel",
   "fuelLogEditCharge": "Edit Charge",
-
   "settingsTitle": "Settings",
   "settingsFreePlan": "Free Plan",
   "settingsManageVehicles": "Manage vehicles",
@@ -524,7 +483,6 @@
   "settingsSyncStatusHoursAgo": "Synced {hours}h ago",
   "settingsSyncStatusDaysAgo": "Synced {days}d ago",
   "settingsSyncTapToSync": "Tap to sync your data",
-
   "profileTitle": "Profile",
   "profilePhoto": "Profile Photo",
   "profilePhotoTapToChange": "Tap to change photo",
@@ -548,17 +506,14 @@
   "profileDeleteAccountPassword": "Enter your password to confirm",
   "profileDeleteAccountBlocked": "You are the Primary Owner of a family. Transfer ownership or dissolve your family before deleting your account.",
   "profileDeleteAccountSuccess": "Your account has been deleted.",
-
   "localizationTitle": "Localization",
   "localizationLanguage": "Language",
   "localizationHelper": "App copy stays in English for now. This stores your choice.",
-
   "unitsFormatsTitle": "Unit and Format",
   "unitsFormatsCurrency": "Currency",
   "unitsFormatsCurrencyHelper": "USD shows cents. MMK shows whole kyat, and large amounts use K or M (25K, 23M).",
   "unitsFormatsLengthUnit": "Unit of length",
   "unitsFormatsLengthUnitHelper": "Odometer, service intervals, and due mileage follow this unit.",
-
   "remindersTitle": "Reminders",
   "remindersIntro": "Each service reminder sends two notifications: one {days} before the due date, and one when it is due or the odometer is within {distance}.",
   "remindersSoonDaysLabel": "Days before due",
@@ -567,18 +522,14 @@
   "remindersSoonDistanceLabel": "Distance before due",
   "remindersSoonDistanceHelp": "A mileage reminder fires when the remaining distance is at or below this.",
   "remindersReset": "Reset to defaults",
-
   "languageEnglish": "English",
   "languageMyanmar": "Myanmar",
-
   "currencyUSD": "US Dollar (USD)",
   "currencyMMK": "Myanmar Kyat (MMK)",
-
   "unitMilesShort": "mi",
   "unitKilometersShort": "km",
   "unitMilesFull": "Miles",
   "unitKilometersFull": "Kilometers",
-
   "notificationsTitle": "Notifications",
   "notificationsLoadError": "Could not load notifications",
   "notificationsEmptyTitle": "No notifications",
@@ -591,13 +542,11 @@
   "notificationsReminderBodyDate": "{name} — due {date}",
   "notificationsReminderBodyMileage": "{name} — due at {mileage}",
   "notificationsReminderBodyBoth": "{name} — due {date} · {mileage}",
-
   "insuranceTitle": "Insurance",
   "insuranceNoActiveVehicle": "No active vehicle",
   "insuranceComingLater": "Insurance coming later",
   "insuranceNoActiveVehicleBody": "Register a vehicle to keep policies against it.",
   "insuranceEmptyBody": "Policies for {vehicleName} will live here. For now, store insurance papers in Documents.",
-
   "familyJoinTitle": "Join Family",
   "familyCreateTitle": "Create Family",
   "familyJoining": "Joining family...",
@@ -623,7 +572,6 @@
   "familyShareText": "Join my DCO family! Code: {code}",
   "familyCodeExpiryHelper": "Code expires in 7 days. Regenerating invalidates the old code.",
   "familyGoToManagement": "Go to Family Management",
-
   "familyManagementTitle": "Family",
   "familyManagementMembersTab": "Members",
   "familyManagementVehiclesTab": "Vehicles",
@@ -636,7 +584,6 @@
   "familyManagementNoFamilyBody": "Create a family to share vehicles,\nor join an existing one.",
   "familyManagementCreateButton": "Create Family",
   "familyManagementJoinFamilyButton": "Join Family",
-
   "membersTabEmptyTitle": "No members yet",
   "membersTabEmptyBody": "Invite family to get started.",
   "membersTabManageTitle": "Manage {name}",
@@ -655,7 +602,6 @@
   "membersTabLicenseExpired": "Expired",
   "membersTabLicenseNone": "No License",
   "membersTabVehicleCount": "{count, plural, =1{# vehicle} other{# vehicles}}",
-
   "vehiclesTabTitle": "Family Vehicles",
   "vehiclesTabAdd": "Add",
   "vehiclesTabEmptyTitle": "No vehicles in family",
@@ -667,7 +613,6 @@
   "vehiclesTabAddSelected": "Add {count,plural, =1{1 vehicle} other{{count} vehicles}}",
   "vehiclesTabRemoveTitle": "Remove Vehicle",
   "vehiclesTabRemoveBody": "Remove {vehicleName} from family?",
-
   "inviteTabHeading": "Share Your Family",
   "inviteTabBody": "Invite family members to join and share vehicles.",
   "inviteTabShareCode": "Share Code",
@@ -681,7 +626,6 @@
   "inviteTabRegenerateBody": "This will invalidate the current code. Members with the old code won't be able to join.",
   "inviteTabRegenerateAction": "Regenerate",
   "inviteTabCodeExpiryHelper": "Code expires in 7 days. Regenerating invalidates the old code.",
-
   "carDetailTitle": "Car Detail",
   "carDetailNotFound": "Vehicle not found",
   "carDetailNotFoundBody": "This vehicle could not be loaded.",
@@ -714,7 +658,6 @@
   "carDetailAllAssigned": "All family members are already assigned",
   "carDetailLicensePrefix": "License: ",
   "carDetailAssign": "Assign",
-
   "userDetailProfileTitle": "Profile",
   "userDetailMemberTitle": "Member Detail",
   "userDetailNotFound": "User not found",
@@ -788,11 +731,9 @@
   "userDetailSaveRole": "Save",
   "userDetailAssignVehiclesSheet": "Assign Vehicles",
   "userDetailNoVehiclesInGarage": "No vehicles in garage",
-
   "familyRolePrimaryOwner": "Primary Owner",
   "familyRoleMember": "Member",
   "familyRoleDriver": "Driver",
-
   "drawerQuickAccess": "Quick Access",
   "drawerFeatures": "Features",
   "drawerStats": "Stats",
@@ -802,13 +743,12 @@
   "drawerParts": "Parts",
   "drawerMaintenancePlan": "Maintenance Plan",
   "drawerInsurance": "Insurance",
-  "drawerRefuelStats": "Refuel Stats",
+  "drawerFuelStats": "Refuel Stats",
   "drawerMaintenanceStats": "Maintenance Stats",
   "drawerExpenseStats": "Expense Stats",
   "drawerFamily": "Family",
   "drawerFleet": "Fleet",
-
-  "refuelStatsTitle": "Refuel Stats",
+  "fuelStatsTitle": "Refuel Stats",
   "maintenanceStatsTitle": "Maintenance Stats",
   "expenseStatsTitle": "Expense Stats",
   "fleetTitle": "Fleet Mode",
@@ -832,13 +772,11 @@
   "syncParts": "Parts",
   "syncFuelLogs": "Fuel Logs",
   "syncOther": "Other",
-
   "registerSuccessTitle": "Service Logged!",
   "registerSuccessSubtitle": "Your maintenance record has been saved successfully.",
   "registerSuccessDetails": "Logged Details",
   "registerSuccessBackHome": "Back to Home",
   "registerErrorGeneric": "Something went wrong. Please try again.",
-
   "notesTitle": "Notes",
   "notesEmptyTitle": "No notes yet",
   "notesEmptyBody": "Capture ideas, checklists, and reminders in one place.",
@@ -855,7 +793,6 @@
   "noteDeleted": "Note deleted",
   "noteUndo": "Undo",
   "noteDelete": "Delete",
-
   "fleetHubModeSection": "Mode",
   "fleetModePersonalTitle": "Personal",
   "fleetModePersonalBody": "Your own vehicles and records",
@@ -1061,5 +998,71 @@
   "driverReportsInspections": "Inspections",
   "driverMyWorkOrdersEmpty": "No reports yet",
   "driverMyWorkOrdersEmptyBody": "Report an issue and track its status here.",
-  "fleetActionFailed": "Action failed. Please try again."
+  "fleetActionFailed": "Action failed. Please try again.",
+  "statsYear": "Year",
+  "statsMonth": "Month",
+  "statsAll": "All",
+  "statsNoActiveVehicle": "No active vehicle",
+  "statsNoActiveVehicleBody": "Register a vehicle to see its stats.",
+  "statsDefinitionsAction": "What do these stats mean?",
+  "statsNoRecordsPeriod": "No records in this period",
+  "statsNoRecordsPeriodBody": "Change the year or month, or clear the filters.",
+  "statsClearFilters": "Clear filters",
+  "statsOther": "Other",
+  "statsChartNoData": "No data for this period",
+  "statsEmptyFuelBodyRefuels": "Log a refill for {vehicleName} to see its stats.",
+  "statsEmptyFuelBodyCharges": "Log charging for {vehicleName} to see its stats.",
+  "statsEmptyMaintenanceBody": "Log a service for {vehicleName} to see its stats.",
+  "statsEmptyExpensesBody": "Log spend for {vehicleName} to see its stats.",
+  "statsTotalRefuels": "Total refuels",
+  "statsTotalCharges": "Total charges",
+  "statsTotalCost": "Total cost",
+  "statsTotalVolume": "Total volume",
+  "statsTotalKwh": "Total kWh",
+  "statsTotalDistance": "Total distance",
+  "statsAvgConsumption": "Avg consumption",
+  "statsAvgEfficiency": "Avg efficiency",
+  "statsCostPer100": "Cost per 100 {unit}",
+  "statsMostExpensiveRefuel": "Most expensive refuel",
+  "statsMostExpensiveCharge": "Most expensive charge",
+  "statsTotalJobs": "Total jobs",
+  "statsTotalServiceItems": "Total service items",
+  "statsTopServiceType": "Top service type",
+  "statsMostExpensiveJob": "Most expensive job",
+  "statsTotalExpenses": "Total expenses",
+  "statsTopCategory": "Top category",
+  "statsMostExpensiveExpense": "Most expensive expense",
+  "statsMonthlyCost": "Monthly cost",
+  "statsEfficiencyTrend": "Efficiency trend",
+  "statsCostByServiceType": "Cost by service type",
+  "statsCostByCategory": "Cost by category",
+  "statsDefPeriod": "Figures follow the selected Year and Month. — means there is not enough data yet.",
+  "statsDefFuelCount": "Number of fuel logs in the period.",
+  "statsDefTotalCost": "Sum of all costs in the period.",
+  "statsDefAvgCostPerUnit": "Total cost divided by total volume.",
+  "statsDefAvgCostPerKwh": "Total cost divided by total kWh.",
+  "statsDefTotalVolume": "Fuel volume logged in the period; mixed units show one line per unit.",
+  "statsDefTotalKwh": "Energy logged in the period.",
+  "statsDefTotalDistance": "Distance between odometer readings in the period; needs at least two segments.",
+  "statsDefAvgConsumption": "Fuel used per 100 km (or miles per gallon) between odometer readings; approximate when a tank is not filled to full.",
+  "statsDefAvgEfficiency": "Distance driven per kWh between odometer readings.",
+  "statsDefCostPer100": "Cost between odometer readings, scaled to 100 km (or 100 miles).",
+  "statsDefMostExpensiveRefuel": "The most expensive refuel in the period, with its date.",
+  "statsDefMostExpensiveCharge": "The most expensive charge in the period, with its date.",
+  "statsDefSegments": "A segment is the distance between two consecutive odometer readings. Distance and consumption KPIs need at least two segments in the period.",
+  "statsDefUnits": "Distances follow your Settings length unit; money follows your currency.",
+  "statsDefMonthLabel": "Month labels use MMM when a year is selected, and MMM YY for All.",
+  "statsDefMonthlyCostChart": "One bar per month showing total cost in the period.",
+  "statsDefEfficiencyChart": "One point per month with a usable segment; months without one are gaps.",
+  "statsDefTotalJobs": "Service records saved in the period.",
+  "statsDefTotalServiceItems": "Individual service line items on those records.",
+  "statsDefAvgJobCost": "Total cost divided by the number of jobs.",
+  "statsDefTopServiceType": "The service item name with the highest combined cost.",
+  "statsDefMostExpensiveJob": "The most expensive service record in the period, with its date.",
+  "statsDefDonutService": "Combined line-item cost grouped by service name; smaller groups combine into Other.",
+  "statsDefTotalExpenses": "Expense records in the period.",
+  "statsDefAvgPerExpense": "Total divided by the number of expenses.",
+  "statsDefTopCategory": "The category with the highest combined spend.",
+  "statsDefMostExpensiveExpense": "The single most expensive expense in the period, with its date.",
+  "statsDefDonutCategory": "Spend grouped by category; smaller groups combine into Other."
 }

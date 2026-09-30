@@ -193,6 +193,8 @@ class FuelRepositoryImpl implements FuelRepository {
       kind: kind,
     );
     _assertLogDraft(draft);
+    final vehicle = await _requireVehicle(vehicleId);
+    _assertOdometer(vehicle, draft);
 
     final now = DateTime.now().toUtc();
     final log = FuelLog(
@@ -206,6 +208,7 @@ class FuelRepositoryImpl implements FuelRepository {
       loggedOn: _dateOnly(draft.loggedOn),
       amount: draft.amount,
       cost: draft.cost,
+      odometer: draft.odometer,
       updatedAt: now,
       createdAt: now,
     );
@@ -219,6 +222,7 @@ class FuelRepositoryImpl implements FuelRepository {
         op: OutboxOp.upsert,
         payload: log.toWriteJson(),
       );
+      await _bumpVehicleMileageIfNeeded(userId: userId, vehicle: vehicle, odometer: draft.odometer, now: now);
       // Auto-create expense for fuel cost
       await _expenseRepository.add(
         userId: userId,
@@ -254,6 +258,8 @@ class FuelRepositoryImpl implements FuelRepository {
       kind: kind,
     );
     _assertLogDraft(draft);
+    final vehicle = await _requireVehicle(existing.vehicleId);
+    _assertOdometer(vehicle, draft);
 
     final updated = FuelLog(
       id: existing.id,
@@ -266,6 +272,7 @@ class FuelRepositoryImpl implements FuelRepository {
       loggedOn: _dateOnly(draft.loggedOn),
       amount: draft.amount,
       cost: draft.cost,
+      odometer: draft.odometer,
       updatedAt: DateTime.now().toUtc(),
       createdAt: existing.createdAt,
     );
@@ -280,6 +287,12 @@ class FuelRepositoryImpl implements FuelRepository {
         entityId: updated.id,
         op: OutboxOp.upsert,
         payload: updated.toWriteJson(),
+      );
+      await _bumpVehicleMileageIfNeeded(
+        userId: userId,
+        vehicle: vehicle,
+        odometer: draft.odometer,
+        now: updated.updatedAt,
       );
       // Auto-create/update expense for fuel cost
       await _expenseRepository.add(
@@ -312,6 +325,46 @@ class FuelRepositoryImpl implements FuelRepository {
     if (draft.cost < 0 || draft.cost > FuelLogValidators.maxCost) {
       throw const FuelValidationFailure('Enter a valid cost');
     }
+    if (draft.odometer != null) {
+      if (draft.odometer! < 0 || draft.odometer! > FuelLogValidators.maxOdometer) {
+        throw const FuelValidationFailure('Enter a valid odometer');
+      }
+    }
+  }
+
+  Future<VehicleRecord> _requireVehicle(String vehicleId) async {
+    final vehicle = await (_db.select(_db.vehicleRecords)..where((row) => row.id.equals(vehicleId))).getSingleOrNull();
+    if (vehicle == null) throw const FuelLogNotFoundFailure();
+    return vehicle;
+  }
+
+  void _assertOdometer(VehicleRecord vehicle, FuelLogDraft draft) {
+    if (draft.odometer == null) return;
+    if (draft.odometer! < vehicle.mileage) {
+      throw const FuelValidationFailure('Odometer cannot be below vehicle mileage');
+    }
+  }
+
+  Future<void> _bumpVehicleMileageIfNeeded({
+    required String userId,
+    required VehicleRecord vehicle,
+    required double? odometer,
+    required DateTime now,
+  }) async {
+    if (odometer == null || odometer <= vehicle.mileage) return;
+    await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(vehicle.id))).write(
+      VehicleRecordsCompanion(
+        mileage: Value(odometer),
+        updatedAt: Value(now),
+      ),
+    );
+    await _outbox.enqueue(
+      userId: userId,
+      entityType: OutboxEntityType.vehicle,
+      entityId: vehicle.id,
+      op: OutboxOp.upsert,
+      payload: {'id': vehicle.id, 'mileage': odometer},
+    );
   }
 
   Future<void> _assertUniqueTypeName({

@@ -174,6 +174,7 @@ class FuelLogRecords extends Table {
   DateTimeColumn get loggedOn => dateTime()();
   RealColumn get amount => real()();
   RealColumn get cost => real()();
+  RealColumn get odometer => real().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
 

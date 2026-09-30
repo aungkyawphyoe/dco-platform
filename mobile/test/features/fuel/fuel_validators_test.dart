@@ -21,4 +21,34 @@ void main() {
     expect(FuelLogValidators.date(DateTime(2026, 8, 21), now: now), 'Date cannot be in the future');
     expect(FuelLogValidators.date(DateTime(2026, 8, 20), now: now), isNull);
   });
+
+  test('odometer is optional but validated when present', () {
+    expect(FuelLogValidators.odometer(''), isNull);
+    expect(FuelLogValidators.odometer('  '), isNull);
+    expect(FuelLogValidators.odometer('12345'), isNull);
+    expect(FuelLogValidators.odometer('12,345'), isNull);
+    expect(FuelLogValidators.odometer('abc'), 'Enter a valid odometer');
+    expect(FuelLogValidators.odometer('-1'), 'Odometer cannot be negative');
+    expect(
+      FuelLogValidators.odometer('1000000'),
+      'Odometer is too large',
+    );
+  });
+
+  test('odometer rejects values below the vehicle mileage', () {
+    expect(
+      FuelLogValidators.odometer('99', vehicleMileage: 100),
+      'Odometer cannot be below vehicle mileage',
+    );
+    expect(FuelLogValidators.odometer('100', vehicleMileage: 100), isNull);
+    expect(FuelLogValidators.odometer('101', vehicleMileage: 100), isNull);
+    // Mileage does not apply to blank input.
+    expect(FuelLogValidators.odometer('', vehicleMileage: 100), isNull);
+  });
+
+  test('parseOdometer returns null for blank input', () {
+    expect(FuelLogValidators.parseOdometer(''), isNull);
+    expect(FuelLogValidators.parseOdometer(' '), isNull);
+    expect(FuelLogValidators.parseOdometer('42.5'), 42.5);
+  });
 }

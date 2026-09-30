@@ -19,6 +19,7 @@ abstract final class FuelTypeValidators {
 abstract final class FuelLogValidators {
   static const maxAmount = 100000.0;
   static const maxCost = 1000000000.0;
+  static const maxOdometer = 999999.0;
 
   static String? date(DateTime? value, {required DateTime now}) {
     if (value == null) return 'Date is required';
@@ -47,6 +48,27 @@ abstract final class FuelLogValidators {
     if (parsed < 0) return 'Enter a valid cost';
     if (parsed > maxCost) return 'Cost is too large';
     return null;
+  }
+
+  /// Optional odometer. Blank input is valid; parsed values must be in range.
+  static String? odometer(String value, {double? vehicleMileage}) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    final parsed = parseDecimal(trimmed);
+    if (parsed == null) return 'Enter a valid odometer';
+    if (parsed < 0) return 'Odometer cannot be negative';
+    if (parsed > maxOdometer) return 'Odometer is too large';
+    if (vehicleMileage != null && parsed < vehicleMileage) {
+      return 'Odometer cannot be below vehicle mileage';
+    }
+    return null;
+  }
+
+  /// Null when the field is blank.
+  static double? parseOdometer(String value) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) return null;
+    return parseDecimal(trimmed);
   }
 
   static double? parseDecimal(String value) {

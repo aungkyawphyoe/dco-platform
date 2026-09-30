@@ -86,7 +86,7 @@ class AppDrawer extends ConsumerWidget {
                     _SectionLabel(label: s.drawerStats),
                     _DrawerTile(
                       icon: Icons.bar_chart,
-                      title: s.drawerRefuelStats,
+                      title: s.drawerFuelStats,
                       onTap: () => _navigate(context, AppRoutes.refuelStats),
                     ),
                     _DrawerTile(

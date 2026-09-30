@@ -1357,6 +1357,12 @@ class AppLocalizationsMy extends AppLocalizations {
   String get fuelLogFormCost => 'ကျသင့်ငွေ *';
 
   @override
+  String get fuelLogFormOdometer => 'အကွာအဝေးတိုင်းစက်';
+
+  @override
+  String get fuelLogFormOdometerHint => 'မဖြည့်လည်းရသည်';
+
+  @override
   String get fuelTypesTitle => 'လောင်စာဆီ အမျိုးအစားများ';
 
   @override
@@ -2446,7 +2452,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get drawerInsurance => 'အာမခံ';
 
   @override
-  String get drawerRefuelStats => 'လောင်စာဆီ စာရင်းဇယား';
+  String get drawerFuelStats => 'လောင်စာဆီ စာရင်းဇယား';
 
   @override
   String get drawerMaintenanceStats => 'ပြုပြင်ထိန်းသိမ်းမှု စာရင်းဇယား';
@@ -2461,7 +2467,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get drawerFleet => 'ဖလီး';
 
   @override
-  String get refuelStatsTitle => 'လောင်စာဆီ စာရင်းဇယား';
+  String get fuelStatsTitle => 'လောင်စာဆီ စာရင်းဇယား';
 
   @override
   String get maintenanceStatsTitle => 'ပြုပြင်ထိန်းသိမ်းမှု စာရင်းဇယား';
@@ -3252,4 +3258,240 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get fleetActionFailed => 'လုပ်ဆောင်ချက် မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။';
+
+  @override
+  String get statsYear => 'နှစ်';
+
+  @override
+  String get statsMonth => 'လ';
+
+  @override
+  String get statsAll => 'အားလုံး';
+
+  @override
+  String get statsNoActiveVehicle => 'အသုံးပြုနေသော ယာဉ် မရှိပါ';
+
+  @override
+  String get statsNoActiveVehicleBody =>
+      'စာရင်းအင်းများ ကြည့်ရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။';
+
+  @override
+  String get statsDefinitionsAction => 'ဤစာရင်းအင်းများ ဆိုသည်မှာ ဘာလဲ?';
+
+  @override
+  String get statsNoRecordsPeriod => 'ဤကာလတွင် မှတ်တမ်းများ မရှိပါ';
+
+  @override
+  String get statsNoRecordsPeriodBody =>
+      'နှစ် သို့မဟုတ် လ ပြောင်းပါ၊ သို့မဟုတ် စစ်ထုတ်မှုများ ဖျက်ပါ။';
+
+  @override
+  String get statsClearFilters => 'စစ်ထုတ်မှုများ ဖျက်မည်';
+
+  @override
+  String get statsOther => 'အခြား';
+
+  @override
+  String get statsChartNoData => 'ဤကာလအတွက် အချက်အလက် မရှိပါ';
+
+  @override
+  String statsEmptyFuelBodyRefuels(Object vehicleName) {
+    return '$vehicleName ၏ စာရင်းအင်းများ ကြည့်ရန် ဆီဖြည့်မှု မှတ်တမ်းတင်ပါ။';
+  }
+
+  @override
+  String statsEmptyFuelBodyCharges(Object vehicleName) {
+    return '$vehicleName ၏ စာရင်းအင်းများ ကြည့်ရန် အားသွင်းမှု မှတ်တမ်းတင်ပါ။';
+  }
+
+  @override
+  String statsEmptyMaintenanceBody(Object vehicleName) {
+    return '$vehicleName ၏ စာရင်းအင်းများ ကြည့်ရန် ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းတင်ပါ။';
+  }
+
+  @override
+  String statsEmptyExpensesBody(Object vehicleName) {
+    return '$vehicleName ၏ စာရင်းအင်းများ ကြည့်ရန် ကုန်ကျစရိတ် မှတ်တမ်းတင်ပါ။';
+  }
+
+  @override
+  String get statsTotalRefuels => 'စုစုပေါင်း ဆီဖြည့်မှုများ';
+
+  @override
+  String get statsTotalCharges => 'စုစုပေါင်း အားသွင်းမှုများ';
+
+  @override
+  String get statsTotalCost => 'စုစုပေါင်း ကုန်ကျစရိတ်';
+
+  @override
+  String get statsTotalVolume => 'စုစုပေါင်း ပမာဏ';
+
+  @override
+  String get statsTotalKwh => 'စုစုပေါင်း kWh';
+
+  @override
+  String get statsTotalDistance => 'စုစုပေါင်း အကွာအဝေး';
+
+  @override
+  String get statsAvgConsumption => 'ပျမ်းမျှ စားသုံးမှု';
+
+  @override
+  String get statsAvgEfficiency => 'ပျမ်းမျှ စွမ်းအင်ထိရောက်မှု';
+
+  @override
+  String statsCostPer100(Object unit) {
+    return '၁၀၀ $unit လျှင် ကုန်ကျစရိတ်';
+  }
+
+  @override
+  String get statsMostExpensiveRefuel => 'ဈေးအကြီးဆုံး ဆီဖြည့်မှု';
+
+  @override
+  String get statsMostExpensiveCharge => 'ဈေးအကြီးဆုံး အားသွင်းမှု';
+
+  @override
+  String get statsTotalJobs => 'စုစုပေါင်း အလုပ်များ';
+
+  @override
+  String get statsTotalServiceItems => 'စုစုပေါင်း ဝန်ဆောင်မှု အမျိုးအစားများ';
+
+  @override
+  String get statsTopServiceType => 'ထိပ်တန်း ဝန်ဆောင်မှု အမျိုးအစား';
+
+  @override
+  String get statsMostExpensiveJob => 'ဈေးအကြီးဆုံး အလုပ်';
+
+  @override
+  String get statsTotalExpenses => 'စုစုပေါင်း ကုန်ကျစရိတ်များ';
+
+  @override
+  String get statsTopCategory => 'ထိပ်တန်း အမျိုးအစား';
+
+  @override
+  String get statsMostExpensiveExpense => 'ဈေးအကြီးဆုံး ကုန်ကျစရိတ်';
+
+  @override
+  String get statsMonthlyCost => 'လစဉ် ကုန်ကျစရိတ်';
+
+  @override
+  String get statsEfficiencyTrend => 'စွမ်းအင်ထိရောက်မှု အလားအလာ';
+
+  @override
+  String get statsCostByServiceType =>
+      'ဝန်ဆောင်မှု အမျိုးအစားအလိုက် ကုန်ကျစရိတ်';
+
+  @override
+  String get statsCostByCategory => 'အမျိုးအစားအလိုက် ကုန်ကျစရိတ်';
+
+  @override
+  String get statsDefPeriod =>
+      'ဂဏန်းများသည် ရွေးချယ်ထားသော နှစ်နှင့် လ အတိုင်း ဖြစ်သည်။ — သည် အချက်အလက် မလုုလောက်သေးကြောင်း ဖြစ်သည်။';
+
+  @override
+  String get statsDefFuelCount => 'ဤကာလအတွင်း လောင်စာ မှတ်တမ်း အရေအတွက်။';
+
+  @override
+  String get statsDefTotalCost => 'ဤကာလအတွင်း ကုန်ကျစရိတ် အားလုံး၏ စုစုပေါင်း။';
+
+  @override
+  String get statsDefAvgCostPerUnit =>
+      'စုစုပေါင်း ကုန်ကျစရိတ်ကို စုစုပေါင်း ပမာဏဖြင့် ခွဲသည်။';
+
+  @override
+  String get statsDefAvgCostPerKwh =>
+      'စုစုပေါင်း ကုန်ကျစရိတ်ကို စုစုပေါင်း kWh ဖြင့် ခွဲသည်။';
+
+  @override
+  String get statsDefTotalVolume =>
+      'ဤကာလအတွင်း မှတ်တမ်းတင်ထားသော လောင်စာ ပမာဏ။ ယူနစ် ရောနှောပါက တစ်ခုချင်းစီ ပြသပါမည်။';
+
+  @override
+  String get statsDefTotalKwh => 'ဤကာလအတွင်း မှတ်တမ်းတင်ထားသော စွမ်းအင်။';
+
+  @override
+  String get statsDefTotalDistance =>
+      'ဤကာလအတွင်း အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား အကွာအဝေး။ အနည်းဆုံး အပိုင်းနှစ်ပိုင်း လိုအပ်သည်။';
+
+  @override
+  String get statsDefAvgConsumption =>
+      'အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား ၁၀၀ ကီလိုမီတာ (သို့ ဂါလန်တစ်ရာ) လျှင် စားသုံးသော လောင်စာ။ ဆီတိုင်း မပြည့်မီ ဖြည့်ပါက ခန့်မှန်းခြေ ဖြစ်သည်။';
+
+  @override
+  String get statsDefAvgEfficiency =>
+      'အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား kWh တစ်ခုလျှင် မောင်းနှင်သော အကွာအဝေး။';
+
+  @override
+  String get statsDefCostPer100 =>
+      'အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား ကုန်ကျစရိတ်ကို ၁၀၀ ကီလိုမီတာ (သို့ ၁၀၀ မိုင်) အတိုင်း တိုင်းတာသည်။';
+
+  @override
+  String get statsDefMostExpensiveRefuel =>
+      'ဤကာလအတွင်း ဈေးအကြီးဆုံး ဆီဖြည့်မှုနှင့် ၎င်း၏ ရက်စွဲ။';
+
+  @override
+  String get statsDefMostExpensiveCharge =>
+      'ဤကာလအတွင်း ဈေးအကြီးဆုံး အားသွင်းမှုနှင့် ၎င်း၏ ရက်စွဲ။';
+
+  @override
+  String get statsDefSegments =>
+      'အပိုင်း (segment) ဆိုသည် အကွာအဝေးတိုင်းစက် ဖတ်တန်း ဆက်တိုက်နှစ်ခုကြား အကွာအဝေး ဖြစ်သည်။ အကွာအဝေးနှင့် စားသုံးမှု KPI များအတွက် ဤကာလအတွင်း အနည်းဆုံး အပိုင်းနှစ်ပိုင်း လိုအပ်သည်။';
+
+  @override
+  String get statsDefUnits =>
+      'အကွာအဝေးများသည် သင်၏ ဆက်တင် အလျားယူနစ်၊ ငွေကြေးသည် သင်၏ ငွေကြေးအမျိုးအစားအတိုင်း ဖြစ်သည်။';
+
+  @override
+  String get statsDefMonthLabel =>
+      'လ အမည်များသည် နှစ် ရွေးထားပါက MMM၊ အားလုံးအတွက် MMM YY ဖြစ်သည်။';
+
+  @override
+  String get statsDefMonthlyCostChart =>
+      'ဤကာလအတွင်း စုစုပေါင်း ကုန်ကျစရိတ် ပြသရန် တစ်လချင်းစီအတွက် တန်းတစ်ခုချင်း။';
+
+  @override
+  String get statsDefEfficiencyChart =>
+      'အသုံးပြုနိုင်သော အပိုင်းရှိသည့် လတိုင်းအတွက် အချက်တစ်ခုချင်း။ မရှိသော လများသည် ကြားခံ ဖြစ်သည်။';
+
+  @override
+  String get statsDefTotalJobs =>
+      'ဤကာလအတွင်း သိမ်းဆည်းထားသော ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းများ။';
+
+  @override
+  String get statsDefTotalServiceItems =>
+      'ထို မှတ်တမ်းများပေါ်ရှိ ဝန်ဆောင်မှု အမျိုးအစားများ။';
+
+  @override
+  String get statsDefAvgJobCost =>
+      'စုစုပေါင်း ကုန်ကျစရိတ်ကို အလုပ်အရေအတွက်ဖြင့် ခွဲသည်။';
+
+  @override
+  String get statsDefTopServiceType =>
+      'စုစုပေါင်း ကုန်ကျစရိတ် အများဆုံး ဝန်ဆောင်မှု အမည်။';
+
+  @override
+  String get statsDefMostExpensiveJob =>
+      'ဤကာလအတွင်း ဈေးအကြီးဆုံး ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းနှင့် ၎င်း၏ ရက်စွဲ။';
+
+  @override
+  String get statsDefDonutService =>
+      'ဝန်ဆောင်မှု အမည်အလိုက် စုစုပေါင်းထားသော အမျိုးအစား ကုန်ကျစရိတ်။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။';
+
+  @override
+  String get statsDefTotalExpenses => 'ဤကာလအတွင်း ကုန်ကျစရိတ် မှတ်တမ်းများ။';
+
+  @override
+  String get statsDefAvgPerExpense =>
+      'စုစုပေါင်းကို ကုန်ကျစရိတ် အရေအတွက်ဖြင့် ခွဲသည်။';
+
+  @override
+  String get statsDefTopCategory =>
+      'စုစုပေါင်း အများဆုံး သုံးစွဲသော အမျိုးအစား။';
+
+  @override
+  String get statsDefMostExpensiveExpense =>
+      'ဤကာလအတွင်း ဈေးအကြီးဆုံး ကုန်ကျစရိတ်တစ်ခုနှင့် ၎င်း၏ ရက်စွဲ။';
+
+  @override
+  String get statsDefDonutCategory =>
+      'အမျိုးအစားအလိုက် စုစုပေါင်းထားသော သုံးစွဲမှု။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။';
 }

@@ -1,7 +1,6 @@
 {
   "@@locale": "my",
   "appTitle": "DCO",
-
   "ok": "လုပ်မည်",
   "cancel": "မလုပ်တော့ပါ",
   "save": "သိမ်းဆည်းမည်",
@@ -24,21 +23,17 @@
   "required": "လိုအပ်သည်",
   "active": "အသုံးပြုနေဆဲ",
   "inactive": "အသုံးမပြုတော့ပါ",
-
   "showPassword": "စကားဝှက်ပြရန်",
   "hidePassword": "စကားဝှက်ဝှက်ရန်",
-
   "syncFailed": "ဒေတာချိတ်ဆက်မှု မအောင်မြင်ပါ",
   "retryAction": "ပြန်ကြိုးစားမည်",
   "syncDefaultError": "သင်ပြောင်းလဲထားသည်များကို အလိုအလျောက် ပြန်လည်ချိတ်ဆက်ပေးပါမည်။",
   "somethingWentWrong": "တစ်ခုခု မှားယွင်းနေသည်",
   "somethingWentWrongTryAgain": "တစ်ခုခု မှားယွင်းနေသည်။ ပြန်ကြိုးစားပါ။",
-
   "navGarage": "Garage",
   "navMaintenance": "Maintenance",
   "navExpenses": "Expenses",
   "navSettings": "Setting",
-
   "welcomeTagline": "သင့်ယာဉ်ဂိုဒေါင် ဖုန်းထဲမှာရှိသည်",
   "welcomeBody": "သင့်ပိုင်ဆိုင်သော ယာဉ်တိုင်း၏ ပြုပြင်ထိန်းသိမ်းမှု၊ စာရွက်စာတမ်းများနှင့် ကုန်ကျစရိတ်များကို အော့ဖ်လိုင်းဖြစ်နေချိန်မှာပင် မှတ်တမ်းတင်ထားပါ။",
   "createAccount": "အကောင့်သစ်ဖွင့်မည်",
@@ -57,14 +52,12 @@
   "resetLinkSent": "ဒီအီးမေးလ်ဖြင့် အကောင့်ဖွင့်ထားပါက စကားဝှက်ပြင်ရန် လင့်ခ်ပို့ပေးထားပါသည်။",
   "resetFailed": "စကားဝှက်ပြန်ပြင်ခြင်း မအောင်မြင်ပါ",
   "sendResetLink": "စကားဝှက်ပြင်ရန် လင့်ခ်ပို့မည်",
-
   "authIncorrectCredentials": "အီးမေးလ် သို့မဟုတ် စကားဝှက် မှားယွင်းနေသည်",
   "authEmailAlreadyRegistered": "ဒီအီးမေးလ်ဖြင့် အကောင့်ဖွင့်ပြီးသားဖြစ်သည်",
   "authNetworkError": "အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ပြန်ကြိုးစားပါ",
   "authTooManyAttempts": "ကြိုးစားသည့်အကြိမ်အရေအတွက် များလွန်းသည်။ ခဏစောင့်ပြီးမှ ပြန်ကြိုးစားပါ",
   "authSessionExpired": "အသုံးပြုချိန် ကုန်ဆုံးသွားပါပြီ။ ပြန်လည်အကောင့်ဝင်ပါ",
   "authUnknownError": "တစ်ခုခု မှားယွင်းနေသည်",
-
   "dashboardNoVehicle": "ယာဉ် မရှိပါ",
   "dashboardGarageTooltip": "ယာဉ်ဂိုဒေါင်",
   "dashboardNotificationsTooltip": "အကြောင်းကြားချက်များ",
@@ -93,7 +86,6 @@
   "dueIn": "{distance} အတွင်း ပြုလုပ်ရန် လိုအပ်သည်",
   "dueSoon": "ပြုလုပ်ရန် ရက်နီးလာပြီ",
   "due": "{distance} တွင် ပြုလုပ်ရန် လိုအပ်သည်",
-
   "garageMyGarage": "ကျွန်ုပ်၏ ယာဉ်ဂိုဒေါင်",
   "garageRegisterTooltip": "ယာဉ်တစ်စီး မှတ်ပုံတင်မည်",
   "garageLoadError": "ယာဉ်ဂိုဒေါင် အချက်အလက်များကို ရယူ၍မရပါ",
@@ -104,7 +96,6 @@
   "garageAddCardTitle": "+ နောက်ထပ် ယာဉ်တစ်စီး မှတ်ပုံတင်မည်",
   "garageAddCardSubtitle": "ပြုပြင်ထိန်းသိမ်းမှု၊ ကုန်ကျစရိတ်နှင့် စာရွက်စာတမ်းများကို မှတ်တမ်းတင်ပါ",
   "garageFamilyBadge": "မိသားစု",
-
   "vehicleEditTitle": "ယာဉ်အချက်အလက် ပြင်မည်",
   "vehicleRegisterTitle": "ယာဉ် မှတ်ပုံတင်မည်",
   "vehicleRequiredInfo": "မဖြစ်မနေ လိုအပ်သောအချက်အလက်များ",
@@ -129,7 +120,6 @@
   "vehicleSetActive": "active လုပ်မည်",
   "vehicleEditTooltip": "ယာဉ်အချက်အလက် ပြင်မည်",
   "vehicleRemoveTooltip": "မိသားစုအကောင့်မှ ဖယ်ရှားမည်",
-
   "vehiclePlateDuplicate": "ဒီယာဉ်နံပါတ်သည် သင့်ဂိုဒေါင်ထဲတွင် ရှိပြီးသားဖြစ်သည်",
   "vehicleVinDuplicate": "ဒီ VIN နံပါတ်သည် အခြားယာဉ်တွင် အသုံးပြုပြီးသားဖြစ်သည်",
   "vehicleMileageDecrease": "မိုင်နှုန်း လျော့နည်းသွား၍ မရပါ",
@@ -146,11 +136,9 @@
   "vehicleMileageInvalid": "မှန်ကန်သော မိုင်နှုန်း ရိုက်ထည့်ပါ",
   "vehicleMileageNegative": "မိုင်နှုန်းသည် အနှုတ်ကိန်း မဖြစ်ရပါ",
   "vehicleVinLength": "VIN နံပါတ်သည် စာလုံးရေ ၁၇ လုံး ရှိရပါမည်",
-
   "fuelPetrol": "ဓာတ်ဆီ",
   "fuelElectric": "လျှပ်စစ်",
   "fuelHybridPlugin": "Plug-in ဟိုက်ဘရစ်",
-
   "maintenanceTitle": "ပြုပြင်ထိန်းသိမ်းမှု",
   "maintenanceHistoryTooltip": "မှတ်တမ်း",
   "maintenanceLoadError": "ပြုပြင်ထိန်းသိမ်းမှု အချက်အလက်များကို ရယူ၍မရပါ",
@@ -164,7 +152,6 @@
   "maintenanceNoServicesLogged": "ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်း မရှိသေးပါ",
   "maintenanceRegisterService": "မှတ်တမ်းထည့်မည်",
   "maintenanceLoadFromReceipt": "ပြေစာမှ ရယူမည်",
-
   "maintenancePlanTitle": "ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ်",
   "maintenancePlanNoActiveVehicleBody": "ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ် ရေးဆွဲရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
   "maintenancePlanLoadError": "အစီအစဉ်ကို ရယူ၍မရပါ",
@@ -172,13 +159,11 @@
   "maintenancePlanEmptyBody": "ကိုယ်ပိုင် အစီအစဉ်ထည့်ပါ သို့မဟုတ် အကြံပြုထားသော အစီအစဉ်များမှ ရွေးချယ်ပါ။",
   "maintenancePlanAddItem": "ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ် ထည့်မည်",
   "maintenancePlanAddSuggested": "အကြံပြုထားသည်များ ထည့်မည်",
-
   "serviceHistoryTitle": "ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်း",
   "serviceHistoryNoActiveVehicleBody": "ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းများကို ကြည့်ရှုရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
   "serviceHistoryLoadError": "ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းများကို ရယူ၍မရပါ",
   "serviceHistoryEmptyTitle": "မှတ်တမ်း မရှိသေးပါ",
   "serviceHistoryEmptyBody": "ဒီယာဉ်အတွက် ပြုပြင်ထိန်းသိမ်းဖူးသည့် မှတ်တမ်းများ ဒီမှာ ပြသပါမည်။",
-
   "serviceDetailTitle": "ပြုပြင်ထိန်းသိမ်းမှု အသေးစိတ်",
   "serviceDetailNotFound": "ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်း ရှာမတွေ့ပါ",
   "serviceDetailNotFoundBody": "ဒီမှတ်တမ်း ရရှိနိုင်တော့မည် မဟုတ်ပါ။",
@@ -188,7 +173,6 @@
   "serviceDetailNotes": "မှတ်ချက်များ",
   "serviceDetailServices": "ဝန်ဆောင်မှုများ",
   "serviceDetailParts": "အပိုပစ္စည်းများ",
-
   "registerServiceTitle": "ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းထည့်မည်",
   "registerServiceNoActiveVehicleBody": "ပြုပြင်ထိန်းသိမ်းမှု မမှတ်တမ်းတင်မီ ယာဉ်တစ်စီးကို အရင် မှတ်ပုံတင်ပါ။",
   "registerServiceJobTitle": "လုပ်ဆောင်သည့် အမျိုးအစား",
@@ -210,7 +194,6 @@
   "registerServiceAssignPartEmpty": "အပိုပစ္စည်း စာရင်းထဲတွင် ဘာမှ မရှိသေးပါ။ အပိုပစ္စည်းတစ် ခုအရင်ထည့်ပြီးမှ ဒီမှာ သတ်မှတ်ပါ။",
   "registerServiceAssignPartAllAssigned": "အပိုပစ္စည်း အားလုံးကို ဒီဝန်ဆောင်မှုအတွက် သတ်မှတ်ပြီးဖြစ်သည်၊",
   "registerServiceAddNewPart": "အပိုပစ္စည်းသစ် ထည့်မည်",
-
   "planItemFormEditTitle": "ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ် ပြင်မည်",
   "planItemFormCreateTitle": "ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ် သစ်ပြုလုပ်မည်",
   "planItemFormName": "အမည် *",
@@ -227,13 +210,11 @@
   "planItemFormMileage": "မိုင်နှုန်း",
   "planItemFormMileageRequired": "မိုင်နှုန်း *",
   "planItemFormNotes": "မှတ်ချက်များ",
-
   "suggestedItemsTitle": "ပြုပြင်မှုဆိုင်ရာ အချက်များ",
   "suggestedItemsNoActiveVehicleBody": "အကြံပြုထားသော အကြောင်းအရာများ ထည့်ရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
   "suggestedItemsAllAdded": "အကြံပြုထားသည်များ အားလုံး ထည့်ပြီးပါပြီ",
   "suggestedItemsAllAddedBody": "အစီအစဉ်မှတစ်ဆင့် မိမိစိတ်ကြိုက် ဝန်ဆောင်မှု အမျိုးအစားများကိုလည်း ထည့်သွင်းနိုင်သေးသည်။",
   "suggestedItemAdd": "{itemName} ထည့်မည်",
-
   "planItemTileOverdue": "ရက်လွန်နေပြီ",
   "planItemTileOverdueBy": "{count, plural, =1{# ရက်} other{# ရက်}} ရက်လွန်နေပြီ",
   "planItemTileNextMileage": "နောက်တစ်ကြိမ် ပြုလုပ်ရမည့် မိုင်နှုန်း - ",
@@ -243,12 +224,10 @@
   "planItemTileTimeLeft": "ကျန်ရှိသော အချိန် - ",
   "planItemTileDay": "ရက်",
   "planItemTileDays": "ရက်",
-
   "maintenanceMileageDecrease": "မိုင်နှုန်း လျော့နည်းသွား၍ မရပါ",
   "maintenanceVehicleNotFound": "ယာဉ် ရှာမတွေ့ပါ",
   "maintenancePlanItemNotFound": "အစီအစဉ် ရှာမတွေ့ပါ",
   "maintenanceServiceRecordNotFound": "ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်း ရှာမတွေ့ပါ",
-
   "planItemNameRequired": "အမည် ရိုက်ထည့်ရန် လိုအပ်သည်",
   "planItemNameMaxLength": "အမည်သည် စာလုံးရေ {max} ထက် မပိုရပါ",
   "planItemScheduleRequired": "ကြာချိန် အပိုင်းအခြား သို့မဟုတ် မိုင်နှုန်း အပိုင်းအခြား တစ်ခုခု သတ်မှတ်ပါ",
@@ -260,7 +239,6 @@
   "planItemAtLeastOneService": "ဝန်ဆောင်မှု အနည်းဆုံး တစ်ခု ထည့်ပါ",
   "planItemTotalRequired": "စုစုပေါင်း ပမာဏ ရိုက်ထည့်ရန် လိုအပ်သည်",
   "planItemAmountInvalid": "မှန်ကန်သော ပမာဏ ရိုက်ထည့်ပါ",
-
   "catalogMileageUpdate": "မိုင်နှုန်း အသစ်ပြင်ဆင်ခြင်း",
   "catalogRoutine": "ပုံမှန် စစ်ဆေးခြင်း",
   "catalogOilChange": "အင်ဂျင်ဝိုင် လဲလှယ်ခြင်း",
@@ -274,7 +252,6 @@
   "catalogBattery": "ဘက်ထရီ စစ်ဆေး/လဲလှယ်ခြင်း",
   "catalogAirConditioning": "အဲကွန်း စစ်ဆေးခြင်း",
   "catalogRotateTires": "တာယာ တည်နေရာ ပြောင်းလဲခြင်း",
-
   "expensesTitle": "ကုန်ကျစရိတ်များ",
   "expensesAddTooltip": "ကုန်ကျစရိတ် ထည့်မည်",
   "expensesNoActiveVehicle": "အသုံးပြုနေသော ယာဉ် မရှိပါ",
@@ -288,7 +265,6 @@
   "expensesThisMonth": "ဒီလ",
   "expensesTotal": "စုစုပေါင်း",
   "expensesAllFilter": "အားလုံး",
-
   "expenseFormEditTitle": "ကုန်ကျစရိတ် ပြင်မည်",
   "expenseFormAddTitle": "ကုန်ကျစရိတ် ထည့်မည်",
   "expenseFormNoActiveVehicleBody": "ကုန်ကျစရိတ် မှတ်တမ်းတင်ရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
@@ -316,9 +292,7 @@
   "expenseFormCameraDenied": "ကင်မရာ သို့မဟုတ် ဓာတ်ပုံ သုံးစွဲခွင့် ငြင်းပယ်ခံထားရသည်။ ဓာတ်ပုံမပါဘဲ သိမ်းဆည်းနိုင်ပါသည်။",
   "expenseFormCameraOption": "ကင်မရာ",
   "expenseFormPhotoLibraryOption": "ဓာတ်ပုံ အယ်လ်ဘမ်",
-
   "expenseNotFound": "ကုန်ကျစရိတ် မှတ်တမ်း ရှာမတွေ့ပါ",
-
   "expenseCategoryFuel": "လောင်စာဆီ",
   "expenseCategoryMaintenance": "ပြုပြင်ထိန်းသိမ်းမှု",
   "expenseCategoryInsurance": "အာမခံ",
@@ -326,7 +300,6 @@
   "expenseCategoryTolls": "လမ်းတိုးဂိတ်ခ",
   "expenseCategoryParts": "အပိုပစ္စည်းများ",
   "expenseCategoryOther": "အခြား",
-
   "expenseCategoryRequired": "အမျိုးအစား ရွေးချယ်ရန် လိုအပ်သည်",
   "expenseAmountRequired": "ပမာဏ ရိုက်ထည့်ရန် လိုအပ်သည်",
   "expenseAmountTooSmall": "၀ ထက်ကြီးသော ပမာဏကို ရိုက်ထည့်ပါ",
@@ -334,7 +307,6 @@
   "expenseDateRequired": "ရက်စွဲ ရိုက်ထည့်ရန် လိုအပ်သည်",
   "expenseDateTooFarFuture": "ရက်စွဲသည် အနာဂတ်တွင် ၁ ရက်ထက် ပို၍ မရပါ",
   "expenseNotesMaxLength": "မှတ်ချက်သည် စာလုံးရေ {max} ထက် မပိုရပါ",
-
   "documentsTitle": "စာရွက်စာတမ်းများ",
   "documentsNoActiveVehicle": "အသုံးပြုနေသော ယာဉ် မရှိပါ",
   "documentsEmptyTitle": "စာရွက်စာတမ်းများ မရှိသေးပါ",
@@ -344,14 +316,12 @@
   "documentsNoActiveVehicleBody": "စာရွက်စာတမ်းများ သိမ်းဆည်းရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
   "documentsLoadError": "စာရွက်စာတမ်းများကို ရယူ၍မရပါ",
   "documentsAddDocument": "စာရွက်စာတမ်း ထည့်မည်",
-
   "documentCategoryInsurance": "အာမခံ",
   "documentCategoryRegistration": "မှတ်ပုံတင်",
   "documentCategoryInvoice": "ငွေတောင်",
   "documentCategoryWarranty": "အာမခံ",
   "documentCategoryReceipt": "ပြေစာ",
   "documentCategoryOther": "အခြား",
-
   "documentFormEditTitle": "စာရွက်စာတမ်း ပြင်ဆင်မည်",
   "documentFormAddTitle": "စာရွက်စာတမ်း ထည့်မည်",
   "documentFormName": "အမည် *",
@@ -378,7 +348,6 @@
   "documentFormNotFoundBody": "ဖျက်ထားခြင်း ဖြစ်နိုင်ပါသည်။",
   "documentFormAttachFile": "ဖိုင် ထည့်မည်",
   "documentFormReplace": "အစားထိုးမည်",
-
   "documentViewerTitle": "စာရွက်စာတမ်း",
   "documentViewerNotFound": "စာရွက်စာတမ်း မတွေ့ပါ",
   "documentViewerNotFoundBody": "ဒီစာရွက်စာတမ်းကို ရယူ၍မရပါ။",
@@ -387,16 +356,13 @@
   "documentViewerNoFileBody": "ဒီစာရွက်စာတမ်းတွင် ဖိုင် မပါဝင်ပါ။",
   "documentViewerRemote": "အင်တာနက်စာရွက်စာတမ်း",
   "documentViewerRemoteBody": "ဒီဖိုင်ကို အင်တာနက်တွင် သိမ်းဆည်းထားပြီး အင်တာနက်ချိတ်ဆက်သောအခါ ချိတ်ဆက်ပေးပါမည်။",
-
   "documentInfoCategory": "အမျိုးအစား",
   "documentInfoAdded": "ထည့်သွင်းချိန်",
   "documentInfoNotes": "မှတ်ချက်",
   "documentInfoStatus": "အခြေအနေ",
   "documentStatusSynced": "ချိတ်ဆက်ပြီးပါပြီ",
   "documentStatusQueued": "စောင့်ဆိုင်းနေသည်",
-
   "documentNotFound": "စာရွက်စာတမ်း မတွေ့ပါ",
-
   "partsTitle": "အပိုပစ္စည်းများ",
   "partsAddTooltip": "အပိုပစ္စည်း ထည့်မည်",
   "partsNoActiveVehicle": "အသုံးပြုနေသော ယာဉ် မရှိပါ",
@@ -405,7 +371,6 @@
   "partsEmptyTitle": "အပိုပစ္စည်းများ မရှိသေးပါ",
   "partsEmptyBody": "{vehicleName} အတွက် အပိုပစ္စည်းများ ထည့်သွင်းပါ။ ပြုပြင်ထိန်းသိမ်းမှု သို့မဟုတ် ကုန်ကျစရိတ် မှတ်တမ်းတင်ချိန်တွင် ထည့်သွင်းနိုင်ပါသည်။",
   "partsAddPart": "အပိုပစ္စည်း ထည့်မည်",
-
   "partFormEditTitle": "အပိုပစ္စည်း အချက်အလက် ပြင်မည်",
   "partFormAddTitle": "အပိုပစ္စည်း ထည့်မည်",
   "partFormName": "အမည် *",
@@ -416,7 +381,6 @@
   "partFormPartNumberHint": "OF-1234",
   "partFormNotes": "မှတ်ချက်များ",
   "partFormNotesHint": "ဆိုဒ်/အရွယ်အစား၊ ဝယ်ယူသည့်နေရာ သို့မဟုတ် တပ်ဆင်မှု အသေးစိတ်",
-
   "partDuplicate": "ဒီအပိုပစ္စည်းသည် ဒီယာဉ်တွင် ရှိပြီးသားဖြစ်သည်",
   "partNotFound": "အပိုပစ္စည်း ရှာမတွေ့ပါ",
   "partNameRequired": "အမည် ရိုက်ထည့်ရန် လိုအပ်သည်",
@@ -424,7 +388,6 @@
   "partBrandMaxLength": "တံဆိပ်သည် စာလုံးရေ {max} ထက် မပိုရပါ",
   "partNumberMaxLength": "အပိုပစ္စည်း နံပါတ်သည် စာလုံးရေ {max} ထက် မပိုရပါ",
   "partNotesMaxLength": "မှတ်ချက်သည် စာလုံးရေ {max} ထက် မပိုရပါ",
-
   "fuelLogsTitle": "ဆီဖြည့် မှတ်တမ်း",
   "fuelLogsTypesTooltip": "လောင်စာဆီ အမျိုးအစားများ",
   "fuelLogsAddChargeTooltip": "အားသွင်းမှု မှတ်တမ်းထည့်မည်",
@@ -441,7 +404,6 @@
   "fuelLogsAllTypes": "အမျိုးအစား အားလုံး",
   "fuelLogsAllDates": "ရက်စွဲ အားလုံး",
   "fuelLogsThisMonth": "ဒီလ",
-
   "fuelLogFormTypeSheetTitle": "လောင်စာဆီ အမျိုးအစား",
   "fuelLogFormAddFuelType": "လောင်စာဆီ အမျိုးအစား ထည့်မည်",
   "fuelLogFormTypesLink": "လောင်စာဆီ အမျိုးအစားများ",
@@ -451,7 +413,8 @@
   "fuelLogFormSelect": "ရွေးချယ်ရန်",
   "fuelLogFormAmount": "ပမာဏ *",
   "fuelLogFormCost": "ကျသင့်ငွေ *",
-
+  "fuelLogFormOdometer": "အကွာအဝေးတိုင်းစက်",
+  "fuelLogFormOdometerHint": "မဖြည့်လည်းရသည်",
   "fuelTypesTitle": "လောင်စာဆီ အမျိုးအစားများ",
   "fuelTypesAddTooltip": "လောင်စာဆီ အမျိုးအစား ထည့်မည်",
   "fuelTypesNoActiveVehicle": "အသုံးပြုနေသော ယာဉ် မရှိပါ",
@@ -465,7 +428,6 @@
   "fuelTypesAll": "အားလုံး",
   "fuelTypesLiquid": "စက်သုံးဆီ (အရည်)",
   "fuelTypesElectric": "လျှပ်စစ်",
-
   "fuelTypeFormEditTitle": "လောင်စာဆီ အမျိုးအစား ပြင်မည်",
   "fuelTypeFormAddTitle": "လောင်စာဆီ အမျိုးအစား ထည့်မည်",
   "fuelTypeFormName": "အမည် *",
@@ -473,7 +435,6 @@
   "fuelTypeFormNameHintPetrol": "ဓာတ်ဆီ",
   "fuelTypeFormKind": "အမျိုးအစား *",
   "fuelTypeFormUnit": "ယူနစ် *",
-
   "fuelTypeDuplicate": "ဒီလောင်စာဆီ အမျိုးအစားသည် စာရင်းထဲတွင် ရှိပြီးသားဖြစ်သည်",
   "fuelTypeNotFound": "လောင်စာဆီ အမျိုးအစား ရှာမတွေ့ပါ",
   "fuelLogNotFound": "မှတ်တမ်း ရှာမတွေ့ပါ",
@@ -490,7 +451,6 @@
   "fuelCostRequired": "ကျသင့်ငွေ ရိုက်ထည့်ရန် လိုအပ်သည်",
   "fuelCostInvalid": "မှန်ကန်သော ကျသင့်ငွေ ရိုက်ထည့်ပါ",
   "fuelCostTooLarge": "ကျသင့်ငွေ များလွန်းနေသည်",
-
   "fuelKindLiquid": "စက်သုံးဆီ (အရည်)",
   "fuelKindElectric": "လျှပ်စစ်",
   "fuelLogRefuel": "ဆီဖြည့်ခြင်း",
@@ -499,7 +459,6 @@
   "fuelLogAddCharge": "အားသွင်းမှု မှတ်တမ်းထည့်မည်",
   "fuelLogEditRefuel": "ဆီဖြည့်မှု မှတ်တမ်းပြင်မည်",
   "fuelLogEditCharge": "အားသွင်းမှု မှတ်တမ်းပြင်မည်",
-
   "settingsTitle": "ပြင်ဆင်ချက်များ",
   "settingsFreePlan": "အခမဲ့ အစီအစဉ်",
   "settingsManageVehicles": "ယာဉ်များကို စီမံခန့်ခွဲမည်",
@@ -524,17 +483,14 @@
   "settingsSyncStatusHoursAgo": "လွန်ခဲ့သော {hours} နာရီက ဒေတာ ချိတ်ဆက်ခဲ့သည်",
   "settingsSyncStatusDaysAgo": "လွန်ခဲ့သော {days} ရက်က ဒေတာ ချိတ်ဆက်ခဲ့သည်",
   "settingsSyncTapToSync": "သင့်ဒေတာများကို ချိတ်ဆက်ရန် နှိပ်ပါ",
-
   "localizationTitle": "Localization",
   "localizationLanguage": "ဘာသာစကား",
   "localizationHelper": "အက်ပ်စာသားများသည် လက်ရှိတွင် အင်္ဂလိပ်လိုသာ ရှိသေးသည်။ ဒါက သင့်ရွေးချယ်မှုကို သိမ်းဆည်းပေးထားပါမည်။",
-
   "unitsFormatsTitle": "ယူနစ်နှင့် ပုံစံ",
   "unitsFormatsCurrency": "ငွေကြေးစနစ်",
   "unitsFormatsCurrencyHelper": "USD သည် စင့် (cents) ဖြင့် ပြသမည်။ MMK သည် ကျပ်ပြည့် ပြသမည်ဖြစ်ပြီး ပမာဏများပါက K သို့မဟုတ် M (25K, 23M) ဟု ပြသမည်။",
   "unitsFormatsLengthUnit": "အကွာအဝေး ယူနစ်",
   "unitsFormatsLengthUnitHelper": "မိုင်နှုန်း၊ ပြုပြင်ထိန်းသိမ်းမှု အပိုင်းအခြားနှင့် ပြုလုပ်ရမည့် မိုင်နှုန်းများသည် ဒီယူနစ်အတိုင်း ပြသမည်။",
-
   "remindersTitle": "အသိပေးချက်များ",
   "remindersIntro": "ဝန်ဆောင်မှု သတိပေးချက်တစ်ခုစီတွင် အသိပေးချက် ၂ ခု ရှိပါသည် - သတ်မှတ်ရက် {days} ရက် အလိုတွင် တစ်ခုနှင့် ရောက်ရှိသည့်အခါ သို့မဟုတ် လက်ကျန်အကွာအဝေး {distance} အတွင်းရောက်သည့်အခါ တစ်ခု။",
   "remindersSoonDaysLabel": "သတ်မှတ်ရက်အလို ရက်အရေအတွက်",
@@ -543,18 +499,14 @@
   "remindersSoonDistanceLabel": "လက်ကျန် အကွာအဝေး",
   "remindersSoonDistanceHelp": "လက်ကျန်အကွာအဝေးဤတန်ဖိုးအောက် ရောက်သည့်အခါ သတိပေးပါမည်။",
   "remindersReset": "မူလအတိုင်း ပြန်ထားမည်",
-
   "languageEnglish": "အင်္ဂလိပ်",
   "languageMyanmar": "မြန်မာ",
-
   "currencyUSD": "အမေရိကန် ဒေါ်လာ (USD)",
   "currencyMMK": "မြန်မာကျပ်ငွေ (MMK)",
-
   "unitMilesShort": "မိုင်",
   "unitKilometersShort": "ကီလိုမီတာ",
   "unitMilesFull": "မိုင်",
   "unitKilometersFull": "ကီလိုမီတာ",
-
   "notificationsTitle": "အကြောင်းကြားချက်များ",
   "notificationsLoadError": "အကြောင်းကြားချက်များကို ရယူ၍မရပါ",
   "notificationsEmptyTitle": "အကြောင်းကြားချက် မရှိပါ",
@@ -567,13 +519,11 @@
   "notificationsReminderBodyDate": "{name} — {date} တွင် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်",
   "notificationsReminderBodyMileage": "{name} — {mileage}အရောက် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်",
   "notificationsReminderBodyBoth": "{name} — {date} · {mileage} တွင် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်",
-
   "insuranceTitle": "အာမခံ",
   "insuranceNoActiveVehicle": "အသုံးပြုနေသော ယာဉ် မရှိပါ",
   "insuranceComingLater": "အာမခံ ဝန်ဆောင်မှု မကြာမီ လာမည်",
   "insuranceNoActiveVehicleBody": "အာမခံ ပေါ်လစီများကို သိမ်းဆည်းရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
   "insuranceEmptyBody": "{vehicleName} အတွက် အာမခံ ပေါ်လစီများ ဒီမှာ ရှိပါမည်။ လောလောဆယ်တွင် အာမခံ စာရွက်စာတမ်းများကို စာရွက်စာတမ်းများထဲ၌ သိမ်းဆည်းပါ။",
-
   "familyJoinTitle": "မိသားစုအကောင့်သို့ ဝင်မည်",
   "familyCreateTitle": "မိသားစုအကောင့် ပြုလုပ်မည်",
   "familyJoining": "မိသားစုအကောင့်သို့ ဝင်ရောက်နေသည်...",
@@ -599,7 +549,6 @@
   "familyShareText": "ကျွန်ုပ်၏ DCO မိသားစုအကောင့်သို့ ဝင်ရောက်ပါ! ကုတ်နံပါတ်- {code}",
   "familyCodeExpiryHelper": "ကုတ်နံပါတ်သည် ၇ ရက်အတွင်း သက်တမ်းကုန်ပါမည်။ ကုတ်နံပါတ်အသစ် ပြန်ထုတ်ပါက ကုတ်နံပါတ်ဟောင်း ပျက်ပြယ်သွားပါမည်။",
   "familyGoToManagement": "မိသားစု စီမံခန့်ခွဲမှုသို့ သွားမည်",
-
   "familyManagementTitle": "မိသားစု",
   "familyManagementMembersTab": "အဖွဲ့ဝင်များ",
   "familyManagementVehiclesTab": "ယာဉ်များ",
@@ -612,7 +561,6 @@
   "familyManagementNoFamilyBody": "ယာဉ်များ မျှဝေရန် မိသားစုအကောင့် ပြုလုပ်ပါ\nသို့မဟုတ် ရှိပြီးသား အကောင့်သို့ ဝင်ရောက်ပါ။",
   "familyManagementCreateButton": "မိသားစုအကောင့် ပြုလုပ်မည်",
   "familyManagementJoinFamilyButton": "မိသားစုအကောင့်သို့ ဝင်မည်",
-
   "membersTabEmptyTitle": "အဖွဲ့ဝင် မရှိသေးပါ",
   "membersTabEmptyBody": "စတင်ရန် မိသားစုဝင်များကို ဖိတ်ခေါ်ပါ။",
   "membersTabManageTitle": "{name} ကို စီမံခန့်ခွဲမည်",
@@ -631,7 +579,6 @@
   "membersTabLicenseExpired": "သက်တမ်း ကုန်သွားပြီ",
   "membersTabLicenseNone": "ယာဉ်မောင်းလိုင်စင် မရှိပါ",
   "membersTabVehicleCount": "{count, plural, =1{# စီး} other{# စီး}}",
-
   "vehiclesTabTitle": "မိသားစုပိုင် ယာဉ်များ",
   "vehiclesTabAdd": "ထည့်မည်",
   "vehiclesTabEmptyTitle": "မိသားစုထဲတွင် ယာဉ် မရှိသေးပါ",
@@ -643,7 +590,6 @@
   "vehiclesTabAddSelected": "ရွေးထားသည့် {count} စီးကို ထည့်မည်",
   "vehiclesTabRemoveTitle": "ယာဉ်ကို ဖယ်ရှားမည်",
   "vehiclesTabRemoveBody": "{vehicleName} ကို မိသားစုမှ ဖယ်ရှားမှာ သေချာပါသလား?",
-
   "inviteTabHeading": "မိသားစုအကောင့်ကို မျှဝေပါ",
   "inviteTabBody": "ဝင်ရောက်ရန်နှင့် ယာဉ်များ မျှဝေရန် မိသားစုဝင်များကို ဖိတ်ခေါ်ပါ။",
   "inviteTabShareCode": "ကုတ်နံပါတ် မျှဝေမည်",
@@ -657,7 +603,6 @@
   "inviteTabRegenerateBody": "ဒါက လက်ရှိ ကုတ်နံပါတ်ကို ပျက်ပြယ်သွားစေပါမည်။ ကုတ်နံပါတ်ဟောင်း ရှိသူများ ဝင်ရောက်နိုင်တော့မည် မဟုတ်ပါ။",
   "inviteTabRegenerateAction": "ပြန်ထုတ်မည်",
   "inviteTabCodeExpiryHelper": "ကုတ်နံပါတ်သည် ၇ ရက်အတွင်း သက်တမ်းကုန်ပါမည်။ ကုတ်နံပါတ်အသစ် ပြန်ထုတ်ပါက ကုတ်နံပါတ်ဟောင်း ပျက်ပြယ်သွားပါမည်။",
-
   "carDetailTitle": "ယာဉ် အသေးစိတ်",
   "carDetailNotFound": "ယာဉ် ရှာမတွေ့ပါ",
   "carDetailNotFoundBody": "ဒီယာဉ်အချက်အလက်ကို ရယူ၍မရပါ။",
@@ -690,7 +635,6 @@
   "carDetailAllAssigned": "မိသားစုဝင် အားလုံးကို သတ်မှတ်ပြီးဖြစ်သည်",
   "carDetailLicensePrefix": "လိုင်စင် - ",
   "carDetailAssign": "သတ်မှတ်မည်",
-
   "userDetailProfileTitle": "ကိုယ်ရေးအချက်အလက်",
   "userDetailMemberTitle": "အဖွဲ့ဝင် အသေးစိတ်",
   "userDetailNotFound": "အသုံးပြုသူ ရှာမတွေ့ပါ",
@@ -764,11 +708,9 @@
   "userDetailSaveRole": "သိမ်းဆည်းမည်",
   "userDetailAssignVehiclesSheet": "ယာဉ်များ သတ်မှတ်မည်",
   "userDetailNoVehiclesInGarage": "ယာဉ်ဂိုဒေါင်ထဲတွင် ယာဉ်များ မရှိပါ",
-
   "familyRolePrimaryOwner": "ပင်မ ပိုင်ရှင်",
   "familyRoleMember": "အဖွဲ့ဝင်",
   "familyRoleDriver": "ယာဉ်မောင်း",
-
   "drawerQuickAccess": "အမြန်ဆုံး ဝင်ရောက်",
   "drawerFeatures": "လုပ်ဆောင်ချက်များ",
   "drawerStats": "စာရင်းအင်းများ",
@@ -778,13 +720,12 @@
   "drawerParts": "အစိတ်အပိုင်းများ",
   "drawerMaintenancePlan": "ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ်",
   "drawerInsurance": "အာမခံ",
-  "drawerRefuelStats": "လောင်စာဆီ စာရင်းဇယား",
+  "drawerFuelStats": "လောင်စာဆီ စာရင်းဇယား",
   "drawerMaintenanceStats": "ပြုပြင်ထိန်းသိမ်းမှု စာရင်းဇယား",
   "drawerExpenseStats": "အသုံးစရိတ် စာရင်းဇယား",
   "drawerFamily": "မိသားစု",
   "drawerFleet": "ဖလီး",
-
-  "refuelStatsTitle": "လောင်စာဆီ စာရင်းဇယား",
+  "fuelStatsTitle": "လောင်စာဆီ စာရင်းဇယား",
   "maintenanceStatsTitle": "ပြုပြင်ထိန်းသိမ်းမှု စာရင်းဇယား",
   "expenseStatsTitle": "အသုံးစရိတ် စာရင်းဇယား",
   "fleetTitle": "ဖလီး မုဒ်",
@@ -808,13 +749,11 @@
   "syncParts": "အပိုပစ္စည်းများ",
   "syncFuelLogs": "လောင်စာဆီ မှတ်တမ်း",
   "syncOther": "အခြား",
-
   "registerSuccessTitle": "ဝန်ဆောင်မှု မှတ်တမ်းတင်ပြီးပါပြီ!",
   "registerSuccessSubtitle": "သင့်ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းကို အောင်မြင်စွာ သိမ်းဆည်းပြီးပါပြီ။",
   "registerSuccessDetails": "မှတ်တမ်း အသေးစိတ်",
   "registerSuccessBackHome": "ပင်မစာမျက်နှာသို့ ပြန်သွားမည်",
   "registerErrorGeneric": "တစ်ခုခု မှားယွင်းနေသည်။ ပြန်ကြိုးစားပါ။",
-
   "notesTitle": "မှတ်စုများ",
   "notesEmptyTitle": "မှတ်စု မရှိသေးပါ",
   "notesEmptyBody": "အကြံဉာဏ်များ၊ စာရင်းများ၊ သတိပေးချက်များကို ဤနေရာတွင် သိမ်းဆည်းပါ။",
@@ -831,7 +770,6 @@
   "noteDeleted": "မှတ်စု ဖျက်ပြီးပါပြီ",
   "noteUndo": "ပြန်လည်ရယူရန်",
   "noteDelete": "ဖျက်ရန်",
-
   "fleetHubModeSection": "မုဒ်",
   "fleetModePersonalTitle": "ကိုယ်ပိုင်",
   "fleetModePersonalBody": "သင်၏ ကိုယ်ပိုင်ယာဉ်များနှင့် မှတ်တမ်းများ",
@@ -1037,5 +975,71 @@
   "driverReportsInspections": "စစ်ဆေးမှုများ",
   "driverMyWorkOrdersEmpty": "တင်ပြချက် မရှိသေးပါ",
   "driverMyWorkOrdersEmptyBody": "ပြဿနာ တင်ပြပြီး ၎င်း၏ အခြေအနေကို ဤနေရာတွင် ကြည့်ပါ။",
-  "fleetActionFailed": "လုပ်ဆောင်ချက် မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။"
+  "fleetActionFailed": "လုပ်ဆောင်ချက် မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။",
+  "statsYear": "နှစ်",
+  "statsMonth": "လ",
+  "statsAll": "အားလုံး",
+  "statsNoActiveVehicle": "အသုံးပြုနေသော ယာဉ် မရှိပါ",
+  "statsNoActiveVehicleBody": "စာရင်းအင်းများ ကြည့်ရန် ယာဉ်တစ်စီး မှတ်ပုံတင်ပါ။",
+  "statsDefinitionsAction": "ဤစာရင်းအင်းများ ဆိုသည်မှာ ဘာလဲ?",
+  "statsNoRecordsPeriod": "ဤကာလတွင် မှတ်တမ်းများ မရှိပါ",
+  "statsNoRecordsPeriodBody": "နှစ် သို့မဟုတ် လ ပြောင်းပါ၊ သို့မဟုတ် စစ်ထုတ်မှုများ ဖျက်ပါ။",
+  "statsClearFilters": "စစ်ထုတ်မှုများ ဖျက်မည်",
+  "statsOther": "အခြား",
+  "statsChartNoData": "ဤကာလအတွက် အချက်အလက် မရှိပါ",
+  "statsEmptyFuelBodyRefuels": "{vehicleName} ၏ စာရင်းအင်းများ ကြည့်ရန် ဆီဖြည့်မှု မှတ်တမ်းတင်ပါ။",
+  "statsEmptyFuelBodyCharges": "{vehicleName} ၏ စာရင်းအင်းများ ကြည့်ရန် အားသွင်းမှု မှတ်တမ်းတင်ပါ။",
+  "statsEmptyMaintenanceBody": "{vehicleName} ၏ စာရင်းအင်းများ ကြည့်ရန် ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းတင်ပါ။",
+  "statsEmptyExpensesBody": "{vehicleName} ၏ စာရင်းအင်းများ ကြည့်ရန် ကုန်ကျစရိတ် မှတ်တမ်းတင်ပါ။",
+  "statsTotalRefuels": "စုစုပေါင်း ဆီဖြည့်မှုများ",
+  "statsTotalCharges": "စုစုပေါင်း အားသွင်းမှုများ",
+  "statsTotalCost": "စုစုပေါင်း ကုန်ကျစရိတ်",
+  "statsTotalVolume": "စုစုပေါင်း ပမာဏ",
+  "statsTotalKwh": "စုစုပေါင်း kWh",
+  "statsTotalDistance": "စုစုပေါင်း အကွာအဝေး",
+  "statsAvgConsumption": "ပျမ်းမျှ စားသုံးမှု",
+  "statsAvgEfficiency": "ပျမ်းမျှ စွမ်းအင်ထိရောက်မှု",
+  "statsCostPer100": "၁၀၀ {unit} လျှင် ကုန်ကျစရိတ်",
+  "statsMostExpensiveRefuel": "ဈေးအကြီးဆုံး ဆီဖြည့်မှု",
+  "statsMostExpensiveCharge": "ဈေးအကြီးဆုံး အားသွင်းမှု",
+  "statsTotalJobs": "စုစုပေါင်း အလုပ်များ",
+  "statsTotalServiceItems": "စုစုပေါင်း ဝန်ဆောင်မှု အမျိုးအစားများ",
+  "statsTopServiceType": "ထိပ်တန်း ဝန်ဆောင်မှု အမျိုးအစား",
+  "statsMostExpensiveJob": "ဈေးအကြီးဆုံး အလုပ်",
+  "statsTotalExpenses": "စုစုပေါင်း ကုန်ကျစရိတ်များ",
+  "statsTopCategory": "ထိပ်တန်း အမျိုးအစား",
+  "statsMostExpensiveExpense": "ဈေးအကြီးဆုံး ကုန်ကျစရိတ်",
+  "statsMonthlyCost": "လစဉ် ကုန်ကျစရိတ်",
+  "statsEfficiencyTrend": "စွမ်းအင်ထိရောက်မှု အလားအလာ",
+  "statsCostByServiceType": "ဝန်ဆောင်မှု အမျိုးအစားအလိုက် ကုန်ကျစရိတ်",
+  "statsCostByCategory": "အမျိုးအစားအလိုက် ကုန်ကျစရိတ်",
+  "statsDefPeriod": "ဂဏန်းများသည် ရွေးချယ်ထားသော နှစ်နှင့် လ အတိုင်း ဖြစ်သည်။ — သည် အချက်အလက် မလုုလောက်သေးကြောင်း ဖြစ်သည်။",
+  "statsDefFuelCount": "ဤကာလအတွင်း လောင်စာ မှတ်တမ်း အရေအတွက်။",
+  "statsDefTotalCost": "ဤကာလအတွင်း ကုန်ကျစရိတ် အားလုံး၏ စုစုပေါင်း။",
+  "statsDefAvgCostPerUnit": "စုစုပေါင်း ကုန်ကျစရိတ်ကို စုစုပေါင်း ပမာဏဖြင့် ခွဲသည်။",
+  "statsDefAvgCostPerKwh": "စုစုပေါင်း ကုန်ကျစရိတ်ကို စုစုပေါင်း kWh ဖြင့် ခွဲသည်။",
+  "statsDefTotalVolume": "ဤကာလအတွင်း မှတ်တမ်းတင်ထားသော လောင်စာ ပမာဏ။ ယူနစ် ရောနှောပါက တစ်ခုချင်းစီ ပြသပါမည်။",
+  "statsDefTotalKwh": "ဤကာလအတွင်း မှတ်တမ်းတင်ထားသော စွမ်းအင်။",
+  "statsDefTotalDistance": "ဤကာလအတွင်း အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား အကွာအဝေး။ အနည်းဆုံး အပိုင်းနှစ်ပိုင်း လိုအပ်သည်။",
+  "statsDefAvgConsumption": "အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား ၁၀၀ ကီလိုမီတာ (သို့ ဂါလန်တစ်ရာ) လျှင် စားသုံးသော လောင်စာ။ ဆီတိုင်း မပြည့်မီ ဖြည့်ပါက ခန့်မှန်းခြေ ဖြစ်သည်။",
+  "statsDefAvgEfficiency": "အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား kWh တစ်ခုလျှင် မောင်းနှင်သော အကွာအဝေး။",
+  "statsDefCostPer100": "အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား ကုန်ကျစရိတ်ကို ၁၀၀ ကီလိုမီတာ (သို့ ၁၀၀ မိုင်) အတိုင်း တိုင်းတာသည်။",
+  "statsDefMostExpensiveRefuel": "ဤကာလအတွင်း ဈေးအကြီးဆုံး ဆီဖြည့်မှုနှင့် ၎င်း၏ ရက်စွဲ။",
+  "statsDefMostExpensiveCharge": "ဤကာလအတွင်း ဈေးအကြီးဆုံး အားသွင်းမှုနှင့် ၎င်း၏ ရက်စွဲ။",
+  "statsDefSegments": "အပိုင်း (segment) ဆိုသည် အကွာအဝေးတိုင်းစက် ဖတ်တန်း ဆက်တိုက်နှစ်ခုကြား အကွာအဝေး ဖြစ်သည်။ အကွာအဝေးနှင့် စားသုံးမှု KPI များအတွက် ဤကာလအတွင်း အနည်းဆုံး အပိုင်းနှစ်ပိုင်း လိုအပ်သည်။",
+  "statsDefUnits": "အကွာအဝေးများသည် သင်၏ ဆက်တင် အလျားယူနစ်၊ ငွေကြေးသည် သင်၏ ငွေကြေးအမျိုးအစားအတိုင်း ဖြစ်သည်။",
+  "statsDefMonthLabel": "လ အမည်များသည် နှစ် ရွေးထားပါက MMM၊ အားလုံးအတွက် MMM YY ဖြစ်သည်။",
+  "statsDefMonthlyCostChart": "ဤကာလအတွင်း စုစုပေါင်း ကုန်ကျစရိတ် ပြသရန် တစ်လချင်းစီအတွက် တန်းတစ်ခုချင်း။",
+  "statsDefEfficiencyChart": "အသုံးပြုနိုင်သော အပိုင်းရှိသည့် လတိုင်းအတွက် အချက်တစ်ခုချင်း။ မရှိသော လများသည် ကြားခံ ဖြစ်သည်။",
+  "statsDefTotalJobs": "ဤကာလအတွင်း သိမ်းဆည်းထားသော ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းများ။",
+  "statsDefTotalServiceItems": "ထို မှတ်တမ်းများပေါ်ရှိ ဝန်ဆောင်မှု အမျိုးအစားများ။",
+  "statsDefAvgJobCost": "စုစုပေါင်း ကုန်ကျစရိတ်ကို အလုပ်အရေအတွက်ဖြင့် ခွဲသည်။",
+  "statsDefTopServiceType": "စုစုပေါင်း ကုန်ကျစရိတ် အများဆုံး ဝန်ဆောင်မှု အမည်။",
+  "statsDefMostExpensiveJob": "ဤကာလအတွင်း ဈေးအကြီးဆုံး ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းနှင့် ၎င်း၏ ရက်စွဲ။",
+  "statsDefDonutService": "ဝန်ဆောင်မှု အမည်အလိုက် စုစုပေါင်းထားသော အမျိုးအစား ကုန်ကျစရိတ်။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။",
+  "statsDefTotalExpenses": "ဤကာလအတွင်း ကုန်ကျစရိတ် မှတ်တမ်းများ။",
+  "statsDefAvgPerExpense": "စုစုပေါင်းကို ကုန်ကျစရိတ် အရေအတွက်ဖြင့် ခွဲသည်။",
+  "statsDefTopCategory": "စုစုပေါင်း အများဆုံး သုံးစွဲသော အမျိုးအစား။",
+  "statsDefMostExpensiveExpense": "ဤကာလအတွင်း ဈေးအကြီးဆုံး ကုန်ကျစရိတ်တစ်ခုနှင့် ၎င်း၏ ရက်စွဲ။",
+  "statsDefDonutCategory": "အမျိုးအစားအလိုက် စုစုပေါင်းထားသော သုံးစွဲမှု။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။"
 }

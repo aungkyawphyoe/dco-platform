@@ -30,13 +30,11 @@ import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_logs_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_type_form_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_types_screen.dart';
-import '../../features/fuel/presentation/screens/refuel_stats_screen.dart';
 import '../../features/garage/presentation/screens/garage_home_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
 import '../../features/insurance/presentation/screens/insurance_screen.dart';
 import '../../features/maintenance/domain/entities/service_record.dart';
 import '../../features/maintenance/presentation/screens/maintenance_plan_screen.dart';
-import '../../features/maintenance/presentation/screens/maintenance_stats_screen.dart';
 import '../../features/maintenance/presentation/screens/maintenance_success_screen.dart';
 import '../../features/maintenance/presentation/screens/plan_item_form_screen.dart';
 import '../../features/maintenance/presentation/screens/register_service_screen.dart';
@@ -53,7 +51,9 @@ import '../../features/settings/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/reminders_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/units_formats_screen.dart';
-import '../../features/expenses/presentation/screens/expense_stats_screen.dart';
+import '../../features/stats/presentation/screens/expense_stats_screen.dart';
+import '../../features/stats/presentation/screens/fuel_stats_screen.dart';
+import '../../features/stats/presentation/screens/maintenance_stats_screen.dart';
 import '../../features/family/presentation/screens/family_setup_screen.dart';
 import '../../features/family/presentation/screens/family_management_screen.dart';
 import '../../features/family/presentation/screens/car_detail_screen.dart';
@@ -399,7 +399,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.refuelStats,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const RefuelStatsScreen(),
+        builder: (context, state) => const FuelStatsScreen(),
       ),
       GoRoute(
         path: AppRoutes.maintenanceStats,

@@ -1334,6 +1334,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fuelLogFormCost => 'Cost *';
 
   @override
+  String get fuelLogFormOdometer => 'Odometer';
+
+  @override
+  String get fuelLogFormOdometerHint => 'Optional';
+
+  @override
   String get fuelTypesTitle => 'Fuel Types';
 
   @override
@@ -2405,7 +2411,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerInsurance => 'Insurance';
 
   @override
-  String get drawerRefuelStats => 'Refuel Stats';
+  String get drawerFuelStats => 'Refuel Stats';
 
   @override
   String get drawerMaintenanceStats => 'Maintenance Stats';
@@ -2420,7 +2426,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerFleet => 'Fleet';
 
   @override
-  String get refuelStatsTitle => 'Refuel Stats';
+  String get fuelStatsTitle => 'Refuel Stats';
 
   @override
   String get maintenanceStatsTitle => 'Maintenance Stats';
@@ -3207,4 +3213,234 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fleetActionFailed => 'Action failed. Please try again.';
+
+  @override
+  String get statsYear => 'Year';
+
+  @override
+  String get statsMonth => 'Month';
+
+  @override
+  String get statsAll => 'All';
+
+  @override
+  String get statsNoActiveVehicle => 'No active vehicle';
+
+  @override
+  String get statsNoActiveVehicleBody => 'Register a vehicle to see its stats.';
+
+  @override
+  String get statsDefinitionsAction => 'What do these stats mean?';
+
+  @override
+  String get statsNoRecordsPeriod => 'No records in this period';
+
+  @override
+  String get statsNoRecordsPeriodBody =>
+      'Change the year or month, or clear the filters.';
+
+  @override
+  String get statsClearFilters => 'Clear filters';
+
+  @override
+  String get statsOther => 'Other';
+
+  @override
+  String get statsChartNoData => 'No data for this period';
+
+  @override
+  String statsEmptyFuelBodyRefuels(Object vehicleName) {
+    return 'Log a refill for $vehicleName to see its stats.';
+  }
+
+  @override
+  String statsEmptyFuelBodyCharges(Object vehicleName) {
+    return 'Log charging for $vehicleName to see its stats.';
+  }
+
+  @override
+  String statsEmptyMaintenanceBody(Object vehicleName) {
+    return 'Log a service for $vehicleName to see its stats.';
+  }
+
+  @override
+  String statsEmptyExpensesBody(Object vehicleName) {
+    return 'Log spend for $vehicleName to see its stats.';
+  }
+
+  @override
+  String get statsTotalRefuels => 'Total refuels';
+
+  @override
+  String get statsTotalCharges => 'Total charges';
+
+  @override
+  String get statsTotalCost => 'Total cost';
+
+  @override
+  String get statsTotalVolume => 'Total volume';
+
+  @override
+  String get statsTotalKwh => 'Total kWh';
+
+  @override
+  String get statsTotalDistance => 'Total distance';
+
+  @override
+  String get statsAvgConsumption => 'Avg consumption';
+
+  @override
+  String get statsAvgEfficiency => 'Avg efficiency';
+
+  @override
+  String statsCostPer100(Object unit) {
+    return 'Cost per 100 $unit';
+  }
+
+  @override
+  String get statsMostExpensiveRefuel => 'Most expensive refuel';
+
+  @override
+  String get statsMostExpensiveCharge => 'Most expensive charge';
+
+  @override
+  String get statsTotalJobs => 'Total jobs';
+
+  @override
+  String get statsTotalServiceItems => 'Total service items';
+
+  @override
+  String get statsTopServiceType => 'Top service type';
+
+  @override
+  String get statsMostExpensiveJob => 'Most expensive job';
+
+  @override
+  String get statsTotalExpenses => 'Total expenses';
+
+  @override
+  String get statsTopCategory => 'Top category';
+
+  @override
+  String get statsMostExpensiveExpense => 'Most expensive expense';
+
+  @override
+  String get statsMonthlyCost => 'Monthly cost';
+
+  @override
+  String get statsEfficiencyTrend => 'Efficiency trend';
+
+  @override
+  String get statsCostByServiceType => 'Cost by service type';
+
+  @override
+  String get statsCostByCategory => 'Cost by category';
+
+  @override
+  String get statsDefPeriod =>
+      'Figures follow the selected Year and Month. — means there is not enough data yet.';
+
+  @override
+  String get statsDefFuelCount => 'Number of fuel logs in the period.';
+
+  @override
+  String get statsDefTotalCost => 'Sum of all costs in the period.';
+
+  @override
+  String get statsDefAvgCostPerUnit => 'Total cost divided by total volume.';
+
+  @override
+  String get statsDefAvgCostPerKwh => 'Total cost divided by total kWh.';
+
+  @override
+  String get statsDefTotalVolume =>
+      'Fuel volume logged in the period; mixed units show one line per unit.';
+
+  @override
+  String get statsDefTotalKwh => 'Energy logged in the period.';
+
+  @override
+  String get statsDefTotalDistance =>
+      'Distance between odometer readings in the period; needs at least two segments.';
+
+  @override
+  String get statsDefAvgConsumption =>
+      'Fuel used per 100 km (or miles per gallon) between odometer readings; approximate when a tank is not filled to full.';
+
+  @override
+  String get statsDefAvgEfficiency =>
+      'Distance driven per kWh between odometer readings.';
+
+  @override
+  String get statsDefCostPer100 =>
+      'Cost between odometer readings, scaled to 100 km (or 100 miles).';
+
+  @override
+  String get statsDefMostExpensiveRefuel =>
+      'The most expensive refuel in the period, with its date.';
+
+  @override
+  String get statsDefMostExpensiveCharge =>
+      'The most expensive charge in the period, with its date.';
+
+  @override
+  String get statsDefSegments =>
+      'A segment is the distance between two consecutive odometer readings. Distance and consumption KPIs need at least two segments in the period.';
+
+  @override
+  String get statsDefUnits =>
+      'Distances follow your Settings length unit; money follows your currency.';
+
+  @override
+  String get statsDefMonthLabel =>
+      'Month labels use MMM when a year is selected, and MMM YY for All.';
+
+  @override
+  String get statsDefMonthlyCostChart =>
+      'One bar per month showing total cost in the period.';
+
+  @override
+  String get statsDefEfficiencyChart =>
+      'One point per month with a usable segment; months without one are gaps.';
+
+  @override
+  String get statsDefTotalJobs => 'Service records saved in the period.';
+
+  @override
+  String get statsDefTotalServiceItems =>
+      'Individual service line items on those records.';
+
+  @override
+  String get statsDefAvgJobCost => 'Total cost divided by the number of jobs.';
+
+  @override
+  String get statsDefTopServiceType =>
+      'The service item name with the highest combined cost.';
+
+  @override
+  String get statsDefMostExpensiveJob =>
+      'The most expensive service record in the period, with its date.';
+
+  @override
+  String get statsDefDonutService =>
+      'Combined line-item cost grouped by service name; smaller groups combine into Other.';
+
+  @override
+  String get statsDefTotalExpenses => 'Expense records in the period.';
+
+  @override
+  String get statsDefAvgPerExpense =>
+      'Total divided by the number of expenses.';
+
+  @override
+  String get statsDefTopCategory =>
+      'The category with the highest combined spend.';
+
+  @override
+  String get statsDefMostExpensiveExpense =>
+      'The single most expensive expense in the period, with its date.';
+
+  @override
+  String get statsDefDonutCategory =>
+      'Spend grouped by category; smaller groups combine into Other.';
 }
