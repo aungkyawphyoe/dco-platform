@@ -1043,13 +1043,13 @@ abstract class AppLocalizations {
   /// No description provided for @maintenancePlanAddItem.
   ///
   /// In en, this message translates to:
-  /// **'Add Maintenance Item'**
+  /// **'Create Service Item'**
   String get maintenancePlanAddItem;
 
   /// No description provided for @maintenancePlanAddSuggested.
   ///
   /// In en, this message translates to:
-  /// **'Add Suggested Items'**
+  /// **'Add Suggested'**
   String get maintenancePlanAddSuggested;
 
   /// No description provided for @serviceHistoryTitle.
@@ -4527,7 +4527,7 @@ abstract class AppLocalizations {
   /// No description provided for @drawerFamilyFleet.
   ///
   /// In en, this message translates to:
-  /// **'Family & Fleet'**
+  /// **'Additional'**
   String get drawerFamilyFleet;
 
   /// No description provided for @drawerSync.

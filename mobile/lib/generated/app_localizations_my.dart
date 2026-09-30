@@ -261,7 +261,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get dashboardAddPlanItem => 'အစီအစဉ်သစ် ထည့်မည်';
 
   @override
-  String get dashboardLogService => 'ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းတင်မည်';
+  String get dashboardLogService => 'မှတ်တမ်းတင်မည်';
 
   @override
   String get overdue => 'ရက်လွန်နေပြီ';
@@ -518,7 +518,7 @@ class AppLocalizationsMy extends AppLocalizations {
       'ကိုယ်ပိုင် အစီအစဉ်ထည့်ပါ သို့မဟုတ် အကြံပြုထားသော အစီအစဉ်များမှ ရွေးချယ်ပါ။';
 
   @override
-  String get maintenancePlanAddItem => 'ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ် ထည့်မည်';
+  String get maintenancePlanAddItem => 'အစီအစဉ် အသစ်လုပ်မည်';
 
   @override
   String get maintenancePlanAddSuggested => 'အကြံပြုထားသည်များ ထည့်မည်';
@@ -571,7 +571,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get serviceDetailParts => 'အပိုပစ္စည်းများ';
 
   @override
-  String get registerServiceTitle => 'ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းထည့်မည်';
+  String get registerServiceTitle => 'မှတ်တမ်းထည့်မည်';
 
   @override
   String get registerServiceNoActiveVehicleBody =>
@@ -641,8 +641,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get planItemFormEditTitle => 'ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ် ပြင်မည်';
 
   @override
-  String get planItemFormCreateTitle =>
-      'ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ် သစ်ပြုလုပ်မည်';
+  String get planItemFormCreateTitle => 'အစီအစဉ် အသစ်လုပ်မည်';
 
   @override
   String get planItemFormName => 'အမည် *';
@@ -651,7 +650,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get planItemFormSchedule => 'အချိန်ဇယား *';
 
   @override
-  String get planItemFormActive => 'အသုံးပြုနေဆဲ';
+  String get planItemFormActive => 'တစ်ခါထဲ';
 
   @override
   String get planItemFormRecurring => 'ပုံမှန် ပြန်လုပ်ရမည်';
@@ -723,11 +722,10 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get planItemTileNextMileage =>
-      'နောက်တစ်ကြိမ် ပြုလုပ်ရမည့် မိုင်နှုန်း - ';
+  String get planItemTileNextMileage => 'နောက်ပြုလုပ်ရမည့် မိုင်နှုန်း - ';
 
   @override
-  String get planItemTileNextDate => 'နောက်တစ်ကြိမ် ပြုလုပ်ရမည့် ရက်စွဲ - ';
+  String get planItemTileNextDate => 'နောက်ပြုလုပ်ရမည့် ရက်စွဲ - ';
 
   @override
   String get planItemTileNoDueDate => 'ပြုလုပ်ရမည့်ရက် မသတ်မှတ်ရသေးပါ';
@@ -858,7 +856,7 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get expensesAddExpense => 'ကုန်ကျစရိတ် ထည့်မည်';
+  String get expensesAddExpense => 'ထည့်မည်';
 
   @override
   String get expensesNoMatching => 'ကိုက်ညီသော ကုန်ကျစရိတ်များ မရှိပါ';
@@ -1277,7 +1275,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get fuelLogsTitle => 'ဆီဖြည့် မှတ်တမ်း';
 
   @override
-  String get fuelLogsTypesTooltip => 'လောင်စာဆီ အမျိုးအစားများ';
+  String get fuelLogsTypesTooltip => 'အမျိုးအစားများ';
 
   @override
   String get fuelLogsAddChargeTooltip => 'အားသွင်းမှု မှတ်တမ်းထည့်မည်';
@@ -1336,7 +1334,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get fuelLogFormAddFuelType => 'လောင်စာဆီ အမျိုးအစား ထည့်မည်';
 
   @override
-  String get fuelLogFormTypesLink => 'လောင်စာဆီ အမျိုးအစားများ';
+  String get fuelLogFormTypesLink => 'အမျိုးအစားများ';
 
   @override
   String get fuelLogFormDate => 'ရက်စွဲ *';
@@ -1762,16 +1760,16 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get notificationsReminderDueTitle =>
-      'ပြုပြင်ထိန်းသိမ်းမှု ရက်တော်ကပ်ပါပြီ';
+      'ပြုပြင်ထိန်းသိမ်းမှု အချိန်ကျပြီ';
 
   @override
   String notificationsReminderBodyDate(Object date, Object name) {
-    return '$name — $date တွင် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်';
+    return '$name — $date တွင် ပြုပြင်ရန် အချိန်ကျပါမည်';
   }
 
   @override
   String notificationsReminderBodyMileage(Object mileage, Object name) {
-    return '$name — $mileageအရောက် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်';
+    return '$name — $mileageအရောက် ပြုပြင်ရန် အချိန်ကျပါမည်';
   }
 
   @override
@@ -1780,7 +1778,7 @@ class AppLocalizationsMy extends AppLocalizations {
     Object mileage,
     Object name,
   ) {
-    return '$name — $date · $mileage တွင် ပြုပြင်ရန် ရက်တော်ကပ်ပါမည်';
+    return '$name — $date · $mileage တွင် ပြုပြင်ရန် အချိန်ကျပါမည်';
   }
 
   @override
@@ -2145,7 +2143,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get carDetailQuickActions => 'အမြန်လုပ်ဆောင်ချက်များ';
 
   @override
-  String get carDetailLogService => 'ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်းတင်မည်';
+  String get carDetailLogService => 'မှတ်တမ်းတင်မည်';
 
   @override
   String get carDetailLogFuel => 'ဆီဖြည့်မှု မှတ်တမ်းတင်မည်';
@@ -2434,7 +2432,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get drawerStats => 'စာရင်းအင်းများ';
 
   @override
-  String get drawerFamilyFleet => 'မိသားစု နှင့် ဖလီး';
+  String get drawerFamilyFleet => 'အပိုဆောင်း';
 
   @override
   String get drawerSync => 'Sync';

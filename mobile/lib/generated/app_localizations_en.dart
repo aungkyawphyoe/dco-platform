@@ -506,10 +506,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Add a custom item or pick from suggested services.';
 
   @override
-  String get maintenancePlanAddItem => 'Add Maintenance Item';
+  String get maintenancePlanAddItem => 'Create Service Item';
 
   @override
-  String get maintenancePlanAddSuggested => 'Add Suggested Items';
+  String get maintenancePlanAddSuggested => 'Add Suggested';
 
   @override
   String get serviceHistoryTitle => 'Service History';
@@ -2393,7 +2393,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get drawerStats => 'Stats';
 
   @override
-  String get drawerFamilyFleet => 'Family & Fleet';
+  String get drawerFamilyFleet => 'Additional';
 
   @override
   String get drawerSync => 'Sync';

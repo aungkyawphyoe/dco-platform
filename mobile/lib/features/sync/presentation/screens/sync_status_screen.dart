@@ -411,7 +411,7 @@ class _HowItWorksCard extends StatelessWidget {
           ),
           SizedBox(height: tokens.space.s3),
           _FeatureRow(
-            icon: Icons.edit_note,
+            icon: Icons.directions_car_outlined,
             label: s.syncVehicles,
             tokens: tokens,
           ),
