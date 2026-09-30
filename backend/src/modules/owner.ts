@@ -515,6 +515,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     logged_on: dateOnly(row.loggedOn),
     amount: reqNum(row.amount),
     cost: reqNum(row.cost),
+    odometer: row.odometer == null ? null : reqNum(row.odometer),
   });
 
   app.get("/vehicles/:vehicleId/fuel-logs", async (request) => {
@@ -541,6 +542,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       logged_on: z.string(),
       amount: z.number().positive(),
       cost: z.number().min(0),
+      odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body);
     if (body.logged_on > new Date().toISOString().slice(0, 10)) {
       throw new AppError(422, "invalid_date", "Date cannot be in the future");
@@ -556,6 +558,9 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     if (kind === "refuel" && ft.kind !== "liquid") {
       throw new AppError(422, "invalid_fuel_type", "Petrol and hybrid vehicles log liquid types");
     }
+    if (body.odometer != null && body.odometer < reqNum(vehicle.mileage)) {
+      throw new AppError(422, "mileage_decrease", "Fuel odometer cannot be below vehicle mileage");
+    }
     const [row] = await db()
       .insert(fuelLogs)
       .values({
@@ -569,8 +574,12 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         loggedOn: body.logged_on,
         amount: String(body.amount),
         cost: String(body.cost),
+        odometer: body.odometer != null ? String(body.odometer) : null,
       })
       .returning();
+    if (body.odometer != null && body.odometer > reqNum(vehicle.mileage)) {
+      await db().update(vehicles).set({ mileage: String(body.odometer), updatedAt: new Date() }).where(eq(vehicles.id, vehicleId));
+    }
     const payload = publicFuelLog(row);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "fuel_log", entityId: row.id, op: "upsert", payload });
     return reply.code(201).send(payload);
@@ -594,6 +603,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       logged_on: z.string().optional(),
       amount: z.number().optional(),
       cost: z.number().optional(),
+      odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body ?? {});
     let fuelTypeName = row.fuelTypeName;
     let unit = row.unit;
@@ -611,6 +621,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         ...(body.logged_on ? { loggedOn: body.logged_on } : {}),
         ...(body.amount !== undefined ? { amount: String(body.amount) } : {}),
         ...(body.cost !== undefined ? { cost: String(body.cost) } : {}),
+        ...(body.odometer !== undefined ? { odometer: body.odometer != null ? String(body.odometer) : null } : {}),
         fuelTypeId,
         fuelTypeName,
         unit,

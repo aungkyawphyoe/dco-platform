@@ -252,6 +252,7 @@ export const fuelLogs = pgTable("fuel_logs", {
   loggedOn: date("logged_on").notNull(),
   amount: numeric("amount", { precision: 12, scale: 3 }).notNull(),
   cost: numeric("cost", { precision: 12, scale: 2 }).notNull(),
+  odometer: numeric("odometer", { precision: 12, scale: 3 }),
 });
 
 export const documents = pgTable("documents", {
