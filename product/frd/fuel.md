@@ -4,7 +4,7 @@
 
 Fuel is per-vehicle **refuel** and **charge** logging, plus an account **Fuel Types** catalog. Petrol and hybrid plugin vehicles use the Refuel form. Electric vehicles use the Charge form. This is not a fuel *expense* (money-only category) and it is not an efficiency / MPG module.
 
-Source of truth for scope: `product/mvp-scope.md`. Shape reference: Autozis `https://autozis.com/app/refuel` and Catalog → Fuel Types. Do not copy Autozis extras (odometer on the log, partial/full tank, cost-per-unit, OCR, bulk edit, L/100km or kWh/100km KPIs).
+Source of truth for scope: `product/mvp-scope.md`. Shape reference: Autozis `https://autozis.com/app/refuel` and Catalog → Fuel Types. Do not copy Autozis extras (partial/full tank, cost-per-unit, OCR, bulk edit). Odometer is now an **optional** field on the log (contract change from `stats.md`); economy/consumption KPIs are computed and displayed only in `stats.md`, never here.
 
 **As built (28 Aug 2026): Done.** `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. Status index: `product/frd/README.md`.
 
@@ -27,11 +27,12 @@ Source of truth for scope: `product/mvp-scope.md`. Shape reference: Autozis `htt
 - Charge form (electric types, amount in kWh)
 - Fuel Types catalog: add / edit name, kind (liquid / electric), unit
 - Default catalog when empty: Petrol, Diesel, Electricity
+- Optional **odometer** on the log form (add + edit) in the vehicle's `mileage_unit` — feeds `stats.md`; see that FRD for validation and mileage-bump rules
 
 # Out of Scope
 
-- Efficiency / MPG / kWh per distance
-- Odometer on the log, full vs partial tank, cost per litre/kWh
+- Displaying efficiency / MPG / kWh-per-distance KPIs here (they live in `stats.md`)
+- Required odometer, full vs partial tank, cost per litre/kWh
 - Receipt OCR
 - Auto-creating an expense from a fuel log
 - Mixing fuel logs into Dashboard Recent Activity
@@ -77,6 +78,7 @@ As a car owner, I want predefined fuel types I can reuse on logs.
 ## Add / edit log
 
 Required: date (not in the future), fuel type (from matching catalog kinds), amount (> 0), cost (≥ 0).  
+Optional: odometer (≥ vehicle mileage; bumps `vehicles.mileage` if higher — mirrors the service-odometer rule; details in `stats.md`).  
 Type name and unit are snapshotted on the log so later catalog edits do not rewrite history.
 
 ## Fuel Types
@@ -103,6 +105,7 @@ Type name and unit are snapshotted on the log so later catalog edits do not rewr
 - Amount > 0, max 100000
 - Cost ≥ 0
 - Date required, not in the future
+- Odometer optional; ≥ 0 and ≥ active vehicle mileage when present (unit = vehicle `mileage_unit`)
 
 ---
 

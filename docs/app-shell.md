@@ -38,7 +38,7 @@ Accessible from **any screen** via the leading hamburger icon in the app bar. Op
 | **Parts** | wrench | Parts List | Entry point also kept on Dashboard quick actions. |
 | **Maintenance Plan** | clipboard-list | Maintenance Plan | Moved from Maintenance tab. Upcoming/Scheduled/History. |
 | **Insurance** | shield | Insurance section | Moved from Garage. Vehicle insurance documents/status. *Not Implemented* Hide for now. |
-| **Refuel Stats** | chart-bar | Refuel Stats screen | **NEW.** Charts for refuel/charge history, cost trends, fuel efficiency. |
+| **Fuel Stats** | chart-bar | Fuel Stats screen | Adaptive: charge KPIs for electric, refuel KPIs otherwise. Charts for cost trends, efficiency, cost per distance. |
 | **Maintenance Stats** | chart-bar | Maintenance Stats screen | **NEW.** Charts for maintenance costs, service frequency, upcoming schedule. |
 | **Expense Stats** | chart-bar | Expense Stats screen | **NEW.** Charts for spending by category, monthly trends, lifetime summary. |
 
@@ -67,7 +67,7 @@ Auth (online)
   │  ├─ Parts                              │
   │  ├─ Maintenance Plan                   │
   │  ├─ Insurance                          │
-  │  ├─ Refuel Stats (NEW)                 │
+  │  ├─ Fuel Stats (NEW)                  │
   │  ├─ Maintenance Stats (NEW)            │
   │  ├─ Expense Stats (NEW)                │
   │  ├─ Family (conditional)               │
@@ -99,7 +99,7 @@ Numbering follows the tldraw frame names.
 | 14 | Insurance | **Hamburger menu** → Insurance | Moved from Garage. Vehicle insurance documents/status. |
 | 15 | Parts | **Hamburger menu** → Parts (also from Dashboard quick actions) | Per-vehicle parts catalog. |
 | 16 | Sync Status | **Hamburger menu** → Sync | Moved from Settings. Sync status indicator + manual sync. |
-| 17 | Refuel Stats | **Hamburger menu** → Refuel Stats | **NEW.** Charts: refuel cost trends, fuel efficiency, cost per km. |
+| 17 | Fuel Stats | **Hamburger menu** → Fuel Stats | Adaptive (charge/refuel KPIs): cost trends, efficiency, cost per distance. Contract: `product/frd/stats.md`. |
 | 18 | Maintenance Stats | **Hamburger menu** → Maintenance Stats | **NEW.** Charts: maintenance cost trends, service frequency, upcoming schedule. |
 | 19 | Expense Stats | **Hamburger menu** → Expense Stats | **NEW.** Charts: spending by category, monthly trends, lifetime summary. |
 | 20 | Fleet Mode / Org Management | **Hamburger menu** → Fleet | Only for org members. Toggle fleet mode, manage org. |
@@ -123,7 +123,7 @@ Keep one `StatefulShellRoute` (or equivalent) for the four tabs. Push these on t
 - Maintenance Plan, Suggested items, Add item, Register Service, Service detail
 - Notification feed, Profile, Email & password, Notification prefs, Reminders (soon thresholds)
 - Family setup, Family management (members, vehicles, share code, QR, driving licenses)
-- Refuel Stats, Maintenance Stats, Expense Stats (new chart screens)
+- Fuel Stats, Maintenance Stats, Expense Stats (chart screens, `stats.md`)
 - Sync Status
 - Fleet Mode, Org Management, Vehicle Inventory, Work Orders, Inspections, Assignments, Reports
 

@@ -254,7 +254,7 @@ expense_deleted
 
 # Future Enhancements
 
-- Fuel log fields (volume, unit price, odometer, efficiency)
+- Fuel log fields (volume, unit price, efficiency — see `stats.md` for the odometer that already shipped there)
 - Link an expense to a trip
 - Auto-create expense from a service record (opt-in)
 - Receipt OCR

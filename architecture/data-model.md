@@ -136,6 +136,7 @@ erDiagram
     date logged_on
     decimal amount
     decimal cost
+    decimal odometer
   }
 
   documents {
@@ -307,7 +308,7 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 - `fuel_types.kind`: `liquid` \| `electric`. Unique `name` per `user_id` (case-insensitive).
 - `fuel_logs.kind`: `refuel` \| `charge`. Petrol and hybrid plugin vehicles write `refuel`; electric vehicles write `charge`.
 - Amount is litres/gallons or kWh from the catalog type's `unit`. Name and unit are snapshotted on the log.
-- Do not copy Autozis odometer-on-log, partial/full tank, or efficiency KPIs.
+- `fuel_logs.odometer` is **optional**, in the vehicle's `mileage_unit`. When set: ≥ vehicle mileage; if greater, bump `vehicles.mileage` (same rule as service odometer). It feeds distance/consumption KPIs in `product/frd/stats.md`. Still do not copy Autozis partial/full tank or cost-per-unit fields.
 
 ### change_log
 
@@ -349,7 +350,7 @@ Authorization checks run against the live database for each request: Fleet requi
 ## Mileage monotonicity
 
 1. Create vehicle: mileage required.
-2. Edit vehicle mileage or log a service odometer: reject if new value < stored mileage (`409` / validation error). Admin correction workflow is **out of MVP**.
+2. Edit vehicle mileage, log a service odometer, or save a fuel log odometer: reject if new value < stored mileage (`409` / validation error). Admin correction workflow is **out of MVP**.
 3. Sync conflict: `max(local, remote)` wins. Never apply a remote mileage lower than local.
 4. Dashboard and garage cards display the stored mileage, not a trip log (no trips table).
 
@@ -376,7 +377,7 @@ Observed in the Autozis demo (Toyota Camry dashboard, multi-vehicle garage, expe
 | Multi-vehicle garage, photo, make/model, mileage, purchase date | Same core + plate uniqueness, VIN rule, fuel type enum, nickname, archive | **Adopt** (with DCO rules) |
 | Dashboard: vehicle health, mileage, next event, cost KPIs, needs-attention, recent activity | Dashboard for **active vehicle**: identity, ownership summary (spend + counts), 3 maintenance rows, next plan item | **Adopt shape, shrink metrics** — no refuel €, L/100km, insurance expiry module |
 | Maintenance plan + reminders (time and/or mileage) + service history | Same | **Adopt** |
-| Refuel / charge logs (date, type, amount, cost) | `fuel_types` catalog + `fuel_logs` | **Adopt simplified** — no efficiency KPIs |
+| Refuel / charge logs (date, type, amount, cost) | `fuel_types` catalog + `fuel_logs` | **Adopt simplified** — no efficiency KPIs at MVP; optional odometer + KPIs later via `stats.md` |
 | Insurance **tracker** (policy, renew, expiry) | Document category + expense category | **Defer** policy object |
 | Trips / mileage logbook | Mileage on vehicle + service odometer only | **Defer** |
 | Notes, catalogs (expense types, locations) as first-class screens | Fuel Types catalog only; other catalogs deferred | **Adopt Fuel Types**; defer the rest |

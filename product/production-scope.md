@@ -19,7 +19,7 @@ Everything in MVP scope shipped and remains in the product. Production scope **a
 - Domain rules (plate/VIN uniqueness, archive-not-delete, mileage monotonic, fuel type enum) — see `architecture/data-model.md`.
 - Offline-first + sync outbox for server-backed entities.
 - Dark theme only; Garage Minimal Dark tokens only.
-- Autozis deferred modules stay out (trips, insurance policies, OCR, assistant/PDF export, fuel-efficiency KPIs, admin routes, light theme).
+- Autozis deferred modules stay out (trips, insurance policies, OCR, assistant/PDF export, admin routes, light theme). Fuel-efficiency KPIs ship only in the Stats module (`product/frd/stats.md`).
 
 ---
 
@@ -35,6 +35,7 @@ Auth, app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, docu
 |---------|-------------|------|
 | **Notes** | Personal notebook: title + plain-text body, CRUD, 2-column uniform grid (Google Keep–style layout, clamped 3-line preview), sorted `updated_at DESC`. Global per-user (not vehicle-scoped). Entry point: Dashboard Quick Actions (replaces Parts tile; Parts remains reachable from the hamburger menu). Routes `/notes`, `/notes/new`, `/notes/:id`. | **Local-only** — Drift table `notes`, **no outbox**, no server API. Scoped by `user_id` like other tables so a different account on the same device does not see another account's notes. No extra wipe on logout or uninstall (SQLite lives in the app container; logout behavior matches the rest of the local DB). |
 | **Reminder thresholds** | Settings → Reminders (`/settings/reminders`): sliders for the upcoming window (7–60 days, default 30) and the mileage due-soon distance (100–1000 km in 100 km steps, default **500 km** — raised from the MVP 100 km) plus Reset to defaults. Shared by the OS reminder schedule and the in-app Upcoming grouping (`DueThresholds`). | **Local-only** — stored on `user_profiles` (`soon_days`, `soon_distance_km`), no outbox, no API (same treatment as language/currency/length unit). |
+| **Stats** | Hamburger → Stats: Fuel Stats (adaptive charge/refuel KPIs), Maintenance Stats, Expense Stats for the active vehicle. Year/Month filters, KPI cards, 2 charts per screen (fl_chart), definitions modal. Local Drift aggregation — no stats API. Adds optional `odometer` to fuel logs (syncs normally; `openapi.yaml` + `data-model.md` amended). Contract: [`product/frd/stats.md`](frd/stats.md). | **Sync** — stats are computed locally; only the new fuel-log `odometer` field travels through the existing outbox/change log. |
 
 ### Account and feature entitlements
 

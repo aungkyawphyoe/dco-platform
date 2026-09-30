@@ -3328,6 +3328,11 @@ components:
           type: number
         cost:
           type: number
+        odometer:
+          type: number
+          minimum: 0
+          nullable: true
+          description: Optional reading in the vehicle's mileage unit. >= vehicle mileage; if greater, bumps vehicles.mileage.
     FuelLogWrite:
       type: object
       required: [id, fuel_type_id, logged_on, amount, cost]
@@ -3347,6 +3352,9 @@ components:
         cost:
           type: number
           minimum: 0
+        odometer:
+          type: number
+          minimum: 0
     FuelLogPatch:
       type: object
       properties:
@@ -3360,6 +3368,9 @@ components:
           type: number
         cost:
           type: number
+        odometer:
+          type: number
+          minimum: 0
     Expense:
       type: object
       required: [id, vehicle_id, category, amount, incurred_on]
