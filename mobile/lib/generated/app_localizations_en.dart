@@ -572,6 +572,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerServiceMileage => 'Mileage *';
 
   @override
+  String registerServiceCurrentMileage(Object mileage) {
+    return 'Current mileage: $mileage';
+  }
+
+  @override
   String get registerServiceNotes => 'Notes';
 
   @override

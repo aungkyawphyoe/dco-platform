@@ -3,6 +3,7 @@ import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/fleet/providers.dart';
+import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -84,6 +85,7 @@ class _DriverFuelLogScreenState extends ConsumerState<DriverFuelLogScreen> {
     final orgCtx = ref.watch(entitlementsProvider).valueOrNull?.organization;
     final myVehicle = ref.watch(driverMyVehicleProvider).valueOrNull;
     final fuelTypes = ref.watch(driverFuelCatalogProvider).valueOrNull ?? const [];
+    final currency = ref.watch(currencyProvider).code;
 
     if (orgCtx == null) {
       return Scaffold(
@@ -172,6 +174,13 @@ class _DriverFuelLogScreenState extends ConsumerState<DriverFuelLogScreen> {
                     decimal: true,
                   ),
                   textInputAction: TextInputAction.next,
+                  suffix: Padding(
+                    padding: const EdgeInsets.only(right: 12, top: 12),
+                    child: Text(
+                      currency,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
+                  ),
                 ),
               ),
             ],

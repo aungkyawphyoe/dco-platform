@@ -178,6 +178,7 @@
   "registerServiceJobTitle": "လုပ်ဆောင်သည့် အမျိုးအစား",
   "registerServiceDate": "ရက်စွဲ *",
   "registerServiceMileage": "မိုင်နှုန်း *",
+  "registerServiceCurrentMileage": "လက်ရှိ မိုင်နှုန်း: {mileage}",
   "registerServiceNotes": "မှတ်ချက်များ",
   "registerServiceSection": "ဝန်ဆောင်မှု",
   "registerServiceCostHint": "ကျသင့်ငွေ",

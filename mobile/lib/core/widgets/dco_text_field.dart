@@ -9,6 +9,7 @@ class DcoTextField extends StatefulWidget {
     required this.label,
     required this.controller,
     this.hint,
+    this.helperText,
     this.errorText,
     this.obscureText = false,
     this.keyboardType,
@@ -27,6 +28,7 @@ class DcoTextField extends StatefulWidget {
   final String label;
   final TextEditingController controller;
   final String? hint;
+  final String? helperText;
   final String? errorText;
   final bool obscureText;
   final TextInputType? keyboardType;
@@ -72,6 +74,7 @@ class _DcoTextFieldState extends State<DcoTextField> {
           style: Theme.of(context).textTheme.bodyLarge,
           decoration: InputDecoration(
             hintText: widget.hint,
+            helperText: widget.helperText,
             errorText: widget.errorText,
             counterText: widget.maxLength == null ? '' : null,
             suffixIcon: widget.obscureText

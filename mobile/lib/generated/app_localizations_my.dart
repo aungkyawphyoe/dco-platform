@@ -587,6 +587,11 @@ class AppLocalizationsMy extends AppLocalizations {
   String get registerServiceMileage => 'မိုင်နှုန်း *';
 
   @override
+  String registerServiceCurrentMileage(Object mileage) {
+    return 'လက်ရှိ မိုင်နှုန်း: $mileage';
+  }
+
+  @override
   String get registerServiceNotes => 'မှတ်ချက်များ';
 
   @override

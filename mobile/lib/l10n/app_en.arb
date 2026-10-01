@@ -178,6 +178,7 @@
   "registerServiceJobTitle": "Job Title",
   "registerServiceDate": "Date *",
   "registerServiceMileage": "Mileage *",
+  "registerServiceCurrentMileage": "Current mileage: {mileage}",
   "registerServiceNotes": "Notes",
   "registerServiceSection": "Service",
   "registerServiceCostHint": "cost",

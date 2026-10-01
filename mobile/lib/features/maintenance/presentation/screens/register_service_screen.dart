@@ -30,7 +30,8 @@ class RegisterServiceScreen extends ConsumerStatefulWidget {
   final String? preselectedPlanItemId;
 
   @override
-  ConsumerState<RegisterServiceScreen> createState() => _RegisterServiceScreenState();
+  ConsumerState<RegisterServiceScreen> createState() =>
+      _RegisterServiceScreenState();
 }
 
 class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
@@ -72,7 +73,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   void _prefill(Vehicle vehicle, List<PlanItem> plan) {
     if (!_mileagePrefill) {
       _mileagePrefill = true;
-      _mileage.text = MileageFormat.input(vehicle.mileage, ref.read(lengthUnitProvider));
+      _mileage.text = MileageFormat.input(
+        vehicle.mileage,
+        ref.read(lengthUnitProvider),
+      );
     }
     final preselected = widget.preselectedPlanItemId;
     if (!_itemPrefill && preselected != null) {
@@ -114,15 +118,33 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       _title.text = _lines.map((line) => line.name).join(', ');
     }
     if (!_totalTouched) {
-      final sum = _lines.fold<double>(0, (total, line) => total + (line.cost ?? 0));
-      _total.text = sum == 0 ? '' : (sum.truncateToDouble() == sum ? sum.toStringAsFixed(0) : sum.toString());
+      final sum = _lines.fold<double>(
+        0,
+        (total, line) => total + (line.cost ?? 0),
+      );
+      _total.text = sum == 0
+          ? ''
+          : (sum.truncateToDouble() == sum
+                ? sum.toStringAsFixed(0)
+                : sum.toString());
     }
+  }
+
+  String? _mileageBelowMinError(Vehicle vehicle, MileageUnit unit) {
+    final parsed = PlanItemValidators.parseMileage(_mileage.text);
+    if (parsed != null && parsed < unit.toDisplay(vehicle.mileage)) {
+      return AppLocalizations.of(context)!.maintenanceMileageDecrease;
+    }
+    return null;
   }
 
   ServiceRecordDraft? _draftOrNull() {
     final parsed = PlanItemValidators.parseMileage(_mileage.text);
-    final odometer = parsed == null ? null : ref.read(lengthUnitProvider).toStorage(parsed);
-    final total = ServiceRecordValidators.parseCost(_total.text) ??
+    final odometer = parsed == null
+        ? null
+        : ref.read(lengthUnitProvider).toStorage(parsed);
+    final total =
+        ServiceRecordValidators.parseCost(_total.text) ??
         _lines.fold<double>(0, (sum, line) => sum + (line.cost ?? 0));
     final items = _lines
         .map(
@@ -133,16 +155,23 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
           ),
         )
         .toList();
+    final vehicle = ref.read(activeVehicleProvider).valueOrNull;
+    final lengthUnit = ref.read(lengthUnitProvider);
 
     setState(() {
       _errors
         ..['date'] = ServiceRecordValidators.date(_servicedOn)
-        ..['mileage'] = ServiceRecordValidators.odometer(_mileage.text)
+        ..['mileage'] =
+            ServiceRecordValidators.odometer(_mileage.text) ??
+            (vehicle == null
+                ? null
+                : _mileageBelowMinError(vehicle, lengthUnit))
         ..['items'] = ServiceRecordValidators.items(items)
         ..['total'] = ServiceRecordValidators.totalCost(total.toString());
       _formError = _errors['items'];
     });
-    if (_errors.values.any((error) => error != null) || odometer == null) return null;
+    if (_errors.values.any((error) => error != null) || odometer == null)
+      return null;
 
     return ServiceRecordDraft(
       title: _title.text,
@@ -162,35 +191,36 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     if (vehicle == null) return;
     setState(() => _saving = true);
     try {
-      final record = await ref.read(maintenanceRepositoryProvider).registerService(
-        userId: vehicle.userId,
-        vehicle: vehicle,
-        draft: draft,
-      );
+      final record = await ref
+          .read(maintenanceRepositoryProvider)
+          .registerService(
+            userId: vehicle.userId,
+            vehicle: vehicle,
+            draft: draft,
+          );
       ref.read(analyticsProvider).track(AnalyticsEvent.maintenanceRecordAdded);
       if (draft.items.any((item) => item.planItemId != null)) {
-        ref.read(analyticsProvider).track(AnalyticsEvent.maintenanceReminderCompleted);
+        ref
+            .read(analyticsProvider)
+            .track(AnalyticsEvent.maintenanceReminderCompleted);
       }
       if (mounted) {
-        context.pushReplacement(
-          AppRoutes.maintenanceSuccess,
-          extra: record,
-        );
+        context.pushReplacement(AppRoutes.maintenanceSuccess, extra: record);
       }
     } on MaintenanceFailure catch (failure) {
       if (mounted) {
         setState(() => _formError = failure.message);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(failure.message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(failure.message)));
       }
     } catch (_) {
       if (mounted) {
         final message = AppLocalizations.of(context)!.registerErrorGeneric;
         setState(() => _formError = message);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(message)),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -242,52 +272,68 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
             tokens.space.s4,
             MediaQuery.viewInsetsOf(context).bottom + tokens.space.s4,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(s.registerServiceAddServiceTitle, style: Theme.of(context).textTheme.titleLarge),
-              SizedBox(height: tokens.space.s3),
-              if (available.isEmpty)
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.sizeOf(context).height * 0.6,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
                 Text(
-                  s.registerServiceAddServiceEmpty,
-                  style: TextStyle(color: tokens.text.caption),
-                )
-              else
-                ...available.map(
-                  (item) => ListTile(
-                    contentPadding: EdgeInsets.zero,
-                    title: Text(item.name),
-                    subtitle: Text(
-                      DueCalculator.intervalLabel(
-                        intervalDays: item.intervalDays,
-                        intervalDistance: item.intervalDistance == null
-                            ? null
-                            : lengthUnit.toDisplay(item.intervalDistance!),
-                        unit: lengthUnit.label,
-                      ),
-                    ),
-                    onTap: () {
-                      _addLine(item);
-                      Navigator.pop(context);
-                    },
-                  ),
+                  s.registerServiceAddServiceTitle,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
-              SizedBox(height: tokens.space.s3),
-              DcoTextField(
-                label: s.registerServiceCustomService,
-                controller: custom,
-                hint: s.registerServiceCustomHint,
-              ),
-              SizedBox(height: tokens.space.s3),
-              DcoButton(
-                label: s.registerServiceAddCustom,
-                onPressed: () {
-                  _addCustomLine(custom.text);
-                  Navigator.pop(context);
-                },
-              ),
-            ],
+                SizedBox(height: tokens.space.s3),
+                if (available.isEmpty)
+                  Text(
+                    s.registerServiceAddServiceEmpty,
+                    style: TextStyle(color: tokens.text.caption),
+                  )
+                else
+                  Flexible(
+                    child: ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final item in available)
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(item.name),
+                            subtitle: Text(
+                              DueCalculator.intervalLabel(
+                                intervalDays: item.intervalDays,
+                                intervalDistance: item.intervalDistance == null
+                                    ? null
+                                    : lengthUnit.toDisplay(
+                                        item.intervalDistance!,
+                                      ),
+                                unit: lengthUnit.label,
+                              ),
+                            ),
+                            onTap: () {
+                              _addLine(item);
+                              Navigator.pop(context);
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                SizedBox(height: tokens.space.s3),
+                DcoTextField(
+                  label: s.registerServiceCustomService,
+                  controller: custom,
+                  hint: s.registerServiceCustomHint,
+                ),
+                SizedBox(height: tokens.space.s3),
+                DcoButton(
+                  label: s.registerServiceAddCustom,
+                  onPressed: () {
+                    _addCustomLine(custom.text);
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -296,9 +342,12 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   }
 
   Future<void> _openAssignPart() async {
-    final catalog = ref.read(vehiclePartsProvider).valueOrNull ?? const <Part>[];
+    final catalog =
+        ref.read(vehiclePartsProvider).valueOrNull ?? const <Part>[];
     final assigned = _parts.map((part) => part.partId).toSet();
-    final available = catalog.where((part) => !assigned.contains(part.id)).toList();
+    final available = catalog
+        .where((part) => !assigned.contains(part.id))
+        .toList();
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -317,7 +366,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(s.registerServiceAssignPartTitle, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                s.registerServiceAssignPartTitle,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               SizedBox(height: tokens.space.s3),
               if (catalog.isEmpty)
                 Text(
@@ -334,10 +386,14 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                   (part) => ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(part.name),
-                    subtitle: part.detailLine == null ? null : Text(part.detailLine!),
+                    subtitle: part.detailLine == null
+                        ? null
+                        : Text(part.detailLine!),
                     onTap: () {
                       setState(() {
-                        _parts.add(AssignedPartDraft(partId: part.id, name: part.name));
+                        _parts.add(
+                          AssignedPartDraft(partId: part.id, name: part.name),
+                        );
                       });
                       Navigator.pop(context);
                     },
@@ -364,8 +420,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
+    final currency = ref.watch(currencyProvider).code;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
-    final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
+    final plan =
+        ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
     ref.watch(vehiclePartsProvider);
     if (vehicle != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -404,7 +462,11 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                   errorText: _errors['date'],
                   readOnly: true,
                   onTap: _pickDate,
-                  suffix: Icon(Icons.calendar_today_outlined, color: tokens.icon.inactive, size: 18),
+                  suffix: Icon(
+                    Icons.calendar_today_outlined,
+                    color: tokens.icon.inactive,
+                    size: 18,
+                  ),
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
@@ -412,13 +474,28 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                   label: s.registerServiceMileage,
                   controller: _mileage,
                   hint: '*** ${lengthUnit.label}',
+                  helperText: s.registerServiceCurrentMileage(
+                    MileageFormat.labeled(vehicle.mileage, lengthUnit),
+                  ),
                   errorText: _errors['mileage'],
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(lengthUnit.label, style: TextStyle(color: tokens.text.caption)),
+                    child: Text(
+                      lengthUnit.label,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
                   ),
-                  onChanged: (_) => setState(() => _errors['mileage'] = null),
+                  onChanged: (_) {
+                    setState(() {
+                      _errors['mileage'] = _mileageBelowMinError(
+                        vehicle,
+                        lengthUnit,
+                      );
+                    });
+                  },
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
@@ -429,7 +506,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                   minLines: 3,
                 ),
                 SizedBox(height: tokens.space.s5),
-                Text(s.registerServiceSection, style: Theme.of(context).textTheme.labelLarge),
+                Text(
+                  s.registerServiceSection,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
                 SizedBox(height: tokens.space.s3),
                 ..._lines.map(
                   (line) => Padding(
@@ -439,24 +519,52 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                       borderRadius: BorderRadius.circular(tokens.radius.md),
                       child: Padding(
                         padding: EdgeInsets.all(tokens.space.s3),
-                        child: Row(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              child: Text(line.name, style: Theme.of(context).textTheme.titleMedium),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  line.name,
+                                  style: Theme.of(
+                                    context,
+                                  ).textTheme.titleMedium,
+                                ),
+                                const Spacer(),
+                                IconButton(
+                                  tooltip: 'Remove',
+                                  padding: EdgeInsets.zero,
+                                  onPressed: () => _removeLine(line),
+                                  icon: Icon(
+                                    Icons.close,
+                                    color: tokens.icon.inactive,
+                                  ),
+                                ),
+                              ],
                             ),
-                            SizedBox(
-                              width: 96,
-                              child: TextField(
-                                controller: line.costController,
-                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                                decoration: InputDecoration(hintText: s.registerServiceCostHint),
-                                onChanged: (_) => setState(_syncTitleAndTotal),
+                            TextField(
+                              controller: line.costController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: InputDecoration(
+                                hintText: s.registerServiceCostHint,
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.only(
+                                    right: 12,
+                                    top: 12,
+                                  ),
+                                  child: Text(
+                                    currency,
+                                    style: TextStyle(
+                                      color: tokens.text.caption,
+                                    ),
+                                  ),
+                                ),
                               ),
-                            ),
-                            IconButton(
-                              tooltip: 'Remove',
-                              onPressed: () => _removeLine(line),
-                              icon: Icon(Icons.close, color: tokens.icon.inactive),
+                              onChanged: (_) => setState(_syncTitleAndTotal),
                             ),
                           ],
                         ),
@@ -467,14 +575,23 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 OutlinedButton.icon(
                   onPressed: () => _openAddService(vehicle, plan),
                   icon: Icon(Icons.add, color: tokens.icon.active),
-                  label: Text(s.registerServiceAddService, style: TextStyle(color: tokens.text.link)),
+                  label: Text(
+                    s.registerServiceAddService,
+                    style: TextStyle(color: tokens.text.link),
+                  ),
                 ),
                 if (_errors['items'] != null) ...[
                   SizedBox(height: tokens.space.s2),
-                  Text(_errors['items']!, style: TextStyle(color: tokens.status.dangerFg)),
+                  Text(
+                    _errors['items']!,
+                    style: TextStyle(color: tokens.status.dangerFg),
+                  ),
                 ],
                 SizedBox(height: tokens.space.s5),
-                Text(s.registerServicePartsSection, style: Theme.of(context).textTheme.labelLarge),
+                Text(
+                  s.registerServicePartsSection,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
                 SizedBox(height: tokens.space.s3),
                 ..._parts.map(
                   (part) => Padding(
@@ -487,12 +604,19 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                         child: Row(
                           children: [
                             Expanded(
-                              child: Text(part.name, style: Theme.of(context).textTheme.titleMedium),
+                              child: Text(
+                                part.name,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                             ),
                             IconButton(
                               tooltip: 'Remove',
-                              onPressed: () => setState(() => _parts.remove(part)),
-                              icon: Icon(Icons.close, color: tokens.icon.inactive),
+                              onPressed: () =>
+                                  setState(() => _parts.remove(part)),
+                              icon: Icon(
+                                Icons.close,
+                                color: tokens.icon.inactive,
+                              ),
                             ),
                           ],
                         ),
@@ -503,7 +627,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 OutlinedButton.icon(
                   onPressed: _openAssignPart,
                   icon: Icon(Icons.add, color: tokens.icon.active),
-                  label: Text(s.registerServiceAssignPart, style: TextStyle(color: tokens.text.link)),
+                  label: Text(
+                    s.registerServiceAssignPart,
+                    style: TextStyle(color: tokens.text.link),
+                  ),
                 ),
                 SizedBox(height: tokens.space.s5),
                 DcoTextField(
@@ -511,7 +638,16 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                   controller: _total,
                   hint: '***',
                   errorText: _errors['total'],
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  suffix: Padding(
+                    padding: const EdgeInsets.only(right: 12, top: 12),
+                    child: Text(
+                      currency,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
+                  ),
                   onChanged: (_) {
                     _totalTouched = true;
                     setState(() => _errors['total'] = null);
@@ -519,7 +655,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+                  Text(
+                    _formError!,
+                    style: TextStyle(color: tokens.status.dangerFg),
+                  ),
                 ],
               ],
             ),
@@ -539,7 +678,8 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
 }
 
 class _ServiceLineInput {
-  _ServiceLineInput({required this.name, this.planItemId}) : costController = TextEditingController();
+  _ServiceLineInput({required this.name, this.planItemId})
+    : costController = TextEditingController();
 
   final String name;
   final String? planItemId;

@@ -1166,6 +1166,12 @@ abstract class AppLocalizations {
   /// **'Mileage *'**
   String get registerServiceMileage;
 
+  /// No description provided for @registerServiceCurrentMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'Current mileage: {mileage}'**
+  String registerServiceCurrentMileage(Object mileage);
+
   /// No description provided for @registerServiceNotes.
   ///
   /// In en, this message translates to:
