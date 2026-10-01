@@ -1,0 +1,193 @@
+{
+  "themeName": "Garage Minimal Light",
+  "version": "1.0",
+  "mode": "light",
+  "platforms": [
+    "mobile",
+    "web"
+  ],
+  "description": "Day-garage surfaces, brass-bay accent. Same tokens for Flutter and the admin web portal. Pure white cards on a cool gray page; gold kept as fill, darkened to deep brass for text/lines on white (WCAG AA).",
+  "background": {
+    "primary": "#F4F6F8",
+    "secondary": "#EDF0F3",
+    "card": "#FFFFFF",
+    "input": "#F6F8FA",
+    "nav": "#F4F6F8",
+    "overlay": "#101B2266",
+    "skeleton": "#E9EDF1"
+  },
+  "text": {
+    "primary": "#101B22",
+    "secondary": "#4F606C",
+    "tertiary": "#7A8791",
+    "caption": "#64737D",
+    "accent": "#876800",
+    "onAccent": "#101B22",
+    "disabled": "#97A4AE",
+    "link": "#876800",
+    "inverse": "#FFFFFF"
+  },
+  "button": {
+    "primary": {
+      "background": "#FECA1F",
+      "backgroundHover": "#F2C36A",
+      "backgroundPressed": "#D4A44A",
+      "backgroundDisabled": "#EAE4CF",
+      "text": "#101B22",
+      "textDisabled": "#8E99A3",
+      "border": "transparent"
+    },
+    "secondary": {
+      "background": "#FFFFFF",
+      "backgroundHover": "#EDF0F3",
+      "backgroundPressed": "#E4E8EC",
+      "backgroundDisabled": "#F0F2F4",
+      "text": "#101B22",
+      "textDisabled": "#97A4AE",
+      "border": "#7E8B95"
+    },
+    "tertiary": {
+      "background": "transparent",
+      "backgroundHover": "#EDF0F3",
+      "backgroundPressed": "#E4E8EC",
+      "text": "#876800",
+      "textDisabled": "#97A4AE",
+      "border": "transparent"
+    },
+    "destructive": {
+      "background": "transparent",
+      "backgroundHover": "#FBEDEA",
+      "text": "#C04531",
+      "border": "#C04531"
+    }
+  },
+  "icon": {
+    "active": "#876800",
+    "inactive": "#77848E",
+    "onAccent": "#101B22",
+    "inverse": "#101B22"
+  },
+  "border": {
+    "subtle": "#E3E7EB",
+    "default": "#7E8B95",
+    "divider": "#E7EBEE",
+    "highlight": "#876800",
+    "focus": "#876800"
+  },
+  "status": {
+    "success": {
+      "fg": "#2E7D5B",
+      "bg": "#2E7D5B22"
+    },
+    "warning": {
+      "fg": "#A86400",
+      "bg": "#A8640022"
+    },
+    "danger": {
+      "fg": "#C04531",
+      "bg": "#C0453122"
+    },
+    "info": {
+      "fg": "#2C6E8F",
+      "bg": "#2C6E8F22"
+    }
+  },
+  "feedback": {
+    "overdue": "#C04531",
+    "dueSoon": "#A86400",
+    "healthy": "#2E7D5B",
+    "queuedSync": "#2C6E8F"
+  },
+  "input": {
+    "background": "#F6F8FA",
+    "border": "#7E8B95",
+    "borderFocus": "#876800",
+    "placeholder": "#7A8791",
+    "errorBorder": "#C04531"
+  },
+  "chart": {
+    "fuel": "#C0761A",
+    "maintenance": "#3E7CA6",
+    "insurance": "#5B6FC4",
+    "parking": "#5C7181",
+    "tolls": "#6E7F91",
+    "parts": "#3F8A68",
+    "other": "#64737D"
+  },
+  "radius": {
+    "sm": 4,
+    "md": 8,
+    "lg": 12,
+    "xl": 16,
+    "full": 999
+  },
+  "space": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 24,
+    "6": 32,
+    "7": 48
+  },
+  "typography": {
+    "display": {
+      "family": "Barlow",
+      "weight": 600,
+      "size": 28,
+      "lineHeight": 34,
+      "letterSpacing": -0.3
+    },
+    "title": {
+      "family": "Barlow",
+      "weight": 600,
+      "size": 20,
+      "lineHeight": 26
+    },
+    "body": {
+      "family": "IBM Plex Sans",
+      "weight": 400,
+      "size": 16,
+      "lineHeight": 24
+    },
+    "label": {
+      "family": "IBM Plex Sans",
+      "weight": 500,
+      "size": 13,
+      "lineHeight": 18,
+      "letterSpacing": 0.2
+    },
+    "caption": {
+      "family": "IBM Plex Sans",
+      "weight": 400,
+      "size": 12,
+      "lineHeight": 16
+    },
+    "mono": {
+      "family": "IBM Plex Mono",
+      "weight": 400,
+      "size": 13,
+      "lineHeight": 18
+    }
+  },
+  "elevation": {
+    "none": "none",
+    "card": "0 1px 2px #101B220A",
+    "modal": "0 12px 32px #101B221F"
+  },
+  "motion": {
+    "fast": 120,
+    "base": 180,
+    "slow": 280,
+    "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "respectReducedMotion": true
+  },
+  "usageNotes": {
+    "text.tertiary": "Icons, placeholders, inactive nav (~3.7:1). Do not use for small body copy on cards.",
+    "text.caption": "Readable muted copy on cards (4.9:1, AA).",
+    "text.accent": "Deep brass #876800 replaces bright gold for accent text/links on white (4.8:1, AA). Bright gold stays only as button/chip fill with dark text.",
+    "border.subtle": "Hairline on primary background only. Invisible on card; use border.divider or border.default there.",
+    "border.default": "Inputs and secondary buttons (3.5:1). Matches icon.inactive weight.",
+    "status.warning vs text.accent": "Do not use brand gold for overdue. Overdue is danger; due-soon is warning orange."
+  }
+}
