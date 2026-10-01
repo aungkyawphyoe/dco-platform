@@ -1658,6 +1658,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get profileDeleteAccountSuccess => 'Your account has been deleted.';
 
   @override
+  String get profileLicenseSection => 'Driving License';
+
+  @override
+  String get profileLicensePhotos => 'License Photos';
+
+  @override
+  String get profileLicenseNumber => 'License No';
+
+  @override
+  String get profileLicenseNumberHint => 'D1234567';
+
+  @override
+  String get profileLicenseExpiry => 'Valid Up To';
+
+  @override
+  String get profileLicenseExpiryHint => 'YYYY-MM-DD';
+
+  @override
+  String get profileLicenseFrontPhotoTitle => 'Front Photo';
+
+  @override
+  String get profileLicenseBackPhotoTitle => 'Back Photo';
+
+  @override
+  String get profileLicensePlaceFront =>
+      'Align the front of your license within the frame';
+
+  @override
+  String get profileLicensePlaceBack =>
+      'Align the back of your license within the frame';
+
+  @override
+  String get profileLicenseProcessing => 'Processing photo...';
+
+  @override
+  String get profileLicenseSave => 'Save License';
+
+  @override
+  String get profileLicenseSaved => 'License updated';
+
+  @override
+  String get profileLicenseRemovePhoto => 'Remove Photo';
+
+  @override
+  String get profileLicenseNotSet => 'Not set';
+
+  @override
+  String get profileLicenseNoLicense => 'No license on file';
+
+  @override
+  String get profileLicenseFrontSaved => 'Front photo saved';
+
+  @override
+  String get profileLicenseBackSaved => 'Back photo saved';
+
+  @override
   String get localizationTitle => 'Localization';
 
   @override

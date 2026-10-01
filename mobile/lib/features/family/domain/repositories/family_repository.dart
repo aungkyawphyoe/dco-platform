@@ -14,17 +14,6 @@ abstract class FamilyRepository {
   Future<List<FamilyVehicle>> getFamilyVehicles();
   Future<void> addVehicleToFamily(String vehicleId);
   Future<void> removeVehicleFromFamily(String vehicleId);
-  Future<DrivingLicense?> getMyLicense();
-  Future<DrivingLicense> upsertLicense({
-    String? licenseNumber,
-    String? issuingCountry,
-    required String expiryDate,
-    String? categories,
-    String? frontMediaId,
-    String? backMediaId,
-  });
-  Future<String> uploadLicenseMedia(String side, List<int> bytes);
-  Future<DrivingLicense?> getMemberLicense(String userId);
   Future<FamilyVehicleDetail?> getVehicleDetail(String vehicleId);
   Future<UserDetail?> getUserDetail(String userId);
   Future<FamilyVehicleDetail?> getLocalVehicleDetail(String vehicleId);

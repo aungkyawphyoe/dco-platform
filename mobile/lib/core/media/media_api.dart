@@ -9,7 +9,8 @@ enum MediaPurpose {
   vehiclePhoto('vehicle_photo'),
   document('document'),
   serviceReceipt('service_receipt'),
-  expenseReceipt('expense_receipt');
+  expenseReceipt('expense_receipt'),
+  drivingLicense('driving_license');
 
   const MediaPurpose(this.storage);
 

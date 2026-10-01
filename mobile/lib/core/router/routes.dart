@@ -89,5 +89,7 @@ abstract final class AppRoutes {
   static String familyVehicleDetail(String id) => '/family/vehicle/$id';
   static String userDetail(String id) => '/user/$id';
 
+  static const licenseCapture = '/license-capture';
+
   static const authPaths = {welcome, login, signup, forgotPassword};
 }

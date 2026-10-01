@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
 
+import '../../../../core/entities/driving_license.dart';
+import '../../../../core/network/api_error.dart';
 import '../../../../core/network/auth_interceptor.dart';
 import '../../domain/entities/session.dart';
 
@@ -23,8 +25,23 @@ class DioProfileRemoteDataSource implements ProfileRemoteDataSource {
   Future<User> get() async {
     try {
       final response = await _dio.get<Map<String, dynamic>>('/users/me/profile');
-      return User.fromJson(response.data!);
+      final user = User.fromJson(response.data!);
+      final license = await _fetchLicense();
+      if (license != null) {
+        return user.copyWith(drivingLicense: license);
+      }
+      return user;
     } on DioException catch (error) {
+      throw mapDioError(error);
+    }
+  }
+
+  Future<DrivingLicense?> _fetchLicense() async {
+    try {
+      final response = await _dio.get<Map<String, dynamic>>('/users/me/license');
+      return DrivingLicense.fromJson(response.data!);
+    } on DioException catch (error) {
+      if (error.response?.statusCode == 404) return null;
       throw mapDioError(error);
     }
   }

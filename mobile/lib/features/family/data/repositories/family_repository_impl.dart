@@ -145,59 +145,6 @@ class FamilyRepositoryImpl implements FamilyRepository {
   }
 
   @override
-  Future<DrivingLicense?> getMyLicense() async {
-    try {
-      final response = await _dio.get('/users/me/license');
-      return DrivingLicense.fromJson(response.data);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  @override
-  Future<DrivingLicense> upsertLicense({
-    String? licenseNumber,
-    String? issuingCountry,
-    required String expiryDate,
-    String? categories,
-    String? frontMediaId,
-    String? backMediaId,
-  }) async {
-    final response = await _dio.put(
-      '/users/me/license',
-      data: {
-        'license_number': licenseNumber,
-        'issuing_country': issuingCountry,
-        'expiry_date': expiryDate,
-        'categories': categories,
-        'front_media_id': frontMediaId,
-        'back_media_id': backMediaId,
-      },
-    );
-    return DrivingLicense.fromJson(response.data);
-  }
-
-  @override
-  Future<String> uploadLicenseMedia(String side, List<int> bytes) async {
-    final formData = FormData.fromMap({
-      'file': MultipartFile.fromBytes(bytes, filename: 'license_$side.jpg'),
-      'side': side,
-    });
-    final response = await _dio.post('/users/me/license/media', data: formData);
-    return response.data['media_id'] as String;
-  }
-
-  @override
-  Future<DrivingLicense?> getMemberLicense(String userId) async {
-    try {
-      final response = await _dio.get('/users/$userId/license');
-      return DrivingLicense.fromJson(response.data);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  @override
   Future<FamilyVehicleDetail?> getVehicleDetail(String vehicleId) async {
     try {
       final response = await _dio.get('/vehicles/$vehicleId/detail');

@@ -3188,6 +3188,114 @@ abstract class AppLocalizations {
   /// **'Your account has been deleted.'**
   String get profileDeleteAccountSuccess;
 
+  /// No description provided for @profileLicenseSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Driving License'**
+  String get profileLicenseSection;
+
+  /// No description provided for @profileLicensePhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'License Photos'**
+  String get profileLicensePhotos;
+
+  /// No description provided for @profileLicenseNumber.
+  ///
+  /// In en, this message translates to:
+  /// **'License No'**
+  String get profileLicenseNumber;
+
+  /// No description provided for @profileLicenseNumberHint.
+  ///
+  /// In en, this message translates to:
+  /// **'D1234567'**
+  String get profileLicenseNumberHint;
+
+  /// No description provided for @profileLicenseExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Valid Up To'**
+  String get profileLicenseExpiry;
+
+  /// No description provided for @profileLicenseExpiryHint.
+  ///
+  /// In en, this message translates to:
+  /// **'YYYY-MM-DD'**
+  String get profileLicenseExpiryHint;
+
+  /// No description provided for @profileLicenseFrontPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Front Photo'**
+  String get profileLicenseFrontPhotoTitle;
+
+  /// No description provided for @profileLicenseBackPhotoTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Back Photo'**
+  String get profileLicenseBackPhotoTitle;
+
+  /// No description provided for @profileLicensePlaceFront.
+  ///
+  /// In en, this message translates to:
+  /// **'Align the front of your license within the frame'**
+  String get profileLicensePlaceFront;
+
+  /// No description provided for @profileLicensePlaceBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Align the back of your license within the frame'**
+  String get profileLicensePlaceBack;
+
+  /// No description provided for @profileLicenseProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Processing photo...'**
+  String get profileLicenseProcessing;
+
+  /// No description provided for @profileLicenseSave.
+  ///
+  /// In en, this message translates to:
+  /// **'Save License'**
+  String get profileLicenseSave;
+
+  /// No description provided for @profileLicenseSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'License updated'**
+  String get profileLicenseSaved;
+
+  /// No description provided for @profileLicenseRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Photo'**
+  String get profileLicenseRemovePhoto;
+
+  /// No description provided for @profileLicenseNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get profileLicenseNotSet;
+
+  /// No description provided for @profileLicenseNoLicense.
+  ///
+  /// In en, this message translates to:
+  /// **'No license on file'**
+  String get profileLicenseNoLicense;
+
+  /// No description provided for @profileLicenseFrontSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Front photo saved'**
+  String get profileLicenseFrontSaved;
+
+  /// No description provided for @profileLicenseBackSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Back photo saved'**
+  String get profileLicenseBackSaved;
+
   /// No description provided for @localizationTitle.
   ///
   /// In en, this message translates to:

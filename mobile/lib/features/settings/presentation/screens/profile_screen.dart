@@ -1,14 +1,18 @@
 import 'dart:io';
 
+import 'package:dco_mobile/core/entities/driving_license.dart';
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
+import 'package:dco_mobile/features/settings/presentation/widgets/license_photo_card.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
@@ -23,16 +27,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _addressController;
+  late final TextEditingController _licenseNumberController;
+  late final TextEditingController _expiryDateController;
   bool _saving = false;
+  bool _licenseSaving = false;
   String? _photoPath;
 
   @override
   void initState() {
     super.initState();
     final user = ref.read(sessionControllerProvider).valueOrNull?.user;
+    final license = user?.drivingLicense;
     _nameController = TextEditingController(text: user?.displayName ?? '');
     _phoneController = TextEditingController(text: user?.contactPhone ?? '');
     _addressController = TextEditingController(text: user?.address ?? '');
+    _licenseNumberController = TextEditingController(
+      text: license?.licenseNumber ?? '',
+    );
+    _expiryDateController = TextEditingController(
+      text: license != null
+          ? license.expiryDate.toIso8601String().split('T').first
+          : '',
+    );
   }
 
   @override
@@ -40,6 +56,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _nameController.dispose();
     _phoneController.dispose();
     _addressController.dispose();
+    _licenseNumberController.dispose();
+    _expiryDateController.dispose();
     super.dispose();
   }
 
@@ -97,6 +115,118 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _captureLicensePhoto(String side) async {
+    final capturedPath = await GoRouter.of(
+      context,
+    ).push<String>(AppRoutes.licenseCapture, extra: side);
+    if (capturedPath == null || capturedPath.isEmpty) return;
+
+    try {
+      final bytes = await File(capturedPath).readAsBytes();
+      final repo = ref.read(licenseRepositoryProvider);
+      final mediaId = await repo.uploadLicensePhoto(side, bytes);
+
+      final user = ref.read(sessionControllerProvider).valueOrNull?.user;
+      final license = user?.drivingLicense;
+
+      final String frontMediaId =
+          side == 'front' ? mediaId : license?.frontMediaId ?? '';
+      final String backMediaId =
+          side == 'back' ? mediaId : license?.backMediaId ?? '';
+
+      await repo.upsertLicense(
+        licenseNumber: _licenseNumberController.text.trim().isEmpty
+            ? null
+            : _licenseNumberController.text.trim(),
+        expiryDate: _expiryDateController.text.trim(),
+        frontMediaId: frontMediaId,
+        backMediaId: backMediaId,
+      );
+
+      if (mounted) {
+        await _refreshSession();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              side == 'front'
+                  ? AppLocalizations.of(context)!.profileLicenseFrontSaved
+                  : AppLocalizations.of(context)!.profileLicenseBackSaved,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+  }
+
+  Future<void> _saveLicense() async {
+    if (_licenseNumberController.text.trim().isEmpty ||
+        _expiryDateController.text.trim().isEmpty) {
+      return;
+    }
+    setState(() => _licenseSaving = true);
+    try {
+      final repo = ref.read(licenseRepositoryProvider);
+      final user = ref.read(sessionControllerProvider).valueOrNull?.user;
+      final license = user?.drivingLicense;
+
+      await repo.upsertLicense(
+        licenseNumber: _licenseNumberController.text.trim(),
+        expiryDate: _expiryDateController.text.trim(),
+        frontMediaId: license?.frontMediaId,
+        backMediaId: license?.backMediaId,
+      );
+
+      if (mounted) {
+        await _refreshSession();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(AppLocalizations.of(context)!.profileLicenseSaved)),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _licenseSaving = false);
+    }
+  }
+
+  Future<void> _refreshSession() async {
+    final user = await ref.read(profileRepositoryProvider).get();
+    DrivingLicense? license;
+    try {
+      license = await ref.read(licenseRepositoryProvider).getMyLicense();
+    } catch (_) {}
+    ref.read(sessionControllerProvider.notifier).updateUser(
+      user.copyWith(drivingLicense: license),
+    );
+  }
+
+  Future<void> _pickExpiryDate() async {
+    final now = DateTime.now();
+    final initialDate = _expiryDateController.text.isNotEmpty
+        ? DateTime.tryParse(_expiryDateController.text) ?? now
+        : now;
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 20)),
+    );
+    if (picked != null) {
+      _expiryDateController.text =
+          picked.toIso8601String().split('T').first;
     }
   }
 
@@ -167,6 +297,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final user = ref.watch(sessionControllerProvider).valueOrNull?.user;
+    final license = user?.drivingLicense;
 
     return Scaffold(
       appBar: AppBar(
@@ -299,6 +430,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 context,
               ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
             ),
+          SizedBox(height: tokens.space.s5),
+          _DrivingLicenseSection(
+            license: license,
+            tokens: tokens,
+            numberController: _licenseNumberController,
+            expiryController: _expiryDateController,
+            onCapturePhoto: _captureLicensePhoto,
+            onPickExpiry: _pickExpiryDate,
+            onSaveLicense: _saveLicense,
+            saving: _licenseSaving,
+          ),
           SizedBox(height: tokens.space.s7),
           DcoButton(
             label: s.profileDeleteAccount,
@@ -306,6 +448,141 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             onPressed: _deleteAccount,
           ),
           SizedBox(height: tokens.space.s5),
+        ],
+      ),
+    );
+  }
+}
+
+class _DrivingLicenseSection extends StatelessWidget {
+  const _DrivingLicenseSection({
+    required this.license,
+    required this.tokens,
+    required this.numberController,
+    required this.expiryController,
+    required this.onCapturePhoto,
+    required this.onPickExpiry,
+    required this.onSaveLicense,
+    required this.saving,
+  });
+
+  final DrivingLicense? license;
+  final DcoTokens tokens;
+  final TextEditingController numberController;
+  final TextEditingController expiryController;
+  final LicensePhotoCaptureCallback onCapturePhoto;
+  final VoidCallback onPickExpiry;
+  final VoidCallback onSaveLicense;
+  final bool saving;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
+
+    return Container(
+      padding: EdgeInsets.all(tokens.space.s4),
+      decoration: BoxDecoration(
+        color: tokens.background.card,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        border: Border.all(color: tokens.border.defaultColor),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            s.profileLicenseSection,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          SizedBox(height: tokens.space.s3),
+          LicensePhotoCard(
+            frontMediaId: license?.frontMediaId,
+            backMediaId: license?.backMediaId,
+            onCapture: onCapturePhoto,
+          ),
+          SizedBox(height: tokens.space.s3),
+          DcoTextField(
+            label: s.profileLicenseNumber,
+            controller: numberController,
+            hint: s.profileLicenseNumberHint,
+          ),
+          SizedBox(height: tokens.space.s3),
+          DcoTextField(
+            label: s.profileLicenseExpiry,
+            controller: expiryController,
+            hint: s.profileLicenseExpiryHint,
+            readOnly: true,
+            onTap: onPickExpiry,
+          ),
+          if (license != null) ...[
+            SizedBox(height: tokens.space.s3),
+            _LicenseStatusBadge(
+              status: license!.status,
+              tokens: tokens,
+            ),
+          ],
+          SizedBox(height: license != null ? tokens.space.s4 : tokens.space.s3),
+          DcoButton(
+            label: s.profileLicenseSave,
+            loading: saving,
+            onPressed: onSaveLicense,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LicenseStatusBadge extends StatelessWidget {
+  const _LicenseStatusBadge({required this.status, required this.tokens});
+
+  final LicenseStatus status;
+  final DcoTokens tokens;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
+    Color color;
+    IconData icon;
+    String label;
+
+    switch (status) {
+      case LicenseStatus.valid:
+        color = tokens.status.successFg;
+        icon = Icons.check_circle;
+        label = s.userDetailLicenseValid;
+        break;
+      case LicenseStatus.expiringSoon:
+        color = tokens.status.warningFg;
+        icon = Icons.schedule;
+        label = s.userDetailLicenseExpiringSoon;
+        break;
+      case LicenseStatus.expired:
+        color = tokens.status.dangerFg;
+        icon = Icons.cancel;
+        label = s.userDetailLicenseExpired;
+        break;
+      case LicenseStatus.none:
+        color = tokens.text.tertiary;
+        icon = Icons.help;
+        label = s.userDetailLicenseNone;
+    }
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: tokens.space.s3, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: TextStyle(color: color, fontWeight: FontWeight.w600),
+          ),
         ],
       ),
     );

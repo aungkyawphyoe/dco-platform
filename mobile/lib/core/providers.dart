@@ -15,10 +15,10 @@ import '../../features/auth/domain/entities/session.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/repositories/profile_repository.dart';
 import '../../features/auth/presentation/session_controller.dart';
-import '../../features/expenses/data/repositories/expense_repository_impl.dart';
-import '../../features/expenses/domain/repositories/expense_repository.dart';
 import '../../features/documents/data/repositories/document_repository_impl.dart';
 import '../../features/documents/domain/repositories/document_repository.dart';
+import '../../features/expenses/data/repositories/expense_repository_impl.dart';
+import '../../features/expenses/domain/repositories/expense_repository.dart';
 import '../../features/fuel/data/repositories/fuel_repository_impl.dart';
 import '../../features/fuel/domain/repositories/fuel_repository.dart';
 import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
@@ -35,7 +35,9 @@ import '../../features/notes/data/repositories/notes_repository_impl.dart';
 import '../../features/notes/domain/repositories/notes_repository.dart';
 import '../../features/parts/data/repositories/parts_repository_impl.dart';
 import '../../features/parts/domain/repositories/parts_repository.dart';
+import '../../features/settings/data/repositories/license_repository_impl.dart';
 import '../../features/settings/data/repositories/preferences_repository_impl.dart';
+import '../../features/settings/domain/repositories/license_repository.dart';
 import '../../features/settings/domain/repositories/preferences_repository.dart';
 import 'analytics/analytics.dart';
 import 'config/app_config.dart';
@@ -142,6 +144,13 @@ final mediaApiProvider = Provider<MediaApi>((ref) {
   return DioMediaApi(ref.watch(dioProvider));
 });
 
+final mediaUrlProvider = FutureProvider.family<String?, String>((ref, mediaId) async {
+  if (mediaId.isEmpty) return null;
+  final api = ref.watch(mediaApiProvider);
+  final media = await api.get(mediaId);
+  return media.downloadUrl;
+});
+
 final syncEngineProvider = Provider<SyncEngine>((ref) {
   final engine = SyncEngine(
     db: ref.watch(appDatabaseProvider),
@@ -169,6 +178,17 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   return ProfileRepositoryImpl(
     remote: ref.watch(profileRemoteDataSourceProvider),
     db: ref.watch(appDatabaseProvider),
+  );
+});
+
+final licenseRepositoryProvider = Provider<LicenseRepository>((ref) {
+  final config = ref.watch(appConfigProvider);
+  if (config.mockAuth) {
+    return MockLicenseRepository();
+  }
+  return LicenseRepositoryImpl(
+    ref.watch(dioProvider),
+    ref.watch(mediaApiProvider),
   );
 });
 

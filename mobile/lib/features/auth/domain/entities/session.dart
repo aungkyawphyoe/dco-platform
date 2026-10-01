@@ -1,3 +1,5 @@
+import 'package:dco_mobile/core/entities/driving_license.dart';
+
 class User {
   const User({
     required this.id,
@@ -13,6 +15,7 @@ class User {
     this.activeVehicleId,
     this.vehicleLimit,
     this.createdAt,
+    this.drivingLicense,
   });
 
   final String id;
@@ -28,8 +31,43 @@ class User {
   final String? activeVehicleId;
   final int? vehicleLimit;
   final String? createdAt;
+  final DrivingLicense? drivingLicense;
 
   bool get isProfileComplete => displayName != null && displayName!.isNotEmpty;
+
+  User copyWith({
+    String? id,
+    String? email,
+    String? displayName,
+    String? profilePhotoMediaId,
+    String? contactPhone,
+    String? address,
+    String? role,
+    String? plan,
+    String? status,
+    bool? emailVerified,
+    String? activeVehicleId,
+    int? vehicleLimit,
+    String? createdAt,
+    DrivingLicense? drivingLicense,
+  }) {
+    return User(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      displayName: displayName ?? this.displayName,
+      profilePhotoMediaId: profilePhotoMediaId ?? this.profilePhotoMediaId,
+      contactPhone: contactPhone ?? this.contactPhone,
+      address: address ?? this.address,
+      role: role ?? this.role,
+      plan: plan ?? this.plan,
+      status: status ?? this.status,
+      emailVerified: emailVerified ?? this.emailVerified,
+      activeVehicleId: activeVehicleId ?? this.activeVehicleId,
+      vehicleLimit: vehicleLimit ?? this.vehicleLimit,
+      createdAt: createdAt ?? this.createdAt,
+      drivingLicense: drivingLicense ?? this.drivingLicense,
+    );
+  }
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -46,6 +84,11 @@ class User {
       activeVehicleId: json['active_vehicle_id'] as String?,
       vehicleLimit: json['vehicle_limit'] as int?,
       createdAt: json['created_at'] as String?,
+      drivingLicense: json['driving_license'] is Map
+          ? DrivingLicense.fromJson(
+              Map<String, dynamic>.from(json['driving_license'] as Map),
+            )
+          : null,
     );
   }
 
@@ -63,6 +106,7 @@ class User {
     'active_vehicle_id': activeVehicleId,
     'vehicle_limit': vehicleLimit,
     'created_at': createdAt,
+    'driving_license': drivingLicense?.toJson(),
   };
 }
 

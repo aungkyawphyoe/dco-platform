@@ -39,11 +39,24 @@ final userDetailProvider = FutureProvider.family<family_entities.UserDetail?, St
   return repo.getUserDetail(userId);
 });
 
-final myLicenseProvider = FutureProvider<family_entities.DrivingLicense?>((ref) {
+final myLicenseProvider = FutureProvider<family_entities.DrivingLicense?>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return Future.value(null);
-  final repo = ref.watch(familyRepositoryProvider);
-  return repo.getMyLicense();
+  if (userId == null) return null;
+  final repo = ref.watch(licenseRepositoryProvider);
+  final license = await repo.getMyLicense();
+  if (license == null) return null;
+  return family_entities.DrivingLicense(
+    id: license.id,
+    userId: license.userId,
+    licenseNumber: license.licenseNumber,
+    issuingCountry: license.issuingCountry,
+    expiryDate: license.expiryDate,
+    categories: license.categories,
+    frontMediaId: license.frontMediaId,
+    backMediaId: license.backMediaId,
+    createdAt: license.createdAt,
+    updatedAt: license.updatedAt,
+  );
 });
 
 final vehicleDetailAsyncProvider = Provider.family<AsyncValue<family_entities.FamilyVehicleDetail?>, String>((ref, vehicleId) {

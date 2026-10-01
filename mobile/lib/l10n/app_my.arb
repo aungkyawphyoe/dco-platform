@@ -1078,5 +1078,24 @@
   "statsDefAvgPerExpense": "စုစုပေါင်းကို ကုန်ကျစရိတ် အရေအတွက်ဖြင့် ခွဲသည်။",
   "statsDefTopCategory": "စုစုပေါင်း အများဆုံး သုံးစွဲသော အမျိုးအစား။",
   "statsDefMostExpensiveExpense": "ဤကာလအတွင်း ဈေးအကြီးဆုံး ကုန်ကျစရိတ်တစ်ခုနှင့် ၎င်း၏ ရက်စွဲ။",
-  "statsDefDonutCategory": "အမျိုးအစားအလိုက် စုစုပေါင်းထားသော သုံးစွဲမှု။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။"
+  "statsDefDonutCategory": "အမျိုးအစားအလိုက် စုစုပေါင်းထားသော သုံးစွဲမှု။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။",
+  "profileLicenseSection": "သောင်းရိုင်မီးဆွင့်လိုင်မယ်",
+  "profileLicensePhotos": "လိုင်ငံ့ဆက်များ",
+  "profileLicenseNumber": "License No",
+  "profileLicenseNumberHint": "D1234567",
+  "profileLicenseExpiry": "သောင်းရိုင်များထွက်သော",
+  "profileLicenseExpiryHint": "YYYY-MM-DD",
+  "profileLicenseFrontPhotoTitle": "မျက်များပြင်မျှူး",
+  "profileLicenseBackPhotoTitle": "မျက်မျ�းပြင်နောက်မျှူး",
+  "profileLicensePlaceFront": "License front within frame",
+  "profileLicensePlaceBack": "License back within frame",
+  "profileLicenseProcessing": "ဖုံးနေသည်...",
+  "profileLicenseSave": "Save License",
+  "profileLicenseSaved": "License updated",
+  "profileLicenseRemovePhoto": "Remove Photo",
+  "profileLicenseNotSet": "Not set",
+  "profileLicenseNoLicense": "No license on file",
+  "profileLicenseFrontSaved": "Front photo saved",
+  "profileLicenseBackSaved": "Back photo saved"
 }
+

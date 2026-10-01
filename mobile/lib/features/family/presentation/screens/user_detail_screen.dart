@@ -165,8 +165,8 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
       );
       if (image != null && mounted) {
         final bytes = await image.readAsBytes();
-        final repo = ref.read(familyRepositoryProvider);
-        final mediaId = await repo.uploadLicenseMedia(front ? 'front' : 'back', bytes);
+        final repo = ref.read(licenseRepositoryProvider);
+        final mediaId = await repo.uploadLicensePhoto(front ? 'front' : 'back', bytes);
         if (front) {
           // Update license with front media id
           final license = ref.read(myLicenseProvider).valueOrNull;
@@ -264,7 +264,7 @@ class _UserDetailScreenState extends ConsumerState<UserDetailScreen> {
     );
 
     if (confirmed == true && mounted) {
-      final repo = ref.read(familyRepositoryProvider);
+      final repo = ref.read(licenseRepositoryProvider);
       await repo.upsertLicense(
         licenseNumber: numberController.text,
         issuingCountry: countryController.text,
