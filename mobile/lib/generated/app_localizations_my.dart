@@ -196,6 +196,15 @@ class AppLocalizationsMy extends AppLocalizations {
   String get dashboardNoVehicle => 'ယာဉ် မရှိပါ';
 
   @override
+  String get greetingMorning => 'မနက်ခင်းပါ';
+
+  @override
+  String get greetingAfternoon => 'နေ့လယ်ခင်းပါ';
+
+  @override
+  String get greetingEvening => 'ညနေခင်းပါ';
+
+  @override
   String get dashboardGarageTooltip => 'ယာဉ်ဂိုဒေါင်';
 
   @override
@@ -1088,6 +1097,9 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get documentFormNotesHint => 'စိတ်ကြိုက်';
+
+  @override
+  String get documentFormExpiryDate => 'သက်တမ်းကုန်ရက်';
 
   @override
   String get documentFormFileSection => 'ဖိုင်';
@@ -2091,6 +2103,90 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get inviteTabCodeExpiryHelper =>
       'ကုတ်နံပါတ်သည် ၇ ရက်အတွင်း သက်တမ်းကုန်ပါမည်။ ကုတ်နံပါတ်အသစ် ပြန်ထုတ်ပါက ကုတ်နံပါတ်ဟောင်း ပျက်ပြယ်သွားပါမည်။';
+
+  @override
+  String get vehicleDetailTitle => 'ကျွန်ုပ်၏ ယာဉ်';
+
+  @override
+  String get vehicleDetailTabOverview => 'ခြုံငုံသုံးသပ်ချက်';
+
+  @override
+  String get vehicleDetailTabMaintenance => 'ပြုပြင်ထိန်းသိမ်းမှု';
+
+  @override
+  String get vehicleDetailTabDetails => 'အသေးစိတ်';
+
+  @override
+  String get vehicleDetailNotFound => 'ယာဉ် ရှာမတွေ့ပါ';
+
+  @override
+  String get vehicleDetailNotFoundBody => 'သိမ်းဆည်းထားပြီး ဖြစ်နိုင်ပါသည်။';
+
+  @override
+  String get vehicleDetailSetActive => 'အသုံးပြုဆဲအဖြစ် သတ်မှတ်မည်';
+
+  @override
+  String get vehicleDetailNextService => 'နောက်ထိန်းသိမ်းမှု';
+
+  @override
+  String get vehicleDetailNoPlan => 'ထိန်းသိမ်းမှု အစီအစဉ် မရှိသေးပါ';
+
+  @override
+  String get vehicleDetailHealth => 'ယာဉ်အခြေအနေ';
+
+  @override
+  String get vehicleDetailHealthGood => 'အားလုံးကောင်းပါသည်';
+
+  @override
+  String get vehicleDetailHealthAttention => 'ဂရုပြုရန် လိုအပ်ပါသည်';
+
+  @override
+  String get vehicleDetailTire => 'နောက်ဆုံး တာယာဝန်ဆောင်မှု';
+
+  @override
+  String get vehicleDetailNoTireService => 'တာယာ ဝန်ဆောင်မှု မရှိသေးပါ';
+
+  @override
+  String get vehicleDetailLicenseDue => 'လိုင်စင် သက်တမ်းကုန်ရက်';
+
+  @override
+  String get vehicleDetailAddRegistration => 'မှတ်ပုံတင် ထည့်မည်';
+
+  @override
+  String get vehicleDetailExpired => 'သက်တမ်းကုန်သွားပြီ';
+
+  @override
+  String get vehicleDetailName => 'နာမည်';
+
+  @override
+  String get vehicleDetailYear => 'နှစ်';
+
+  @override
+  String get vehicleDetailMake => 'ကုန်အမှတ်တံဆိပ်';
+
+  @override
+  String get vehicleDetailModel => 'မော်ဒယ်';
+
+  @override
+  String get vehicleDetailPlate => 'လိုင်စင်နံပါတ်';
+
+  @override
+  String get vehicleDetailMileage => 'မိုင်အကွာအဝေး';
+
+  @override
+  String get vehicleDetailFuelType => 'လောင်စာအမျိုးအစား';
+
+  @override
+  String get vehicleDetailColor => 'အရောင်';
+
+  @override
+  String get vehicleDetailPhoto => 'ဓာတ်ပုံ';
+
+  @override
+  String get vehicleDetailPhotoAdded => 'ထည့်ပြီး';
+
+  @override
+  String get vehicleDetailPhotoNone => 'မသတ်မှတ်ရသေးပါ';
 
   @override
   String get carDetailTitle => 'ယာဉ် အသေးစိတ်';

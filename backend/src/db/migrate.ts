@@ -28,10 +28,15 @@ export function fuelLogOdometerSql(): string {
   return readSql("0004_fuel_log_odometer.sql");
 }
 
+export function documentExpiresOnSql(): string {
+  return readSql("0005_document_expires_on.sql");
+}
+
 export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Promise<void> {
   await exec(initSql());
   await exec(maintenanceCatalogSql());
   await exec(maintenanceCatalogKmSql());
   await exec(fleetFoundationSql());
   await exec(fuelLogOdometerSql());
+  await exec(documentExpiresOnSql());
 }

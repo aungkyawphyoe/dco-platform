@@ -413,6 +413,11 @@ class ChangeApplier {
           name: Value(_str(payload['name'], fallback: existing.name)),
           category: Value(_str(payload['category'], fallback: existing.category)),
           notes: Value(_strN(payload['notes']) ?? existing.notes),
+          expiresOn: Value(
+            payload.containsKey('expires_on')
+                ? _dt(payload['expires_on'])
+                : existing.expiresOn,
+          ),
           mediaId: Value(_strN(payload['media_id']) ?? existing.mediaId),
           updatedAt: Value(remoteUpdatedAt),
         ),
@@ -425,6 +430,7 @@ class ChangeApplier {
           name: _str(payload['name']),
           category: _str(payload['category'], fallback: 'other'),
           notes: Value(_strN(payload['notes'])),
+          expiresOn: Value(_dt(payload['expires_on'])),
           mediaId: Value(_strN(payload['media_id'])),
           updatedAt: remoteUpdatedAt,
           createdAt: _dt(payload['created_at']) ?? remoteUpdatedAt,

@@ -3173,6 +3173,11 @@ components:
         notes:
           type: string
           nullable: true
+        expires_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          nullable: true
+          description: Expiry / due date of the document (e.g. registration or insurance renewal). YYYY-MM-DD.
         media_id:
           type: string
           format: uuid
@@ -3193,6 +3198,10 @@ components:
           $ref: '#/components/schemas/DocumentCategory'
         notes:
           type: string
+        expires_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          nullable: true
         media_id:
           type: string
           format: uuid
@@ -3205,6 +3214,10 @@ components:
           $ref: '#/components/schemas/DocumentCategory'
         notes:
           type: string
+        expires_on:
+          type: string
+          pattern: '^\d{4}-\d{2}-\d{2}$'
+          nullable: true
         media_id:
           type: string
           format: uuid

@@ -16,6 +16,14 @@ final activeVehicleProvider = StreamProvider<Vehicle?>((ref) {
   return ref.watch(vehicleRepositoryProvider).watchActive(userId);
 });
 
+/// Live lookup for a single vehicle by id, independent of which vehicle
+/// is currently active. Drives the vehicle detail screen and any flow
+/// that must reference a non-active vehicle.
+final vehicleByIdProvider = StreamProvider.family<Vehicle?, String>((ref, vehicleId) {
+  if (vehicleId.isEmpty) return Stream.value(null);
+  return ref.watch(vehicleRepositoryProvider).watchById(vehicleId);
+});
+
 typedef SetActiveVehicle = Future<void> Function(String vehicleId);
 
 /// Switches the active vehicle locally, then propagates to the server

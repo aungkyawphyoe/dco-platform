@@ -16,6 +16,8 @@ enum DocumentCategory {
   }
 }
 
+const Object _unset = Object();
+
 class Document {
   const Document({
     required this.id,
@@ -23,6 +25,7 @@ class Document {
     required this.name,
     required this.category,
     this.notes,
+    this.expiresOn,
     this.localFilePath,
     this.mediaId,
     required this.updatedAt,
@@ -34,6 +37,7 @@ class Document {
   final String name;
   final DocumentCategory category;
   final String? notes;
+  final DateTime? expiresOn;
   final String? localFilePath;
   final String? mediaId;
   final DateTime updatedAt;
@@ -42,11 +46,14 @@ class Document {
   bool get hasLocalFile => localFilePath != null && localFilePath!.isNotEmpty;
   bool get isSynced => mediaId != null;
 
+  String? get expiresOnDate => expiresOn?.toIso8601String().split('T').first;
+
   Map<String, dynamic> toWriteJson() => {
         'id': id,
         'name': name,
         'category': category.storage,
         if (notes != null) 'notes': notes,
+        'expires_on': expiresOnDate,
         if (mediaId != null) 'media_id': mediaId,
       };
 
@@ -54,6 +61,7 @@ class Document {
     String? name,
     DocumentCategory? category,
     String? notes,
+    Object? expiresOn = _unset,
     String? localFilePath,
     String? mediaId,
     DateTime? updatedAt,
@@ -64,6 +72,9 @@ class Document {
       name: name ?? this.name,
       category: category ?? this.category,
       notes: notes ?? this.notes,
+      expiresOn: identical(expiresOn, _unset)
+          ? this.expiresOn
+          : expiresOn as DateTime?,
       localFilePath: localFilePath ?? this.localFilePath,
       mediaId: mediaId ?? this.mediaId,
       updatedAt: updatedAt ?? this.updatedAt,
@@ -77,11 +88,13 @@ class DocumentDraft {
     required this.name,
     required this.category,
     this.notes,
+    this.expiresOn,
     this.localFilePath,
   });
 
   final String name;
   final DocumentCategory category;
   final String? notes;
+  final DateTime? expiresOn;
   final String? localFilePath;
 }

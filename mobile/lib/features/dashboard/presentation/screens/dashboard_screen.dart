@@ -9,6 +9,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
+import 'package:dco_mobile/features/dashboard/domain/greeting.dart';
 import 'package:dco_mobile/features/dashboard/presentation/widgets/quick_actions_grid.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
@@ -38,6 +39,19 @@ class DashboardScreen extends ConsumerWidget {
     final session = ref.watch(sessionControllerProvider).valueOrNull;
     final active = ref.watch(activeVehicleProvider);
 
+    final displayName = session?.user.displayName?.trim();
+    final email = session?.user.email.trim();
+    final greetName = (displayName != null && displayName.isNotEmpty)
+        ? displayName
+        : (email != null && email.isNotEmpty)
+        ? email
+        : '';
+    final greeting = switch (GreetingCalculator.forDateTime(DateTime.now())) {
+      Greeting.morning => s.greetingMorning,
+      Greeting.afternoon => s.greetingAfternoon,
+      Greeting.evening => s.greetingEvening,
+    };
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -45,24 +59,33 @@ class DashboardScreen extends ConsumerWidget {
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
         titleSpacing: tokens.space.s4,
-        title: InkWell(
-          onTap: () => context.push(AppRoutes.garage),
-          child: Row(
-            children: [
-              Icon(Icons.directions_car_outlined, color: tokens.icon.active),
-              SizedBox(width: tokens.space.s2),
-              Flexible(
-                child: Text(
-                  active.valueOrNull?.displayName ?? s.dashboardNoVehicle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                  overflow: TextOverflow.ellipsis,
-                ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              greeting,
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: tokens.text.secondary),
+            ),
+            if (greetName.isNotEmpty)
+              Text(
+                greetName,
+                style: Theme.of(context).textTheme.titleLarge,
+                overflow: TextOverflow.ellipsis,
               ),
-              Icon(Icons.chevron_right, color: tokens.icon.active),
-            ],
-          ),
+          ],
         ),
         actions: [
+          IconButton(
+            tooltip: s.dashboardGarageTooltip,
+            onPressed: () => context.push(AppRoutes.garage),
+            icon: Icon(
+              Icons.directions_car_outlined,
+              color: tokens.icon.active,
+            ),
+          ),
           IconButton(
             tooltip: s.dashboardNotificationsTooltip,
             onPressed: () => context.push(AppRoutes.notifications),

@@ -24,6 +24,21 @@ final maintenanceHistoryProvider = StreamProvider<List<ServiceRecord>>((ref) {
   return ref.watch(maintenanceRepositoryProvider).watchHistory(vehicleId);
 });
 
+/// Same data as [maintenancePlanProvider], keyed by an explicit vehicle id
+/// so screens can render for a vehicle that is not the active one.
+final maintenancePlanForVehicleProvider =
+    StreamProvider.family<List<PlanItem>, String>((ref, vehicleId) {
+  if (vehicleId.isEmpty) return Stream.value(const []);
+  return ref.watch(maintenanceRepositoryProvider).watchPlan(vehicleId);
+});
+
+/// Same data as [maintenanceHistoryProvider], keyed by an explicit vehicle id.
+final maintenanceHistoryForVehicleProvider =
+    StreamProvider.family<List<ServiceRecord>, String>((ref, vehicleId) {
+  if (vehicleId.isEmpty) return Stream.value(const []);
+  return ref.watch(maintenanceRepositoryProvider).watchHistory(vehicleId);
+});
+
 final suggestedItemsProvider = StreamProvider<List<SuggestedPlanItem>>((ref) {
   final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
   if (vehicle == null) return Stream.value(const []);

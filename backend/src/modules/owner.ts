@@ -639,6 +639,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     name: row.name,
     category: row.category,
     notes: row.notes,
+    expires_on: dateOnly(row.expiresOn),
     media_id: row.mediaId,
     created_at: row.createdAt.toISOString(),
   });
@@ -662,6 +663,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       name: z.string().min(1).max(120),
       category: z.enum(["insurance", "registration", "invoice", "warranty", "receipt", "other"]),
       notes: z.string().optional().nullable(),
+      expires_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
       media_id: uuid.optional().nullable(),
     }).parse(request.body);
     const [existing] = await db().select().from(documents).where(eq(documents.id, body.id)).limit(1);
@@ -674,6 +676,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         name: body.name,
         category: body.category,
         notes: body.notes ?? null,
+        expiresOn: body.expires_on ?? null,
         mediaId: body.media_id ?? null,
       })
       .returning();
@@ -701,6 +704,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       name: z.string().optional(),
       category: z.enum(["insurance", "registration", "invoice", "warranty", "receipt", "other"]).optional(),
       notes: z.string().optional().nullable(),
+      expires_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
       media_id: uuid.optional().nullable(),
     }).parse(request.body ?? {});
     const [updated] = await db()
@@ -709,6 +713,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         ...(body.name !== undefined ? { name: body.name } : {}),
         ...(body.category !== undefined ? { category: body.category } : {}),
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
+        ...(body.expires_on !== undefined ? { expiresOn: body.expires_on } : {}),
         ...(body.media_id !== undefined ? { mediaId: body.media_id } : {}),
       })
       .where(eq(documents.id, documentId))

@@ -34,74 +34,73 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          InkWell(
+            onTap: () => context.push(AppRoutes.settingsProfile),
+            borderRadius: BorderRadius.circular(tokens.radius.lg),
+            child: Padding(
+              padding: EdgeInsets.fromLTRB(
+                tokens.space.s5,
+                tokens.space.s5,
+                tokens.space.s5,
+                tokens.space.s1,
+              ),
+              child: Row(
+                children: [
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      DcoAvatar(name: user?.email ?? '?', radius: 28),
+                      if (user?.plan == 'premium')
+                        Positioned(
+                          right: -2,
+                          bottom: -2,
+                          child: Container(
+                            padding: EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              color: tokens.background.card,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Container(
+                              width: 18,
+                              height: 18,
+                              decoration: BoxDecoration(
+                                color: tokens.text.accent,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.star,
+                                size: 12,
+                                color: tokens.text.onAccent,
+                              ),
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  SizedBox(width: tokens.space.s3),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: .start,
+                      children: [
+                        Text(
+                          user?.displayName ?? user?.email ?? '',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        Text(
+                          user?.email ?? '',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
           Expanded(
             child: ListView(
               padding: EdgeInsets.all(tokens.space.s5),
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(tokens.radius.lg),
-                    boxShadow: tokens.shadows.card,
-                  ),
-                  child: Material(
-                    color: tokens.background.card,
-                    borderRadius: BorderRadius.circular(tokens.radius.lg),
-                    child: InkWell(
-                      onTap: () => context.push(AppRoutes.settingsProfile),
-                      borderRadius: BorderRadius.circular(tokens.radius.lg),
-                      child: Padding(
-                        padding: EdgeInsets.all(tokens.space.s4),
-                        child: Row(
-                          children: [
-                            Stack(
-                              clipBehavior: Clip.none,
-                              children: [
-                                DcoAvatar(name: user?.email ?? '?', radius: 28),
-                                if (user?.plan == 'premium')
-                                  Positioned(
-                                    right: -2,
-                                    bottom: -2,
-                                    child: Container(
-                                      padding: EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        color: tokens.background.card,
-                                        shape: BoxShape.circle,
-                                      ),
-                                      child: Container(
-                                        width: 18,
-                                        height: 18,
-                                        decoration: BoxDecoration(
-                                          color: tokens.text.accent,
-                                          shape: BoxShape.circle,
-                                        ),
-                                        child: Icon(
-                                          Icons.star,
-                                          size: 12,
-                                          color: tokens.text.onAccent,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            SizedBox(width: tokens.space.s3),
-                            Expanded(
-                              child: Text(
-                                user?.displayName ?? user?.email ?? '',
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ),
-                            Icon(
-                              Icons.chevron_right,
-                              color: tokens.icon.inactive,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: tokens.space.s3),
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(tokens.radius.lg),
@@ -117,6 +116,10 @@ class SettingsScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(
                               tokens.radius.lg,
                             ),
+                          ),
+                          leading: Icon(
+                            Icons.language,
+                            color: tokens.icon.inactive,
                           ),
                           title: Text(s.settingsLocalization),
                           subtitle: Text(
@@ -142,6 +145,10 @@ class SettingsScreen extends ConsumerWidget {
                               tokens.radius.lg,
                             ),
                           ),
+                          leading: Icon(
+                            Icons.grid_3x3,
+                            color: tokens.icon.inactive,
+                          ),
                           title: Text(s.settingsUnitFormat),
                           subtitle: Text(
                             '${prefs.currency.code}, ${prefs.lengthUnit.fullLabel.toLowerCase()}',
@@ -164,6 +171,10 @@ class SettingsScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(
                               tokens.radius.lg,
                             ),
+                          ),
+                          leading: Icon(
+                            Icons.notifications_active_outlined,
+                            color: tokens.icon.inactive,
                           ),
                           title: Text(s.settingsReminders),
                           subtitle: Text(
@@ -194,6 +205,10 @@ class SettingsScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(
                               tokens.radius.lg,
                             ),
+                          ),
+                          leading: Icon(
+                            Icons.palette,
+                            color: tokens.icon.inactive,
                           ),
                           title: Text(s.settingsAppearance),
                           subtitle: Text(

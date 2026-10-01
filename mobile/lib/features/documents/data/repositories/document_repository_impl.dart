@@ -61,6 +61,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
       name: draft.name.trim(),
       category: draft.category,
       notes: _emptyToNull(draft.notes),
+      expiresOn: draft.expiresOn,
       localFilePath: draft.localFilePath,
       updatedAt: now,
       createdAt: now,
@@ -92,6 +93,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
       name: draft.name.trim(),
       category: draft.category,
       notes: _emptyToNull(draft.notes),
+      expiresOn: draft.expiresOn,
       localFilePath: draft.localFilePath,
       updatedAt: DateTime.now().toUtc(),
     );

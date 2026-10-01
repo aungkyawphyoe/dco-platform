@@ -86,6 +86,7 @@ abstract final class AppRoutes {
 
   // Detail screens (top-level, accessible from any tab)
   static String vehicleDetail(String id) => '/vehicle/$id';
+  static String familyVehicleDetail(String id) => '/family/vehicle/$id';
   static String userDetail(String id) => '/user/$id';
 
   static const authPaths = {welcome, login, signup, forgotPassword};

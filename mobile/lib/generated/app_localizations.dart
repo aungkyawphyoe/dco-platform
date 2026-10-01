@@ -452,6 +452,24 @@ abstract class AppLocalizations {
   /// **'No vehicle'**
   String get dashboardNoVehicle;
 
+  /// No description provided for @greetingMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good morning'**
+  String get greetingMorning;
+
+  /// No description provided for @greetingAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good afternoon'**
+  String get greetingAfternoon;
+
+  /// No description provided for @greetingEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good evening'**
+  String get greetingEvening;
+
   /// No description provided for @dashboardGarageTooltip.
   ///
   /// In en, this message translates to:
@@ -2089,6 +2107,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Optional'**
   String get documentFormNotesHint;
+
+  /// No description provided for @documentFormExpiryDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Expiry date'**
+  String get documentFormExpiryDate;
 
   /// No description provided for @documentFormFileSection.
   ///
@@ -3887,6 +3911,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Code expires in 7 days. Regenerating invalidates the old code.'**
   String get inviteTabCodeExpiryHelper;
+
+  /// No description provided for @vehicleDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'My Vehicle'**
+  String get vehicleDetailTitle;
+
+  /// No description provided for @vehicleDetailTabOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Overview'**
+  String get vehicleDetailTabOverview;
+
+  /// No description provided for @vehicleDetailTabMaintenance.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get vehicleDetailTabMaintenance;
+
+  /// No description provided for @vehicleDetailTabDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get vehicleDetailTabDetails;
+
+  /// No description provided for @vehicleDetailNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle not found'**
+  String get vehicleDetailNotFound;
+
+  /// No description provided for @vehicleDetailNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'It may have been archived.'**
+  String get vehicleDetailNotFoundBody;
+
+  /// No description provided for @vehicleDetailSetActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Set as active'**
+  String get vehicleDetailSetActive;
+
+  /// No description provided for @vehicleDetailNextService.
+  ///
+  /// In en, this message translates to:
+  /// **'Next Service'**
+  String get vehicleDetailNextService;
+
+  /// No description provided for @vehicleDetailNoPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'No service plan'**
+  String get vehicleDetailNoPlan;
+
+  /// No description provided for @vehicleDetailHealth.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Health'**
+  String get vehicleDetailHealth;
+
+  /// No description provided for @vehicleDetailHealthGood.
+  ///
+  /// In en, this message translates to:
+  /// **'All good'**
+  String get vehicleDetailHealthGood;
+
+  /// No description provided for @vehicleDetailHealthAttention.
+  ///
+  /// In en, this message translates to:
+  /// **'Attention needed'**
+  String get vehicleDetailHealthAttention;
+
+  /// No description provided for @vehicleDetailTire.
+  ///
+  /// In en, this message translates to:
+  /// **'Last tire service'**
+  String get vehicleDetailTire;
+
+  /// No description provided for @vehicleDetailNoTireService.
+  ///
+  /// In en, this message translates to:
+  /// **'No tire service yet'**
+  String get vehicleDetailNoTireService;
+
+  /// No description provided for @vehicleDetailLicenseDue.
+  ///
+  /// In en, this message translates to:
+  /// **'License Due'**
+  String get vehicleDetailLicenseDue;
+
+  /// No description provided for @vehicleDetailAddRegistration.
+  ///
+  /// In en, this message translates to:
+  /// **'Add registration'**
+  String get vehicleDetailAddRegistration;
+
+  /// No description provided for @vehicleDetailExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get vehicleDetailExpired;
+
+  /// No description provided for @vehicleDetailName.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get vehicleDetailName;
+
+  /// No description provided for @vehicleDetailYear.
+  ///
+  /// In en, this message translates to:
+  /// **'Year'**
+  String get vehicleDetailYear;
+
+  /// No description provided for @vehicleDetailMake.
+  ///
+  /// In en, this message translates to:
+  /// **'Make'**
+  String get vehicleDetailMake;
+
+  /// No description provided for @vehicleDetailModel.
+  ///
+  /// In en, this message translates to:
+  /// **'Model'**
+  String get vehicleDetailModel;
+
+  /// No description provided for @vehicleDetailPlate.
+  ///
+  /// In en, this message translates to:
+  /// **'License Plate'**
+  String get vehicleDetailPlate;
+
+  /// No description provided for @vehicleDetailMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'Mileage'**
+  String get vehicleDetailMileage;
+
+  /// No description provided for @vehicleDetailFuelType.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel Type'**
+  String get vehicleDetailFuelType;
+
+  /// No description provided for @vehicleDetailColor.
+  ///
+  /// In en, this message translates to:
+  /// **'Color'**
+  String get vehicleDetailColor;
+
+  /// No description provided for @vehicleDetailPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo'**
+  String get vehicleDetailPhoto;
+
+  /// No description provided for @vehicleDetailPhotoAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added'**
+  String get vehicleDetailPhotoAdded;
+
+  /// No description provided for @vehicleDetailPhotoNone.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get vehicleDetailPhotoNone;
 
   /// No description provided for @carDetailTitle.
   ///

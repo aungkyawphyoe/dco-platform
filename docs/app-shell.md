@@ -86,7 +86,7 @@ Numbering follows the tldraw frame names.
 | 1 | Create Account | Unauthenticated | Out of this nav spec |
 | 2 | Login | Unauthenticated | Out of this nav spec |
 | 3 | Dashboard | Login success; Garage tab; picking a vehicle in My Garage | Empty variant: CTA **Register A Vehicle**, shimmer while local DB hydrates |
-| 4 | Garage Home (My Garage) | Header **garage** / vehicle chip on 3 | List + add. Switching a card sets active vehicle and **pops back to 3** |
+| 4 | Garage Home (My Garage) | Header **garage** on 3 | List + add. Switching a card sets active vehicle and **pops back to 3** |
 | 5 | Add/Edit Vehicle | `+` on 4 or Register on empty 3 | New: save → set active → Maintenance Plan (registration flow). Edit: save → 3 |
 | 6 | Maintenance | Maintenance tab | Upcoming / Scheduled / History. Stack: plan list, add item, suggested catalog, register service |
 | 7 | Expenses | Expenses tab | Month/total, by category, recent list |
@@ -107,7 +107,8 @@ Numbering follows the tldraw frame names.
 Header on Dashboard (3):
 
 - Leading: **hamburger icon** → opens drawer menu.
-- Trailing: **vehicle chip** (nickname, e.g. "Daily Driver") → screen 4, and **Noti** → in-app notification feed.
+- Title: time-of-day greeting (morning / afternoon / evening) over the user's display name (fallback: email; omitted when neither is set).
+- Trailing: **garage icon** → screen 4, and **Noti** → in-app notification feed.
 
 Empty garage: Dashboard still is the default route. Maintenance, Expenses, and Documents show their "no active vehicle" empty states until a vehicle exists.
 
@@ -117,7 +118,7 @@ Empty garage: Dashboard still is the default route. Maintenance, Expenses, and D
 
 Keep one `StatefulShellRoute` (or equivalent) for the four tabs. Push these on the active tab's stack:
 
-- My Garage, Add/Edit Vehicle, Service History, Insurance, Refuel/Charge, Fuel Types
+- My Garage, Vehicle detail (`/vehicle/:id` — hero + Overview/Maintenance/Details tabs), Add/Edit Vehicle, Service History, Insurance, Refuel/Charge, Fuel Types
 - Add/Edit expense, Expense detail
 - Document list, viewer, upload
 - Maintenance Plan, Suggested items, Add item, Register Service, Service detail

@@ -8,6 +8,7 @@ import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/auth/presentation/session_controller.dart';
+import '../../features/documents/domain/entities/document.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
 import '../../features/documents/presentation/screens/document_form_screen.dart';
 import '../../features/documents/presentation/screens/document_viewer_screen.dart';
@@ -31,6 +32,7 @@ import '../../features/fuel/presentation/screens/fuel_logs_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_type_form_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_types_screen.dart';
 import '../../features/garage/presentation/screens/garage_home_screen.dart';
+import '../../features/garage/presentation/screens/vehicle_detail_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
 import '../../features/insurance/presentation/screens/insurance_screen.dart';
 import '../../features/maintenance/domain/entities/service_record.dart';
@@ -307,7 +309,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'new',
             parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => const DocumentFormScreen(),
+            builder: (context, state) {
+              final rawCategory = state.uri.queryParameters['category'];
+              return DocumentFormScreen(
+                vehicleId: state.uri.queryParameters['vehicle'],
+                category: rawCategory == null
+                    ? null
+                    : DocumentCategory.fromString(rawCategory),
+              );
+            },
           ),
           GoRoute(
             path: ':documentId/edit',
@@ -543,7 +553,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.vehicleDetail(':id'),
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) =>
-            CarDetailScreen(vehicleId: state.pathParameters['id']!),
+            VehicleDetailScreen(vehicleId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.userDetail(':id'),

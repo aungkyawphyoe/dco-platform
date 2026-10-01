@@ -106,8 +106,8 @@ So that Dashboard is still usable as the home tab.
 ## Header
 
 - Leading: **hamburger icon** → opens drawer menu (sync, notifications, documents, parts, maintenance plan, insurance, stats, family, fleet, profile, sign out).
-- Vehicle chip shows nickname (fallback: name). Tap → My Garage (screen 4).
-- Garage affordance (wireframe label `garage`) → same destination.
+- Title shows a time-of-day greeting (morning < 12:00, afternoon 12:00–16:59, evening ≥ 17:00) over the user's display name; fall back to email when the name is empty, and to an empty string when both are empty.
+- Garage affordance (wireframe label `garage`) → My Garage (screen 4).
 - `Noti` → in-app notification feed.
 
 ## Vehicle identity (populated)
@@ -200,7 +200,7 @@ Yes → Identity + Ownership Summary + Quick Actions + Recent Activity + Next Ma
 
 ↓
 
-Chip / garage → My Garage → select vehicle → Dashboard
+Garage icon → My Garage → select vehicle → Dashboard
 
 or
 
@@ -242,8 +242,6 @@ None on this screen (no form). Child screens validate. Dashboard must tolerate m
 Events
 
 dashboard_opened
-
-dashboard_vehicle_chip_tapped
 
 dashboard_log_service_tapped
 

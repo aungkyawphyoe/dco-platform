@@ -263,6 +263,7 @@ export const documents = pgTable("documents", {
   name: text("name").notNull(),
   category: documentCategoryEnum("category").notNull(),
   notes: text("notes"),
+  expiresOn: date("expires_on"),
   mediaId: uuid("media_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

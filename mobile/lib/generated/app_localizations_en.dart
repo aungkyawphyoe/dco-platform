@@ -189,6 +189,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardNoVehicle => 'No vehicle';
 
   @override
+  String get greetingMorning => 'Good morning';
+
+  @override
+  String get greetingAfternoon => 'Good afternoon';
+
+  @override
+  String get greetingEvening => 'Good evening';
+
+  @override
   String get dashboardGarageTooltip => 'Garage';
 
   @override
@@ -1068,6 +1077,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get documentFormNotesHint => 'Optional';
+
+  @override
+  String get documentFormExpiryDate => 'Expiry date';
 
   @override
   String get documentFormFileSection => 'File';
@@ -2067,6 +2079,90 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get inviteTabCodeExpiryHelper =>
       'Code expires in 7 days. Regenerating invalidates the old code.';
+
+  @override
+  String get vehicleDetailTitle => 'My Vehicle';
+
+  @override
+  String get vehicleDetailTabOverview => 'Overview';
+
+  @override
+  String get vehicleDetailTabMaintenance => 'Maintenance';
+
+  @override
+  String get vehicleDetailTabDetails => 'Details';
+
+  @override
+  String get vehicleDetailNotFound => 'Vehicle not found';
+
+  @override
+  String get vehicleDetailNotFoundBody => 'It may have been archived.';
+
+  @override
+  String get vehicleDetailSetActive => 'Set as active';
+
+  @override
+  String get vehicleDetailNextService => 'Next Service';
+
+  @override
+  String get vehicleDetailNoPlan => 'No service plan';
+
+  @override
+  String get vehicleDetailHealth => 'Vehicle Health';
+
+  @override
+  String get vehicleDetailHealthGood => 'All good';
+
+  @override
+  String get vehicleDetailHealthAttention => 'Attention needed';
+
+  @override
+  String get vehicleDetailTire => 'Last tire service';
+
+  @override
+  String get vehicleDetailNoTireService => 'No tire service yet';
+
+  @override
+  String get vehicleDetailLicenseDue => 'License Due';
+
+  @override
+  String get vehicleDetailAddRegistration => 'Add registration';
+
+  @override
+  String get vehicleDetailExpired => 'Expired';
+
+  @override
+  String get vehicleDetailName => 'Name';
+
+  @override
+  String get vehicleDetailYear => 'Year';
+
+  @override
+  String get vehicleDetailMake => 'Make';
+
+  @override
+  String get vehicleDetailModel => 'Model';
+
+  @override
+  String get vehicleDetailPlate => 'License Plate';
+
+  @override
+  String get vehicleDetailMileage => 'Mileage';
+
+  @override
+  String get vehicleDetailFuelType => 'Fuel Type';
+
+  @override
+  String get vehicleDetailColor => 'Color';
+
+  @override
+  String get vehicleDetailPhoto => 'Photo';
+
+  @override
+  String get vehicleDetailPhotoAdded => 'Added';
+
+  @override
+  String get vehicleDetailPhotoNone => 'Not set';
 
   @override
   String get carDetailTitle => 'Car Detail';

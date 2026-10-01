@@ -763,6 +763,7 @@ export async function getFamilyVehicleDetail(db: Db, vehicleId: string, userId: 
       name: d.name,
       category: d.category,
       notes: d.notes,
+      expires_on: dateOnly(d.expiresOn),
       media_id: d.mediaId,
       created_at: iso(d.createdAt),
     })),

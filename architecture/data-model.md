@@ -144,6 +144,7 @@ erDiagram
     uuid vehicle_id FK
     string name
     enum category
+    date expires_on
     string notes
     uuid media_id FK
   }
@@ -299,6 +300,7 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 
 - One primary file per document (`media_objects`).
 - Document categories: `insurance` \| `registration` \| `invoice` \| `warranty` \| `receipt` \| `other`.
+- `documents.expires_on` optional expiry date (ISO `YYYY-MM-DD`); drives the Vehicle Detail "License Due" tile for `registration` documents.
 - Expense categories: `fuel` \| `maintenance` \| `insurance` \| `parking` \| `tolls` \| `parts` \| `other`.
 - Expense `fuel` is **money only** (no litres, no kWh). Volume and kWh live on `fuel_logs`. Expense `maintenance` does **not** auto-create from service records. Dashboard totals read **expenses only**.
 - Assigned parts on an expense snapshot `name` on `expense_parts` so later catalog edits do not rewrite history.

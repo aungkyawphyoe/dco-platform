@@ -123,6 +123,10 @@ async function applyOp(app: FastifyInstance, auth: string, op: Op): Promise<"app
     return finish(await call("POST", `/vehicles/${vehicleId}/service-records`, payload));
   }
   if (op.entity_type === "document" && op.op === "upsert") {
+    const existing = await call("GET", `/documents/${op.entity_id}`);
+    if (existing.statusCode === 200) {
+      return finish(await call("PATCH", `/documents/${op.entity_id}`, op.payload));
+    }
     return finish(await call("POST", `/vehicles/${vehicleId}/documents`, payload));
   }
   if (op.entity_type === "document" && op.op === "delete") {

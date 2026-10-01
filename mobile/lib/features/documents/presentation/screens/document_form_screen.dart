@@ -14,13 +14,21 @@ import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:uuid/uuid.dart';
 
 class DocumentFormScreen extends ConsumerStatefulWidget {
-  const DocumentFormScreen({super.key, this.documentId});
+  const DocumentFormScreen({
+    super.key,
+    this.documentId,
+    this.vehicleId,
+    this.category,
+  });
 
   final String? documentId;
+  final String? vehicleId;
+  final DocumentCategory? category;
 
   bool get isEditing => documentId != null;
 
@@ -32,10 +40,12 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   final _name = TextEditingController();
   final _notes = TextEditingController();
   final _categoryLabel = TextEditingController();
+  final _expiry = TextEditingController();
   final _errors = <String, String?>{};
 
   DocumentCategory? _category;
   String? _localFilePath;
+  DateTime? _expiresOn;
   String? _formError;
   bool _loading = true;
   bool _saving = false;
@@ -57,10 +67,17 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
         _category = doc.category;
         _categoryLabel.text = _categoryLabelFor(doc.category);
         _notes.text = doc.notes ?? '';
+        _expiresOn = doc.expiresOn;
+        if (doc.expiresOn != null) {
+          _expiry.text = DateFormat.yMMMd().format(doc.expiresOn!);
+        }
         _localFilePath = doc.localFilePath;
       } else if (mounted) {
         _missing = true;
       }
+    } else if (widget.category != null) {
+      _category = widget.category;
+      _categoryLabel.text = _categoryLabelFor(widget.category!);
     }
     if (mounted) setState(() => _loading = false);
   }
@@ -70,6 +87,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     _name.dispose();
     _notes.dispose();
     _categoryLabel.dispose();
+    _expiry.dispose();
     super.dispose();
   }
 
@@ -85,6 +103,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       name: _name.text.trim(),
       category: _category!,
       notes: _notes.text,
+      expiresOn: _expiresOn,
       localFilePath: _localFilePath,
     );
   }
@@ -92,21 +111,25 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   Future<void> _save() async {
     final draft = _draftOrNull();
     if (draft == null) return;
-    final vehicle = ref.read(activeVehicleProvider).valueOrNull;
-    if (vehicle == null) return;
+    final vehicleId =
+        widget.vehicleId ?? ref.read(activeVehicleProvider).valueOrNull?.id;
+    final userId =
+        ref.read(activeVehicleProvider).valueOrNull?.userId ??
+            ref.read(vehicleByIdProvider(vehicleId ?? '')).valueOrNull?.userId;
+    if (vehicleId == null || userId == null) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(documentRepositoryProvider);
       if (widget.isEditing) {
         await repo.update(
-          userId: vehicle.userId,
+          userId: userId,
           documentId: widget.documentId!,
           draft: draft,
         );
       } else {
         await repo.add(
-          userId: vehicle.userId,
-          vehicleId: vehicle.id,
+          userId: userId,
+          vehicleId: vehicleId,
           draft: draft,
         );
         ref.read(analyticsProvider).track(AnalyticsEvent.documentUploaded);
@@ -126,8 +149,14 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   Future<void> _delete() async {
-    final vehicle = ref.read(activeVehicleProvider).valueOrNull;
-    if (vehicle == null || widget.documentId == null) return;
+    final vehicleId =
+        widget.vehicleId ?? ref.read(activeVehicleProvider).valueOrNull?.id;
+    final userId =
+        ref.read(activeVehicleProvider).valueOrNull?.userId ??
+            ref.read(vehicleByIdProvider(vehicleId ?? '')).valueOrNull?.userId;
+    if (vehicleId == null || userId == null || widget.documentId == null) {
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -152,7 +181,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     setState(() => _saving = true);
     try {
       await ref.read(documentRepositoryProvider).delete(
-            userId: vehicle.userId,
+            userId: userId,
             documentId: widget.documentId!,
           );
       ref.read(analyticsProvider).track(AnalyticsEvent.documentDeleted);
@@ -305,6 +334,27 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     return null;
   }
 
+  Future<void> _pickExpiry() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _expiresOn ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 20)),
+    );
+    if (picked == null || !mounted) return;
+    setState(() {
+      _expiresOn = picked;
+      _expiry.text = DateFormat.yMMMd().format(picked);
+    });
+  }
+
+  void _clearExpiry() {
+    setState(() {
+      _expiresOn = null;
+      _expiry.clear();
+    });
+  }
+
   String _categoryLabelFor(DocumentCategory category) => switch (category) {
         DocumentCategory.insurance => 'Insurance',
         DocumentCategory.registration => 'Registration',
@@ -318,9 +368,12 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
-    final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
+    final vehicleId = widget.vehicleId;
+    final vehicleAsync = vehicleId != null
+        ? ref.watch(vehicleByIdProvider(vehicleId))
+        : ref.watch(activeVehicleProvider);
 
-    if (_loading) {
+    if (_loading || vehicleAsync.isLoading) {
       return Scaffold(
         appBar: AppBar(
             title: Text(
@@ -328,6 +381,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
         body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
       );
     }
+
+    final vehicle = vehicleAsync.valueOrNull;
 
     if (vehicle == null) {
       return Scaffold(
@@ -388,6 +443,31 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                   onTap: _pickCategory,
                   errorText: _errors['category'],
                   suffix: Icon(Icons.expand_more, color: tokens.icon.inactive),
+                ),
+                SizedBox(height: tokens.space.s4),
+                DcoTextField(
+                  key: const Key('document-expiry'),
+                  label: s.documentFormExpiryDate,
+                  controller: _expiry,
+                  readOnly: true,
+                  hint: s.documentFormNotesHint,
+                  onTap: _pickExpiry,
+                  suffix: _expiresOn == null
+                      ? Icon(Icons.expand_more, color: tokens.icon.inactive)
+                      : Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              key: const Key('document-expiry-clear'),
+                              tooltip: s.remove,
+                              icon: Icon(Icons.close,
+                                  color: tokens.icon.inactive, size: 20),
+                              onPressed: _clearExpiry,
+                            ),
+                            Icon(Icons.expand_more,
+                                color: tokens.icon.inactive),
+                          ],
+                        ),
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(

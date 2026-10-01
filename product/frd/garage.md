@@ -124,15 +124,13 @@ Display
 
 ## Vehicle Detail
 
-Sections
+Collapsing hero (vehicle photo or icon fallback, name, plate, Edit link, "Set as active" when inactive) plus three tabs:
 
-- Overview
-- Maintenance
-- Expenses
-- Documents
-- Service History
+- **Overview** — 4 tiles: Next Service (→ register / maintenance plan), Vehicle Health (plan urgency: all good / attention needed), Last tire service (→ service history, derived from records with tire keywords), License Due (→ add/edit registration document; expiry stored on `Document.expires_on`).
+- **Maintenance** — service history for this vehicle (shared list widget).
+- **Details** — read-only identity rows (name, year, make, model, plate, mileage, fuel type, color).
 
-Do not add Fuel or Insurance as vehicle-detail modules in MVP. Insurance files live in Documents. Fuel spend can be logged as an expense.
+Do not add Fuel or Insurance as vehicle-detail modules in MVP. Insurance files live in Documents. Fuel spend can be logged as an expense. No purchase price row, no overflow menu (Edit lives in the hero). Overview tiles show placeholder/empty copy until the underlying data exists.
 
 ---
 

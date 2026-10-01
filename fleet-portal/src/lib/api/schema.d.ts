@@ -5743,6 +5743,8 @@ export interface components {
             name: string;
             category: components["schemas"]["DocumentCategory"];
             notes?: string | null;
+            /** @description Expiry / due date of the document (e.g. registration or insurance renewal). YYYY-MM-DD. */
+            expires_on?: string | null;
             /** Format: uuid */
             media_id?: string | null;
             /** Format: date-time */
@@ -5754,6 +5756,7 @@ export interface components {
             name: string;
             category: components["schemas"]["DocumentCategory"];
             notes?: string;
+            expires_on?: string | null;
             /** Format: uuid */
             media_id?: string;
         };
@@ -5761,6 +5764,7 @@ export interface components {
             name?: string;
             category?: components["schemas"]["DocumentCategory"];
             notes?: string;
+            expires_on?: string | null;
             /** Format: uuid */
             media_id?: string;
         };
@@ -5830,6 +5834,8 @@ export interface components {
             logged_on: string;
             amount: number;
             cost: number;
+            /** @description Optional reading in the vehicle's mileage unit. >= vehicle mileage; if greater, bumps vehicles.mileage. */
+            odometer?: number | null;
         };
         FuelLogWrite: {
             /** Format: uuid */
@@ -5840,6 +5846,7 @@ export interface components {
             logged_on: string;
             amount: number;
             cost: number;
+            odometer?: number;
         };
         FuelLogPatch: {
             /** Format: uuid */
@@ -5848,6 +5855,7 @@ export interface components {
             logged_on?: string;
             amount?: number;
             cost?: number;
+            odometer?: number;
         };
         Expense: {
             /** Format: uuid */

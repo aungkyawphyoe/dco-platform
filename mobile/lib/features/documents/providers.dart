@@ -8,3 +8,11 @@ final vehicleDocumentsProvider = StreamProvider<List<Document>>((ref) {
   if (vehicleId == null) return Stream.value(const []);
   return ref.watch(documentRepositoryProvider).watchForVehicle(vehicleId);
 });
+
+/// Same data as [vehicleDocumentsProvider], keyed by an explicit vehicle id
+/// so the vehicle detail screen can render for a non-active vehicle.
+final documentsForVehicleProvider =
+    StreamProvider.family<List<Document>, String>((ref, vehicleId) {
+  if (vehicleId.isEmpty) return Stream.value(const []);
+  return ref.watch(documentRepositoryProvider).watchForVehicle(vehicleId);
+});

@@ -54,6 +54,16 @@ class VehicleRepositoryImpl implements VehicleRepository {
   }
 
   @override
+  Stream<Vehicle?> watchById(String id) {
+    final query = _db.select(_db.vehicleRecords)
+      ..where((row) => row.id.equals(id));
+    return query.watch().map((rows) {
+      if (rows.isEmpty) return null;
+      return vehicleFromDrift(rows.first);
+    });
+  }
+
+  @override
   Future<Vehicle?> getById(String id) async {
     final row = await (_db.select(
       _db.vehicleRecords,

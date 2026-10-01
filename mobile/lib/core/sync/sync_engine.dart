@@ -485,6 +485,7 @@ class SyncEngine {
     'name': row.name,
     'category': row.category,
     'notes': row.notes,
+    'expires_on': row.expiresOn?.toIso8601String().split('T').first,
     'media_id': row.mediaId,
   };
 
