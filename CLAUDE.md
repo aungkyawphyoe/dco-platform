@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Product is production-ready. `product/production-scope.md` is the active scope contract; `product/mvp-scope.md` is the closed Phase 1 record (includes Family Sharing). `product/frd/` holds FRDs for Dashboard, Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, Admin, and Family Sharing. `docs/design-system.md` and `docs/theme/garage-minimal-dark.json` are the shared Flutter + web visual tokens.
+Product is production-ready. `product/production-scope.md` is the active scope contract; `product/mvp-scope.md` is the closed Phase 1 record (includes Family Sharing). `product/frd/` holds FRDs for Dashboard, Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, Admin, and Family Sharing. `docs/design-system.md` and `docs/theme/garage-minimal-{dark,light}.json` are the shared Flutter + web visual tokens (generated into CSS/Dart by `tools/generate-theme.mjs`).
 
 Implementation docs are in place: `architecture/system.md` (Accepted), `architecture/data-model.md` (Binding), `architecture/iam.md` (Binding), `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md`. Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A7).
 
@@ -64,7 +64,7 @@ npm run dev
 npm test
 ```
 
-Stack: Next.js 15 App Router, TanStack Query, Tailwind + tokens from `docs/theme/garage-minimal-dark.json`, types generated from `architecture/openapi.yaml`. Session: httpOnly cookies via Route Handler BFF (`/api/auth/*`); see `docs/adr/web-stack.md`.
+Stack: Next.js 15 App Router, TanStack Query, Tailwind + tokens from `docs/theme/garage-minimal-{dark,light}.json`, types generated from `architecture/openapi.yaml`. Session: httpOnly cookies via Route Handler BFF (`/api/auth/*`); see `docs/adr/web-stack.md`.
 
 ### Fleet portal (Next.js)
 

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth/session-context";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface TopBarProps {
   user: { id: string; email: string; display_name: string | null; role: string; family_id: string | null };
@@ -31,6 +32,7 @@ export function TopBar({ user }: TopBarProps) {
       </div>
 
       <div className="flex items-center gap-4">
+        <ThemeToggle />
         <Button variant="ghost" size="sm" onClick={onSignOut}>
           Sign out
         </Button>

@@ -46,6 +46,7 @@ import '../../features/notes/presentation/screens/note_form_screen.dart';
 import '../../features/notes/presentation/screens/notes_screen.dart';
 import '../../features/parts/presentation/screens/part_form_screen.dart';
 import '../../features/parts/presentation/screens/parts_screen.dart';
+import '../../features/settings/presentation/screens/appearance_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
 import '../../features/settings/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/reminders_screen.dart';
@@ -282,6 +283,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'reminders',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const RemindersScreen(),
+                  ),
+                  GoRoute(
+                    path: 'appearance',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const AppearanceScreen(),
                   ),
                 ],
               ),

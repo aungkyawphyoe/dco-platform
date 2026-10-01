@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:flutter/material.dart';
 
 class CustomFloatingNavBar extends StatefulWidget {
@@ -23,12 +24,6 @@ class CustomFloatingNavBar extends StatefulWidget {
 }
 
 class _CustomFloatingNavBarState extends State<CustomFloatingNavBar> {
-  static const _barBackground = Color(0xFF1A2832);
-  static const _glowBorder = Color(0xFFFECA1F);
-  static const _activeFill = Color(0xFF2A2518);
-  static const _inactiveIcon = Color(0xFF6C7D8A);
-  static const _activeContent = Colors.white;
-  static const _dropShadow = Color(0x44101B22);
   static const _itemPadding = EdgeInsets.symmetric(horizontal: 14, vertical: 8);
   static const _gap = 6.0;
   static const _radius = 50.0;
@@ -40,6 +35,13 @@ class _CustomFloatingNavBarState extends State<CustomFloatingNavBar> {
   Widget build(BuildContext context) {
     final selectedIndex = widget.currentIndex;
     final items = widget.items;
+    final tokens = context.tokens;
+    final barBackground = tokens.background.secondary;
+    final glowBorder = tokens.border.highlight;
+    final activeFill = tokens.background.navActive;
+    final inactiveIcon = tokens.icon.inactive;
+    final activeContent = tokens.text.accent;
+    final dropShadow = tokens.background.primary.withValues(alpha: 0x44 / 255);
 
     return Padding(
       padding: EdgeInsets.only(bottom: widget.bottomMargin),
@@ -52,11 +54,11 @@ class _CustomFloatingNavBarState extends State<CustomFloatingNavBar> {
           clipBehavior: Clip.none,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              color: _barBackground,
+              color: barBackground,
               borderRadius: BorderRadius.circular(_radius),
               boxShadow: [
                 BoxShadow(
-                  color: _dropShadow,
+                  color: dropShadow,
                   blurRadius: 12,
                   spreadRadius: 0,
                   offset: const Offset(0, 4),
@@ -78,10 +80,10 @@ class _CustomFloatingNavBarState extends State<CustomFloatingNavBar> {
                         selected: selectedIndex == i,
                         onTap: () => widget.onTap(i),
                         barRadius: _radius,
-                        activeFill: _activeFill,
-                        glowBorder: _glowBorder,
-                        inactiveIcon: _inactiveIcon,
-                        activeContent: _activeContent,
+                        activeFill: activeFill,
+                        glowBorder: glowBorder,
+                        inactiveIcon: inactiveIcon,
+                        activeContent: activeContent,
                         itemPadding: _itemPadding,
                         gap: _gap,
                       ),

@@ -75,12 +75,22 @@ class MaintenanceScreen extends ConsumerWidget {
                 PlanUrgency.scheduled;
           }).toList();
           upcoming.sort(
-            (a, b) =>
-                DueCalculator.compareSoonest(a, b, vehicle.mileage, now, thresholds),
+            (a, b) => DueCalculator.compareSoonest(
+              a,
+              b,
+              vehicle.mileage,
+              now,
+              thresholds,
+            ),
           );
           scheduled.sort(
-            (a, b) =>
-                DueCalculator.compareSoonest(a, b, vehicle.mileage, now, thresholds),
+            (a, b) => DueCalculator.compareSoonest(
+              a,
+              b,
+              vehicle.mileage,
+              now,
+              thresholds,
+            ),
           );
 
           return Stack(
@@ -155,7 +165,7 @@ class MaintenanceScreen extends ConsumerWidget {
                   height: 56.0,
                   child: FloatingActionButton.extended(
                     backgroundColor: tokens.button.primary.background,
-                    foregroundColor: tokens.text.inverse,
+                    foregroundColor: tokens.text.onAccent,
                     heroTag: 'btn-add-maintenance',
                     onPressed: () =>
                         context.push(AppRoutes.maintenanceRegister),

@@ -147,7 +147,7 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
                       selected: selected,
                       onSelected: (_) => _selectKind(kind),
                       showCheckmark: false,
-                      selectedColor: tokens.text.accent,
+                      selectedColor: tokens.button.primary.background,
                       labelStyle: TextStyle(
                         color: selected ? tokens.text.onAccent : tokens.text.primary,
                       ),
@@ -171,7 +171,7 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
                         _errors['unit'] = null;
                       }),
                       showCheckmark: false,
-                      selectedColor: tokens.text.accent,
+                      selectedColor: tokens.button.primary.background,
                       labelStyle: TextStyle(
                         color: selected ? tokens.text.onAccent : tokens.text.primary,
                       ),

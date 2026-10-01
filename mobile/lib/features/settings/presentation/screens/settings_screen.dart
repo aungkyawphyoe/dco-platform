@@ -184,6 +184,30 @@ class SettingsScreen extends ConsumerWidget {
                           onTap: () =>
                               context.push(AppRoutes.settingsReminders),
                         ),
+                        Divider(
+                          height: 1,
+                          indent: 16,
+                          color: tokens.border.divider,
+                        ),
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              tokens.radius.lg,
+                            ),
+                          ),
+                          title: Text(s.settingsAppearance),
+                          subtitle: Text(
+                            prefs.themeMode.label,
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: tokens.text.caption),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                          onTap: () =>
+                              context.push(AppRoutes.settingsAppearance),
+                        ),
                       ],
                     ),
                   ),

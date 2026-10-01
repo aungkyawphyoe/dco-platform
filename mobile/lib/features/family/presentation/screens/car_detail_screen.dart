@@ -430,7 +430,7 @@ class _DriverTile extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: context.tokens.text.accent,
+            backgroundColor: context.tokens.button.primary.background,
             child: Text(
               driver.displayName.isNotEmpty
                   ? driver.displayName[0].toUpperCase()
@@ -680,7 +680,7 @@ class _DriverListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: tokens.text.accent,
+        backgroundColor: tokens.button.primary.background,
         child: Text(
           driver.displayName[0].toUpperCase(),
           style: TextStyle(color: tokens.text.onAccent),
@@ -713,7 +713,7 @@ class _AddDriverTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: tokens.text.accent,
+        backgroundColor: tokens.button.primary.background,
         child: Text(
           member.displayName?[0].toUpperCase() ?? member.email[0].toUpperCase(),
           style: TextStyle(color: tokens.text.onAccent),

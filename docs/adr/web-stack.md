@@ -6,7 +6,7 @@
 
 ## Context
 
-The web surface is internal staff only: login, dashboard counts, user management, partner records (`product/frd/admin.md`, routes in `docs/app-shell.md` "Web admin IA"). It is online-only and never touches the mobile sync engine. The backend contract is REST `/v1` + JWT with audiences `dco-owner` / `dco-admin` (`architecture/openapi.yaml`). Hosting is Azure Container Apps (`docs/adr/azure-hosting.md`). Visual tokens are shared via `docs/theme/garage-minimal-dark.json`.
+The web surface is internal staff only: login, dashboard counts, user management, partner records (`product/frd/admin.md`, routes in `docs/app-shell.md` "Web admin IA"). It is online-only and never touches the mobile sync engine. The backend contract is REST `/v1` + JWT with audiences `dco-owner` / `dco-admin` (`architecture/openapi.yaml`). Hosting is Azure Container Apps (`docs/adr/azure-hosting.md`). Visual tokens are shared via `docs/theme/garage-minimal-dark.json` + `garage-minimal-light.json` (generated into `src/app/theme-tokens.css` by `tools/generate-theme.mjs`; the `dco_theme` cookie drives Light/Dark/System with a pre-paint script).
 
 The API returns tokens in the JSON response body only — there is no cookie support on Fastify. Two separate Container App FQDNs make cross-domain cookies unusable.
 
@@ -19,7 +19,7 @@ The API returns tokens in the JSON response body only — there is no cookie sup
 | Data fetching | TanStack Query against Fastify `/v1/admin/*` with Bearer access token |
 | Validation | Zod, aligned to the OpenAPI contract |
 | Types | Generated from `architecture/openapi.yaml` via `openapi-typescript` |
-| Styling | Tailwind consuming CSS vars generated from `garage-minimal-dark.json` |
+| Styling | Tailwind consuming CSS vars generated from `garage-minimal-{dark,light}.json` by `tools/generate-theme.mjs` (`npm run gen:theme`) |
 | Fonts | `next/font/google`: Barlow, IBM Plex Sans, IBM Plex Mono (self-hosted at build) |
 | Session storage | httpOnly cookies set by a Next.js Route Handler BFF (`/api/auth/*`) |
 | Access token | Memory-only in the browser; silent renewal through the BFF |

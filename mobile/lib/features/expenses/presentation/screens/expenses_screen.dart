@@ -134,7 +134,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                         height: 56.0,
                         child: FloatingActionButton.extended(
                           backgroundColor: tokens.button.primary.background,
-                          foregroundColor: tokens.text.inverse,
+                          foregroundColor: tokens.text.onAccent,
                           heroTag: 'btn-add-expense',
                           onPressed: () => context.push(AppRoutes.expenseNew),
                           label: Text(s.expensesAddExpense),
@@ -363,7 +363,9 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Material(
-      color: selected ? tokens.text.accent : tokens.background.input,
+      color: selected
+          ? tokens.button.primary.background
+          : tokens.background.input,
       borderRadius: BorderRadius.circular(tokens.radius.full),
       elevation: selected ? 2 : 0,
       shadowColor: selected
@@ -435,7 +437,7 @@ class _ExpenseTile extends StatelessWidget {
                         color.withValues(alpha: 0.08),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                    borderRadius: BorderRadius.circular(tokens.radius.full),
                   ),
                   child: Icon(expense.category.icon, color: color, size: 22),
                 ),

@@ -210,7 +210,7 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Material(
-      color: selected ? tokens.text.accent : tokens.background.input,
+      color: selected ? tokens.button.primary.background : tokens.background.input,
       borderRadius: BorderRadius.circular(tokens.radius.full),
       child: InkWell(
         onTap: onTap,

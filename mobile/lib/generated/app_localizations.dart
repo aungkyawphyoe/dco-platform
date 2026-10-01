@@ -2894,6 +2894,30 @@ abstract class AppLocalizations {
   /// **'Reminders'**
   String get settingsReminders;
 
+  /// No description provided for @settingsAppearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsAppearance;
+
+  /// No description provided for @appearanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get appearanceTitle;
+
+  /// No description provided for @appearanceTheme.
+  ///
+  /// In en, this message translates to:
+  /// **'Theme'**
+  String get appearanceTheme;
+
+  /// No description provided for @appearanceSystemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'System follows your device\'s light or dark setting.'**
+  String get appearanceSystemHint;
+
   /// No description provided for @settingsRemindersSummary.
   ///
   /// In en, this message translates to:

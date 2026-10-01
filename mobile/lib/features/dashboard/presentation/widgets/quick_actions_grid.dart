@@ -72,7 +72,7 @@ class _QuickActionTile extends StatelessWidget {
                         item.color.withValues(alpha: 0.08),
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(tokens.radius.lg),
+                    borderRadius: BorderRadius.circular(tokens.radius.full),
                   ),
                   child: Icon(item.icon, color: item.color, size: 20),
                 ),

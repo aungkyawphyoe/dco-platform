@@ -1,9 +1,11 @@
-# Design system — Garage Minimal Dark
+# Design system — Garage Minimal (Dark + Light)
 
-Shared visual language for the **Flutter owner app** and the **web admin portal**. Tokens live in [`garage-minimal-dark.json`](theme/garage-minimal-dark.json). Do not invent extra hexes in UI code.
+Shared visual language for the **Flutter owner app**, the **web admin portal**, and the **fleet portal**. Tokens live in [`garage-minimal-dark.json`](theme/garage-minimal-dark.json) and [`garage-minimal-light.json`](theme/garage-minimal-light.json) (identical key sets). Do not invent extra hexes in UI code.
 
-**Mode:** dark only for MVP.  
-**Signature:** brass bay-light (`#FECA1F`) on painted-steel navy. Gold is for primary actions and the active vehicle — not for large fills, not for overdue.
+**Modes:** dark and light (default follows the system).  
+**Signature:** brass bay-light (`#FECA1F`) on painted-steel navy (dark) / deep brass (`#876800`) text on cool gray with pure white cards (light). Gold is for primary actions and the active vehicle — not for large fills, not for overdue.
+
+**Fixed-color exemptions (intentional, not drift):** QR codes stay dark modules on white in both modes (they do not scan otherwise); brand logo plates keep their white background in both modes.
 
 ---
 
@@ -98,9 +100,11 @@ Not allowed: screen backgrounds, overdue badges, chart-only decoration, large he
 
 ## Platform mapping
 
+Both modes are **generated** from the two JSON files by [`tools/generate-theme.mjs`](../tools/generate-theme.mjs) — run `npm run gen:theme` from `web/` or `fleet-portal/` (or `node tools/generate-theme.mjs` from the repo root) after editing either JSON. The generator validates that dark and light have identical token key sets.
+
 ### Flutter
 
-Map into `ColorScheme` + a `ThemeExtension<DcoTokens>` that exposes the JSON 1:1 (status, radius, space).  
+Generated into `dco_tokens.g.dart` as `DcoTokens.garageMinimalDark` / `garageMinimalLight`; `buildDcoTheme(Brightness)` picks the set and `MaterialApp.router` gets `theme` + `darkTheme` + `themeMode` (Light / Dark / System from Settings → Appearance).  
 `ThemeData`:
 
 - `scaffoldBackgroundColor` → background.primary
@@ -110,23 +114,29 @@ Map into `ColorScheme` + a `ThemeExtension<DcoTokens>` that exposes the JSON 1:1
 - `colorScheme.error` → status.danger.fg
 - `navigationBarTheme` icons → icon.active / icon.inactive
 
-No Material 3 default purple. Seed from this file only.
+No Material 3 default purple. Seed from these files only.
 
-### Web (admin)
+### Web (admin + fleet)
 
-CSS variables on `:root` from the same JSON (build step or copied once). Example:
+Generated `theme-tokens.css` defines the CSS variables under `:root, html.light` (light values) and `html.dark` (dark values). The `dco_theme` cookie carries the user's Light / Dark / System choice; SSR renders the class and a pre-paint inline script resolves `system` via `prefers-color-scheme` (no flash). Example:
 
 ```css
-:root {
-  --bg-primary: #101B22;
-  --bg-card: #1E2D38;
-  --text-primary: #ffffff;
-  --accent: #feca1f;
+html.light {
+  --bg-primary: #f4f6f8;
+  --bg-card: #ffffff;
+  --text-primary: #101b22;
+  --accent: #876800;
   --radius-md: 8px;
 }
 ```
 
-Admin uses the same dark shell. Tables sit on `background.card`; sticky header on `background.secondary`.
+The shell is the same in both modes. Tables sit on `background.card`; sticky header on `background.secondary`.
+
+### Light mode notes
+
+- **Gold splits in two:** bright `#FECA1F` stays as button/chip **fill** (with `text.onAccent`); accent **text**, links, focus rings, and active icons use deep brass `#876800` (AA on white and on the gray page).
+- Status and chart hues are darkened variants (all ≥ 3:1 on white; status text ≥ 4.5:1).
+- Cards are pure white on a `#F4F6F8` page; separation comes from borders plus a subtle card shadow (`elevation.card`).
 
 ---
 
@@ -143,6 +153,6 @@ Admin uses the same dark shell. Tables sit on `background.card`; sticky header o
 ## Source of truth
 
 1. This document for rules  
-2. [`docs/theme/garage-minimal-dark.json`](theme/garage-minimal-dark.json) for values  
+2. [`docs/theme/garage-minimal-dark.json`](theme/garage-minimal-dark.json) + [`docs/theme/garage-minimal-light.json`](theme/garage-minimal-light.json) for values (regenerate via `tools/generate-theme.mjs` after edits)
 
 If a screen needs a new color, add it here first. Do not one-off hex in widgets.

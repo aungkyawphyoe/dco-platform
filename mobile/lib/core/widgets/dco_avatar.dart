@@ -23,7 +23,7 @@ class DcoAvatar extends StatelessWidget {
 
     return CircleAvatar(
       radius: radius,
-      backgroundColor: backgroundColor ?? tokens.text.accent,
+      backgroundColor: backgroundColor ?? tokens.button.primary.background,
       child: Text(
         initials,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(

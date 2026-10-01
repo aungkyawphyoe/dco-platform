@@ -36,7 +36,6 @@ Contract for *what* to build remains `product/mvp-scope.md` and `product/frd/`.
 - Component Storybook / widget catalog (build from the theme as screens land)
 - Push provider runbook (register token now; send later)
 - Marketing site and store listing copy
-- Light theme
 - Localization plan beyond one locale
 - Azure VPS runbook (superseded by Container Apps; see `docs/adr/azure-hosting.md`)
 

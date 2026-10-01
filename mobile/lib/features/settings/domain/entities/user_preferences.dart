@@ -43,11 +43,39 @@ enum AppCurrency {
   }
 }
 
+enum AppThemeMode {
+  system,
+  light,
+  dark;
+
+  String get code => switch (this) {
+    AppThemeMode.system => 'system',
+    AppThemeMode.light => 'light',
+    AppThemeMode.dark => 'dark',
+  };
+
+  String get label => switch (this) {
+    AppThemeMode.system => 'System',
+    AppThemeMode.light => 'Light',
+    AppThemeMode.dark => 'Dark',
+  };
+
+  static AppThemeMode parse(String value) {
+    // Enum names are the same strings ('light'/'dark'/'system').
+    return switch (value) {
+      'light' => AppThemeMode.light,
+      'dark' => AppThemeMode.dark,
+      _ => AppThemeMode.system,
+    };
+  }
+}
+
 class UserPreferences {
   const UserPreferences({
     required this.language,
     required this.currency,
     required this.lengthUnit,
+    this.themeMode = AppThemeMode.system,
     this.soonDays = 30,
     this.soonDistanceKm = 500,
   });
@@ -56,6 +84,7 @@ class UserPreferences {
     language: AppLanguage.myanmar,
     currency: AppCurrency.mmk,
     lengthUnit: MileageUnit.km,
+    themeMode: AppThemeMode.system,
     soonDays: 30,
     soonDistanceKm: 500,
   );
@@ -63,6 +92,9 @@ class UserPreferences {
   final AppLanguage language;
   final AppCurrency currency;
   final MileageUnit lengthUnit;
+
+  /// Light / Dark / follow the system. Default: system.
+  final AppThemeMode themeMode;
 
   /// How many days before the due date a plan item counts as upcoming.
   final int soonDays;
@@ -74,6 +106,7 @@ class UserPreferences {
     AppLanguage? language,
     AppCurrency? currency,
     MileageUnit? lengthUnit,
+    AppThemeMode? themeMode,
     int? soonDays,
     double? soonDistanceKm,
   }) {
@@ -81,6 +114,7 @@ class UserPreferences {
       language: language ?? this.language,
       currency: currency ?? this.currency,
       lengthUnit: lengthUnit ?? this.lengthUnit,
+      themeMode: themeMode ?? this.themeMode,
       soonDays: soonDays ?? this.soonDays,
       soonDistanceKm: soonDistanceKm ?? this.soonDistanceKm,
     );

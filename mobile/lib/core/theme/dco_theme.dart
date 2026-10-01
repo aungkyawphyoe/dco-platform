@@ -3,20 +3,37 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'dco_tokens.dart';
 
-ThemeData buildDcoTheme() {
-  const tokens = DcoTokens.garageMinimalDark;
-  final scheme = ColorScheme.dark(
-    primary: tokens.text.accent,
-    onPrimary: tokens.text.onAccent,
-    secondary: tokens.background.secondary,
-    onSecondary: tokens.text.primary,
-    error: tokens.status.dangerFg,
-    onError: tokens.text.primary,
-    surface: tokens.background.card,
-    onSurface: tokens.text.primary,
-    outline: tokens.border.defaultColor,
-    outlineVariant: tokens.border.divider,
-  );
+/// Builds the app theme for [brightness] from the generated token set of the
+/// matching mode (`garage-minimal-dark.json` / `garage-minimal-light.json`).
+ThemeData buildDcoTheme(Brightness brightness) {
+  final tokens = brightness == Brightness.dark
+      ? DcoTokens.garageMinimalDark
+      : DcoTokens.garageMinimalLight;
+  final scheme = brightness == Brightness.dark
+      ? ColorScheme.dark(
+          primary: tokens.text.accent,
+          onPrimary: tokens.text.onAccent,
+          secondary: tokens.background.secondary,
+          onSecondary: tokens.text.primary,
+          error: tokens.status.dangerFg,
+          onError: tokens.text.primary,
+          surface: tokens.background.card,
+          onSurface: tokens.text.primary,
+          outline: tokens.border.defaultColor,
+          outlineVariant: tokens.border.divider,
+        )
+      : ColorScheme.light(
+          primary: tokens.text.accent,
+          onPrimary: tokens.text.onAccent,
+          secondary: tokens.background.secondary,
+          onSecondary: tokens.text.primary,
+          error: tokens.status.dangerFg,
+          onError: tokens.text.primary,
+          surface: tokens.background.card,
+          onSurface: tokens.text.primary,
+          outline: tokens.border.defaultColor,
+          outlineVariant: tokens.border.divider,
+        );
 
   final barlowTitle = GoogleFonts.barlow(
     fontWeight: FontWeight.w600,
@@ -29,13 +46,13 @@ ThemeData buildDcoTheme() {
 
   return ThemeData(
     useMaterial3: true,
-    brightness: Brightness.dark,
+    brightness: brightness,
     colorScheme: scheme,
     scaffoldBackgroundColor: tokens.background.primary,
     canvasColor: tokens.background.primary,
     cardColor: tokens.background.card,
     dividerColor: tokens.border.divider,
-    extensions: const [tokens],
+    extensions: [tokens],
     cardTheme: CardThemeData(
       color: tokens.background.card,
       elevation: 0,

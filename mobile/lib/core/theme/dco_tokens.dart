@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 
-/// 1:1 map of `docs/theme/garage-minimal-dark.json`.
+part 'dco_tokens.g.dart';
+
+/// 1:1 map of `docs/theme/garage-minimal-{dark,light}.json` (generated values in
+/// `dco_tokens.g.dart`; run `node tools/generate-theme.mjs` after editing them).
 /// If a screen needs a new color, add it there first — no one-off hex in widgets.
 @immutable
 class DcoTokens extends ThemeExtension<DcoTokens> {
@@ -34,140 +37,11 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
   final DcoMotion motion;
   final DcoShadows shadows;
 
-  static const garageMinimalDark = DcoTokens(
-    background: DcoBackground(
-      primary: Color(0xFF101B22),
-      secondary: Color(0xFF1A2832),
-      card: Color(0xFF1E2D38),
-      input: Color(0xFF16242D),
-      nav: Color(0xFF101B22),
-      overlay: Color(0xB8101B22),
-      skeleton: Color(0xFF243441),
-    ),
-    text: DcoTextColors(
-      primary: Color(0xFFFFFFFF),
-      secondary: Color(0xFFA8B6C1),
-      tertiary: Color(0xFF6C7D8A),
-      caption: Color(0xFF8A9BA8),
-      accent: Color(0xFFEEB757),
-      onAccent: Color(0xFF101B22),
-      disabled: Color(0xFF6C7D8A),
-      link: Color(0xFFEEB757),
-      inverse: Color(0xFF101B22),
-    ),
-    button: DcoButtons(
-      primary: DcoButtonColors(
-        background: Color(0xFFFECA1F),
-        backgroundHover: Color(0xFFF2C36A),
-        backgroundPressed: Color(0xFFD4A44A),
-        backgroundDisabled: Color(0xFF5C5340),
-        text: Color(0xFF101B22),
-        textDisabled: Color(0xFFA8B6C1),
-        border: Color(0x00000000),
-      ),
-      secondary: DcoButtonColors(
-        background: Color(0xFF1E2D38),
-        backgroundHover: Color(0xFF243441),
-        backgroundPressed: Color(0xFF16242D),
-        backgroundDisabled: Color(0xFF1A2832),
-        text: Color(0xFFFFFFFF),
-        textDisabled: Color(0xFF6C7D8A),
-        border: Color(0xFF6C7D8A),
-      ),
-      tertiary: DcoButtonColors(
-        background: Color(0x00000000),
-        backgroundHover: Color(0xFF1A2832),
-        backgroundPressed: Color(0xFF16242D),
-        backgroundDisabled: Color(0x00000000),
-        text: Color(0xFFEEB757),
-        textDisabled: Color(0xFF6C7D8A),
-        border: Color(0x00000000),
-      ),
-      destructive: DcoButtonColors(
-        background: Color(0x00000000),
-        backgroundHover: Color(0xFF3A2424),
-        backgroundPressed: Color(0xFF3A2424),
-        backgroundDisabled: Color(0x00000000),
-        text: Color(0xFFE07A6C),
-        textDisabled: Color(0xFF6C7D8A),
-        border: Color(0xFFE07A6C),
-      ),
-    ),
-    icon: DcoIconColors(
-      active: Color(0xFFEEB757),
-      inactive: Color(0xFF6C7D8A),
-      onAccent: Color(0xFF101B22),
-      inverse: Color(0xFFFFFFFF),
-    ),
-    border: DcoBorders(
-      subtle: Color(0xFF1E2D38),
-      defaultColor: Color(0xFF6C7D8A),
-      divider: Color(0xFF2A3C48),
-      highlight: Color(0xFFEEB757),
-      focus: Color(0xFFEEB757),
-    ),
-    status: DcoStatus(
-      successFg: Color(0xFF7CB89A),
-      successBg: Color(0x227CB89A),
-      warningFg: Color(0xFFE39A3C),
-      warningBg: Color(0x22E39A3C),
-      dangerFg: Color(0xFFE07A6C),
-      dangerBg: Color(0x22E07A6C),
-      infoFg: Color(0xFF7AA0B8),
-      infoBg: Color(0x227AA0B8),
-    ),
-    feedback: DcoFeedback(
-      overdue: Color(0xFFE07A6C),
-      dueSoon: Color(0xFFE39A3C),
-      healthy: Color(0xFF7CB89A),
-      queuedSync: Color(0xFF7AA0B8),
-    ),
-    input: DcoInputColors(
-      background: Color(0xFF16242D),
-      border: Color(0xFF6C7D8A),
-      borderFocus: Color(0xFFEEB757),
-      placeholder: Color(0xFF6C7D8A),
-      errorBorder: Color(0xFFE07A6C),
-    ),
-    chart: DcoChartColors(
-      fuel: Color(0xFFE39A3C),
-      maintenance: Color(0xFF7AA0B8),
-      insurance: Color(0xFF8B9CCF),
-      parking: Color(0xFF8A9BA8),
-      tolls: Color(0xFFA8B6C1),
-      parts: Color(0xFF7CB89A),
-      other: Color(0xFF6C7D8A),
-    ),
-    radius: DcoRadius(sm: 4, md: 8, lg: 12, xl: 16, full: 999),
-    space: DcoSpace(s1: 4, s2: 8, s3: 12, s4: 16, s5: 24, s6: 32, s7: 48),
-    motion: DcoMotion(fast: 120, base: 180, slow: 280),
-    shadows: DcoShadows(
-      card: [
-        BoxShadow(
-          color: Color(0x1A0A1118),
-          blurRadius: 8,
-          offset: Offset(0, 2),
-        ),
-        BoxShadow(
-          color: Color(0x0D0A1118),
-          blurRadius: 16,
-          offset: Offset(0, 4),
-        ),
-      ],
-      elevated: [
-        BoxShadow(
-          color: Color(0x260A1118),
-          blurRadius: 12,
-          offset: Offset(0, 4),
-        ),
-        BoxShadow(
-          color: Color(0x1A0A1118),
-          blurRadius: 24,
-          offset: Offset(0, 8),
-        ),
-      ],
-    ),
-  );
+  /// Values generated from `docs/theme/garage-minimal-dark.json`.
+  static const garageMinimalDark = DcoTokenValues.garageMinimalDark;
+
+  /// Values generated from `docs/theme/garage-minimal-light.json`.
+  static const garageMinimalLight = DcoTokenValues.garageMinimalLight;
 
   @override
   DcoTokens copyWith({
@@ -217,6 +91,7 @@ class DcoBackground {
     required this.card,
     required this.input,
     required this.nav,
+    required this.navActive,
     required this.overlay,
     required this.skeleton,
   });
@@ -226,6 +101,10 @@ class DcoBackground {
   final Color card;
   final Color input;
   final Color nav;
+
+  /// Selected pill fill inside the floating nav bar (gold-tinted dark /
+  /// parchment light).
+  final Color navActive;
   final Color overlay;
   final Color skeleton;
 }

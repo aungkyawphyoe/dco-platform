@@ -166,7 +166,7 @@ class _DrawerHeader extends StatelessWidget {
         children: [
           CircleAvatar(
             radius: 24,
-            backgroundColor: tokens.text.accent,
+            backgroundColor: tokens.button.primary.background,
             child: Text(
               displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
               style: TextStyle(

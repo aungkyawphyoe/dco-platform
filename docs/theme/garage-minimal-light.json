@@ -13,6 +13,7 @@
     "card": "#FFFFFF",
     "input": "#F6F8FA",
     "nav": "#F4F6F8",
+    "navActive": "#F7EFD9",
     "overlay": "#101B2266",
     "skeleton": "#E9EDF1"
   },

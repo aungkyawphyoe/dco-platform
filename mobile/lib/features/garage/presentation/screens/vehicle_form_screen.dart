@@ -330,7 +330,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                         _fuelError = false;
                       }),
                       showCheckmark: false,
-                      selectedColor: tokens.text.accent,
+                      selectedColor: tokens.button.primary.background,
                       labelStyle: TextStyle(
                         color: selected ? tokens.text.onAccent : tokens.text.primary,
                       ),

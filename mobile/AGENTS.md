@@ -22,7 +22,7 @@ If this file and a source disagree, the source wins and this file must be update
 | HTTP shapes | [`architecture/openapi.yaml`](../architecture/openapi.yaml) (index: [`architecture/api.md`](../architecture/api.md)) |
 | Navigation IA | [`docs/app-shell.md`](../docs/app-shell.md) |
 | Theme rules | [`docs/design-system.md`](../docs/design-system.md) |
-| Token values | [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.json) |
+| Token values | [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.json) + [`docs/theme/garage-minimal-light.json`](../docs/theme/garage-minimal-light.json) (generated via `node tools/generate-theme.mjs`) |
 | Stack | [`docs/technical-principles.md`](../docs/technical-principles.md) |
 | Env / secrets | [`docs/environment-secrets.md`](../docs/environment-secrets.md) |
 | Build order | [`docs/implementation-readiness.md`](../docs/implementation-readiness.md) |
@@ -41,7 +41,7 @@ Documents is reached from Expenses (header) and from vehicle flows — not a tab
 
 **In production scope:** everything that shipped in MVP — auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, family sharing — plus **Notes** (local-only personal notebook; see `product/production-scope.md`) and **Fleet/Driver modes** (online-first org fleet operations; see `product/frd/fleet-management.md` §18).
 
-**Still out of scope (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; light theme; note sync / server-side notes.
+**Still out of scope (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; note sync / server-side notes.
 
 Wireframes: [`wireframes/dco-mobile-wireframes.tldraw`](../wireframes/dco-mobile-wireframes.tldraw). Auth screens live there; do not redesign them.
 
@@ -272,7 +272,7 @@ Empty garage: Dashboard is still the default route. Maintenance, Expenses, and D
 
 ## Theme and UI rules
 
-Map [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.json) 1:1 into `ColorScheme` + `ThemeExtension<DcoTokens>` (status, radius, space). Dark only for MVP.
+Map [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.json) and [`docs/theme/garage-minimal-light.json`](../docs/theme/garage-minimal-light.json) 1:1 into `ColorScheme` + `ThemeExtension<DcoTokens>` (status, radius, space). Values are generated into `dco_tokens.g.dart` by `tools/generate-theme.mjs` — edit the JSON and regenerate, never the `.g.dart`. Both modes ship; `buildDcoTheme(Brightness)` builds them and Settings → Appearance (Light / Dark / System, default System) selects the mode.
 
 `ThemeData`:
 

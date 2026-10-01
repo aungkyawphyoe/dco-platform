@@ -1570,6 +1570,18 @@ class $UserProfilesTable extends UserProfiles
     requiredDuringInsert: false,
     defaultValue: const Constant('km'),
   );
+  static const VerificationMeta _themeModeMeta = const VerificationMeta(
+    'themeMode',
+  );
+  @override
+  late final GeneratedColumn<String> themeMode = GeneratedColumn<String>(
+    'theme_mode',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('system'),
+  );
   static const VerificationMeta _soonDaysMeta = const VerificationMeta(
     'soonDays',
   );
@@ -1601,6 +1613,7 @@ class $UserProfilesTable extends UserProfiles
     language,
     currency,
     lengthUnit,
+    themeMode,
     soonDays,
     soonDistanceKm,
   ];
@@ -1651,6 +1664,12 @@ class $UserProfilesTable extends UserProfiles
         lengthUnit.isAcceptableOrUnknown(data['length_unit']!, _lengthUnitMeta),
       );
     }
+    if (data.containsKey('theme_mode')) {
+      context.handle(
+        _themeModeMeta,
+        themeMode.isAcceptableOrUnknown(data['theme_mode']!, _themeModeMeta),
+      );
+    }
     if (data.containsKey('soon_days')) {
       context.handle(
         _soonDaysMeta,
@@ -1695,6 +1714,10 @@ class $UserProfilesTable extends UserProfiles
         DriftSqlType.string,
         data['${effectivePrefix}length_unit'],
       )!,
+      themeMode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}theme_mode'],
+      )!,
       soonDays: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}soon_days'],
@@ -1718,6 +1741,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
   final String language;
   final String currency;
   final String lengthUnit;
+  final String themeMode;
   final int soonDays;
   final double soonDistanceKm;
   const UserProfile({
@@ -1726,6 +1750,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     required this.language,
     required this.currency,
     required this.lengthUnit,
+    required this.themeMode,
     required this.soonDays,
     required this.soonDistanceKm,
   });
@@ -1739,6 +1764,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     map['language'] = Variable<String>(language);
     map['currency'] = Variable<String>(currency);
     map['length_unit'] = Variable<String>(lengthUnit);
+    map['theme_mode'] = Variable<String>(themeMode);
     map['soon_days'] = Variable<int>(soonDays);
     map['soon_distance_km'] = Variable<double>(soonDistanceKm);
     return map;
@@ -1753,6 +1779,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       language: Value(language),
       currency: Value(currency),
       lengthUnit: Value(lengthUnit),
+      themeMode: Value(themeMode),
       soonDays: Value(soonDays),
       soonDistanceKm: Value(soonDistanceKm),
     );
@@ -1769,6 +1796,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       language: serializer.fromJson<String>(json['language']),
       currency: serializer.fromJson<String>(json['currency']),
       lengthUnit: serializer.fromJson<String>(json['lengthUnit']),
+      themeMode: serializer.fromJson<String>(json['themeMode']),
       soonDays: serializer.fromJson<int>(json['soonDays']),
       soonDistanceKm: serializer.fromJson<double>(json['soonDistanceKm']),
     );
@@ -1782,6 +1810,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       'language': serializer.toJson<String>(language),
       'currency': serializer.toJson<String>(currency),
       'lengthUnit': serializer.toJson<String>(lengthUnit),
+      'themeMode': serializer.toJson<String>(themeMode),
       'soonDays': serializer.toJson<int>(soonDays),
       'soonDistanceKm': serializer.toJson<double>(soonDistanceKm),
     };
@@ -1793,6 +1822,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     String? language,
     String? currency,
     String? lengthUnit,
+    String? themeMode,
     int? soonDays,
     double? soonDistanceKm,
   }) => UserProfile(
@@ -1803,6 +1833,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     language: language ?? this.language,
     currency: currency ?? this.currency,
     lengthUnit: lengthUnit ?? this.lengthUnit,
+    themeMode: themeMode ?? this.themeMode,
     soonDays: soonDays ?? this.soonDays,
     soonDistanceKm: soonDistanceKm ?? this.soonDistanceKm,
   );
@@ -1817,6 +1848,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
       lengthUnit: data.lengthUnit.present
           ? data.lengthUnit.value
           : this.lengthUnit,
+      themeMode: data.themeMode.present ? data.themeMode.value : this.themeMode,
       soonDays: data.soonDays.present ? data.soonDays.value : this.soonDays,
       soonDistanceKm: data.soonDistanceKm.present
           ? data.soonDistanceKm.value
@@ -1832,6 +1864,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
           ..write('language: $language, ')
           ..write('currency: $currency, ')
           ..write('lengthUnit: $lengthUnit, ')
+          ..write('themeMode: $themeMode, ')
           ..write('soonDays: $soonDays, ')
           ..write('soonDistanceKm: $soonDistanceKm')
           ..write(')'))
@@ -1845,6 +1878,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
     language,
     currency,
     lengthUnit,
+    themeMode,
     soonDays,
     soonDistanceKm,
   );
@@ -1857,6 +1891,7 @@ class UserProfile extends DataClass implements Insertable<UserProfile> {
           other.language == this.language &&
           other.currency == this.currency &&
           other.lengthUnit == this.lengthUnit &&
+          other.themeMode == this.themeMode &&
           other.soonDays == this.soonDays &&
           other.soonDistanceKm == this.soonDistanceKm);
 }
@@ -1867,6 +1902,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
   final Value<String> language;
   final Value<String> currency;
   final Value<String> lengthUnit;
+  final Value<String> themeMode;
   final Value<int> soonDays;
   final Value<double> soonDistanceKm;
   final Value<int> rowid;
@@ -1876,6 +1912,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     this.language = const Value.absent(),
     this.currency = const Value.absent(),
     this.lengthUnit = const Value.absent(),
+    this.themeMode = const Value.absent(),
     this.soonDays = const Value.absent(),
     this.soonDistanceKm = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1886,6 +1923,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     this.language = const Value.absent(),
     this.currency = const Value.absent(),
     this.lengthUnit = const Value.absent(),
+    this.themeMode = const Value.absent(),
     this.soonDays = const Value.absent(),
     this.soonDistanceKm = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -1896,6 +1934,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     Expression<String>? language,
     Expression<String>? currency,
     Expression<String>? lengthUnit,
+    Expression<String>? themeMode,
     Expression<int>? soonDays,
     Expression<double>? soonDistanceKm,
     Expression<int>? rowid,
@@ -1906,6 +1945,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
       if (language != null) 'language': language,
       if (currency != null) 'currency': currency,
       if (lengthUnit != null) 'length_unit': lengthUnit,
+      if (themeMode != null) 'theme_mode': themeMode,
       if (soonDays != null) 'soon_days': soonDays,
       if (soonDistanceKm != null) 'soon_distance_km': soonDistanceKm,
       if (rowid != null) 'rowid': rowid,
@@ -1918,6 +1958,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     Value<String>? language,
     Value<String>? currency,
     Value<String>? lengthUnit,
+    Value<String>? themeMode,
     Value<int>? soonDays,
     Value<double>? soonDistanceKm,
     Value<int>? rowid,
@@ -1928,6 +1969,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
       language: language ?? this.language,
       currency: currency ?? this.currency,
       lengthUnit: lengthUnit ?? this.lengthUnit,
+      themeMode: themeMode ?? this.themeMode,
       soonDays: soonDays ?? this.soonDays,
       soonDistanceKm: soonDistanceKm ?? this.soonDistanceKm,
       rowid: rowid ?? this.rowid,
@@ -1952,6 +1994,9 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
     if (lengthUnit.present) {
       map['length_unit'] = Variable<String>(lengthUnit.value);
     }
+    if (themeMode.present) {
+      map['theme_mode'] = Variable<String>(themeMode.value);
+    }
     if (soonDays.present) {
       map['soon_days'] = Variable<int>(soonDays.value);
     }
@@ -1972,6 +2017,7 @@ class UserProfilesCompanion extends UpdateCompanion<UserProfile> {
           ..write('language: $language, ')
           ..write('currency: $currency, ')
           ..write('lengthUnit: $lengthUnit, ')
+          ..write('themeMode: $themeMode, ')
           ..write('soonDays: $soonDays, ')
           ..write('soonDistanceKm: $soonDistanceKm, ')
           ..write('rowid: $rowid')
@@ -12983,6 +13029,7 @@ typedef $$UserProfilesTableCreateCompanionBuilder =
       Value<String> language,
       Value<String> currency,
       Value<String> lengthUnit,
+      Value<String> themeMode,
       Value<int> soonDays,
       Value<double> soonDistanceKm,
       Value<int> rowid,
@@ -12994,6 +13041,7 @@ typedef $$UserProfilesTableUpdateCompanionBuilder =
       Value<String> language,
       Value<String> currency,
       Value<String> lengthUnit,
+      Value<String> themeMode,
       Value<int> soonDays,
       Value<double> soonDistanceKm,
       Value<int> rowid,
@@ -13030,6 +13078,11 @@ class $$UserProfilesTableFilterComposer
 
   ColumnFilters<String> get lengthUnit => $composableBuilder(
     column: $table.lengthUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get themeMode => $composableBuilder(
+    column: $table.themeMode,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13078,6 +13131,11 @@ class $$UserProfilesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get themeMode => $composableBuilder(
+    column: $table.themeMode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get soonDays => $composableBuilder(
     column: $table.soonDays,
     builder: (column) => ColumnOrderings(column),
@@ -13116,6 +13174,9 @@ class $$UserProfilesTableAnnotationComposer
     column: $table.lengthUnit,
     builder: (column) => column,
   );
+
+  GeneratedColumn<String> get themeMode =>
+      $composableBuilder(column: $table.themeMode, builder: (column) => column);
 
   GeneratedColumn<int> get soonDays =>
       $composableBuilder(column: $table.soonDays, builder: (column) => column);
@@ -13162,6 +13223,7 @@ class $$UserProfilesTableTableManager
                 Value<String> language = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<String> lengthUnit = const Value.absent(),
+                Value<String> themeMode = const Value.absent(),
                 Value<int> soonDays = const Value.absent(),
                 Value<double> soonDistanceKm = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -13171,6 +13233,7 @@ class $$UserProfilesTableTableManager
                 language: language,
                 currency: currency,
                 lengthUnit: lengthUnit,
+                themeMode: themeMode,
                 soonDays: soonDays,
                 soonDistanceKm: soonDistanceKm,
                 rowid: rowid,
@@ -13182,6 +13245,7 @@ class $$UserProfilesTableTableManager
                 Value<String> language = const Value.absent(),
                 Value<String> currency = const Value.absent(),
                 Value<String> lengthUnit = const Value.absent(),
+                Value<String> themeMode = const Value.absent(),
                 Value<int> soonDays = const Value.absent(),
                 Value<double> soonDistanceKm = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -13191,6 +13255,7 @@ class $$UserProfilesTableTableManager
                 language: language,
                 currency: currency,
                 lengthUnit: lengthUnit,
+                themeMode: themeMode,
                 soonDays: soonDays,
                 soonDistanceKm: soonDistanceKm,
                 rowid: rowid,

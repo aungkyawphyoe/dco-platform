@@ -2,7 +2,10 @@
   "themeName": "Garage Minimal Dark",
   "version": "1.1",
   "mode": "dark",
-  "platforms": ["mobile", "web"],
+  "platforms": [
+    "mobile",
+    "web"
+  ],
   "description": "Night-garage surfaces, brass-bay accent. Same tokens for Flutter and the admin web portal.",
   "background": {
     "primary": "#101B22",
@@ -10,6 +13,7 @@
     "card": "#1E2D38",
     "input": "#16242D",
     "nav": "#101B22",
+    "navActive": "#2A2518",
     "overlay": "#101B22B8",
     "skeleton": "#243441"
   },

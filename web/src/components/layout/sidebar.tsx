@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth/session-context";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 const nav = [
   { section: "Overview", items: [{ href: "/", label: "Dashboard", exact: true }] },
@@ -82,6 +83,10 @@ export function Sidebar() {
       </nav>
 
       <div className="border-t border-line-subtle p-4">
+        <p className="pb-1.5 text-xs text-ink-caption">Appearance</p>
+        <div className="pb-3">
+          <ThemeToggle />
+        </div>
         <p className="truncate text-sm text-ink" title={user?.email ?? ""}>
           {user?.display_name || user?.email || "…"}
         </p>

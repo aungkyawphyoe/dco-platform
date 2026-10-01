@@ -9,7 +9,7 @@ const variantClasses: Record<Variant, string> = {
   secondary:
     "bg-card text-ink border border-line-strong hover:bg-skeleton active:bg-field disabled:opacity-50",
   destructive:
-    "bg-transparent border border-danger text-danger hover:bg-[#3A2424] disabled:opacity-50",
+    "bg-transparent border border-danger text-danger hover:bg-btn-destructive-hover disabled:opacity-50",
   ghost: "bg-transparent text-gold hover:bg-panel disabled:opacity-50",
 };
 

@@ -1497,6 +1497,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsReminders => 'Reminders';
 
   @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get appearanceTitle => 'Appearance';
+
+  @override
+  String get appearanceTheme => 'Theme';
+
+  @override
+  String get appearanceSystemHint =>
+      'System follows your device\'s light or dark setting.';
+
+  @override
   String settingsRemindersSummary(Object days, Object distance) {
     return '$days days · $distance';
   }

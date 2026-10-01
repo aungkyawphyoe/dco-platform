@@ -28,6 +28,12 @@ final currencyProvider = Provider<AppCurrency>((ref) {
   return ref.watch(userPreferencesProvider).valueOrNull?.currency ?? AppCurrency.mmk;
 });
 
+/// Light / Dark / System choice from Settings → Appearance (default: system).
+final themeModeProvider = Provider<AppThemeMode>((ref) {
+  return ref.watch(userPreferencesProvider).valueOrNull?.themeMode ??
+      AppThemeMode.system;
+});
+
 /// Clamped reminder thresholds (soon days / soon distance) from user prefs.
 final reminderThresholdsProvider = Provider<DueThresholds>((ref) {
   final prefs = ref.watch(userPreferencesProvider).valueOrNull ?? UserPreferences.defaults;

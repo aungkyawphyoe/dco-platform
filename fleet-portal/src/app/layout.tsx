@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Barlow, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { cookies } from "next/headers";
+import { THEME_COOKIE, THEME_INIT_SCRIPT, themeClassFromCookie } from "@/lib/theme";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -26,17 +28,21 @@ export const metadata: Metadata = {
   description: "Digital Car Ownership platform — Fleet management portal",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const theme = themeClassFromCookie(cookieStore.get(THEME_COOKIE)?.value);
+
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className={theme} suppressHydrationWarning>
       <body
         suppressHydrationWarning
         className={`${barlow.variable} ${plexSans.variable} ${plexMono.variable} bg-bg font-sans text-ink antialiased`}
       >
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <Providers>{children}</Providers>
       </body>
     </html>

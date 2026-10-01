@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth/session-context";
 import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { orgRoleLabel } from "@/lib/api/types";
 
 const nav = [
@@ -103,6 +104,10 @@ export function Sidebar() {
         <p className="pb-3 text-xs text-ink-caption">
           {orgRoleLabel[org?.organization?.role ?? ""] ?? org?.organization?.role ?? ""}
         </p>
+        <p className="pb-1.5 text-xs text-ink-caption">Appearance</p>
+        <div className="pb-3">
+          <ThemeToggle />
+        </div>
         <Button variant="destructive" size="sm" className="w-full" onClick={onSignOut}>
           Sign out
         </Button>

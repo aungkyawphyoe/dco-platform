@@ -9,7 +9,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
-        theme: buildDcoTheme(),
+        theme: buildDcoTheme(Brightness.dark),
         home: Scaffold(
           body: Center(
             child: Builder(

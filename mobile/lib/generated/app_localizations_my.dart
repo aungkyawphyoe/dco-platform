@@ -1521,6 +1521,19 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsReminders => 'အသိပေးချက်များ';
 
   @override
+  String get settingsAppearance => 'အသွင်အပြင်';
+
+  @override
+  String get appearanceTitle => 'အသွင်အပြင်';
+
+  @override
+  String get appearanceTheme => 'Theme';
+
+  @override
+  String get appearanceSystemHint =>
+      'System သည် သင့်စက်၏ အလင်း/မှောင် သတ်မှတ်ချက်ကို လိုက်နာပါမည်။';
+
+  @override
   String settingsRemindersSummary(Object days, Object distance) {
     return '$days ရက် · $distance';
   }

@@ -54,7 +54,12 @@ class PlanItemTile extends StatelessWidget {
         : tokens.status.infoBg;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(tokens.space.s4, 0, tokens.space.s4, tokens.space.s3),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s4,
+        0,
+        tokens.space.s4,
+        tokens.space.s3,
+      ),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(tokens.radius.lg),
@@ -78,14 +83,16 @@ class PlanItemTile extends StatelessWidget {
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
                           color: accentBg,
-                          borderRadius: BorderRadius.circular(tokens.radius.sm),
+                          borderRadius: BorderRadius.circular(
+                            tokens.radius.full,
+                          ),
                         ),
                         child: Icon(
                           overdue
                               ? Icons.priority_high
                               : dueSoon
-                                  ? Icons.schedule
-                                  : Icons.info_outline,
+                              ? Icons.schedule
+                              : Icons.info_outline,
                           color: accent,
                         ),
                       ),
@@ -94,13 +101,16 @@ class PlanItemTile extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(item.name, style: Theme.of(context).textTheme.titleMedium),
+                        Text(
+                          item.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                         SizedBox(height: tokens.space.s1),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(tokens.radius.sm),
                           child: LinearProgressIndicator(
                             value: _progress(item, vehicle, now),
-                            minHeight: 4,
+                            minHeight: 6,
                             backgroundColor: tokens.background.input,
                             valueColor: AlwaysStoppedAnimation<Color>(accent),
                           ),
@@ -111,26 +121,27 @@ class PlanItemTile extends StatelessWidget {
                             padding: EdgeInsets.only(bottom: tokens.space.s1),
                             child: Text(
                               line,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: overdue ? tokens.feedback.overdue : tokens.text.caption,
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(
+                                    color: overdue
+                                        ? tokens.feedback.overdue
+                                        : tokens.text.caption,
+                                  ),
                             ),
                           ),
                         ),
                         SizedBox(height: tokens.space.s1),
                         Text(
                           _remainingLine(item, vehicle, now, lengthUnit, s),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: tokens.text.secondary,
-                          ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: tokens.text.secondary),
                         ),
                         if (item.notes != null && item.notes!.isNotEmpty) ...[
                           SizedBox(height: tokens.space.s1),
                           Text(
                             item.notes!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: tokens.text.caption,
-                            ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: tokens.text.caption),
                           ),
                         ],
                       ],
@@ -146,14 +157,24 @@ class PlanItemTile extends StatelessWidget {
   }
 }
 
-List<String> _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit unit, AppLocalizations s) {
+List<String> _dueLine(
+  PlanItem item,
+  Vehicle vehicle,
+  bool overdue,
+  MileageUnit unit,
+  AppLocalizations s,
+) {
   if (overdue) {
     final parts = <String>[];
     if (item.nextDueMileage != null && vehicle.mileage > item.nextDueMileage!) {
-      parts.add(MileageFormat.labeled(vehicle.mileage - item.nextDueMileage!, unit));
+      parts.add(
+        MileageFormat.labeled(vehicle.mileage - item.nextDueMileage!, unit),
+      );
     }
     if (item.nextDueOn != null) {
-      final days = DateTime.now().difference(DueCalculator.dateOnly(item.nextDueOn!)).inDays;
+      final days = DateTime.now()
+          .difference(DueCalculator.dateOnly(item.nextDueOn!))
+          .inDays;
       if (days > 0) parts.add(s.planItemTileOverdueBy(days));
     }
     if (parts.isEmpty) return [s.planItemTileOverdue];
@@ -161,10 +182,14 @@ List<String> _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit 
   }
   final lines = <String>[];
   if (item.nextDueMileage != null) {
-    lines.add('${s.planItemTileNextMileage}${MileageFormat.labeled(item.nextDueMileage!, unit)}');
+    lines.add(
+      '${s.planItemTileNextMileage}${MileageFormat.labeled(item.nextDueMileage!, unit)}',
+    );
   }
   if (item.nextDueOn != null) {
-    lines.add('${s.planItemTileNextDate}${DateFormat.yMMMd().format(item.nextDueOn!)}');
+    lines.add(
+      '${s.planItemTileNextDate}${DateFormat.yMMMd().format(item.nextDueOn!)}',
+    );
   }
   if (lines.isEmpty) return [s.planItemTileNoDueDate];
   return lines;
@@ -176,7 +201,9 @@ List<String> _dueLine(PlanItem item, Vehicle vehicle, bool overdue, MileageUnit 
 /// indeterminate-free empty track.
 double? _progress(PlanItem item, Vehicle vehicle, DateTime now) {
   double? milesFrac;
-  if (item.nextDueMileage != null && item.intervalDistance != null && item.intervalDistance! > 0) {
+  if (item.nextDueMileage != null &&
+      item.intervalDistance != null &&
+      item.intervalDistance! > 0) {
     final start = item.nextDueMileage! - item.intervalDistance!;
     final span = item.nextDueMileage! - start;
     if (span > 0) {
@@ -184,11 +211,14 @@ double? _progress(PlanItem item, Vehicle vehicle, DateTime now) {
     }
   }
   double? daysFrac;
-  if (item.nextDueOn != null && item.intervalDays != null && item.intervalDays! > 0) {
+  if (item.nextDueOn != null &&
+      item.intervalDays != null &&
+      item.intervalDays! > 0) {
     final start = item.nextDueOn!.subtract(Duration(days: item.intervalDays!));
     final span = item.nextDueOn!.difference(start).inDays.toDouble();
     if (span > 0) {
-      daysFrac = (DueCalculator.dateOnly(now).difference(start).inDays / span).clamp(0.0, 1.0);
+      daysFrac = (DueCalculator.dateOnly(now).difference(start).inDays / span)
+          .clamp(0.0, 1.0);
     }
   }
   if (milesFrac == null && daysFrac == null) return null;
@@ -197,18 +227,30 @@ double? _progress(PlanItem item, Vehicle vehicle, DateTime now) {
   return a > b ? a : b;
 }
 
-String _remainingLine(PlanItem item, Vehicle vehicle, DateTime now, MileageUnit unit, AppLocalizations s) {
+String _remainingLine(
+  PlanItem item,
+  Vehicle vehicle,
+  DateTime now,
+  MileageUnit unit,
+  AppLocalizations s,
+) {
   final parts = <String>[];
   if (item.nextDueMileage != null) {
     final remaining = item.nextDueMileage! - vehicle.mileage;
     if (remaining >= 0) {
-      parts.add('${s.planItemTileRemaining}${MileageFormat.labeled(remaining, unit)}');
+      parts.add(
+        '${s.planItemTileRemaining}${MileageFormat.labeled(remaining, unit)}',
+      );
     }
   }
   if (item.nextDueOn != null) {
-    final days = DueCalculator.dateOnly(item.nextDueOn!).difference(DueCalculator.dateOnly(now)).inDays;
+    final days = DueCalculator.dateOnly(
+      item.nextDueOn!,
+    ).difference(DueCalculator.dateOnly(now)).inDays;
     if (days >= 0) {
-      parts.add('${s.planItemTileTimeLeft}$days ${days == 1 ? s.planItemTileDay : s.planItemTileDays}');
+      parts.add(
+        '${s.planItemTileTimeLeft}$days ${days == 1 ? s.planItemTileDay : s.planItemTileDays}',
+      );
     }
   }
   return parts.join('  ·  ');
@@ -235,7 +277,12 @@ class HistoryTile extends StatelessWidget {
     final odometer = MileageFormat.labeled(record.odometer, lengthUnit);
     final workshop = record.workshopName;
     return Padding(
-      padding: EdgeInsets.fromLTRB(tokens.space.s4, 0, tokens.space.s4, tokens.space.s3),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s4,
+        0,
+        tokens.space.s4,
+        tokens.space.s3,
+      ),
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(tokens.radius.lg),
@@ -256,7 +303,9 @@ class HistoryTile extends StatelessWidget {
                     children: [
                       Text(
                         DateFormat.yMMMd().format(record.servicedOn),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.caption,
+                        ),
                       ),
                       const Spacer(),
                       Text(
@@ -269,11 +318,18 @@ class HistoryTile extends StatelessWidget {
                     ],
                   ),
                   SizedBox(height: tokens.space.s1),
-                  Text(record.title, style: Theme.of(context).textTheme.titleMedium),
+                  Text(
+                    record.title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                   SizedBox(height: tokens.space.s1),
                   Text(
-                    workshop == null || workshop.isEmpty ? odometer : '$odometer  $workshop',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                    workshop == null || workshop.isEmpty
+                        ? odometer
+                        : '$odometer  $workshop',
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                   ),
                 ],
               ),

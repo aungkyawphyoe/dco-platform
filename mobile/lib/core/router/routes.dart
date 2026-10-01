@@ -33,6 +33,7 @@ abstract final class AppRoutes {
   static const settingsLocalization = '/settings/localization';
   static const settingsUnits = '/settings/units';
   static const settingsReminders = '/settings/reminders';
+  static const settingsAppearance = '/settings/appearance';
 
   // Drawer routes (top-level, overlay shell)
   static const documents = '/documents';

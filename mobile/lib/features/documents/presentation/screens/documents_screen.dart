@@ -217,11 +217,11 @@ class _DocumentTile extends StatelessWidget {
 
   Color _categoryColor(DocumentCategory category, DcoTokens tokens) =>
       switch (category) {
-        DocumentCategory.insurance => const Color(0xFF8B9CCF),
+        DocumentCategory.insurance => tokens.chart.insurance,
         DocumentCategory.registration => tokens.status.infoFg,
         DocumentCategory.invoice => tokens.status.successFg,
         DocumentCategory.warranty => tokens.status.warningFg,
-        DocumentCategory.receipt => const Color(0xFFA8B6C1),
+        DocumentCategory.receipt => tokens.chart.tolls,
         DocumentCategory.other => tokens.text.tertiary,
       };
 
