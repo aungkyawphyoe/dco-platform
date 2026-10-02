@@ -136,6 +136,8 @@ Back from a nested screen returns to the tab or hamburger that opened it. Switch
 
 The drawer's **Fleet** entry (visible only to members of an `active` Enterprise organization; role limits actions) opens the **Fleet hub** (`/fleet`): organization card, mode switch, and manage entries (Org Management, Assignments, Warranty Templates — gated by role). The selected mode is stored per user in `AppMeta` and re-validated against live entitlements on every read; losing access degrades back to personal mode. Personal data keeps the offline-first Drift + outbox path; fleet and driver data is **online-first** — lists read the API (HTTP 403 → access-denied empty state), and only the mode string is cached locally.
 
+**Oct 2026 alignment (specified, pending implementation):** `org_driver` accounts get **no mode choice** — login lands directly in Driver mode (no personal/fleet toggle, no personal-garage tabs). Login accepts **email or username** (customer signup stays email-only); driver accounts are username-only with a forced password change on first login (`password_change_required` blocks fleet/driver routes until changed). The drawer Fleet entry stays visible to all org members — the *Fleet Portal* sidebar (not the mobile drawer) is the surface restricted by role (admin full / manager+mechanic reduced / driver no portal login).
+
 Mode changes swap the *contents* of the existing tab branches — the shell does not change shape in personal or fleet mode:
 
 | Tab slot | Personal | Fleet | Driver |

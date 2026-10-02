@@ -36,7 +36,7 @@ These personas exist in `docs/vision.md` and `docs/personas.md`. They are **not*
 
 | Persona | Tenant | JWT `aud` | App | Status |
 |---------|---------------|------------------|-----|--------|
-| Fleet operator | org (`taxi_fleet`, `rental`, `commercial`) | `dco-fleet` on portal; `dco-owner` in Flutter | Fleet Portal + Flutter | Backend foundation implemented. Roles: `org_admin`, `org_manager`, `org_mechanic`, `org_driver`. |
+| Fleet operator | org (`taxi_fleet`, `rental`, `commercial`) | `dco-fleet` on portal; `dco-owner` in Flutter | Fleet Portal + Flutter | Backend foundation implemented. Roles: `org_admin`, `org_manager`, `org_mechanic`, `org_driver`. Oct 2026 alignment (username drivers, role-gated portal sidebar, temp-password admin provisioning) specified, pending implementation. |
 | Dealership | org `type=dealership` or `showroom` | Same audiences as Fleet | Fleet-shaped portal + Flutter | Same access model as fleet, not a separate product. |
 | Workshop staff | verified workshop partner | `dco-workshop` | Web Workshop Portal | Backend account link and active-warranty service logging implemented; portal and booking remain pending. |
 | Insurance agent | partner tenant | `dco-insurer` | Web Insurance Portal | Not implemented. Policy/claims modules still out. |
@@ -49,7 +49,16 @@ Fleet and verified-workshop REST/auth/schema foundations are implemented. Fleet/
 2. Keep Family `vehicle_grants` family-scoped. Fleet inventory is linked through `organization_vehicles`; `vehicles.user_id` remains the owner of record and changes to the buyer on transfer.
 3. Mobile continues to use `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified workshop accounts use `dco-workshop`. Insurers get a separate partner audience when claims are implemented. Do not reuse `dco-admin` for partners.
 4. Change-log cursor stays per acting `user_id`; full offline Fleet sync remains to be completed.
-5. Entra External ID remains an option for B2B tenants; current backend uses the existing email/password JWT flow.
+5. Entra External ID remains an option for B2B tenants; current backend uses the existing password JWT flow (email **or username** identifier after the Oct 2026 alignment).
+
+### Identity alignment (Oct 2026 — specified, pending implementation)
+
+- `users.username`: globally unique, NOT NULL after backfill (derived from email local part; collisions suffixed). `users.email` becomes nullable — Postgres UNIQUE already permits multiple NULLs, so customer signup (email required at the API) and email login are unchanged.
+- Login accepts **email or username** in a single identifier field; forgot-password remains email-only, so email-less drivers are reset by the Fleet Admin from the portal.
+- Driver accounts (`org_driver`) are created only by the Fleet Admin with username + display name + initial password and no email; `users.must_change_password=true` blocks fleet/driver API calls (except profile/password routes) with 403 `password_change_required` until changed.
+- Driver deactivation = `users.status=deactivated` (soft delete): login blocked, active `driver_assignments` cascaded to completed, history retained, reactivation allowed, username reserved permanently.
+- Fleet Portal login rejects `org_driver` (403 `portal_access_restricted`); portal sidebar visibility is role-gated (admin full, manager/mechanic reduced, driver none). Mobile remains `dco-owner` for all org members, including drivers.
+- Fleet Admin (`org_admin`) accounts are provisioned by DCO Admin with email + temporary password (forced change); exactly one admin per org, created only by DCO Admin.
 
 ### Implemented Backend Entitlements (Family + Fleet)
 

@@ -220,6 +220,31 @@ paths:
           description: Password changed; refresh tokens revoked
         '400':
           $ref: '#/components/responses/Error'
+  /auth/change-password:
+    post:
+      tags: [Auth]
+      summary: Change own password (clears must_change_password)
+      description: Requires the current password. The only write route (besides profile) allowed while `must_change_password` is set. Revokes existing refresh tokens after success.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [current_password, new_password]
+              properties:
+                current_password:
+                  type: string
+                new_password:
+                  type: string
+                  minLength: 8
+      responses:
+        '204':
+          description: Password changed; must_change_password cleared; refresh tokens revoked
+        '401':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
   /me:
     get:
       tags: [Me]
@@ -1722,7 +1747,7 @@ paths:
                       $ref: '#/components/schemas/AdminOrganization'
     post:
       tags: [Admin]
-      summary: Provision an Enterprise organization and link or create an invited Org Admin account
+      summary: Provision an Enterprise organization and link or create a temp-password Org Admin account
       requestBody:
         required: true
         content:
@@ -1830,7 +1855,7 @@ paths:
         '403': {$ref: '#/components/responses/Error'}
     post:
       tags: [Fleet]
-      summary: Invite a member by email and role
+      summary: Invite a member by email (manager/mechanic only — drivers use driver creation)
       requestBody:
         required: true
         content:
@@ -1840,7 +1865,7 @@ paths:
               required: [email, role]
               properties:
                 email: {type: string, format: email}
-                role: {type: string, enum: [org_manager, org_mechanic, org_driver]}
+                role: {type: string, enum: [org_manager, org_mechanic]}
       responses:
         '201': {description: Member added; new accounts receive a password setup email}
         '409': {$ref: '#/components/responses/Error'}
@@ -1866,6 +1891,75 @@ paths:
         '200': {description: Updated membership}
         '204': {description: Member removed}
         '403': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/drivers:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    post:
+      tags: [Fleet]
+      summary: Create a driver account (username + password, no email) — org_admin only
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, display_name, password]
+              properties:
+                username:
+                  type: string
+                  minLength: 3
+                  maxLength: 30
+                  pattern: '^[a-z0-9._]+$'
+                  description: Globally unique; stays reserved even after driver deactivation
+                display_name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                password:
+                  type: string
+                  minLength: 8
+                  description: Initial password; server sets must_change_password=true
+      responses:
+        '201':
+          description: Driver account created with org_driver membership; no email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '403': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/members/{userId}/status:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+      - $ref: '#/components/parameters/userId'
+    post:
+      tags: [Fleet]
+      summary: Deactivate/reactivate a driver (soft delete) — org_admin only
+      description: >-
+        Deactivation sets users.status=deactivated, blocks login, cascades the active
+        driver_assignment to completed, and retains all history. The username stays
+        reserved. Reactivation restores login but requires manual re-assignment.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status:
+                  type: string
+                  enum: [active, deactivated]
+      responses:
+        '200': {description: Membership status updated}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
   /organizations/{id}/vehicles:
     parameters:
       - in: path
@@ -2747,14 +2841,17 @@ components:
       properties:
         email:
           type: string
-          format: email
+          description: Login identifier — a valid email **or** a username (case-insensitive). Customer self-signup remains email-only.
         password:
           type: string
         surface:
           type: string
           enum: [owner, fleet, workshop]
           default: owner
-          description: Owner accounts may request dco-fleet or dco-workshop only when provisioned for that tenant. Platform Admin sign-in remains dco-admin.
+          description: >-
+            Owner accounts may request dco-fleet or dco-workshop only when provisioned
+            for that tenant. Platform Admin sign-in remains dco-admin. The `fleet`
+            surface rejects `org_driver` accounts with 403 `portal_access_restricted`.
     SessionResponse:
       type: object
       required: [access_token, refresh_token, user]
@@ -2770,13 +2867,18 @@ components:
           $ref: '#/components/schemas/User'
     User:
       type: object
-      required: [id, email, role, plan, status, email_verified]
+      required: [id, username, role, plan, status, email_verified, must_change_password]
       properties:
         id:
           type: string
           format: uuid
+        username:
+          type: string
+          description: Globally unique login identifier (backfilled from email local part for pre-existing accounts)
         email:
           type: string
+          nullable: true
+          description: Nullable — driver accounts created by a Fleet Admin are username-only
         display_name:
           type: string
           nullable: true
@@ -2788,6 +2890,9 @@ components:
           $ref: '#/components/schemas/AccountStatus'
         email_verified:
           type: boolean
+        must_change_password:
+          type: boolean
+          description: True for temporary-password accounts; fleet/driver API routes except profile/password return 403 password_change_required until changed
         active_vehicle_id:
           type: string
           format: uuid
@@ -3734,6 +3839,13 @@ components:
         admin_email:
           type: string
           format: email
+        admin_password:
+          type: string
+          minLength: 8
+          description: >-
+            Temporary password applied when no account exists for admin_email
+            (account created active with must_change_password=true; no invite email).
+            Ignored — with a 400 if supplied — when the account already exists (link path).
         contact_email:
           type: string
           format: email
@@ -3747,11 +3859,16 @@ components:
         - $ref: '#/components/schemas/AdminOrganization'
         - type: object
           properties:
+            admin_account_created:
+              type: boolean
+              description: True when a new temp-password Org Admin account was created for admin_email
             account_invitation_sent:
               type: boolean
-              description: True when a new invited owner account was created for the Org Admin email
+              deprecated: true
+              description: Legacy — always false after the Oct 2026 alignment (no invite emails)
             organization_invitation_sent:
               type: boolean
+              deprecated: true
     AdminOrganizationStatus:
       allOf:
         - $ref: '#/components/schemas/AdminOrganization'

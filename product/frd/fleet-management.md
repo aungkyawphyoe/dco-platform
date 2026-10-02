@@ -4,7 +4,8 @@
 
 Fleet Management enables **business accounts** (showrooms, dealerships, taxi fleets, rental companies, commercial fleets) to manage multiple vehicles under an organization, track warranty periods with approved workshops, and transfer vehicle ownership to buyers with full maintenance history. Organizations are created exclusively by DCO administrators via the Admin Portal (sales-led onboarding). This module extends the existing single-owner model to support multi-vehicle business operations with role-based access, warranty enforcement, ownership transfer, driver work orders, vehicle inspections, and cost analytics.
 
-**Status:** Partial — backend, Fleet Portal (`fleet-portal/`, `dco-fleet`), mobile Fleet/Driver modes, and Web Admin organization provisioning (create in `pending` + Org Admin invite, list/filter, edit details, activate/suspend/archive, resend invite) implemented; Workshop Portal still planned (Phase 3, Year 2). Web Admin does not import initial vehicles during provisioning — seed inventory via the Fleet Portal CSV import after activation.
+**Status:** Partial — backend, Fleet Portal (`fleet-portal/`, `dco-fleet`), mobile Fleet/Driver modes, and Web Admin organization provisioning implemented; Workshop Portal still planned (Phase 3, Year 2). Web Admin does not import initial vehicles during provisioning — seed inventory via the Fleet Portal CSV import after activation.
+**Requirement alignment (October 2026) — pending implementation:** Enterprise access-model shift confirmed by grilling: (1) Fleet Portal sidebar visibility is role-based — full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`; (2) DCO Admin provisions the Fleet Admin account with email + temporary password (invite-email provisioning retires); (3) drivers are created/deactivated by the Fleet Admin with **username + password and no email** (username replaces email as the driver login identifier); (4) driver login forces Driver mode; (5) driver deactivation is a soft delete that cascades to active assignments and reserves the username. See *Confirmed Access Decisions* 7–14.
 **Mobile implementation deviations:** CSV report export copies the CSV to the clipboard (no file download on mobile); the analytics time-range filter is omitted because `/analytics/fleet` returns a fixed window; the Workshop mobile screen (`dco-workshop` surface) is not implemented.
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
 **Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — DCO user management, organization provisioning/activation, and read-only fleet support).
@@ -53,8 +54,11 @@ Enable organizations to:
 ## In Scope
 
 ### Backend
-- Organization entity (created by DCO admin, linked to Org Admin by email)
+- Organization entity (created by DCO admin; Org Admin account created by DCO admin with email + temporary password, or linked when an account already exists)
 - Organization roles: `org_admin`, `org_manager`, `org_mechanic`, `org_driver`
+- Driver accounts: username + password, email optional (typically absent); username is the login identifier for drivers
+- Account identifiers: `users.username` (globally unique) added alongside `users.email` (nullable); login accepts email **or** username
+- Temporary-password accounts (`org_admin` via provisioning, drivers via Fleet Admin creation) carry `must_change_password`, enforced server-side
 - Organization membership with role-based access
 - Predefined lifecycle templates: showroom, taxi_fleet, rental, commercial
 - Vehicle lifecycle states (free-form, chosen from template)
@@ -91,7 +95,9 @@ Enable organizations to:
 ### Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
 - **Authentication**: SSO with DCO credentials; Fleet Dashboard token audience is `dco-fleet`
 - **Desktop-optimized layout**: Data tables, charts, bulk actions, sidebar navigation
-- **Fleet Owner/Manager**: Full fleet management (read + write) — vehicles, work orders, inspections, assignments, analytics, reports, warranty templates, driver management
+- **Role-based sidebar visibility**: `org_admin` sees the full sidebar; `org_manager` and `org_mechanic` see a reduced sidebar (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred); `org_driver` cannot log into the Fleet Portal at all
+- **Fleet Admin (`org_admin`)**: Full fleet management (read + write) — vehicles, work orders, inspections, assignments, analytics, reports, warranty templates, and driver account creation/deletion
+- **Driver management**: Fleet Admin creates driver accounts (username, display name, initial password — no email), deactivates/reactivates drivers from the Members page
 - **DCO Admin**: Read-only fleet visibility for support through the Web Admin portal only (`dco-admin`)
 - **Vehicle Inventory**: Table view with filters, sorting, bulk status changes
 - **Work Orders**: Table + detail view with approve/assign/resolve actions
@@ -142,7 +148,7 @@ Enable organizations to:
 | **Fleet Owner** | Business owner (showroom, taxi fleet, rental). Full access to org, vehicles, members, templates, transfers, cost analytics, work order approval. Org created by DCO admin. | Mobile (Fleet mode) + Web |
 | **Fleet Manager** | Senior employee. Full operational access: vehicles, work orders, inspections, assignments, cost analytics. Cannot manage org settings or members. | Mobile (Fleet mode) |
 | **Org Mechanic** | Workshop employee. Logs service, views vehicle info. Cannot add vehicles, manage templates, or transfer. | Mobile (Fleet mode) |
-| **Driver** | Taxi/rental driver. DCO user with `driver` role. Assigned one vehicle at a time. Can log mileage, complete inspections, report issues, log fuel. Restricted view — no costs, no other vehicles. | Mobile (Driver mode) |
+| **Driver** | Taxi/rental driver. Org member with `org_driver` role. Account created by the Fleet Admin with username + password (no email required); must change password on first login. Assigned one vehicle at a time. Logs in to the mobile app and is taken directly to restricted Driver mode. Can log mileage, complete inspections, report issues, log fuel. Restricted view — no costs, no other vehicles. | Mobile (Driver mode) |
 | **Buyer** | Customer who receives a vehicle. Sees vehicle in personal garage with full history. Normal owner after transfer. | Mobile (Personal mode) |
 | **Workshop** | External workshop with DCO account. Logs warranty service on assigned vehicles. Limited visibility. | Mobile (Workshop mode) |
 | **Platform Admin** | DCO staff. Creates orgs, manages org lifecycle, imports vehicles, views fleet stats for support. | Web Admin |
@@ -156,10 +162,10 @@ Enable organizations to:
 > I want to create a business organization with name, admin email, and contact details  
 > So that a showroom owner can start using Fleet mode on mobile.
 
-### US-FLT-002: Invite Org Admin via Email
+### US-FLT-002: Create Org Admin Account (Admin Portal)
 > As a Platform Admin,  
-> I want to link an existing DCO user to the new org, or send an invite email if they don't have an account  
-> So that the showroom owner receives access to Fleet mode automatically.
+> I want to link an existing DCO user to the new org, or create a new Org Admin account with email and a temporary password  
+> So that the Fleet Admin can log in immediately without waiting for an invite email.
 
 ### US-FLT-003: Import Vehicles at Creation
 > As a Platform Admin,  
@@ -168,7 +174,7 @@ Enable organizations to:
 
 ### US-FLT-004: Invite Members
 > As an Org Admin,  
-> I want to invite employees to my organization with specific roles (Manager/Mechanic)  
+> I want to invite employees to my organization with the Manager or Mechanic role by email  
 > So that they can help manage vehicles and log maintenance.
 
 ### US-FLT-005: Add Vehicle to Inventory
@@ -326,6 +332,31 @@ Enable organizations to:
 > I want to activate a provisioned Enterprise organization after reviewing its setup
 > So that Fleet access becomes available to its invited members only when the organization is ready.
 
+### US-FLT-036: Fleet Admin Creates Driver Account
+> As a Fleet Admin,
+> I want to create a driver account inside the Fleet Portal with a username, display name, and initial password — no email required
+> So that drivers without an email address can log in to the mobile app and drive.
+
+### US-FLT-037: Fleet Admin Deactivates Driver
+> As a Fleet Admin,
+> I want to deactivate a driver (and reactivate later)
+> So that a driver who left the fleet can no longer log in, without destroying their work order, inspection, or mileage history.
+
+### US-FLT-038: Driver Signs In with Username
+> As a Driver,
+> I want to log in to the mobile app with my username and password (not email)
+> So that I can use the app even though I have no email address.
+
+### US-FLT-039: Driver Changes Temporary Password
+> As a Driver,
+> I want to be required to change my admin-set password on first login
+> So that the credentials handed out by the Fleet Admin are not left shared or guessable.
+
+### US-FLT-040: Role-Based Fleet Portal Sidebar
+> As an Org Member,
+> I want the Fleet Portal to show only the navigation my role permits (full for Fleet Admin, reduced for Manager/Mechanic, no portal access for drivers)
+> So that the portal matches my responsibilities and never exposes admin-only surfaces.
+
 ---
 
 ## Functional Requirements
@@ -350,8 +381,9 @@ Enable organizations to:
 
 **Rules:**
 - Created exclusively by DCO admins via the Admin Portal
-- `admin_user_id` is the showroom owner (linked by email match or invited)
+- `admin_user_id` is the Fleet Admin: linked by email match when an account already exists, otherwise created by the DCO admin with email + temporary password (`must_change_password` enforced on first login) — invite-email provisioning is retired
 - `created_by` is the DCO admin who performed the creation
+- Exactly one `org_admin` per organization; the account is created only by DCO Admin — the Fleet Admin cannot invite or promote another admin (admin-role transfer remains open decision #3)
 - `plan=enterprise` is an organization entitlement; it is distinct from the organization's business `type` and from each member's `users.plan`
 - Organization `type` records the business use case; it does not grant or remove features. Vehicle lifecycle template remains a separate per-vehicle choice.
 - New organizations are created in `pending`; a DCO admin explicitly activates them after provisioning is ready
@@ -385,6 +417,15 @@ Enable organizations to:
 - Any member role grants access to the Fleet context only while the organization is active; the role grants only the operations listed for that role
 - `organization_members.role` is separate from `users.role` and does not grant DCO Admin privileges
 - Driver must have `org_driver` role to be eligible for vehicle assignment
+
+**Account and credential rules (added October 2026):**
+- `users.username`: globally unique, required for all accounts after migration (existing users backfilled from the email local part, collisions suffixed `_2`, `_3`, …); `users.email` becomes nullable
+- Login accepts **email or username** in the login identifier field; signup remains email-required (customer flow unchanged)
+- **Driver accounts are created only by the Fleet Admin** via driver creation (username, display name, initial password — no email); the email-based member invite supports `org_manager` and `org_mechanic` only
+- Drivers created this way carry `must_change_password=true`; the backend rejects fleet/driver API calls (except profile and password-change endpoints) with 403 `password_change_required` until the password is changed
+- Drivers without email cannot use forgot-password (email-based); password resets are performed by the Fleet Admin from the portal
+- **Deactivation (delete driver):** soft delete — `users.status=deactivated`, login blocked, excluded from assignment lists; the active `driver_assignments` row is cascaded to `completed` (frees the vehicle); work orders, inspections, shift mileage, and fuel logs are retained and attributed; reactivation is allowed and re-requires manual vehicle assignment; the username stays **reserved** (never reused)
+- A driver may edit only their own profile and password; no other user, vehicle, or org record is writable by a driver (server-enforced)
 
 ### 3. Organization Vehicles
 
@@ -715,8 +756,11 @@ Enable organizations to:
 | GET | `/v1/me/entitlements` | `dco-owner` | Return plan, Family availability/permissions, and active organization context for conditional navigation; a UI hint only |
 | GET | `/v1/organizations/me` | `dco-owner` | Get my organization and membership; returns `organization: null` when not a member |
 | GET | `/v1/organizations/:id/members` | `dco-owner` | List members with roles |
-| POST | `/v1/organizations/:id/members` | `dco-owner` | Invite member — Admin only |
+| POST | `/v1/organizations/:id/members` | `dco-owner` | Invite member by email — Admin only; roles `org_manager` / `org_mechanic` only (drivers use driver creation) |
 | PATCH | `/v1/organizations/:id/members/:userId` | `dco-owner` | Update member role / remove — Admin only |
+| POST | `/v1/organizations/:id/drivers` | `dco-owner` | Create driver account (username, display name, initial password, no email) — Admin only |
+| POST | `/v1/organizations/:id/members/:userId/status` | `dco-owner` | Deactivate/reactivate driver (soft delete; cascades active assignment) — Admin only |
+| POST | `/v1/auth/change-password` | `dco-owner` | Change own password (current password required); clears `must_change_password` |
 | GET | `/v1/organizations/:id/vehicles` | `dco-owner` | List org vehicles with status |
 | POST | `/v1/organizations/:id/vehicles` | `dco-owner` | Add vehicle to org — Admin/Manager |
 | PATCH | `/v1/organizations/:id/vehicles/:vehicleId` | `dco-owner` | Update vehicle status — Admin/Manager |
@@ -760,14 +804,14 @@ Enable organizations to:
 **Web Admin (user and organization management — `dco-admin` audience):**
 | Method | Path | Audience | Description |
 |--------|------|----------|-------------|
-| POST | `/v1/admin/organizations` | `dco-admin` | Create Enterprise organization in `pending` status |
+| POST | `/v1/admin/organizations` | `dco-admin` | Create Enterprise organization in `pending`; Org Admin account created with temporary password when none exists (no invite email) |
 | PATCH | `/v1/admin/organizations/:id` | `dco-admin` | Edit organization contact/details |
 | PATCH | `/v1/admin/organizations/:id/status` | `dco-admin` | Activate, suspend, or archive organization; activation records actor and timestamp |
 | GET | `/v1/admin/organizations` | `dco-admin` | List/search organizations and provisioning status |
 | GET | `/v1/admin/users` | `dco-admin` | List users with search/filter |
 | GET | `/v1/admin/users/:id` | `dco-admin` | User detail (profile, org, activity) |
 | PATCH | `/v1/admin/users/:id/status` | `dco-admin` | Deactivate/reactivate user |
-| POST | `/v1/admin/support/invite-resend` | `dco-admin` | Re-send invite email to Org Admin |
+| POST | `/v1/admin/support/invite-resend` | `dco-admin` | Legacy: re-send invite email to Org Admin (only pre-alignment pending orgs; new provisioning does not send invites) |
 | GET | `/v1/admin/support/org-lookup` | `dco-admin` | Search org by name or admin email |
 | GET | `/v1/admin/fleet-view` | `dco-admin` | Read-only fleet data for support (cross-org) |
 
@@ -781,6 +825,7 @@ Enable organizations to:
 - Personal mode: same as current (personal vehicles)
 - Fleet mode: same tabs (Garage/Maintenance/Expenses/Settings) but filtered to org vehicles
 - Driver mode: restricted view (see Driver Mode below)
+- `org_driver` accounts get **no mode choice**: login lands directly in Driver mode; the personal/fleet toggle is not offered
 - API checks organization plan, status, membership, and role on every Fleet request; hiding the entry point is presentation only
 
 #### Org Management Screen (New)
@@ -822,12 +867,12 @@ Enable organizations to:
 - Free plan exempt from 1-vehicle limit for transferred vehicles
 
 #### Driver Mode (New — Restricted View)
-- Entry: **Hamburger menu** → Fleet toggle (if user has `org_driver` role)
+- Entry: login as a driver → **forced directly into Driver mode** (no Personal/Fleet toggle is offered to `org_driver` accounts); drivers have no personal-garage tabs
 - Simplified 3-tab structure: My Vehicle / My Reports / Settings
 - **My Vehicle tab**: Assigned vehicle info (make, plate, photo, documents, maintenance schedule)
 - **My Reports tab**: Own work orders and inspections (history + create new)
-- **Settings tab**: Profile, switch to Personal mode
-- Cannot see: costs, analytics, other vehicles, org settings, member management
+- **Settings tab**: Own profile, change password (required on first login when `must_change_password`), sign out
+- Cannot see: costs, analytics, other vehicles, org settings, member management — and cannot create/edit/delete vehicles or any user record beyond their own profile
 
 #### Driver - My Vehicle Screen (New)
 - Shows assigned vehicle only (one at a time)
@@ -901,12 +946,29 @@ Enable organizations to:
 #### Auth
 - SSO with DCO credentials; Fleet Dashboard receives the dedicated `dco-fleet` JWT audience
 - Route guard: `dco-fleet` + active membership in an active Enterprise organization → organization Fleet routes
+- **Login is restricted by org role**: `org_driver` accounts are rejected at Fleet Portal login (drivers use the mobile app only); `org_admin`, `org_manager`, `org_mechanic` may log in
 - Organization role authorization applies to every page action and API request
 - DCO Admin read-only support access is available only through Web Admin (`dco-admin`), not through Fleet Dashboard routes
 
 #### Layout
 - Desktop-optimized: sidebar navigation, data tables, charts, bulk actions
-- Sidebar items: Dashboard, Vehicles, Work Orders, Inspections, Drivers, Analytics, Settings
+- **Sidebar visibility matrix (role-based):**
+
+| Sidebar item | `org_admin` | `org_manager` | `org_mechanic` | `org_driver` |
+|--------------|:-----------:|:-------------:|:--------------:|:------------:|
+| Dashboard | ✓ | ✓ | ✓ | — no portal login — |
+| Vehicles | ✓ | ✓ | ✓ | |
+| Work Orders | ✓ | ✓ | ✓ (read/log, no approvals) | |
+| Inspections | ✓ | ✓ | ✓ (read/log, no approvals) | |
+| Driver Assignments | ✓ | ✓ | — | |
+| Reports | ✓ | ✓ | — | |
+| Transferred | ✓ | ✓ | — | |
+| Members (incl. driver CRUD) | ✓ | — | — | |
+| Workshops | ✓ | — | — | |
+| Warranty Templates | ✓ | — | — | |
+| Org Settings | ✓ | — | — | |
+
+- Sidebar filtering is presentation only; every page/API call re-checks org role server-side
 - NOT a mobile clone — designed for large screens and productivity
 
 #### Dashboard (Home)
@@ -947,6 +1009,15 @@ Enable organizations to:
 - **Unassign action**: Confirmation → assignment completed
 - **Assignment history**: Past assignments with dates
 
+#### Members — Route: `/members` (Admin only — hidden from manager/mechanic sidebar)
+- **Member list**: name/email or username, role badge, status, joined date
+- **Invite member**: email + role (`org_manager` / `org_mechanic`) — existing email invite flow
+- **Create driver**: form with username (globally unique), display name, initial password (min 8 chars) — **no email field**; server sets `must_change_password=true`
+- **Deactivate driver**: confirmation → soft delete (login blocked, active assignment cascaded to completed, history retained, username reserved)
+- **Reactivate driver**: restores login; vehicle must be re-assigned manually
+- **Reset driver password**: admin sets a new temporary password (re-arms `must_change_password`)
+- **Change role / remove**: existing member role change and removal (admin cannot demote/remove the sole `org_admin`)
+
 #### Cost Analytics — Route: `/analytics`
 - **Per Vehicle tab**: Select vehicle → TCO breakdown (maintenance/fuel/wear), cost-per-mile, utilization, trend chart
 - **Fleet Summary tab**: Total spend, average cost-per-mile, lemon count, top/bottom performers
@@ -971,6 +1042,12 @@ Enable organizations to:
 #### Auth
 - No changes — existing `admin` role with `dco-admin` audience
 - Fleet Owner/Manager do not gain Web Admin access; Fleet operations are in the Fleet Dashboard
+
+#### Organization Provisioning — Route: `/organizations/new`
+- Form: org name, type, plan (Enterprise), admin email, optional temporary password, contacts
+- **New admin account path**: if no account exists for `admin_email`, the DCO Admin creates it with the temporary password and `must_change_password=true` — **no invite email is sent**; the DCO Admin communicates credentials out-of-band
+- **Existing account path**: account is linked to the org unchanged (no password reset)
+- Existing pending orgs provisioned before the alignment keep their invite/resend behavior (legacy; `invite-resend` retained for them only)
 
 #### User Management — Route: `/users`
 - **Users list**: Table with name, email, role, status, org membership, last login
@@ -1026,6 +1103,15 @@ Enable organizations to:
 30. **Invited family members do not need Premium** — role and vehicle-grant checks govern their access to an active family
 31. **Premium revocation archives the family** — revoke all family access; do not delete users, personal vehicles, or vehicle history
 32. **Feature entry points are hidden when unavailable** — app UI mirrors entitlement, and backend authorization remains authoritative
+33. **Fleet Portal sidebar is role-gated** — `org_admin` full nav; `org_manager`/`org_mechanic` reduced nav (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred); `org_driver` cannot log into the portal; server-side role checks remain authoritative
+34. **Drivers are created only by the Fleet Admin** — username + display name + initial password, no email; the email member invite is limited to `org_manager`/`org_mechanic`
+35. **Username is the driver login identifier** — `users.username` globally unique; login accepts email or username; customer signup remains email-required
+36. **Temporary passwords are forced to change** — `must_change_password` blocks fleet/driver API access (except profile/password routes) until changed; backend-enforced, not a UI prompt
+37. **Driver deactivation is a soft delete** — status `deactivated`, login blocked, active assignment cascaded to completed, history retained and attributed, reactivation allowed, username reserved forever
+38. **Driver login forces Driver mode** — `org_driver` accounts never see Personal/Fleet mode toggles or personal garage tabs
+39. **Fleet Admin is provisioned by DCO Admin with email + temporary password** — invite-email provisioning retired for new orgs; exactly one admin per org, created only by DCO Admin (admin transfer remains open decision #3)
+40. **Passwordless-driver recovery is admin-only** — drivers without email cannot self-serve password reset; the Fleet Admin resets from the portal
+41. **Drivers cannot write user records** — a driver may edit only their own profile/password; no vehicle, org, or other-user create/edit/delete (server-enforced)
 
 ---
 
@@ -1051,17 +1137,19 @@ Backend (every protected request)
 ```
 Platform Admin (Web Admin Portal)
   /organizations → "Create Organization"
-  → Enter org name, admin email, contact details
+  → Enter org name, admin email, temporary password, contact details
   → Assign organization plan: Enterprise
   → Create organization with status: pending
+  → If no account exists for admin email: Fleet Admin account created with temp password (must change on first login) — no invite email sent
+  → If account exists: linked to the org unchanged
   → Optionally upload CSV of vehicles
   → Submit → Org created; DCO admin reviews provisioning
   → DCO admin activates organization → status: active
-  → System sends activation email to linked Org Admin
+  → System sends activation notice to the linked Org Admin
 
-Fleet Owner (Mobile - receives email)
-  "Your organization [Name] is active."
-  → Logs in to mobile app
+Fleet Admin (Mobile - receives credentials out-of-band)
+  Logs in with email + temp password
+  → Forced to change password on first login
   → Hamburger menu → Fleet entry appears (active org membership)
   → Enables Fleet mode → Sees imported vehicles
 
@@ -1098,17 +1186,22 @@ Platform Admin (Web Admin Portal)
   → Activation email sent to Org Admin; Fleet access becomes available
 ```
 
-### Fleet Owner Assigns Driver → Driver Uses Vehicle
+### Fleet Admin Creates Driver → Driver Uses Vehicle
 ```
-Fleet Owner (Mobile - Fleet Mode)
-  Fleet → Settings → "Driver Assignments"
-  → "Assign Vehicle"
+Fleet Admin (Fleet Portal - Members page)
+  Members → "Create Driver"
+  → Username: john_d1, Display name: John Doe, Initial password: ********
+  → Submit → Driver account created (email: none, must_change_password: true)
+
+Fleet Admin → "Assign Vehicle"
   → Select vehicle (Toyota Camry, status: available)
   → Select driver (John Doe, role: org_driver)
   → Confirm → Assignment created
 
-Driver (Mobile - Driver Mode)
-  Hamburger menu → Fleet → Driver Mode
+Driver (Mobile - first login)
+  Logs in with username + initial password
+  → Forced password change screen → sets new password
+  → Lands directly in Driver mode (no personal tabs, no mode toggle)
   → My Vehicle: Shows Toyota Camry
   → "Log Mileage" → Start odometer: 50000 → "Start Shift"
   → ... drives ...
@@ -1123,12 +1216,15 @@ Driver (Mobile - Driver Mode)
   → Tires: OK, Lights: OK, Brakes: Not OK (photo attached)
   → Submit → Inspection failed → Auto-generates work order
 
-Fleet Owner (Mobile - Fleet Mode)
-  Fleet → Maintenance → Work Orders
+Fleet Admin / Manager (Fleet Portal - Work Orders)
   → Sees 2 new work orders (brake issue + inspection failure)
   → Tap brake issue → "Start" → Assigned to mechanic
   → ... mechanic fixes brakes ...
   → Tap brake issue → "Resolve" → Resolution notes: "Pads replaced" → Completed
+
+Fleet Admin (Fleet Portal - Members page)
+  → Deactivate driver (left the company)
+  → Assignment cascaded to completed; login blocked; history retained; username reserved
 ```
 
 ### Workshop Logs Warranty Service
@@ -1188,6 +1284,7 @@ Platform Admin (Web Admin Portal)
 - Type: required, one of `showroom`, `dealership`, `taxi_fleet`, `rental`, `commercial`
 - Plan: required, `enterprise`, assigned by DCO Admin; no billing flow in this phase
 - Admin email: required, valid email format
+- Temporary password: required when no account exists for the admin email (min 8 chars); applied with `must_change_password=true`; not sent by email
 - Initial status: server sets `pending`; only a DCO Admin can transition it to `active` after provisioning
 - Contact email: optional, valid email format
 - Contact phone: optional, max 20 chars
@@ -1199,10 +1296,22 @@ Platform Admin (Web Admin Portal)
 - Existing family participants retain role/grant-scoped access without their own Premium plan
 - `GET /v1/me/entitlements` is a display/navigation hint; protected API routes independently enforce access
 
-### Member Invitation
+### Member Invitation (Manager / Mechanic only)
 - Email: required, valid email format
-- Role: required, must be `org_manager`, `org_mechanic`, or `org_driver`
+- Role: required, must be `org_manager` or `org_mechanic` (drivers are created via driver creation, not invite)
 - Invitee must not already belong to an org
+
+### Driver Creation (Fleet Admin only)
+- Username: required, 3-30 chars, `a-z`, `0-9`, `_`, `.` only, lowercase, globally unique (409 `username_taken` on collision; deactivated drivers' usernames stay reserved)
+- Display name: required, 1-100 chars
+- Initial password: required, min 8 chars (admin-set, `must_change_password=true`)
+- Email: not accepted on this form (driver accounts are username-only)
+- Deactivate/reactivate: admin only; deactivation cascades active assignment; reactivation requires manual re-assignment
+
+### Login
+- Identifier: required — either a valid email or a username (lookup is case-insensitive)
+- Customer self-signup remains email-required; username login is available to any account after backfill
+- Fleet Portal login additionally requires org role ∈ {`org_admin`, `org_manager`, `org_mechanic`} (drivers are rejected)
 
 ### Vehicle Add
 - Name: required, 1-100 chars
@@ -1300,6 +1409,12 @@ Platform Admin (Web Admin Portal)
 | Driver: not assigned to vehicle | 403 `not_assigned_to_vehicle` |
 | Driver: cannot view other vehicles | 403 `driver_access_restricted` |
 | Driver: cannot view costs/analytics | 403 `driver_no_cost_access` |
+| Username already taken | 409 `username_taken` |
+| Invalid username format | 400 `invalid_username` |
+| Temporary password not yet changed | 403 `password_change_required` |
+| Deactivated driver attempts login | 401 `deactivated` |
+| Driver attempts Fleet Portal login | 403 `portal_access_restricted` |
+| Fleet Admin tries to create/promote a second org admin | 403 `insufficient_org_role` |
 | Work order: vehicle not in org | 404 `work_order_vehicle_not_in_org` |
 | Inspection: template not found | 404 `inspection_template_not_found` |
 
@@ -1313,7 +1428,7 @@ Platform Admin (Web Admin Portal)
 - **CSV import**: Process in background, return job ID, poll for results
 - **Mode switch**: Instant UI swap, no data reload needed (data already synced)
 - **Admin portal**: Org creation form submission < 3s (excluding CSV import)
-- **Invite email**: Delivered within 60 seconds of org creation
+- **Provisioning**: Fleet Admin credentials are produced synchronously at org creation (no invite-email wait); manager/mechanic invite emails delivered within 60 seconds; activation notice sent on activation
 - **Driver mode**: Lightweight UI, optimized for quick actions (log mileage, report issue)
 - **Inspection completion**: < 30 seconds for standard 10-item checklist
 - **Cost analytics**: Computed on demand for fleets < 50 vehicles; cached hourly for larger fleets
@@ -1332,6 +1447,11 @@ Platform Admin (Web Admin Portal)
 | `admin_org_suspended` | `org_id`, `reason` |
 | `admin_org_archived` | `org_id`, `vehicle_count`, `member_count` |
 | `admin_invite_sent` | `org_id`, `admin_email`, `user_existed` |
+| `admin_org_admin_created` | `org_id`, `admin_user_id` (temp-password account created at provisioning) |
+| `driver_account_created` | `org_id`, `driver_user_id`, `username`, `created_by` |
+| `driver_account_deactivated` | `org_id`, `driver_user_id`, `assignments_cascaded` |
+| `driver_account_reactivated` | `org_id`, `driver_user_id` |
+| `password_changed` | `user_id`, `forced` (must_change_password flow) |
 | `organization_joined` | `org_id`, `role`, `method` (invite) |
 | `member_role_changed` | `org_id`, `target_user_id`, `old_role`, `new_role` |
 | `vehicle_added_to_org` | `org_id`, `vehicle_id`, `status`, `lifecycle_template` |
@@ -1389,14 +1509,14 @@ Platform Admin (Web Admin Portal)
 
 ## Dependencies
 
-- Auth (JWT, roles, audiences — `dco-owner` for Fleet Dashboard + Mobile, `dco-admin` for Web Admin)
-- Users API (profile, org membership, email lookup)
+- Auth (JWT, roles, audiences — `dco-fleet` for Fleet Dashboard, `dco-owner` for Mobile, `dco-admin` for Web Admin)
+- Users API (profile, org membership, username/email login lookup)
 - Vehicles API (vehicle CRUD, grants, status)
 - Documents API (vault reuse for transferred vehicles)
 - Partners API (workshop accounts, approved list)
 - Media storage (vehicle photos, inspection photos, work order photos)
 - Notifications (warranty expiry reminders, org created email, work order updates)
-- Email service (invite emails, org creation notifications)
+- Email service (manager/mechanic invite emails, org activation notices, email verification and password resets for email-bearing accounts — drivers without email are excluded by design)
 - Sync (org, membership, vehicle, template, warranty, work order, inspection, assignment entities)
 - Admin API (user management plus organization provisioning/activation and read-only support lookup)
 - Fleet Dashboard API (org operations, vehicles, work orders, inspections, assignments, analytics — shared with mobile)
@@ -1447,13 +1567,14 @@ Platform Admin (Web Admin Portal)
 - **Users table**: Add `org_id` nullable FK (denormalized for quick "my org" lookup)
 - **Vehicles table**: No change (ownership stays on `user_id`); org link via `organization_vehicles`
 - **Partners table**: Add `workshop_account` flag for workshop DCO accounts
+- **Users table**: Add `username` (NOT NULL after backfill, globally unique), make `email` nullable (Postgres UNIQUE already permits multiple NULLs), add `must_change_password` boolean; backfill usernames from email local part (collisions suffixed `_2`, `_3`, …); `status=deactivated` reused for driver soft delete with assignment cascade
 - **Sync**: New entity types `organization`, `organization_member`, `organization_vehicle`, `warranty_template`, `vehicle_warranty`, `transferred_vehicle`, `work_order`, `inspection`, `inspection_template`, `driver_assignment`, `shift_mileage`
 - **Mobile Drift**: New tables for offline org/vehicles/work_orders/inspections/assignments
 - **Fleet Dashboard (fleet.yourdomain.com)**: New Next.js app with desktop-optimized layout, sidebar navigation, data tables, charts. SSO uses `dco-fleet`; full fleet management requires active Enterprise membership.
 - **Web Admin (admin.yourdomain.com)**: User management plus DCO-only org provisioning/activation. Routes include `/users`, `/support`, `/organizations`, and `/fleet-view` (read-only fleet support).
 - **Admin API**: User and organization management endpoints (`/v1/admin/users/*`, `/v1/admin/organizations/*`, `/v1/admin/support/*`, `/v1/admin/fleet-view`)
 - **Fleet API**: Shared between Fleet Dashboard (`dco-fleet`) and Mobile (`dco-owner`) for `/v1/organizations/*` and `/v1/drivers/*`; both enforce the same org plan/status/membership/role checks.
-- **Email templates**: Org created/provisioning and organization activated notifications to the linked Org Admin
+- **Email templates**: Manager/mechanic invite and organization activated notifications to the linked Org Admin; Fleet Admin temp-password provisioning and driver creation send **no** emails (credentials communicated out-of-band)
 - **Cost analytics**: Computed on demand initially; consider caching layer for large fleets (100+ vehicles)
 
 ---
@@ -1466,6 +1587,14 @@ Platform Admin (Web Admin Portal)
 4. Fleet access requires active membership in an active Enterprise organization; membership role limits actions. Organization provisioning starts pending and DCO Admin explicitly activates it.
 5. Hide unavailable Family/Fleet entry points. API authorization is authoritative and re-checks entitlement, membership, status, and role.
 6. Flutter uses `dco-owner`; Fleet Dashboard uses `dco-fleet`; DCO support uses `dco-admin` through Web Admin. Workshop accounts follow the separate `dco-workshop` audience in `architecture/iam.md`.
+7. **(Oct 2026)** The four organization roles stand; "Fleet Admin" means `org_admin`. Fleet Portal sidebar visibility is role-based: full nav for `org_admin`, reduced nav (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred) for `org_manager`/`org_mechanic`, and no portal login for `org_driver`. The mobile drawer Fleet entry remains visible to all org members.
+8. **(Oct 2026)** DCO Admin provisions the Fleet Admin account with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations. Exactly one `org_admin` per org, created only by DCO Admin — no self-promotion or deputy admins.
+9. **(Oct 2026)** Drivers are created exclusively by the Fleet Admin with username + display name + initial password and **no email**. `users.username` is globally unique and is the driver login identifier; `users.email` becomes nullable; login accepts email or username. Email member invite is limited to `org_manager`/`org_mechanic`.
+10. **(Oct 2026)** Driver deletion is a soft delete: `status=deactivated`, login blocked, active `driver_assignments` cascaded to completed, history retained and attributed, reactivation allowed (manual re-assignment required), username reserved permanently.
+11. **(Oct 2026)** Driver login forces Driver mode — no Personal/Fleet toggle and no personal-garage tabs for `org_driver` accounts. Drivers may edit only their own profile and password; all vehicle/user/org writes remain server-denied.
+12. **(Oct 2026)** Temporary passwords (`must_change_password`) are enforced backend-side: fleet/driver API calls except profile/password routes return 403 `password_change_required` until changed.
+13. **(Oct 2026)** The Fleet Portal Members page (admin-exclusive) is the separate dashboard for user management: driver create/deactivate/reactivate/password-reset plus the existing manager/mechanic invite. DCO Web Admin keeps organization provisioning only and never manages drivers.
+14. **(Oct 2026)** When a driver logs fuel, they record and see the full cost/amount — resolving former open decision #11 in favor of full driver cost entry.
 
 ## Remaining Open Decisions
 
@@ -1479,7 +1608,7 @@ Platform Admin (Web Admin Portal)
 8. **Invite expiry**: How long is the invite email valid? Should it expire? Can it be re-sent?
 9. **Inspection template sharing**: Can inspection templates be shared across orgs, or are they always org-scoped?
 10. **Work order assignment**: Can a work order be assigned to a specific mechanic, or just to the org generally?
-11. **Driver fuel cost tracking**: Should the driver's fuel cost be visible to the Fleet Owner in the cost analytics, or just the org-level fuel total?
+11. ~~**Driver fuel cost tracking**~~ **Resolved (Oct 2026)** — drivers enter and see the full fuel cost/amount; cost flows into org cost analytics. See Confirmed Access Decision 14.
 12. **Cost analytics caching**: Should TCO/cost-per-mile be computed on demand or cached? At what fleet size does caching become necessary?
 13. **Lemon threshold notification**: Should the system auto-notify the Fleet Owner when a vehicle crosses the lemon threshold?
 14. **Multi-vehicle shifts**: Can a driver use multiple vehicles in one shift (e.g., swap vehicles mid-day)?

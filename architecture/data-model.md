@@ -345,6 +345,15 @@ Fleet entitlement is **organization-scoped**, not a `users.plan` value or `users
 | `transferred_vehicles` | Read-only organization audit row linking vehicle, buyer, transfer actor/time, and optional warranty instance. `vehicles.user_id` changes to the buyer. |
 | `vehicle_import_jobs` | Persistent CSV import status/results, limited to 100 rows per job and polled by job ID. |
 
+**Identity extension (Oct 2026 alignment — specified, pending migration):**
+
+| Change | Rule |
+|--------|------|
+| `users.username` | New column, globally unique, NOT NULL after backfill (email local part; collisions suffixed `_2`, `_3`, …). Login accepts email or username. |
+| `users.email` | Becomes nullable (driver accounts are username-only). Existing UNIQUE constraint is kept — Postgres treats NULLs as distinct, so multiple email-less accounts coexist. Customer signup still requires email at the API layer. |
+| `users.must_change_password` | Boolean, default false. Set on temp-password accounts (Fleet Admin provisioning, driver creation, admin password reset). Enforced server-side: fleet/driver routes except profile/password return 403 `password_change_required`. |
+| `users.status` | `deactivated` reused for driver soft delete by the Fleet Admin: login blocked, active `driver_assignments` cascaded to `completed` + `unassigned_at`, history rows retained, reactivation allowed, username never freed. |
+
 Authorization checks run against the live database for each request: Fleet requires Enterprise plan + active organization + membership; role controls each operation. Fleet Dashboard tokens use `dco-fleet`, mobile remains `dco-owner`, and verified workshop accounts use `dco-workshop` (scoped to active approved-warranty vehicles only; buyer personal data is not exposed). Premium downgrade archives the Primary Owner's family, revokes family grants/membership, and expires refresh tokens; invited family participants retain access only while the family is active.
 
 ---

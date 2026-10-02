@@ -65,6 +65,8 @@ Honest snapshot against the Phase 1 contract.
 | Monetization | **Field only** | `plan` is `free`/`premium`; `vehicle_limit` returned on `/v1/me`; cap **not** enforced |
 | Analytics | **Debug only** | `debugPrint` in debug builds. Extra events exist; `document_uploaded`, `sync_completed`, `sync_failed` are **not** tracked |
 
+**Pending Fleet alignment (Oct 2026 — specified in `product/frd/fleet-management.md`, not yet in the code above):** username-based driver accounts (email optional on `users`, login accepts email or username), Fleet Admin driver create/deactivate (soft delete with assignment cascade, reserved usernames), temp-password Fleet Admin provisioning (no invite email for new orgs), role-gated Fleet Portal sidebar (admin full / manager+mechanic reduced / driver no portal login), forced Driver mode + forced first-login password change (`must_change_password`). Rows above still describe today's as-built behavior until these land.
+
 ---
 
 ## 4. Owner app — how to use it

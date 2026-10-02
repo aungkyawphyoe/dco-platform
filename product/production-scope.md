@@ -43,6 +43,11 @@ Auth, app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, docu
 - **Normal (`users.plan=free`)**: basic personal garage, maintenance, expenses, documents, and fuel features. Family and Fleet entry points are hidden unless the user has an active membership.
 - **Premium (`users.plan=premium`)**: basic personal features plus Family creation/management for the Primary Owner. Premium is DCO-admin-managed for now; no in-app purchase or subscription billing flow.
 - **Enterprise (`organizations.plan=enterprise`)**: organization-level Fleet access for active members of an active organization, with actions restricted by organization role. DCO Admin provisions the organization and explicitly activates it. Enterprise does not change a member's personal `users.plan`.
+- **Fleet account alignment (Oct 2026, pending implementation)** — details in `product/frd/fleet-management.md`:
+  - Fleet Admin (`org_admin`) accounts are created by DCO Admin with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations.
+  - Drivers are created/deactivated by the Fleet Admin with **username + password, no email**; login accepts email or username (customer signup stays email-only). Driver deactivation is a soft delete: assignment cascaded, history retained, username reserved.
+  - Fleet Portal sidebar is role-gated: full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`. Mobile drawer Fleet entry stays visible to all org members.
+  - Driver login forces Driver mode; drivers may edit only their own profile/password and cannot create/edit/delete vehicles or other users (server-enforced).
 - Family invitees do not need Premium to use their active role/grant-scoped access. If the Primary Owner loses Premium, the family is archived and shared access is revoked.
 - Backend authorization is authoritative. Hiding unavailable feature entry points in the mobile/web clients is a separate client requirement.
 
