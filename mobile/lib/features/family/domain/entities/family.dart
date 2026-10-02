@@ -554,6 +554,9 @@ class UserDetail {
     required this.id,
     required this.email,
     this.displayName,
+    this.contactPhone,
+    this.address,
+    this.profilePhotoMediaId,
     required this.role,
     required this.plan,
     required this.status,
@@ -570,6 +573,9 @@ class UserDetail {
   final String id;
   final String email;
   final String? displayName;
+  final String? contactPhone;
+  final String? address;
+  final String? profilePhotoMediaId;
   final String role;
   final String plan;
   final String status;
@@ -589,6 +595,9 @@ class UserDetail {
       id: json['id'] as String,
       email: json['email'] as String,
       displayName: json['display_name'] as String?,
+      contactPhone: json['contact_phone'] as String?,
+      address: json['address'] as String?,
+      profilePhotoMediaId: json['profile_photo_media_id'] as String?,
       role: json['role'] as String,
       plan: json['plan'] as String,
       status: json['status'] as String,

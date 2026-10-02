@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:dco_mobile/core/database/app_database.dart';
+import 'package:dco_mobile/core/network/auth_interceptor.dart';
 import 'package:dco_mobile/core/sync/outbox_writer.dart';
 import 'package:dco_mobile/features/family/data/mappers/family_mappers.dart';
 import 'package:dco_mobile/features/family/domain/entities/family.dart';
@@ -159,8 +160,10 @@ class FamilyRepositoryImpl implements FamilyRepository {
     try {
       final response = await _dio.get('/users/$userId/detail');
       return UserDetail.fromJson(response.data);
-    } catch (e) {
-      return null;
+    } on DioException catch (error) {
+      final status = error.response?.statusCode;
+      if (status == 404 || status == 403) return null;
+      throw mapDioError(error);
     }
   }
 

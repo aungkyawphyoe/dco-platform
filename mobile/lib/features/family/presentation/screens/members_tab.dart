@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:dco_mobile/core/widgets/dco_avatar.dart';
@@ -49,7 +50,8 @@ class MembersTab extends ConsumerWidget {
               isSelf: isSelf,
               isPrimaryOwner: isPrimaryOwner,
               canManage: isPrimaryOwner && !isSelf,
-              onTap: () => context.go('/user/${member.userId}/detail'),
+              onTap: () =>
+                  context.push(AppRoutes.profileDetail(member.userId)),
               onManage: isPrimaryOwner && !isSelf
                   ? () => _showManageMemberSheet(context, ref, member)
                   : null,

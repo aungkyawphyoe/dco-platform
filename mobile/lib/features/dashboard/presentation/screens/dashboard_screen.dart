@@ -127,7 +127,7 @@ class DashboardScreen extends ConsumerWidget {
                   ).textTheme.bodyMedium?.copyWith(color: tokens.status.infoFg),
                 ),
                 trailing: TextButton(
-                  onPressed: () => context.push(AppRoutes.settingsProfile),
+                  onPressed: () => context.push(AppRoutes.profileEdit),
                   child: Text(
                     s.profileCompleteBannerAction,
                     style: TextStyle(color: tokens.text.link),

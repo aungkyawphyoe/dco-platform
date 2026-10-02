@@ -17,6 +17,8 @@ class AppDrawer extends ConsumerWidget {
     final user = ref.watch(sessionControllerProvider).valueOrNull?.user;
     final entitlements = ref.watch(entitlementsProvider).valueOrNull;
     final showFleet = entitlements?.canUseFleet ?? false;
+    final showFamily = user?.plan == 'premium';
+    final showFamilyFleetSection = showFamily || showFleet;
 
     return Drawer(
       backgroundColor: tokens.background.primary,
@@ -101,24 +103,27 @@ class AppDrawer extends ConsumerWidget {
                       onTap: () => _navigate(context, AppRoutes.expenseStats),
                     ),
 
-                    Divider(height: 1, color: tokens.border.divider),
-                    SizedBox(height: tokens.space.s2),
+                    if (showFamilyFleetSection) ...[
+                      Divider(height: 1, color: tokens.border.divider),
+                      SizedBox(height: tokens.space.s2),
 
-                    // Family & Fleet (conditional)
-                    _SectionLabel(label: s.drawerFamilyFleet),
-                    _DrawerTile(
-                      icon: Icons.people_outlined,
-                      title: s.drawerFamily,
-                      onTap: () => _navigate(context, AppRoutes.family),
-                    ),
-                    // Fleet entry is presentation-only gating: the API
-                    // re-checks plan, membership, org status, and role.
-                    if (showFleet)
-                      _DrawerTile(
-                        icon: Icons.local_shipping_outlined,
-                        title: s.drawerFleet,
-                        onTap: () => _navigate(context, AppRoutes.fleet),
-                      ),
+                      // Family & Fleet (conditional)
+                      _SectionLabel(label: s.drawerFamilyFleet),
+                      if (showFamily)
+                        _DrawerTile(
+                          icon: Icons.people_outlined,
+                          title: s.drawerFamily,
+                          onTap: () => _navigate(context, AppRoutes.family),
+                        ),
+                      // Fleet entry is presentation-only gating: the API
+                      // re-checks plan, membership, org status, and role.
+                      if (showFleet)
+                        _DrawerTile(
+                          icon: Icons.local_shipping_outlined,
+                          title: s.drawerFleet,
+                          onTap: () => _navigate(context, AppRoutes.fleet),
+                        ),
+                    ],
                   ],
                 ),
               ),

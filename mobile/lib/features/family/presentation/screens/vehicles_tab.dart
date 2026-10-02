@@ -94,7 +94,7 @@ class VehiclesTab extends ConsumerWidget {
                       isActive: false,
                       isFamily: true,
                       onOpen: () {
-                        context.push(AppRoutes.familyVehicleDetail(vehicle.id));
+                        context.push(AppRoutes.vehicleDetail(vehicle.id));
                       },
                       onDelete: isOwner
                           ? () => _confirmRemove(context, ref, vehicle)

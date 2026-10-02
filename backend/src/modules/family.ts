@@ -5,11 +5,16 @@ import type { Db } from "../db/client.js";
 import {
   documents,
   drivingLicenses,
+  expenses,
   families,
   familyMemberships,
   familyVehicles,
+  fuelLogs,
   mediaObjects,
   organizationVehicles,
+  parts,
+  planItems,
+  serviceRecords,
   users,
   vehicleGrants,
   vehicles,
@@ -17,6 +22,14 @@ import {
 import { newId, randomToken, sha256 } from "../lib/crypto.js";
 import { dateOnly, iso, num, recordChange, reqNum } from "../lib/dbx.js";
 import { publicUser, publicVehicle } from "../lib/serialize.js";
+import {
+  loadService,
+  publicDoc,
+  publicExpense,
+  publicFuelLog,
+  publicPart,
+  publicPlan,
+} from "../lib/serialize-records.js";
 import { AppError } from "../lib/errors.js";
 import { requireOwner } from "./auth.js";
 
@@ -104,6 +117,80 @@ async function getLicenseStatus(db: Db, userId: string): Promise<string | null> 
   if (diffDays < 0) return "expired";
   if (diffDays <= 14) return "expiring_soon";
   return "valid";
+}
+
+/**
+ * Users whose sync should receive changes for a vehicle: the vehicle owner
+ * plus every family member holding a grant on it. Grants are revoked when a
+ * vehicle leaves the family or a member is removed, which shrinks the
+ * audience automatically.
+ */
+export async function getVehicleChangeAudience(db: Db, vehicleId: string): Promise<string[]> {
+  const [vehicle] = await db.select({ userId: vehicles.userId }).from(vehicles)
+    .where(eq(vehicles.id, vehicleId)).limit(1);
+  if (!vehicle) return [];
+  const grants = await db.select({ userId: vehicleGrants.userId }).from(vehicleGrants)
+    .where(eq(vehicleGrants.vehicleId, vehicleId));
+  const userIds = new Set<string>([vehicle.userId, ...grants.map((g) => g.userId)]);
+  return [...userIds];
+}
+
+/**
+ * Record a vehicle-scoped change under every user in the vehicle's change
+ * audience (optionally excluding some, e.g. the actor who is recorded
+ * separately).
+ */
+export async function fanOutVehicleChange(
+  db: Db,
+  params: {
+    vehicleId: string;
+    entityType: string;
+    entityId: string;
+    op: "upsert" | "archive" | "delete";
+    payload: Record<string, unknown> | null;
+    excludeUserIds?: string[];
+  },
+): Promise<void> {
+  if (!params.payload) return;
+  const exclude = new Set(params.excludeUserIds ?? []);
+  for (const userId of await getVehicleChangeAudience(db, params.vehicleId)) {
+    if (exclude.has(userId)) continue;
+    await recordChange(db, {
+      userId,
+      entityType: params.entityType,
+      entityId: params.entityId,
+      op: params.op,
+      payload: params.payload,
+    });
+  }
+}
+
+/**
+ * Replay a vehicle's existing history into one user's change log so a family
+ * member receives plan items, service records, parts, fuel logs, documents,
+ * and expenses that were logged before the vehicle was shared with them.
+ */
+export async function seedVehicleHistory(db: Db, vehicleId: string, targetUserId: string): Promise<void> {
+  const record = (entityType: string, entityId: string, payload: Record<string, unknown> | null) =>
+    payload ? recordChange(db, { userId: targetUserId, entityType, entityId, op: "upsert", payload }) : Promise.resolve();
+
+  const planRows = await db.select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
+  for (const row of planRows) await record("plan_item", row.id, publicPlan(row));
+
+  const serviceRows = await db.select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId));
+  for (const row of serviceRows) await record("service_record", row.id, await loadService(db, row.id));
+
+  const partRows = await db.select().from(parts).where(eq(parts.vehicleId, vehicleId));
+  for (const row of partRows) await record("part", row.id, publicPart(row));
+
+  const fuelRows = await db.select().from(fuelLogs).where(eq(fuelLogs.vehicleId, vehicleId));
+  for (const row of fuelRows) await record("fuel_log", row.id, publicFuelLog(row));
+
+  const docRows = await db.select().from(documents).where(eq(documents.vehicleId, vehicleId));
+  for (const row of docRows) await record("document", row.id, publicDoc(row));
+
+  const expenseRows = await db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
+  for (const row of expenseRows) await record("expense", row.id, await publicExpense(db, row.id));
 }
 
 export const familyPlugin: FastifyPluginAsync = async (app) => {
@@ -214,6 +301,47 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     await db().update(users).set({ familyId: family.id }).where(eq(users.id, userId));
 
     await recordChange(db(), { userId, entityType: "family_membership", entityId: membershipId, op: "upsert", payload: { family_id: family.id, user_id: userId, role: "member" } });
+
+    // Auto-grant access to every vehicle already shared with the family, then
+    // hand the joiner those vehicle rows plus their history via the change log.
+    const sharedVehicles = await db().select().from(familyVehicles)
+      .where(eq(familyVehicles.familyId, family.id));
+    if (sharedVehicles.length) {
+      const existingGrants = await db().select().from(vehicleGrants)
+        .where(eq(vehicleGrants.userId, userId));
+      const grantedVehicleIds = new Set(existingGrants.map((g) => g.vehicleId));
+      const newGrants = sharedVehicles
+        .filter((fv) => !grantedVehicleIds.has(fv.vehicleId))
+        .map((fv) => ({
+          id: newId(),
+          vehicleId: fv.vehicleId,
+          userId,
+          grantedBy: family.createdBy,
+          permission: "full" as const,
+        }));
+      if (newGrants.length) await db().insert(vehicleGrants).values(newGrants);
+
+      for (const fv of sharedVehicles) {
+        const [vehicle] = await db().select().from(vehicles)
+          .where(eq(vehicles.id, fv.vehicleId)).limit(1);
+        if (!vehicle) continue;
+        await recordChange(db(), {
+          userId,
+          entityType: "vehicle",
+          entityId: vehicle.id,
+          op: "upsert",
+          payload: publicVehicle(vehicle),
+        });
+        await recordChange(db(), {
+          userId,
+          entityType: "family_vehicle",
+          entityId: fv.id,
+          op: "upsert",
+          payload: { id: fv.id, family_id: fv.familyId, vehicle_id: fv.vehicleId, added_by: fv.addedBy, added_at: iso(fv.addedAt) },
+        });
+        await seedVehicleHistory(db(), vehicle.id, userId);
+      }
+    }
 
     return { ...publicFamily(family), my_role: "member" };
   });
@@ -523,6 +651,46 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
       payload: { id: row.id, family_id: row.familyId, vehicle_id: row.vehicleId, added_by: row.addedBy, added_at: iso(row.addedAt) },
     });
 
+    // Auto-grant every non-owner family member full access, then hand them
+    // the vehicle row plus its existing history via the change log.
+    const members = await db().select().from(familyMemberships)
+      .where(eq(familyMemberships.familyId, membership.familyId));
+    const recipients = members.filter((m) => m.userId !== userId);
+    if (recipients.length) {
+      const existingGrants = await db().select().from(vehicleGrants)
+        .where(eq(vehicleGrants.vehicleId, body.vehicle_id));
+      const grantedUserIds = new Set(existingGrants.map((g) => g.userId));
+      const newGrants = recipients
+        .filter((m) => !grantedUserIds.has(m.userId))
+        .map((m) => ({
+          id: newId(),
+          vehicleId: body.vehicle_id,
+          userId: m.userId,
+          grantedBy: userId,
+          permission: "full" as const,
+        }));
+      if (newGrants.length) await db().insert(vehicleGrants).values(newGrants);
+
+      const vehiclePayload = publicVehicle(vehicle);
+      for (const recipient of recipients) {
+        await recordChange(db(), {
+          userId: recipient.userId,
+          entityType: "vehicle",
+          entityId: vehicle.id,
+          op: "upsert",
+          payload: vehiclePayload,
+        });
+        await recordChange(db(), {
+          userId: recipient.userId,
+          entityType: "family_vehicle",
+          entityId: id,
+          op: "upsert",
+          payload: { id: row.id, family_id: row.familyId, vehicle_id: row.vehicleId, added_by: row.addedBy, added_at: iso(row.addedAt) },
+        });
+        await seedVehicleHistory(db(), vehicle.id, recipient.userId);
+      }
+    }
+
     return reply.code(201).send({
       id: row.id,
       family_id: row.familyId,
@@ -556,6 +724,22 @@ export const familyPlugin: FastifyPluginAsync = async (app) => {
     );
 
     await db().delete(familyVehicles).where(eq(familyVehicles.id, fv.id));
+
+    // Tell every other family member the link is gone so their local
+    // family-vehicle cache drops it. The vehicle row itself is left alone
+    // (no archive/delete fan-out) so a later re-share starts clean.
+    const members = await db().select().from(familyMemberships)
+      .where(eq(familyMemberships.familyId, membership.familyId));
+    for (const member of members) {
+      if (member.userId === userId) continue;
+      await recordChange(db(), {
+        userId: member.userId,
+        entityType: "family_vehicle",
+        entityId: fv.id,
+        op: "delete",
+        payload: { id: fv.id, family_id: fv.familyId, vehicle_id: fv.vehicleId },
+      });
+    }
 
     await recordChange(db(), {
       userId,

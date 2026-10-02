@@ -8,7 +8,7 @@ import { AppError } from "../lib/errors.js";
 import { getUser } from "../lib/dbx.js";
 import { publicUser } from "../lib/serialize.js";
 import { requireFleetClient, requireOwner } from "./auth.js";
-import { getUserDetail } from "./family.js";
+import { getVehicleAccessLevel, getUserDetail } from "./family.js";
 
 export const mePlugin: FastifyPluginAsync = async (app) => {
   app.get("/me", async (request) => {
@@ -74,7 +74,15 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
         .from(vehicles)
         .where(eq(vehicles.id, body.active_vehicle_id))
         .limit(1);
-      if (!v || v.userId !== userId || v.archived) {
+      // Owned vehicles and family-shared vehicles the user can access are
+      // both valid active-vehicle targets (members can activate a shared car
+      // to log maintenance/fuel/expenses against it).
+      const allowed =
+        v &&
+        !v.archived &&
+        (v.userId === userId ||
+          (await getVehicleAccessLevel(app.db, userId, v.id)) !== null);
+      if (!allowed) {
         throw new AppError(422, "invalid_vehicle", "Active vehicle not found");
       }
     }
@@ -105,6 +113,11 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     requireOwner(request);
     const requestingUserId = request.authUser!.sub;
     const targetUserId = (request.params as { userId: string }).userId;
+    // Malformed ids (e.g. a client bug) would surface as a Postgres cast
+    // error — report them as not found instead of 500.
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(targetUserId)) {
+      throw new AppError(404, "user_not_found", "User not found");
+    }
     const detail = await getUserDetail(app.db, targetUserId, requestingUserId);
     if (!detail) throw new AppError(404, "user_not_found", "User not found");
     return detail;

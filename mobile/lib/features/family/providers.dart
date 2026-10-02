@@ -100,7 +100,7 @@ final localUserDetailProvider = FutureProvider.family<family_entities.UserDetail
     if (remote != null) {
       ref.invalidate(userDetailProvider(userId));
     }
-  });
+  }).catchError((_) => null);
 
   return local;
 });

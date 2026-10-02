@@ -32,6 +32,10 @@ export function documentExpiresOnSql(): string {
   return readSql("0005_document_expires_on.sql");
 }
 
+export function familyVehicleGrantsSql(): string {
+  return readSql("0006_family_vehicle_grants.sql");
+}
+
 export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Promise<void> {
   await exec(initSql());
   await exec(maintenanceCatalogSql());
@@ -39,4 +43,5 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(fleetFoundationSql());
   await exec(fuelLogOdometerSql());
   await exec(documentExpiresOnSql());
+  await exec(familyVehicleGrantsSql());
 }

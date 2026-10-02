@@ -25,9 +25,10 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-/// Owner-side vehicle detail: collapsing photo hero plus Overview /
-/// Maintenance / Details tabs. Opens for any vehicle in the garage —
-/// active or not.
+/// Vehicle detail: collapsing photo hero plus Overview / Maintenance /
+/// Details tabs. Opens for any vehicle — owned or shared with the family.
+/// Edit is only offered for vehicles the current user owns; members keep
+/// view access plus "Set active" so they can log against the shared car.
 class VehicleDetailScreen extends ConsumerStatefulWidget {
   const VehicleDetailScreen({super.key, required this.vehicleId});
 
@@ -86,6 +87,8 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
     }
 
     final activeId = ref.watch(activeVehicleProvider).valueOrNull?.id;
+    final currentUserId = ref.watch(currentUserIdProvider);
+    final canEdit = vehicle.userId == currentUserId;
 
     return DefaultTabController(
       length: 3,
@@ -105,6 +108,7 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                 background: _VehicleHero(
                   vehicle: vehicle,
                   isActive: activeId == vehicle.id,
+                  canEdit: canEdit,
                   onEdit: () => _push(AppRoutes.vehicleEdit(vehicle.id)),
                   onSetActive: () async {
                     try {
@@ -157,12 +161,14 @@ class _VehicleHero extends StatelessWidget {
   const _VehicleHero({
     required this.vehicle,
     required this.isActive,
+    required this.canEdit,
     required this.onEdit,
     required this.onSetActive,
   });
 
   final Vehicle vehicle;
   final bool isActive;
+  final bool canEdit;
   final VoidCallback onEdit;
   final VoidCallback onSetActive;
 
@@ -250,13 +256,14 @@ class _VehicleHero extends StatelessWidget {
                               ),
                             ),
                             const Spacer(),
-                            TextButton(
-                              onPressed: onEdit,
-                              child: Text(
-                                s.edit,
-                                style: TextStyle(color: tokens.text.link),
+                            if (canEdit)
+                              TextButton(
+                                onPressed: onEdit,
+                                child: Text(
+                                  s.edit,
+                                  style: TextStyle(color: tokens.text.link),
+                                ),
                               ),
-                            ),
                           ],
                         ),
                         if (!isActive) ...[

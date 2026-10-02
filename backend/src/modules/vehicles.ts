@@ -7,7 +7,7 @@ import { AppError } from "../lib/errors.js";
 import { dateOnly, getUser, num, recordChange, reqNum } from "../lib/dbx.js";
 import { publicUser, publicVehicle } from "../lib/serialize.js";
 import { requireOwner } from "./auth.js";
-import { getFamilyVehicleDetail, requireVehicleAccess } from "./family.js";
+import { fanOutVehicleChange, getFamilyVehicleDetail, getVehicleAccessLevel, requireVehicleAccess } from "./family.js";
 
 const fuelEnum = z.enum(["petrol", "electric", "hybrid_plugin"]);
 
@@ -212,8 +212,8 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
       .where(eq(vehicles.id, vehicleId))
       .returning();
     const payload = publicVehicle(updated, await nextMaintenance(app.db, updated.id, reqNum(updated.mileage)));
-    await recordChange(app.db, {
-      userId: request.authUser!.sub,
+    await fanOutVehicleChange(app.db, {
+      vehicleId: updated.id,
       entityType: "vehicle",
       entityId: updated.id,
       op: "upsert",
@@ -238,8 +238,8 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
       await app.db.update(users).set({ activeVehicleId: next?.id ?? null }).where(eq(users.id, request.authUser!.sub));
     }
     const payload = publicVehicle(updated, null);
-    await recordChange(app.db, {
-      userId: request.authUser!.sub,
+    await fanOutVehicleChange(app.db, {
+      vehicleId,
       entityType: "vehicle",
       entityId: vehicleId,
       op: "archive",
@@ -251,11 +251,17 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/activate", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getOwnedVehicle(app.db, request.authUser!.sub, vehicleId);
+    const userId = request.authUser!.sub;
+    const [vehicle] = await app.db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
+    const allowed =
+      vehicle &&
+      !vehicle.archived &&
+      (vehicle.userId === userId || (await getVehicleAccessLevel(app.db, userId, vehicleId)) !== null);
+    if (!allowed) throw new AppError(404, "not_found", "Vehicle not found");
     const [updated] = await app.db
       .update(users)
       .set({ activeVehicleId: vehicleId })
-      .where(eq(users.id, request.authUser!.sub))
+      .where(eq(users.id, userId))
       .returning();
     return publicUser(updated);
   });

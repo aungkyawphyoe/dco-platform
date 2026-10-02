@@ -8,7 +8,7 @@ import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
-import 'package:dco_mobile/features/settings/presentation/widgets/license_photo_card.dart';
+import 'package:dco_mobile/features/profile/presentation/widgets/license_photo_card.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,14 +16,16 @@ import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
-class ProfileScreen extends ConsumerStatefulWidget {
-  const ProfileScreen({super.key});
+/// Profile edit form: name, contact phone, address, profile photo, driving
+/// license (number, expiry, photos), and account deletion.
+class ProfileFormScreen extends ConsumerStatefulWidget {
+  const ProfileFormScreen({super.key});
 
   @override
-  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+  ConsumerState<ProfileFormScreen> createState() => _ProfileFormScreenState();
 }
 
-class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _phoneController;
   late final TextEditingController _addressController;

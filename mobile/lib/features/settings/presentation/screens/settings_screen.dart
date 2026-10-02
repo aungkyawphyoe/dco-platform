@@ -35,7 +35,10 @@ class SettingsScreen extends ConsumerWidget {
       body: Column(
         children: [
           InkWell(
-            onTap: () => context.push(AppRoutes.settingsProfile),
+            onTap: () {
+              final id = user?.id;
+              if (id != null) context.push(AppRoutes.profileDetail(id));
+            },
             borderRadius: BorderRadius.circular(tokens.radius.lg),
             child: Padding(
               padding: EdgeInsets.fromLTRB(

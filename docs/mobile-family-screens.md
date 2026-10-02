@@ -4,7 +4,7 @@
 **Contract:** `product/frd/family-sharing.md`  
 **Theme:** Garage Minimal Dark (`docs/theme/garage-minimal-dark.json`)
 
-**As-built (17 Sep 2026):** Family sharing is fully implemented. Route paths differ from spec (nested under `/settings/` in GoRouter). Some UI stubs remain: leave family, remove member, add/remove driver, assign vehicles. Hero/animation transitions not implemented. API uses `/families/me/*` shortcuts (not `/families/{familyId}/*` as in OpenAPI).
+**As-built (2 Oct 2026):** Family sharing is fully implemented. Car Detail was merged into the Garage vehicle detail route (`/vehicle/:id`); User Detail moved to the Profile feature as `/profile/:id` with Edit at `/profile/edit` (old `/settings/profile`, `/user/:id`, `/family/user/:id`, `/family/vehicle/:id` routes removed). Vehicle info Edit is hidden for non-owners; members can still Set-active and log against shared vehicles. Some UI stubs remain: leave family, remove member, add/remove driver, assign vehicles. Hero/animation transitions not implemented. API uses `/families/me/*` shortcuts (not `/families/{familyId}/*` as in OpenAPI).
 
 ---
 
@@ -23,8 +23,8 @@
 |--------|-------|-----------|--------------|
 | Family Setup | `/family/setup` | Settings | Settings → Family → "Create Family" |
 | Family Management | `/family/manage` | Settings | Settings → Family (after family exists) |
-| Car Detail | `/vehicle/:id/detail` | Garage | Garage Home → Vehicle card |
-| User Detail | `/user/:id/detail` | Settings/Family | Family Management → Member, Car Detail → Driver, Settings → Profile |
+| Car Detail | `/vehicle/:id` | Garage | Garage Home → Vehicle card |
+| User Detail | `/profile/:id` | Settings/Family | Family Management → Member, Car Detail → Driver, Settings → Profile |
 
 ---
 
@@ -165,7 +165,7 @@ New frame in tldraw (Settings cluster)
 
 ---
 
-## Screen: Car Detail (`/vehicle/:id/detail`)
+## Screen: Car Detail (`/vehicle/:id`)
 
 ### Wireframe Reference
 Replaces Vehicle Detail (Garage frame 5 → new detail frame)
@@ -237,7 +237,7 @@ Replaces Vehicle Detail (Garage frame 5 → new detail frame)
 
 ---
 
-## Screen: User Detail (`/user/:id/detail`)
+## Screen: User Detail (`/profile/:id`)
 
 ### Wireframe Reference
 New frame in tldraw (Settings/Family cluster)

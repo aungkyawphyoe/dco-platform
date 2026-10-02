@@ -185,8 +185,16 @@ class VehicleRepositoryImpl implements VehicleRepository {
     required String vehicleId,
   }) async {
     final existing = await getById(vehicleId);
-    if (existing == null || existing.userId != userId || existing.archived) {
+    if (existing == null || existing.archived) {
       throw const VehicleNotFoundFailure();
+    }
+    if (existing.userId != userId) {
+      // Shared family vehicles (recorded locally when the share synced) can
+      // be activated too; the server re-validates access on profile update.
+      final shared = await (_db.select(
+        _db.familyVehicleRecords,
+      )..where((row) => row.vehicleId.equals(vehicleId))).getSingleOrNull();
+      if (shared == null) throw const VehicleNotFoundFailure();
     }
     await _upsertActive(userId, vehicleId);
   }

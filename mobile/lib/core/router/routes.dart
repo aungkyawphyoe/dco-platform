@@ -29,7 +29,6 @@ abstract final class AppRoutes {
   static String expenseEdit(String id) => '/expenses/$id/edit';
 
   static const settings = '/settings';
-  static const settingsProfile = '/settings/profile';
   static const settingsLocalization = '/settings/localization';
   static const settingsUnits = '/settings/units';
   static const settingsReminders = '/settings/reminders';
@@ -86,8 +85,10 @@ abstract final class AppRoutes {
 
   // Detail screens (top-level, accessible from any tab)
   static String vehicleDetail(String id) => '/vehicle/$id';
-  static String familyVehicleDetail(String id) => '/family/vehicle/$id';
-  static String userDetail(String id) => '/user/$id';
+
+  // Profile (top-level, accessible from any tab)
+  static const profileEdit = '/profile/edit';
+  static String profileDetail(String id) => '/profile/$id';
 
   static const licenseCapture = '/license-capture';
 

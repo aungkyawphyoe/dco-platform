@@ -84,13 +84,16 @@ describe("Family Premium entitlement", () => {
       payload: { code: family.share_code.toLowerCase() },
     });
     expect(joined.statusCode).toBe(200);
-    const grant = await app.inject({
-      method: "POST",
-      url: `/v1/families/${family.id}/vehicle-grants`,
-      headers: auth(owner.token),
-      payload: { vehicle_id: vehicleId, user_id: member.id, permission: "full" },
+    // Joining auto-grants access to vehicles already shared with the family.
+    const memberVehicles = await app.inject({
+      method: "GET",
+      url: "/v1/families/me/vehicles",
+      headers: auth(member.token),
     });
-    expect(grant.statusCode).toBe(201);
+    expect(memberVehicles.statusCode).toBe(200);
+    expect(
+      memberVehicles.json().items.some((v: { id: string }) => v.id === vehicleId),
+    ).toBe(true);
 
     const entitlements = await app.inject({ method: "GET", url: "/v1/me/entitlements", headers: auth(member.token) });
     expect(entitlements.statusCode).toBe(200);

@@ -48,9 +48,10 @@ import '../../features/notes/presentation/screens/note_form_screen.dart';
 import '../../features/notes/presentation/screens/notes_screen.dart';
 import '../../features/parts/presentation/screens/part_form_screen.dart';
 import '../../features/parts/presentation/screens/parts_screen.dart';
+import '../../features/profile/presentation/screens/profile_detail_screen.dart';
+import '../../features/profile/presentation/screens/profile_form_screen.dart';
 import '../../features/settings/presentation/screens/appearance_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
-import '../../features/settings/presentation/screens/profile_screen.dart';
 import '../../features/settings/presentation/screens/license_capture_screen.dart';
 import '../../features/settings/presentation/screens/reminders_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
@@ -60,8 +61,6 @@ import '../../features/stats/presentation/screens/fuel_stats_screen.dart';
 import '../../features/stats/presentation/screens/maintenance_stats_screen.dart';
 import '../../features/family/presentation/screens/family_setup_screen.dart';
 import '../../features/family/presentation/screens/family_management_screen.dart';
-import '../../features/family/presentation/screens/car_detail_screen.dart';
-import '../../features/family/presentation/screens/user_detail_screen.dart';
 import '../../features/sync/presentation/screens/sync_status_screen.dart';
 import 'app_shell.dart';
 import 'routes.dart';
@@ -268,11 +267,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 builder: (context, state) => const SettingsScreen(),
                 routes: [
                   GoRoute(
-                    path: 'profile',
-                    parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const ProfileScreen(),
-                  ),
-                  GoRoute(
                     path: 'localization',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const LocalizationScreen(),
@@ -453,18 +447,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) =>
                 FamilySetupScreen(joinCode: state.pathParameters['code']!),
           ),
-          GoRoute(
-            path: 'vehicle/:id',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) =>
-                CarDetailScreen(vehicleId: state.pathParameters['id']!),
-          ),
-          GoRoute(
-            path: 'user/:id',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) =>
-                UserDetailScreen(userId: state.pathParameters['id']!),
-          ),
         ],
       ),
 
@@ -556,11 +538,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             VehicleDetailScreen(vehicleId: state.pathParameters['id']!),
       ),
+      // /profile/edit must be registered before /profile/:id or it is
+      // shadowed by the detail route (id would resolve to "edit").
       GoRoute(
-        path: AppRoutes.userDetail(':id'),
+        path: AppRoutes.profileEdit,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const ProfileFormScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.profileDetail(':id'),
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) =>
-            UserDetailScreen(userId: state.pathParameters['id']!),
+            ProfileDetailScreen(userId: state.pathParameters['id']!),
       ),
       GoRoute(
         path: AppRoutes.licenseCapture,
