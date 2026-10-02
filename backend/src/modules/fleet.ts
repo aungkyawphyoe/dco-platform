@@ -19,10 +19,13 @@ import {
 import type { Db } from "../db/client.js";
 import { newId } from "../lib/crypto.js";
 import { createInvitedOwnerAccount } from "../lib/account-invites.js";
+import { generateUniqueUsername } from "../lib/username.js";
+import { hashPassword } from "../lib/crypto.js";
 import { dateOnly, iso, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
-import { publicVehicle } from "../lib/serialize.js";
+import { publicVehicle, publicUser } from "../lib/serialize.js";
 import { requireFleetClient } from "./auth.js";
+import { refreshTokens } from "../db/schema.js";
 
 const uuid = z.string().uuid();
 const orgRole = z.enum(["org_admin", "org_manager", "org_mechanic", "org_driver"]);
@@ -226,6 +229,71 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const [updated] = await app.db.update(organizationMembers).set({ role: body.role! }).where(eq(organizationMembers.id, membership.id)).returning();
     const [member] = await app.db.select().from(users).where(eq(users.id, memberId)).limit(1);
     return serializeMember(updated, member!);
+  });
+
+  app.post("/organizations/:id/drivers", async (request, reply) => {
+    requireFleetClient(request);
+    const orgId = uuid.parse((request.params as { id: string }).id);
+    const actorId = uid(request);
+    await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
+    const body = z
+      .object({
+        username: z.string().min(3).max(30).regex(/^[a-z0-9._]+$/),
+        display_name: z.string().min(1).max(100),
+        password: z.string().min(8),
+      })
+      .parse(request.body);
+    const [existingUser] = await app.db.select().from(users).where(eq(users.username, body.username)).limit(1);
+    if (existingUser) throw new AppError(409, "username_taken", "Username is already taken");
+    const id = newId();
+    const passwordHash = await hashPassword(body.password);
+    const [user] = await app.db
+      .insert(users)
+      .values({
+        id,
+        username: body.username,
+        passwordHash,
+        displayName: body.display_name,
+        role: "owner",
+        plan: "free",
+        emailVerified: true,
+        mustChangePassword: true,
+      })
+      .returning();
+    const [membership] = await app.db
+      .insert(organizationMembers)
+      .values({ id: newId(), orgId, userId: id, role: "org_driver", invitedBy: actorId })
+      .returning();
+    await recordChange(app.db, { userId: id, entityType: "user", entityId: id, op: "upsert", payload: publicUser(user) });
+    await recordChange(app.db, { userId: actorId, entityType: "organization_member", entityId: membership.id, op: "upsert", payload: serializeMember(membership, user) });
+    return reply.code(201).send({ ...publicUser(user), membership: serializeMember(membership, user) });
+  });
+
+  app.post("/organizations/:id/members/:userId/status", async (request, reply) => {
+    requireFleetClient(request);
+    const { id: rawOrgId, userId: memberId } = request.params as { id: string; userId: string };
+    const orgId = uuid.parse(rawOrgId);
+    const actorId = uid(request);
+    await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
+    const body = z.object({ status: z.enum(["active", "deactivated"]) }).parse(request.body);
+    const [membership] = await app.db.select().from(organizationMembers).where(and(eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, memberId))).limit(1);
+    if (!membership) throw new AppError(404, "member_not_found", "Organization member not found");
+    if (membership.role === "org_admin") throw new AppError(409, "cannot_change_org_admin", "Cannot change org admin status");
+    const [targetUser] = await app.db.select().from(users).where(eq(users.id, memberId)).limit(1);
+    if (!targetUser) throw new AppError(404, "user_not_found", "User not found");
+    if (body.status === "deactivated") {
+      if (targetUser.status === "deactivated") throw new AppError(409, "already_deactivated", "User is already deactivated");
+      await app.db.update(driverAssignments).set({ status: "completed", unassignedAt: new Date() }).where(and(
+        eq(driverAssignments.orgId, orgId), eq(driverAssignments.driverId, memberId), eq(driverAssignments.status, "active"),
+      ));
+      await app.db.update(users).set({ status: "deactivated" }).where(eq(users.id, memberId));
+      await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, memberId));
+    } else {
+      if (targetUser.status === "active") throw new AppError(409, "already_active", "User is already active");
+      await app.db.update(users).set({ status: "active" }).where(eq(users.id, memberId));
+    }
+    await recordChange(app.db, { userId: actorId, entityType: "user", entityId: memberId, op: "upsert", payload: publicUser({ ...targetUser, status: body.status }) });
+    return { status: body.status, user_id: memberId };
   });
 
   app.get("/organizations/:id/workshops", async (request) => {

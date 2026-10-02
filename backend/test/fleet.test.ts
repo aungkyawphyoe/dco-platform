@@ -592,3 +592,124 @@ describe("Approved workshop warranty access", () => {
     await app.close();
   });
 });
+
+describe("Driver provisioning", () => {
+  it("creates driver accounts, deactivates, and reactivates them", async () => {
+    const { app, db } = await createTestApp();
+    const platformAdmin = await adminToken(app);
+    const fleetOwner = await signup(app, "fleet-owner");
+
+    const created = await app.inject({
+      method: "POST",
+      url: "/v1/admin/organizations",
+      headers: auth(platformAdmin),
+      payload: { name: "Driver Test Fleet", type: "taxi_fleet", admin_email: fleetOwner.email },
+    });
+    expect(created.statusCode).toBe(201);
+    const org = created.json();
+
+    await app.inject({
+      method: "PATCH",
+      url: `/v1/admin/organizations/${org.id}/status`,
+      headers: auth(platformAdmin),
+      payload: { status: "active" },
+    });
+
+    const fleetLogin = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: fleetOwner.email, password: "password1", surface: "fleet" },
+    });
+    expect(fleetLogin.statusCode).toBe(200);
+    const fleetToken = fleetLogin.json().access_token as string;
+
+    const createDriver = await app.inject({
+      method: "POST",
+      url: `/v1/organizations/${org.id}/drivers`,
+      headers: auth(fleetToken),
+      payload: { username: "driver_john", display_name: "John Doe", password: "InitialPass123" },
+    });
+    expect(createDriver.statusCode).toBe(201);
+    const driver = createDriver.json();
+    expect(driver.username).toBe("driver_john");
+    expect(driver.must_change_password).toBe(true);
+    expect(driver.membership.role).toBe("org_driver");
+    const driverId = driver.id;
+
+    const loginDriver = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: "driver_john", password: "InitialPass123" },
+    });
+    expect(loginDriver.statusCode).toBe(200);
+    const driverToken = loginDriver.json().access_token as string;
+
+    const fleetReject = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: "driver_john", password: "InitialPass123", surface: "fleet" },
+    });
+    expect(fleetReject.statusCode).toBe(403);
+    expect(fleetReject.json().error.code).toBe("portal_access_restricted");
+
+    const myVehicle = await app.inject({ method: "GET", url: "/v1/drivers/my-vehicle", headers: auth(driverToken) });
+    expect(myVehicle.statusCode).toBe(403);
+    expect(myVehicle.json().error.code).toBe("password_change_required");
+
+    const changePw = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: auth(driverToken),
+      payload: { current_password: "InitialPass123", new_password: "NewPass456" },
+    });
+    expect(changePw.statusCode).toBe(204);
+
+    const myVehicleAfter = await app.inject({ method: "GET", url: "/v1/drivers/my-vehicle", headers: auth(driverToken) });
+    expect(myVehicleAfter.statusCode).toBe(200);
+    expect(myVehicleAfter.json().assignment).toBeNull();
+
+    const deactivate = await app.inject({
+      method: "POST",
+      url: `/v1/organizations/${org.id}/members/${driverId}/status`,
+      headers: auth(fleetToken),
+      payload: { status: "deactivated" },
+    });
+    expect(deactivate.statusCode).toBe(200);
+    expect(deactivate.json().status).toBe("deactivated");
+
+    const loginDeactivated = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: "driver_john", password: "NewPass456" },
+    });
+    expect(loginDeactivated.statusCode).toBe(401);
+    expect(loginDeactivated.json().error.code).toBe("deactivated");
+
+    const reactivate = await app.inject({
+      method: "POST",
+      url: `/v1/organizations/${org.id}/members/${driverId}/status`,
+      headers: auth(fleetToken),
+      payload: { status: "active" },
+    });
+    expect(reactivate.statusCode).toBe(200);
+    expect(reactivate.json().status).toBe("active");
+
+    const loginReactivated = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: "driver_john", password: "NewPass456" },
+    });
+    expect(loginReactivated.statusCode).toBe(200);
+
+    const duplicate = await app.inject({
+      method: "POST",
+      url: `/v1/organizations/${org.id}/drivers`,
+      headers: auth(fleetToken),
+      payload: { username: "driver_john", display_name: "Jane", password: "password1" },
+    });
+    expect(duplicate.statusCode).toBe(409);
+    expect(duplicate.json().error.code).toBe("username_taken");
+
+    await app.close();
+  });
+});
