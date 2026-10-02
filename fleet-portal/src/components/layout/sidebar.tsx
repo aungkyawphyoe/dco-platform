@@ -3,44 +3,71 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useSession } from "@/lib/auth/session-context";
+import { useSession, useOrgRole } from "@/lib/auth/session-context";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { orgRoleLabel } from "@/lib/api/types";
 
-const nav = [
-  { section: "Overview", items: [{ href: "/", label: "Dashboard", exact: true }] },
-  {
-    section: "Fleet",
-    items: [
-      { href: "/vehicles", label: "Vehicles", exact: false },
-      { href: "/work-orders", label: "Work Orders", exact: false },
-      { href: "/inspections", label: "Inspections", exact: false },
-      { href: "/assignments", label: "Driver Assignments", exact: false },
-    ],
-  },
-  {
-    section: "Configuration",
-    items: [
-      { href: "/members", label: "Members", exact: false },
-      { href: "/workshops", label: "Workshops", exact: false },
-      { href: "/warranty-templates", label: "Warranty Templates", exact: false },
-      { href: "/settings", label: "Org Settings", exact: false },
-    ],
-  },
-  {
-    section: "Data",
-    items: [
-      { href: "/reports", label: "Reports", exact: false },
-      { href: "/transferred", label: "Transferred", exact: false },
-    ],
-  },
-];
+function getNavForRole(role: string | null) {
+  const baseNav = [
+    { section: "Overview", items: [{ href: "/", label: "Dashboard", exact: true }] },
+    {
+      section: "Fleet",
+      items: [
+        { href: "/vehicles", label: "Vehicles", exact: false },
+        { href: "/work-orders", label: "Work Orders", exact: false },
+        { href: "/inspections", label: "Inspections", exact: false },
+        { href: "/assignments", label: "Driver Assignments", exact: false },
+      ],
+    },
+  ];
+
+  const adminNav = [
+    {
+      section: "Configuration",
+      items: [
+        { href: "/members", label: "Members", exact: false },
+        { href: "/workshops", label: "Workshops", exact: false },
+        { href: "/warranty-templates", label: "Warranty Templates", exact: false },
+        { href: "/settings", label: "Org Settings", exact: false },
+      ],
+    },
+    {
+      section: "Data",
+      items: [
+        { href: "/reports", label: "Reports", exact: false },
+        { href: "/transferred", label: "Transferred", exact: false },
+      ],
+    },
+  ];
+
+  const managerMechanicNav = [
+    {
+      section: "Configuration",
+      items: [
+        { href: "/members", label: "Members", exact: false },
+      ],
+    },
+    {
+      section: "Data",
+      items: [
+        { href: "/reports", label: "Reports", exact: false },
+        { href: "/transferred", label: "Transferred", exact: false },
+      ],
+    },
+  ];
+
+  if (role === "org_admin") return [...baseNav, ...adminNav];
+  if (role === "org_manager" || role === "org_mechanic") return [...baseNav, ...managerMechanicNav];
+  return baseNav;
+}
 
 export function Sidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, org, signOut } = useSession();
+  const role = useOrgRole();
+  const nav = getNavForRole(role);
 
   async function onSignOut() {
     await signOut();

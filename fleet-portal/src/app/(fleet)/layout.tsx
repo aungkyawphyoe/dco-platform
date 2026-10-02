@@ -3,10 +3,12 @@
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
-import { useSession } from "@/lib/auth/session-context";
+import { useSession, useOrgRole } from "@/lib/auth/session-context";
+import { Card } from "@/components/ui/card";
 
 export default function FleetLayout({ children }: { children: React.ReactNode }) {
   const { ready, user, org } = useSession();
+  const role = useOrgRole();
   const router = useRouter();
 
   useEffect(() => {
@@ -33,6 +35,21 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
             Contact your organization administrator or AutoHub support.
           </p>
         </div>
+      </div>
+    );
+  }
+
+  if (role === "org_driver") {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <Card className="max-w-md p-6 text-center">
+          <p className="font-display text-lg font-semibold text-ink">
+            Drivers do not use the Fleet Portal
+          </p>
+          <p className="mt-2 text-sm text-ink-caption">
+            Please use the AutoHub mobile app for your driver workflow.
+          </p>
+        </Card>
       </div>
     );
   }

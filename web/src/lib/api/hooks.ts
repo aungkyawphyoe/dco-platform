@@ -323,3 +323,61 @@ export function useDeleteCatalogItem() {
     },
   });
 }
+
+// ── Organization Drivers (admin cross-org) ──
+
+export type AdminOrgDriver = {
+  user_id: string;
+  username: string;
+  display_name: string | null;
+  email: string | null;
+  status: "active" | "deactivated";
+  must_change_password: boolean;
+  joined_at: string;
+};
+
+export function useAdminOrgDrivers(orgId: string | null) {
+  return useQuery({
+    queryKey: ["admin", "organizations", orgId, "drivers"],
+    queryFn: () => apiGet<{ items?: AdminOrgDriver[] }>(`/admin/organizations/${orgId}/drivers`),
+    enabled: Boolean(orgId),
+  });
+}
+
+export function useCreateOrgDriver() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      orgId,
+      ...body
+    }: {
+      orgId: string;
+      username: string;
+      display_name: string;
+      password: string;
+    }) => apiPost<{ id: string; username: string; display_name: string | null; must_change_password: boolean }>(`/admin/organizations/${orgId}/drivers`, body),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin", "organizations", variables.orgId, "drivers"] });
+      qc.invalidateQueries({ queryKey: ["admin", "organizations", variables.orgId] });
+    },
+  });
+}
+
+export function useUpdateOrgDriverStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      orgId,
+      userId,
+      status,
+    }: {
+      orgId: string;
+      userId: string;
+      status: "active" | "deactivated";
+    }) => apiPatch<{ status: string; user_id: string }>(`/admin/organizations/${orgId}/drivers/${userId}/status`, { status }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin", "organizations", variables.orgId, "drivers"] });
+      qc.invalidateQueries({ queryKey: ["admin", "organizations", variables.orgId] });
+    },
+  });
+}

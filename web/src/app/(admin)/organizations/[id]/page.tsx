@@ -15,6 +15,10 @@ import {
   useResendOrganizationInvite,
   useUpdateOrganization,
   useUpdateOrganizationStatus,
+  useAdminOrgDrivers,
+  useCreateOrgDriver,
+  useUpdateOrgDriverStatus,
+  type AdminOrgDriver,
 } from "@/lib/api/hooks";
 
 const ORGANIZATION_TYPES = [
@@ -45,6 +49,9 @@ export default function OrganizationDetailPage({
   const update = useUpdateOrganization();
   const changeStatus = useUpdateOrganizationStatus();
   const resendInvite = useResendOrganizationInvite();
+  const { data: driversData, refetch: refetchDrivers } = useAdminOrgDrivers(id);
+  const createDriver = useCreateOrgDriver();
+  const updateDriverStatus = useUpdateOrgDriverStatus();
 
   const [name, setName] = useState("");
   const [type, setType] = useState<OrganizationType | "">("");
@@ -55,6 +62,9 @@ export default function OrganizationDetailPage({
   const [banner, setBanner] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
+  const [driverModalOpen, setDriverModalOpen] = useState(false);
+  const [newDriver, setNewDriver] = useState({ username: "", display_name: "", password: "" });
+  const [driverError, setDriverError] = useState<string | null>(null);
 
   useEffect(() => {
     if (organization) {
@@ -356,6 +366,74 @@ export default function OrganizationDetailPage({
             )}
           </Card>
         </div>
+
+        <div className="flex flex-col gap-6">
+          <Card className="p-6">
+            <div className="flex items-center justify-between">
+              <h2 className="font-display text-base font-semibold text-ink">
+                Drivers
+              </h2>
+              <Button size="sm" onClick={() => { setNewDriver({ username: "", display_name: "", password: "" }); setDriverError(null); setDriverModalOpen(true); }}>
+                Add driver
+              </Button>
+            </div>
+            {driversData?.items && driversData.items.length > 0 ? (
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-ink-caption border-b border-line-subtle">
+                      <th className="pb-2 pr-4">Username</th>
+                      <th className="pb-2 pr-4">Name</th>
+                      <th className="pb-2 pr-4">Email</th>
+                      <th className="pb-2 pr-4">Status</th>
+                      <th className="pb-2 pr-4">Must change pwd</th>
+                      <th className="pb-2 pr-4">Joined</th>
+                      <th className="pb-2">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {driversData.items.map((driver: AdminOrgDriver) => (
+                      <tr key={driver.user_id} className="border-b border-line-subtle">
+                        <td className="py-3 pr-4 font-mono text-ink">{driver.username}</td>
+                        <td className="py-3 pr-4 text-ink-muted">{driver.display_name ?? "—"}</td>
+                        <td className="py-3 pr-4 text-ink-muted">{driver.email ?? "—"}</td>
+                        <td className="py-3 pr-4">
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs ${
+                            driver.status === "active" ? "bg-success-dim text-success" : "bg-danger-dim text-danger"
+                          }`}>
+                            {driver.status}
+                          </span>
+                        </td>
+                        <td className="py-3 pr-4">
+                          {driver.must_change_password ? (
+                            <span className="text-warning">Yes</span>
+                          ) : (
+                            <span className="text-ink-caption">No</span>
+                          )}
+                        </td>
+                        <td className="py-3 pr-4 text-ink-caption">
+                          {dateFormat.format(new Date(driver.joined_at))}
+                        </td>
+                        <td className="py-3 pr-4">
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => updateDriverStatus.mutate({ orgId: id, userId: driver.user_id, status: driver.status === "active" ? "deactivated" : "active" })}
+                            disabled={updateDriverStatus.isPending}
+                          >
+                            {driver.status === "active" ? "Deactivate" : "Activate"}
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-ink-caption">No drivers yet.</p>
+            )}
+          </Card>
+        </div>
       </div>
 
       {pendingAction && (
@@ -376,6 +454,62 @@ export default function OrganizationDetailPage({
             {actionError && (
               <p className="text-sm text-danger">{actionError}</p>
             )}
+          </div>
+        </Modal>
+      )}
+
+      {driverModalOpen && (
+        <Modal
+          open
+          onClose={() => {
+            setDriverModalOpen(false);
+            setDriverError(null);
+          }}
+          title="Add driver"
+          confirmLabel="Create"
+          loading={createDriver.isPending}
+          onSubmit={() => {
+            setDriverError(null);
+            createDriver.mutate(
+              { orgId: id, ...newDriver },
+              {
+                onSuccess: () => {
+                  setDriverModalOpen(false);
+                  refetchDrivers();
+                },
+                onError: (err) => setDriverError((err as Error)?.message ?? "Failed to create driver"),
+              },
+            );
+          }}
+        >
+          <div className="flex flex-col gap-4">
+            <Input
+              label="Username"
+              placeholder="driver_john"
+              value={newDriver.username}
+              onChange={(e) => setNewDriver({ ...newDriver, username: e.target.value })}
+              required
+              pattern="^[a-z0-9._]{3,30}$"
+              error={driverError}
+            />
+            <Input
+              label="Display name"
+              placeholder="John Doe"
+              value={newDriver.display_name}
+              onChange={(e) => setNewDriver({ ...newDriver, display_name: e.target.value })}
+              required
+              maxLength={100}
+            />
+            <Input
+              label="Initial password"
+              type="password"
+              placeholder="min 8 characters"
+              value={newDriver.password}
+              onChange={(e) => setNewDriver({ ...newDriver, password: e.target.value })}
+              required
+              minLength={8}
+            />
+            {driverError && <p className="text-sm text-danger">{driverError}</p>}
           </div>
         </Modal>
       )}

@@ -405,6 +405,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/change-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Change own password (clears must_change_password)
+         * @description Requires the current password. The only write route (besides profile) allowed while `must_change_password` is set. Revokes existing refresh tokens after success.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        current_password: string;
+                        new_password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Password changed; must_change_password cleared; refresh tokens revoked */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                401: components["responses"]["Error"];
+                403: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me": {
         parameters: {
             query?: never;
@@ -3411,7 +3457,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Provision an Enterprise organization and link or create an invited Org Admin account */
+        /** Provision an Enterprise organization and link or create a temp-password Org Admin account */
         post: {
             parameters: {
                 query?: never;
@@ -3632,7 +3678,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Invite a member by email and role */
+        /** Invite a member by email (manager/mechanic only — drivers use driver creation) */
         post: {
             parameters: {
                 query?: never;
@@ -3648,7 +3694,7 @@ export interface paths {
                         /** Format: email */
                         email: string;
                         /** @enum {string} */
-                        role: "org_manager" | "org_mechanic" | "org_driver";
+                        role: "org_manager" | "org_mechanic";
                     };
                 };
             };
@@ -3720,6 +3766,110 @@ export interface paths {
                 403: components["responses"]["Error"];
             };
         };
+        trace?: never;
+    };
+    "/organizations/{id}/drivers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a driver account (username + password, no email) — org_admin only */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Globally unique; stays reserved even after driver deactivation */
+                        username: string;
+                        display_name: string;
+                        /** @description Initial password; server sets must_change_password=true */
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Driver account created with org_driver membership; no email sent */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["User"];
+                    };
+                };
+                403: components["responses"]["Error"];
+                409: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/members/{userId}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                userId: components["parameters"]["userId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Deactivate/reactivate a driver (soft delete) — org_admin only
+         * @description Deactivation sets users.status=deactivated, blocks login, cascades the active driver_assignment to completed, and retains all history. The username stays reserved. Reactivation restores login but requires manual re-assignment.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    userId: components["parameters"]["userId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "active" | "deactivated";
+                    };
+                };
+            };
+            responses: {
+                /** @description Membership status updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/organizations/{id}/vehicles": {
@@ -5522,11 +5672,11 @@ export interface components {
             display_name?: string;
         };
         LoginRequest: {
-            /** Format: email */
+            /** @description Login identifier — a valid email **or** a username (case-insensitive). Customer self-signup remains email-only. */
             email: string;
             password: string;
             /**
-             * @description Owner accounts may request dco-fleet or dco-workshop only when provisioned for that tenant. Platform Admin sign-in remains dco-admin.
+             * @description Owner accounts may request dco-fleet or dco-workshop only when provisioned for that tenant. Platform Admin sign-in remains dco-admin. The `fleet` surface rejects `org_driver` accounts with 403 `portal_access_restricted`.
              * @default owner
              * @enum {string}
              */
@@ -5542,12 +5692,17 @@ export interface components {
         User: {
             /** Format: uuid */
             id: string;
-            email: string;
+            /** @description Globally unique login identifier (backfilled from email local part for pre-existing accounts) */
+            username: string;
+            /** @description Nullable — driver accounts created by a Fleet Admin are username-only */
+            email?: string | null;
             display_name?: string | null;
             role: components["schemas"]["Role"];
             plan: components["schemas"]["Plan"];
             status: components["schemas"]["AccountStatus"];
             email_verified: boolean;
+            /** @description True for temporary-password accounts; fleet/driver API routes except profile/password return 403 password_change_required until changed */
+            must_change_password: boolean;
             /** Format: uuid */
             active_vehicle_id?: string | null;
             /** @description 1 for free, null for unlimited premium; vehicle-count gating is still not enforced. */
@@ -6047,13 +6202,21 @@ export interface components {
             type: "showroom" | "dealership" | "taxi_fleet" | "rental" | "commercial" | "logistics";
             /** Format: email */
             admin_email: string;
+            /** @description Temporary password applied when no account exists for admin_email (account created active with must_change_password=true; no invite email). Ignored — with a 400 if supplied — when the account already exists (link path). */
+            admin_password?: string;
             /** Format: email */
             contact_email?: string | null;
             contact_phone?: string | null;
         };
         AdminOrganizationCreated: components["schemas"]["AdminOrganization"] & {
-            /** @description True when a new invited owner account was created for the Org Admin email */
+            /** @description True when a new temp-password Org Admin account was created for admin_email */
+            admin_account_created?: boolean;
+            /**
+             * @deprecated
+             * @description Legacy — always false after the Oct 2026 alignment (no invite emails)
+             */
             account_invitation_sent?: boolean;
+            /** @deprecated */
             organization_invitation_sent?: boolean;
         };
         AdminOrganizationStatus: components["schemas"]["AdminOrganization"] & {
