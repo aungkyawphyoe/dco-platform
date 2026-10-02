@@ -32,7 +32,7 @@ import { newId } from "../lib/crypto.js";
 import { dateOnly, iso, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
 import { requireFleetClient, requireWorkshopClient } from "./auth.js";
-import { getOrganizationAccess } from "./fleet.js";
+import { getOrganizationAccess, assertPasswordChangeClear } from "./fleet.js";
 
 const uuid = z.string().uuid();
 const inspectionResult = z.enum(["ok", "not_ok"]);
@@ -221,6 +221,11 @@ async function listWorkshopWarrantyVehicles(db: Db, userId: string) {
 
 export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
+
+  app.addHook("preHandler", async (request) => {
+    if (request.authUser?.surface === "workshop") return;
+    await assertPasswordChangeClear(app.db, request.authUser!.sub);
+  });
 
   // ── Inspection templates and completion ────────────────────────────
   app.get("/organizations/:id/inspection-templates", async (request) => {

@@ -230,10 +230,18 @@ describe("Enterprise Fleet access", () => {
     });
     expect(assignment.statusCode).toBe(201);
 
-    const driverLogin = await app.inject({
+    const driverFleetLogin = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
       payload: { email: driver.email, password: "password1", surface: "fleet" },
+    });
+    expect(driverFleetLogin.statusCode).toBe(403);
+    expect(driverFleetLogin.json().error.code).toBe("portal_access_restricted");
+
+    const driverLogin = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: driver.email, password: "password1" },
     });
     expect(driverLogin.statusCode).toBe(200);
     const driverToken = driverLogin.json().access_token as string;
@@ -327,7 +335,12 @@ describe("Enterprise Fleet access", () => {
       payload: { vehicle_id: vehicleId, driver_id: driver.id },
     });
     expect(assignment.statusCode).toBe(201);
-    const driverLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: driver.email, password: "password1", surface: "fleet" } });
+    const driverLogin = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: driver.email, password: "password1" },
+    });
+    expect(driverLogin.statusCode).toBe(200);
     const driverToken = driverLogin.json().access_token as string;
     const driverContext = await app.inject({ method: "GET", url: "/v1/drivers/my-vehicle", headers: auth(driverToken) });
     expect(driverContext.statusCode).toBe(200);

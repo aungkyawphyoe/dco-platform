@@ -28,7 +28,7 @@ const signupBody = z.object({
 });
 
 const loginBody = z.object({
-  email: z.string().email(),
+  email: z.string().min(1).max(254),
   password: z.string(),
   surface: z.enum(["owner", "fleet", "workshop"]).optional().default("owner"),
 });
@@ -89,10 +89,12 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/login", { config: { public: true } }, async (request) => {
     const body = loginBody.parse(request.body);
-    const email = body.email.toLowerCase();
-    const [user] = await app.db.select().from(users).where(eq(users.email, email)).limit(1);
+    const identifier = body.email.trim().toLowerCase();
+    const [user] = identifier.includes("@")
+      ? await app.db.select().from(users).where(eq(users.email, identifier)).limit(1)
+      : await app.db.select().from(users).where(eq(users.username, identifier)).limit(1);
     if (!user || !(await verifyPassword(body.password, user.passwordHash))) {
-      throw new AppError(401, "invalid_credentials", "Invalid email or password");
+      throw new AppError(401, "invalid_credentials", "Invalid credentials");
     }
     if (user.status === "deactivated") {
       throw new AppError(401, "deactivated", "Account is deactivated");
@@ -111,17 +113,19 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
       return issueSession(app, user, undefined, app.env.JWT_WORKSHOP_AUD);
     }
     if (body.surface === "fleet") {
-      const [membership] = await app.db
-        .select({ org: organizations })
+      const memberships = await app.db
+        .select({ role: organizationMembers.role, org: organizations })
         .from(organizationMembers)
         .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
         .where(and(
           eq(organizationMembers.userId, user.id),
           eq(organizations.plan, "enterprise"),
           eq(organizations.status, "active"),
-        ))
-        .limit(1);
-      if (!membership) throw new AppError(403, "fleet_access_required", "An active Enterprise organization membership is required");
+        ));
+      if (!memberships.length) throw new AppError(403, "fleet_access_required", "An active Enterprise organization membership is required");
+      if (memberships.every((m) => m.role === "org_driver")) {
+        throw new AppError(403, "portal_access_restricted", "Drivers do not use the Fleet Portal");
+      }
       return issueSession(app, user, undefined, app.env.JWT_FLEET_AUD);
     }
     return issueSession(app, user, undefined, app.env.JWT_OWNER_AUD);
@@ -190,6 +194,38 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     }
 
     throw new AppError(401, "unauthorized", "Missing access token");
+  });
+
+  app.post("/auth/change-password", async (request, reply) => {
+    const body = z
+      .object({
+        current_password: z.string().min(1),
+        new_password: z.string().min(8),
+      })
+      .parse(request.body);
+    const userId = request.authUser!.sub;
+    const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) throw new AppError(401, "unauthorized", "Invalid access token");
+    if (!(await verifyPassword(body.current_password, user.passwordHash))) {
+      throw new AppError(401, "invalid_password", "Current password is incorrect");
+    }
+    const [updated] = await app.db
+      .update(users)
+      .set({ passwordHash: await hashPassword(body.new_password), mustChangePassword: false })
+      .where(eq(users.id, userId))
+      .returning();
+    await app.db
+      .update(refreshTokens)
+      .set({ revokedAt: new Date() })
+      .where(eq(refreshTokens.userId, userId));
+    await recordChange(app.db, {
+      userId,
+      entityType: "user",
+      entityId: userId,
+      op: "upsert",
+      payload: publicUser(updated),
+    });
+    return reply.code(204).send();
   });
 
   app.post("/auth/verify-email", { config: { public: true } }, async (request, reply) => {

@@ -59,6 +59,17 @@ export async function getOrganizationAccess(db: Db, userId: string, orgId: strin
   return result;
 }
 
+export async function assertPasswordChangeClear(db: Db, userId: string) {
+  const [user] = await db
+    .select({ mustChangePassword: users.mustChangePassword })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  if (user?.mustChangePassword) {
+    throw new AppError(403, "password_change_required", "Temporary password must be changed");
+  }
+}
+
 function serializeOrganization(row: typeof organizations.$inferSelect, role: string) {
   return {
     id: row.id,
@@ -96,6 +107,10 @@ function serializeOrganizationVehicle(row: typeof organizationVehicles.$inferSel
 
 export const fleetPlugin: FastifyPluginAsync = async (app) => {
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
+
+  app.addHook("preHandler", async (request) => {
+    await assertPasswordChangeClear(app.db, request.authUser!.sub);
+  });
 
   app.get("/drivers/my-vehicle", async (request) => {
     requireFleetClient(request);

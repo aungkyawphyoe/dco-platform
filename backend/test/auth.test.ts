@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTestApp, uuid } from "./helpers.js";
+import { eq } from "drizzle-orm";
+import { users } from "../src/db/schema.js";
 
 describe("health", () => {
   it("returns ok and ready", async () => {
@@ -138,6 +140,171 @@ describe("logout", () => {
       payload: { refresh_token: "not-a-token" },
     });
     expect(badRefresh.statusCode).toBe(401);
+    await app.close();
+  });
+});
+
+describe("username login", () => {
+  it("logs in with username or email, case-insensitively", async () => {
+    const { app, db } = await createTestApp();
+    const email = `ada-${uuid()}@test.local`;
+    const signup = await app.inject({
+      method: "POST",
+      url: "/v1/auth/signup",
+      payload: { email, password: "password1", display_name: "Ada" },
+    });
+    expect(signup.statusCode).toBe(201);
+    const username = signup.json().user.username;
+    expect(username).toBeTruthy();
+
+    const loginByUsername = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: username, password: "password1" },
+    });
+    expect(loginByUsername.statusCode).toBe(200);
+
+    const loginByUpperUsername = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: username.toUpperCase(), password: "password1" },
+    });
+    expect(loginByUpperUsername.statusCode).toBe(200);
+
+    const loginByEmail = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email, password: "password1" },
+    });
+    expect(loginByEmail.statusCode).toBe(200);
+
+    const badPassword = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: username, password: "wrong" },
+    });
+    expect(badPassword.statusCode).toBe(401);
+
+    const unknown = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: "nouser", password: "password1" },
+    });
+    expect(unknown.statusCode).toBe(401);
+    await app.close();
+  });
+});
+
+describe("change password", () => {
+  it("requires current password, clears must_change_password, revokes refresh tokens", async () => {
+    const { app, db } = await createTestApp();
+    const email = `owner-${uuid()}@test.local`;
+    const signup = await app.inject({
+      method: "POST",
+      url: "/v1/auth/signup",
+      payload: { email, password: "password1" },
+    });
+    expect(signup.statusCode).toBe(201);
+    const session = signup.json();
+    const userId = session.user.id;
+
+    const wrongCurrent = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: { authorization: `Bearer ${session.access_token}` },
+      payload: { current_password: "wrong", new_password: "password2" },
+    });
+    expect(wrongCurrent.statusCode).toBe(401);
+    expect(wrongCurrent.json().error.code).toBe("invalid_password");
+
+    const shortNew = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: { authorization: `Bearer ${session.access_token}` },
+      payload: { current_password: "password1", new_password: "short" },
+    });
+    expect(shortNew.statusCode).toBe(422);
+
+    const changed = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: { authorization: `Bearer ${session.access_token}` },
+      payload: { current_password: "password1", new_password: "password2" },
+    });
+    expect(changed.statusCode).toBe(204);
+
+    const oldRefresh = await app.inject({
+      method: "POST",
+      url: "/v1/auth/refresh",
+      payload: { refresh_token: session.refresh_token },
+    });
+    expect(oldRefresh.statusCode).toBe(401);
+
+    const loginOld = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email, password: "password1" },
+    });
+    expect(loginOld.statusCode).toBe(401);
+
+    const loginNew = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email, password: "password2" },
+    });
+    expect(loginNew.statusCode).toBe(200);
+
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    expect(user?.mustChangePassword).toBe(false);
+    await app.close();
+  });
+});
+
+describe("must_change_password guard", () => {
+  it("blocks fleet API calls, allows personal routes and change-password", async () => {
+    const { app, db } = await createTestApp();
+    const email = `owner-${uuid()}@test.local`;
+    const signup = await app.inject({
+      method: "POST",
+      url: "/v1/auth/signup",
+      payload: { email, password: "password1" },
+    });
+    expect(signup.statusCode).toBe(201);
+    const session = signup.json();
+    const userId = session.user.id;
+
+    await db.update(users).set({ mustChangePassword: true }).where(eq(users.id, userId));
+
+    const fleetCall = await app.inject({
+      method: "GET",
+      url: "/v1/drivers/my-vehicle",
+      headers: { authorization: `Bearer ${session.access_token}` },
+    });
+    expect(fleetCall.statusCode).toBe(403);
+    expect(fleetCall.json().error.code).toBe("password_change_required");
+
+    const personalCall = await app.inject({
+      method: "GET",
+      url: "/v1/vehicles",
+      headers: { authorization: `Bearer ${session.access_token}` },
+    });
+    expect(personalCall.statusCode).toBe(200);
+
+    const changePw = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: { authorization: `Bearer ${session.access_token}` },
+      payload: { current_password: "password1", new_password: "password2" },
+    });
+    expect(changePw.statusCode).toBe(204);
+
+    const afterFleetCall = await app.inject({
+      method: "GET",
+      url: "/v1/drivers/my-vehicle",
+      headers: { authorization: `Bearer ${session.access_token}` },
+    });
+    expect(afterFleetCall.statusCode).toBe(403);
+    expect(afterFleetCall.json().error.code).toBe("driver_mode_required");
     await app.close();
   });
 });
