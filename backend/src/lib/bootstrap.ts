@@ -3,6 +3,7 @@ import type { Db } from "../db/client.js";
 import type { Env } from "../config/env.js";
 import { users } from "../db/schema.js";
 import { hashPassword, newId } from "../lib/crypto.js";
+import { generateUniqueUsername } from "../lib/username.js";
 
 export async function bootstrapAdmin(db: Db, env: Env): Promise<void> {
   if (!env.BOOTSTRAP_ADMIN_EMAIL || !env.BOOTSTRAP_ADMIN_PASSWORD) return;
@@ -12,6 +13,7 @@ export async function bootstrapAdmin(db: Db, env: Env): Promise<void> {
   await db.insert(users).values({
     id: newId(),
     email,
+    username: await generateUniqueUsername(db, email),
     passwordHash: await hashPassword(env.BOOTSTRAP_ADMIN_PASSWORD),
     displayName: "Bootstrap admin",
     role: "admin",

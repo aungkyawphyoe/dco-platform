@@ -81,7 +81,8 @@ export const vehicleImportStatusEnum = pgEnum("vehicle_import_status", ["process
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
-  email: text("email").notNull().unique(),
+  email: text("email").unique(),
+  username: text("username").notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   displayName: text("display_name"),
   profilePhotoMediaId: uuid("profile_photo_media_id"),
@@ -91,6 +92,7 @@ export const users = pgTable("users", {
   plan: planEnum("plan").notNull().default("free"),
   status: accountStatusEnum("status").notNull().default("active"),
   emailVerified: boolean("email_verified").notNull().default(false),
+  mustChangePassword: boolean("must_change_password").notNull().default(false),
   activeVehicleId: uuid("active_vehicle_id"),
   familyId: uuid("family_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),

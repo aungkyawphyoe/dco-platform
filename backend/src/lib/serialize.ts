@@ -8,6 +8,7 @@ export function publicUser(row: UserRow) {
   return {
     id: row.id,
     email: row.email,
+    username: row.username,
     display_name: row.displayName,
     profile_photo_media_id: row.profilePhotoMediaId,
     contact_phone: row.contactPhone,
@@ -16,6 +17,7 @@ export function publicUser(row: UserRow) {
     plan: row.plan,
     status: row.status,
     email_verified: row.emailVerified,
+    must_change_password: row.mustChangePassword,
     active_vehicle_id: row.activeVehicleId,
     vehicle_limit: row.plan === "free" ? 1 : null,
     created_at: iso(row.createdAt),

@@ -18,6 +18,7 @@ import {
 import { AppError } from "../lib/errors.js";
 import { publicUser } from "../lib/serialize.js";
 import { recordChange } from "../lib/dbx.js";
+import { generateUniqueUsername } from "../lib/username.js";
 import { bearer } from "../types.js";
 
 const signupBody = z.object({
@@ -43,11 +44,13 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     const id = newId();
     const passwordHash = await hashPassword(body.password);
     const emailVerification = app.env.EMAIL_VERIFICATION === "on";
+    const username = await generateUniqueUsername(app.db, email);
     const [user] = await app.db
       .insert(users)
       .values({
         id,
         email,
+        username,
         passwordHash,
         displayName: body.display_name ?? null,
         role: "owner",
@@ -207,7 +210,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
   app.post("/auth/resend-verification", async (request, reply) => {
     const userId = request.authUser!.sub;
     const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (user && !user.emailVerified) {
+    if (user && !user.emailVerified && user.email) {
       const token = randomToken();
       await app.db.insert(emailTokens).values({
         id: newId(),
@@ -233,7 +236,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
         tokenHash: sha256(token),
         expiresAt: new Date(Date.now() + TOKEN_TTL_MS),
       });
-      await app.mailer.sendPasswordReset(user.email, token);
+      await app.mailer.sendPasswordReset(body.email.toLowerCase(), token);
     }
     return reply.code(202).send();
   });
@@ -257,14 +260,14 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
 export async function attachAuth(app: Parameters<FastifyPluginAsync>[0]): Promise<void> {
   const publicPaths = new Set([
-    "/v1/health",
-    "/v1/ready",
-    "/v1/auth/signup",
-    "/v1/auth/login",
-    "/v1/auth/refresh",
-    "/v1/auth/verify-email",
-    "/v1/auth/forgot-password",
-    "/v1/auth/reset-password",
+    "/health",
+    "/ready",
+    "/auth/signup",
+    "/auth/login",
+    "/auth/refresh",
+    "/auth/verify-email",
+    "/auth/forgot-password",
+    "/auth/reset-password",
   ]);
   app.addHook("preHandler", async (request) => {
     const cfg = request.routeOptions.config as { public?: boolean } | undefined;

@@ -4,6 +4,7 @@ import { loadEnv } from "../config/env.js";
 import { createPgDb } from "../db/client.js";
 import { organizationMembers, organizations, users } from "../db/schema.js";
 import { hashPassword, newId } from "../lib/crypto.js";
+import { generateUniqueUsername } from "../lib/username.js";
 
 /**
  * Seed a local test account with full Fleet access — an active Enterprise
@@ -111,6 +112,7 @@ async function main() {
         .values({
           id: newId(),
           email,
+          username: await generateUniqueUsername(db, email),
           passwordHash: await hashPassword(password),
           displayName: args.display_name ?? "Test Org Admin",
           role: "owner",

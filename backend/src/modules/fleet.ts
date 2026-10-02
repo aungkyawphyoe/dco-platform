@@ -176,7 +176,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     let organizationInvitationSent = true;
     try {
       const [organization] = await app.db.select().from(organizations).where(eq(organizations.id, orgId)).limit(1);
-      await app.mailer.sendOrganizationInvitation(member.email, organization!.name, body.role);
+      await app.mailer.sendOrganizationInvitation(body.email.toLowerCase(), organization!.name, body.role);
     } catch (error) {
       organizationInvitationSent = false;
       app.log.error(error);

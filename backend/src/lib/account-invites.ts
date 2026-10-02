@@ -3,6 +3,7 @@ import type { Db } from "../db/client.js";
 import { emailTokens, users } from "../db/schema.js";
 import { hashPassword, newId, randomToken, sha256 } from "./crypto.js";
 import type { Mailer } from "./mail.js";
+import { generateUniqueUsername } from "./username.js";
 
 export async function createInvitedOwnerAccount(db: Db, mailer: Mailer, rawEmail: string) {
   const email = rawEmail.toLowerCase();
@@ -13,6 +14,7 @@ export async function createInvitedOwnerAccount(db: Db, mailer: Mailer, rawEmail
   const [user] = await db.insert(users).values({
     id: userId,
     email,
+    username: await generateUniqueUsername(db, email),
     passwordHash: await hashPassword(randomToken()),
     role: "owner",
     plan: "free",

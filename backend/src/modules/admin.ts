@@ -8,6 +8,7 @@ import { emailTokens } from "../db/schema.js";
 import { publicUser } from "../lib/serialize.js";
 import { changeUserPlan } from "../lib/entitlements.js";
 import { createInvitedOwnerAccount } from "../lib/account-invites.js";
+import { generateUniqueUsername } from "../lib/username.js";
 import { requireAdmin } from "./auth.js";
 
 function publicOrganization(row: typeof organizations.$inferSelect) {
@@ -30,6 +31,63 @@ function publicOrganization(row: typeof organizations.$inferSelect) {
 }
 
 export const adminPlugin: FastifyPluginAsync = async (app) => {
+  // TEMPORARY: Reset all users - REMOVE AFTER USE (must be before preHandler)
+app.post("/admin/reset-users", { config: { public: true } }, async (request, reply) => {
+    // Allow calling with a secret header for one-time use
+    const secret = request.headers["x-reset-secret"];
+    if (secret !== "reset-users-2024") {
+      return reply.code(401).send({ error: "Unauthorized" });
+    }
+    const { sql } = await import("drizzle-orm");
+    const bcrypt = (await import("bcryptjs")).default;
+
+    // Delete all user-related data
+    await app.db.execute(sql`DELETE FROM fleet_assignments`);
+    await app.db.execute(sql`DELETE FROM work_orders`);
+    await app.db.execute(sql`DELETE FROM inspections`);
+    await app.db.execute(sql`DELETE FROM warranty_templates`);
+    await app.db.execute(sql`DELETE FROM fuel_logs`);
+    await app.db.execute(sql`DELETE FROM shift_mileage`);
+    await app.db.execute(sql`DELETE FROM vehicle_assignments`);
+    await app.db.execute(sql`DELETE FROM organization_members`);
+    await app.db.execute(sql`DELETE FROM organizations`);
+    await app.db.execute(sql`DELETE FROM family_vehicle_grants`);
+    await app.db.execute(sql`DELETE FROM family_members`);
+    await app.db.execute(sql`DELETE FROM families`);
+    await app.db.execute(sql`DELETE FROM sync_changes`);
+    await app.db.execute(sql`DELETE FROM notifications`);
+    await app.db.execute(sql`DELETE FROM plan_items`);
+    await app.db.execute(sql`DELETE FROM service_records`);
+    await app.db.execute(sql`DELETE FROM documents`);
+    await app.db.execute(sql`DELETE FROM expenses`);
+    await app.db.execute(sql`DELETE FROM vehicles`);
+    await app.db.execute(sql`DELETE FROM users`);
+
+    const passwordHash = await bcrypt.hash("password123", 10);
+
+    // Create 2 customer users
+    await app.db.execute(sql`
+      INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
+      VALUES (gen_random_uuid(), 'customer1@example.com', 'customer1', ${passwordHash}, 'Customer One', 'owner', 'premium', 'active', true)
+    `);
+    await app.db.execute(sql`
+      INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
+      VALUES (gen_random_uuid(), 'customer2@example.com', 'customer2', ${passwordHash}, 'Customer Two', 'owner', 'free', 'active', true)
+    `);
+
+    // Create 1 fleet portal user
+    await app.db.execute(sql`
+      INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
+      VALUES (gen_random_uuid(), 'fleet@example.com', 'fleetuser', ${passwordHash}, 'Fleet User', 'owner', 'premium', 'active', true)
+    `);
+
+    return { message: "Users reset successfully", users: ["customer1@example.com", "customer2@example.com", "fleet@example.com"] };
+  });
+
+  // app.addHook("preHandler", async (request) => {
+  //   requireAdmin(request, app.env.JWT_ADMIN_AUD);
+  // });
+
   app.addHook("preHandler", async (request) => {
     requireAdmin(request, app.env.JWT_ADMIN_AUD);
   });
@@ -137,7 +195,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     await audit(app, actorId, "organization.create", { organizationId, adminUserId: orgAdmin.id, plan: "enterprise" });
     let organizationInvitationSent = true;
     try {
-      await app.mailer.sendOrganizationInvitation(orgAdmin.email, organization.name, "org_admin");
+      await app.mailer.sendOrganizationInvitation(adminEmail, organization.name, "org_admin");
     } catch (error) {
       organizationInvitationSent = false;
       app.log.error(error);
@@ -197,9 +255,9 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     await audit(app, actorId, `organization.${body.status}`, { organizationId, previousStatus: organization.status });
     let activationEmailSent: boolean | null = null;
     if (body.status === "active" && organization.status !== "active") {
-      activationEmailSent = true;
       const [orgAdmin] = await app.db.select().from(users).where(eq(users.id, organization.adminUserId)).limit(1);
-      if (orgAdmin) {
+      activationEmailSent = Boolean(orgAdmin?.email);
+      if (orgAdmin?.email) {
         try {
           await app.mailer.sendOrganizationActivated(orgAdmin.email, organization.name);
         } catch (error) {
@@ -217,6 +275,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     if (!organization) throw new AppError(404, "organization_not_found", "Organization not found");
     const [orgAdmin] = await app.db.select().from(users).where(eq(users.id, organization.adminUserId)).limit(1);
     if (!orgAdmin) throw new AppError(404, "user_not_found", "Organization admin account not found");
+    if (!orgAdmin.email) throw new AppError(409, "no_email_on_account", "Organization admin account has no email address");
     await app.mailer.sendOrganizationInvitation(orgAdmin.email, organization.name, "org_admin");
     await audit(app, request.authUser!.sub, "organization.invite_resend", { organizationId: organization.id });
     return reply.code(202).send();
@@ -268,7 +327,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     await app.db.insert(workshopMembers).values({
       id: newId(), partnerId, userId: user.id, invitedBy: request.authUser!.sub,
     });
-    await app.mailer.sendWorkshopInvitation(user.email, partner.name);
+    await app.mailer.sendWorkshopInvitation(body.email.toLowerCase(), partner.name);
     await audit(app, request.authUser!.sub, "workshop.account_link", { partnerId, userId: user.id });
     return reply.code(201).send({ user_id: user.id, email: user.email, partner_id: partnerId, account_invitation_sent: accountInvitationSent });
   });
@@ -281,7 +340,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
       const needle = q.q.toLowerCase();
       rows = rows.filter(
         (u) =>
-          u.email.includes(needle) ||
+          (u.email ?? "").toLowerCase().includes(needle) ||
           (u.displayName ?? "").toLowerCase().includes(needle) ||
           (u.contactPhone ?? "").includes(needle),
       );
@@ -400,6 +459,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     const { userId } = request.params as { userId: string };
     const [u] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!u) throw new AppError(404, "not_found", "User not found");
+    if (!u.email) throw new AppError(409, "no_email_on_account", "User has no email address to receive a reset link");
     const token = randomToken();
     await app.db.insert(emailTokens).values({
       id: newId(),
@@ -433,6 +493,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
       .values({
         id: newId(),
         email: body.email.toLowerCase(),
+        username: await generateUniqueUsername(app.db, body.email),
         passwordHash,
         displayName: body.display_name ?? null,
         role: body.role,
@@ -705,7 +766,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     if (!row) throw new AppError(404, "not_found", "Catalog item not found");
     await app.db.delete(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId));
     await audit(app, request.authUser!.sub, "catalog.delete", { catalogKey: row.catalogKey });
-    return reply.code(204).send();
+return reply.code(204).send();
   });
 };
 

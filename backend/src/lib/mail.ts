@@ -21,7 +21,7 @@ export function createMailer(env: Env): Mailer {
         console.log(`[mail] verify ${to}: ${url}`);
         return;
       }
-      await sendAcs(env, to, "Verify your DCO email", `Confirm your email: ${url}`);
+      await sendAcs(env, to, "Verify your AutoHub email", `Confirm your email: ${url}`);
     },
     async sendPasswordReset(to, token) {
       const url = link(env, "/auth/reset-password", token);
@@ -29,31 +29,31 @@ export function createMailer(env: Env): Mailer {
         console.log(`[mail] reset ${to}: ${url}`);
         return;
       }
-      await sendAcs(env, to, "Reset your DCO password", `Reset your password: ${url}`);
+      await sendAcs(env, to, "Reset your AutoHub password", `Reset your password: ${url}`);
     },
     async sendOrganizationInvitation(to, organizationName, role) {
-      const body = `You have been added to ${organizationName} as ${role}. Sign in to your DCO account to access the organization workspace.`;
+      const body = `You have been added to ${organizationName} as ${role}. Sign in to your AutoHub account to access the organization workspace.`;
       if (env.MAIL_PROVIDER === "stdout") {
         console.log(`[mail] organization invite ${to}: ${body}`);
         return;
       }
-      await sendAcs(env, to, `DCO Fleet access: ${organizationName}`, body);
+      await sendAcs(env, to, `AutoHub Fleet access: ${organizationName}`, body);
     },
     async sendOrganizationActivated(to, organizationName) {
-      const body = `${organizationName} is now active. Sign in to DCO; Fleet access is available to organization members.`;
+      const body = `${organizationName} is now active. Sign in to AutoHub; Fleet access is available to organization members.`;
       if (env.MAIL_PROVIDER === "stdout") {
         console.log(`[mail] organization activated ${to}: ${body}`);
         return;
       }
-      await sendAcs(env, to, `DCO Fleet activated: ${organizationName}`, body);
+      await sendAcs(env, to, `AutoHub Fleet activated: ${organizationName}`, body);
     },
     async sendWorkshopInvitation(to, workshopName) {
-      const body = `You have been granted workshop access for ${workshopName}. Set your DCO password using the password setup email, then sign in to the workshop workspace.`;
+      const body = `You have been granted workshop access for ${workshopName}. Set your AutoHub password using the password setup email, then sign in to the workshop workspace.`;
       if (env.MAIL_PROVIDER === "stdout") {
         console.log(`[mail] workshop invite ${to}: ${body}`);
         return;
       }
-      await sendAcs(env, to, `DCO Workshop access: ${workshopName}`, body);
+      await sendAcs(env, to, `AutoHub Workshop access: ${workshopName}`, body);
     },
   };
 }
