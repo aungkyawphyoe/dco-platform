@@ -9,7 +9,7 @@ class AppLocalizationsMy extends AppLocalizations {
   AppLocalizationsMy([String locale = 'my']) : super(locale);
 
   @override
-  String get appTitle => 'DCO';
+  String get appTitle => 'AutoHub';
 
   @override
   String get ok => 'လုပ်မည်';
@@ -1946,7 +1946,8 @@ class AppLocalizationsMy extends AppLocalizations {
   String get familyShareCode => 'ကုတ်နံပါတ် မျှဝေမည်';
 
   @override
-  String get familyShareCodeHelper => 'ဝင်ရောက်ရန် DCO အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
+  String get familyShareCodeHelper =>
+      'ဝင်ရောက်ရန် AutoHub အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
 
   @override
   String get familyCopyCode => 'ကုတ်နံပါတ် ကူးယူမည်';
@@ -1959,7 +1960,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String familyShareText(Object code) {
-    return 'ကျွန်ုပ်၏ DCO မိသားစုအကောင့်သို့ ဝင်ရောက်ပါ! ကုတ်နံပါတ်- $code';
+    return 'ကျွန်ုပ်၏ AutoHub မိသားစုအကောင့်သို့ ဝင်ရောက်ပါ! ကုတ်နံပါတ်- $code';
   }
 
   @override
@@ -2124,7 +2125,8 @@ class AppLocalizationsMy extends AppLocalizations {
   String get inviteTabShareCode => 'ကုတ်နံပါတ် မျှဝေမည်';
 
   @override
-  String get inviteTabShareCodeHelper => 'ဝင်ရောက်ရန် DCO အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
+  String get inviteTabShareCodeHelper =>
+      'ဝင်ရောက်ရန် AutoHub အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
 
   @override
   String get inviteTabCopyCode => 'ကုတ်နံပါတ် ကူးယူမည်';
@@ -2137,7 +2139,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String inviteTabShareText(Object code) {
-    return 'ကျွန်ုပ်၏ DCO မိသားစုအကောင့်သို့ ဝင်ရောက်ပါ! ကုတ်နံပါတ်- $code';
+    return 'ကျွန်ုပ်၏ AutoHub မိသားစုအကောင့်သို့ ဝင်ရောက်ပါ! ကုတ်နံပါတ်- $code';
   }
 
   @override
@@ -2899,7 +2901,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get fleetOrgSettingsReadonly =>
-      'ဆက်သွယ်ရန် အချက်အလက်များကို DCO စီမံခန့်ခွဲသူက စီမံပါသည်။';
+      'ဆက်သွယ်ရန် အချက်အလက်များကို AutoHub စီမံခန့်ခွဲသူက စီမံပါသည်။';
 
   @override
   String get fleetInventoryTitle => 'ယာဉ် စာရင်း';

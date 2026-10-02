@@ -14,7 +14,7 @@ class DcoLogo extends StatelessWidget {
       width: size,
       height: size,
       fit: BoxFit.contain,
-      semanticLabel: 'DCO',
+      semanticLabel: 'AutoHub',
     );
   }
 }

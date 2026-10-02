@@ -138,7 +138,7 @@ class AppDrawer extends ConsumerWidget {
                 vertical: tokens.space.s3,
               ),
               child: Text(
-                'DCO v1.0',
+                'AutoHub v1.0',
                 style: Theme.of(
                   context,
                 ).textTheme.bodySmall?.copyWith(color: tokens.text.tertiary),

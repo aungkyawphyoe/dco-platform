@@ -30,7 +30,7 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
           </p>
           <p className="mt-2 text-sm text-ink-caption">
             Your account is not a member of an active Enterprise organization.
-            Contact your organization administrator or DCO support.
+            Contact your organization administrator or AutoHub support.
           </p>
         </div>
       </div>

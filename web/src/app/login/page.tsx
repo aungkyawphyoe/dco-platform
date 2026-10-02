@@ -41,10 +41,10 @@ export default function LoginPage() {
             priority
           />
           <p className="font-display text-3xl font-semibold tracking-tight text-gold">
-            DCO Admin
+            AutoHub Admin
           </p>
           <p className="mt-2 text-sm text-ink-caption">
-            Digital Car Ownership platform — staff access only
+            AutoHub platform — staff access only
           </p>
         </div>
 

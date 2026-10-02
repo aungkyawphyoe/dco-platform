@@ -7,7 +7,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Dco Mobile</string>
+		<string>AutoHub</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>dco_mobile</string>
+		<string>AutoHub</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -48,9 +48,9 @@
 			</dict>
 		</dict>
 		<key>NSPhotoLibraryUsageDescription</key>
-		<string>DCO uses your photo library to attach vehicle and receipt photos.</string>
+		<string>AutoHub uses your photo library to attach vehicle and receipt photos.</string>
 		<key>NSCameraUsageDescription</key>
-		<string>DCO uses the camera to take vehicle and receipt photos.</string>
+		<string>AutoHub uses the camera to take vehicle and receipt photos.</string>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
 		<key>UILaunchStoryboardName</key>

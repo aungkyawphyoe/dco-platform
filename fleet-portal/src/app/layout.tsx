@@ -24,8 +24,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DCO Fleet",
-  description: "Digital Car Ownership platform — Fleet management portal",
+  title: "AutoHub Fleet",
+  description: "AutoHub platform — Fleet management portal",
 };
 
 export default async function RootLayout({

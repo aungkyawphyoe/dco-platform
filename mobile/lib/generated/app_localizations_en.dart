@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'DCO';
+  String get appTitle => 'AutoHub';
 
   @override
   String get ok => 'OK';
@@ -1920,7 +1920,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get familyShareCode => 'Share Code';
 
   @override
-  String get familyShareCodeHelper => 'Scan with DCO app to join';
+  String get familyShareCodeHelper => 'Scan with AutoHub app to join';
 
   @override
   String get familyCopyCode => 'Copy Code';
@@ -1933,7 +1933,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String familyShareText(Object code) {
-    return 'Join my DCO family! Code: $code';
+    return 'Join my AutoHub family! Code: $code';
   }
 
   @override
@@ -2103,7 +2103,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inviteTabShareCode => 'Share Code';
 
   @override
-  String get inviteTabShareCodeHelper => 'Scan with DCO app to join';
+  String get inviteTabShareCodeHelper => 'Scan with AutoHub app to join';
 
   @override
   String get inviteTabCopyCode => 'Copy Code';
@@ -2116,7 +2116,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String inviteTabShareText(Object code) {
-    return 'Join my DCO family! Code: $code';
+    return 'Join my AutoHub family! Code: $code';
   }
 
   @override
@@ -2860,7 +2860,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fleetOrgSettingsReadonly =>
-      'Contact details are managed by DCO admin.';
+      'Contact details are managed by AutoHub admin.';
 
   @override
   String get fleetInventoryTitle => 'Vehicle inventory';

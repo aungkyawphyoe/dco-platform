@@ -142,7 +142,7 @@ export default function WorkshopsPage() {
             label="Workshop partner ID (UUID)"
             value={partnerId}
             onChange={(e) => setPartnerId(e.target.value)}
-            hint="Must be a verified workshop partner provisioned by DCO Admin."
+            hint="Must be a verified workshop partner provisioned by AutoHub Admin."
           />
           {error ? (
             <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">

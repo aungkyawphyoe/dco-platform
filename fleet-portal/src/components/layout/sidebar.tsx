@@ -58,7 +58,7 @@ export function Sidebar() {
           className="size-8 shrink-0 rounded-sm bg-white"
         />
         <span className="font-display text-lg font-semibold tracking-tight text-gold">
-          DCO Fleet
+          AutoHub Fleet
         </span>
       </div>
 

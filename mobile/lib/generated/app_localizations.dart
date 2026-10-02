@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'DCO'**
+  /// **'AutoHub'**
   String get appTitle;
 
   /// No description provided for @ok.
@@ -3657,7 +3657,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyShareCodeHelper.
   ///
   /// In en, this message translates to:
-  /// **'Scan with DCO app to join'**
+  /// **'Scan with AutoHub app to join'**
   String get familyShareCodeHelper;
 
   /// No description provided for @familyCopyCode.
@@ -3681,7 +3681,7 @@ abstract class AppLocalizations {
   /// No description provided for @familyShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join my DCO family! Code: {code}'**
+  /// **'Join my AutoHub family! Code: {code}'**
   String familyShareText(Object code);
 
   /// No description provided for @familyCodeExpiryHelper.
@@ -3963,7 +3963,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteTabShareCodeHelper.
   ///
   /// In en, this message translates to:
-  /// **'Scan with DCO app to join'**
+  /// **'Scan with AutoHub app to join'**
   String get inviteTabShareCodeHelper;
 
   /// No description provided for @inviteTabCopyCode.
@@ -3987,7 +3987,7 @@ abstract class AppLocalizations {
   /// No description provided for @inviteTabShareText.
   ///
   /// In en, this message translates to:
-  /// **'Join my DCO family! Code: {code}'**
+  /// **'Join my AutoHub family! Code: {code}'**
   String inviteTabShareText(Object code);
 
   /// No description provided for @inviteTabRegenerateButton.
@@ -5433,7 +5433,7 @@ abstract class AppLocalizations {
   /// No description provided for @fleetOrgSettingsReadonly.
   ///
   /// In en, this message translates to:
-  /// **'Contact details are managed by DCO admin.'**
+  /// **'Contact details are managed by AutoHub admin.'**
   String get fleetOrgSettingsReadonly;
 
   /// No description provided for @fleetInventoryTitle.

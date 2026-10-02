@@ -41,7 +41,7 @@ export default function LoginPage() {
             priority
           />
           <p className="font-display text-3xl font-semibold tracking-tight text-gold">
-            DCO Fleet
+            AutoHub Fleet
           </p>
           <p className="mt-2 text-sm text-ink-caption">
             Enterprise fleet management — organization members only

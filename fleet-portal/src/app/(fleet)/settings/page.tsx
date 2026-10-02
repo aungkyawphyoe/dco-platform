@@ -76,7 +76,7 @@ export default function SettingsPage() {
             </dd>
           </dl>
           <p className="mt-4 text-xs text-ink-caption">
-            Contact details are managed by DCO Admin for this MVP.
+            Contact details are managed by AutoHub Admin for this MVP.
           </p>
         </Card>
 

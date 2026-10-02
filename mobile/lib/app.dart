@@ -131,7 +131,7 @@ class _DcoAppState extends ConsumerState<DcoApp> {
 
     return MaterialApp.router(
       key: ValueKey(locale.languageCode),
-      title: 'DCO',
+      title: 'AutoHub',
       debugShowCheckedModeBanner: false,
       theme: buildDcoTheme(Brightness.light),
       darkTheme: buildDcoTheme(Brightness.dark),

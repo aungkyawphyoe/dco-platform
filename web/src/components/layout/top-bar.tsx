@@ -22,7 +22,7 @@ export function TopBar({ user }: TopBarProps) {
     <header className="h-16 flex items-center justify-between px-6 border-b border-line-subtle bg-panel shrink-0">
       <div className="flex items-center gap-4">
         <span className="font-display text-lg font-semibold tracking-tight text-gold">
-          DCO Family
+          AutoHub Family
         </span>
         {user.family_id && (
           <span className="text-xs text-ink-caption bg-card px-2 py-1 rounded">
