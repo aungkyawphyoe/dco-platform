@@ -11,10 +11,11 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
   final Dio _dio;
 
   @override
-  Future<Session> login({required String email, required String password}) {
+  Future<Session> login({required String email, required String password, String? surface}) {
     return _session('POST', '/auth/login', {
       'email': email.trim().toLowerCase(),
       'password': password,
+      if (surface != null) 'surface': surface,
     });
   }
 
@@ -56,6 +57,14 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
 
   @override
   Future<void> resendVerification() => _empty('POST', '/auth/resend-verification');
+
+  @override
+  Future<void> changePassword({required String currentPassword, required String newPassword}) {
+    return _empty('POST', '/auth/change-password', {
+      'current_password': currentPassword,
+      'new_password': newPassword,
+    });
+  }
 
   Future<Session> _session(String method, String path, Map<String, dynamic> data) async {
     try {

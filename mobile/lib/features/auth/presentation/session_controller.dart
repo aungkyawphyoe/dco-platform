@@ -12,12 +12,13 @@ class SessionController extends AsyncNotifier<Session?> {
     return ref.read(authRepositoryProvider).restoreSession();
   }
 
-  Future<void> signIn({required String email, required String password}) async {
+  Future<void> signIn({required String email, required String password, String? surface}) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final session = await ref.read(authRepositoryProvider).signIn(
         email: email,
         password: password,
+        surface: surface,
       );
       ref.read(analyticsProvider).track(AnalyticsEvent.authSignedIn);
       return session;
@@ -59,6 +60,19 @@ class SessionController extends AsyncNotifier<Session?> {
 
   Future<void> resendVerification() {
     return ref.read(authRepositoryProvider).resendVerification();
+  }
+
+  Future<void> changePassword({required String currentPassword, required String newPassword}) async {
+    await ref.read(authRepositoryProvider).changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+    // After successful password change, the user's must_change_password flag is cleared server-side.
+    // We need to refresh the session to get the updated user.
+    final session = await ref.read(authRepositoryProvider).restoreSession();
+    if (session != null) {
+      state = AsyncData(session);
+    }
   }
 
   void updateUser(User user) {

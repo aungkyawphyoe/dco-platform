@@ -109,11 +109,13 @@ class MockProfileRemoteDataSource implements ProfileRemoteDataSource {
   User _user = const User(
     id: 'mock-user',
     email: 'owner@dco.dev',
+    username: 'mock_owner',
     displayName: 'Mock Owner',
     role: 'owner',
     plan: 'free',
     status: 'active',
     emailVerified: true,
+    mustChangePassword: false,
   );
 
   @override
@@ -121,17 +123,11 @@ class MockProfileRemoteDataSource implements ProfileRemoteDataSource {
 
   @override
   Future<User> update(Map<String, dynamic> patch) async {
-    _user = User(
-      id: _user.id,
-      email: _user.email,
+    _user = _user.copyWith(
       displayName: (patch['display_name'] as String?) ?? _user.displayName,
       profilePhotoMediaId: _user.profilePhotoMediaId,
       contactPhone: (patch['contact_phone'] as String?) ?? _user.contactPhone,
       address: (patch['address'] as String?) ?? _user.address,
-      role: _user.role,
-      plan: _user.plan,
-      status: _user.status,
-      emailVerified: _user.emailVerified,
       activeVehicleId: (patch['active_vehicle_id'] as String?) ?? _user.activeVehicleId,
       vehicleLimit: _user.vehicleLimit,
     );

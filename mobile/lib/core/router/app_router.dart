@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/auth/presentation/screens/forced_change_password_screen.dart';
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
@@ -70,6 +71,15 @@ import 'tab_switchers.dart';
 /// so they cover the tab shell instead of sitting above the bottom bar.
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
+/// Routes that are considered fleet or driver routes (require password change if must_change_password=true).
+bool _isFleetOrDriverRoute(String location) {
+  return location.startsWith(AppRoutes.fleet) ||
+      location.startsWith(AppRoutes.driverShift) ||
+      location.startsWith(AppRoutes.driverReportIssue) ||
+      location.startsWith(AppRoutes.driverFuelLog) ||
+      location.startsWith(AppRoutes.driverInspectionNew);
+}
+
 final goRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
   ref.listen(sessionControllerProvider, (_, _) => refresh.value++);
@@ -85,6 +95,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final location = state.matchedLocation;
       final onAuth = AppRoutes.authPaths.contains(location);
       final onSplash = location == AppRoutes.splash;
+      final onChangePassword = location == AppRoutes.changePassword;
+      final onFleetOrDriver = _isFleetOrDriverRoute(location);
 
       if (session.isLoading) {
         return onSplash ? null : AppRoutes.splash;
@@ -95,9 +107,19 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         if (onAuth) return null;
         return AppRoutes.welcome;
       }
+
+      final user = session.valueOrNull?.user;
+      final mustChange = user?.mustChangePassword ?? false;
+
       if (onAuth || onSplash) {
         return AppRoutes.dashboard;
       }
+
+      // Force password change for fleet/driver routes if must_change_password is set.
+      if (mustChange && onFleetOrDriver && !onChangePassword) {
+        return AppRoutes.changePassword;
+      }
+
       return null;
     },
     routes: [
@@ -120,6 +142,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.forgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.changePassword,
+        builder: (context, state) => const ForcedChangePasswordScreen(),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

@@ -18,10 +18,12 @@ class FakeProfileRemoteDataSource implements ProfileRemoteDataSource {
     return const User(
       id: 'u1',
       email: 'owner@dco.dev',
+      username: 'owner',
       role: 'owner',
       plan: 'free',
       status: 'active',
       emailVerified: true,
+      mustChangePassword: false,
     );
   }
 

@@ -446,6 +446,48 @@ abstract class AppLocalizations {
   /// **'Something went wrong'**
   String get authUnknownError;
 
+  /// No description provided for @identifierLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email or username'**
+  String get identifierLabel;
+
+  /// No description provided for @identifierHint.
+  ///
+  /// In en, this message translates to:
+  /// **'you@example.com or driver_john'**
+  String get identifierHint;
+
+  /// No description provided for @changePassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Change password'**
+  String get changePassword;
+
+  /// No description provided for @forcedPasswordChangeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your temporary password must be changed before accessing fleet features.'**
+  String get forcedPasswordChangeBody;
+
+  /// No description provided for @currentPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Current password'**
+  String get currentPasswordLabel;
+
+  /// No description provided for @newPasswordLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'New password'**
+  String get newPasswordLabel;
+
+  /// No description provided for @passwordChangeFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Password change failed'**
+  String get passwordChangeFailed;
+
   /// No description provided for @dashboardNoVehicle.
   ///
   /// In en, this message translates to:

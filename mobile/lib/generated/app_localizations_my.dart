@@ -193,6 +193,28 @@ class AppLocalizationsMy extends AppLocalizations {
   String get authUnknownError => 'တစ်ခုခု မှားယွင်းနေသည်';
 
   @override
+  String get identifierLabel => 'Email or username';
+
+  @override
+  String get identifierHint => 'you@example.com or driver_john';
+
+  @override
+  String get changePassword => 'Change password';
+
+  @override
+  String get forcedPasswordChangeBody =>
+      'Your temporary password must be changed before accessing fleet features.';
+
+  @override
+  String get currentPasswordLabel => 'Current password';
+
+  @override
+  String get newPasswordLabel => 'New password';
+
+  @override
+  String get passwordChangeFailed => 'Password change failed';
+
+  @override
   String get dashboardNoVehicle => 'ယာဉ် မရှိပါ';
 
   @override

@@ -26,3 +26,19 @@ class SessionExpiredFailure extends AuthFailure {
 class UnknownAuthFailure extends AuthFailure {
   const UnknownAuthFailure([super.message = 'Something went wrong']);
 }
+
+class PasswordChangeRequiredFailure extends AuthFailure {
+  const PasswordChangeRequiredFailure([super.message = 'Temporary password must be changed']);
+}
+
+class PortalAccessRestrictedFailure extends AuthFailure {
+  const PortalAccessRestrictedFailure([super.message = 'Drivers do not use the Fleet Portal']);
+}
+
+class FleetAccessRequiredFailure extends AuthFailure {
+  const FleetAccessRequiredFailure([super.message = 'An active Enterprise organization membership is required']);
+}
+
+class ForbiddenFailure extends AuthFailure {
+  const ForbiddenFailure([super.message = 'Access denied']);
+}

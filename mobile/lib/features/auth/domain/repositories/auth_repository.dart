@@ -2,7 +2,7 @@ import '../entities/session.dart';
 
 abstract class AuthRepository {
   Future<Session?> restoreSession();
-  Future<Session> signIn({required String email, required String password});
+  Future<Session> signIn({required String email, required String password, String? surface});
   Future<Session> signUp({
     required String email,
     required String password,
@@ -12,4 +12,5 @@ abstract class AuthRepository {
   Future<void> requestPasswordReset({required String email});
   Future<void> resetPassword({required String token, required String password});
   Future<void> resendVerification();
+  Future<void> changePassword({required String currentPassword, required String newPassword});
 }

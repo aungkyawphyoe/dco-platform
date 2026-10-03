@@ -43,8 +43,8 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Session> signIn({required String email, required String password}) async {
-    final session = await _remote.login(email: email, password: password);
+  Future<Session> signIn({required String email, required String password, String? surface}) async {
+    final session = await _remote.login(email: email, password: password, surface: surface);
     await _persist(session);
     return session;
   }
@@ -86,6 +86,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> resendVerification() => _remote.resendVerification();
+
+  @override
+  Future<void> changePassword({required String currentPassword, required String newPassword}) {
+    return _remote.changePassword(currentPassword: currentPassword, newPassword: newPassword);
+  }
 
   Future<void> _persist(Session session) {
     return _tokenStore.writeSession(

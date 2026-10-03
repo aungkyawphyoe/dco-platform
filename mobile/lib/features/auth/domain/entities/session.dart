@@ -4,10 +4,12 @@ class User {
   const User({
     required this.id,
     required this.email,
+    required this.username,
     required this.role,
     required this.plan,
     required this.status,
     required this.emailVerified,
+    required this.mustChangePassword,
     this.displayName,
     this.profilePhotoMediaId,
     this.contactPhone,
@@ -20,14 +22,16 @@ class User {
 
   final String id;
   final String email;
-  final String? displayName;
-  final String? profilePhotoMediaId;
-  final String? contactPhone;
-  final String? address;
+  final String username;
   final String role;
   final String plan;
   final String status;
   final bool emailVerified;
+  final bool mustChangePassword;
+  final String? displayName;
+  final String? profilePhotoMediaId;
+  final String? contactPhone;
+  final String? address;
   final String? activeVehicleId;
   final int? vehicleLimit;
   final String? createdAt;
@@ -38,6 +42,7 @@ class User {
   User copyWith({
     String? id,
     String? email,
+    String? username,
     String? displayName,
     String? profilePhotoMediaId,
     String? contactPhone,
@@ -46,6 +51,7 @@ class User {
     String? plan,
     String? status,
     bool? emailVerified,
+    bool? mustChangePassword,
     String? activeVehicleId,
     int? vehicleLimit,
     String? createdAt,
@@ -54,6 +60,7 @@ class User {
     return User(
       id: id ?? this.id,
       email: email ?? this.email,
+      username: username ?? this.username,
       displayName: displayName ?? this.displayName,
       profilePhotoMediaId: profilePhotoMediaId ?? this.profilePhotoMediaId,
       contactPhone: contactPhone ?? this.contactPhone,
@@ -62,6 +69,7 @@ class User {
       plan: plan ?? this.plan,
       status: status ?? this.status,
       emailVerified: emailVerified ?? this.emailVerified,
+      mustChangePassword: mustChangePassword ?? this.mustChangePassword,
       activeVehicleId: activeVehicleId ?? this.activeVehicleId,
       vehicleLimit: vehicleLimit ?? this.vehicleLimit,
       createdAt: createdAt ?? this.createdAt,
@@ -72,7 +80,8 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as String,
-      email: json['email'] as String,
+      email: json['email'] as String? ?? '',
+      username: json['username'] as String? ?? '',
       displayName: json['display_name'] as String?,
       profilePhotoMediaId: json['profile_photo_media_id'] as String?,
       contactPhone: json['contact_phone'] as String?,
@@ -81,6 +90,7 @@ class User {
       plan: json['plan'] as String,
       status: json['status'] as String,
       emailVerified: json['email_verified'] as bool,
+      mustChangePassword: json['must_change_password'] as bool? ?? false,
       activeVehicleId: json['active_vehicle_id'] as String?,
       vehicleLimit: json['vehicle_limit'] as int?,
       createdAt: json['created_at'] as String?,
@@ -95,6 +105,7 @@ class User {
   Map<String, dynamic> toJson() => {
     'id': id,
     'email': email,
+    'username': username,
     'display_name': displayName,
     'profile_photo_media_id': profilePhotoMediaId,
     'contact_phone': contactPhone,
@@ -103,6 +114,7 @@ class User {
     'plan': plan,
     'status': status,
     'email_verified': emailVerified,
+    'must_change_password': mustChangePassword,
     'active_vehicle_id': activeVehicleId,
     'vehicle_limit': vehicleLimit,
     'created_at': createdAt,

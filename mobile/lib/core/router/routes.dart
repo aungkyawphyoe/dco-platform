@@ -4,6 +4,7 @@ abstract final class AppRoutes {
   static const login = '/login';
   static const signup = '/signup';
   static const forgotPassword = '/forgot-password';
+  static const changePassword = '/change-password';
   static const dashboard = '/dashboard';
   static const garage = '/dashboard/garage';
   static const vehicleNew = '/dashboard/garage/new';
@@ -92,5 +93,5 @@ abstract final class AppRoutes {
 
   static const licenseCapture = '/license-capture';
 
-  static const authPaths = {welcome, login, signup, forgotPassword};
+  static const authPaths = {welcome, login, signup, forgotPassword, changePassword};
 }

@@ -11,7 +11,7 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
   static const _uuid = Uuid();
   final Map<String, _MockAccount> _accounts = {};
   @override
-  Future<Session> login({required String email, required String password}) async {
+  Future<Session> login({required String email, required String password, String? surface}) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     final key = email.trim().toLowerCase();
     final existing = _accounts[key];
@@ -21,6 +21,7 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
     if (existing.password != password) {
       throw const InvalidCredentialsFailure();
     }
+    // In mock mode, ignore surface parameter
     return _sessionFor(existing);
   }
 
@@ -67,21 +68,32 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
   @override
   Future<void> resendVerification() async {}
 
+  @override
+  Future<void> changePassword({required String currentPassword, required String newPassword}) async {
+    // Mock: just succeed
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+  }
+
   Session _issue({
     required String email,
     required String password,
     String? displayName,
     required bool verified,
   }) {
+    // Derive username from email local part
+    final localPart = email.split('@').first;
+    final username = localPart.toLowerCase().replaceAll(RegExp(r'[^a-z0-9._]'), '_');
     final account = _MockAccount(
       user: User(
         id: _uuid.v4(),
         email: email,
+        username: username,
         displayName: displayName,
         role: 'owner',
         plan: 'free',
         status: 'active',
         emailVerified: verified,
+        mustChangePassword: false,
       ),
       password: password,
       refreshToken: 'mock_refresh_${_uuid.v4()}',

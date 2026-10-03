@@ -23,16 +23,16 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _email = TextEditingController();
+  final _identifier = TextEditingController();
   final _password = TextEditingController();
-  String? _emailError;
+  String? _identifierError;
   String? _passwordError;
   String? _formError;
   bool _submitting = false;
 
   @override
   void dispose() {
-    _email.dispose();
+    _identifier.dispose();
     _password.dispose();
     super.dispose();
   }
@@ -40,16 +40,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     final s = AppLocalizations.of(context)!;
     setState(() {
-      _emailError = AuthValidators.email(_email.text);
+      _identifierError = AuthValidators.identifier(_identifier.text);
       _passwordError = AuthValidators.password(_password.text);
       _formError = null;
     });
-    if (_emailError != null || _passwordError != null) return;
+    if (_identifierError != null || _passwordError != null) return;
 
     setState(() => _submitting = true);
     try {
       await ref.read(sessionControllerProvider.notifier).signIn(
-        email: _email.text,
+        email: _identifier.text,
         password: _password.text,
       );
     } catch (failure) {
@@ -84,14 +84,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           padding: EdgeInsets.all(tokens.space.s5),
           children: [
             DcoTextField(
-              label: s.emailLabel,
-              controller: _email,
-              hint: s.emailHint,
-              errorText: _emailError,
-              keyboardType: TextInputType.emailAddress,
+              label: s.identifierLabel,
+              controller: _identifier,
+              hint: s.identifierHint,
+              errorText: _identifierError,
               textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.email],
-              onChanged: (_) => setState(() => _emailError = null),
+              autofillHints: const [AutofillHints.email, AutofillHints.username],
+              onChanged: (_) => setState(() => _identifierError = null),
             ),
             SizedBox(height: tokens.space.s4),
             DcoTextField(
