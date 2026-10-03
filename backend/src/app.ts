@@ -31,6 +31,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
 
   await app.register(cors, {
     origin: deps.env.CORS_ORIGINS.split(",").map((s) => s.trim()),
+    methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   });
   await app.register(multipart, { limits: { fileSize: MEDIA_MAX_BYTES } });
 

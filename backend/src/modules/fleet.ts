@@ -1,4 +1,4 @@
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import {
@@ -283,6 +283,12 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     if (!targetUser) throw new AppError(404, "user_not_found", "User not found");
     if (body.status === "deactivated") {
       if (targetUser.status === "deactivated") throw new AppError(409, "already_deactivated", "User is already deactivated");
+      const [orgAdminOf] = await app.db.select().from(organizations).where(
+        and(eq(organizations.adminUserId, memberId), sql`${organizations.status} IN ('pending', 'active', 'suspended')`)
+      ).limit(1);
+      if (orgAdminOf) {
+        throw new AppError(409, "org_admin_active", `Cannot deactivate user who is admin of active organization "${orgAdminOf.name}". Suspend or archive that organization first.`);
+      }
       await app.db.update(driverAssignments).set({ status: "completed", unassignedAt: new Date() }).where(and(
         eq(driverAssignments.orgId, orgId), eq(driverAssignments.driverId, memberId), eq(driverAssignments.status, "active"),
       ));

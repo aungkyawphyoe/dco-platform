@@ -444,6 +444,12 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
 
   app.post("/admin/users/:userId/deactivate", async (request, reply) => {
     const { userId } = request.params as { userId: string };
+    const [orgAdminOf] = await app.db.select().from(organizations).where(
+      and(eq(organizations.adminUserId, userId), sql`${organizations.status} IN ('pending', 'active', 'suspended')`)
+    ).limit(1);
+    if (orgAdminOf) {
+      throw new AppError(409, "org_admin_active", `Cannot deactivate user who is admin of active organization "${orgAdminOf.name}". Suspend or archive the organization first.`);
+    }
     await app.db.update(users).set({ status: "deactivated" }).where(eq(users.id, userId));
     await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, userId));
     await audit(app, request.authUser!.sub, "user.deactivate", { userId });
@@ -846,6 +852,12 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     if (!targetUser) throw new AppError(404, "user_not_found", "User not found");
     if (body.status === "deactivated") {
       if (targetUser.status === "deactivated") throw new AppError(409, "already_deactivated", "User is already deactivated");
+      const [orgAdminOf] = await app.db.select().from(organizations).where(
+        and(eq(organizations.adminUserId, memberId), sql`${organizations.status} IN ('pending', 'active', 'suspended')`)
+      ).limit(1);
+      if (orgAdminOf) {
+        throw new AppError(409, "org_admin_active", `Cannot deactivate user who is admin of active organization "${orgAdminOf.name}". Suspend or archive that organization first.`);
+      }
       await app.db.update(driverAssignments).set({ status: "completed", unassignedAt: new Date() }).where(and(
         eq(driverAssignments.orgId, orgId), eq(driverAssignments.driverId, memberId), eq(driverAssignments.status, "active"),
       ));
