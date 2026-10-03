@@ -28,12 +28,14 @@ export default function NewOrganizationPage() {
   const [name, setName] = useState("");
   const [type, setType] = useState<OrganizationType | "">("");
   const [adminEmail, setAdminEmail] = useState("");
+  const [adminPassword, setAdminPassword] = useState("");
   const [contactEmail, setContactEmail] = useState("");
   const [contactPhone, setContactPhone] = useState("");
   const [errors, setErrors] = useState<{
     name?: string;
     type?: string;
     adminEmail?: string;
+    adminPassword?: string;
   }>({});
 
   function validate() {
@@ -45,6 +47,10 @@ export default function NewOrganizationPage() {
       e.adminEmail = "Org Admin email is required.";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(adminEmail.trim())) {
       e.adminEmail = "Enter a valid email address.";
+    }
+    // Password is only required if no account exists — server validates this
+    if (adminPassword && adminPassword.length < 8) {
+      e.adminPassword = "Temporary password must be at least 8 characters.";
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -59,6 +65,7 @@ export default function NewOrganizationPage() {
         name: name.trim(),
         type: type as OrganizationType,
         admin_email: adminEmail.trim(),
+        admin_password: adminPassword || undefined,
         contact_email: contactEmail.trim() || undefined,
         contact_phone: contactPhone.trim() || undefined,
       },
@@ -112,6 +119,21 @@ export default function NewOrganizationPage() {
             The organization starts as <strong>pending</strong>. This email is
             linked as Org Admin — an owner account is invited if none exists.
             Activate the organization to grant Fleet access.
+          </p>
+
+          <Input
+            label="Temporary password (optional)"
+            type="password"
+            value={adminPassword}
+            onChange={(e) => setAdminPassword(e.target.value)}
+            error={errors.adminPassword}
+            placeholder="Leave blank to send invitation email"
+            minLength={8}
+          />
+          <p className="text-xs text-ink-caption">
+            If an account already exists for this email, the password is ignored
+            and an invitation is sent. If no account exists, a new account is
+            created with this temporary password (must be changed on first login).
           </p>
 
           <Input

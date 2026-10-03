@@ -106,10 +106,22 @@ export default function UserProfilePage({
               <dd className="text-ink">{user.email}</dd>
             </div>
             <div className="flex justify-between">
+              <dt className="text-ink-caption">Username</dt>
+              <dd className="font-mono text-ink">{user.username ?? "—"}</dd>
+            </div>
+            <div className="flex justify-between">
               <dt className="text-ink-caption">Verified</dt>
               <dd>
                 <Badge tone={user.email_verified ? "success" : "warning"}>
                   {user.email_verified ? "Yes" : "No"}
+                </Badge>
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="text-ink-caption">Must change password</dt>
+              <dd>
+                <Badge tone={user.must_change_password ? "warning" : "success"}>
+                  {user.must_change_password ? "Yes" : "No"}
                 </Badge>
               </dd>
             </div>

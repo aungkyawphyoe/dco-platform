@@ -6143,6 +6143,7 @@ export interface components {
             /** Format: uuid */
             id?: string;
             email?: string;
+            username?: string;
             display_name?: string | null;
             contact_phone?: string | null;
             plan?: components["schemas"]["Plan"];
@@ -6154,6 +6155,7 @@ export interface components {
         AdminUserProfile: components["schemas"]["AdminUserListItem"] & {
             address?: string | null;
             email_verified?: boolean;
+            must_change_password?: boolean;
             vehicles?: {
                 /** Format: uuid */
                 id?: string;

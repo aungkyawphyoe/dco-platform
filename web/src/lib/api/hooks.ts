@@ -219,6 +219,7 @@ export function useCreateOrganization() {
       name: string;
       type: AdminOrganization["type"];
       admin_email: string;
+      admin_password?: string;
       contact_email?: string;
       contact_phone?: string;
     }) => apiPost<AdminOrganizationCreated>("/admin/organizations", body),
@@ -379,5 +380,26 @@ export function useUpdateOrgDriverStatus() {
       qc.invalidateQueries({ queryKey: ["admin", "organizations", variables.orgId, "drivers"] });
       qc.invalidateQueries({ queryKey: ["admin", "organizations", variables.orgId] });
     },
+  });
+}
+
+// ── Admin Fleet View ──
+
+export type AdminFleetView = {
+  organizations: {
+    id: string;
+    name: string;
+    type: string;
+    plan: string;
+    status: string;
+    member_count: number;
+    vehicle_count: number;
+  }[];
+};
+
+export function useAdminFleetView() {
+  return useQuery({
+    queryKey: ["admin", "fleet-view"],
+    queryFn: () => apiGet<AdminFleetView>("/admin/fleet-view"),
   });
 }
