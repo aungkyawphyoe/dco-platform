@@ -3959,12 +3959,8 @@ components:
           format: date-time
     MaintenanceCatalogItemWrite:
       type: object
-      required: [catalog_key, name, fuel_types]
+      required: [name, fuel_types]
       properties:
-        catalog_key:
-          type: string
-          minLength: 1
-          maxLength: 50
         name:
           type: string
           minLength: 1

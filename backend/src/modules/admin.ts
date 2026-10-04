@@ -680,6 +680,15 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
 
   // ── Maintenance Catalog ──
 
+  function slugify(input: string): string {
+    return input
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "")
+      .slice(0, 50);
+  }
+
   const publicCatalogItem = (row: typeof maintenanceCatalog.$inferSelect) => ({
     id: row.id,
     catalog_key: row.catalogKey,
@@ -701,7 +710,6 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
   app.post("/admin/maintenance-catalog", async (request, reply) => {
     const body = z
       .object({
-        catalog_key: z.string().min(1).max(50),
         name: z.string().min(1).max(80),
         interval_days: z.number().int().positive().optional().nullable(),
         interval_distance: z.number().positive().optional().nullable(),
@@ -711,18 +719,19 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
       })
       .parse(request.body);
 
+    const catalogKey = slugify(body.name);
     const [existing] = await app.db
       .select()
       .from(maintenanceCatalog)
-      .where(eq(maintenanceCatalog.catalogKey, body.catalog_key))
+      .where(eq(maintenanceCatalog.catalogKey, catalogKey))
       .limit(1);
-    if (existing) throw new AppError(409, "key_taken", "Catalog key already exists");
+    if (existing) throw new AppError(409, "key_taken", "Catalog key already exists (auto-generated from name)");
 
     const [row] = await app.db
       .insert(maintenanceCatalog)
       .values({
         id: newId(),
-        catalogKey: body.catalog_key,
+        catalogKey,
         name: body.name,
         intervalDays: body.interval_days ?? null,
         intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null,

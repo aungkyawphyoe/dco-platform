@@ -13,6 +13,7 @@ export function Modal({
   onSubmit,
   destructive = false,
   loading = false,
+  footer,
 }: {
   open: boolean;
   onClose: () => void;
@@ -23,6 +24,7 @@ export function Modal({
   onSubmit?: () => void;
   destructive?: boolean;
   loading?: boolean;
+  footer?: React.ReactNode;
 }) {
   const overlayRef = useRef<HTMLDivElement>(null);
 
@@ -59,19 +61,23 @@ export function Modal({
           {title}
         </h2>
         <div className="mt-4 text-sm text-ink-muted">{children}</div>
-        <div className="mt-6 flex justify-end gap-3">
-          <Button variant="secondary" size="sm" onClick={onClose}>
-            Cancel
-          </Button>
-          <Button
-            variant={destructive ? "destructive" : "primary"}
-            size="sm"
-            onClick={onSubmit ?? onConfirm}
-            disabled={loading}
-          >
-            {loading ? "Working..." : confirmLabel}
-          </Button>
-        </div>
+        {footer ? (
+          <div className="mt-6">{footer}</div>
+        ) : (
+          <div className="mt-6 flex justify-end gap-3">
+            <Button variant="secondary" size="sm" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              variant={destructive ? "destructive" : "primary"}
+              size="sm"
+              onClick={onSubmit ?? onConfirm}
+              disabled={loading}
+            >
+              {loading ? "Working..." : confirmLabel}
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

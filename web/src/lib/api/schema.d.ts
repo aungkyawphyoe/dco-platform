@@ -6261,7 +6261,6 @@ export interface components {
             updated_at: string;
         };
         MaintenanceCatalogItemWrite: {
-            catalog_key: string;
             name: string;
             interval_days?: number | null;
             /** @description Interval distance in kilometers (km) */
