@@ -38,7 +38,7 @@ Vehicle _vehicle({double mileage = 10000}) {
     licensePlate: 'ABC123',
     fuelType: FuelType.petrol,
     mileage: mileage,
-    mileageUnit: MileageUnit.mi,
+    mileageUnit: MileageUnit.km,
     archived: false,
     updatedAt: now,
     createdAt: now,

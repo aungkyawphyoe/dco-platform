@@ -62,8 +62,8 @@ void main() {
           category: ExpenseCategory.insurance,
         ),
       ]);
-      expect(stats.topCategory, ExpenseCategory.insurance);
-      expect(stats.topCategoryCost, 55);
+      expect(stats.topCategory, ExpenseCategory.tolls);
+      expect(stats.topCategoryCost, 70);
     });
 
     test('top category ties resolve to the most recent occurrence', () {

@@ -1816,7 +1816,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get unitsFormatsCurrencyHelper =>
-      'USD သည် စင့် (cents) ဖြင့် ပြသမည်။ MMK သည် ကျပ်ပြည့် ပြသမည်ဖြစ်ပြီး ပမာဏများပါက K သို့မဟုတ် M (25K, 23M) ဟု ပြသမည်။';
+      'MMK သည် ကျပ်ပြည့် ပြသမည်ဖြစ်ပြီး ပမာဏများပါက K သို့မဟုတ် M (25K, 23M) ဟု ပြသမည်။';
 
   @override
   String get unitsFormatsLengthUnit => 'အကွာအဝေး ယူနစ်';

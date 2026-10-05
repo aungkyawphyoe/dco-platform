@@ -60,7 +60,7 @@ void main() {
         licensePlate: 'ABC123',
         fuelType: FuelType.petrol,
         mileage: 10000,
-        mileageUnit: MileageUnit.mi,
+        mileageUnit: MileageUnit.km,
       ),
     );
   }
@@ -85,7 +85,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: DueThresholds.defaults,
       locale: locale,
     );
@@ -116,7 +116,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: DueThresholds.defaults,
       locale: locale,
     );
@@ -125,7 +125,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: DueThresholds.defaults,
       locale: locale,
     );
@@ -142,7 +142,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: DueThresholds.defaults,
       locale: locale,
     );
@@ -161,7 +161,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: DueThresholds.defaults,
       locale: locale,
     );
@@ -178,7 +178,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: DueThresholds.defaults,
       locale: locale,
     );
@@ -203,7 +203,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: DueThresholds.defaults,
       locale: locale,
     );
@@ -218,7 +218,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: const DueThresholds(soonDays: 60, soonDistanceKm: 500),
       locale: locale,
     );
@@ -236,7 +236,7 @@ void main() {
       userId: 'u1',
       garage: [vehicle],
       items: [item],
-      lengthUnit: MileageUnit.mi,
+      lengthUnit: MileageUnit.km,
       thresholds: DueThresholds.defaults,
       locale: const Locale('my'),
     );

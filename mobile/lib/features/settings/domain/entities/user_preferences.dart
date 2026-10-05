@@ -22,25 +22,13 @@ enum AppLanguage {
 }
 
 enum AppCurrency {
-  usd,
   mmk;
 
-  String get code => switch (this) {
-    AppCurrency.usd => 'USD',
-    AppCurrency.mmk => 'MMK',
-  };
+  String get code => 'MMK';
 
-  String get label => switch (this) {
-    AppCurrency.usd => 'US Dollar (USD)',
-    AppCurrency.mmk => 'Myanmar Kyat (MMK)',
-  };
+  String get label => 'Myanmar Kyat (MMK)';
 
-  static AppCurrency parse(String value) {
-    final normalized = value.toUpperCase();
-    return normalized == 'MMK' || value == AppCurrency.mmk.name
-        ? AppCurrency.mmk
-        : AppCurrency.usd;
-  }
+  static AppCurrency parse(String value) => AppCurrency.mmk;
 }
 
 enum AppThemeMode {

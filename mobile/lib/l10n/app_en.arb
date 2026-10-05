@@ -557,7 +557,7 @@
   "localizationHelper": "App copy stays in English for now. This stores your choice.",
   "unitsFormatsTitle": "Unit and Format",
   "unitsFormatsCurrency": "Currency",
-  "unitsFormatsCurrencyHelper": "USD shows cents. MMK shows whole kyat, and large amounts use K or M (25K, 23M).",
+  "unitsFormatsCurrencyHelper": "MMK shows whole kyat, and large amounts use K or M (25K, 23M).",
   "unitsFormatsLengthUnit": "Unit of length",
   "unitsFormatsLengthUnitHelper": "Odometer, service intervals, and due mileage follow this unit.",
   "remindersTitle": "Reminders",

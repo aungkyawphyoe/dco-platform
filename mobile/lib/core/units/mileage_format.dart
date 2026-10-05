@@ -16,11 +16,6 @@ abstract final class MileageFormat {
 
   static String input(double storedMiles, MileageUnit unit) {
     final displayed = unit.toDisplay(storedMiles);
-    if (unit == MileageUnit.mi) {
-      return displayed.truncateToDouble() == displayed
-          ? displayed.toStringAsFixed(0)
-          : displayed.toString();
-    }
     return displayed.toStringAsFixed(1);
   }
 }

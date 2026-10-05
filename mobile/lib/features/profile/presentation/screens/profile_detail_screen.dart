@@ -166,7 +166,7 @@ class ProfileDetailScreen extends ConsumerWidget {
               _ProfileAvatar(
                 photoMediaId: photoMediaId,
                 name: name,
-                radius: 32,
+                radius: 28,
               ),
               SizedBox(width: tokens.space.s3),
               Expanded(

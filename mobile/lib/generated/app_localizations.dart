@@ -3443,7 +3443,7 @@ abstract class AppLocalizations {
   /// No description provided for @unitsFormatsCurrencyHelper.
   ///
   /// In en, this message translates to:
-  /// **'USD shows cents. MMK shows whole kyat, and large amounts use K or M (25K, 23M).'**
+  /// **'MMK shows whole kyat, and large amounts use K or M (25K, 23M).'**
   String get unitsFormatsCurrencyHelper;
 
   /// No description provided for @unitsFormatsLengthUnit.

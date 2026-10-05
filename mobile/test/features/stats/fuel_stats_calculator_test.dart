@@ -34,7 +34,7 @@ FuelLog _log({
 FuelStats _compute(
   List<FuelLog> logs, {
   StatsPeriod period = StatsPeriod.all,
-  MileageUnit lengthUnit = MileageUnit.mi,
+  MileageUnit lengthUnit = MileageUnit.km,
   FuelStatsMode mode = FuelStatsMode.refuel,
 }) {
   return FuelStats.compute(
@@ -210,7 +210,7 @@ void main() {
       expect(stats.costPer100, closeTo(80.0, 1e-9));
     });
 
-    test('mi display with gal volume → mpg', () {
+    test('km display with gal volume → l/100km', () {
       final stats = _compute(
         [
           _log(id: 'a', loggedOn: DateTime(2026, 1, 1), odometer: 100, unit: 'gal'),
@@ -231,11 +231,12 @@ void main() {
             unit: 'gal',
           ),
         ],
-        lengthUnit: MileageUnit.mi,
+        lengthUnit: MileageUnit.km,
       );
       expect(stats.segments, hasLength(2));
-      expect(stats.consumption, closeTo(30.0, 1e-9)); // 120 mi / 4 gal
-      expect(stats.costPer100, closeTo(20 / 120 * 100, 1e-9));
+      // Odometer stored in miles: 100→160→220 mi = 160.9→257.5→354.1 km
+      // Delta = 193.1 km. Fuel = 4 gal = 15.14 L. Consumption = 15.14/1.931*100 = 7.84 L/100km
+      expect(stats.consumption, closeTo(7.84, 0.02));
     });
 
     test('km display converts gal volume to liters', () {

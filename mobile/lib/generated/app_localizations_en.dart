@@ -1794,7 +1794,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unitsFormatsCurrencyHelper =>
-      'USD shows cents. MMK shows whole kyat, and large amounts use K or M (25K, 23M).';
+      'MMK shows whole kyat, and large amounts use K or M (25K, 23M).';
 
   @override
   String get unitsFormatsLengthUnit => 'Unit of length';

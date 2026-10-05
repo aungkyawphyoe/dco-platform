@@ -31,7 +31,7 @@ void main() {
 
   test('body carries the name and the due date', () {
     final date = DateTime(2026, 9, 20);
-    final body = en.body(name: 'Oil Change', dueOn: date, unit: MileageUnit.mi);
+    final body = en.body(name: 'Oil Change', dueOn: date, unit: MileageUnit.km);
     expect(body, contains('Oil Change'));
     expect(body, contains(DateFormat.yMMMd('en').format(date)));
   });
@@ -51,23 +51,23 @@ void main() {
     final body = en.body(
       name: 'Oil Change',
       dueOn: date,
-      dueMileage: 62000,
-      unit: MileageUnit.mi,
+      dueMileage: MileageUnit.km.toStorage(100000),
+      unit: MileageUnit.km,
     );
     expect(body, contains('Oil Change'));
     expect(body, contains(DateFormat.yMMMd('en').format(date)));
-    expect(body, contains('62,000 mi'));
+    expect(body, contains('100,000 km'));
   });
 
   test('body falls back to the name when the item has no due values', () {
-    expect(en.body(name: 'Oil Change', unit: MileageUnit.mi), 'Oil Change');
+    expect(en.body(name: 'Oil Change', unit: MileageUnit.km), 'Oil Change');
   });
 
   test('body is clipped to the policy maximum', () {
     final body = en.body(
       name: 'x' * 200,
       dueOn: DateTime(2026, 9, 20),
-      unit: MileageUnit.mi,
+      unit: MileageUnit.km,
     );
     expect(body.length, ReminderPolicy.bodyMax);
   });
