@@ -334,7 +334,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                       backgroundImage: FileImage(File(_photoPath!)),
                     )
                   else
-                    DcoAvatar(name: user?.email ?? '?', radius: 50),
+                    DcoAvatar(name: user?.displayName ?? user?.email ?? '?', radius: 50),
                   Positioned(
                     bottom: 0,
                     right: 0,

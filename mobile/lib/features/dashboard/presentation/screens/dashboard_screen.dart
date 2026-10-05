@@ -336,7 +336,27 @@ class _PopulatedDashboard extends ConsumerWidget {
             ),
           ],
         ),
-        SizedBox(height: tokens.space.s1),
+        SizedBox(height: tokens.space.s5),
+        Text(
+          s.dashboardNextMaintenance,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        SizedBox(height: tokens.space.s3),
+        _NextMaintenanceCard(
+          vehicle: vehicle,
+          item: next,
+          lengthUnit: lengthUnit,
+          thresholds: thresholds,
+          onLogService: next == null
+              ? () => context.push(AppRoutes.maintenancePlan)
+              : () {
+                  ref
+                      .read(analyticsProvider)
+                      .track(AnalyticsEvent.dashboardLogServiceTapped);
+                  context.push(AppRoutes.maintenanceRegisterItem(next.id));
+                },
+        ),
+        SizedBox(height: tokens.space.s5),
         Text(
           s.dashboardRecentActivity,
           style: Theme.of(context).textTheme.titleLarge,
@@ -360,26 +380,6 @@ class _PopulatedDashboard extends ConsumerWidget {
               ),
             ),
           ),
-        SizedBox(height: tokens.space.s5),
-        Text(
-          s.dashboardNextMaintenance,
-          style: Theme.of(context).textTheme.titleLarge,
-        ),
-        SizedBox(height: tokens.space.s3),
-        _NextMaintenanceCard(
-          vehicle: vehicle,
-          item: next,
-          lengthUnit: lengthUnit,
-          thresholds: thresholds,
-          onLogService: next == null
-              ? () => context.push(AppRoutes.maintenancePlan)
-              : () {
-                  ref
-                      .read(analyticsProvider)
-                      .track(AnalyticsEvent.dashboardLogServiceTapped);
-                  context.push(AppRoutes.maintenanceRegisterItem(next.id));
-                },
-        ),
         SizedBox(height: tokens.space.s7),
       ],
     );

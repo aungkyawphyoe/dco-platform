@@ -52,7 +52,10 @@ class SettingsScreen extends ConsumerWidget {
                   Stack(
                     clipBehavior: Clip.none,
                     children: [
-                      DcoAvatar(name: user?.email ?? '?', radius: 28),
+                      DcoAvatar(
+                        name: user?.displayName ?? user?.email ?? '?',
+                        radius: 28,
+                      ),
                       if (user?.plan == 'premium')
                         Positioned(
                           right: -2,
@@ -67,13 +70,13 @@ class SettingsScreen extends ConsumerWidget {
                               width: 18,
                               height: 18,
                               decoration: BoxDecoration(
-                                color: tokens.text.accent,
+                                color: tokens.button.primary.background,
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
                                 Icons.star,
                                 size: 12,
-                                color: tokens.text.onAccent,
+                                color: tokens.text.disabled,
                               ),
                             ),
                           ),

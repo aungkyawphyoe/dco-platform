@@ -26,6 +26,7 @@ class QuickActionsGrid extends StatelessWidget {
     return GridView.count(
       crossAxisCount: 4,
       shrinkWrap: true,
+      padding: EdgeInsets.zero,
       physics: const NeverScrollableScrollPhysics(),
       mainAxisSpacing: tokens.space.s3,
       crossAxisSpacing: tokens.space.s3,
