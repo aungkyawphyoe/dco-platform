@@ -157,6 +157,7 @@ final syncEngineProvider = Provider<SyncEngine>((ref) {
     api: ref.watch(syncApiProvider),
     mediaApi: ref.watch(mediaApiProvider),
     currentUser: () => ref.read(sessionControllerProvider).valueOrNull?.user.id,
+    autoSyncEnabled: () => ref.read(autoSyncProvider),
   );
   ref.onDispose(engine.dispose);
   return engine;

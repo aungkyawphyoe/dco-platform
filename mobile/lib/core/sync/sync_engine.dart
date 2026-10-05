@@ -59,6 +59,7 @@ class SyncEngine {
     required SyncApi api,
     required MediaApi mediaApi,
     required String? Function() currentUser,
+    required bool Function() autoSyncEnabled,
     OutboxWriter? outbox,
     ChangeApplier? applier,
     Uuid uuid = const Uuid(),
@@ -70,6 +71,7 @@ class SyncEngine {
        _api = api,
        _mediaApi = mediaApi,
        _currentUser = currentUser,
+       _autoSyncEnabled = autoSyncEnabled,
        _outbox = outbox ?? OutboxWriter(db),
        _applier = applier ?? ChangeApplier(db),
        _uuid = uuid,
@@ -82,6 +84,7 @@ class SyncEngine {
   final SyncApi _api;
   final MediaApi _mediaApi;
   final String? Function() _currentUser;
+  final bool Function() _autoSyncEnabled;
   final OutboxWriter _outbox;
   final ChangeApplier _applier;
   final Uuid _uuid;
@@ -100,13 +103,18 @@ class SyncEngine {
   Stream<SyncState> get stream => _states.stream;
 
   /// Debounced trigger used by repositories after local writes.
+  /// Respects auto-sync setting — won't trigger if disabled.
   void requestSync() {
+    if (!_autoSyncEnabled()) return;
     _timer?.cancel();
     _timer = Timer(_debounce, syncNow);
   }
 
   /// Immediate drain used after login or connectivity regain.
-  Future<void> syncNow() async {
+  /// If called manually (from Sync Now button), [force] should be true
+  /// to bypass auto-sync setting.
+  Future<void> syncNow({bool force = false}) async {
+    if (!force && !_autoSyncEnabled()) return;
     _timer?.cancel();
     if (_running) {
       _queuedAfterRun = true;

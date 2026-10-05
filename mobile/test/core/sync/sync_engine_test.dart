@@ -74,6 +74,7 @@ void main() {
       api: api,
       mediaApi: mediaApi,
       currentUser: () => 'u1',
+      autoSyncEnabled: () => true,
       outbox: outbox,
       uuid: const Uuid(),
       debounce: Duration.zero,
@@ -327,6 +328,7 @@ void main() {
       api: api,
       mediaApi: mediaApi,
       currentUser: () => null,
+      autoSyncEnabled: () => true,
       debounce: Duration.zero,
     );
     await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v1');

@@ -49,7 +49,7 @@ class SyncStatusScreen extends ConsumerWidget {
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: tokens.text.accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                    shape: BoxShape.circle,
                   ),
                   child: Icon(
                     Icons.autorenew,
@@ -94,36 +94,37 @@ class SyncStatusScreen extends ConsumerWidget {
           _PendingCard(pendingCount: pendingCount, tokens: tokens, s: s),
           SizedBox(height: tokens.space.s3),
 
-          // -- Sync now button
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: tokens.button.primary.background,
-                foregroundColor: tokens.text.inverse,
-              ),
-              onPressed: isSyncing
-                  ? null
-                  : () async {
-                      await ref.read(syncEngineProvider).syncNow();
-                      ref.invalidate(pendingOutboxCountProvider);
-                    },
-              icon: isSyncing
-                  ? SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: tokens.text.onAccent,
-                      ),
-                    )
-                  : const Icon(Icons.cloud_upload_outlined),
-              label: Text(
-                isSyncing ? s.settingsSyncStatusSyncing : s.syncManualSync,
+          // -- Sync now button (hidden when auto-sync is on)
+          if (!autoSyncEnabled)
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: tokens.button.primary.background,
+                  foregroundColor: tokens.text.primary,
+                ),
+                onPressed: isSyncing
+                    ? null
+                    : () async {
+                        await ref.read(syncEngineProvider).syncNow(force: true);
+                        ref.invalidate(pendingOutboxCountProvider);
+                      },
+                icon: isSyncing
+                    ? SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: tokens.text.onAccent,
+                        ),
+                      )
+                    : const Icon(Icons.cloud_upload_outlined),
+                label: Text(
+                  isSyncing ? s.settingsSyncStatusSyncing : s.syncManualSync,
+                ),
               ),
             ),
-          ),
-          SizedBox(height: tokens.space.s4),
+          if (!autoSyncEnabled) SizedBox(height: tokens.space.s4),
 
           // -- How it works
           _HowItWorksCard(tokens: tokens, s: s),
@@ -316,7 +317,7 @@ class _PendingCard extends StatelessWidget {
               color: hasPending
                   ? tokens.status.warningFg.withValues(alpha: 0.12)
                   : tokens.status.successFg.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(tokens.radius.md),
+              shape: BoxShape.circle,
             ),
             child: Icon(
               hasPending
