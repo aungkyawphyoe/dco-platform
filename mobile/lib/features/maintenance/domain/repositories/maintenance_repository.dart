@@ -40,6 +40,18 @@ abstract class MaintenanceRepository {
     required SuggestedPlanItem suggestion,
   });
 
+  /// Adds multiple suggested items at once with a common tracking start date/mileage.
+  /// [conditionFraction] - optional fraction (e.g., 0.5 for half, 0.33 for third)
+  /// to start tracking from a partial interval for used cars.
+  Future<void> addSuggestedItems({
+    required String userId,
+    required Vehicle vehicle,
+    required List<SuggestedPlanItem> suggestions,
+    required DateTime trackingStartDate,
+    required double trackingStartMileage,
+    double? conditionFraction,
+  });
+
   Future<ServiceRecord> registerService({
     required String userId,
     required Vehicle vehicle,

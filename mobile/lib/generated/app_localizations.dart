@@ -236,6 +236,18 @@ abstract class AppLocalizations {
   /// **'inactive'**
   String get inactive;
 
+  /// No description provided for @enabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled'**
+  String get enabled;
+
+  /// No description provided for @disabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get disabled;
+
   /// No description provided for @showPassword.
   ///
   /// In en, this message translates to:
@@ -1355,14 +1367,26 @@ abstract class AppLocalizations {
   /// No description provided for @planItemFormActive.
   ///
   /// In en, this message translates to:
-  /// **'active'**
+  /// **'Active'**
   String get planItemFormActive;
+
+  /// No description provided for @planItemFormActiveHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'When off, this item is hidden from tracking and reminders.'**
+  String get planItemFormActiveHelper;
 
   /// No description provided for @planItemFormRecurring.
   ///
   /// In en, this message translates to:
-  /// **'recurring'**
+  /// **'Recurring'**
   String get planItemFormRecurring;
+
+  /// No description provided for @planItemFormRecurringHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'When on, repeats at the interval. When off, one-time only.'**
+  String get planItemFormRecurringHelper;
 
   /// No description provided for @planItemFormRepeatEvery.
   ///
@@ -1393,6 +1417,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The highest value out of this or your most recent service will prevail.'**
   String get planItemFormOverrideHelper;
+
+  /// No description provided for @planItemFormTrackingStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking Start'**
+  String get planItemFormTrackingStart;
+
+  /// No description provided for @planItemFormTrackingStartHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'When to begin tracking this item. The first due date/mileage is calculated from here.'**
+  String get planItemFormTrackingStartHelper;
 
   /// No description provided for @planItemFormDate.
   ///
@@ -1453,6 +1489,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add {itemName}'**
   String suggestedItemAdd(Object itemName);
+
+  /// No description provided for @suggestedItemsSelected.
+  ///
+  /// In en, this message translates to:
+  /// **'selected'**
+  String get suggestedItemsSelected;
+
+  /// No description provided for @suggestedItemsTrackingStartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Tracking Start'**
+  String get suggestedItemsTrackingStartTitle;
+
+  /// No description provided for @suggestedItemsTrackingStartBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Set when to start tracking {itemCount} item(s). The first due date/mileage will be calculated from this point.'**
+  String suggestedItemsTrackingStartBody(Object itemCount);
+
+  /// No description provided for @suggestedItemsStartDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Date'**
+  String get suggestedItemsStartDate;
+
+  /// No description provided for @suggestedItemsStartMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Mileage'**
+  String get suggestedItemsStartMileage;
+
+  /// No description provided for @lengthUnitKm.
+  ///
+  /// In en, this message translates to:
+  /// **'km'**
+  String get lengthUnitKm;
 
   /// No description provided for @planItemTileOverdue.
   ///

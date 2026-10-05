@@ -78,6 +78,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get inactive => 'inactive';
 
   @override
+  String get enabled => 'Enabled';
+
+  @override
+  String get disabled => 'Disabled';
+
+  @override
   String get showPassword => 'Show password';
 
   @override
@@ -671,10 +677,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planItemFormSchedule => 'Schedule *';
 
   @override
-  String get planItemFormActive => 'active';
+  String get planItemFormActive => 'Active';
 
   @override
-  String get planItemFormRecurring => 'recurring';
+  String get planItemFormActiveHelper =>
+      'When off, this item is hidden from tracking and reminders.';
+
+  @override
+  String get planItemFormRecurring => 'Recurring';
+
+  @override
+  String get planItemFormRecurringHelper =>
+      'When on, repeats at the interval. When off, one-time only.';
 
   @override
   String get planItemFormRepeatEvery => 'Repeat every';
@@ -691,6 +705,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get planItemFormOverrideHelper =>
       'The highest value out of this or your most recent service will prevail.';
+
+  @override
+  String get planItemFormTrackingStart => 'Tracking Start';
+
+  @override
+  String get planItemFormTrackingStartHelper =>
+      'When to begin tracking this item. The first due date/mileage is calculated from here.';
 
   @override
   String get planItemFormDate => 'Date';
@@ -725,6 +746,26 @@ class AppLocalizationsEn extends AppLocalizations {
   String suggestedItemAdd(Object itemName) {
     return 'Add $itemName';
   }
+
+  @override
+  String get suggestedItemsSelected => 'selected';
+
+  @override
+  String get suggestedItemsTrackingStartTitle => 'Tracking Start';
+
+  @override
+  String suggestedItemsTrackingStartBody(Object itemCount) {
+    return 'Set when to start tracking $itemCount item(s). The first due date/mileage will be calculated from this point.';
+  }
+
+  @override
+  String get suggestedItemsStartDate => 'Start Date';
+
+  @override
+  String get suggestedItemsStartMileage => 'Start Mileage';
+
+  @override
+  String get lengthUnitKm => 'km';
 
   @override
   String get planItemTileOverdue => 'Overdue';

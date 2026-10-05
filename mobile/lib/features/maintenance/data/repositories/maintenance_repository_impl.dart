@@ -16,7 +16,6 @@ import '../../domain/suggested_catalog.dart';
 import '../mappers/maintenance_mapper.dart';
 import '../../../expenses/domain/repositories/expense_repository.dart';
 import '../../../expenses/domain/entities/expense.dart';
-import '../../../expenses/domain/expense_validators.dart';
 import '../../domain/entities/suggested_plan_item.dart';
 
 // Private fields with public constructor names.
@@ -204,6 +203,89 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     });
     _sync?.requestSync();
     return updated;
+  }
+
+  @override
+  Future<void> addSuggestedItems({
+    required String userId,
+    required Vehicle vehicle,
+    required List<SuggestedPlanItem> suggestions,
+    required DateTime trackingStartDate,
+    required double trackingStartMileage,
+    double? conditionFraction,
+  }) async {
+    final now = DateTime.now().toUtc();
+    final dateOnlyStart = DueCalculator.dateOnly(trackingStartDate);
+
+    // Check which items already exist to avoid duplicates
+    final existingKeys = <String>{};
+    for (final suggestion in suggestions) {
+      final existing = await (_db.select(_db.planItemRecords)..where(
+        (row) =>
+            row.vehicleId.equals(vehicle.id) &
+            row.catalogKey.equals(suggestion.catalogKey),
+      )).get();
+      if (existing.isNotEmpty) {
+        existingKeys.add(suggestion.catalogKey);
+      }
+    }
+
+    final itemsToAdd = suggestions
+        .where((s) => !existingKeys.contains(s.catalogKey))
+        .toList();
+
+    if (itemsToAdd.isEmpty) return;
+
+    await _db.transaction(() async {
+      for (final suggestion in itemsToAdd) {
+        double? intervalDays;
+        double? intervalDistance;
+
+        if (suggestion.recurring) {
+          intervalDays = suggestion.intervalDays?.toDouble();
+          intervalDistance = suggestion.intervalDistance;
+
+          // Apply condition fraction if provided (e.g., 0.5 = half interval for used cars)
+          if (conditionFraction != null && conditionFraction > 0 && conditionFraction < 1) {
+            if (intervalDays != null) {
+              intervalDays = intervalDays * conditionFraction;
+            }
+            if (intervalDistance != null) {
+              intervalDistance = intervalDistance * conditionFraction;
+            }
+          }
+        }
+
+        final due = NextDue(
+          on: intervalDays != null ? DueCalculator.addDays(dateOnlyStart, intervalDays.round()) : null,
+          mileage: intervalDistance != null ? trackingStartMileage + intervalDistance! : null,
+        );
+
+        final item = PlanItem(
+          id: _uuid.v4(),
+          vehicleId: vehicle.id,
+          name: suggestion.name,
+          intervalDays: intervalDays?.round(),
+          intervalDistance: intervalDistance,
+          nextDueMileage: due.mileage,
+          nextDueOn: due.on,
+          enabled: true,
+          notes: null,
+          catalogKey: suggestion.catalogKey,
+          updatedAt: now,
+          createdAt: now,
+        );
+        await _db.into(_db.planItemRecords).insert(planItemToCompanion(item));
+        await _outbox.enqueue(
+          userId: userId,
+          entityType: OutboxEntityType.planItem,
+          entityId: item.id,
+          op: OutboxOp.upsert,
+          payload: item.toWriteJson(),
+        );
+      }
+    });
+    _sync?.requestSync();
   }
 
   @override

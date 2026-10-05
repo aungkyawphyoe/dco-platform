@@ -6,6 +6,7 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_tile.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
@@ -86,6 +87,19 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
                         );
                       }
                       final now = DateTime.now();
+                      // Sort: enabled items first, then by urgency
+                      items.sort((a, b) {
+                        if (a.enabled != b.enabled) {
+                          return a.enabled ? -1 : 1; // enabled first
+                        }
+                        return DueCalculator.compareSoonest(
+                          a,
+                          b,
+                          vehicle.mileage,
+                          now,
+                          thresholds,
+                        );
+                      });
                       return ListView(
                         padding: EdgeInsets.only(top: tokens.space.s4),
                         children: [

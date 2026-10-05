@@ -78,6 +78,12 @@ class AppLocalizationsMy extends AppLocalizations {
   String get inactive => 'အသုံးမပြုတော့ပါ';
 
   @override
+  String get enabled => 'ချက်ထားပြီး';
+
+  @override
+  String get disabled => 'ချက်မထားဘူးဆဲ';
+
+  @override
   String get showPassword => 'စကားဝှက်ပြရန်';
 
   @override
@@ -686,13 +692,21 @@ class AppLocalizationsMy extends AppLocalizations {
   String get planItemFormSchedule => 'အချိန်ဇယား *';
 
   @override
-  String get planItemFormActive => 'တစ်ခါထဲ';
+  String get planItemFormActive => 'ဖွင့်ထားရန်';
+
+  @override
+  String get planItemFormActiveHelper =>
+      'ပိတ်ထားရင် ဒီ item ကို စာရင်းမှတ်ခြင်းနှင့် အသိပေးချက်များ မလုပ်တော့ပါ';
 
   @override
   String get planItemFormRecurring => 'ပုံမှန် ပြန်လုပ်ရမည်';
 
   @override
-  String get planItemFormRepeatEvery => 'ထပ်မံ ပြုလုပ်ရမည့်ကာလ';
+  String get planItemFormRecurringHelper =>
+      'ဖွင့်ထားရင် ပုံမှန် ပြန်လုပ်မည်၊ ပိတ်ထားရင် တစ်ခါပဲမှတ်မည်';
+
+  @override
+  String get planItemFormRepeatEvery => 'ထပ်မံ ပြုလုပ်ရမည့် ကာလ';
 
   @override
   String get planItemFormUnit => 'ယူနစ်';
@@ -707,6 +721,13 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get planItemFormOverrideHelper =>
       'ဒီတန်ဖိုး သို့မဟုတ် နောက်ဆုံးပြုပြင်ထားသည့် မိုင်နှုန်းအနက် ပိုများသောတန်ဖိုးကို အသုံးပြုပါမည်။';
+
+  @override
+  String get planItemFormTrackingStart => 'စတင် စောင့်ကြည့်မည်';
+
+  @override
+  String get planItemFormTrackingStartHelper =>
+      'ဤအချက်အလက်ကို စတင် စောင့်ကြည့်မည့် အချိန်။ ပထမ်ဆုံးစံနှုန်း/မိုင်နှုန်း ဤနေရာမှ စတင်တွက်ချက်မည်။';
 
   @override
   String get planItemFormDate => 'ရက်စွဲ';
@@ -742,6 +763,26 @@ class AppLocalizationsMy extends AppLocalizations {
   String suggestedItemAdd(Object itemName) {
     return '$itemName ထည့်မည်';
   }
+
+  @override
+  String get suggestedItemsSelected => 'selected';
+
+  @override
+  String get suggestedItemsTrackingStartTitle => 'စတင် စောင့်ကြည့်မည်';
+
+  @override
+  String suggestedItemsTrackingStartBody(Object itemCount) {
+    return '$itemCount အမျိုးအစားများ ကိုဘယ်အချိန်မှာစတင်ခြေရာခံမလဲဆိုတာသတ်မှတ်ပါ။ ပထမဦးဆုံး ရက်စွဲ/မိုင်နှုန်း ကိုဒီနေရာကနေတွက်ချက်မယ်။';
+  }
+
+  @override
+  String get suggestedItemsStartDate => 'စတင်မည့်ရက်';
+
+  @override
+  String get suggestedItemsStartMileage => 'စတင်မည့်မိုင်နှုန်း';
+
+  @override
+  String get lengthUnitKm => 'km';
 
   @override
   String get planItemTileOverdue => 'ရက်လွန်နေပြီ';

@@ -1,0 +1,2 @@
+additional_public_assets:
+  - lib/core/theme/dco_tokens.g.dart
