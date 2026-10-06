@@ -2689,6 +2689,17 @@ class $PlanItemRecordsTable extends PlanItemRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -2723,6 +2734,7 @@ class $PlanItemRecordsTable extends PlanItemRecords
     enabled,
     notes,
     catalogKey,
+    createdBy,
     updatedAt,
     createdAt,
   ];
@@ -2810,6 +2822,12 @@ class $PlanItemRecordsTable extends PlanItemRecords
         catalogKey.isAcceptableOrUnknown(data['catalog_key']!, _catalogKeyMeta),
       );
     }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -2875,6 +2893,10 @@ class $PlanItemRecordsTable extends PlanItemRecords
         DriftSqlType.string,
         data['${effectivePrefix}catalog_key'],
       ),
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -2903,6 +2925,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
   final bool enabled;
   final String? notes;
   final String? catalogKey;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
   const PlanItemRecord({
@@ -2916,6 +2939,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     required this.enabled,
     this.notes,
     this.catalogKey,
+    this.createdBy,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -2943,6 +2967,9 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     }
     if (!nullToAbsent || catalogKey != null) {
       map['catalog_key'] = Variable<String>(catalogKey);
+    }
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -2973,6 +3000,9 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       catalogKey: catalogKey == null && nullToAbsent
           ? const Value.absent()
           : Value(catalogKey),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -2994,6 +3024,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       enabled: serializer.fromJson<bool>(json['enabled']),
       notes: serializer.fromJson<String?>(json['notes']),
       catalogKey: serializer.fromJson<String?>(json['catalogKey']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -3012,6 +3043,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       'enabled': serializer.toJson<bool>(enabled),
       'notes': serializer.toJson<String?>(notes),
       'catalogKey': serializer.toJson<String?>(catalogKey),
+      'createdBy': serializer.toJson<String?>(createdBy),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -3028,6 +3060,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     bool? enabled,
     Value<String?> notes = const Value.absent(),
     Value<String?> catalogKey = const Value.absent(),
+    Value<String?> createdBy = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => PlanItemRecord(
@@ -3045,6 +3078,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     enabled: enabled ?? this.enabled,
     notes: notes.present ? notes.value : this.notes,
     catalogKey: catalogKey.present ? catalogKey.value : this.catalogKey,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -3068,6 +3102,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       catalogKey: data.catalogKey.present
           ? data.catalogKey.value
           : this.catalogKey,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -3086,6 +3121,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
           ..write('enabled: $enabled, ')
           ..write('notes: $notes, ')
           ..write('catalogKey: $catalogKey, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -3104,6 +3140,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     enabled,
     notes,
     catalogKey,
+    createdBy,
     updatedAt,
     createdAt,
   );
@@ -3121,6 +3158,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
           other.enabled == this.enabled &&
           other.notes == this.notes &&
           other.catalogKey == this.catalogKey &&
+          other.createdBy == this.createdBy &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -3136,6 +3174,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
   final Value<bool> enabled;
   final Value<String?> notes;
   final Value<String?> catalogKey;
+  final Value<String?> createdBy;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -3150,6 +3189,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     this.enabled = const Value.absent(),
     this.notes = const Value.absent(),
     this.catalogKey = const Value.absent(),
+    this.createdBy = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3165,6 +3205,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     this.enabled = const Value.absent(),
     this.notes = const Value.absent(),
     this.catalogKey = const Value.absent(),
+    this.createdBy = const Value.absent(),
     required DateTime updatedAt,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -3184,6 +3225,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     Expression<bool>? enabled,
     Expression<String>? notes,
     Expression<String>? catalogKey,
+    Expression<String>? createdBy,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -3199,6 +3241,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
       if (enabled != null) 'enabled': enabled,
       if (notes != null) 'notes': notes,
       if (catalogKey != null) 'catalog_key': catalogKey,
+      if (createdBy != null) 'created_by': createdBy,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -3216,6 +3259,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     Value<bool>? enabled,
     Value<String?>? notes,
     Value<String?>? catalogKey,
+    Value<String?>? createdBy,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -3231,6 +3275,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
       enabled: enabled ?? this.enabled,
       notes: notes ?? this.notes,
       catalogKey: catalogKey ?? this.catalogKey,
+      createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -3270,6 +3315,9 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     if (catalogKey.present) {
       map['catalog_key'] = Variable<String>(catalogKey.value);
     }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -3295,6 +3343,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
           ..write('enabled: $enabled, ')
           ..write('notes: $notes, ')
           ..write('catalogKey: $catalogKey, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -3413,6 +3462,17 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -3447,6 +3507,7 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
     notes,
     receiptLocalPath,
     receiptMediaId,
+    createdBy,
     updatedAt,
     createdAt,
   ];
@@ -3540,6 +3601,12 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
         ),
       );
     }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -3605,6 +3672,10 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
         DriftSqlType.string,
         data['${effectivePrefix}receipt_media_id'],
       ),
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -3634,6 +3705,7 @@ class ServiceRecordRow extends DataClass
   final String? notes;
   final String? receiptLocalPath;
   final String? receiptMediaId;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
   const ServiceRecordRow({
@@ -3647,6 +3719,7 @@ class ServiceRecordRow extends DataClass
     this.notes,
     this.receiptLocalPath,
     this.receiptMediaId,
+    this.createdBy,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -3670,6 +3743,9 @@ class ServiceRecordRow extends DataClass
     }
     if (!nullToAbsent || receiptMediaId != null) {
       map['receipt_media_id'] = Variable<String>(receiptMediaId);
+    }
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -3696,6 +3772,9 @@ class ServiceRecordRow extends DataClass
       receiptMediaId: receiptMediaId == null && nullToAbsent
           ? const Value.absent()
           : Value(receiptMediaId),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -3717,6 +3796,7 @@ class ServiceRecordRow extends DataClass
       notes: serializer.fromJson<String?>(json['notes']),
       receiptLocalPath: serializer.fromJson<String?>(json['receiptLocalPath']),
       receiptMediaId: serializer.fromJson<String?>(json['receiptMediaId']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -3735,6 +3815,7 @@ class ServiceRecordRow extends DataClass
       'notes': serializer.toJson<String?>(notes),
       'receiptLocalPath': serializer.toJson<String?>(receiptLocalPath),
       'receiptMediaId': serializer.toJson<String?>(receiptMediaId),
+      'createdBy': serializer.toJson<String?>(createdBy),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -3751,6 +3832,7 @@ class ServiceRecordRow extends DataClass
     Value<String?> notes = const Value.absent(),
     Value<String?> receiptLocalPath = const Value.absent(),
     Value<String?> receiptMediaId = const Value.absent(),
+    Value<String?> createdBy = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => ServiceRecordRow(
@@ -3768,6 +3850,7 @@ class ServiceRecordRow extends DataClass
     receiptMediaId: receiptMediaId.present
         ? receiptMediaId.value
         : this.receiptMediaId,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -3791,6 +3874,7 @@ class ServiceRecordRow extends DataClass
       receiptMediaId: data.receiptMediaId.present
           ? data.receiptMediaId.value
           : this.receiptMediaId,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -3809,6 +3893,7 @@ class ServiceRecordRow extends DataClass
           ..write('notes: $notes, ')
           ..write('receiptLocalPath: $receiptLocalPath, ')
           ..write('receiptMediaId: $receiptMediaId, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -3827,6 +3912,7 @@ class ServiceRecordRow extends DataClass
     notes,
     receiptLocalPath,
     receiptMediaId,
+    createdBy,
     updatedAt,
     createdAt,
   );
@@ -3844,6 +3930,7 @@ class ServiceRecordRow extends DataClass
           other.notes == this.notes &&
           other.receiptLocalPath == this.receiptLocalPath &&
           other.receiptMediaId == this.receiptMediaId &&
+          other.createdBy == this.createdBy &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -3859,6 +3946,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
   final Value<String?> notes;
   final Value<String?> receiptLocalPath;
   final Value<String?> receiptMediaId;
+  final Value<String?> createdBy;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -3873,6 +3961,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     this.notes = const Value.absent(),
     this.receiptLocalPath = const Value.absent(),
     this.receiptMediaId = const Value.absent(),
+    this.createdBy = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -3888,6 +3977,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     this.notes = const Value.absent(),
     this.receiptLocalPath = const Value.absent(),
     this.receiptMediaId = const Value.absent(),
+    this.createdBy = const Value.absent(),
     required DateTime updatedAt,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -3910,6 +4000,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     Expression<String>? notes,
     Expression<String>? receiptLocalPath,
     Expression<String>? receiptMediaId,
+    Expression<String>? createdBy,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -3925,6 +4016,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
       if (notes != null) 'notes': notes,
       if (receiptLocalPath != null) 'receipt_local_path': receiptLocalPath,
       if (receiptMediaId != null) 'receipt_media_id': receiptMediaId,
+      if (createdBy != null) 'created_by': createdBy,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -3942,6 +4034,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     Value<String?>? notes,
     Value<String?>? receiptLocalPath,
     Value<String?>? receiptMediaId,
+    Value<String?>? createdBy,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -3957,6 +4050,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
       notes: notes ?? this.notes,
       receiptLocalPath: receiptLocalPath ?? this.receiptLocalPath,
       receiptMediaId: receiptMediaId ?? this.receiptMediaId,
+      createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -3996,6 +4090,9 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     if (receiptMediaId.present) {
       map['receipt_media_id'] = Variable<String>(receiptMediaId.value);
     }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -4021,6 +4118,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
           ..write('notes: $notes, ')
           ..write('receiptLocalPath: $receiptLocalPath, ')
           ..write('receiptMediaId: $receiptMediaId, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -4476,6 +4574,17 @@ class $PartRecordsTable extends PartRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -4507,6 +4616,7 @@ class $PartRecordsTable extends PartRecords
     brand,
     partNumber,
     notes,
+    createdBy,
     updatedAt,
     createdAt,
   ];
@@ -4569,6 +4679,12 @@ class $PartRecordsTable extends PartRecords
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
       );
     }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -4622,6 +4738,10 @@ class $PartRecordsTable extends PartRecords
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -4647,6 +4767,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
   final String? brand;
   final String? partNumber;
   final String? notes;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
   const PartRecord({
@@ -4657,6 +4778,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
     this.brand,
     this.partNumber,
     this.notes,
+    this.createdBy,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -4675,6 +4797,9 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
     }
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
+    }
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -4696,6 +4821,9 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -4714,6 +4842,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
       brand: serializer.fromJson<String?>(json['brand']),
       partNumber: serializer.fromJson<String?>(json['partNumber']),
       notes: serializer.fromJson<String?>(json['notes']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -4729,6 +4858,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
       'brand': serializer.toJson<String?>(brand),
       'partNumber': serializer.toJson<String?>(partNumber),
       'notes': serializer.toJson<String?>(notes),
+      'createdBy': serializer.toJson<String?>(createdBy),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -4742,6 +4872,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
     Value<String?> brand = const Value.absent(),
     Value<String?> partNumber = const Value.absent(),
     Value<String?> notes = const Value.absent(),
+    Value<String?> createdBy = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => PartRecord(
@@ -4752,6 +4883,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
     brand: brand.present ? brand.value : this.brand,
     partNumber: partNumber.present ? partNumber.value : this.partNumber,
     notes: notes.present ? notes.value : this.notes,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -4766,6 +4898,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
           ? data.partNumber.value
           : this.partNumber,
       notes: data.notes.present ? data.notes.value : this.notes,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -4781,6 +4914,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
           ..write('brand: $brand, ')
           ..write('partNumber: $partNumber, ')
           ..write('notes: $notes, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -4796,6 +4930,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
     brand,
     partNumber,
     notes,
+    createdBy,
     updatedAt,
     createdAt,
   );
@@ -4810,6 +4945,7 @@ class PartRecord extends DataClass implements Insertable<PartRecord> {
           other.brand == this.brand &&
           other.partNumber == this.partNumber &&
           other.notes == this.notes &&
+          other.createdBy == this.createdBy &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -4822,6 +4958,7 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
   final Value<String?> brand;
   final Value<String?> partNumber;
   final Value<String?> notes;
+  final Value<String?> createdBy;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -4833,6 +4970,7 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
     this.brand = const Value.absent(),
     this.partNumber = const Value.absent(),
     this.notes = const Value.absent(),
+    this.createdBy = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -4845,6 +4983,7 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
     this.brand = const Value.absent(),
     this.partNumber = const Value.absent(),
     this.notes = const Value.absent(),
+    this.createdBy = const Value.absent(),
     required DateTime updatedAt,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -4862,6 +5001,7 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
     Expression<String>? brand,
     Expression<String>? partNumber,
     Expression<String>? notes,
+    Expression<String>? createdBy,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -4874,6 +5014,7 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
       if (brand != null) 'brand': brand,
       if (partNumber != null) 'part_number': partNumber,
       if (notes != null) 'notes': notes,
+      if (createdBy != null) 'created_by': createdBy,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -4888,6 +5029,7 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
     Value<String?>? brand,
     Value<String?>? partNumber,
     Value<String?>? notes,
+    Value<String?>? createdBy,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -4900,6 +5042,7 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
       brand: brand ?? this.brand,
       partNumber: partNumber ?? this.partNumber,
       notes: notes ?? this.notes,
+      createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -4930,6 +5073,9 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -4952,6 +5098,7 @@ class PartRecordsCompanion extends UpdateCompanion<PartRecord> {
           ..write('brand: $brand, ')
           ..write('partNumber: $partNumber, ')
           ..write('notes: $notes, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -6562,6 +6709,17 @@ class $ExpenseRecordsTable extends ExpenseRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -6594,6 +6752,7 @@ class $ExpenseRecordsTable extends ExpenseRecords
     notes,
     receiptLocalPath,
     receiptMediaId,
+    createdBy,
     updatedAt,
     createdAt,
   ];
@@ -6670,6 +6829,12 @@ class $ExpenseRecordsTable extends ExpenseRecords
         ),
       );
     }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -6727,6 +6892,10 @@ class $ExpenseRecordsTable extends ExpenseRecords
         DriftSqlType.string,
         data['${effectivePrefix}receipt_media_id'],
       ),
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -6753,6 +6922,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   final String? notes;
   final String? receiptLocalPath;
   final String? receiptMediaId;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
   const ExpenseRecord({
@@ -6764,6 +6934,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
     this.notes,
     this.receiptLocalPath,
     this.receiptMediaId,
+    this.createdBy,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -6783,6 +6954,9 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
     }
     if (!nullToAbsent || receiptMediaId != null) {
       map['receipt_media_id'] = Variable<String>(receiptMediaId);
+    }
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -6805,6 +6979,9 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
       receiptMediaId: receiptMediaId == null && nullToAbsent
           ? const Value.absent()
           : Value(receiptMediaId),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -6824,6 +7001,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
       notes: serializer.fromJson<String?>(json['notes']),
       receiptLocalPath: serializer.fromJson<String?>(json['receiptLocalPath']),
       receiptMediaId: serializer.fromJson<String?>(json['receiptMediaId']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -6840,6 +7018,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
       'notes': serializer.toJson<String?>(notes),
       'receiptLocalPath': serializer.toJson<String?>(receiptLocalPath),
       'receiptMediaId': serializer.toJson<String?>(receiptMediaId),
+      'createdBy': serializer.toJson<String?>(createdBy),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -6854,6 +7033,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
     Value<String?> notes = const Value.absent(),
     Value<String?> receiptLocalPath = const Value.absent(),
     Value<String?> receiptMediaId = const Value.absent(),
+    Value<String?> createdBy = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => ExpenseRecord(
@@ -6869,6 +7049,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
     receiptMediaId: receiptMediaId.present
         ? receiptMediaId.value
         : this.receiptMediaId,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -6888,6 +7069,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
       receiptMediaId: data.receiptMediaId.present
           ? data.receiptMediaId.value
           : this.receiptMediaId,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -6904,6 +7086,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
           ..write('notes: $notes, ')
           ..write('receiptLocalPath: $receiptLocalPath, ')
           ..write('receiptMediaId: $receiptMediaId, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -6920,6 +7103,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
     notes,
     receiptLocalPath,
     receiptMediaId,
+    createdBy,
     updatedAt,
     createdAt,
   );
@@ -6935,6 +7119,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
           other.notes == this.notes &&
           other.receiptLocalPath == this.receiptLocalPath &&
           other.receiptMediaId == this.receiptMediaId &&
+          other.createdBy == this.createdBy &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -6948,6 +7133,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
   final Value<String?> notes;
   final Value<String?> receiptLocalPath;
   final Value<String?> receiptMediaId;
+  final Value<String?> createdBy;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -6960,6 +7146,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
     this.notes = const Value.absent(),
     this.receiptLocalPath = const Value.absent(),
     this.receiptMediaId = const Value.absent(),
+    this.createdBy = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -6973,6 +7160,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
     this.notes = const Value.absent(),
     this.receiptLocalPath = const Value.absent(),
     this.receiptMediaId = const Value.absent(),
+    this.createdBy = const Value.absent(),
     required DateTime updatedAt,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -6992,6 +7180,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
     Expression<String>? notes,
     Expression<String>? receiptLocalPath,
     Expression<String>? receiptMediaId,
+    Expression<String>? createdBy,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -7005,6 +7194,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
       if (notes != null) 'notes': notes,
       if (receiptLocalPath != null) 'receipt_local_path': receiptLocalPath,
       if (receiptMediaId != null) 'receipt_media_id': receiptMediaId,
+      if (createdBy != null) 'created_by': createdBy,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -7020,6 +7210,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
     Value<String?>? notes,
     Value<String?>? receiptLocalPath,
     Value<String?>? receiptMediaId,
+    Value<String?>? createdBy,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -7033,6 +7224,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
       notes: notes ?? this.notes,
       receiptLocalPath: receiptLocalPath ?? this.receiptLocalPath,
       receiptMediaId: receiptMediaId ?? this.receiptMediaId,
+      createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -7066,6 +7258,9 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
     if (receiptMediaId.present) {
       map['receipt_media_id'] = Variable<String>(receiptMediaId.value);
     }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -7089,6 +7284,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
           ..write('notes: $notes, ')
           ..write('receiptLocalPath: $receiptLocalPath, ')
           ..write('receiptMediaId: $receiptMediaId, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -8060,1035 +8256,12 @@ class NotificationRecordsCompanion extends UpdateCompanion<NotificationRecord> {
   }
 }
 
-class $FamilyRecordsTable extends FamilyRecords
-    with TableInfo<$FamilyRecordsTable, FamilyRecord> {
+class $VehicleShareRecordsTable extends VehicleShareRecords
+    with TableInfo<$VehicleShareRecordsTable, VehicleShareRecord> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  $FamilyRecordsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _shareCodeMeta = const VerificationMeta(
-    'shareCode',
-  );
-  @override
-  late final GeneratedColumn<String> shareCode = GeneratedColumn<String>(
-    'share_code',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _qrCodeDataMeta = const VerificationMeta(
-    'qrCodeData',
-  );
-  @override
-  late final GeneratedColumn<String> qrCodeData = GeneratedColumn<String>(
-    'qr_code_data',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _createdByMeta = const VerificationMeta(
-    'createdBy',
-  );
-  @override
-  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
-    'created_by',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _statusMeta = const VerificationMeta('status');
-  @override
-  late final GeneratedColumn<String> status = GeneratedColumn<String>(
-    'status',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    defaultValue: const Constant('active'),
-  );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta(
-    'createdAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
-    'created_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _archivedAtMeta = const VerificationMeta(
-    'archivedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> archivedAt = GeneratedColumn<DateTime>(
-    'archived_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
-    'syncedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
-    'synced_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    name,
-    shareCode,
-    qrCodeData,
-    createdBy,
-    status,
-    createdAt,
-    archivedAt,
-    syncedAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'families';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<FamilyRecord> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    if (data.containsKey('share_code')) {
-      context.handle(
-        _shareCodeMeta,
-        shareCode.isAcceptableOrUnknown(data['share_code']!, _shareCodeMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_shareCodeMeta);
-    }
-    if (data.containsKey('qr_code_data')) {
-      context.handle(
-        _qrCodeDataMeta,
-        qrCodeData.isAcceptableOrUnknown(
-          data['qr_code_data']!,
-          _qrCodeDataMeta,
-        ),
-      );
-    }
-    if (data.containsKey('created_by')) {
-      context.handle(
-        _createdByMeta,
-        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdByMeta);
-    }
-    if (data.containsKey('status')) {
-      context.handle(
-        _statusMeta,
-        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
-      );
-    }
-    if (data.containsKey('created_at')) {
-      context.handle(
-        _createdAtMeta,
-        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_createdAtMeta);
-    }
-    if (data.containsKey('archived_at')) {
-      context.handle(
-        _archivedAtMeta,
-        archivedAt.isAcceptableOrUnknown(data['archived_at']!, _archivedAtMeta),
-      );
-    }
-    if (data.containsKey('synced_at')) {
-      context.handle(
-        _syncedAtMeta,
-        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  FamilyRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return FamilyRecord(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      shareCode: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}share_code'],
-      )!,
-      qrCodeData: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}qr_code_data'],
-      ),
-      createdBy: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}created_by'],
-      )!,
-      status: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}status'],
-      )!,
-      createdAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}created_at'],
-      )!,
-      archivedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}archived_at'],
-      ),
-      syncedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}synced_at'],
-      ),
-    );
-  }
-
-  @override
-  $FamilyRecordsTable createAlias(String alias) {
-    return $FamilyRecordsTable(attachedDatabase, alias);
-  }
-}
-
-class FamilyRecord extends DataClass implements Insertable<FamilyRecord> {
-  final String id;
-  final String name;
-  final String shareCode;
-  final String? qrCodeData;
-  final String createdBy;
-  final String status;
-  final DateTime createdAt;
-  final DateTime? archivedAt;
-  final DateTime? syncedAt;
-  const FamilyRecord({
-    required this.id,
-    required this.name,
-    required this.shareCode,
-    this.qrCodeData,
-    required this.createdBy,
-    required this.status,
-    required this.createdAt,
-    this.archivedAt,
-    this.syncedAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['name'] = Variable<String>(name);
-    map['share_code'] = Variable<String>(shareCode);
-    if (!nullToAbsent || qrCodeData != null) {
-      map['qr_code_data'] = Variable<String>(qrCodeData);
-    }
-    map['created_by'] = Variable<String>(createdBy);
-    map['status'] = Variable<String>(status);
-    map['created_at'] = Variable<DateTime>(createdAt);
-    if (!nullToAbsent || archivedAt != null) {
-      map['archived_at'] = Variable<DateTime>(archivedAt);
-    }
-    if (!nullToAbsent || syncedAt != null) {
-      map['synced_at'] = Variable<DateTime>(syncedAt);
-    }
-    return map;
-  }
-
-  FamilyRecordsCompanion toCompanion(bool nullToAbsent) {
-    return FamilyRecordsCompanion(
-      id: Value(id),
-      name: Value(name),
-      shareCode: Value(shareCode),
-      qrCodeData: qrCodeData == null && nullToAbsent
-          ? const Value.absent()
-          : Value(qrCodeData),
-      createdBy: Value(createdBy),
-      status: Value(status),
-      createdAt: Value(createdAt),
-      archivedAt: archivedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(archivedAt),
-      syncedAt: syncedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncedAt),
-    );
-  }
-
-  factory FamilyRecord.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return FamilyRecord(
-      id: serializer.fromJson<String>(json['id']),
-      name: serializer.fromJson<String>(json['name']),
-      shareCode: serializer.fromJson<String>(json['shareCode']),
-      qrCodeData: serializer.fromJson<String?>(json['qrCodeData']),
-      createdBy: serializer.fromJson<String>(json['createdBy']),
-      status: serializer.fromJson<String>(json['status']),
-      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      archivedAt: serializer.fromJson<DateTime?>(json['archivedAt']),
-      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'name': serializer.toJson<String>(name),
-      'shareCode': serializer.toJson<String>(shareCode),
-      'qrCodeData': serializer.toJson<String?>(qrCodeData),
-      'createdBy': serializer.toJson<String>(createdBy),
-      'status': serializer.toJson<String>(status),
-      'createdAt': serializer.toJson<DateTime>(createdAt),
-      'archivedAt': serializer.toJson<DateTime?>(archivedAt),
-      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
-    };
-  }
-
-  FamilyRecord copyWith({
-    String? id,
-    String? name,
-    String? shareCode,
-    Value<String?> qrCodeData = const Value.absent(),
-    String? createdBy,
-    String? status,
-    DateTime? createdAt,
-    Value<DateTime?> archivedAt = const Value.absent(),
-    Value<DateTime?> syncedAt = const Value.absent(),
-  }) => FamilyRecord(
-    id: id ?? this.id,
-    name: name ?? this.name,
-    shareCode: shareCode ?? this.shareCode,
-    qrCodeData: qrCodeData.present ? qrCodeData.value : this.qrCodeData,
-    createdBy: createdBy ?? this.createdBy,
-    status: status ?? this.status,
-    createdAt: createdAt ?? this.createdAt,
-    archivedAt: archivedAt.present ? archivedAt.value : this.archivedAt,
-    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
-  );
-  FamilyRecord copyWithCompanion(FamilyRecordsCompanion data) {
-    return FamilyRecord(
-      id: data.id.present ? data.id.value : this.id,
-      name: data.name.present ? data.name.value : this.name,
-      shareCode: data.shareCode.present ? data.shareCode.value : this.shareCode,
-      qrCodeData: data.qrCodeData.present
-          ? data.qrCodeData.value
-          : this.qrCodeData,
-      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
-      status: data.status.present ? data.status.value : this.status,
-      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
-      archivedAt: data.archivedAt.present
-          ? data.archivedAt.value
-          : this.archivedAt,
-      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FamilyRecord(')
-          ..write('id: $id, ')
-          ..write('name: $name, ')
-          ..write('shareCode: $shareCode, ')
-          ..write('qrCodeData: $qrCodeData, ')
-          ..write('createdBy: $createdBy, ')
-          ..write('status: $status, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('archivedAt: $archivedAt, ')
-          ..write('syncedAt: $syncedAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    id,
-    name,
-    shareCode,
-    qrCodeData,
-    createdBy,
-    status,
-    createdAt,
-    archivedAt,
-    syncedAt,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is FamilyRecord &&
-          other.id == this.id &&
-          other.name == this.name &&
-          other.shareCode == this.shareCode &&
-          other.qrCodeData == this.qrCodeData &&
-          other.createdBy == this.createdBy &&
-          other.status == this.status &&
-          other.createdAt == this.createdAt &&
-          other.archivedAt == this.archivedAt &&
-          other.syncedAt == this.syncedAt);
-}
-
-class FamilyRecordsCompanion extends UpdateCompanion<FamilyRecord> {
-  final Value<String> id;
-  final Value<String> name;
-  final Value<String> shareCode;
-  final Value<String?> qrCodeData;
-  final Value<String> createdBy;
-  final Value<String> status;
-  final Value<DateTime> createdAt;
-  final Value<DateTime?> archivedAt;
-  final Value<DateTime?> syncedAt;
-  final Value<int> rowid;
-  const FamilyRecordsCompanion({
-    this.id = const Value.absent(),
-    this.name = const Value.absent(),
-    this.shareCode = const Value.absent(),
-    this.qrCodeData = const Value.absent(),
-    this.createdBy = const Value.absent(),
-    this.status = const Value.absent(),
-    this.createdAt = const Value.absent(),
-    this.archivedAt = const Value.absent(),
-    this.syncedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  FamilyRecordsCompanion.insert({
-    required String id,
-    required String name,
-    required String shareCode,
-    this.qrCodeData = const Value.absent(),
-    required String createdBy,
-    this.status = const Value.absent(),
-    required DateTime createdAt,
-    this.archivedAt = const Value.absent(),
-    this.syncedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       name = Value(name),
-       shareCode = Value(shareCode),
-       createdBy = Value(createdBy),
-       createdAt = Value(createdAt);
-  static Insertable<FamilyRecord> custom({
-    Expression<String>? id,
-    Expression<String>? name,
-    Expression<String>? shareCode,
-    Expression<String>? qrCodeData,
-    Expression<String>? createdBy,
-    Expression<String>? status,
-    Expression<DateTime>? createdAt,
-    Expression<DateTime>? archivedAt,
-    Expression<DateTime>? syncedAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (name != null) 'name': name,
-      if (shareCode != null) 'share_code': shareCode,
-      if (qrCodeData != null) 'qr_code_data': qrCodeData,
-      if (createdBy != null) 'created_by': createdBy,
-      if (status != null) 'status': status,
-      if (createdAt != null) 'created_at': createdAt,
-      if (archivedAt != null) 'archived_at': archivedAt,
-      if (syncedAt != null) 'synced_at': syncedAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  FamilyRecordsCompanion copyWith({
-    Value<String>? id,
-    Value<String>? name,
-    Value<String>? shareCode,
-    Value<String?>? qrCodeData,
-    Value<String>? createdBy,
-    Value<String>? status,
-    Value<DateTime>? createdAt,
-    Value<DateTime?>? archivedAt,
-    Value<DateTime?>? syncedAt,
-    Value<int>? rowid,
-  }) {
-    return FamilyRecordsCompanion(
-      id: id ?? this.id,
-      name: name ?? this.name,
-      shareCode: shareCode ?? this.shareCode,
-      qrCodeData: qrCodeData ?? this.qrCodeData,
-      createdBy: createdBy ?? this.createdBy,
-      status: status ?? this.status,
-      createdAt: createdAt ?? this.createdAt,
-      archivedAt: archivedAt ?? this.archivedAt,
-      syncedAt: syncedAt ?? this.syncedAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (shareCode.present) {
-      map['share_code'] = Variable<String>(shareCode.value);
-    }
-    if (qrCodeData.present) {
-      map['qr_code_data'] = Variable<String>(qrCodeData.value);
-    }
-    if (createdBy.present) {
-      map['created_by'] = Variable<String>(createdBy.value);
-    }
-    if (status.present) {
-      map['status'] = Variable<String>(status.value);
-    }
-    if (createdAt.present) {
-      map['created_at'] = Variable<DateTime>(createdAt.value);
-    }
-    if (archivedAt.present) {
-      map['archived_at'] = Variable<DateTime>(archivedAt.value);
-    }
-    if (syncedAt.present) {
-      map['synced_at'] = Variable<DateTime>(syncedAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FamilyRecordsCompanion(')
-          ..write('id: $id, ')
-          ..write('name: $name, ')
-          ..write('shareCode: $shareCode, ')
-          ..write('qrCodeData: $qrCodeData, ')
-          ..write('createdBy: $createdBy, ')
-          ..write('status: $status, ')
-          ..write('createdAt: $createdAt, ')
-          ..write('archivedAt: $archivedAt, ')
-          ..write('syncedAt: $syncedAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $FamilyMembershipRecordsTable extends FamilyMembershipRecords
-    with TableInfo<$FamilyMembershipRecordsTable, FamilyMembershipRecord> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $FamilyMembershipRecordsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _familyIdMeta = const VerificationMeta(
-    'familyId',
-  );
-  @override
-  late final GeneratedColumn<String> familyId = GeneratedColumn<String>(
-    'family_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
-  @override
-  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
-    'user_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _roleMeta = const VerificationMeta('role');
-  @override
-  late final GeneratedColumn<String> role = GeneratedColumn<String>(
-    'role',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _joinedAtMeta = const VerificationMeta(
-    'joinedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> joinedAt = GeneratedColumn<DateTime>(
-    'joined_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _invitedByMeta = const VerificationMeta(
-    'invitedBy',
-  );
-  @override
-  late final GeneratedColumn<String> invitedBy = GeneratedColumn<String>(
-    'invited_by',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
-    'syncedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
-    'synced_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    familyId,
-    userId,
-    role,
-    joinedAt,
-    invitedBy,
-    syncedAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'family_memberships';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<FamilyMembershipRecord> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('family_id')) {
-      context.handle(
-        _familyIdMeta,
-        familyId.isAcceptableOrUnknown(data['family_id']!, _familyIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_familyIdMeta);
-    }
-    if (data.containsKey('user_id')) {
-      context.handle(
-        _userIdMeta,
-        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_userIdMeta);
-    }
-    if (data.containsKey('role')) {
-      context.handle(
-        _roleMeta,
-        role.isAcceptableOrUnknown(data['role']!, _roleMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_roleMeta);
-    }
-    if (data.containsKey('joined_at')) {
-      context.handle(
-        _joinedAtMeta,
-        joinedAt.isAcceptableOrUnknown(data['joined_at']!, _joinedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_joinedAtMeta);
-    }
-    if (data.containsKey('invited_by')) {
-      context.handle(
-        _invitedByMeta,
-        invitedBy.isAcceptableOrUnknown(data['invited_by']!, _invitedByMeta),
-      );
-    }
-    if (data.containsKey('synced_at')) {
-      context.handle(
-        _syncedAtMeta,
-        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  FamilyMembershipRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return FamilyMembershipRecord(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      familyId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}family_id'],
-      )!,
-      userId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}user_id'],
-      )!,
-      role: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}role'],
-      )!,
-      joinedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}joined_at'],
-      )!,
-      invitedBy: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}invited_by'],
-      ),
-      syncedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}synced_at'],
-      ),
-    );
-  }
-
-  @override
-  $FamilyMembershipRecordsTable createAlias(String alias) {
-    return $FamilyMembershipRecordsTable(attachedDatabase, alias);
-  }
-}
-
-class FamilyMembershipRecord extends DataClass
-    implements Insertable<FamilyMembershipRecord> {
-  final String id;
-  final String familyId;
-  final String userId;
-  final String role;
-  final DateTime joinedAt;
-  final String? invitedBy;
-  final DateTime? syncedAt;
-  const FamilyMembershipRecord({
-    required this.id,
-    required this.familyId,
-    required this.userId,
-    required this.role,
-    required this.joinedAt,
-    this.invitedBy,
-    this.syncedAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['family_id'] = Variable<String>(familyId);
-    map['user_id'] = Variable<String>(userId);
-    map['role'] = Variable<String>(role);
-    map['joined_at'] = Variable<DateTime>(joinedAt);
-    if (!nullToAbsent || invitedBy != null) {
-      map['invited_by'] = Variable<String>(invitedBy);
-    }
-    if (!nullToAbsent || syncedAt != null) {
-      map['synced_at'] = Variable<DateTime>(syncedAt);
-    }
-    return map;
-  }
-
-  FamilyMembershipRecordsCompanion toCompanion(bool nullToAbsent) {
-    return FamilyMembershipRecordsCompanion(
-      id: Value(id),
-      familyId: Value(familyId),
-      userId: Value(userId),
-      role: Value(role),
-      joinedAt: Value(joinedAt),
-      invitedBy: invitedBy == null && nullToAbsent
-          ? const Value.absent()
-          : Value(invitedBy),
-      syncedAt: syncedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncedAt),
-    );
-  }
-
-  factory FamilyMembershipRecord.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return FamilyMembershipRecord(
-      id: serializer.fromJson<String>(json['id']),
-      familyId: serializer.fromJson<String>(json['familyId']),
-      userId: serializer.fromJson<String>(json['userId']),
-      role: serializer.fromJson<String>(json['role']),
-      joinedAt: serializer.fromJson<DateTime>(json['joinedAt']),
-      invitedBy: serializer.fromJson<String?>(json['invitedBy']),
-      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'familyId': serializer.toJson<String>(familyId),
-      'userId': serializer.toJson<String>(userId),
-      'role': serializer.toJson<String>(role),
-      'joinedAt': serializer.toJson<DateTime>(joinedAt),
-      'invitedBy': serializer.toJson<String?>(invitedBy),
-      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
-    };
-  }
-
-  FamilyMembershipRecord copyWith({
-    String? id,
-    String? familyId,
-    String? userId,
-    String? role,
-    DateTime? joinedAt,
-    Value<String?> invitedBy = const Value.absent(),
-    Value<DateTime?> syncedAt = const Value.absent(),
-  }) => FamilyMembershipRecord(
-    id: id ?? this.id,
-    familyId: familyId ?? this.familyId,
-    userId: userId ?? this.userId,
-    role: role ?? this.role,
-    joinedAt: joinedAt ?? this.joinedAt,
-    invitedBy: invitedBy.present ? invitedBy.value : this.invitedBy,
-    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
-  );
-  FamilyMembershipRecord copyWithCompanion(
-    FamilyMembershipRecordsCompanion data,
-  ) {
-    return FamilyMembershipRecord(
-      id: data.id.present ? data.id.value : this.id,
-      familyId: data.familyId.present ? data.familyId.value : this.familyId,
-      userId: data.userId.present ? data.userId.value : this.userId,
-      role: data.role.present ? data.role.value : this.role,
-      joinedAt: data.joinedAt.present ? data.joinedAt.value : this.joinedAt,
-      invitedBy: data.invitedBy.present ? data.invitedBy.value : this.invitedBy,
-      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FamilyMembershipRecord(')
-          ..write('id: $id, ')
-          ..write('familyId: $familyId, ')
-          ..write('userId: $userId, ')
-          ..write('role: $role, ')
-          ..write('joinedAt: $joinedAt, ')
-          ..write('invitedBy: $invitedBy, ')
-          ..write('syncedAt: $syncedAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, familyId, userId, role, joinedAt, invitedBy, syncedAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is FamilyMembershipRecord &&
-          other.id == this.id &&
-          other.familyId == this.familyId &&
-          other.userId == this.userId &&
-          other.role == this.role &&
-          other.joinedAt == this.joinedAt &&
-          other.invitedBy == this.invitedBy &&
-          other.syncedAt == this.syncedAt);
-}
-
-class FamilyMembershipRecordsCompanion
-    extends UpdateCompanion<FamilyMembershipRecord> {
-  final Value<String> id;
-  final Value<String> familyId;
-  final Value<String> userId;
-  final Value<String> role;
-  final Value<DateTime> joinedAt;
-  final Value<String?> invitedBy;
-  final Value<DateTime?> syncedAt;
-  final Value<int> rowid;
-  const FamilyMembershipRecordsCompanion({
-    this.id = const Value.absent(),
-    this.familyId = const Value.absent(),
-    this.userId = const Value.absent(),
-    this.role = const Value.absent(),
-    this.joinedAt = const Value.absent(),
-    this.invitedBy = const Value.absent(),
-    this.syncedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  FamilyMembershipRecordsCompanion.insert({
-    required String id,
-    required String familyId,
-    required String userId,
-    required String role,
-    required DateTime joinedAt,
-    this.invitedBy = const Value.absent(),
-    this.syncedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       familyId = Value(familyId),
-       userId = Value(userId),
-       role = Value(role),
-       joinedAt = Value(joinedAt);
-  static Insertable<FamilyMembershipRecord> custom({
-    Expression<String>? id,
-    Expression<String>? familyId,
-    Expression<String>? userId,
-    Expression<String>? role,
-    Expression<DateTime>? joinedAt,
-    Expression<String>? invitedBy,
-    Expression<DateTime>? syncedAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (familyId != null) 'family_id': familyId,
-      if (userId != null) 'user_id': userId,
-      if (role != null) 'role': role,
-      if (joinedAt != null) 'joined_at': joinedAt,
-      if (invitedBy != null) 'invited_by': invitedBy,
-      if (syncedAt != null) 'synced_at': syncedAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  FamilyMembershipRecordsCompanion copyWith({
-    Value<String>? id,
-    Value<String>? familyId,
-    Value<String>? userId,
-    Value<String>? role,
-    Value<DateTime>? joinedAt,
-    Value<String?>? invitedBy,
-    Value<DateTime?>? syncedAt,
-    Value<int>? rowid,
-  }) {
-    return FamilyMembershipRecordsCompanion(
-      id: id ?? this.id,
-      familyId: familyId ?? this.familyId,
-      userId: userId ?? this.userId,
-      role: role ?? this.role,
-      joinedAt: joinedAt ?? this.joinedAt,
-      invitedBy: invitedBy ?? this.invitedBy,
-      syncedAt: syncedAt ?? this.syncedAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (familyId.present) {
-      map['family_id'] = Variable<String>(familyId.value);
-    }
-    if (userId.present) {
-      map['user_id'] = Variable<String>(userId.value);
-    }
-    if (role.present) {
-      map['role'] = Variable<String>(role.value);
-    }
-    if (joinedAt.present) {
-      map['joined_at'] = Variable<DateTime>(joinedAt.value);
-    }
-    if (invitedBy.present) {
-      map['invited_by'] = Variable<String>(invitedBy.value);
-    }
-    if (syncedAt.present) {
-      map['synced_at'] = Variable<DateTime>(syncedAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FamilyMembershipRecordsCompanion(')
-          ..write('id: $id, ')
-          ..write('familyId: $familyId, ')
-          ..write('userId: $userId, ')
-          ..write('role: $role, ')
-          ..write('joinedAt: $joinedAt, ')
-          ..write('invitedBy: $invitedBy, ')
-          ..write('syncedAt: $syncedAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $VehicleGrantRecordsTable extends VehicleGrantRecords
-    with TableInfo<$VehicleGrantRecordsTable, VehicleGrantRecord> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $VehicleGrantRecordsTable(this.attachedDatabase, [this._alias]);
+  $VehicleShareRecordsTable(this.attachedDatabase, [this._alias]);
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -9125,20 +8298,83 @@ class $VehicleGrantRecordsTable extends VehicleGrantRecords
   late final GeneratedColumn<String> grantedBy = GeneratedColumn<String>(
     'granted_by',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.string,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
-  static const VerificationMeta _permissionMeta = const VerificationMeta(
-    'permission',
+  static const VerificationMeta _accessLevelMeta = const VerificationMeta(
+    'accessLevel',
   );
   @override
-  late final GeneratedColumn<String> permission = GeneratedColumn<String>(
-    'permission',
+  late final GeneratedColumn<String> accessLevel = GeneratedColumn<String>(
+    'access_level',
     aliasedName,
     false,
     type: DriftSqlType.string,
     requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _invitedEmailMeta = const VerificationMeta(
+    'invitedEmail',
+  );
+  @override
+  late final GeneratedColumn<String> invitedEmail = GeneratedColumn<String>(
+    'invited_email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _shareCodeMeta = const VerificationMeta(
+    'shareCode',
+  );
+  @override
+  late final GeneratedColumn<String> shareCode = GeneratedColumn<String>(
+    'share_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
+  );
+  @override
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _emailMeta = const VerificationMeta('email');
+  @override
+  late final GeneratedColumn<String> email = GeneratedColumn<String>(
+    'email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _acceptedAtMeta = const VerificationMeta(
+    'acceptedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> acceptedAt = GeneratedColumn<DateTime>(
+    'accepted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -9155,11 +8391,11 @@ class $VehicleGrantRecordsTable extends VehicleGrantRecords
     'syncedAt',
   );
   @override
-  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
+  late final GeneratedColumn<String> syncedAt = GeneratedColumn<String>(
     'synced_at',
     aliasedName,
     true,
-    type: DriftSqlType.dateTime,
+    type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
   @override
@@ -9168,7 +8404,13 @@ class $VehicleGrantRecordsTable extends VehicleGrantRecords
     vehicleId,
     userId,
     grantedBy,
-    permission,
+    accessLevel,
+    status,
+    invitedEmail,
+    shareCode,
+    displayName,
+    email,
+    acceptedAt,
     createdAt,
     syncedAt,
   ];
@@ -9176,10 +8418,10 @@ class $VehicleGrantRecordsTable extends VehicleGrantRecords
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'vehicle_grants';
+  static const String $name = 'vehicle_shares';
   @override
   VerificationContext validateIntegrity(
-    Insertable<VehicleGrantRecord> instance, {
+    Insertable<VehicleShareRecord> instance, {
     bool isInserting = false,
   }) {
     final context = VerificationContext();
@@ -9210,16 +8452,59 @@ class $VehicleGrantRecordsTable extends VehicleGrantRecords
         _grantedByMeta,
         grantedBy.isAcceptableOrUnknown(data['granted_by']!, _grantedByMeta),
       );
-    } else if (isInserting) {
-      context.missing(_grantedByMeta);
     }
-    if (data.containsKey('permission')) {
+    if (data.containsKey('access_level')) {
       context.handle(
-        _permissionMeta,
-        permission.isAcceptableOrUnknown(data['permission']!, _permissionMeta),
+        _accessLevelMeta,
+        accessLevel.isAcceptableOrUnknown(
+          data['access_level']!,
+          _accessLevelMeta,
+        ),
       );
     } else if (isInserting) {
-      context.missing(_permissionMeta);
+      context.missing(_accessLevelMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('invited_email')) {
+      context.handle(
+        _invitedEmailMeta,
+        invitedEmail.isAcceptableOrUnknown(
+          data['invited_email']!,
+          _invitedEmailMeta,
+        ),
+      );
+    }
+    if (data.containsKey('share_code')) {
+      context.handle(
+        _shareCodeMeta,
+        shareCode.isAcceptableOrUnknown(data['share_code']!, _shareCodeMeta),
+      );
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
+      );
+    }
+    if (data.containsKey('email')) {
+      context.handle(
+        _emailMeta,
+        email.isAcceptableOrUnknown(data['email']!, _emailMeta),
+      );
+    }
+    if (data.containsKey('accepted_at')) {
+      context.handle(
+        _acceptedAtMeta,
+        acceptedAt.isAcceptableOrUnknown(data['accepted_at']!, _acceptedAtMeta),
+      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -9241,9 +8526,9 @@ class $VehicleGrantRecordsTable extends VehicleGrantRecords
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  VehicleGrantRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+  VehicleShareRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return VehicleGrantRecord(
+    return VehicleShareRecord(
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -9259,43 +8544,79 @@ class $VehicleGrantRecordsTable extends VehicleGrantRecords
       grantedBy: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}granted_by'],
-      )!,
-      permission: attachedDatabase.typeMapping.read(
+      ),
+      accessLevel: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
-        data['${effectivePrefix}permission'],
+        data['${effectivePrefix}access_level'],
       )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      invitedEmail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invited_email'],
+      ),
+      shareCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}share_code'],
+      ),
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      ),
+      email: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}email'],
+      ),
+      acceptedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}accepted_at'],
+      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
       )!,
       syncedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
+        DriftSqlType.string,
         data['${effectivePrefix}synced_at'],
       ),
     );
   }
 
   @override
-  $VehicleGrantRecordsTable createAlias(String alias) {
-    return $VehicleGrantRecordsTable(attachedDatabase, alias);
+  $VehicleShareRecordsTable createAlias(String alias) {
+    return $VehicleShareRecordsTable(attachedDatabase, alias);
   }
 }
 
-class VehicleGrantRecord extends DataClass
-    implements Insertable<VehicleGrantRecord> {
+class VehicleShareRecord extends DataClass
+    implements Insertable<VehicleShareRecord> {
   final String id;
   final String vehicleId;
   final String userId;
-  final String grantedBy;
-  final String permission;
+  final String? grantedBy;
+  final String accessLevel;
+  final String status;
+  final String? invitedEmail;
+  final String? shareCode;
+  final String? displayName;
+  final String? email;
+  final DateTime? acceptedAt;
   final DateTime createdAt;
-  final DateTime? syncedAt;
-  const VehicleGrantRecord({
+  final String? syncedAt;
+  const VehicleShareRecord({
     required this.id,
     required this.vehicleId,
     required this.userId,
-    required this.grantedBy,
-    required this.permission,
+    this.grantedBy,
+    required this.accessLevel,
+    required this.status,
+    this.invitedEmail,
+    this.shareCode,
+    this.displayName,
+    this.email,
+    this.acceptedAt,
     required this.createdAt,
     this.syncedAt,
   });
@@ -9305,22 +8626,58 @@ class VehicleGrantRecord extends DataClass
     map['id'] = Variable<String>(id);
     map['vehicle_id'] = Variable<String>(vehicleId);
     map['user_id'] = Variable<String>(userId);
-    map['granted_by'] = Variable<String>(grantedBy);
-    map['permission'] = Variable<String>(permission);
+    if (!nullToAbsent || grantedBy != null) {
+      map['granted_by'] = Variable<String>(grantedBy);
+    }
+    map['access_level'] = Variable<String>(accessLevel);
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || invitedEmail != null) {
+      map['invited_email'] = Variable<String>(invitedEmail);
+    }
+    if (!nullToAbsent || shareCode != null) {
+      map['share_code'] = Variable<String>(shareCode);
+    }
+    if (!nullToAbsent || displayName != null) {
+      map['display_name'] = Variable<String>(displayName);
+    }
+    if (!nullToAbsent || email != null) {
+      map['email'] = Variable<String>(email);
+    }
+    if (!nullToAbsent || acceptedAt != null) {
+      map['accepted_at'] = Variable<DateTime>(acceptedAt);
+    }
     map['created_at'] = Variable<DateTime>(createdAt);
     if (!nullToAbsent || syncedAt != null) {
-      map['synced_at'] = Variable<DateTime>(syncedAt);
+      map['synced_at'] = Variable<String>(syncedAt);
     }
     return map;
   }
 
-  VehicleGrantRecordsCompanion toCompanion(bool nullToAbsent) {
-    return VehicleGrantRecordsCompanion(
+  VehicleShareRecordsCompanion toCompanion(bool nullToAbsent) {
+    return VehicleShareRecordsCompanion(
       id: Value(id),
       vehicleId: Value(vehicleId),
       userId: Value(userId),
-      grantedBy: Value(grantedBy),
-      permission: Value(permission),
+      grantedBy: grantedBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(grantedBy),
+      accessLevel: Value(accessLevel),
+      status: Value(status),
+      invitedEmail: invitedEmail == null && nullToAbsent
+          ? const Value.absent()
+          : Value(invitedEmail),
+      shareCode: shareCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shareCode),
+      displayName: displayName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(displayName),
+      email: email == null && nullToAbsent
+          ? const Value.absent()
+          : Value(email),
+      acceptedAt: acceptedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(acceptedAt),
       createdAt: Value(createdAt),
       syncedAt: syncedAt == null && nullToAbsent
           ? const Value.absent()
@@ -9328,19 +8685,25 @@ class VehicleGrantRecord extends DataClass
     );
   }
 
-  factory VehicleGrantRecord.fromJson(
+  factory VehicleShareRecord.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return VehicleGrantRecord(
+    return VehicleShareRecord(
       id: serializer.fromJson<String>(json['id']),
       vehicleId: serializer.fromJson<String>(json['vehicleId']),
       userId: serializer.fromJson<String>(json['userId']),
-      grantedBy: serializer.fromJson<String>(json['grantedBy']),
-      permission: serializer.fromJson<String>(json['permission']),
+      grantedBy: serializer.fromJson<String?>(json['grantedBy']),
+      accessLevel: serializer.fromJson<String>(json['accessLevel']),
+      status: serializer.fromJson<String>(json['status']),
+      invitedEmail: serializer.fromJson<String?>(json['invitedEmail']),
+      shareCode: serializer.fromJson<String?>(json['shareCode']),
+      displayName: serializer.fromJson<String?>(json['displayName']),
+      email: serializer.fromJson<String?>(json['email']),
+      acceptedAt: serializer.fromJson<DateTime?>(json['acceptedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
-      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
+      syncedAt: serializer.fromJson<String?>(json['syncedAt']),
     );
   }
   @override
@@ -9350,39 +8713,69 @@ class VehicleGrantRecord extends DataClass
       'id': serializer.toJson<String>(id),
       'vehicleId': serializer.toJson<String>(vehicleId),
       'userId': serializer.toJson<String>(userId),
-      'grantedBy': serializer.toJson<String>(grantedBy),
-      'permission': serializer.toJson<String>(permission),
+      'grantedBy': serializer.toJson<String?>(grantedBy),
+      'accessLevel': serializer.toJson<String>(accessLevel),
+      'status': serializer.toJson<String>(status),
+      'invitedEmail': serializer.toJson<String?>(invitedEmail),
+      'shareCode': serializer.toJson<String?>(shareCode),
+      'displayName': serializer.toJson<String?>(displayName),
+      'email': serializer.toJson<String?>(email),
+      'acceptedAt': serializer.toJson<DateTime?>(acceptedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
-      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
+      'syncedAt': serializer.toJson<String?>(syncedAt),
     };
   }
 
-  VehicleGrantRecord copyWith({
+  VehicleShareRecord copyWith({
     String? id,
     String? vehicleId,
     String? userId,
-    String? grantedBy,
-    String? permission,
+    Value<String?> grantedBy = const Value.absent(),
+    String? accessLevel,
+    String? status,
+    Value<String?> invitedEmail = const Value.absent(),
+    Value<String?> shareCode = const Value.absent(),
+    Value<String?> displayName = const Value.absent(),
+    Value<String?> email = const Value.absent(),
+    Value<DateTime?> acceptedAt = const Value.absent(),
     DateTime? createdAt,
-    Value<DateTime?> syncedAt = const Value.absent(),
-  }) => VehicleGrantRecord(
+    Value<String?> syncedAt = const Value.absent(),
+  }) => VehicleShareRecord(
     id: id ?? this.id,
     vehicleId: vehicleId ?? this.vehicleId,
     userId: userId ?? this.userId,
-    grantedBy: grantedBy ?? this.grantedBy,
-    permission: permission ?? this.permission,
+    grantedBy: grantedBy.present ? grantedBy.value : this.grantedBy,
+    accessLevel: accessLevel ?? this.accessLevel,
+    status: status ?? this.status,
+    invitedEmail: invitedEmail.present ? invitedEmail.value : this.invitedEmail,
+    shareCode: shareCode.present ? shareCode.value : this.shareCode,
+    displayName: displayName.present ? displayName.value : this.displayName,
+    email: email.present ? email.value : this.email,
+    acceptedAt: acceptedAt.present ? acceptedAt.value : this.acceptedAt,
     createdAt: createdAt ?? this.createdAt,
     syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
   );
-  VehicleGrantRecord copyWithCompanion(VehicleGrantRecordsCompanion data) {
-    return VehicleGrantRecord(
+  VehicleShareRecord copyWithCompanion(VehicleShareRecordsCompanion data) {
+    return VehicleShareRecord(
       id: data.id.present ? data.id.value : this.id,
       vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
       userId: data.userId.present ? data.userId.value : this.userId,
       grantedBy: data.grantedBy.present ? data.grantedBy.value : this.grantedBy,
-      permission: data.permission.present
-          ? data.permission.value
-          : this.permission,
+      accessLevel: data.accessLevel.present
+          ? data.accessLevel.value
+          : this.accessLevel,
+      status: data.status.present ? data.status.value : this.status,
+      invitedEmail: data.invitedEmail.present
+          ? data.invitedEmail.value
+          : this.invitedEmail,
+      shareCode: data.shareCode.present ? data.shareCode.value : this.shareCode,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      email: data.email.present ? data.email.value : this.email,
+      acceptedAt: data.acceptedAt.present
+          ? data.acceptedAt.value
+          : this.acceptedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
     );
@@ -9390,12 +8783,18 @@ class VehicleGrantRecord extends DataClass
 
   @override
   String toString() {
-    return (StringBuffer('VehicleGrantRecord(')
+    return (StringBuffer('VehicleShareRecord(')
           ..write('id: $id, ')
           ..write('vehicleId: $vehicleId, ')
           ..write('userId: $userId, ')
           ..write('grantedBy: $grantedBy, ')
-          ..write('permission: $permission, ')
+          ..write('accessLevel: $accessLevel, ')
+          ..write('status: $status, ')
+          ..write('invitedEmail: $invitedEmail, ')
+          ..write('shareCode: $shareCode, ')
+          ..write('displayName: $displayName, ')
+          ..write('email: $email, ')
+          ..write('acceptedAt: $acceptedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('syncedAt: $syncedAt')
           ..write(')'))
@@ -9408,65 +8807,100 @@ class VehicleGrantRecord extends DataClass
     vehicleId,
     userId,
     grantedBy,
-    permission,
+    accessLevel,
+    status,
+    invitedEmail,
+    shareCode,
+    displayName,
+    email,
+    acceptedAt,
     createdAt,
     syncedAt,
   );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is VehicleGrantRecord &&
+      (other is VehicleShareRecord &&
           other.id == this.id &&
           other.vehicleId == this.vehicleId &&
           other.userId == this.userId &&
           other.grantedBy == this.grantedBy &&
-          other.permission == this.permission &&
+          other.accessLevel == this.accessLevel &&
+          other.status == this.status &&
+          other.invitedEmail == this.invitedEmail &&
+          other.shareCode == this.shareCode &&
+          other.displayName == this.displayName &&
+          other.email == this.email &&
+          other.acceptedAt == this.acceptedAt &&
           other.createdAt == this.createdAt &&
           other.syncedAt == this.syncedAt);
 }
 
-class VehicleGrantRecordsCompanion extends UpdateCompanion<VehicleGrantRecord> {
+class VehicleShareRecordsCompanion extends UpdateCompanion<VehicleShareRecord> {
   final Value<String> id;
   final Value<String> vehicleId;
   final Value<String> userId;
-  final Value<String> grantedBy;
-  final Value<String> permission;
+  final Value<String?> grantedBy;
+  final Value<String> accessLevel;
+  final Value<String> status;
+  final Value<String?> invitedEmail;
+  final Value<String?> shareCode;
+  final Value<String?> displayName;
+  final Value<String?> email;
+  final Value<DateTime?> acceptedAt;
   final Value<DateTime> createdAt;
-  final Value<DateTime?> syncedAt;
+  final Value<String?> syncedAt;
   final Value<int> rowid;
-  const VehicleGrantRecordsCompanion({
+  const VehicleShareRecordsCompanion({
     this.id = const Value.absent(),
     this.vehicleId = const Value.absent(),
     this.userId = const Value.absent(),
     this.grantedBy = const Value.absent(),
-    this.permission = const Value.absent(),
+    this.accessLevel = const Value.absent(),
+    this.status = const Value.absent(),
+    this.invitedEmail = const Value.absent(),
+    this.shareCode = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.email = const Value.absent(),
+    this.acceptedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.syncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   });
-  VehicleGrantRecordsCompanion.insert({
+  VehicleShareRecordsCompanion.insert({
     required String id,
     required String vehicleId,
     required String userId,
-    required String grantedBy,
-    required String permission,
+    this.grantedBy = const Value.absent(),
+    required String accessLevel,
+    this.status = const Value.absent(),
+    this.invitedEmail = const Value.absent(),
+    this.shareCode = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.email = const Value.absent(),
+    this.acceptedAt = const Value.absent(),
     required DateTime createdAt,
     this.syncedAt = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        vehicleId = Value(vehicleId),
        userId = Value(userId),
-       grantedBy = Value(grantedBy),
-       permission = Value(permission),
+       accessLevel = Value(accessLevel),
        createdAt = Value(createdAt);
-  static Insertable<VehicleGrantRecord> custom({
+  static Insertable<VehicleShareRecord> custom({
     Expression<String>? id,
     Expression<String>? vehicleId,
     Expression<String>? userId,
     Expression<String>? grantedBy,
-    Expression<String>? permission,
+    Expression<String>? accessLevel,
+    Expression<String>? status,
+    Expression<String>? invitedEmail,
+    Expression<String>? shareCode,
+    Expression<String>? displayName,
+    Expression<String>? email,
+    Expression<DateTime>? acceptedAt,
     Expression<DateTime>? createdAt,
-    Expression<DateTime>? syncedAt,
+    Expression<String>? syncedAt,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -9474,29 +8908,47 @@ class VehicleGrantRecordsCompanion extends UpdateCompanion<VehicleGrantRecord> {
       if (vehicleId != null) 'vehicle_id': vehicleId,
       if (userId != null) 'user_id': userId,
       if (grantedBy != null) 'granted_by': grantedBy,
-      if (permission != null) 'permission': permission,
+      if (accessLevel != null) 'access_level': accessLevel,
+      if (status != null) 'status': status,
+      if (invitedEmail != null) 'invited_email': invitedEmail,
+      if (shareCode != null) 'share_code': shareCode,
+      if (displayName != null) 'display_name': displayName,
+      if (email != null) 'email': email,
+      if (acceptedAt != null) 'accepted_at': acceptedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (syncedAt != null) 'synced_at': syncedAt,
       if (rowid != null) 'rowid': rowid,
     });
   }
 
-  VehicleGrantRecordsCompanion copyWith({
+  VehicleShareRecordsCompanion copyWith({
     Value<String>? id,
     Value<String>? vehicleId,
     Value<String>? userId,
-    Value<String>? grantedBy,
-    Value<String>? permission,
+    Value<String?>? grantedBy,
+    Value<String>? accessLevel,
+    Value<String>? status,
+    Value<String?>? invitedEmail,
+    Value<String?>? shareCode,
+    Value<String?>? displayName,
+    Value<String?>? email,
+    Value<DateTime?>? acceptedAt,
     Value<DateTime>? createdAt,
-    Value<DateTime?>? syncedAt,
+    Value<String?>? syncedAt,
     Value<int>? rowid,
   }) {
-    return VehicleGrantRecordsCompanion(
+    return VehicleShareRecordsCompanion(
       id: id ?? this.id,
       vehicleId: vehicleId ?? this.vehicleId,
       userId: userId ?? this.userId,
       grantedBy: grantedBy ?? this.grantedBy,
-      permission: permission ?? this.permission,
+      accessLevel: accessLevel ?? this.accessLevel,
+      status: status ?? this.status,
+      invitedEmail: invitedEmail ?? this.invitedEmail,
+      shareCode: shareCode ?? this.shareCode,
+      displayName: displayName ?? this.displayName,
+      email: email ?? this.email,
+      acceptedAt: acceptedAt ?? this.acceptedAt,
       createdAt: createdAt ?? this.createdAt,
       syncedAt: syncedAt ?? this.syncedAt,
       rowid: rowid ?? this.rowid,
@@ -9518,14 +8970,32 @@ class VehicleGrantRecordsCompanion extends UpdateCompanion<VehicleGrantRecord> {
     if (grantedBy.present) {
       map['granted_by'] = Variable<String>(grantedBy.value);
     }
-    if (permission.present) {
-      map['permission'] = Variable<String>(permission.value);
+    if (accessLevel.present) {
+      map['access_level'] = Variable<String>(accessLevel.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (invitedEmail.present) {
+      map['invited_email'] = Variable<String>(invitedEmail.value);
+    }
+    if (shareCode.present) {
+      map['share_code'] = Variable<String>(shareCode.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (email.present) {
+      map['email'] = Variable<String>(email.value);
+    }
+    if (acceptedAt.present) {
+      map['accepted_at'] = Variable<DateTime>(acceptedAt.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
     }
     if (syncedAt.present) {
-      map['synced_at'] = Variable<DateTime>(syncedAt.value);
+      map['synced_at'] = Variable<String>(syncedAt.value);
     }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
@@ -9535,12 +9005,653 @@ class VehicleGrantRecordsCompanion extends UpdateCompanion<VehicleGrantRecord> {
 
   @override
   String toString() {
-    return (StringBuffer('VehicleGrantRecordsCompanion(')
+    return (StringBuffer('VehicleShareRecordsCompanion(')
           ..write('id: $id, ')
           ..write('vehicleId: $vehicleId, ')
           ..write('userId: $userId, ')
           ..write('grantedBy: $grantedBy, ')
-          ..write('permission: $permission, ')
+          ..write('accessLevel: $accessLevel, ')
+          ..write('status: $status, ')
+          ..write('invitedEmail: $invitedEmail, ')
+          ..write('shareCode: $shareCode, ')
+          ..write('displayName: $displayName, ')
+          ..write('email: $email, ')
+          ..write('acceptedAt: $acceptedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $VehicleShareInvitationRecordsTable extends VehicleShareInvitationRecords
+    with
+        TableInfo<
+          $VehicleShareInvitationRecordsTable,
+          VehicleShareInvitationRecord
+        > {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $VehicleShareInvitationRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _invitedEmailMeta = const VerificationMeta(
+    'invitedEmail',
+  );
+  @override
+  late final GeneratedColumn<String> invitedEmail = GeneratedColumn<String>(
+    'invited_email',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _invitedByMeta = const VerificationMeta(
+    'invitedBy',
+  );
+  @override
+  late final GeneratedColumn<String> invitedBy = GeneratedColumn<String>(
+    'invited_by',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _accessLevelMeta = const VerificationMeta(
+    'accessLevel',
+  );
+  @override
+  late final GeneratedColumn<String> accessLevel = GeneratedColumn<String>(
+    'access_level',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _shareCodeMeta = const VerificationMeta(
+    'shareCode',
+  );
+  @override
+  late final GeneratedColumn<String> shareCode = GeneratedColumn<String>(
+    'share_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _acceptedAtMeta = const VerificationMeta(
+    'acceptedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> acceptedAt = GeneratedColumn<DateTime>(
+    'accepted_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
+    'syncedAt',
+  );
+  @override
+  late final GeneratedColumn<String> syncedAt = GeneratedColumn<String>(
+    'synced_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    vehicleId,
+    invitedEmail,
+    invitedBy,
+    accessLevel,
+    shareCode,
+    expiresAt,
+    acceptedAt,
+    createdAt,
+    syncedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vehicle_share_invitations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<VehicleShareInvitationRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('invited_email')) {
+      context.handle(
+        _invitedEmailMeta,
+        invitedEmail.isAcceptableOrUnknown(
+          data['invited_email']!,
+          _invitedEmailMeta,
+        ),
+      );
+    }
+    if (data.containsKey('invited_by')) {
+      context.handle(
+        _invitedByMeta,
+        invitedBy.isAcceptableOrUnknown(data['invited_by']!, _invitedByMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_invitedByMeta);
+    }
+    if (data.containsKey('access_level')) {
+      context.handle(
+        _accessLevelMeta,
+        accessLevel.isAcceptableOrUnknown(
+          data['access_level']!,
+          _accessLevelMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_accessLevelMeta);
+    }
+    if (data.containsKey('share_code')) {
+      context.handle(
+        _shareCodeMeta,
+        shareCode.isAcceptableOrUnknown(data['share_code']!, _shareCodeMeta),
+      );
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_expiresAtMeta);
+    }
+    if (data.containsKey('accepted_at')) {
+      context.handle(
+        _acceptedAtMeta,
+        acceptedAt.isAcceptableOrUnknown(data['accepted_at']!, _acceptedAtMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('synced_at')) {
+      context.handle(
+        _syncedAtMeta,
+        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  VehicleShareInvitationRecord map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VehicleShareInvitationRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      invitedEmail: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invited_email'],
+      ),
+      invitedBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}invited_by'],
+      )!,
+      accessLevel: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}access_level'],
+      )!,
+      shareCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}share_code'],
+      ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      )!,
+      acceptedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}accepted_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      syncedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}synced_at'],
+      ),
+    );
+  }
+
+  @override
+  $VehicleShareInvitationRecordsTable createAlias(String alias) {
+    return $VehicleShareInvitationRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class VehicleShareInvitationRecord extends DataClass
+    implements Insertable<VehicleShareInvitationRecord> {
+  final String id;
+  final String vehicleId;
+  final String? invitedEmail;
+  final String invitedBy;
+  final String accessLevel;
+  final String? shareCode;
+  final DateTime expiresAt;
+  final DateTime? acceptedAt;
+  final DateTime createdAt;
+  final String? syncedAt;
+  const VehicleShareInvitationRecord({
+    required this.id,
+    required this.vehicleId,
+    this.invitedEmail,
+    required this.invitedBy,
+    required this.accessLevel,
+    this.shareCode,
+    required this.expiresAt,
+    this.acceptedAt,
+    required this.createdAt,
+    this.syncedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    if (!nullToAbsent || invitedEmail != null) {
+      map['invited_email'] = Variable<String>(invitedEmail);
+    }
+    map['invited_by'] = Variable<String>(invitedBy);
+    map['access_level'] = Variable<String>(accessLevel);
+    if (!nullToAbsent || shareCode != null) {
+      map['share_code'] = Variable<String>(shareCode);
+    }
+    map['expires_at'] = Variable<DateTime>(expiresAt);
+    if (!nullToAbsent || acceptedAt != null) {
+      map['accepted_at'] = Variable<DateTime>(acceptedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    if (!nullToAbsent || syncedAt != null) {
+      map['synced_at'] = Variable<String>(syncedAt);
+    }
+    return map;
+  }
+
+  VehicleShareInvitationRecordsCompanion toCompanion(bool nullToAbsent) {
+    return VehicleShareInvitationRecordsCompanion(
+      id: Value(id),
+      vehicleId: Value(vehicleId),
+      invitedEmail: invitedEmail == null && nullToAbsent
+          ? const Value.absent()
+          : Value(invitedEmail),
+      invitedBy: Value(invitedBy),
+      accessLevel: Value(accessLevel),
+      shareCode: shareCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(shareCode),
+      expiresAt: Value(expiresAt),
+      acceptedAt: acceptedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(acceptedAt),
+      createdAt: Value(createdAt),
+      syncedAt: syncedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(syncedAt),
+    );
+  }
+
+  factory VehicleShareInvitationRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VehicleShareInvitationRecord(
+      id: serializer.fromJson<String>(json['id']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      invitedEmail: serializer.fromJson<String?>(json['invitedEmail']),
+      invitedBy: serializer.fromJson<String>(json['invitedBy']),
+      accessLevel: serializer.fromJson<String>(json['accessLevel']),
+      shareCode: serializer.fromJson<String?>(json['shareCode']),
+      expiresAt: serializer.fromJson<DateTime>(json['expiresAt']),
+      acceptedAt: serializer.fromJson<DateTime?>(json['acceptedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      syncedAt: serializer.fromJson<String?>(json['syncedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'invitedEmail': serializer.toJson<String?>(invitedEmail),
+      'invitedBy': serializer.toJson<String>(invitedBy),
+      'accessLevel': serializer.toJson<String>(accessLevel),
+      'shareCode': serializer.toJson<String?>(shareCode),
+      'expiresAt': serializer.toJson<DateTime>(expiresAt),
+      'acceptedAt': serializer.toJson<DateTime?>(acceptedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'syncedAt': serializer.toJson<String?>(syncedAt),
+    };
+  }
+
+  VehicleShareInvitationRecord copyWith({
+    String? id,
+    String? vehicleId,
+    Value<String?> invitedEmail = const Value.absent(),
+    String? invitedBy,
+    String? accessLevel,
+    Value<String?> shareCode = const Value.absent(),
+    DateTime? expiresAt,
+    Value<DateTime?> acceptedAt = const Value.absent(),
+    DateTime? createdAt,
+    Value<String?> syncedAt = const Value.absent(),
+  }) => VehicleShareInvitationRecord(
+    id: id ?? this.id,
+    vehicleId: vehicleId ?? this.vehicleId,
+    invitedEmail: invitedEmail.present ? invitedEmail.value : this.invitedEmail,
+    invitedBy: invitedBy ?? this.invitedBy,
+    accessLevel: accessLevel ?? this.accessLevel,
+    shareCode: shareCode.present ? shareCode.value : this.shareCode,
+    expiresAt: expiresAt ?? this.expiresAt,
+    acceptedAt: acceptedAt.present ? acceptedAt.value : this.acceptedAt,
+    createdAt: createdAt ?? this.createdAt,
+    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
+  );
+  VehicleShareInvitationRecord copyWithCompanion(
+    VehicleShareInvitationRecordsCompanion data,
+  ) {
+    return VehicleShareInvitationRecord(
+      id: data.id.present ? data.id.value : this.id,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      invitedEmail: data.invitedEmail.present
+          ? data.invitedEmail.value
+          : this.invitedEmail,
+      invitedBy: data.invitedBy.present ? data.invitedBy.value : this.invitedBy,
+      accessLevel: data.accessLevel.present
+          ? data.accessLevel.value
+          : this.accessLevel,
+      shareCode: data.shareCode.present ? data.shareCode.value : this.shareCode,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      acceptedAt: data.acceptedAt.present
+          ? data.acceptedAt.value
+          : this.acceptedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VehicleShareInvitationRecord(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('invitedEmail: $invitedEmail, ')
+          ..write('invitedBy: $invitedBy, ')
+          ..write('accessLevel: $accessLevel, ')
+          ..write('shareCode: $shareCode, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('acceptedAt: $acceptedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('syncedAt: $syncedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    vehicleId,
+    invitedEmail,
+    invitedBy,
+    accessLevel,
+    shareCode,
+    expiresAt,
+    acceptedAt,
+    createdAt,
+    syncedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VehicleShareInvitationRecord &&
+          other.id == this.id &&
+          other.vehicleId == this.vehicleId &&
+          other.invitedEmail == this.invitedEmail &&
+          other.invitedBy == this.invitedBy &&
+          other.accessLevel == this.accessLevel &&
+          other.shareCode == this.shareCode &&
+          other.expiresAt == this.expiresAt &&
+          other.acceptedAt == this.acceptedAt &&
+          other.createdAt == this.createdAt &&
+          other.syncedAt == this.syncedAt);
+}
+
+class VehicleShareInvitationRecordsCompanion
+    extends UpdateCompanion<VehicleShareInvitationRecord> {
+  final Value<String> id;
+  final Value<String> vehicleId;
+  final Value<String?> invitedEmail;
+  final Value<String> invitedBy;
+  final Value<String> accessLevel;
+  final Value<String?> shareCode;
+  final Value<DateTime> expiresAt;
+  final Value<DateTime?> acceptedAt;
+  final Value<DateTime> createdAt;
+  final Value<String?> syncedAt;
+  final Value<int> rowid;
+  const VehicleShareInvitationRecordsCompanion({
+    this.id = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.invitedEmail = const Value.absent(),
+    this.invitedBy = const Value.absent(),
+    this.accessLevel = const Value.absent(),
+    this.shareCode = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.acceptedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  VehicleShareInvitationRecordsCompanion.insert({
+    required String id,
+    required String vehicleId,
+    this.invitedEmail = const Value.absent(),
+    required String invitedBy,
+    required String accessLevel,
+    this.shareCode = const Value.absent(),
+    required DateTime expiresAt,
+    this.acceptedAt = const Value.absent(),
+    required DateTime createdAt,
+    this.syncedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       vehicleId = Value(vehicleId),
+       invitedBy = Value(invitedBy),
+       accessLevel = Value(accessLevel),
+       expiresAt = Value(expiresAt),
+       createdAt = Value(createdAt);
+  static Insertable<VehicleShareInvitationRecord> custom({
+    Expression<String>? id,
+    Expression<String>? vehicleId,
+    Expression<String>? invitedEmail,
+    Expression<String>? invitedBy,
+    Expression<String>? accessLevel,
+    Expression<String>? shareCode,
+    Expression<DateTime>? expiresAt,
+    Expression<DateTime>? acceptedAt,
+    Expression<DateTime>? createdAt,
+    Expression<String>? syncedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (invitedEmail != null) 'invited_email': invitedEmail,
+      if (invitedBy != null) 'invited_by': invitedBy,
+      if (accessLevel != null) 'access_level': accessLevel,
+      if (shareCode != null) 'share_code': shareCode,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (acceptedAt != null) 'accepted_at': acceptedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (syncedAt != null) 'synced_at': syncedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  VehicleShareInvitationRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vehicleId,
+    Value<String?>? invitedEmail,
+    Value<String>? invitedBy,
+    Value<String>? accessLevel,
+    Value<String?>? shareCode,
+    Value<DateTime>? expiresAt,
+    Value<DateTime?>? acceptedAt,
+    Value<DateTime>? createdAt,
+    Value<String?>? syncedAt,
+    Value<int>? rowid,
+  }) {
+    return VehicleShareInvitationRecordsCompanion(
+      id: id ?? this.id,
+      vehicleId: vehicleId ?? this.vehicleId,
+      invitedEmail: invitedEmail ?? this.invitedEmail,
+      invitedBy: invitedBy ?? this.invitedBy,
+      accessLevel: accessLevel ?? this.accessLevel,
+      shareCode: shareCode ?? this.shareCode,
+      expiresAt: expiresAt ?? this.expiresAt,
+      acceptedAt: acceptedAt ?? this.acceptedAt,
+      createdAt: createdAt ?? this.createdAt,
+      syncedAt: syncedAt ?? this.syncedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (invitedEmail.present) {
+      map['invited_email'] = Variable<String>(invitedEmail.value);
+    }
+    if (invitedBy.present) {
+      map['invited_by'] = Variable<String>(invitedBy.value);
+    }
+    if (accessLevel.present) {
+      map['access_level'] = Variable<String>(accessLevel.value);
+    }
+    if (shareCode.present) {
+      map['share_code'] = Variable<String>(shareCode.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (acceptedAt.present) {
+      map['accepted_at'] = Variable<DateTime>(acceptedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (syncedAt.present) {
+      map['synced_at'] = Variable<String>(syncedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('VehicleShareInvitationRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('invitedEmail: $invitedEmail, ')
+          ..write('invitedBy: $invitedBy, ')
+          ..write('accessLevel: $accessLevel, ')
+          ..write('shareCode: $shareCode, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('acceptedAt: $acceptedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('syncedAt: $syncedAt, ')
           ..write('rowid: $rowid')
@@ -10232,419 +10343,6 @@ class DrivingLicenseRecordsCompanion
           ..write('backMediaId: $backMediaId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
-          ..write('syncedAt: $syncedAt, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $FamilyVehicleRecordsTable extends FamilyVehicleRecords
-    with TableInfo<$FamilyVehicleRecordsTable, FamilyVehicleRecord> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $FamilyVehicleRecordsTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<String> id = GeneratedColumn<String>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _familyIdMeta = const VerificationMeta(
-    'familyId',
-  );
-  @override
-  late final GeneratedColumn<String> familyId = GeneratedColumn<String>(
-    'family_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
-    'vehicleId',
-  );
-  @override
-  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
-    'vehicle_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _addedByMeta = const VerificationMeta(
-    'addedBy',
-  );
-  @override
-  late final GeneratedColumn<String> addedBy = GeneratedColumn<String>(
-    'added_by',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _addedAtMeta = const VerificationMeta(
-    'addedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> addedAt = GeneratedColumn<DateTime>(
-    'added_at',
-    aliasedName,
-    false,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _syncedAtMeta = const VerificationMeta(
-    'syncedAt',
-  );
-  @override
-  late final GeneratedColumn<DateTime> syncedAt = GeneratedColumn<DateTime>(
-    'synced_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    familyId,
-    vehicleId,
-    addedBy,
-    addedAt,
-    syncedAt,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'family_vehicles';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<FamilyVehicleRecord> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    } else if (isInserting) {
-      context.missing(_idMeta);
-    }
-    if (data.containsKey('family_id')) {
-      context.handle(
-        _familyIdMeta,
-        familyId.isAcceptableOrUnknown(data['family_id']!, _familyIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_familyIdMeta);
-    }
-    if (data.containsKey('vehicle_id')) {
-      context.handle(
-        _vehicleIdMeta,
-        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_vehicleIdMeta);
-    }
-    if (data.containsKey('added_by')) {
-      context.handle(
-        _addedByMeta,
-        addedBy.isAcceptableOrUnknown(data['added_by']!, _addedByMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_addedByMeta);
-    }
-    if (data.containsKey('added_at')) {
-      context.handle(
-        _addedAtMeta,
-        addedAt.isAcceptableOrUnknown(data['added_at']!, _addedAtMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_addedAtMeta);
-    }
-    if (data.containsKey('synced_at')) {
-      context.handle(
-        _syncedAtMeta,
-        syncedAt.isAcceptableOrUnknown(data['synced_at']!, _syncedAtMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  FamilyVehicleRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return FamilyVehicleRecord(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}id'],
-      )!,
-      familyId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}family_id'],
-      )!,
-      vehicleId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}vehicle_id'],
-      )!,
-      addedBy: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}added_by'],
-      )!,
-      addedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}added_at'],
-      )!,
-      syncedAt: attachedDatabase.typeMapping.read(
-        DriftSqlType.dateTime,
-        data['${effectivePrefix}synced_at'],
-      ),
-    );
-  }
-
-  @override
-  $FamilyVehicleRecordsTable createAlias(String alias) {
-    return $FamilyVehicleRecordsTable(attachedDatabase, alias);
-  }
-}
-
-class FamilyVehicleRecord extends DataClass
-    implements Insertable<FamilyVehicleRecord> {
-  final String id;
-  final String familyId;
-  final String vehicleId;
-  final String addedBy;
-  final DateTime addedAt;
-  final DateTime? syncedAt;
-  const FamilyVehicleRecord({
-    required this.id,
-    required this.familyId,
-    required this.vehicleId,
-    required this.addedBy,
-    required this.addedAt,
-    this.syncedAt,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<String>(id);
-    map['family_id'] = Variable<String>(familyId);
-    map['vehicle_id'] = Variable<String>(vehicleId);
-    map['added_by'] = Variable<String>(addedBy);
-    map['added_at'] = Variable<DateTime>(addedAt);
-    if (!nullToAbsent || syncedAt != null) {
-      map['synced_at'] = Variable<DateTime>(syncedAt);
-    }
-    return map;
-  }
-
-  FamilyVehicleRecordsCompanion toCompanion(bool nullToAbsent) {
-    return FamilyVehicleRecordsCompanion(
-      id: Value(id),
-      familyId: Value(familyId),
-      vehicleId: Value(vehicleId),
-      addedBy: Value(addedBy),
-      addedAt: Value(addedAt),
-      syncedAt: syncedAt == null && nullToAbsent
-          ? const Value.absent()
-          : Value(syncedAt),
-    );
-  }
-
-  factory FamilyVehicleRecord.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return FamilyVehicleRecord(
-      id: serializer.fromJson<String>(json['id']),
-      familyId: serializer.fromJson<String>(json['familyId']),
-      vehicleId: serializer.fromJson<String>(json['vehicleId']),
-      addedBy: serializer.fromJson<String>(json['addedBy']),
-      addedAt: serializer.fromJson<DateTime>(json['addedAt']),
-      syncedAt: serializer.fromJson<DateTime?>(json['syncedAt']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<String>(id),
-      'familyId': serializer.toJson<String>(familyId),
-      'vehicleId': serializer.toJson<String>(vehicleId),
-      'addedBy': serializer.toJson<String>(addedBy),
-      'addedAt': serializer.toJson<DateTime>(addedAt),
-      'syncedAt': serializer.toJson<DateTime?>(syncedAt),
-    };
-  }
-
-  FamilyVehicleRecord copyWith({
-    String? id,
-    String? familyId,
-    String? vehicleId,
-    String? addedBy,
-    DateTime? addedAt,
-    Value<DateTime?> syncedAt = const Value.absent(),
-  }) => FamilyVehicleRecord(
-    id: id ?? this.id,
-    familyId: familyId ?? this.familyId,
-    vehicleId: vehicleId ?? this.vehicleId,
-    addedBy: addedBy ?? this.addedBy,
-    addedAt: addedAt ?? this.addedAt,
-    syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
-  );
-  FamilyVehicleRecord copyWithCompanion(FamilyVehicleRecordsCompanion data) {
-    return FamilyVehicleRecord(
-      id: data.id.present ? data.id.value : this.id,
-      familyId: data.familyId.present ? data.familyId.value : this.familyId,
-      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
-      addedBy: data.addedBy.present ? data.addedBy.value : this.addedBy,
-      addedAt: data.addedAt.present ? data.addedAt.value : this.addedAt,
-      syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FamilyVehicleRecord(')
-          ..write('id: $id, ')
-          ..write('familyId: $familyId, ')
-          ..write('vehicleId: $vehicleId, ')
-          ..write('addedBy: $addedBy, ')
-          ..write('addedAt: $addedAt, ')
-          ..write('syncedAt: $syncedAt')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode =>
-      Object.hash(id, familyId, vehicleId, addedBy, addedAt, syncedAt);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is FamilyVehicleRecord &&
-          other.id == this.id &&
-          other.familyId == this.familyId &&
-          other.vehicleId == this.vehicleId &&
-          other.addedBy == this.addedBy &&
-          other.addedAt == this.addedAt &&
-          other.syncedAt == this.syncedAt);
-}
-
-class FamilyVehicleRecordsCompanion
-    extends UpdateCompanion<FamilyVehicleRecord> {
-  final Value<String> id;
-  final Value<String> familyId;
-  final Value<String> vehicleId;
-  final Value<String> addedBy;
-  final Value<DateTime> addedAt;
-  final Value<DateTime?> syncedAt;
-  final Value<int> rowid;
-  const FamilyVehicleRecordsCompanion({
-    this.id = const Value.absent(),
-    this.familyId = const Value.absent(),
-    this.vehicleId = const Value.absent(),
-    this.addedBy = const Value.absent(),
-    this.addedAt = const Value.absent(),
-    this.syncedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  FamilyVehicleRecordsCompanion.insert({
-    required String id,
-    required String familyId,
-    required String vehicleId,
-    required String addedBy,
-    required DateTime addedAt,
-    this.syncedAt = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       familyId = Value(familyId),
-       vehicleId = Value(vehicleId),
-       addedBy = Value(addedBy),
-       addedAt = Value(addedAt);
-  static Insertable<FamilyVehicleRecord> custom({
-    Expression<String>? id,
-    Expression<String>? familyId,
-    Expression<String>? vehicleId,
-    Expression<String>? addedBy,
-    Expression<DateTime>? addedAt,
-    Expression<DateTime>? syncedAt,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (familyId != null) 'family_id': familyId,
-      if (vehicleId != null) 'vehicle_id': vehicleId,
-      if (addedBy != null) 'added_by': addedBy,
-      if (addedAt != null) 'added_at': addedAt,
-      if (syncedAt != null) 'synced_at': syncedAt,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  FamilyVehicleRecordsCompanion copyWith({
-    Value<String>? id,
-    Value<String>? familyId,
-    Value<String>? vehicleId,
-    Value<String>? addedBy,
-    Value<DateTime>? addedAt,
-    Value<DateTime?>? syncedAt,
-    Value<int>? rowid,
-  }) {
-    return FamilyVehicleRecordsCompanion(
-      id: id ?? this.id,
-      familyId: familyId ?? this.familyId,
-      vehicleId: vehicleId ?? this.vehicleId,
-      addedBy: addedBy ?? this.addedBy,
-      addedAt: addedAt ?? this.addedAt,
-      syncedAt: syncedAt ?? this.syncedAt,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<String>(id.value);
-    }
-    if (familyId.present) {
-      map['family_id'] = Variable<String>(familyId.value);
-    }
-    if (vehicleId.present) {
-      map['vehicle_id'] = Variable<String>(vehicleId.value);
-    }
-    if (addedBy.present) {
-      map['added_by'] = Variable<String>(addedBy.value);
-    }
-    if (addedAt.present) {
-      map['added_at'] = Variable<DateTime>(addedAt.value);
-    }
-    if (syncedAt.present) {
-      map['synced_at'] = Variable<DateTime>(syncedAt.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FamilyVehicleRecordsCompanion(')
-          ..write('id: $id, ')
-          ..write('familyId: $familyId, ')
-          ..write('vehicleId: $vehicleId, ')
-          ..write('addedBy: $addedBy, ')
-          ..write('addedAt: $addedAt, ')
           ..write('syncedAt: $syncedAt, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -12321,15 +12019,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $ExpensePartRecordsTable(this);
   late final $NotificationRecordsTable notificationRecords =
       $NotificationRecordsTable(this);
-  late final $FamilyRecordsTable familyRecords = $FamilyRecordsTable(this);
-  late final $FamilyMembershipRecordsTable familyMembershipRecords =
-      $FamilyMembershipRecordsTable(this);
-  late final $VehicleGrantRecordsTable vehicleGrantRecords =
-      $VehicleGrantRecordsTable(this);
+  late final $VehicleShareRecordsTable vehicleShareRecords =
+      $VehicleShareRecordsTable(this);
+  late final $VehicleShareInvitationRecordsTable vehicleShareInvitationRecords =
+      $VehicleShareInvitationRecordsTable(this);
   late final $DrivingLicenseRecordsTable drivingLicenseRecords =
       $DrivingLicenseRecordsTable(this);
-  late final $FamilyVehicleRecordsTable familyVehicleRecords =
-      $FamilyVehicleRecordsTable(this);
   late final $DocumentRecordsTable documentRecords = $DocumentRecordsTable(
     this,
   );
@@ -12355,11 +12050,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     expenseRecords,
     expensePartRecords,
     notificationRecords,
-    familyRecords,
-    familyMembershipRecords,
-    vehicleGrantRecords,
+    vehicleShareRecords,
+    vehicleShareInvitationRecords,
     drivingLicenseRecords,
-    familyVehicleRecords,
     documentRecords,
     maintenanceCatalogRecords,
     noteRecords,
@@ -13656,6 +13349,7 @@ typedef $$PlanItemRecordsTableCreateCompanionBuilder =
       Value<bool> enabled,
       Value<String?> notes,
       Value<String?> catalogKey,
+      Value<String?> createdBy,
       required DateTime updatedAt,
       required DateTime createdAt,
       Value<int> rowid,
@@ -13672,6 +13366,7 @@ typedef $$PlanItemRecordsTableUpdateCompanionBuilder =
       Value<bool> enabled,
       Value<String?> notes,
       Value<String?> catalogKey,
+      Value<String?> createdBy,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -13733,6 +13428,11 @@ class $$PlanItemRecordsTableFilterComposer
 
   ColumnFilters<String> get catalogKey => $composableBuilder(
     column: $table.catalogKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13806,6 +13506,11 @@ class $$PlanItemRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -13864,6 +13569,9 @@ class $$PlanItemRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
@@ -13918,6 +13626,7 @@ class $$PlanItemRecordsTableTableManager
                 Value<bool> enabled = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> catalogKey = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -13932,6 +13641,7 @@ class $$PlanItemRecordsTableTableManager
                 enabled: enabled,
                 notes: notes,
                 catalogKey: catalogKey,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -13948,6 +13658,7 @@ class $$PlanItemRecordsTableTableManager
                 Value<bool> enabled = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> catalogKey = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 required DateTime updatedAt,
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -13962,6 +13673,7 @@ class $$PlanItemRecordsTableTableManager
                 enabled: enabled,
                 notes: notes,
                 catalogKey: catalogKey,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -14012,6 +13724,7 @@ typedef $$ServiceRecordRowsTableCreateCompanionBuilder =
       Value<String?> notes,
       Value<String?> receiptLocalPath,
       Value<String?> receiptMediaId,
+      Value<String?> createdBy,
       required DateTime updatedAt,
       required DateTime createdAt,
       Value<int> rowid,
@@ -14028,6 +13741,7 @@ typedef $$ServiceRecordRowsTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<String?> receiptLocalPath,
       Value<String?> receiptMediaId,
+      Value<String?> createdBy,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -14089,6 +13803,11 @@ class $$ServiceRecordRowsTableFilterComposer
 
   ColumnFilters<String> get receiptMediaId => $composableBuilder(
     column: $table.receiptMediaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -14162,6 +13881,11 @@ class $$ServiceRecordRowsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -14220,6 +13944,9 @@ class $$ServiceRecordRowsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
@@ -14277,6 +14004,7 @@ class $$ServiceRecordRowsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<String?> receiptLocalPath = const Value.absent(),
                 Value<String?> receiptMediaId = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -14291,6 +14019,7 @@ class $$ServiceRecordRowsTableTableManager
                 notes: notes,
                 receiptLocalPath: receiptLocalPath,
                 receiptMediaId: receiptMediaId,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -14307,6 +14036,7 @@ class $$ServiceRecordRowsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<String?> receiptLocalPath = const Value.absent(),
                 Value<String?> receiptMediaId = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 required DateTime updatedAt,
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -14321,6 +14051,7 @@ class $$ServiceRecordRowsTableTableManager
                 notes: notes,
                 receiptLocalPath: receiptLocalPath,
                 receiptMediaId: receiptMediaId,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -14600,6 +14331,7 @@ typedef $$PartRecordsTableCreateCompanionBuilder =
       Value<String?> brand,
       Value<String?> partNumber,
       Value<String?> notes,
+      Value<String?> createdBy,
       required DateTime updatedAt,
       required DateTime createdAt,
       Value<int> rowid,
@@ -14613,6 +14345,7 @@ typedef $$PartRecordsTableUpdateCompanionBuilder =
       Value<String?> brand,
       Value<String?> partNumber,
       Value<String?> notes,
+      Value<String?> createdBy,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -14659,6 +14392,11 @@ class $$PartRecordsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -14717,6 +14455,11 @@ class $$PartRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -14759,6 +14502,9 @@ class $$PartRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -14805,6 +14551,7 @@ class $$PartRecordsTableTableManager
                 Value<String?> brand = const Value.absent(),
                 Value<String?> partNumber = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -14816,6 +14563,7 @@ class $$PartRecordsTableTableManager
                 brand: brand,
                 partNumber: partNumber,
                 notes: notes,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -14829,6 +14577,7 @@ class $$PartRecordsTableTableManager
                 Value<String?> brand = const Value.absent(),
                 Value<String?> partNumber = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 required DateTime updatedAt,
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -14840,6 +14589,7 @@ class $$PartRecordsTableTableManager
                 brand: brand,
                 partNumber: partNumber,
                 notes: notes,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -15715,6 +15465,7 @@ typedef $$ExpenseRecordsTableCreateCompanionBuilder =
       Value<String?> notes,
       Value<String?> receiptLocalPath,
       Value<String?> receiptMediaId,
+      Value<String?> createdBy,
       required DateTime updatedAt,
       required DateTime createdAt,
       Value<int> rowid,
@@ -15729,6 +15480,7 @@ typedef $$ExpenseRecordsTableUpdateCompanionBuilder =
       Value<String?> notes,
       Value<String?> receiptLocalPath,
       Value<String?> receiptMediaId,
+      Value<String?> createdBy,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -15780,6 +15532,11 @@ class $$ExpenseRecordsTableFilterComposer
 
   ColumnFilters<String> get receiptMediaId => $composableBuilder(
     column: $table.receiptMediaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -15843,6 +15600,11 @@ class $$ExpenseRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -15893,6 +15655,9 @@ class $$ExpenseRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
+
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
 
@@ -15941,6 +15706,7 @@ class $$ExpenseRecordsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<String?> receiptLocalPath = const Value.absent(),
                 Value<String?> receiptMediaId = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -15953,6 +15719,7 @@ class $$ExpenseRecordsTableTableManager
                 notes: notes,
                 receiptLocalPath: receiptLocalPath,
                 receiptMediaId: receiptMediaId,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -15967,6 +15734,7 @@ class $$ExpenseRecordsTableTableManager
                 Value<String?> notes = const Value.absent(),
                 Value<String?> receiptLocalPath = const Value.absent(),
                 Value<String?> receiptMediaId = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 required DateTime updatedAt,
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -15979,6 +15747,7 @@ class $$ExpenseRecordsTableTableManager
                 notes: notes,
                 receiptLocalPath: receiptLocalPath,
                 receiptMediaId: receiptMediaId,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -16565,590 +16334,44 @@ typedef $$NotificationRecordsTableProcessedTableManager =
       NotificationRecord,
       PrefetchHooks Function()
     >;
-typedef $$FamilyRecordsTableCreateCompanionBuilder =
-    FamilyRecordsCompanion Function({
-      required String id,
-      required String name,
-      required String shareCode,
-      Value<String?> qrCodeData,
-      required String createdBy,
-      Value<String> status,
-      required DateTime createdAt,
-      Value<DateTime?> archivedAt,
-      Value<DateTime?> syncedAt,
-      Value<int> rowid,
-    });
-typedef $$FamilyRecordsTableUpdateCompanionBuilder =
-    FamilyRecordsCompanion Function({
-      Value<String> id,
-      Value<String> name,
-      Value<String> shareCode,
-      Value<String?> qrCodeData,
-      Value<String> createdBy,
-      Value<String> status,
-      Value<DateTime> createdAt,
-      Value<DateTime?> archivedAt,
-      Value<DateTime?> syncedAt,
-      Value<int> rowid,
-    });
-
-class $$FamilyRecordsTableFilterComposer
-    extends Composer<_$AppDatabase, $FamilyRecordsTable> {
-  $$FamilyRecordsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get shareCode => $composableBuilder(
-    column: $table.shareCode,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get qrCodeData => $composableBuilder(
-    column: $table.qrCodeData,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get createdBy => $composableBuilder(
-    column: $table.createdBy,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get archivedAt => $composableBuilder(
-    column: $table.archivedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
-    column: $table.syncedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$FamilyRecordsTableOrderingComposer
-    extends Composer<_$AppDatabase, $FamilyRecordsTable> {
-  $$FamilyRecordsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get shareCode => $composableBuilder(
-    column: $table.shareCode,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get qrCodeData => $composableBuilder(
-    column: $table.qrCodeData,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get createdBy => $composableBuilder(
-    column: $table.createdBy,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get status => $composableBuilder(
-    column: $table.status,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
-    column: $table.createdAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get archivedAt => $composableBuilder(
-    column: $table.archivedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
-    column: $table.syncedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$FamilyRecordsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $FamilyRecordsTable> {
-  $$FamilyRecordsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumn<String> get shareCode =>
-      $composableBuilder(column: $table.shareCode, builder: (column) => column);
-
-  GeneratedColumn<String> get qrCodeData => $composableBuilder(
-    column: $table.qrCodeData,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get createdBy =>
-      $composableBuilder(column: $table.createdBy, builder: (column) => column);
-
-  GeneratedColumn<String> get status =>
-      $composableBuilder(column: $table.status, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get createdAt =>
-      $composableBuilder(column: $table.createdAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get archivedAt => $composableBuilder(
-    column: $table.archivedAt,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<DateTime> get syncedAt =>
-      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
-}
-
-class $$FamilyRecordsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $FamilyRecordsTable,
-          FamilyRecord,
-          $$FamilyRecordsTableFilterComposer,
-          $$FamilyRecordsTableOrderingComposer,
-          $$FamilyRecordsTableAnnotationComposer,
-          $$FamilyRecordsTableCreateCompanionBuilder,
-          $$FamilyRecordsTableUpdateCompanionBuilder,
-          (
-            FamilyRecord,
-            BaseReferences<_$AppDatabase, $FamilyRecordsTable, FamilyRecord>,
-          ),
-          FamilyRecord,
-          PrefetchHooks Function()
-        > {
-  $$FamilyRecordsTableTableManager(_$AppDatabase db, $FamilyRecordsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$FamilyRecordsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$FamilyRecordsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$FamilyRecordsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<String> shareCode = const Value.absent(),
-                Value<String?> qrCodeData = const Value.absent(),
-                Value<String> createdBy = const Value.absent(),
-                Value<String> status = const Value.absent(),
-                Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> archivedAt = const Value.absent(),
-                Value<DateTime?> syncedAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => FamilyRecordsCompanion(
-                id: id,
-                name: name,
-                shareCode: shareCode,
-                qrCodeData: qrCodeData,
-                createdBy: createdBy,
-                status: status,
-                createdAt: createdAt,
-                archivedAt: archivedAt,
-                syncedAt: syncedAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String name,
-                required String shareCode,
-                Value<String?> qrCodeData = const Value.absent(),
-                required String createdBy,
-                Value<String> status = const Value.absent(),
-                required DateTime createdAt,
-                Value<DateTime?> archivedAt = const Value.absent(),
-                Value<DateTime?> syncedAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => FamilyRecordsCompanion.insert(
-                id: id,
-                name: name,
-                shareCode: shareCode,
-                qrCodeData: qrCodeData,
-                createdBy: createdBy,
-                status: status,
-                createdAt: createdAt,
-                archivedAt: archivedAt,
-                syncedAt: syncedAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$FamilyRecordsTable, FamilyRecord>(table),
-                  BaseReferences<
-                    _$AppDatabase,
-                    $FamilyRecordsTable,
-                    FamilyRecord
-                  >(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$FamilyRecordsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $FamilyRecordsTable,
-      FamilyRecord,
-      $$FamilyRecordsTableFilterComposer,
-      $$FamilyRecordsTableOrderingComposer,
-      $$FamilyRecordsTableAnnotationComposer,
-      $$FamilyRecordsTableCreateCompanionBuilder,
-      $$FamilyRecordsTableUpdateCompanionBuilder,
-      (
-        FamilyRecord,
-        BaseReferences<_$AppDatabase, $FamilyRecordsTable, FamilyRecord>,
-      ),
-      FamilyRecord,
-      PrefetchHooks Function()
-    >;
-typedef $$FamilyMembershipRecordsTableCreateCompanionBuilder =
-    FamilyMembershipRecordsCompanion Function({
-      required String id,
-      required String familyId,
-      required String userId,
-      required String role,
-      required DateTime joinedAt,
-      Value<String?> invitedBy,
-      Value<DateTime?> syncedAt,
-      Value<int> rowid,
-    });
-typedef $$FamilyMembershipRecordsTableUpdateCompanionBuilder =
-    FamilyMembershipRecordsCompanion Function({
-      Value<String> id,
-      Value<String> familyId,
-      Value<String> userId,
-      Value<String> role,
-      Value<DateTime> joinedAt,
-      Value<String?> invitedBy,
-      Value<DateTime?> syncedAt,
-      Value<int> rowid,
-    });
-
-class $$FamilyMembershipRecordsTableFilterComposer
-    extends Composer<_$AppDatabase, $FamilyMembershipRecordsTable> {
-  $$FamilyMembershipRecordsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get familyId => $composableBuilder(
-    column: $table.familyId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get joinedAt => $composableBuilder(
-    column: $table.joinedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get invitedBy => $composableBuilder(
-    column: $table.invitedBy,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
-    column: $table.syncedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$FamilyMembershipRecordsTableOrderingComposer
-    extends Composer<_$AppDatabase, $FamilyMembershipRecordsTable> {
-  $$FamilyMembershipRecordsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get familyId => $composableBuilder(
-    column: $table.familyId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get userId => $composableBuilder(
-    column: $table.userId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get role => $composableBuilder(
-    column: $table.role,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get joinedAt => $composableBuilder(
-    column: $table.joinedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get invitedBy => $composableBuilder(
-    column: $table.invitedBy,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
-    column: $table.syncedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$FamilyMembershipRecordsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $FamilyMembershipRecordsTable> {
-  $$FamilyMembershipRecordsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get familyId =>
-      $composableBuilder(column: $table.familyId, builder: (column) => column);
-
-  GeneratedColumn<String> get userId =>
-      $composableBuilder(column: $table.userId, builder: (column) => column);
-
-  GeneratedColumn<String> get role =>
-      $composableBuilder(column: $table.role, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get joinedAt =>
-      $composableBuilder(column: $table.joinedAt, builder: (column) => column);
-
-  GeneratedColumn<String> get invitedBy =>
-      $composableBuilder(column: $table.invitedBy, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get syncedAt =>
-      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
-}
-
-class $$FamilyMembershipRecordsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $FamilyMembershipRecordsTable,
-          FamilyMembershipRecord,
-          $$FamilyMembershipRecordsTableFilterComposer,
-          $$FamilyMembershipRecordsTableOrderingComposer,
-          $$FamilyMembershipRecordsTableAnnotationComposer,
-          $$FamilyMembershipRecordsTableCreateCompanionBuilder,
-          $$FamilyMembershipRecordsTableUpdateCompanionBuilder,
-          (
-            FamilyMembershipRecord,
-            BaseReferences<
-              _$AppDatabase,
-              $FamilyMembershipRecordsTable,
-              FamilyMembershipRecord
-            >,
-          ),
-          FamilyMembershipRecord,
-          PrefetchHooks Function()
-        > {
-  $$FamilyMembershipRecordsTableTableManager(
-    _$AppDatabase db,
-    $FamilyMembershipRecordsTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$FamilyMembershipRecordsTableFilterComposer(
-                $db: db,
-                $table: table,
-              ),
-          createOrderingComposer: () =>
-              $$FamilyMembershipRecordsTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer: () =>
-              $$FamilyMembershipRecordsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> familyId = const Value.absent(),
-                Value<String> userId = const Value.absent(),
-                Value<String> role = const Value.absent(),
-                Value<DateTime> joinedAt = const Value.absent(),
-                Value<String?> invitedBy = const Value.absent(),
-                Value<DateTime?> syncedAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => FamilyMembershipRecordsCompanion(
-                id: id,
-                familyId: familyId,
-                userId: userId,
-                role: role,
-                joinedAt: joinedAt,
-                invitedBy: invitedBy,
-                syncedAt: syncedAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String familyId,
-                required String userId,
-                required String role,
-                required DateTime joinedAt,
-                Value<String?> invitedBy = const Value.absent(),
-                Value<DateTime?> syncedAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => FamilyMembershipRecordsCompanion.insert(
-                id: id,
-                familyId: familyId,
-                userId: userId,
-                role: role,
-                joinedAt: joinedAt,
-                invitedBy: invitedBy,
-                syncedAt: syncedAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<
-                    $FamilyMembershipRecordsTable,
-                    FamilyMembershipRecord
-                  >(table),
-                  BaseReferences<
-                    _$AppDatabase,
-                    $FamilyMembershipRecordsTable,
-                    FamilyMembershipRecord
-                  >(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$FamilyMembershipRecordsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $FamilyMembershipRecordsTable,
-      FamilyMembershipRecord,
-      $$FamilyMembershipRecordsTableFilterComposer,
-      $$FamilyMembershipRecordsTableOrderingComposer,
-      $$FamilyMembershipRecordsTableAnnotationComposer,
-      $$FamilyMembershipRecordsTableCreateCompanionBuilder,
-      $$FamilyMembershipRecordsTableUpdateCompanionBuilder,
-      (
-        FamilyMembershipRecord,
-        BaseReferences<
-          _$AppDatabase,
-          $FamilyMembershipRecordsTable,
-          FamilyMembershipRecord
-        >,
-      ),
-      FamilyMembershipRecord,
-      PrefetchHooks Function()
-    >;
-typedef $$VehicleGrantRecordsTableCreateCompanionBuilder =
-    VehicleGrantRecordsCompanion Function({
+typedef $$VehicleShareRecordsTableCreateCompanionBuilder =
+    VehicleShareRecordsCompanion Function({
       required String id,
       required String vehicleId,
       required String userId,
-      required String grantedBy,
-      required String permission,
+      Value<String?> grantedBy,
+      required String accessLevel,
+      Value<String> status,
+      Value<String?> invitedEmail,
+      Value<String?> shareCode,
+      Value<String?> displayName,
+      Value<String?> email,
+      Value<DateTime?> acceptedAt,
       required DateTime createdAt,
-      Value<DateTime?> syncedAt,
+      Value<String?> syncedAt,
       Value<int> rowid,
     });
-typedef $$VehicleGrantRecordsTableUpdateCompanionBuilder =
-    VehicleGrantRecordsCompanion Function({
+typedef $$VehicleShareRecordsTableUpdateCompanionBuilder =
+    VehicleShareRecordsCompanion Function({
       Value<String> id,
       Value<String> vehicleId,
       Value<String> userId,
-      Value<String> grantedBy,
-      Value<String> permission,
+      Value<String?> grantedBy,
+      Value<String> accessLevel,
+      Value<String> status,
+      Value<String?> invitedEmail,
+      Value<String?> shareCode,
+      Value<String?> displayName,
+      Value<String?> email,
+      Value<DateTime?> acceptedAt,
       Value<DateTime> createdAt,
-      Value<DateTime?> syncedAt,
+      Value<String?> syncedAt,
       Value<int> rowid,
     });
 
-class $$VehicleGrantRecordsTableFilterComposer
-    extends Composer<_$AppDatabase, $VehicleGrantRecordsTable> {
-  $$VehicleGrantRecordsTableFilterComposer({
+class $$VehicleShareRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $VehicleShareRecordsTable> {
+  $$VehicleShareRecordsTableFilterComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -17175,8 +16398,38 @@ class $$VehicleGrantRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get permission => $composableBuilder(
-    column: $table.permission,
+  ColumnFilters<String> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get invitedEmail => $composableBuilder(
+    column: $table.invitedEmail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get shareCode => $composableBuilder(
+    column: $table.shareCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get acceptedAt => $composableBuilder(
+    column: $table.acceptedAt,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17185,15 +16438,15 @@ class $$VehicleGrantRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
+  ColumnFilters<String> get syncedAt => $composableBuilder(
     column: $table.syncedAt,
     builder: (column) => ColumnFilters(column),
   );
 }
 
-class $$VehicleGrantRecordsTableOrderingComposer
-    extends Composer<_$AppDatabase, $VehicleGrantRecordsTable> {
-  $$VehicleGrantRecordsTableOrderingComposer({
+class $$VehicleShareRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $VehicleShareRecordsTable> {
+  $$VehicleShareRecordsTableOrderingComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -17220,8 +16473,38 @@ class $$VehicleGrantRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get permission => $composableBuilder(
-    column: $table.permission,
+  ColumnOrderings<String> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get invitedEmail => $composableBuilder(
+    column: $table.invitedEmail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get shareCode => $composableBuilder(
+    column: $table.shareCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get email => $composableBuilder(
+    column: $table.email,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get acceptedAt => $composableBuilder(
+    column: $table.acceptedAt,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -17230,15 +16513,15 @@ class $$VehicleGrantRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
+  ColumnOrderings<String> get syncedAt => $composableBuilder(
     column: $table.syncedAt,
     builder: (column) => ColumnOrderings(column),
   );
 }
 
-class $$VehicleGrantRecordsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $VehicleGrantRecordsTable> {
-  $$VehicleGrantRecordsTableAnnotationComposer({
+class $$VehicleShareRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VehicleShareRecordsTable> {
+  $$VehicleShareRecordsTableAnnotationComposer({
     required super.$db,
     required super.$table,
     super.joinBuilder,
@@ -17257,56 +16540,80 @@ class $$VehicleGrantRecordsTableAnnotationComposer
   GeneratedColumn<String> get grantedBy =>
       $composableBuilder(column: $table.grantedBy, builder: (column) => column);
 
-  GeneratedColumn<String> get permission => $composableBuilder(
-    column: $table.permission,
+  GeneratedColumn<String> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get invitedEmail => $composableBuilder(
+    column: $table.invitedEmail,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get shareCode =>
+      $composableBuilder(column: $table.shareCode, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get email =>
+      $composableBuilder(column: $table.email, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get acceptedAt => $composableBuilder(
+    column: $table.acceptedAt,
     builder: (column) => column,
   );
 
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get syncedAt =>
+  GeneratedColumn<String> get syncedAt =>
       $composableBuilder(column: $table.syncedAt, builder: (column) => column);
 }
 
-class $$VehicleGrantRecordsTableTableManager
+class $$VehicleShareRecordsTableTableManager
     extends
         RootTableManager<
           _$AppDatabase,
-          $VehicleGrantRecordsTable,
-          VehicleGrantRecord,
-          $$VehicleGrantRecordsTableFilterComposer,
-          $$VehicleGrantRecordsTableOrderingComposer,
-          $$VehicleGrantRecordsTableAnnotationComposer,
-          $$VehicleGrantRecordsTableCreateCompanionBuilder,
-          $$VehicleGrantRecordsTableUpdateCompanionBuilder,
+          $VehicleShareRecordsTable,
+          VehicleShareRecord,
+          $$VehicleShareRecordsTableFilterComposer,
+          $$VehicleShareRecordsTableOrderingComposer,
+          $$VehicleShareRecordsTableAnnotationComposer,
+          $$VehicleShareRecordsTableCreateCompanionBuilder,
+          $$VehicleShareRecordsTableUpdateCompanionBuilder,
           (
-            VehicleGrantRecord,
+            VehicleShareRecord,
             BaseReferences<
               _$AppDatabase,
-              $VehicleGrantRecordsTable,
-              VehicleGrantRecord
+              $VehicleShareRecordsTable,
+              VehicleShareRecord
             >,
           ),
-          VehicleGrantRecord,
+          VehicleShareRecord,
           PrefetchHooks Function()
         > {
-  $$VehicleGrantRecordsTableTableManager(
+  $$VehicleShareRecordsTableTableManager(
     _$AppDatabase db,
-    $VehicleGrantRecordsTable table,
+    $VehicleShareRecordsTable table,
   ) : super(
         TableManagerState(
           db: db,
           table: table,
           createFilteringComposer: () =>
-              $$VehicleGrantRecordsTableFilterComposer($db: db, $table: table),
+              $$VehicleShareRecordsTableFilterComposer($db: db, $table: table),
           createOrderingComposer: () =>
-              $$VehicleGrantRecordsTableOrderingComposer(
+              $$VehicleShareRecordsTableOrderingComposer(
                 $db: db,
                 $table: table,
               ),
           createComputedFieldComposer: () =>
-              $$VehicleGrantRecordsTableAnnotationComposer(
+              $$VehicleShareRecordsTableAnnotationComposer(
                 $db: db,
                 $table: table,
               ),
@@ -17315,17 +16622,29 @@ class $$VehicleGrantRecordsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> vehicleId = const Value.absent(),
                 Value<String> userId = const Value.absent(),
-                Value<String> grantedBy = const Value.absent(),
-                Value<String> permission = const Value.absent(),
+                Value<String?> grantedBy = const Value.absent(),
+                Value<String> accessLevel = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String?> invitedEmail = const Value.absent(),
+                Value<String?> shareCode = const Value.absent(),
+                Value<String?> displayName = const Value.absent(),
+                Value<String?> email = const Value.absent(),
+                Value<DateTime?> acceptedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
-                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<String?> syncedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => VehicleGrantRecordsCompanion(
+              }) => VehicleShareRecordsCompanion(
                 id: id,
                 vehicleId: vehicleId,
                 userId: userId,
                 grantedBy: grantedBy,
-                permission: permission,
+                accessLevel: accessLevel,
+                status: status,
+                invitedEmail: invitedEmail,
+                shareCode: shareCode,
+                displayName: displayName,
+                email: email,
+                acceptedAt: acceptedAt,
                 createdAt: createdAt,
                 syncedAt: syncedAt,
                 rowid: rowid,
@@ -17335,17 +16654,29 @@ class $$VehicleGrantRecordsTableTableManager
                 required String id,
                 required String vehicleId,
                 required String userId,
-                required String grantedBy,
-                required String permission,
+                Value<String?> grantedBy = const Value.absent(),
+                required String accessLevel,
+                Value<String> status = const Value.absent(),
+                Value<String?> invitedEmail = const Value.absent(),
+                Value<String?> shareCode = const Value.absent(),
+                Value<String?> displayName = const Value.absent(),
+                Value<String?> email = const Value.absent(),
+                Value<DateTime?> acceptedAt = const Value.absent(),
                 required DateTime createdAt,
-                Value<DateTime?> syncedAt = const Value.absent(),
+                Value<String?> syncedAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
-              }) => VehicleGrantRecordsCompanion.insert(
+              }) => VehicleShareRecordsCompanion.insert(
                 id: id,
                 vehicleId: vehicleId,
                 userId: userId,
                 grantedBy: grantedBy,
-                permission: permission,
+                accessLevel: accessLevel,
+                status: status,
+                invitedEmail: invitedEmail,
+                shareCode: shareCode,
+                displayName: displayName,
+                email: email,
+                acceptedAt: acceptedAt,
                 createdAt: createdAt,
                 syncedAt: syncedAt,
                 rowid: rowid,
@@ -17353,13 +16684,13 @@ class $$VehicleGrantRecordsTableTableManager
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
-                  e.readTable<$VehicleGrantRecordsTable, VehicleGrantRecord>(
+                  e.readTable<$VehicleShareRecordsTable, VehicleShareRecord>(
                     table,
                   ),
                   BaseReferences<
                     _$AppDatabase,
-                    $VehicleGrantRecordsTable,
-                    VehicleGrantRecord
+                    $VehicleShareRecordsTable,
+                    VehicleShareRecord
                   >(db, table, e),
                 ),
               )
@@ -17369,25 +16700,357 @@ class $$VehicleGrantRecordsTableTableManager
       );
 }
 
-typedef $$VehicleGrantRecordsTableProcessedTableManager =
+typedef $$VehicleShareRecordsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $VehicleGrantRecordsTable,
-      VehicleGrantRecord,
-      $$VehicleGrantRecordsTableFilterComposer,
-      $$VehicleGrantRecordsTableOrderingComposer,
-      $$VehicleGrantRecordsTableAnnotationComposer,
-      $$VehicleGrantRecordsTableCreateCompanionBuilder,
-      $$VehicleGrantRecordsTableUpdateCompanionBuilder,
+      $VehicleShareRecordsTable,
+      VehicleShareRecord,
+      $$VehicleShareRecordsTableFilterComposer,
+      $$VehicleShareRecordsTableOrderingComposer,
+      $$VehicleShareRecordsTableAnnotationComposer,
+      $$VehicleShareRecordsTableCreateCompanionBuilder,
+      $$VehicleShareRecordsTableUpdateCompanionBuilder,
       (
-        VehicleGrantRecord,
+        VehicleShareRecord,
         BaseReferences<
           _$AppDatabase,
-          $VehicleGrantRecordsTable,
-          VehicleGrantRecord
+          $VehicleShareRecordsTable,
+          VehicleShareRecord
         >,
       ),
-      VehicleGrantRecord,
+      VehicleShareRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$VehicleShareInvitationRecordsTableCreateCompanionBuilder =
+    VehicleShareInvitationRecordsCompanion Function({
+      required String id,
+      required String vehicleId,
+      Value<String?> invitedEmail,
+      required String invitedBy,
+      required String accessLevel,
+      Value<String?> shareCode,
+      required DateTime expiresAt,
+      Value<DateTime?> acceptedAt,
+      required DateTime createdAt,
+      Value<String?> syncedAt,
+      Value<int> rowid,
+    });
+typedef $$VehicleShareInvitationRecordsTableUpdateCompanionBuilder =
+    VehicleShareInvitationRecordsCompanion Function({
+      Value<String> id,
+      Value<String> vehicleId,
+      Value<String?> invitedEmail,
+      Value<String> invitedBy,
+      Value<String> accessLevel,
+      Value<String?> shareCode,
+      Value<DateTime> expiresAt,
+      Value<DateTime?> acceptedAt,
+      Value<DateTime> createdAt,
+      Value<String?> syncedAt,
+      Value<int> rowid,
+    });
+
+class $$VehicleShareInvitationRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $VehicleShareInvitationRecordsTable> {
+  $$VehicleShareInvitationRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get invitedEmail => $composableBuilder(
+    column: $table.invitedEmail,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get invitedBy => $composableBuilder(
+    column: $table.invitedBy,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get shareCode => $composableBuilder(
+    column: $table.shareCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get acceptedAt => $composableBuilder(
+    column: $table.acceptedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$VehicleShareInvitationRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $VehicleShareInvitationRecordsTable> {
+  $$VehicleShareInvitationRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get invitedEmail => $composableBuilder(
+    column: $table.invitedEmail,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get invitedBy => $composableBuilder(
+    column: $table.invitedBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get shareCode => $composableBuilder(
+    column: $table.shareCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get acceptedAt => $composableBuilder(
+    column: $table.acceptedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get syncedAt => $composableBuilder(
+    column: $table.syncedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$VehicleShareInvitationRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $VehicleShareInvitationRecordsTable> {
+  $$VehicleShareInvitationRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get invitedEmail => $composableBuilder(
+    column: $table.invitedEmail,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get invitedBy =>
+      $composableBuilder(column: $table.invitedBy, builder: (column) => column);
+
+  GeneratedColumn<String> get accessLevel => $composableBuilder(
+    column: $table.accessLevel,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get shareCode =>
+      $composableBuilder(column: $table.shareCode, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get acceptedAt => $composableBuilder(
+    column: $table.acceptedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get syncedAt =>
+      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
+}
+
+class $$VehicleShareInvitationRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $VehicleShareInvitationRecordsTable,
+          VehicleShareInvitationRecord,
+          $$VehicleShareInvitationRecordsTableFilterComposer,
+          $$VehicleShareInvitationRecordsTableOrderingComposer,
+          $$VehicleShareInvitationRecordsTableAnnotationComposer,
+          $$VehicleShareInvitationRecordsTableCreateCompanionBuilder,
+          $$VehicleShareInvitationRecordsTableUpdateCompanionBuilder,
+          (
+            VehicleShareInvitationRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $VehicleShareInvitationRecordsTable,
+              VehicleShareInvitationRecord
+            >,
+          ),
+          VehicleShareInvitationRecord,
+          PrefetchHooks Function()
+        > {
+  $$VehicleShareInvitationRecordsTableTableManager(
+    _$AppDatabase db,
+    $VehicleShareInvitationRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$VehicleShareInvitationRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$VehicleShareInvitationRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$VehicleShareInvitationRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<String?> invitedEmail = const Value.absent(),
+                Value<String> invitedBy = const Value.absent(),
+                Value<String> accessLevel = const Value.absent(),
+                Value<String?> shareCode = const Value.absent(),
+                Value<DateTime> expiresAt = const Value.absent(),
+                Value<DateTime?> acceptedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<String?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VehicleShareInvitationRecordsCompanion(
+                id: id,
+                vehicleId: vehicleId,
+                invitedEmail: invitedEmail,
+                invitedBy: invitedBy,
+                accessLevel: accessLevel,
+                shareCode: shareCode,
+                expiresAt: expiresAt,
+                acceptedAt: acceptedAt,
+                createdAt: createdAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vehicleId,
+                Value<String?> invitedEmail = const Value.absent(),
+                required String invitedBy,
+                required String accessLevel,
+                Value<String?> shareCode = const Value.absent(),
+                required DateTime expiresAt,
+                Value<DateTime?> acceptedAt = const Value.absent(),
+                required DateTime createdAt,
+                Value<String?> syncedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => VehicleShareInvitationRecordsCompanion.insert(
+                id: id,
+                vehicleId: vehicleId,
+                invitedEmail: invitedEmail,
+                invitedBy: invitedBy,
+                accessLevel: accessLevel,
+                shareCode: shareCode,
+                expiresAt: expiresAt,
+                acceptedAt: acceptedAt,
+                createdAt: createdAt,
+                syncedAt: syncedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $VehicleShareInvitationRecordsTable,
+                    VehicleShareInvitationRecord
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $VehicleShareInvitationRecordsTable,
+                    VehicleShareInvitationRecord
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$VehicleShareInvitationRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $VehicleShareInvitationRecordsTable,
+      VehicleShareInvitationRecord,
+      $$VehicleShareInvitationRecordsTableFilterComposer,
+      $$VehicleShareInvitationRecordsTableOrderingComposer,
+      $$VehicleShareInvitationRecordsTableAnnotationComposer,
+      $$VehicleShareInvitationRecordsTableCreateCompanionBuilder,
+      $$VehicleShareInvitationRecordsTableUpdateCompanionBuilder,
+      (
+        VehicleShareInvitationRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $VehicleShareInvitationRecordsTable,
+          VehicleShareInvitationRecord
+        >,
+      ),
+      VehicleShareInvitationRecord,
       PrefetchHooks Function()
     >;
 typedef $$DrivingLicenseRecordsTableCreateCompanionBuilder =
@@ -17745,252 +17408,6 @@ typedef $$DrivingLicenseRecordsTableProcessedTableManager =
         >,
       ),
       DrivingLicenseRecord,
-      PrefetchHooks Function()
-    >;
-typedef $$FamilyVehicleRecordsTableCreateCompanionBuilder =
-    FamilyVehicleRecordsCompanion Function({
-      required String id,
-      required String familyId,
-      required String vehicleId,
-      required String addedBy,
-      required DateTime addedAt,
-      Value<DateTime?> syncedAt,
-      Value<int> rowid,
-    });
-typedef $$FamilyVehicleRecordsTableUpdateCompanionBuilder =
-    FamilyVehicleRecordsCompanion Function({
-      Value<String> id,
-      Value<String> familyId,
-      Value<String> vehicleId,
-      Value<String> addedBy,
-      Value<DateTime> addedAt,
-      Value<DateTime?> syncedAt,
-      Value<int> rowid,
-    });
-
-class $$FamilyVehicleRecordsTableFilterComposer
-    extends Composer<_$AppDatabase, $FamilyVehicleRecordsTable> {
-  $$FamilyVehicleRecordsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get familyId => $composableBuilder(
-    column: $table.familyId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get vehicleId => $composableBuilder(
-    column: $table.vehicleId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get addedBy => $composableBuilder(
-    column: $table.addedBy,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get addedAt => $composableBuilder(
-    column: $table.addedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<DateTime> get syncedAt => $composableBuilder(
-    column: $table.syncedAt,
-    builder: (column) => ColumnFilters(column),
-  );
-}
-
-class $$FamilyVehicleRecordsTableOrderingComposer
-    extends Composer<_$AppDatabase, $FamilyVehicleRecordsTable> {
-  $$FamilyVehicleRecordsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get familyId => $composableBuilder(
-    column: $table.familyId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get vehicleId => $composableBuilder(
-    column: $table.vehicleId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get addedBy => $composableBuilder(
-    column: $table.addedBy,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get addedAt => $composableBuilder(
-    column: $table.addedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<DateTime> get syncedAt => $composableBuilder(
-    column: $table.syncedAt,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$FamilyVehicleRecordsTableAnnotationComposer
-    extends Composer<_$AppDatabase, $FamilyVehicleRecordsTable> {
-  $$FamilyVehicleRecordsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get familyId =>
-      $composableBuilder(column: $table.familyId, builder: (column) => column);
-
-  GeneratedColumn<String> get vehicleId =>
-      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
-
-  GeneratedColumn<String> get addedBy =>
-      $composableBuilder(column: $table.addedBy, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get addedAt =>
-      $composableBuilder(column: $table.addedAt, builder: (column) => column);
-
-  GeneratedColumn<DateTime> get syncedAt =>
-      $composableBuilder(column: $table.syncedAt, builder: (column) => column);
-}
-
-class $$FamilyVehicleRecordsTableTableManager
-    extends
-        RootTableManager<
-          _$AppDatabase,
-          $FamilyVehicleRecordsTable,
-          FamilyVehicleRecord,
-          $$FamilyVehicleRecordsTableFilterComposer,
-          $$FamilyVehicleRecordsTableOrderingComposer,
-          $$FamilyVehicleRecordsTableAnnotationComposer,
-          $$FamilyVehicleRecordsTableCreateCompanionBuilder,
-          $$FamilyVehicleRecordsTableUpdateCompanionBuilder,
-          (
-            FamilyVehicleRecord,
-            BaseReferences<
-              _$AppDatabase,
-              $FamilyVehicleRecordsTable,
-              FamilyVehicleRecord
-            >,
-          ),
-          FamilyVehicleRecord,
-          PrefetchHooks Function()
-        > {
-  $$FamilyVehicleRecordsTableTableManager(
-    _$AppDatabase db,
-    $FamilyVehicleRecordsTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$FamilyVehicleRecordsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$FamilyVehicleRecordsTableOrderingComposer(
-                $db: db,
-                $table: table,
-              ),
-          createComputedFieldComposer: () =>
-              $$FamilyVehicleRecordsTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<String> id = const Value.absent(),
-                Value<String> familyId = const Value.absent(),
-                Value<String> vehicleId = const Value.absent(),
-                Value<String> addedBy = const Value.absent(),
-                Value<DateTime> addedAt = const Value.absent(),
-                Value<DateTime?> syncedAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => FamilyVehicleRecordsCompanion(
-                id: id,
-                familyId: familyId,
-                vehicleId: vehicleId,
-                addedBy: addedBy,
-                addedAt: addedAt,
-                syncedAt: syncedAt,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required String id,
-                required String familyId,
-                required String vehicleId,
-                required String addedBy,
-                required DateTime addedAt,
-                Value<DateTime?> syncedAt = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => FamilyVehicleRecordsCompanion.insert(
-                id: id,
-                familyId: familyId,
-                vehicleId: vehicleId,
-                addedBy: addedBy,
-                addedAt: addedAt,
-                syncedAt: syncedAt,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$FamilyVehicleRecordsTable, FamilyVehicleRecord>(
-                    table,
-                  ),
-                  BaseReferences<
-                    _$AppDatabase,
-                    $FamilyVehicleRecordsTable,
-                    FamilyVehicleRecord
-                  >(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$FamilyVehicleRecordsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$AppDatabase,
-      $FamilyVehicleRecordsTable,
-      FamilyVehicleRecord,
-      $$FamilyVehicleRecordsTableFilterComposer,
-      $$FamilyVehicleRecordsTableOrderingComposer,
-      $$FamilyVehicleRecordsTableAnnotationComposer,
-      $$FamilyVehicleRecordsTableCreateCompanionBuilder,
-      $$FamilyVehicleRecordsTableUpdateCompanionBuilder,
-      (
-        FamilyVehicleRecord,
-        BaseReferences<
-          _$AppDatabase,
-          $FamilyVehicleRecordsTable,
-          FamilyVehicleRecord
-        >,
-      ),
-      FamilyVehicleRecord,
       PrefetchHooks Function()
     >;
 typedef $$DocumentRecordsTableCreateCompanionBuilder =
@@ -18897,19 +18314,16 @@ class $AppDatabaseManager {
       $$ExpensePartRecordsTableTableManager(_db, _db.expensePartRecords);
   $$NotificationRecordsTableTableManager get notificationRecords =>
       $$NotificationRecordsTableTableManager(_db, _db.notificationRecords);
-  $$FamilyRecordsTableTableManager get familyRecords =>
-      $$FamilyRecordsTableTableManager(_db, _db.familyRecords);
-  $$FamilyMembershipRecordsTableTableManager get familyMembershipRecords =>
-      $$FamilyMembershipRecordsTableTableManager(
+  $$VehicleShareRecordsTableTableManager get vehicleShareRecords =>
+      $$VehicleShareRecordsTableTableManager(_db, _db.vehicleShareRecords);
+  $$VehicleShareInvitationRecordsTableTableManager
+  get vehicleShareInvitationRecords =>
+      $$VehicleShareInvitationRecordsTableTableManager(
         _db,
-        _db.familyMembershipRecords,
+        _db.vehicleShareInvitationRecords,
       );
-  $$VehicleGrantRecordsTableTableManager get vehicleGrantRecords =>
-      $$VehicleGrantRecordsTableTableManager(_db, _db.vehicleGrantRecords);
   $$DrivingLicenseRecordsTableTableManager get drivingLicenseRecords =>
       $$DrivingLicenseRecordsTableTableManager(_db, _db.drivingLicenseRecords);
-  $$FamilyVehicleRecordsTableTableManager get familyVehicleRecords =>
-      $$FamilyVehicleRecordsTableTableManager(_db, _db.familyVehicleRecords);
   $$DocumentRecordsTableTableManager get documentRecords =>
       $$DocumentRecordsTableTableManager(_db, _db.documentRecords);
   $$MaintenanceCatalogRecordsTableTableManager get maintenanceCatalogRecords =>

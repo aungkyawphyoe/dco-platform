@@ -29,7 +29,7 @@ import {
   publicPlan,
 } from "../lib/serialize-records.js";
 import { requireOwner } from "./auth.js";
-import { getVehicleChangeAudience } from "./family.js";
+import { getVehicleAccessLevel, getVehicleChangeAudience } from "./vehicle-shares.js";
 import { getAccessibleVehicle } from "./vehicles.js";
 
 const uuid = z.string().uuid();
@@ -45,9 +45,29 @@ function dueFrom(intervalDays: number | null | undefined, intervalDistance: numb
 }
 
 /**
+ * Fuel logs are vehicle-scoped and may be created by any user holding access to
+ * the vehicle, so by-id reads must not be gated on `fuel_logs.user_id` — the
+ * vehicle owner has to be able to open logs a shared user created.
+ *
+ * `read` needs any access level; `write` additionally allows the author, so a
+ * `view` holder can edit only their own rows while `add_edit_own` holders can
+ * edit anyone's on the vehicle.
+ */
+async function loadFuelLogFor(db: Db, callerId: string, fuelLogId: string, mode: "read" | "write") {
+  const [row] = await db.select().from(fuelLogs).where(eq(fuelLogs.id, fuelLogId)).limit(1);
+  if (!row) throw new AppError(404, "not_found", "Fuel log not found");
+  const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
+  if (!access) throw new AppError(404, "not_found", "Fuel log not found");
+  if (mode === "write" && access === "view" && row.userId !== callerId) {
+    throw new AppError(403, "insufficient_permission", "Full access required");
+  }
+  return row;
+}
+
+/**
  * Record a change under the acting user, and also under every other user in
- * the vehicle's change audience (the vehicle owner plus family members
- * holding a grant). This keeps shared vehicles and their history in sync
+ * the vehicle's change audience (the vehicle owner plus users holding an
+ * active share). This keeps shared vehicles and their history in sync
  * across everyone who can access them.
  */
 async function recordVehicleScopedChange(
@@ -130,6 +150,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         notes: body.notes ?? null,
         catalogKey: body.catalog_key ?? null,
         enabled: body.enabled ?? true,
+        createdBy: uid(request),
       })
       .returning();
     const payload = publicPlan(row);
@@ -247,6 +268,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       workshopName: body.workshop_name ?? null,
       notes: body.notes ?? null,
       receiptMediaId: body.receipt_media_id ?? null,
+      createdBy: uid(request),
     });
     for (const item of body.items) {
       await db().insert(serviceRecordItems).values({
@@ -359,6 +381,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         brand: body.brand ?? null,
         partNumber: body.part_number ?? null,
         notes: body.notes ?? null,
+        createdBy: uid(request),
       })
       .returning();
     const payload = publicPart(row);
@@ -524,16 +547,14 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/fuel-logs/:fuelLogId", async (request) => {
     requireOwner(request);
     const { fuelLogId } = request.params as { fuelLogId: string };
-    const [row] = await db().select().from(fuelLogs).where(eq(fuelLogs.id, fuelLogId)).limit(1);
-    if (!row || row.userId !== uid(request)) throw new AppError(404, "not_found", "Fuel log not found");
+    const row = await loadFuelLogFor(db(), uid(request), fuelLogId, "read");
     return publicFuelLog(row);
   });
 
   app.patch("/fuel-logs/:fuelLogId", async (request) => {
     requireOwner(request);
     const { fuelLogId } = request.params as { fuelLogId: string };
-    const [row] = await db().select().from(fuelLogs).where(eq(fuelLogs.id, fuelLogId)).limit(1);
-    if (!row || row.userId !== uid(request)) throw new AppError(404, "not_found", "Fuel log not found");
+    const row = await loadFuelLogFor(db(), uid(request), fuelLogId, "write");
     const body = z.object({
       fuel_type_id: uuid.optional(),
       logged_on: z.string().optional(),
@@ -697,6 +718,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       incurredOn: body.incurred_on,
       notes: body.notes ?? null,
       receiptMediaId: body.receipt_media_id ?? null,
+      createdBy: uid(request),
     });
     for (const part of body.parts ?? []) {
       await db().insert(expenseParts).values({

@@ -60,8 +60,11 @@ import '../../features/settings/presentation/screens/units_formats_screen.dart';
 import '../../features/stats/presentation/screens/expense_stats_screen.dart';
 import '../../features/stats/presentation/screens/fuel_stats_screen.dart';
 import '../../features/stats/presentation/screens/maintenance_stats_screen.dart';
-import '../../features/family/presentation/screens/family_setup_screen.dart';
-import '../../features/family/presentation/screens/family_management_screen.dart';
+import '../../features/vehicle_sharing/presentation/screens/accept_invite_screen.dart';
+import '../../features/vehicle_sharing/presentation/screens/join_by_code_screen.dart';
+import '../../features/vehicle_sharing/presentation/screens/share_management_screen.dart';
+import '../../features/vehicle_sharing/presentation/screens/share_vehicle_screen.dart';
+import '../../features/vehicle_sharing/presentation/screens/shared_vehicles_screen.dart';
 import '../../features/sync/presentation/screens/sync_status_screen.dart';
 import 'app_shell.dart';
 import 'routes.dart';
@@ -456,22 +459,37 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const SyncStatusScreen(),
       ),
 
-      // Family
+      // Vehicle sharing
       GoRoute(
-        path: AppRoutes.family,
+        path: AppRoutes.sharedWithMe,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const FamilyManagementScreen(),
+        builder: (context, state) => const SharedVehiclesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.vehicleShareJoin,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) =>
+            JoinByCodeScreen(initialCode: state.uri.queryParameters['code']),
+      ),
+      GoRoute(
+        path: AppRoutes.vehicleShareAccept,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) =>
+            AcceptInviteScreen(token: state.uri.queryParameters['token'] ?? ''),
+      ),
+      GoRoute(
+        path: '/vehicle/:vehicleId/share',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => ShareManagementScreen(
+          vehicleId: state.pathParameters['vehicleId']!,
+        ),
         routes: [
           GoRoute(
             path: 'new',
             parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => const FamilySetupScreen(),
-          ),
-          GoRoute(
-            path: 'join/:code',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) =>
-                FamilySetupScreen(joinCode: state.pathParameters['code']!),
+            builder: (context, state) => ShareVehicleScreen(
+              vehicleId: state.pathParameters['vehicleId']!,
+            ),
           ),
         ],
       ),

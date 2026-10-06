@@ -26,7 +26,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 /// Vehicle detail: collapsing photo hero plus Overview / Maintenance /
-/// Details tabs. Opens for any vehicle — owned or shared with the family.
+/// Details tabs. Opens for any vehicle — owned or shared with the user.
 /// Edit is only offered for vehicles the current user owns; members keep
 /// view access plus "Set active" so they can log against the shared car.
 class VehicleDetailScreen extends ConsumerStatefulWidget {

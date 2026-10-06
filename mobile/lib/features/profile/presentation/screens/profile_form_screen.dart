@@ -284,12 +284,9 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       }
     } catch (e) {
       if (mounted) {
-        final message = e.toString().contains('transfer_required')
-            ? s.profileDeleteAccountBlocked
-            : '$e';
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(message)));
+        ).showSnackBar(SnackBar(content: Text('$e')));
       }
     }
   }

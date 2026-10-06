@@ -42,10 +42,10 @@ Accessible from **any screen** via the leading hamburger icon in the app bar. Op
 | **Maintenance Stats** | chart-bar | Maintenance Stats screen | **NEW.** Charts for maintenance costs, service frequency, upcoming schedule. |
 | **Expense Stats** | chart-bar | Expense Stats screen | **NEW.** Charts for spending by category, monthly trends, lifetime summary. |
 
-#### Family & Fleet (bottom section — conditional)
+#### Sharing & Fleet (bottom section — conditional)
 | Menu Item | Icon | Destination | Notes |
 |-----------|------|-------------|-------|
-| **Family** | people | Family Setup / Management | Visible to Premium users and active family members; invited members do not need Premium. |
+| **Sharing** | share | Vehicle Sharing / Shared with Me | Visible to all users; share creation capped by plan (free 1/3, premium 5/20). |
 | **Fleet** | truck | Fleet Mode / Org Management | Visible only to members of an active Enterprise organization; role limits actions. |
 
 ```text
@@ -70,7 +70,7 @@ Auth (online)
   │  ├─ Fuel Stats (NEW)                  │
   │  ├─ Maintenance Stats (NEW)            │
   │  ├─ Expense Stats (NEW)                │
-  │  ├─ Family (conditional)               │
+  │  ├─ Sharing (conditional)              │
   │  └─ Fleet (conditional)                │
   └─────────────────────────────────────────┘
 ```
@@ -94,8 +94,8 @@ Numbering follows the tldraw frame names.
 | 9 | Settings | Setting tab | Profile, account, Sign Out. Fleet context switch is in the conditional hamburger menu. |
 | 10 | Maintenance Plan | **Hamburger menu** → Maintenance Plan; after registering a vehicle | Moved from Maintenance tab. Suggested items filtered by fuel type. In the registration flow it shows an extra **Done** button → My Garage (4). |
 | 11 | Add Maintenance Item / Register Service | From 6 or from Hamburger → Maintenance Plan | Register service updates mileage and can complete plan items |
-| 12 | Family Setup | **Hamburger menu** → Family | Moved from Settings. Create or join a family group. |
-| 13 | Family Management | **Hamburger menu** → Family | Moved from Settings. Members, vehicles, share code, QR, driving licenses. |
+| 12 | Vehicle Share Management | **Hamburger menu** → Sharing | Vehicle Shares tab: manage shares on your vehicles (code/QR, email invites, access levels).
+| 13 | Shared with Me | **Hamburger menu** → Sharing | View/manage shares you hold on other people's vehicles. |
 | 14 | Insurance | **Hamburger menu** → Insurance | Moved from Garage. Vehicle insurance documents/status. |
 | 15 | Parts | **Hamburger menu** → Parts (also from Dashboard quick actions) | Per-vehicle parts catalog. |
 | 16 | Sync Status | **Hamburger menu** → Sync | Moved from Settings. Sync status indicator + manual sync. |
@@ -123,7 +123,7 @@ Keep one `StatefulShellRoute` (or equivalent) for the four tabs. Push these on t
 - Document list, viewer, upload
 - Maintenance Plan, Suggested items, Add item, Register Service, Service detail
 - Notification feed, Profile, Email & password, Notification prefs, Reminders (soon thresholds)
-- Family setup, Family management (members, vehicles, share code, QR, driving licenses)
+- Vehicle Share Management, Shared with Me (share codes, email invites, access levels)
 - Fuel Stats, Maintenance Stats, Expense Stats (chart screens, `stats.md`)
 - Sync Status
 - Fleet Mode, Org Management, Vehicle Inventory, Work Orders, Inspections, Assignments, Reports
@@ -170,7 +170,7 @@ From `product/frd/auth.md`:
 
 Autozis web demo uses a **left sidebar** (Manage: Garage, Assistant, Maintenance Plan, Insurance, Notes, Documents; Stats: Insights, Refuel, Maintenance, Expenses, Trips; Catalogs; Account) plus a **bottom module dock** (Dashboard, Refuel, Maintenance, Expenses, Trips, Reminders).
 
-DCO mobile uses **four bottom tabs + hamburger menu**. The hamburger menu provides access to secondary features (Documents, Parts, Maintenance Plan, Insurance, Stats, Family, Fleet) while the bottom tabs remain the primary navigation. This is a hybrid approach — bottom tabs for daily use, hamburger for less frequent actions.
+DCO mobile uses **four bottom tabs + hamburger menu**. The hamburger menu provides access to secondary features (Documents, Parts, Maintenance Plan, Insurance, Stats, Sharing, Fleet) while the bottom tabs remain the primary navigation. This is a hybrid approach — bottom tabs for daily use, hamburger for less frequent actions.
 
 ---
 
@@ -186,15 +186,15 @@ Staff only. Online. Wireframes: tldraw **A1–A6** (cluster "WEB ADMIN (MVP)").
 | A4 User profile | `/users/:id` | |
 | A5 Partners | `/partners` | |
 | A6 Partner create/edit | `/partners/new`, `/partners/:id` | |
-| A7 Family Dashboard | `/family` | Primary Owner read-only |
+| A7 Owner Shares Dashboard | `/vehicles/shared` | Vehicle owner read-write |
 
 Sidebar (Autozis-like chrome, DCO items only):
 
 - Overview — Dashboard
 - Directory — Users, Partners, Organizations
-- Family — Primary Owner read-only dashboard (members, vehicles, share code)
+- Owner Shares Dashboard — read-write shares page for vehicle owners (manage shares, codes, invites)
 - Account — Sign out
 
 No owner modules (Garage, Refuel, Trips, Insurance, Documents vault).
 
-Flow: Login → Dashboard → Users (search → profile → deactivate / reactivate / reset / plan) or Partners (create/edit status) or Family (read-only view for Primary Owners).
+Flow: Login → Dashboard → Users (search → profile → deactivate / reactivate / reset / plan) or Partners (create/edit status) or Shared Vehicles (vehicle owner shares view).

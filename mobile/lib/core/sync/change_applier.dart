@@ -35,8 +35,8 @@ class ChangeApplier {
         await _applyNotification(change, userId);
       case OutboxEntityType.document:
         await _applyDocument(change);
-      case OutboxEntityType.familyVehicle:
-        await _applyFamilyVehicle(change);
+      case OutboxEntityType.vehicleShare:
+        await _applyVehicleShare(change, userId);
       default:
       // media / user have no local tables yet; nothing to apply.
         break;
@@ -367,27 +367,72 @@ class ChangeApplier {
     );
   }
 
-  Future<void> _applyFamilyVehicle(SyncChange change) async {
+  /// Applies one `vehicle_share` change.
+  ///
+  /// The payload's `user_id` is the member holding access, so a change
+  /// belonging to *this* account also means a vehicle row they do not own
+  /// needs its `source`/`permission` stamped — or dropped when access ends.
+  Future<void> _applyVehicleShare(SyncChange change, String userId) async {
     final payload = change.payload;
     final id = _idOf(payload, change);
+    final vehicleId = _strN(payload['vehicle_id']);
+    final shareUserId = _strN(payload['user_id']);
+    final isMine = shareUserId != null && shareUserId == userId;
+
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.familyVehicleRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(_db.vehicleShareRecords)..where((row) => row.id.equals(id))).go();
+      if (isMine && vehicleId != null) {
+        await _unshareVehicle(vehicleId);
+      }
       return;
     }
-    final existing = await (_db.select(
-      _db.familyVehicleRecords,
-    )..where((row) => row.id.equals(id))).getSingleOrNull();
 
-    await _db.into(_db.familyVehicleRecords).insertOnConflictUpdate(
-      FamilyVehicleRecordsCompanion.insert(
+    if (vehicleId == null || shareUserId == null) return;
+
+    await _db.into(_db.vehicleShareRecords).insertOnConflictUpdate(
+      VehicleShareRecordsCompanion.insert(
         id: id,
-        familyId: _str(payload['family_id']),
-        vehicleId: _str(payload['vehicle_id']),
-        addedBy: _str(payload['added_by']),
-        addedAt: _dt(payload['added_at']) ?? change.serverTs,
-        syncedAt: Value(change.serverTs),
+        vehicleId: vehicleId,
+        userId: shareUserId,
+        grantedBy: Value(_strN(payload['granted_by'])),
+        accessLevel: _str(payload['access_level'], fallback: 'view'),
+        status: Value(_str(payload['status'], fallback: 'pending')),
+        invitedEmail: Value(_strN(payload['invited_email'])),
+        shareCode: Value(_strN(payload['share_code'])),
+        displayName: Value(_strN(payload['display_name'])),
+        email: Value(_strN(payload['email'])),
+        acceptedAt: Value(_dt(payload['accepted_at'])),
+        createdAt: _dt(payload['created_at']) ?? change.serverTs,
+        syncedAt: Value(change.serverTs.toIso8601String()),
       ),
     );
+
+    final active = _str(payload['status'], fallback: 'pending') == 'active';
+    if (isMine && active) {
+      final vehicle = await (_db.select(
+        _db.vehicleRecords,
+      )..where((row) => row.id.equals(vehicleId))).getSingleOrNull();
+      if (vehicle != null && vehicle.source != 'shared') {
+        await (_db.update(
+          _db.vehicleRecords,
+        )..where((row) => row.id.equals(vehicleId))).write(
+          VehicleRecordsCompanion(
+            source: const Value('shared'),
+            permission: Value(_str(payload['access_level'], fallback: 'view')),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Drops a vehicle that was only present because it was shared with us.
+  /// Owned vehicles are never touched here.
+  Future<void> _unshareVehicle(String vehicleId) async {
+    final vehicle = await (_db.select(
+      _db.vehicleRecords,
+    )..where((row) => row.id.equals(vehicleId))).getSingleOrNull();
+    if (vehicle == null || vehicle.source != 'shared') return;
+    await (_db.delete(_db.vehicleRecords)..where((row) => row.id.equals(vehicleId))).go();
   }
 
   Future<void> _applyDocument(SyncChange change) async {

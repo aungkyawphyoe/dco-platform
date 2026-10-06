@@ -14,17 +14,17 @@ Fleet Management enables **business accounts** (showrooms, dealerships, taxi fle
 
 | Account/context | Entitlement source | Available capabilities |
 |-----------------|--------------------|------------------------|
-| Normal user (`users.plan=free`) | User account | Basic personal app functionality. No Family setup or Fleet entry point unless the user has an active family membership or active organization membership. |
-| Premium user (`users.plan=premium`) | User account | Basic personal app functionality + Family creation/management. Premium is assigned by DCO Admin for this phase; in-app billing and subscription management are out of scope. |
+| Normal user (`users.plan=free`) | User account | Basic personal app functionality plus Vehicle Sharing capped at 1 active share per vehicle / 3 total. No Fleet entry point unless the user has an active organization membership. |
+| Premium user (`users.plan=premium`) | User account | Basic personal app functionality + raised Vehicle Sharing caps (5 active shares per vehicle / 20 total). Premium is assigned by DCO Admin for this phase; in-app billing and subscription management are out of scope. |
 | Enterprise user | Organization (`organizations.plan=enterprise`) | Basic personal app functionality + Fleet context while the user has an active membership in an `active` Enterprise organization. Organization role limits Fleet actions. Enterprise is not a value of `users.plan`. |
 
 **Entitlement rules:**
-- User plan and organization entitlement are independent. An Enterprise member retains their personal plan; Enterprise does not imply Premium or Family Management.
+- User plan and organization entitlement are independent. An Enterprise member retains their personal plan; Enterprise does not imply Premium or raised sharing limits.
 - A Premium user who belongs to an active Enterprise organization can use both Personal and Fleet contexts. Personal mode remains available; Fleet membership does not replace or transfer ownership of personal vehicles.
-- The Premium Primary Owner unlocks Family creation/management. Invited family members do not need their own Premium plan to use access granted by an active family membership.
-- If a Primary Owner loses Premium, the family is archived and family access is revoked for all members. Personal vehicle ownership and records remain with their owners.
-- Hide Family/Fleet entry points when the user has no applicable entitlement or active membership. Membership-based access for an invited family member remains visible even when that member is on the free plan.
-- The API is authoritative: it validates user plan for Premium-only Family operations and organization plan, status, membership, and role for every Fleet operation. UI visibility is not an authorization boundary.
+- Sharing works on both plans: a sharee never needs their own Premium plan to hold or use a share. Premium only raises the owner's per-vehicle/total caps.
+- If a Premium owner downgrades, existing shares are NOT revoked — only new share creation is blocked while active shares exceed the free caps. Personal vehicle ownership and records remain with their owners.
+- Hide the Fleet entry point when the user has no active organization membership. A sharee's Shared with Me entry stays visible even when that member is on the free plan.
+- The API is authoritative: it validates share plan caps and vehicle access level for Vehicle Sharing, and organization plan, status, membership, and role for every Fleet operation. UI visibility is not an authorization boundary.
 - Organization provisioning is DCO-admin-only. New Enterprise organizations start `pending`; only DCO Admin activation changes status to `active` and enables Fleet access. Suspension removes Fleet access for all members but does not affect their personal app access.
 
 **Audience boundary:** Mobile owner clients use `dco-owner`. The Fleet Dashboard uses `dco-fleet`. Both can call shared Fleet API routes, which independently validate organization membership and role. DCO support uses `dco-admin` through Web Admin read-only routes.
@@ -744,16 +744,16 @@ Enable organizations to:
 ```json
 {
   "plan": "free",
-  "family": { "available": true, "role": "member", "can_create": false, "can_manage": false },
+  "vehicle_sharing": { "available": true, "can_share": true, "limits": { "per_vehicle": 1, "total": 3 }, "active_shares": 1 },
   "organization": { "id": "uuid", "plan": "enterprise", "status": "active", "role": "org_driver" },
-  "features": { "family": true, "fleet": true }
+  "features": { "vehicle_sharing": true, "fleet": true }
 }
 ```
-`family.available` is true for Premium users eligible to create/manage Family or for users with active family membership. `features.fleet` is true only for active Enterprise org members. This payload controls navigation visibility only; operation-level role and entitlement checks remain server-side.
+`vehicle_sharing.can_share` reflects the plan caps (free 1/3, premium 5/20) and whether the caller is already at them; `active_shares` counts the caller's outgoing active shares. `features.fleet` is true only for active Enterprise org members. This payload controls navigation visibility only; operation-level role and entitlement checks remain server-side.
 
 | Method | Path | Audience | Description |
 |--------|------|----------|-------------|
-| GET | `/v1/me/entitlements` | `dco-owner` | Return plan, Family availability/permissions, and active organization context for conditional navigation; a UI hint only |
+| GET | `/v1/me/entitlements` | `dco-owner` | Return plan, Vehicle Sharing caps/usage, and active organization context for conditional navigation; a UI hint only |
 | GET | `/v1/organizations/me` | `dco-owner` | Get my organization and membership; returns `organization: null` when not a member |
 | GET | `/v1/organizations/:id/members` | `dco-owner` | List members with roles |
 | POST | `/v1/organizations/:id/members` | `dco-owner` | Invite member by email — Admin only; roles `org_manager` / `org_mechanic` only (drivers use driver creation) |
@@ -1099,9 +1099,9 @@ Enable organizations to:
 26. **Fleet entitlement requires active org membership** — both organization plan and `status=active` are required; org role determines allowed operations
 27. **DCO Admin activates organizations** — creation starts `pending`; owner login does not activate the org
 28. **Org suspension revokes Fleet access** — all members lose Fleet context/API access while personal access remains unchanged
-29. **Premium and Enterprise are independent** — an Enterprise member receives Fleet access from membership, not Premium; Family requires separate Premium eligibility for the Primary Owner
-30. **Invited family members do not need Premium** — role and vehicle-grant checks govern their access to an active family
-31. **Premium revocation archives the family** — revoke all family access; do not delete users, personal vehicles, or vehicle history
+29. **Premium and Enterprise are independent** — an Enterprise member receives Fleet access from membership, not Premium; Premium only raises the Vehicle Sharing caps
+30. **Invited sharees do not need Premium** — the vehicle access level (`view` / `add_edit_own`) governs their access to a share
+31. **Premium downgrade does not revoke shares** — existing shares keep working; only new share creation is blocked while over the free caps
 32. **Feature entry points are hidden when unavailable** — app UI mirrors entitlement, and backend authorization remains authoritative
 33. **Fleet Portal sidebar is role-gated** — `org_admin` full nav; `org_manager`/`org_mechanic` reduced nav (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred); `org_driver` cannot log into the portal; server-side role checks remain authoritative
 34. **Drivers are created only by the Fleet Admin** — username + display name + initial password, no email; the email member invite is limited to `org_manager`/`org_mechanic`
@@ -1120,16 +1120,16 @@ Enable organizations to:
 ### Login → Resolve Entitlements → Show Available Features
 ```
 User (Mobile)
-  Logs in → app loads account plan and current family/org membership
-  → Normal (`free`) user: basic personal app; no Family/Fleet entry unless invited to an active family or org
-  → Premium (`premium`) user: basic personal app + Family setup/management entry
+  Logs in → app loads account plan and current share/org context
+  → Normal (`free`) user: basic personal app + Vehicle Sharing within free caps (1/vehicle, 3 total); no Fleet entry unless invited to an active org
+  → Premium (`premium`) user: basic personal app + Vehicle Sharing within premium caps (5/vehicle, 20 total)
   → Enterprise org member: basic personal app + Fleet entry only when org is active
-  → Premium user who is also an active org member: both Family and Fleet are available
-  → Invited family member on `free`: Family entry is available for their granted membership scope; no Premium required
+  → Premium user who is also an active org member: both Vehicle Sharing and Fleet are available
+  → Sharee on `free`: Shared with Me entry is available for their share scope; no Premium required
   → User may switch Personal/Fleet contexts; personal vehicles remain in Personal mode
 
 Backend (every protected request)
-  → Validates user plan, family membership/role, organization plan/status/membership/role
+  → Validates user plan caps, vehicle access level, organization plan/status/membership/role
   → Rejects unauthorized actions even if a client presents a stale or forged navigation state
 ```
 
@@ -1292,8 +1292,8 @@ Platform Admin (Web Admin Portal)
 ### Feature Access
 - Fleet access requires `organizations.plan=enterprise`, `status=active`, and an active membership for the authenticated user
 - Role checks apply after entitlement checks; user-level `plan` does not grant Fleet access
-- Premium-only Family creation/management requires `users.plan=premium` and the required family role
-- Existing family participants retain role/grant-scoped access without their own Premium plan
+- Vehicle Sharing caps are plan-scoped: free 1 active share per vehicle / 3 total, premium 5 / 20 (see `vehicle-sharing.md`)
+- Sharees retain `view` / `add_edit_own` access without their own Premium plan
 - `GET /v1/me/entitlements` is a display/navigation hint; protected API routes independently enforce access
 
 ### Member Invitation (Manager / Mechanic only)
@@ -1377,7 +1377,7 @@ Platform Admin (Web Admin Portal)
 
 | Scenario | Response |
 |----------|----------|
-| User lacks Premium for Family creation/management | 403 `premium_required` |
+| User is at or over their plan's Vehicle Sharing caps | 403 `premium_required` |
 | User lacks active Enterprise organization membership | 403 `fleet_access_required` |
 | Organization is not Enterprise-entitled | 403 `enterprise_org_required` |
 | User has no active membership in requested org | 403 `not_org_member` |
@@ -1583,9 +1583,9 @@ Platform Admin (Web Admin Portal)
 
 1. Enterprise entitlement belongs to the organization (`organizations.plan=enterprise`); it is not a user plan or user role.
 2. Enterprise and Premium are independent. Premium is DCO-admin-managed for this phase; no purchase/billing flow is included.
-3. Premium is required for Family creation/management by the Primary Owner; invited members use granted access without their own Premium plan. A Primary Owner downgrade archives the family and revokes family access.
+3. Vehicle Sharing is open to both plans within caps (free 1/3, premium 5/20); sharees use granted access without their own Premium plan. A downgrade does not revoke existing shares — it only blocks new creation while over the free caps.
 4. Fleet access requires active membership in an active Enterprise organization; membership role limits actions. Organization provisioning starts pending and DCO Admin explicitly activates it.
-5. Hide unavailable Family/Fleet entry points. API authorization is authoritative and re-checks entitlement, membership, status, and role.
+5. Hide unavailable Vehicle Sharing/Fleet entry points. API authorization is authoritative and re-checks plan caps, vehicle access level, membership, status, and role.
 6. Flutter uses `dco-owner`; Fleet Dashboard uses `dco-fleet`; DCO support uses `dco-admin` through Web Admin. Workshop accounts follow the separate `dco-workshop` audience in `architecture/iam.md`.
 7. **(Oct 2026)** The four organization roles stand; "Fleet Admin" means `org_admin`. Fleet Portal sidebar visibility is role-based: full nav for `org_admin`, reduced nav (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred) for `org_manager`/`org_mechanic`, and no portal login for `org_driver`. The mobile drawer Fleet entry remains visible to all org members.
 8. **(Oct 2026)** DCO Admin provisions the Fleet Admin account with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations. Exactly one `org_admin` per org, created only by DCO Admin — no self-promotion or deputy admins.
@@ -1600,7 +1600,7 @@ Platform Admin (Web Admin Portal)
 
 1. **Buyer auto-creation**: If the buyer email doesn't exist, should we auto-create a pending account (requires email verification) or reject the transfer?
 2. **Warranty mileage tracking**: Who updates the vehicle's mileage to check against warranty limits — the workshop on each service, or the owner on each fuel log?
-3. **Fleet Owner ownership transfer**: Can the Fleet Owner transfer admin role to another member (like Primary Owner transfer in families)?
+3. **Fleet Owner ownership transfer**: Can the Fleet Owner transfer admin role to another member (like vehicle ownership transfer for shared vehicles)?
 4. **Bulk status update**: Can the Fleet Owner change status of multiple vehicles at once (e.g., mark 5 vehicles as `listed`)?
 5. **Workshop service on non-warranty vehicles**: Should workshops be able to log service on vehicles not under warranty (general service)?
 6. **CSV template download**: Should we provide a CSV template file for import?

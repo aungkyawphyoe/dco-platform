@@ -1,11 +1,11 @@
 # Identity and access (MVP + extension map)
 
-**Status:** Binding for the shipped owner/Admin IAM baseline; backend Family Premium, Enterprise Fleet, and verified-workshop access gates are implemented. Fleet/Workshop Portal and mobile Fleet UI remain pending.
+**Status:** Binding for the shipped owner/Admin IAM baseline; backend Vehicle Sharing, Enterprise Fleet, and verified-workshop access gates are implemented. Fleet/Workshop Portal and mobile Fleet UI remain pending.
 **Contract:** `product/mvp-scope.md`.
 
 This file is the IAM taxonomy. `users.role` remains `owner` | `admin`; Enterprise privileges come from organization membership and role. Personal `vehicles.user_id` remains the owner of record. Partner rows remain non-login records until a dedicated partner account flow is built.
 
-Family sharing uses `family_memberships.role` (`primary_owner` | `member` | `driver`) for per-vehicle authorization, not a new `users.role` value. All family participants use the same `dco-owner` JWT audience.
+Vehicle sharing grants access **per vehicle** through `vehicle_shares.access_level` (`view` | `add_edit_own`), not a new `users.role` value and not a household/group entity. Everyone involved — sharer and sharee — uses the same `dco-owner` JWT audience. Detail: `architecture/iam-vehicle-sharing.md`.
 
 ---
 
@@ -13,17 +13,17 @@ Family sharing uses `family_memberships.role` (`primary_owner` | `member` | `dri
 
 | Principal | Surface | JWT `aud` | `role` | What they can do |
 |-----------|---------|-----------|--------|------------------|
-| Primary owner | Flutter | `dco-owner` | `owner` | Own garage: vehicles, plan, services, parts, fuel logs, documents, expenses, media, sync, notification feed |
+| Vehicle owner | Flutter + Web | `dco-owner` | `owner` | Own garage: vehicles, plan, services, parts, fuel logs, documents, expenses, media, sync, notification feed. Shares their vehicles (owner surface) |
 | Platform admin | Web admin (later UI) | `dco-admin` | `admin` | `/v1/admin/*` only: users, partners as records, audit. No owner garage screens |
-| Family member | Flutter | `dco-owner` | `owner` | Granted vehicle access: full (CRUD on services/expenses/fuel/docs) or drive_only (fuel + doc view). Family view. See `architecture/iam-family.md` |
+| Vehicle sharee | Flutter | `dco-owner` | `owner` | Access to someone else's vehicle at `view` (read, plus fuel logs) or `add_edit_own` (read + write, records attributed to the writer). Sees "Shared with Me". See `architecture/iam-vehicle-sharing.md` |
 
 Rules:
 
 - Owner signup always creates `role=owner`. Admins are seeded out of band (`BOOTSTRAP_ADMIN_*`), never via `/v1/auth/signup`.
 - An owner JWT must not call `/v1/admin/*`. An admin JWT must not call owner garage routes.
-- User `plan` (`free` \| `premium`) lives on the **user**. The shipped MVP did not enforce plan gates. The production backend now requires Premium for Family creation/Primary Owner management; invited family members retain their granted access without their own Premium plan. Billing remains out of scope.
+- User `plan` (`free` \| `premium`) lives on the **user** and only sizes Vehicle Sharing limits (free 1/3, premium 5/20) plus premium UI. Sharing and accepting are open to both plans; downgrading does not revoke existing shares. Billing remains out of scope.
 - Partner rows (`workshop` \| `insurer`) are CRM records. `verified` does not issue tokens or unlock booking/claims.
-- Family authorization uses `family_memberships.role` + `vehicle_grants`. See `architecture/iam-family.md`.
+- Vehicle authorization uses `getVehicleAccessLevel` → `owner` | `view` | `add_edit_own` | `null`, resolved from `vehicles.user_id` plus an active `vehicle_shares` row on every request. See `architecture/iam-vehicle-sharing.md`.
 - Sync outbox and `change_log` are bound to `user_id`. After logout, another account on the same device must not push the previous outbox.
 
 Audiences in env: `JWT_OWNER_AUD=dco-owner`, `JWT_FLEET_AUD=dco-fleet`, `JWT_WORKSHOP_AUD=dco-workshop`, `JWT_ADMIN_AUD=dco-admin`. See `docs/environment-secrets.md`.
@@ -32,7 +32,7 @@ Audiences in env: `JWT_OWNER_AUD=dco-owner`, `JWT_FLEET_AUD=dco-fleet`, `JWT_WOR
 
 ## B2B extension
 
-These personas exist in `docs/vision.md` and `docs/personas.md`. They are **not** Phase 1 products. When they land, introduce organizations as a **new** root — do not migrate every owner into a 1-person org as a prerequisite for the first family share.
+These personas exist in `docs/vision.md` and `docs/personas.md`. They are **not** Phase 1 products. When they land, introduce organizations as a **new** root — do not migrate every owner into a 1-person org as a prerequisite for the first vehicle share.
 
 | Persona | Tenant | JWT `aud` | App | Status |
 |---------|---------------|------------------|-----|--------|
@@ -46,7 +46,7 @@ Fleet and verified-workshop REST/auth/schema foundations are implemented. Fleet/
 ### Fleet backend contract
 
 1. `organizations` and `organization_members` are the Enterprise access root. Enterprise is `organizations.plan=enterprise`, not a user plan or `users.role`.
-2. Keep Family `vehicle_grants` family-scoped. Fleet inventory is linked through `organization_vehicles`; `vehicles.user_id` remains the owner of record and changes to the buyer on transfer.
+2. Keep `vehicle_shares` scoped to a single owner's vehicles. Fleet inventory is linked through `organization_vehicles`; `vehicles.user_id` remains the owner of record and changes to the buyer on transfer. A vehicle linked to an organization is excluded from personal-owner routes and cannot be shared.
 3. Mobile continues to use `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified workshop accounts use `dco-workshop`. Insurers get a separate partner audience when claims are implemented. Do not reuse `dco-admin` for partners.
 4. Change-log cursor stays per acting `user_id`; full offline Fleet sync remains to be completed.
 5. Entra External ID remains an option for B2B tenants; current backend uses the existing password JWT flow (email **or username** identifier after the Oct 2026 alignment).
@@ -60,14 +60,14 @@ Fleet and verified-workshop REST/auth/schema foundations are implemented. Fleet/
 - Fleet Portal login rejects `org_driver` (403 `portal_access_restricted`); portal sidebar visibility is role-gated (admin full, manager/mechanic reduced, driver none). Mobile remains `dco-owner` for all org members, including drivers.
 - Fleet Admin (`org_admin`) accounts are provisioned by DCO Admin with email + temporary password (forced change); exactly one admin per org, created only by DCO Admin.
 
-### Implemented Backend Entitlements (Family + Fleet)
+### Implemented Backend Entitlements (Vehicle Sharing + Fleet)
 
 - Keep `users.plan` as `free` or `premium`; Premium remains DCO-admin-managed until billing is explicitly added.
-- Resolve Family and Fleet as separate entitlements. Enterprise membership does not set or imply a user's Premium plan.
+- Resolve Vehicle Sharing and Fleet as separate entitlements. Enterprise membership does not set or imply a user's Premium plan.
 - Fleet access requires an Enterprise organization, organization `status=active`, and active membership; organization role authorizes the requested operation.
-- Family creation and Primary Owner management require Premium. An invited user does not need Premium to join or use role/grant-scoped access.
-- If the Primary Owner is downgraded from Premium, archive the family and revoke member access; retain personal user/vehicle data.
-- `GET /v1/me/entitlements` provides navigation hints. Every protected API operation re-checks plan, membership, org status, and role server-side; mobile/portal navigation wiring remains pending.
+- Both plans can share and accept shares. `SHARE_LIMITS` caps a free owner at 1 active share per vehicle / 3 total and a premium owner at 5 / 20; the caps are re-checked server-side on every share create and accept/join.
+- Downgrading from Premium does not revoke existing shares; it only shrinks the caps, so the owner cannot create new shares until they are back under the free-plan limits.
+- `GET /v1/me/entitlements` returns `vehicle_sharing.{available,can_share,limits,active_shares}` and `features.vehicle_sharing` as navigation hints. Every protected API operation re-checks plan, membership, org status, and role server-side; mobile/portal navigation wiring remains pending.
 - DCO Admin creates Enterprise organizations in `pending` and explicitly activates them after provisioning. A user's login does not activate an organization.
 - Fleet Dashboard receives `dco-fleet`; Flutter remains on `dco-owner`. Shared Fleet APIs authorize by organization membership/role independently of audience.
 

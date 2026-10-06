@@ -42,7 +42,7 @@ Enable users to:
 - Magic links
 - Multi-factor authentication
 - Passkeys
-- Family sharing / multi-driver accounts
+- Vehicle sharing / multi-driver accounts (see `vehicle-sharing.md`; auth only provisions the accounts)
 - Admin login (see `admin.md`)
 
 ---
@@ -50,7 +50,7 @@ Enable users to:
 # User Personas
 
 - Everyday Owner
-- Family Manager (own account only; sharing is out of MVP)
+- Family Manager (own account only; sharing is handled by `vehicle-sharing.md`)
 - Car Enthusiast
 
 ---

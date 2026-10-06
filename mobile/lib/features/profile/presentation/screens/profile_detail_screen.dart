@@ -9,10 +9,9 @@ import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/domain/entities/session.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
-import 'package:dco_mobile/features/family/domain/entities/family.dart'
-    as family_entities;
 import 'package:dco_mobile/features/profile/presentation/widgets/license_flip_card.dart';
-import 'package:dco_mobile/features/family/providers.dart';
+import 'package:dco_mobile/features/vehicle_sharing/domain/entities/user_detail.dart';
+import 'package:dco_mobile/features/vehicle_sharing/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 
 /// Read-only profile detail: license hero card (flip front/back), profile
@@ -57,7 +56,7 @@ class ProfileDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations s,
     DcoTokens tokens,
-    AsyncValue<family_entities.UserDetail?> detailAsync,
+    AsyncValue<UserDetail?> detailAsync,
   ) {
     final sessionAsync = ref.watch(sessionControllerProvider);
     final sessionUser = sessionAsync.valueOrNull?.user;
@@ -96,7 +95,7 @@ class ProfileDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations s,
     DcoTokens tokens,
-    AsyncValue<family_entities.UserDetail?> detailAsync,
+    AsyncValue<UserDetail?> detailAsync,
   ) {
     return detailAsync.when(
       loading: () =>
@@ -136,7 +135,7 @@ class ProfileDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations s,
     DcoTokens tokens, {
-    required AsyncValue<family_entities.UserDetail?> detailAsync,
+    required AsyncValue<UserDetail?> detailAsync,
     required User? selfUser,
     required String? fallbackFrontMediaId,
     required String? fallbackBackMediaId,
@@ -253,7 +252,7 @@ class ProfileDetailScreen extends ConsumerWidget {
     WidgetRef ref,
     AppLocalizations s,
     DcoTokens tokens,
-    AsyncValue<family_entities.UserDetail?> detailAsync,
+    AsyncValue<UserDetail?> detailAsync,
     String? fallbackFrontMediaId,
     String? fallbackBackMediaId,
   ) {

@@ -105,7 +105,7 @@ So that Dashboard is still usable as the home tab.
 
 ## Header
 
-- Leading: **hamburger icon** → opens drawer menu (sync, notifications, documents, parts, maintenance plan, insurance, stats, family, fleet, profile, sign out).
+- Leading: **hamburger icon** → opens drawer menu (sync, garage, maintenance plan, parts, documents, stats, shared with me, join vehicle share, fleet, profile, sign out).
 - Title shows a time-of-day greeting (morning < 12:00, afternoon 12:00–16:59, evening ≥ 17:00) over the user's display name; fall back to email when the name is empty, and to an empty string when both are empty.
 - Garage affordance (wireframe label `garage`) → My Garage (screen 4).
 - `Noti` → in-app notification feed.

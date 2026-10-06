@@ -358,9 +358,6 @@ class AppLocalizationsMy extends AppLocalizations {
       'ပြုပြင်ထိန်းသိမ်းမှု၊ ကုန်ကျစရိတ်နှင့် စာရွက်စာတမ်းများကို မှတ်တမ်းတင်ပါ';
 
   @override
-  String get garageFamilyBadge => 'မိသားစု';
-
-  @override
   String get vehicleEditTitle => 'ယာဉ်အချက်အလက် ပြင်မည်';
 
   @override
@@ -430,9 +427,6 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get vehicleEditTooltip => 'ယာဉ်အချက်အလက် ပြင်မည်';
-
-  @override
-  String get vehicleRemoveTooltip => 'မိသားစုအကောင့်မှ ဖယ်ရှားမည်';
 
   @override
   String get vehiclePlateDuplicate =>
@@ -1622,25 +1616,6 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsSyncSection => 'ဒေတာ ချိတ်ဆက်မှု';
 
   @override
-  String get settingsFamilySection => 'မိသားစု';
-
-  @override
-  String get settingsLoadingFamily => 'မိသားစု အချက်အလက်များ ရယူနေသည်...';
-
-  @override
-  String get settingsFamilyLoadError => 'မိသားစု အချက်အလက်များ ရယူ၍မရပါ';
-
-  @override
-  String get settingsFamilyTapRetry => 'ပြန်ကြိုးစားရန် နှိပ်ပါ';
-
-  @override
-  String get settingsFamilyFallback => 'မိသားစု';
-
-  @override
-  String get settingsFamilySubtitle =>
-      'ယာဉ်များကို မျှဝေသုံးစွဲရန် မိသားစုအကောင့် ပြုလုပ်ပါ သို့မဟုတ် ဝင်ရောက်ပါ';
-
-  @override
   String get settingsSignOut => 'အကောင့်မှ ထွက်မည်';
 
   @override
@@ -1736,10 +1711,6 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get profileDeleteAccountPassword => 'Enter your password to confirm';
-
-  @override
-  String get profileDeleteAccountBlocked =>
-      'You are the Primary Owner of a family. Transfer ownership or dissolve your family before deleting your account.';
 
   @override
   String get profileDeleteAccountSuccess => 'Your account has been deleted.';
@@ -1947,283 +1918,6 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get familyJoinTitle => 'မိသားစုအကောင့်သို့ ဝင်မည်';
-
-  @override
-  String get familyCreateTitle => 'မိသားစုအကောင့် ပြုလုပ်မည်';
-
-  @override
-  String get familyJoining => 'မိသားစုအကောင့်သို့ ဝင်ရောက်နေသည်...';
-
-  @override
-  String get familyCreateHeading => 'သင့်မိသားစုအကောင့်ကို ပြုလုပ်ပါ';
-
-  @override
-  String get familyCreateBody =>
-      'ယာဉ်များကို မျှဝေသုံးစွဲရန်နှင့် အသုံးပြုခွင့်များကို အတူတကွ စီမံခန့်ခွဲရန် မိသားစုဝင်များကို ဖိတ်ခေါ်ပါ။';
-
-  @override
-  String get familyNameLabel => 'မိသားစု အမည်';
-
-  @override
-  String get familyNameHint => 'ဥပမာ- ဦးဘအိမ်ထောင်စု';
-
-  @override
-  String get familyNameRequired => 'မိသားစု အမည် ရိုက်ထည့်ရန် လိုအပ်သည်';
-
-  @override
-  String get familyNameMaxLength => 'အမည်သည် စာလုံးရေ ၁၀၀ ထက် မပိုရပါ';
-
-  @override
-  String get familyCreating => 'ပြုလုပ်နေသည်...';
-
-  @override
-  String get familyCreateButton => 'မိသားစုအကောင့် ပြုလုပ်မည်';
-
-  @override
-  String get familyCreatedSuccess =>
-      'မိသားစုအကောင့် ပြုလုပ်ပြီးပါပြီ! မိသားစုဝင်များကို ဒီကုတ်နံပါတ် မျှဝေပါ။';
-
-  @override
-  String familyCreateFailed(Object error) {
-    return 'မိသားစုအကောင့် ပြုလုပ်ခြင်း မအောင်မြင်ပါ- $error';
-  }
-
-  @override
-  String get familyJoinedSuccess =>
-      'မိသားစုအကောင့်သို့ အောင်မြင်စွာ ဝင်ရောက်ပြီးပါပြီ!';
-
-  @override
-  String familyJoinFailed(Object error) {
-    return 'မိသားစုအကောင့်သို့ ဝင်ရောက်ခြင်း မအောင်မြင်ပါ- $error';
-  }
-
-  @override
-  String get familyCreatedHeading => 'မိသားစုအကောင့် ပြုလုပ်ပြီးပါပြီ!';
-
-  @override
-  String get familyCreatedBody =>
-      'မိသားစုဝင်များ ဝင်ရောက်နိုင်ရန် ဒီကုတ်နံပါတ်ကို ၎င်းတို့ထံ မျှဝေပါ။';
-
-  @override
-  String get familyShareCode => 'ကုတ်နံပါတ် မျှဝေမည်';
-
-  @override
-  String get familyShareCodeHelper =>
-      'ဝင်ရောက်ရန် AutoHub အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
-
-  @override
-  String get familyCopyCode => 'ကုတ်နံပါတ် ကူးယူမည်';
-
-  @override
-  String get familyCodeCopied => 'ကုတ်နံပါတ် ကူးယူပြီးပါပြီ!';
-
-  @override
-  String get familyShare => 'မျှဝေမည်';
-
-  @override
-  String familyShareText(Object code) {
-    return 'ကျွန်ုပ်၏ AutoHub မိသားစုအကောင့်သို့ ဝင်ရောက်ပါ! ကုတ်နံပါတ်- $code';
-  }
-
-  @override
-  String get familyCodeExpiryHelper =>
-      'ကုတ်နံပါတ်သည် ၇ ရက်အတွင်း သက်တမ်းကုန်ပါမည်။ ကုတ်နံပါတ်အသစ် ပြန်ထုတ်ပါက ကုတ်နံပါတ်ဟောင်း ပျက်ပြယ်သွားပါမည်။';
-
-  @override
-  String get familyGoToManagement => 'မိသားစု စီမံခန့်ခွဲမှုသို့ သွားမည်';
-
-  @override
-  String get familyManagementTitle => 'မိသားစု';
-
-  @override
-  String get familyManagementMembersTab => 'အဖွဲ့ဝင်များ';
-
-  @override
-  String get familyManagementVehiclesTab => 'ယာဉ်များ';
-
-  @override
-  String get familyManagementInviteTab => 'ဖိတ်ခေါ်ရန်';
-
-  @override
-  String get familyManagementJoinTitle => 'မိသားစုအကောင့်သို့ ဝင်မည်';
-
-  @override
-  String get familyManagementJoinHint => 'မျှဝေထားသော ကုတ်နံပါတ် ရိုက်ထည့်ပါ';
-
-  @override
-  String get familyManagementJoinLabel => 'မျှဝေထားသော ကုတ်နံပါတ်';
-
-  @override
-  String get familyManagementJoinButton => 'ဝင်ရောက်မည်';
-
-  @override
-  String get familyManagementNoFamily => 'မိသားစုအကောင့် မရှိသေးပါ';
-
-  @override
-  String get familyManagementNoFamilyBody =>
-      'ယာဉ်များ မျှဝေရန် မိသားစုအကောင့် ပြုလုပ်ပါ\nသို့မဟုတ် ရှိပြီးသား အကောင့်သို့ ဝင်ရောက်ပါ။';
-
-  @override
-  String get familyManagementCreateButton => 'မိသားစုအကောင့် ပြုလုပ်မည်';
-
-  @override
-  String get familyManagementJoinFamilyButton => 'မိသားစုအကောင့်သို့ ဝင်မည်';
-
-  @override
-  String get membersTabEmptyTitle => 'အဖွဲ့ဝင် မရှိသေးပါ';
-
-  @override
-  String get membersTabEmptyBody => 'စတင်ရန် မိသားစုဝင်များကို ဖိတ်ခေါ်ပါ။';
-
-  @override
-  String membersTabManageTitle(Object name) {
-    return '$name ကို စီမံခန့်ခွဲမည်';
-  }
-
-  @override
-  String get membersTabRoleSection => 'ရာထူး/အဆင့်';
-
-  @override
-  String get membersTabRoleMember => 'အဖွဲ့ဝင်';
-
-  @override
-  String get membersTabRoleDriver => 'ယာဉ်မောင်း';
-
-  @override
-  String get membersTabSaveRole => 'ရာထူး သိမ်းဆည်းမည်';
-
-  @override
-  String get membersTabRemoveButton => 'မိသားစုမှ ဖယ်ရှားမည်';
-
-  @override
-  String get membersTabRemoveTitle => 'အဖွဲ့ဝင်ကို ဖယ်ရှားမှာ သေချာပါသလား?';
-
-  @override
-  String membersTabRemoveBody(Object name) {
-    return '$name ကို မိသားစုမှ ဖယ်ရှားမှာ သေချာပါသလား?';
-  }
-
-  @override
-  String get membersTabRemoveAction => 'ဖယ်ရှားမည်';
-
-  @override
-  String get membersTabYouBadge => 'သင်';
-
-  @override
-  String get membersTabPrimaryOwner => 'ပင်မ ပိုင်ရှင်';
-
-  @override
-  String get membersTabLicenseValid => 'သက်တမ်း ရှိသေးသည်';
-
-  @override
-  String get membersTabLicenseExpiringSoon => 'သက်တမ်း ကုန်တော့မည်';
-
-  @override
-  String get membersTabLicenseExpired => 'သက်တမ်း ကုန်သွားပြီ';
-
-  @override
-  String get membersTabLicenseNone => 'ယာဉ်မောင်းလိုင်စင် မရှိပါ';
-
-  @override
-  String membersTabVehicleCount(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '# စီး',
-      one: '# စီး',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get vehiclesTabTitle => 'မိသားစုပိုင် ယာဉ်များ';
-
-  @override
-  String get vehiclesTabAdd => 'ထည့်မည်';
-
-  @override
-  String get vehiclesTabEmptyTitle => 'မိသားစုထဲတွင် ယာဉ် မရှိသေးပါ';
-
-  @override
-  String get vehiclesTabEmptyBodyOwner =>
-      'သင့်မိသားစုနှင့် ယာဉ်မျှဝေရန် \"ထည့်မည်\" ကို နှိပ်ပါ';
-
-  @override
-  String get vehiclesTabEmptyBodyNonOwner =>
-      'ယာဉ်မျှဝေပေးရန် ပိုင်ရှင်ထံ တောင်းဆိုပါ';
-
-  @override
-  String get vehiclesTabSelectTitle => 'မျှဝေမည့် ယာဉ်ကို ရွေးချယ်ပါ';
-
-  @override
-  String get vehiclesTabSelectSubtitle =>
-      'သင့်ဂိုဒေါင်မှ မိသားစုနှင့် မျှဝေရန် ယာဉ်များကို ရွေးပါ';
-
-  @override
-  String get vehiclesTabNoVehiclesToAdd =>
-      'ထည့်ရန် ယာဉ် မရှိပါ။ ပထမဦးစွာ ဂိုဒေါင်ထဲသို့ ယာဉ်များ ထည့်ပါ။';
-
-  @override
-  String vehiclesTabAddSelected(num count) {
-    return 'ရွေးထားသည့် $count စီးကို ထည့်မည်';
-  }
-
-  @override
-  String get vehiclesTabRemoveTitle => 'ယာဉ်ကို ဖယ်ရှားမည်';
-
-  @override
-  String vehiclesTabRemoveBody(Object vehicleName) {
-    return '$vehicleName ကို မိသားစုမှ ဖယ်ရှားမှာ သေချာပါသလား?';
-  }
-
-  @override
-  String get inviteTabHeading => 'မိသားစုအကောင့်ကို မျှဝေပါ';
-
-  @override
-  String get inviteTabBody =>
-      'ဝင်ရောက်ရန်နှင့် ယာဉ်များ မျှဝေရန် မိသားစုဝင်များကို ဖိတ်ခေါ်ပါ။';
-
-  @override
-  String get inviteTabShareCode => 'ကုတ်နံပါတ် မျှဝေမည်';
-
-  @override
-  String get inviteTabShareCodeHelper =>
-      'ဝင်ရောက်ရန် AutoHub အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
-
-  @override
-  String get inviteTabCopyCode => 'ကုတ်နံပါတ် ကူးယူမည်';
-
-  @override
-  String get inviteTabCodeCopied => 'ကုတ်နံပါတ် ကူးယူပြီးပါပြီ!';
-
-  @override
-  String get inviteTabShare => 'မျှဝေမည်';
-
-  @override
-  String inviteTabShareText(Object code) {
-    return 'ကျွန်ုပ်၏ AutoHub မိသားစုအကောင့်သို့ ဝင်ရောက်ပါ! ကုတ်နံပါတ်- $code';
-  }
-
-  @override
-  String get inviteTabRegenerateButton => 'ကုတ်နံပါတ်အသစ် ထုတ်မည်';
-
-  @override
-  String get inviteTabRegenerateTitle =>
-      'ကုတ်နံပါတ်အသစ် ပြန်ထုတ်မှာ သေချာပါသလား?';
-
-  @override
-  String get inviteTabRegenerateBody =>
-      'ဒါက လက်ရှိ ကုတ်နံပါတ်ကို ပျက်ပြယ်သွားစေပါမည်။ ကုတ်နံပါတ်ဟောင်း ရှိသူများ ဝင်ရောက်နိုင်တော့မည် မဟုတ်ပါ။';
-
-  @override
-  String get inviteTabRegenerateAction => 'ပြန်ထုတ်မည်';
-
-  @override
-  String get inviteTabCodeExpiryHelper =>
-      'ကုတ်နံပါတ်သည် ၇ ရက်အတွင်း သက်တမ်းကုန်ပါမည်။ ကုတ်နံပါတ်အသစ် ပြန်ထုတ်ပါက ကုတ်နံပါတ်ဟောင်း ပျက်ပြယ်သွားပါမည်။';
-
-  @override
   String get vehicleDetailTitle => 'ကျွန်ုပ်၏ ယာဉ်';
 
   @override
@@ -2339,40 +2033,6 @@ class AppLocalizationsMy extends AppLocalizations {
   String get carDetailAddDocumentAction => 'စာရွက်စာတမ်း ထည့်မည်';
 
   @override
-  String get carDetailDriversSection => 'သတ်မှတ်ထားသော ယာဉ်မောင်းများ';
-
-  @override
-  String get carDetailManageDrivers => 'စီမံခန့်ခွဲမည်';
-
-  @override
-  String get carDetailNoDrivers => 'ယာဉ်မောင်း သတ်မှတ်ထားခြင်း မရှိသေးပါ';
-
-  @override
-  String get carDetailNoDriversBody =>
-      'ဒီယာဉ်အတွက် မိသားစုဝင်များကို ယာဉ်မောင်းအဖြစ် ထည့်ပါ။';
-
-  @override
-  String get carDetailAssignDriver => 'ယာဉ်မောင်း သတ်မှတ်မည်';
-
-  @override
-  String get carDetailLicenseValid => 'သက်တမ်း ရှိသေးသည်';
-
-  @override
-  String get carDetailLicenseExpiringSoon => 'သက်တမ်း ကုန်တော့မည်';
-
-  @override
-  String get carDetailLicenseExpired => 'သက်တမ်း ကုန်သွားပြီ';
-
-  @override
-  String get carDetailLicenseNone => 'ယာဉ်မောင်းလိုင်စင် မရှိပါ';
-
-  @override
-  String get carDetailFullAccess => 'အပြည့်အဝ သုံးစွဲခွင့်';
-
-  @override
-  String get carDetailDriveOnly => 'မောင်းနှင်ခွင့်သာ';
-
-  @override
   String get carDetailQuickActions => 'အမြန်လုပ်ဆောင်ချက်များ';
 
   @override
@@ -2383,27 +2043,6 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get carDetailAddDocumentButton => 'စာရွက်စာတမ်း ထည့်မည်';
-
-  @override
-  String get carDetailManageDriversButton => 'ယာဉ်မောင်းများ စီမံခန့်ခွဲမည်';
-
-  @override
-  String get carDetailManageDriversSheet => 'ယာဉ်မောင်းများ စီမံခန့်ခွဲမည်';
-
-  @override
-  String get carDetailCurrentDrivers => 'လက်ရှိ ယာဉ်မောင်းများ';
-
-  @override
-  String get carDetailAddDriver => 'ယာဉ်မောင်း ထည့်မည်';
-
-  @override
-  String get carDetailAllAssigned => 'မိသားစုဝင် အားလုံးကို သတ်မှတ်ပြီးဖြစ်သည်';
-
-  @override
-  String get carDetailLicensePrefix => 'လိုင်စင် - ';
-
-  @override
-  String get carDetailAssign => 'သတ်မှတ်မည်';
 
   @override
   String get userDetailProfileTitle => 'ကိုယ်ရေးအချက်အလက်';
@@ -2453,43 +2092,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get userDetailCategoriesHint => 'B, BE';
 
   @override
-  String get userDetailLeaveFamilyTitle => 'မိသားစုမှ ထွက်မှာ သေချာပါသလား?';
-
-  @override
-  String get userDetailLeaveFamilyBody =>
-      'ဒီမိသားစုမှ ထွက်မှာ သေချာပါသလား? မျှဝေထားသော ယာဉ်များ သုံးစွဲခွင့် ဆုံးရှုံးပါမည်။';
-
-  @override
-  String get userDetailLeaveFamilyAction => 'ထွက်မည်';
-
-  @override
-  String get userDetailLeftFamily => 'မိသားစုမှ ထွက်ပြီးပါပြီ';
-
-  @override
-  String get userDetailRemoveMemberTitle =>
-      'အဖွဲ့ဝင်ကို ဖယ်ရှားမှာ သေချာပါသလား?';
-
-  @override
-  String get userDetailRemoveMemberBody =>
-      'ဒီအဖွဲ့ဝင်ကို မိသားစုမှ ဖယ်ရှားမှာ သေချာပါသလား? ၎င်းတို့သည် မျှဝေထားသော ယာဉ်များ သုံးစွဲခွင့် အားလုံး ဆုံးရှုံးပါမည်။';
-
-  @override
-  String get userDetailRemoveMemberAction => 'ဖယ်ရှားမည်';
-
-  @override
-  String get userDetailMemberRemoved => 'အဖွဲ့ဝင်ကို ဖယ်ရှားပြီးပါပြီ';
-
-  @override
   String get userDetailUploadLicensePhoto => 'လိုင်စင်ဓာတ်ပုံ အပ်လုဒ်တင်မည်';
-
-  @override
-  String get userDetailPrimaryOwner => 'ပင်မ ပိုင်ရှင်';
-
-  @override
-  String get userDetailMemberRole => 'အဖွဲ့ဝင်';
-
-  @override
-  String get userDetailDriverRole => 'ယာဉ်မောင်း';
 
   @override
   String get userDetailDrivingLicenseSection => 'ယာဉ်မောင်းလိုင်စင်';
@@ -2502,10 +2105,6 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get userDetailNoLicense => 'လိုင်စင် အပ်လုဒ်မတင်ရသေးပါ';
-
-  @override
-  String get userDetailNoLicenseBody =>
-      'သက်တမ်းကုန်မည့်ရက် သိရှိရန်နှင့် မိသားစုနှင့် မျှဝေရန် သင့်ယာဉ်မောင်းလိုင်စင် ထည့်ပါ။';
 
   @override
   String get userDetailUploadLicenseAction => 'လိုင်စင် အပ်လုဒ်တင်မည်';
@@ -2536,124 +2135,6 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get userDetailLicenseNone => 'ယာဉ်မောင်းလိုင်စင် မရှိပါ';
-
-  @override
-  String get userDetailAccessLevelSection => 'သုံးစွဲခွင့် အဆင့်';
-
-  @override
-  String get userDetailPrimaryOwnerDescription => 'ပင်မ ပိုင်ရှင်';
-
-  @override
-  String get userDetailFullControl =>
-      'မိသားစုအကောင့်တစ်ခုလုံးကို အပြည့်အဝ စီမံခန့်ခွဲနိုင်သူ';
-
-  @override
-  String get userDetailManageAllVehicles =>
-      'ယာဉ်များအားလုံးကို စီမံခန့်ခွဲနိုင်သူ';
-
-  @override
-  String get userDetailAddRemoveMembers =>
-      'အဖွဲ့ဝင်များ ထည့်နိုင်/ဖယ်ရှားနိုင်သူ';
-
-  @override
-  String get userDetailAssignDriversPerm => 'ယာဉ်မောင်းများ သတ်မှတ်နိုင်သူ';
-
-  @override
-  String get userDetailTransferOwnership =>
-      'ပိုင်ဆိုင်ခွင့် လွှဲပြောင်းနိုင်သူ';
-
-  @override
-  String get userDetailMemberDescription => 'အဖွဲ့ဝင် (ဒုတိယ ပိုင်ရှင်)';
-
-  @override
-  String get userDetailFullAccessAssigned =>
-      'သတ်မှတ်ထားသော ယာဉ်များကို အပြည့်အဝ သုံးစွဲခွင့်ရှိသူ';
-
-  @override
-  String get userDetailLogMaintenanceExpenses =>
-      'ပြုပြင်ထိန်းသိမ်းမှုနှင့် ကုန်ကျစရိတ်များ မှတ်တမ်းတင်နိုင်သူ';
-
-  @override
-  String get userDetailManageDocumentsPerm =>
-      'စာရွက်စာတမ်းများ စီမံခန့်ခွဲနိုင်သူ';
-
-  @override
-  String get userDetailAssignDriversToVehicles =>
-      'ယာဉ်များသို့ ယာဉ်မောင်း သတ်မှတ်နိုင်သူ';
-
-  @override
-  String get userDetailDriverDescription => 'ယာဉ်မောင်း';
-
-  @override
-  String get userDetailViewAssignedVehicles =>
-      'သတ်မှတ်ထားသော ယာဉ်များကို ကြည့်ရှုနိုင်သူ';
-
-  @override
-  String get userDetailLogFuelCharge =>
-      'ဆီဖြည့်/အားသွင်းမှု မှတ်တမ်းတင်နိုင်သူ';
-
-  @override
-  String get userDetailViewMaintenanceDue =>
-      'ပြုပြင်ထိန်းသိမ်းရန် လိုအပ်သည်များကို ကြည့်ရှုနိုင်သူ';
-
-  @override
-  String get userDetailViewDocumentsPerm =>
-      'စာရွက်စာတမ်းများကို ကြည့်ရှုနိုင်သူ';
-
-  @override
-  String get userDetailPermissionsSection => 'လုပ်ပိုင်ခွင့်များ';
-
-  @override
-  String get userDetailMyVehiclesSection => 'ကျွန်ုပ်၏ ယာဉ်များ';
-
-  @override
-  String get userDetailActionsSection => 'လုပ်ဆောင်ချက်များ';
-
-  @override
-  String get userDetailLeaveFamilyButton => 'မိသားစုမှ ထွက်မည်';
-
-  @override
-  String get userDetailAdminActionsSection =>
-      'မန်နေဂျာ/အကောင့်ပိုင်ရှင် လုပ်ဆောင်ချက်များ';
-
-  @override
-  String get userDetailChangeRole => 'ရာထူး/အဆင့် ပြောင်းမည်';
-
-  @override
-  String get userDetailAssignVehicles => 'ယာဉ်များ သတ်မှတ်မည်';
-
-  @override
-  String get userDetailRemoveFromFamily => 'မိသားစုမှ ဖယ်ရှားမည်';
-
-  @override
-  String get userDetailChangeRoleSheet => 'ရာထူး/အဆင့် ပြောင်းမည်';
-
-  @override
-  String userDetailCurrentRole(Object role) {
-    return 'လက်ရှိ - $role';
-  }
-
-  @override
-  String get userDetailNewRole => 'ရာထူး/အဆင့် အသစ်';
-
-  @override
-  String get userDetailSaveRole => 'သိမ်းဆည်းမည်';
-
-  @override
-  String get userDetailAssignVehiclesSheet => 'ယာဉ်များ သတ်မှတ်မည်';
-
-  @override
-  String get userDetailNoVehiclesInGarage =>
-      'ယာဉ်ဂိုဒေါင်ထဲတွင် ယာဉ်များ မရှိပါ';
-
-  @override
-  String get familyRolePrimaryOwner => 'ပင်မ ပိုင်ရှင်';
-
-  @override
-  String get familyRoleMember => 'အဖွဲ့ဝင်';
-
-  @override
-  String get familyRoleDriver => 'ယာဉ်မောင်း';
 
   @override
   String get drawerQuickAccess => 'အမြန်ဆုံး ဝင်ရောက်';
@@ -2690,9 +2171,6 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get drawerExpenseStats => 'အသုံးစရိတ် စာရင်းဇယား';
-
-  @override
-  String get drawerFamily => 'မိသားစု';
 
   @override
   String get drawerFleet => 'ဖလီး';
@@ -3725,4 +3203,312 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get statsDefDonutCategory =>
       'အမျိုးအစားအလိုက် စုစုပေါင်းထားသော သုံးစွဲမှု။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။';
+
+  @override
+  String get garageSharedBadge => 'မျှဝေထားသည်';
+
+  @override
+  String get vehicleShareTooltip => 'ယာဉ် မျှဝေမည်';
+
+  @override
+  String get drawerShareVehicles => 'ယာဉ် မျှဝေရန်';
+
+  @override
+  String get drawerSharedWithMe => 'ကျွန်ုပ်နှင့် မျှဝေထားသည်';
+
+  @override
+  String get drawerJoinShare => 'ယာဉ် မျှဝေမှု ဝင်ရောက်မည်';
+
+  @override
+  String get shareVehicleTitle => 'ယာဉ် မျှဝေမည်';
+
+  @override
+  String get shareEmailTab => 'အီးမေးလ်ဖြင့် ဖိတ်ကြားမည်';
+
+  @override
+  String get shareCodeTab => 'ကုဒ် / QR';
+
+  @override
+  String get shareEmailLabel => 'အီးမေးလ်လိပ်စာ';
+
+  @override
+  String get shareEmailHint => 'name@example.com';
+
+  @override
+  String get shareEmailRequired => 'အီးမေးလ် လိုအပ်ပါသည်';
+
+  @override
+  String get shareEmailInvalid => 'မှန်ကန်သော အီးမေးလ် ထည့်ပါ';
+
+  @override
+  String get shareAccessLabel => 'ဝင်ရောက်ခွင့် အဆင့်';
+
+  @override
+  String get shareAccessView => 'ကြည့်ရုရုံသာ';
+
+  @override
+  String get shareAccessAddEditOwn => 'ကိုယ်ပိုင် ထည့်/ပြင်ခွင့်';
+
+  @override
+  String get shareAccessViewDescription =>
+      'ယာဉ်၊ ပြုပြင်ထိန်းသိမ်းမှု၊ စာရွက်စာတမ်းများနှင့် အသုံးစရိတ်များ ကြည့်နိုင်သည်။';
+
+  @override
+  String get shareAccessAddEditOwnDescription =>
+      'ဤယာဉ်တွင် ကိုယ်ပိုင် မှတ်တမ်းများ ထည့်နိုင်ပြင်နိုင်သည်။';
+
+  @override
+  String get shareSendInvite => 'ဖိတ်ကြားစာ ပို့မည်';
+
+  @override
+  String shareInviteSent(Object email) {
+    return '$email ထံ ဖိတ်ကြားစာ ပို့ပြီးပါပြီ';
+  }
+
+  @override
+  String get shareSending => 'ပို့နေသည်...';
+
+  @override
+  String get shareCodeLabel => 'မျှဝေ ကုဒ်';
+
+  @override
+  String get shareCodeHelper =>
+      'ဤကုဒ်ကို မျှဝေပါ၊ သို့မဟုတ် QR ကို စကင်ဖတ်ခိုင်းပါ။';
+
+  @override
+  String get shareCodeCopied => 'ကုဒ် ကူးယူပြီးပါပြီ';
+
+  @override
+  String get shareCodeExpiry =>
+      'ကုဒ်များသည် ၇ ရက်အတွင်း သက်တမ်းကုန်သည်။ ပြန်လည်ဖန်တီးပါက ဟောင်းက အသုံးမပြုရတော့ပါ။';
+
+  @override
+  String get shareQrHint => 'AutoHub အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
+
+  @override
+  String get shareRegenerate => 'ကုဒ် ပြန်လည်ဖန်တီးမည်';
+
+  @override
+  String get shareRegenerateTitle => 'မျှဝေကုဒ် ပြန်လည်ဖန်တီးမလား?';
+
+  @override
+  String get shareRegenerateBody => 'လက်ရှိကုဒ်သည် ချက်ချင်း အသုံးမပြုရတော့ပါ။';
+
+  @override
+  String get shareRegenerateAction => 'ပြန်လည်ဖန်တီးမည်';
+
+  @override
+  String get shareManagementTitle => 'မျှဝေရေး စီမံခန့်ခွဲမှု';
+
+  @override
+  String get shareTabActive => 'အသုံးပြုနေသည်';
+
+  @override
+  String get shareTabPending => 'စောင့်ဆိုင်းဆဲ';
+
+  @override
+  String get shareTabCode => 'ကုဒ်နှင့် QR';
+
+  @override
+  String get shareActiveEmpty => 'ဘယ်သူမှ ဝင်ရောက်ခွင့် မရှိသေးပါ';
+
+  @override
+  String get shareActiveEmptyBody =>
+      'အီးမေးလ်ဖြင့် ဖိတ်ကြားပါ သို့မဟုတ် ကုဒ် မျှဝေပါ။';
+
+  @override
+  String get sharePendingEmpty => 'ဖိတ်ကြားစာ မရှိပါ';
+
+  @override
+  String get sharePendingEmptyBody =>
+      'ပို့ထားသော ဖိတ်ကြားစာများသည် လက်ခံမချိန်အထိ ဤနေရာတွင် ပေါ်နေပါမည်။';
+
+  @override
+  String get shareRevoke => 'ပြန်ရုပ်မည်';
+
+  @override
+  String get shareRevokeTitle => 'ဝင်ရောက်ခွင့် ပြန်ရုပ်မလား?';
+
+  @override
+  String shareRevokeBody(Object name) {
+    return '$name သည် ဤယာဉ်သို့ ဝင်ရောက်ခွင့် ဆုံးရှုံးပါမည်။';
+  }
+
+  @override
+  String get shareRevokeAction => 'ပြန်ရုပ်မည်';
+
+  @override
+  String get shareRevoked => 'ဝင်ရောက်ခွင့် ပြန်ရုပ်ပြီးပါပြီ';
+
+  @override
+  String get shareChangeAccess => 'ဝင်ရောက်ခွင့် ပြောင်းမည်';
+
+  @override
+  String get shareResend => 'ပြန်ပို့မည်';
+
+  @override
+  String get shareCancelInvite => 'ဖိတ်ကြားစာ ဖျက်မည်';
+
+  @override
+  String get shareInviteResent => 'ဖိတ်ကြားစာ ပြန်ပို့ပြီးပါပြီ';
+
+  @override
+  String get shareInviteCancelled => 'ဖိတ်ကြားစာ ဖျက်ပြီးပါပြီ';
+
+  @override
+  String shareExpiresOn(Object date) {
+    return '$date တွင် သက်တမ်းကုန်သည်';
+  }
+
+  @override
+  String shareJoinedOn(Object date) {
+    return '$date တွင် ပူးပေါင်းသည်';
+  }
+
+  @override
+  String sharePendingSince(Object date) {
+    return '$date တွင် ပို့သည်';
+  }
+
+  @override
+  String shareLimits(Object active, Object limit) {
+    return 'ဤယာဉ်တွင် အသုံးပြုနေသော မျှဝေမှု $active / $limit';
+  }
+
+  @override
+  String sharePlanLimitReached(Object limit) {
+    return 'သင့်အစီအစဉ်အရ ယာဉ်တစ်စီးလျှင် မျှဝေမှု $limit ခုသာ ခွင့်ပြုသည်';
+  }
+
+  @override
+  String get shareOwnerOnly => 'ယာဉ်ပိုင်ရှင်သာ မျှဝေမှုများကို စီမံနိုင်သည်။';
+
+  @override
+  String get shareManage => 'မျှဝေမှုများ စီမံမည်';
+
+  @override
+  String get shareAcceptTitle => 'သင့်နှင့် ယာဉ် မျှဝေထားသည်';
+
+  @override
+  String shareAcceptBody(Object owner) {
+    return '$owner က သင့်နှင့် ယာဉ်တစ်စီး မျှဝေလိုသည်။';
+  }
+
+  @override
+  String get shareAcceptVehicleLabel => 'ယာဉ်';
+
+  @override
+  String get shareAcceptAccessLabel => 'ဝင်ရောက်ခွင့် အဆင့်';
+
+  @override
+  String get shareAccept => 'လက်ခံမည်';
+
+  @override
+  String get shareDecline => 'ငြင်းပယ်မည်';
+
+  @override
+  String get shareAccepted => 'ဝင်ရောက်ခွင့် လက်ခံပြီးပါပြီ';
+
+  @override
+  String get shareDeclined => 'ဖိတ်ကြားစာ ငြင်းပယ်ပြီးပါပြီ';
+
+  @override
+  String get shareAcceptInvalid =>
+      'ဤဖိတ်ကြားစာ မမှန်ကန်ပါ သို့မဟုတ် သက်တမ်းကုန်သွားပါပြီ';
+
+  @override
+  String get shareJoinTitle => 'ယာဉ် မျှဝေမှု ဝင်ရောက်မည်';
+
+  @override
+  String get shareJoinBody =>
+      'သင့်အား မျှဝေထားသော စာလုံး ၈ လုံးပါ ကုဒ် ထည့်ပါ။';
+
+  @override
+  String get shareJoinLabel => 'မျှဝေ ကုဒ်';
+
+  @override
+  String get shareJoinHint => 'ABCD1234';
+
+  @override
+  String get shareJoinAction => 'ဝင်ရောက်မည်';
+
+  @override
+  String get shareJoining => 'ဝင်ရောက်နေသည်...';
+
+  @override
+  String get shareJoinPreviewVehicle => 'ယာဉ်';
+
+  @override
+  String get shareJoinPreviewOwner => 'ပိုင်ရှင်';
+
+  @override
+  String get shareJoinPreviewAccess => 'ဝင်ရောက်ခွင့် အဆင့်';
+
+  @override
+  String get shareJoinInvalid => 'ကုဒ် မမှန်ကန်ပါ သို့မဟုတ် သက်တမ်းကုန်သည်';
+
+  @override
+  String get shareJoined => 'ယာဉ်ကို သင့်နှင့် မျှဝေပြီးပါပြီ';
+
+  @override
+  String get shareJoinUnknownCode => 'စာလုံး ၈ လုံးပါ ကုဒ် မှန်ကန်စွာ ထည့်ပါ။';
+
+  @override
+  String get sharedWithMeTitle => 'ကျွန်ုပ်နှင့် မျှဝေထားသည်';
+
+  @override
+  String get sharedWithMeEmpty => 'မျှဝေထားသော ယာဉ် မရှိသေးပါ';
+
+  @override
+  String get sharedWithMeEmptyBody =>
+      'တစ်စုံတစ်ဦးက ယာဉ် မျှဝေပါက ဤနေရာတွင် ပေါ်လာပါမည်။';
+
+  @override
+  String get sharedWithMeJoin => 'ကုဒ်ဖြင့် ဝင်ရောက်မည်';
+
+  @override
+  String get shareOwnerLabel => 'ပိုင်ရှင်';
+
+  @override
+  String get shareAccessViewBadge => 'ကြည့်ရုံ';
+
+  @override
+  String get shareAccessAddEditBadge => 'ထည့်/ပြင်';
+
+  @override
+  String get shareSectionSharedUsers => 'မျှဝေထားသူများ';
+
+  @override
+  String get shareErrorGeneric => 'ဤယာဉ်ကို မျှဝေ၍ မရပါ';
+
+  @override
+  String get share => 'မျှဝေမည်';
+
+  @override
+  String get shareAlreadyShared =>
+      'သူတစ်ဦးတည်းက ဤယာဉ်သို့ ဝင်ရောက်ခွင့် ရှိပြီးဖြစ်သည်။';
+
+  @override
+  String get shareOwnedBadge => 'ပိုင်ဆိုင်သည်';
+
+  @override
+  String get shareSelfBadge => 'ကျွန်ုပ်';
+
+  @override
+  String get shareAcceptIntro =>
+      'သင့်အား သူတစ်ဦး၏ ယာဉ်ကို ဝင်ရောက်ကြည့်ရှုခွင့် ဖိတ်ကြားထားပါသည်။ သင့်ဂိုဒေါင်တွင် မြင်ရရန် လက်ခံပါ။';
+
+  @override
+  String get shareAcceptFailed => 'ဤဖိတ်ကြားမှုကို လက်ခံ၍မရပါ';
+
+  @override
+  String get shareAcceptedBody =>
+      'ယာဉ်သည် ကျွန်ုပ်နှင့် မျှဝေထားသည် စာရင်းတွင် ပါလာပြီ။';
+
+  @override
+  String get shareDeclinedBody =>
+      'ပိုင်ရှင်သည် ဤဖိတ်ကြားမှုကို နောက်တစ်ခါ မမြင်ရတော့ပါ။';
+
+  @override
+  String get shareExpiresAt => 'သက်တမ်းကုန်';
 }

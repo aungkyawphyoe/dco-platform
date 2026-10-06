@@ -3,13 +3,11 @@ import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import {
   auditEvents,
-  families,
-  familyMemberships,
-  familyVehicles,
   mediaObjects,
   refreshTokens,
   users,
-  vehicleGrants,
+  vehicleShares,
+  vehicleShareInvitations,
   vehicles,
 } from "../db/schema.js";
 import { verifyPassword } from "../lib/crypto.js";
@@ -153,36 +151,22 @@ export const profilePlugin: FastifyPluginAsync = async (app) => {
     const valid = await verifyPassword(body.password, u.passwordHash);
     if (!valid) throw new AppError(401, "invalid_password", "Incorrect password");
 
-    const [membership] = await app.db
-      .select()
-      .from(familyMemberships)
-      .where(eq(familyMemberships.userId, userId))
-      .limit(1);
+    // Revoke any vehicle shares the user has on other people's vehicles
+    await app.db.delete(vehicleShares).where(eq(vehicleShares.userId, userId));
 
-    if (membership?.role === "primary_owner") {
-      const otherMembers = await app.db
-        .select()
-        .from(familyMemberships)
-        .where(eq(familyMemberships.familyId, membership.familyId));
-      const hasOtherMembers = otherMembers.some((m) => m.userId !== userId);
-      if (hasOtherMembers) {
-        throw new AppError(409, "transfer_required", "Transfer ownership or dissolve your family before deleting");
-      }
-      await app.db.update(families).set({ status: "archived", archivedAt: new Date() }).where(eq(families.id, membership.familyId));
-      await app.db.delete(familyMemberships).where(eq(familyMemberships.familyId, membership.familyId));
-      await app.db.delete(familyVehicles).where(eq(familyVehicles.familyId, membership.familyId));
-      await app.db.delete(vehicleGrants).where(eq(vehicleGrants.userId, userId));
-    } else if (membership) {
-      await app.db.delete(familyMemberships).where(eq(familyMemberships.userId, userId));
-      await app.db.delete(vehicleGrants).where(eq(vehicleGrants.userId, userId));
-    }
-
+    // Archive user's own vehicles
     const userVehicles = await app.db.select().from(vehicles).where(eq(vehicles.userId, userId));
     for (const v of userVehicles) {
       await app.db.update(vehicles).set({ archived: true, archivedAt: new Date() }).where(eq(vehicles.id, v.id));
+      // Revoke shares on the user's own vehicles
+      await app.db.delete(vehicleShares).where(eq(vehicleShares.vehicleId, v.id));
+      // Delete pending invitations on the user's vehicles
+      await app.db.delete(vehicleShareInvitations).where(eq(vehicleShareInvitations.vehicleId, v.id));
     }
+    // Delete pending invitations created by the user
+    await app.db.delete(vehicleShareInvitations).where(eq(vehicleShareInvitations.invitedBy, userId));
 
-    await app.db.update(users).set({ status: "deactivated", familyId: null }).where(eq(users.id, userId));
+    await app.db.update(users).set({ status: "deactivated" }).where(eq(users.id, userId));
     await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, userId));
 
     return reply.code(204).send();

@@ -21,11 +21,9 @@ part 'app_database.g.dart';
     ExpenseRecords,
     ExpensePartRecords,
     NotificationRecords,
-    FamilyRecords,
-    FamilyMembershipRecords,
-    VehicleGrantRecords,
+    VehicleShareRecords,
+    VehicleShareInvitationRecords,
     DrivingLicenseRecords,
-    FamilyVehicleRecords,
     DocumentRecords,
     MaintenanceCatalogRecords,
     NoteRecords,
@@ -36,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'dco_owner'));
 
   @override
-  int get schemaVersion => 18;
+  int get schemaVersion => 20;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -76,15 +74,11 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(notificationRecords, notificationRecords.cycleKey);
       }
       if (from < 10) {
-        await migrator.createTable(familyRecords);
-        await migrator.createTable(familyMembershipRecords);
-        await migrator.createTable(vehicleGrantRecords);
         await migrator.createTable(drivingLicenseRecords);
       }
       if (from < 11) {
         await migrator.addColumn(vehicleRecords, vehicleRecords.source);
         await migrator.addColumn(vehicleRecords, vehicleRecords.permission);
-        await migrator.createTable(familyVehicleRecords);
       }
       if (from < 12) {
         await migrator.createTable(documentRecords);
@@ -107,6 +101,24 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 18) {
         await migrator.addColumn(documentRecords, documentRecords.expiresOn);
+      }
+      if (from < 19) {
+        // Vehicle sharing replaces family sharing: drop the family tables and
+        // create the per-vehicle share tables. Existing shares are re-created
+        // server-side and arrive through sync.
+        await migrator.deleteTable('families');
+        await migrator.deleteTable('family_memberships');
+        await migrator.deleteTable('vehicle_grants');
+        await migrator.deleteTable('family_vehicles');
+        await migrator.createTable(vehicleShareRecords);
+        await migrator.createTable(vehicleShareInvitationRecords);
+      }
+      if (from < 20) {
+        // Audit trail: add created_by to maintenance, expenses, parts, plan items
+        await migrator.addColumn(planItemRecords, planItemRecords.createdBy);
+        await migrator.addColumn(serviceRecordRows, serviceRecordRows.createdBy);
+        await migrator.addColumn(partRecords, partRecords.createdBy);
+        await migrator.addColumn(expenseRecords, expenseRecords.createdBy);
       }
     },
   );

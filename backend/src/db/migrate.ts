@@ -40,6 +40,14 @@ export function usersUsernameSql(): string {
   return readSql("0007_users_username.sql");
 }
 
+export function vehicleSharingSql(): string {
+  return readSql("0008_vehicle_sharing.sql");
+}
+
+export function auditTrailSql(): string {
+  return readSql("0009_audit_trail.sql");
+}
+
 export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Promise<void> {
   await exec(initSql());
   await exec(maintenanceCatalogSql());
@@ -49,4 +57,6 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(documentExpiresOnSql());
   await exec(familyVehicleGrantsSql());
   await exec(usersUsernameSql());
+  await exec(vehicleSharingSql());
+  await exec(auditTrailSql());
 }

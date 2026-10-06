@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -31,10 +32,66 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   @override
   Stream<List<Vehicle>> watchGarage(String userId) {
-    final query = _db.select(_db.vehicleRecords)
+    // Owned vehicles
+    final ownedQuery = _db.select(_db.vehicleRecords)
       ..where((row) => row.userId.equals(userId) & row.archived.equals(false))
       ..orderBy([(row) => OrderingTerm.desc(row.updatedAt)]);
-    return query.watch().map((rows) => rows.map(vehicleFromDrift).toList());
+
+    // Shared vehicles (active shares where current user is the sharee)
+    final sharedQuery = _db.select(_db.vehicleRecords).join([
+      innerJoin(
+        _db.vehicleShareRecords,
+        _db.vehicleShareRecords.vehicleId.equalsExp(_db.vehicleRecords.id),
+      ),
+    ])..where(
+        _db.vehicleShareRecords.userId.equals(userId) &
+        _db.vehicleShareRecords.status.equals('active') &
+        _db.vehicleRecords.archived.equals(false),
+      );
+
+    // Combine both streams using a StreamController
+    final ownedStream = ownedQuery.watch().map((rows) =>
+        rows.map((row) => vehicleFromDrift(row.copyWith(source: 'owned'))).toList());
+
+    final sharedStream = sharedQuery.watch().map((rows) => rows
+        .map((row) {
+          final vehicle = row.readTable(_db.vehicleRecords);
+          final share = row.readTable(_db.vehicleShareRecords);
+          return vehicleFromDrift(vehicle.copyWith(
+            source: 'shared',
+            permission: Value(share.accessLevel),
+          ));
+        })
+        .toList());
+
+    // Track latest lists from each source
+    final latestLists = <String, List<Vehicle>>{'owned': [], 'shared': []};
+    final controller = StreamController<List<Vehicle>>.broadcast();
+    final subs = <StreamSubscription>[
+      ownedStream.listen((list) {
+        latestLists['owned'] = list;
+        _emitCombined(controller, latestLists);
+      }),
+      sharedStream.listen((list) {
+        latestLists['shared'] = list;
+        _emitCombined(controller, latestLists);
+      }),
+    ];
+    controller.onCancel = () {
+      for (final s in subs) {
+        s.cancel();
+      }
+    };
+    return controller.stream;
+  }
+
+  void _emitCombined(
+    StreamController<List<Vehicle>> controller,
+    Map<String, List<Vehicle>> latestLists,
+  ) {
+    final all = [...latestLists['owned']!, ...latestLists['shared']!];
+    all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+    controller.add(all);
   }
 
   @override
@@ -189,11 +246,15 @@ class VehicleRepositoryImpl implements VehicleRepository {
       throw const VehicleNotFoundFailure();
     }
     if (existing.userId != userId) {
-      // Shared family vehicles (recorded locally when the share synced) can
+      // Vehicles shared with me (recorded locally when the share synced) can
       // be activated too; the server re-validates access on profile update.
-      final shared = await (_db.select(
-        _db.familyVehicleRecords,
-      )..where((row) => row.vehicleId.equals(vehicleId))).getSingleOrNull();
+      final shared = await (_db.select(_db.vehicleShareRecords)..where(
+          (row) =>
+              row.vehicleId.equals(vehicleId) &
+              row.userId.equals(userId) &
+              row.status.equals('active'),
+        ))
+          .getSingleOrNull();
       if (shared == null) throw const VehicleNotFoundFailure();
     }
     await _upsertActive(userId, vehicleId);

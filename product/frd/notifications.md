@@ -43,7 +43,7 @@ Enable the platform to:
 - Document expiry extracted from files
 - Email or SMS reminders (except auth mail in `auth.md`)
 - Workshop booking alerts
-- Family-shared reminder fan-out
+- Reminder fan-out to users who hold a share on the vehicle
 - Quiet hours customization beyond OS settings
 
 ---
@@ -256,5 +256,5 @@ maintenance_reminder_dismissed
 - Insurance renewal reminders (with Insurance module)
 - Document expiry reminders
 - Quiet hours in-app
-- Family sharing of reminders
+- Pushing reminders to other accounts that share the vehicle
 - Push campaigns (explicitly still a product non-goal until Phase 2)

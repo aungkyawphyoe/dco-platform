@@ -4,20 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Current state
 
-Product is production-ready. `product/production-scope.md` is the active scope contract; `product/mvp-scope.md` is the closed Phase 1 record (includes Family Sharing). `product/frd/` holds FRDs for Dashboard, Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, Admin, and Family Sharing. `docs/design-system.md` and `docs/theme/garage-minimal-{dark,light}.json` are the shared Flutter + web visual tokens (generated into CSS/Dart by `tools/generate-theme.mjs`).
+Product is production-ready. `product/production-scope.md` is the active scope contract; `product/mvp-scope.md` is the closed Phase 1 record (includes Family Sharing, now superseded by Vehicle Sharing). `product/frd/` holds FRDs for Dashboard, Garage, Auth, Maintenance, Documents, Expenses, Sync, Notifications, Admin, and Vehicle Sharing. `docs/design-system.md` and `docs/theme/garage-minimal-{dark,light}.json` are the shared Flutter + web visual tokens (generated into CSS/Dart by `tools/generate-theme.mjs`).
 
 Implementation docs are in place: `architecture/system.md` (Accepted), `architecture/data-model.md` (Binding), `architecture/iam.md` (Binding), `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md`. Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A7).
 
-Mobile Flutter app is implemented in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell, offline-first sync, family sharing, local-only Notes, Fleet/Driver modes online-first). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin is Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, admin dashboard, user management, organization provisioning (create/activate Enterprise orgs + Org Admin invites), partner onboarding, family read-only dashboard. Fleet portal is a separate Next.js 15 app in `fleet-portal/` (JWT audience `dco-fleet`, BFF session with `surface: "fleet"`) — fleet dashboard, vehicles, work orders, inspections, assignments, members, workshops, warranty templates, reports.
+Mobile Flutter app is implemented in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell, offline-first sync, vehicle sharing, local-only Notes, Fleet/Driver modes online-first). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin is Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, admin dashboard, user management, organization provisioning (create/activate Enterprise orgs + Org Admin invites), partner onboarding, shared vehicles dashboard. Fleet portal is a separate Next.js 15 app in `fleet-portal/` (JWT audience `dco-fleet`, BFF session with `surface: "fleet"`) — fleet dashboard, vehicles, work orders, inspections, assignments, members, workshops, warranty templates, reports.
 
-The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management, partner onboarding, and family dashboard for Primary Owners.
+The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management, partner onboarding, and shared vehicles dashboard.
 
 ## Intended project layout
 
 `dco-platform` is planned as a full-stack product spanning web, mobile, and a backend service. The directory structure encodes the intended shape:
 
 - `backend/` — server / API layer
-- `web/` — web frontend (admin + family dashboard)
+- `web/` — web frontend (admin + shared vehicles dashboard)
 - `fleet-portal/` — Fleet management web portal (separate Next.js app)
 - `mobile/` — Flutter owner app (see `mobile/AGENTS.md`)
 - `architecture/` — system design / architectural docs

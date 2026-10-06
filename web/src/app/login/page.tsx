@@ -20,8 +20,8 @@ export default function LoginPage() {
     setError(null);
     setPending(true);
     try {
-      await signIn({ email: email.trim(), password });
-      router.replace("/");
+      const signedIn = await signIn({ email: email.trim(), password });
+      router.replace(signedIn.role === "admin" ? "/" : "/vehicles");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Sign in failed");
       setPending(false);

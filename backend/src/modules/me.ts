@@ -1,14 +1,18 @@
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { deviceTokens, users, vehicles } from "../db/schema.js";
-import { families, familyMemberships, organizationMembers, organizations } from "../db/schema.js";
+import { deviceTokens, users, vehicles, vehicleShares, organizationMembers, organizations } from "../db/schema.js";
 import { newId } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { getUser } from "../lib/dbx.js";
 import { publicUser } from "../lib/serialize.js";
 import { requireFleetClient, requireOwner } from "./auth.js";
-import { getVehicleAccessLevel, getUserDetail } from "./family.js";
+import { getVehicleAccessLevel, getUserDetail } from "./vehicle-shares.js";
+
+const SHARE_LIMITS = {
+  free: { perVehicle: 1, total: 3 },
+  premium: { perVehicle: 5, total: 20 },
+} as const;
 
 export const mePlugin: FastifyPluginAsync = async (app) => {
   app.get("/me", async (request) => {
@@ -23,30 +27,30 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) throw new AppError(401, "unauthorized", "Unknown user");
 
-    const [familyMembership] = await app.db.select().from(familyMemberships)
-      .where(eq(familyMemberships.userId, userId)).limit(1);
-    const [activeFamily] = familyMembership
-      ? await app.db.select().from(families)
-        .where(eq(families.id, familyMembership.familyId)).limit(1)
-      : [];
-    const familyIsActive = Boolean(activeFamily && activeFamily.status === "active");
-
     const [organizationMembership] = await app.db.select({ membership: organizationMembers, organization: organizations })
       .from(organizationMembers)
       .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
       .where(eq(organizationMembers.userId, userId))
       .limit(1);
     const organization = organizationMembership?.organization ?? null;
-    const familyFeature = user.plan === "premium" || familyIsActive;
     const fleetFeature = Boolean(organization && organization.plan === "enterprise" && organization.status === "active");
+
+    const limits = SHARE_LIMITS[user.plan];
+    const [activeShares] = await app.db.select({ count: sql`count(*)` })
+      .from(vehicleShares)
+      .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
+      .where(and(eq(vehicles.userId, userId), eq(vehicleShares.status, "active")));
 
     return {
       plan: user.plan,
-      family: {
-        available: familyFeature,
-        role: familyIsActive ? familyMembership?.role ?? null : null,
-        can_create: user.plan === "premium" && !familyMembership,
-        can_manage: user.plan === "premium" && familyIsActive && familyMembership?.role === "primary_owner",
+      vehicle_sharing: {
+        available: true,
+        can_share: true,
+        limits: {
+          per_vehicle: limits.perVehicle,
+          total: limits.total,
+        },
+        active_shares: Number(activeShares?.count ?? 0),
       },
       organization: organization && organizationMembership ? {
         id: organization.id,
@@ -55,7 +59,7 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
         status: organization.status,
         role: organizationMembership.membership.role,
       } : null,
-      features: { family: familyFeature, fleet: fleetFeature },
+      features: { vehicle_sharing: true, fleet: fleetFeature },
     };
   });
 
@@ -74,9 +78,9 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
         .from(vehicles)
         .where(eq(vehicles.id, body.active_vehicle_id))
         .limit(1);
-      // Owned vehicles and family-shared vehicles the user can access are
-      // both valid active-vehicle targets (members can activate a shared car
-      // to log maintenance/fuel/expenses against it).
+      // Owned vehicles and shared vehicles the user can access are
+      // both valid active-vehicle targets (shared users can activate a
+      // shared car to log maintenance/fuel/expenses against it).
       const allowed =
         v &&
         !v.archived &&
@@ -108,7 +112,7 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     return reply.code(204).send();
   });
 
-  // User detail with family info, license, owned vehicles
+  // User detail with shared vehicles, owned vehicles
   app.get("/users/:userId/detail", async (request) => {
     requireOwner(request);
     const requestingUserId = request.authUser!.sub;

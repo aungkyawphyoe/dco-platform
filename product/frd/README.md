@@ -10,7 +10,9 @@ Each FRD is self-contained and serves as the primary source of truth for:
 - QA Engineers
 - AI Development Agents
 
-Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the MVP scope wins and the FRD must be updated.
+Scope contract: `product/production-scope.md` (active) and `product/mvp-scope.md` (closed Phase 1 record). If an FRD disagrees with those files, the scope file wins and the FRD must be updated.
+
+Superseded FRDs move to [`archive/`](archive/).
 
 **As-built** (what the code does today) lives in [`docs/mvp-as-built.md`](../../docs/mvp-as-built.md). The status column below is that snapshot against each FRD. Do not re-implement a **Done** module. Do not treat Autozis sidebar items as backlog.
 
@@ -45,7 +47,7 @@ Scope contract: `product/mvp-scope.md`. If an FRD disagrees with that file, the 
 | Fuel | [fuel.md](fuel.md) | Mobile + API | **Done** | Logs + Fuel Types. `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. Optional odometer + economy KPIs live in [stats.md](stats.md). |
 | Stats | [stats.md](stats.md) | Mobile | **Placeholder** | Routes + drawer entries exist; KPIs, charts, filters, and the optional fuel-log odometer are unbuilt. Local Drift aggregation, no stats API. |
 | Admin | [admin.md](admin.md) | Web portal + API | **Done** | Login BFF, users, partners. `sync_errors_24h` is always `0`. No web test suite. |
-| Family Sharing | [family-sharing.md](family-sharing.md) | Mobile + API + Web | **Partial** | Family flows and backend Premium checks are implemented. Mobile navigation gating remains; billing is out of scope. |
+| Vehicle Sharing | [vehicle-sharing.md](vehicle-sharing.md) | Mobile + API + Web | **Done** | Per-vehicle shares via Code/QR or email, `view` \| `add_edit_own`, plan limits, share management screen, Shared with Me, owner shares page. Replaces Family Sharing (archived in [archive/family-sharing.md](archive/family-sharing.md)). Billing out of scope. |
 | User Profile & Account Management | [user-profile.md](user-profile.md) | Mobile + API + Web Admin | **Planned** | Post-signup profile completion (photo, name, phone, address), user-initiated account deletion, admin user creation with temp passwords, admin user deletion. |
 | Fleet Management | [fleet-management.md](fleet-management.md) | Mobile + Fleet Dashboard + Web Admin + API | **Partial** | Backend implemented: org provisioning/activation, roles, inventory + CSV, driver assignments, work orders, inspections, analytics, warranty templates, transfer, approved workshops, workshop accounts (`dco-workshop`), workshop warranty service. Fleet Dashboard implemented as separate Next.js app in `fleet-portal/` (`dco-fleet` BFF session). Surfaces still missing: Workshop Portal. Mobile Fleet/Driver modes are implemented in `mobile/`. Web Admin (`admin.yourdomain.com`) handles user management, org provisioning, partner records, and read-only fleet support. **Oct 2026 alignment (username driver accounts, role-gated portal sidebar, temp-password Fleet Admin provisioning, forced Driver mode) is specified in the FRD but not yet implemented — see its "Requirement alignment" note.** |
 
@@ -57,7 +59,7 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 
 ## Next implementation
 
-MVP core functionality is shipped. Current follow-ups include User Profile & Account Management and Family entitlement-driven mobile navigation. Fleet backend (organizations, inventory, warranty, transfer, approved workshops, workshop accounts), the Fleet Portal (`fleet-portal/`), and mobile Fleet/Driver modes are implemented; the Workshop Portal remains a planned surface. The **Oct 2026 Fleet alignment** (username-based driver accounts, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) is pending implementation — tracked in `fleet-management.md` § Requirement alignment.
+MVP core functionality is shipped. Current follow-ups include User Profile & Account Management. Fleet backend (organizations, inventory, warranty, transfer, approved workshops, workshop accounts), the Fleet Portal (`fleet-portal/`), and mobile Fleet/Driver modes are implemented; the Workshop Portal remains a planned surface. The **Oct 2026 Fleet alignment** (username-based driver accounts, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) is pending implementation — tracked in `fleet-management.md` § Requirement alignment.
 
 **Next:** User Profile & Account Management (`user-profile.md`) — Post-signup profile completion, account deletion, admin user creation.
 

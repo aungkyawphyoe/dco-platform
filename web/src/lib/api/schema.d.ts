@@ -518,8 +518,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Current account and Family/Fleet entitlements for navigation
-         * @description Navigation hints only; protected operations re-check plan, membership, organization status, and role.
+         * Current account and Vehicle Sharing/Fleet entitlements for navigation
+         * @description Navigation hints only; protected operations re-check plan, plan limits, organization status, and role.
          */
         get: {
             parameters: {
@@ -538,10 +538,18 @@ export interface paths {
                     content: {
                         "application/json": {
                             plan?: components["schemas"]["Plan"];
-                            family?: Record<string, never>;
+                            vehicle_sharing?: {
+                                available?: boolean;
+                                can_share?: boolean;
+                                limits?: {
+                                    per_vehicle?: number;
+                                    total?: number;
+                                };
+                                active_shares?: number;
+                            };
                             organization?: Record<string, never> | null;
                             features?: {
-                                family?: boolean;
+                                vehicle_sharing?: boolean;
                                 fleet?: boolean;
                             };
                         };
@@ -2610,406 +2618,74 @@ export interface paths {
         };
         trace?: never;
     };
-    "/families": {
+    "/vehicles/{vehicleId}/shares": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** List shares, pending invitations, share code, and plan limits (owner only) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Shares detail */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VehicleSharesDetail"];
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+            };
+        };
         put?: never;
         /**
-         * Create a new family
-         * @description Requires a Premium user plan. Joining an existing family is available to invited users without Premium.
+         * Invite by email or create a code/QR share (owner only)
+         * @description `method: "email"` sends an invitation link to `email` and returns an `invite_token` / `invite_url`. `method: "code_qr"` replaces the vehicle's outstanding share code and returns `share_code` / `qr_code_data`.
          */
         post: {
             parameters: {
                 query?: never;
                 header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        name: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Family created */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Family"];
-                    };
-                };
-                403: components["responses"]["Error"];
-                409: components["responses"]["Error"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/families/me": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Get current user's family */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Family with user's role */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Family"] & {
-                            my_role?: components["schemas"]["FamilyRole"];
-                        };
-                    };
-                };
-                404: components["responses"]["Error"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/families/{code}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** Lookup family by share code */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
                 path: {
-                    /** @description 8-char alphanumeric share code */
-                    code: components["parameters"]["familyCode"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Family summary */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["FamilyLookup"];
-                    };
-                };
-                404: components["responses"]["Error"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/families/{familyId}/join": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Join a family by share code (invitee does not need Premium) */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    familyId: components["parameters"]["familyId"];
+                    vehicleId: components["parameters"]["vehicleId"];
                 };
                 cookie?: never;
             };
             requestBody: {
                 content: {
                     "application/json": {
-                        code: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Joined family */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Family"] & {
-                            my_role?: components["schemas"]["FamilyRole"];
-                        };
-                    };
-                };
-                404: components["responses"]["Error"];
-                409: components["responses"]["Error"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/families/{familyId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                familyId: components["parameters"]["familyId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Archive family (Primary Owner only, requires ownership transfer first) */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    familyId: components["parameters"]["familyId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Archived */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                403: components["responses"]["Error"];
-                409: components["responses"]["Error"];
-            };
-        };
-        options?: never;
-        head?: never;
-        /** Update family name or regenerate share code (Primary Owner only) */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    familyId: components["parameters"]["familyId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: {
-                content: {
-                    "application/json": {
-                        name?: string;
-                        /** @default false */
-                        regenerate_share_code?: boolean;
-                    };
-                };
-            };
-            responses: {
-                /** @description Updated */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["Family"];
-                    };
-                };
-                403: components["responses"]["Error"];
-            };
-        };
-        trace?: never;
-    };
-    "/families/{familyId}/members": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List family members */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    familyId: components["parameters"]["familyId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Member list */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            items: components["schemas"]["FamilyMember"][];
-                        };
-                    };
-                };
-                403: components["responses"]["Error"];
-            };
-        };
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/families/{familyId}/members/{userId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                familyId: components["parameters"]["familyId"];
-                userId: components["parameters"]["userId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Remove member (Primary Owner only) */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    familyId: components["parameters"]["familyId"];
-                    userId: components["parameters"]["userId"];
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Removed */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                403: components["responses"]["Error"];
-                404: components["responses"]["Error"];
-            };
-        };
-        options?: never;
-        head?: never;
-        /** Update member role (Primary Owner only) */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    familyId: components["parameters"]["familyId"];
-                    userId: components["parameters"]["userId"];
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        role: components["schemas"]["FamilyRole"];
-                    };
-                };
-            };
-            responses: {
-                /** @description Updated */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["FamilyMember"];
-                    };
-                };
-                403: components["responses"]["Error"];
-                404: components["responses"]["Error"];
-            };
-        };
-        trace?: never;
-    };
-    "/families/{familyId}/vehicle-grants": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Grant vehicle access to a family member */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    familyId: components["parameters"]["familyId"];
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** Format: uuid */
-                        vehicle_id: string;
-                        /** Format: uuid */
-                        user_id: string;
                         /** @enum {string} */
-                        permission: "full" | "drive_only";
+                        method: "email" | "code_qr";
+                        /** Format: email */
+                        email?: string;
+                        access_level?: components["schemas"]["ShareAccessLevel"];
                     };
                 };
             };
             responses: {
-                /** @description Grant created */
+                /** @description Invitation created */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["VehicleGrant"];
+                        "application/json": components["schemas"]["VehicleShareInvitation"];
                     };
                 };
+                400: components["responses"]["Error"];
                 403: components["responses"]["Error"];
                 404: components["responses"]["Error"];
                 409: components["responses"]["Error"];
@@ -3021,7 +2697,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/{familyId}/vehicle-grants/{grantId}": {
+    "/vehicles/{vehicleId}/shares/{shareId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3031,14 +2707,17 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Revoke vehicle grant */
+        /**
+         * Revoke a share (owner only)
+         * @description Deletes the share, drops any pending invitation for the same email, and writes a `vehicle_share` delete change to both the shared user and owner.
+         */
         delete: {
             parameters: {
                 query?: never;
                 header?: never;
                 path: {
-                    familyId: components["parameters"]["familyId"];
-                    grantId: components["parameters"]["grantId"];
+                    vehicleId: components["parameters"]["vehicleId"];
+                    shareId: components["parameters"]["shareId"];
                 };
                 cookie?: never;
             };
@@ -3057,82 +2736,78 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        patch?: never;
+        /** Change a share's access level or regenerate its code (owner only) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vehicleId: components["parameters"]["vehicleId"];
+                    shareId: components["parameters"]["shareId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        access_level?: components["schemas"]["ShareAccessLevel"];
+                        regenerate_code?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated share */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VehicleShare"];
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+            };
+        };
         trace?: never;
     };
-    "/families/me/vehicles": {
+    "/vehicles/{vehicleId}/invitations/{inviteId}/resend": {
         parameters: {
             query?: never;
             header?: never;
             path?: never;
             cookie?: never;
         };
+        get?: never;
+        put?: never;
         /**
-         * List family vehicles
-         * @description Owner sees all their non-archived vehicles that are in the family. Member/Driver sees vehicles they have grants for.
+         * Resend a pending email invitation (owner only)
+         * @description Rotates the invitation token, so the new link supersedes any earlier one.
          */
-        get: {
+        post: {
             parameters: {
                 query?: never;
                 header?: never;
-                path?: never;
+                path: {
+                    vehicleId: components["parameters"]["vehicleId"];
+                    inviteId: components["parameters"]["inviteId"];
+                };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Vehicle list with permission info */
+                /** @description Invitation resent */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            items: components["schemas"]["FamilyVehicle"][];
-                        };
+                        "application/json": components["schemas"]["VehicleShareInvitation"];
                     };
                 };
-                404: components["responses"]["Error"];
-            };
-        };
-        put?: never;
-        /** Add vehicle to family (Primary Owner only) */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** Format: uuid */
-                        vehicle_id: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Vehicle added to family */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** Format: uuid */
-                            id?: string;
-                            /** Format: uuid */
-                            family_id?: string;
-                            /** Format: uuid */
-                            vehicle_id?: string;
-                            /** Format: uuid */
-                            added_by?: string;
-                            /** Format: date-time */
-                            added_at?: string;
-                        };
-                    };
-                };
+                400: components["responses"]["Error"];
                 403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
                 409: components["responses"]["Error"];
             };
         };
@@ -3142,7 +2817,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/families/me/vehicles/{vehicleId}": {
+    "/vehicles/{vehicleId}/invitations/{inviteId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -3153,8 +2828,8 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Remove vehicle from family (Primary Owner only)
-         * @description Removes vehicle from family and auto-revokes all grants for it.
+         * Cancel a pending invitation (owner only)
+         * @description Also removes the placeholder pending share created for an already-registered email.
          */
         delete: {
             parameters: {
@@ -3162,12 +2837,13 @@ export interface paths {
                 header?: never;
                 path: {
                     vehicleId: components["parameters"]["vehicleId"];
+                    inviteId: components["parameters"]["inviteId"];
                 };
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description Removed */
+                /** @description Cancelled */
                 204: {
                     headers: {
                         [name: string]: unknown;
@@ -3176,8 +2852,225 @@ export interface paths {
                 };
                 403: components["responses"]["Error"];
                 404: components["responses"]["Error"];
+                409: components["responses"]["Error"];
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vehicles/shared": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List vehicles shared with the current user */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Non-archived vehicles with an active share on the caller */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["SharedVehicle"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vehicles/shares/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept an email invitation by token
+         * @description The signed-in user's email must match the invited email. Seeds the vehicle and its plan items, service records, parts, fuel logs, documents, and expenses into the accepter's change log.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Share activated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VehicleShare"];
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+                409: components["responses"]["Error"];
+                410: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vehicles/shares/join": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Join a vehicle with an 8-character share code (Code/QR flow) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Share created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VehicleShare"];
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+                409: components["responses"]["Error"];
+                410: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vehicles/shares/decline": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline an email invitation by token */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Declined */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["Error"];
+                409: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vehicles/shares/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Preview a share code before joining */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    /** @description 8-char alphanumeric share code (case-insensitive) */
+                    code: components["parameters"]["shareCode"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Vehicle preview */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ShareCodePreview"];
+                    };
+                };
+                404: components["responses"]["Error"];
+                410: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -3311,7 +3204,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get family member's driving license */
+        /** Get another user's driving license (requires a shared vehicle) */
         get: {
             parameters: {
                 query?: never;
@@ -3351,7 +3244,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Vehicle detail with family grants, documents, and assigned drivers */
+        /** Vehicle detail with shares, documents, and shared users */
         get: {
             parameters: {
                 query?: never;
@@ -3390,7 +3283,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** User detail with family info, license, and owned vehicles */
+        /** User detail with license, owned vehicles, and vehicles shared with them */
         get: {
             parameters: {
                 query?: never;
@@ -5816,6 +5709,11 @@ export interface components {
             enabled: boolean;
             notes?: string | null;
             catalog_key?: string | null;
+            /**
+             * Format: uuid
+             * @description User who created this plan item
+             */
+            created_by?: string | null;
         };
         PlanItemWrite: {
             /** Format: uuid */
@@ -5858,6 +5756,11 @@ export interface components {
             notes?: string | null;
             /** Format: uuid */
             receipt_media_id?: string | null;
+            /**
+             * Format: uuid
+             * @description User who created this service record
+             */
+            created_by?: string | null;
             items: components["schemas"]["ServiceLine"][];
             parts?: components["schemas"]["ServicePart"][];
         };
@@ -5932,6 +5835,11 @@ export interface components {
             brand?: string | null;
             part_number?: string | null;
             notes?: string | null;
+            /**
+             * Format: uuid
+             * @description User who created this part
+             */
+            created_by?: string | null;
         };
         PartWrite: {
             /** Format: uuid */
@@ -6024,6 +5932,11 @@ export interface components {
             notes?: string | null;
             /** Format: uuid */
             receipt_media_id?: string | null;
+            /**
+             * Format: uuid
+             * @description User who created this expense
+             */
+            created_by?: string | null;
             parts?: components["schemas"]["ExpensePart"][];
         };
         ExpenseWrite: {
@@ -6090,7 +6003,7 @@ export interface components {
         };
         SyncOperation: {
             /** @enum {string} */
-            entity_type: "vehicle" | "plan_item" | "service_record" | "document" | "expense" | "notification" | "media" | "part" | "fuel_type" | "fuel_log" | "family" | "family_membership" | "vehicle_grant" | "driving_license" | "family_vehicle";
+            entity_type: "vehicle" | "plan_item" | "service_record" | "document" | "expense" | "notification" | "media" | "part" | "fuel_type" | "fuel_log";
             /** Format: uuid */
             entity_id: string;
             /** @enum {string} */
@@ -6270,65 +6183,88 @@ export interface components {
             enabled?: boolean;
         };
         /** @enum {string} */
-        FamilyRole: "primary_owner" | "member" | "driver";
-        Family: {
+        ShareAccessLevel: "view" | "add_edit_own";
+        /** @enum {string} */
+        ShareStatus: "pending" | "active" | "revoked";
+        VehicleShare: {
             /** Format: uuid */
             id: string;
-            name: string;
-            share_code: string;
-            qr_code_data?: Record<string, never>;
-            /** @enum {string} */
-            status: "active" | "archived";
             /** Format: uuid */
-            created_by: string;
+            vehicle_id: string;
+            /** Format: uuid */
+            user_id: string;
+            /** Format: uuid */
+            granted_by: string;
+            access_level: components["schemas"]["ShareAccessLevel"];
+            status: components["schemas"]["ShareStatus"];
+            /** Format: email */
+            invited_email?: string | null;
+            share_code?: string | null;
+            qr_code_data?: Record<string, never> | null;
+            /** Format: date-time */
+            accepted_at?: string | null;
+            /** Format: date-time */
+            created_at: string;
+            display_name?: string | null;
+            email?: string | null;
+        };
+        VehicleShareInvitation: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            vehicle_id: string;
+            /** Format: email */
+            invited_email?: string | null;
+            access_level: components["schemas"]["ShareAccessLevel"];
+            share_code?: string | null;
+            /** Format: date-time */
+            expires_at: string;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */
-            archived_at?: string | null;
-            vehicle_count?: number;
+            accepted_at?: string | null;
+            /** @description Returned only by create/resend responses for email invitations. */
+            invite_token?: string | null;
+            /** @description Deep link `dco://vehicle/share/accept?token=...`. */
+            invite_url?: string | null;
+            /** @description Deep link `dco://vehicle/share/join?code=...`. */
+            join_url?: string | null;
+            qr_code_data?: Record<string, never> | null;
         };
-        FamilyLookup: {
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            member_count?: number;
-            vehicle_count?: number;
+        VehicleShareLimits: {
+            /** @description Plan cap of active shares per vehicle (free 1, premium 5). */
+            per_vehicle?: number;
+            /** @description Plan cap of total active shares the owner may hold (free 3, premium 20). */
+            total?: number;
+            active_on_vehicle?: number;
         };
-        FamilyMember: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            user_id?: string;
-            email?: string;
-            display_name?: string | null;
-            role?: components["schemas"]["FamilyRole"];
-            /** Format: date-time */
-            joined_at?: string;
-            /** Format: uuid */
-            invited_by?: string;
-            vehicle_count?: number;
-            /** @enum {string|null} */
-            license_status?: "valid" | "expiring_soon" | "expired" | null;
+        VehicleSharesDetail: {
+            vehicle: components["schemas"]["Vehicle"];
+            shares: components["schemas"]["VehicleShare"][];
+            pending_invites: components["schemas"]["VehicleShareInvitation"][];
+            /** @description Outstanding code/QR invitation, or null when none exists. */
+            share_code?: string | null;
+            qr_code_data?: Record<string, never> | null;
+            limits: components["schemas"]["VehicleShareLimits"];
         };
-        VehicleGrant: {
-            /** Format: uuid */
-            id?: string;
-            /** Format: uuid */
-            vehicle_id?: string;
-            /** Format: uuid */
-            user_id?: string;
-            /** Format: uuid */
-            granted_by?: string;
+        SharedVehicle: components["schemas"]["Vehicle"] & {
             /** @enum {string} */
-            permission?: "full" | "drive_only";
-            /** Format: date-time */
-            created_at?: string;
+            source?: "shared";
+            access_level?: components["schemas"]["ShareAccessLevel"];
+            owner?: {
+                /** Format: uuid */
+                id?: string;
+                display_name?: string | null;
+                email?: string | null;
+            };
         };
-        FamilyVehicle: components["schemas"]["Vehicle"] & {
-            /** @enum {string} */
-            source?: "owned" | "family";
-            /** @enum {string|null} */
-            permission?: "full" | "drive_only" | null;
+        ShareCodePreview: {
+            vehicle_nickname: string;
+            license_plate: string;
+            owner_display_name?: string | null;
+            access_level: components["schemas"]["ShareAccessLevel"];
+            /** Format: date-time */
+            expires_at: string;
         };
         DrivingLicense: {
             /** Format: uuid */
@@ -6350,23 +6286,25 @@ export interface components {
             updated_at?: string;
         };
         VehicleDetail: components["schemas"]["Vehicle"] & {
-            grants?: components["schemas"]["VehicleGrant"][];
+            shares?: components["schemas"]["VehicleShare"][];
             documents?: components["schemas"]["Document"][];
-            assigned_drivers?: {
+            shared_users?: {
                 /** Format: uuid */
                 user_id?: string;
-                display_name?: string;
-                /** @enum {string} */
-                permission?: "full" | "drive_only";
-                license_status?: string | null;
+                display_name?: string | null;
+                access_level?: components["schemas"]["ShareAccessLevel"];
+                status?: components["schemas"]["ShareStatus"];
+                share_code?: string | null;
             }[];
         };
         UserDetail: components["schemas"]["User"] & {
-            /** Format: uuid */
-            family_id?: string | null;
-            family_role?: components["schemas"]["FamilyRole"];
             driving_license?: components["schemas"]["DrivingLicense"];
             owned_vehicles?: components["schemas"]["Vehicle"][];
+            shared_vehicles?: (components["schemas"]["Vehicle"] & {
+                access_level?: components["schemas"]["ShareAccessLevel"];
+                /** Format: uuid */
+                owner_id?: string;
+            })[];
         };
     };
     responses: {
@@ -6393,10 +6331,10 @@ export interface components {
         partId: string;
         fuelTypeId: string;
         fuelLogId: string;
-        familyId: string;
-        /** @description 8-char alphanumeric share code */
-        familyCode: string;
-        grantId: string;
+        /** @description 8-char alphanumeric share code (case-insensitive) */
+        shareCode: string;
+        shareId: string;
+        inviteId: string;
     };
     requestBodies: never;
     headers: never;

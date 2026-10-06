@@ -16,7 +16,7 @@ Three surfaces share one API and one database:
 | **REST API** | Serves mobile + admin | Always online | Fastify + Drizzle + PostgreSQL, REST + JWT, versioned `/v1` (`docs/adr/backend-stack.md`) |
 | **Web admin portal** | Internal staff | Online-only | Next.js 15 (`docs/adr/web-stack.md`). Visual tokens from `docs/design-system.md` |
 
-The owner product is a **digital garage**: vehicles, maintenance plan + history, documents, expenses, parts, refuel/charge **logs**, and family sharing (per-vehicle grants with role-based access). It is **not** Autozis: fuel *efficiency* KPIs, insurance *policies*, trips, OCR, AI assistant, and PDF reports stay out of MVP (`product/mvp-scope.md` Out of Scope). Refuel/charge logs and family sharing are in Phase 1.
+The owner product is a **digital garage**: vehicles, maintenance plan + history, documents, expenses, parts, refuel/charge **logs**, and vehicle sharing (per-vehicle shares granted by 8-char Code/QR or email invitation, at `view` or `add_edit_own`). There is no household/group entity. It is **not** Autozis: fuel *efficiency* KPIs, insurance *policies*, trips, OCR, AI assistant, and PDF reports stay out of MVP (`product/mvp-scope.md` Out of Scope). Refuel/charge logs and vehicle sharing are in Phase 1.
 
 ```mermaid
 flowchart LR
@@ -86,9 +86,9 @@ flowchart LR
 | Public internet → API | TLS only. No plaintext. |
 | Owner client | Untrusted. Validate every write. Client-generated UUIDs are allowed for idempotency, not for privilege. |
 | Admin client | Untrusted in the same way, plus **role `admin` on every `/v1/admin/*` call**. |
-| Family member | Untrusted. Vehicle access validated via `family_memberships` + `vehicle_grants` on each request. Primary owner can manage members and grants. |
+| Vehicle sharee | Untrusted. Access validated via `vehicles.user_id` + an active `vehicle_shares` row on each request (`getVehicleAccessLevel`). The vehicle owner alone creates, edits, revokes, and resends shares. |
 | Tokens | Access token short-lived. Refresh token rotated on use, stored in Keychain/Keystore (mobile) or a secure web store (admin). Never log token values. |
-| Media | Files are per-vehicle, authorized by the owning user (or admin metadata-only). Do not put long-lived public blob URLs in API JSON; use short-lived signed URLs or authenticated download. |
+| Media | Files are per-vehicle, authorized by anyone with access to that vehicle (or admin metadata-only). Do not put long-lived public blob URLs in API JSON; use short-lived signed URLs or authenticated download. |
 | PII | Admin user list shows email/name/plan/status, not document bytes (`product/frd/admin.md`). |
 | Sync | Outbox on device is bound to `user_id`. After logout, a different account on the same phone must not push the previous outbox. |
 

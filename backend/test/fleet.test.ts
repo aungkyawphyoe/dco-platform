@@ -24,29 +24,13 @@ async function adminToken(app: { inject: Function }) {
 
 const auth = (token: string) => ({ authorization: `Bearer ${token}` });
 
-describe("Family Premium entitlement", () => {
-  it("gates family management, allows free invitees, and revokes access on owner downgrade", async () => {
+describe("Vehicle sharing entitlement", () => {
+  it("shares within plan limits, exposes entitlements, and revokes excess shares on downgrade", async () => {
     const { app } = await createTestApp();
     const platformAdmin = await adminToken(app);
-    const owner = await signup(app, "family-owner");
-    const member = await signup(app, "family-member");
-
-    const denied = await app.inject({
-      method: "POST",
-      url: "/v1/families",
-      headers: auth(owner.token),
-      payload: { name: "Smith Family" },
-    });
-    expect(denied.statusCode).toBe(403);
-    expect(denied.json().error.code).toBe("premium_required");
-
-    const premium = await app.inject({
-      method: "PATCH",
-      url: `/v1/admin/users/${owner.id}`,
-      headers: auth(platformAdmin),
-      payload: { plan: "premium" },
-    });
-    expect(premium.statusCode).toBe(200);
+    const owner = await signup(app, "share-owner");
+    const member = await signup(app, "share-member");
+    const second = await signup(app, "share-second");
 
     const vehicleId = uuid();
     const vehicle = await app.inject({
@@ -54,40 +38,41 @@ describe("Family Premium entitlement", () => {
       url: "/v1/vehicles",
       headers: auth(owner.token),
       payload: {
-        id: vehicleId, name: "Family Car", make: "Toyota", model: "Corolla", year: 2021,
-        license_plate: `FAM${vehicleId.slice(0, 4)}`, vin: vehicleId.replaceAll("-", "").slice(0, 17),
+        id: vehicleId, name: "Shared Car", make: "Toyota", model: "Corolla", year: 2021,
+        license_plate: `SHR${vehicleId.slice(0, 4)}`, vin: vehicleId.replaceAll("-", "").slice(0, 17),
         fuel_type: "petrol", mileage: 12000,
       },
     });
     expect(vehicle.statusCode).toBe(201);
 
-    const createdFamily = await app.inject({
+    // Free plan can share, but only one share per vehicle.
+    const share = await app.inject({
       method: "POST",
-      url: "/v1/families",
+      url: `/v1/vehicles/${vehicleId}/shares`,
       headers: auth(owner.token),
-      payload: { name: "Smith Family" },
+      payload: { method: "code_qr", access_level: "add_edit_own" },
     });
-    expect(createdFamily.statusCode).toBe(201);
-    const family = createdFamily.json();
-    const familyVehicle = await app.inject({
-      method: "POST",
-      url: "/v1/families/me/vehicles",
-      headers: auth(owner.token),
-      payload: { vehicle_id: vehicleId },
-    });
-    expect(familyVehicle.statusCode).toBe(201);
-
+    expect(share.statusCode).toBe(201);
     const joined = await app.inject({
       method: "POST",
-      url: `/v1/families/${family.id}/join`,
+      url: "/v1/vehicles/shares/join",
       headers: auth(member.token),
-      payload: { code: family.share_code.toLowerCase() },
+      payload: { code: share.json().share_code },
     });
-    expect(joined.statusCode).toBe(200);
-    // Joining auto-grants access to vehicles already shared with the family.
+    expect(joined.statusCode).toBe(201);
+
+    const deniedSecond = await app.inject({
+      method: "POST",
+      url: `/v1/vehicles/${vehicleId}/shares`,
+      headers: auth(owner.token),
+      payload: { method: "code_qr" },
+    });
+    expect(deniedSecond.statusCode).toBe(403);
+    expect(deniedSecond.json().error.code).toBe("share_limit_reached");
+
     const memberVehicles = await app.inject({
       method: "GET",
-      url: "/v1/families/me/vehicles",
+      url: "/v1/vehicles/shared",
       headers: auth(member.token),
     });
     expect(memberVehicles.statusCode).toBe(200);
@@ -95,11 +80,12 @@ describe("Family Premium entitlement", () => {
       memberVehicles.json().items.some((v: { id: string }) => v.id === vehicleId),
     ).toBe(true);
 
-    const entitlements = await app.inject({ method: "GET", url: "/v1/me/entitlements", headers: auth(member.token) });
-    expect(entitlements.statusCode).toBe(200);
-    expect(entitlements.json().plan).toBe("free");
-    expect(entitlements.json().features.family).toBe(true);
-    expect(entitlements.json().family.can_manage).toBe(false);
+    const ownerEntitlements = await app.inject({ method: "GET", url: "/v1/me/entitlements", headers: auth(owner.token) });
+    expect(ownerEntitlements.statusCode).toBe(200);
+    expect(ownerEntitlements.json().plan).toBe("free");
+    expect(ownerEntitlements.json().features.vehicle_sharing).toBe(true);
+    expect(ownerEntitlements.json().vehicle_sharing.limits.per_vehicle).toBe(1);
+    expect(ownerEntitlements.json().vehicle_sharing.active_shares).toBe(1);
 
     const service = await app.inject({
       method: "POST",
@@ -112,6 +98,34 @@ describe("Family Premium entitlement", () => {
     });
     expect(service.statusCode).toBe(201);
 
+    // Premium raises the per-vehicle cap so a second member can join.
+    const premium = await app.inject({
+      method: "PATCH",
+      url: `/v1/admin/users/${owner.id}`,
+      headers: auth(platformAdmin),
+      payload: { plan: "premium" },
+    });
+    expect(premium.statusCode).toBe(200);
+
+    const premiumEntitlements = await app.inject({ method: "GET", url: "/v1/me/entitlements", headers: auth(owner.token) });
+    expect(premiumEntitlements.json().vehicle_sharing.limits.per_vehicle).toBe(5);
+
+    const shareSecond = await app.inject({
+      method: "POST",
+      url: `/v1/vehicles/${vehicleId}/shares`,
+      headers: auth(owner.token),
+      payload: { method: "code_qr", access_level: "view" },
+    });
+    expect(shareSecond.statusCode).toBe(201);
+    const joinSecond = await app.inject({
+      method: "POST",
+      url: "/v1/vehicles/shares/join",
+      headers: auth(second.token),
+      payload: { code: shareSecond.json().share_code },
+    });
+    expect(joinSecond.statusCode).toBe(201);
+
+    // Downgrading back to free revokes shares beyond the free cap.
     const downgraded = await app.inject({
       method: "PATCH",
       url: `/v1/admin/users/${owner.id}`,
@@ -120,14 +134,23 @@ describe("Family Premium entitlement", () => {
     });
     expect(downgraded.statusCode).toBe(200);
 
+    const afterDowngrade = await app.inject({ method: "GET", url: "/v1/me/entitlements", headers: auth(owner.token) });
+    expect(afterDowngrade.json().vehicle_sharing.limits.per_vehicle).toBe(1);
+    expect(afterDowngrade.json().vehicle_sharing.active_shares).toBe(1);
+
     const noLongerShared = await app.inject({
       method: "GET",
-      url: `/v1/vehicles/${vehicleId}/service-records`,
-      headers: auth(member.token),
+      url: `/v1/vehicles/${vehicleId}/plan-items`,
+      headers: auth(second.token),
     });
     expect(noLongerShared.statusCode).toBe(403);
-    const familyEntitlements = await app.inject({ method: "GET", url: "/v1/me/entitlements", headers: auth(member.token) });
-    expect(familyEntitlements.json().features.family).toBe(false);
+
+    const stillShared = await app.inject({
+      method: "GET",
+      url: `/v1/vehicles/${vehicleId}/plan-items`,
+      headers: auth(member.token),
+    });
+    expect(stillShared.statusCode).toBe(200);
     await app.close();
   });
 });

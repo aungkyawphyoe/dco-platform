@@ -33,18 +33,18 @@ export async function POST(request: NextRequest) {
 
   const session = (await res.json()) as UpstreamSession;
 
-  // Check if admin or primary owner with family
+  // Admins land on the staff portal, owners on vehicle sharing.
   const isAdmin = session.user.role === "admin";
-  const isOwnerWithFamily = session.user.role === "owner" && session.user.family_id;
+  const isOwner = session.user.role === "owner";
 
-  if (!isAdmin && !isOwnerWithFamily) {
+  if (!isAdmin && !isOwner) {
     return NextResponse.json(
-      { error: { code: "unauthorized", message: isAdmin ? "Admin access required" : "Family access required" } },
+      { error: { code: "unauthorized", message: "Account has no portal access" } },
       { status: 403 },
     );
   }
 
-  const redirectPath = isAdmin ? "/" : "/family";
+  const redirectPath = isAdmin ? "/" : "/vehicles";
   const out = NextResponse.json({
     user: session.user,
     access_token: session.access_token,

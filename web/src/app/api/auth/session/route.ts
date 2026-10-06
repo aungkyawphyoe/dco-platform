@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (res.status === 200) {
       const session = (await res.json()) as UpstreamSession;
-      if (session.user.role === "owner" && session.user.family_id) {
+      if (session.user.role === "owner") {
         const out = NextResponse.json({
           user: session.user,
           access_token: session.access_token,

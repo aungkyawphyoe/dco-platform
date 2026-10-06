@@ -1,7 +1,7 @@
 import { and, eq, gt, isNull } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { emailTokens, families, familyMemberships, fuelTypes, organizationMembers, organizations, partners, refreshTokens, users, workshopMembers } from "../db/schema.js";
+import { emailTokens, fuelTypes, organizationMembers, organizations, partners, refreshTokens, users, workshopMembers } from "../db/schema.js";
 import { DEFAULT_FUEL_TYPES } from "../lib/catalog.js";
 import {
   hashPassword,
@@ -110,7 +110,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
         .where(and(eq(workshopMembers.userId, user.id), eq(partners.type, "workshop"), eq(partners.status, "verified")))
         .limit(1);
       if (!workshop) throw new AppError(403, "workshop_access_required", "A verified workshop account is required");
-      return issueSession(app, user, undefined, app.env.JWT_WORKSHOP_AUD);
+      return issueSession(app, user, app.env.JWT_WORKSHOP_AUD);
     }
     if (body.surface === "fleet") {
       const memberships = await app.db
@@ -126,9 +126,9 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
       if (memberships.every((m) => m.role === "org_driver")) {
         throw new AppError(403, "portal_access_restricted", "Drivers do not use the Fleet Portal");
       }
-      return issueSession(app, user, undefined, app.env.JWT_FLEET_AUD);
+      return issueSession(app, user, app.env.JWT_FLEET_AUD);
     }
-    return issueSession(app, user, undefined, app.env.JWT_OWNER_AUD);
+    return issueSession(app, user, app.env.JWT_OWNER_AUD);
   });
 
   app.post("/auth/refresh", { config: { public: true } }, async (request) => {
@@ -155,7 +155,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.id, stored.id));
     const [user] = await app.db.select().from(users).where(eq(users.id, stored.userId)).limit(1);
     if (!user || user.status === "deactivated") throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
-    return issueSession(app, user, stored.familyId, stored.audience);
+    return issueSession(app, user, stored.audience);
   });
 
   app.post("/auth/logout", { config: { public: true } }, async (request, reply) => {
@@ -189,7 +189,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
       await app.db
         .update(refreshTokens)
         .set({ revokedAt: new Date() })
-        .where(and(eq(refreshTokens.familyId, payload.family), eq(refreshTokens.userId, payload.sub)));
+        .where(and(eq(refreshTokens.id, payload.jti), eq(refreshTokens.userId, payload.sub)));
       return reply.code(204).send();
     }
 
@@ -353,39 +353,19 @@ export function requireWorkshopClient(request: { authUser?: AccessClaims & { sub
 async function issueSession(
   app: { env: import("../config/env.js").Env; db: import("../db/client.js").Db },
   user: typeof users.$inferSelect,
-  familyId = newId(),
   audience = user.role === "admin" ? app.env.JWT_ADMIN_AUD : app.env.JWT_OWNER_AUD,
 ) {
-  // Fetch family membership for the user
-  let family_id: string | null = null;
-  let family_role: "primary_owner" | "member" | "driver" | null = null;
-  if (user.role === "owner") {
-    const [membership] = await app.db
-      .select({ familyId: familyMemberships.familyId, role: familyMemberships.role })
-      .from(familyMemberships)
-      .innerJoin(families, eq(familyMemberships.familyId, families.id))
-      .where(and(eq(familyMemberships.userId, user.id), eq(families.status, "active")))
-      .limit(1);
-    if (membership) {
-      family_id = membership.familyId;
-      family_role = membership.role as "primary_owner" | "member" | "driver";
-    }
-  }
-
   const access = await signAccess(app.env, {
     sub: user.id,
     role: user.role,
     plan: user.plan,
-    family_id,
-    family_role,
     aud: audience,
   });
   const jti = newId();
-  const refresh = await signRefresh(app.env, user.id, familyId, jti);
+  const refresh = await signRefresh(app.env, user.id, jti);
   await app.db.insert(refreshTokens).values({
     id: jti,
     userId: user.id,
-    familyId,
     audience,
     tokenHash: sha256(refresh.token),
     expiresAt: refresh.expiresAt,

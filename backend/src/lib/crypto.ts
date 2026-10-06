@@ -8,7 +8,6 @@ const REFRESH_TYP = "refresh";
 
 export type Role = "owner" | "admin";
 export type Plan = "free" | "premium";
-export type FamilyRole = "primary_owner" | "member" | "driver" | null;
 
 export type AccessClaims = {
   sub: string;
@@ -16,8 +15,6 @@ export type AccessClaims = {
   surface?: "owner" | "fleet" | "workshop" | "admin";
   role: Role;
   plan: Plan;
-  family_id: string | null;
-  family_role: FamilyRole;
   typ: typeof ACCESS_TYP;
 };
 
@@ -59,8 +56,6 @@ export async function signAccess(env: Env, input: Omit<AccessClaims, "typ" | "au
   const token = await new SignJWT({ 
     role: input.role, 
     plan: input.plan, 
-    family_id: input.family_id,
-    family_role: input.family_role,
     typ: ACCESS_TYP 
   })
     .setProtectedHeader({ alg: "HS256" })
@@ -72,10 +67,10 @@ export async function signAccess(env: Env, input: Omit<AccessClaims, "typ" | "au
   return { token, expiresIn, aud };
 }
 
-export async function signRefresh(env: Env, userId: string, familyId: string, jti: string) {
+export async function signRefresh(env: Env, userId: string, jti: string) {
   const secret = new TextEncoder().encode(env.JWT_REFRESH_SECRET);
   const expiresIn = ttlToSeconds(env.JWT_REFRESH_TTL);
-  const token = await new SignJWT({ typ: REFRESH_TYP, family: familyId })
+  const token = await new SignJWT({ typ: REFRESH_TYP })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(userId)
     .setJti(jti)
@@ -106,8 +101,8 @@ export async function verifyAccess(env: Env, token: string): Promise<AccessClaim
 export async function verifyRefresh(env: Env, token: string) {
   const secret = new TextEncoder().encode(env.JWT_REFRESH_SECRET);
   const { payload } = await jwtVerify(token, secret);
-  if (payload.typ !== REFRESH_TYP || !payload.sub || !payload.jti || typeof payload.family !== "string") {
+  if (payload.typ !== REFRESH_TYP || !payload.sub || !payload.jti) {
     throw new Error("invalid_refresh");
   }
-  return payload as JWTPayload & { family: string; jti: string; sub: string };
+  return payload as JWTPayload & { jti: string; sub: string };
 }

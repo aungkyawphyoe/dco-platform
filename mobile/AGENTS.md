@@ -39,7 +39,7 @@ After a successful owner login, land on **Dashboard** (tldraw screen 3) — the 
 
 Documents is reached from Expenses (header) and from vehicle flows — not a tab. Sync status is a compact indicator in the top bar or Settings — never a fifth tab.
 
-**In production scope:** everything that shipped in MVP — auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, family sharing — plus **Notes** (local-only personal notebook; see `product/production-scope.md`) and **Fleet/Driver modes** (online-first org fleet operations; see `product/frd/fleet-management.md` §18).
+**In production scope:** everything that shipped in MVP — auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, **vehicle sharing** (replaces Family Sharing) — plus **Notes** (local-only personal notebook; see `product/production-scope.md`) and **Fleet/Driver modes** (online-first org fleet operations; see `product/frd/fleet-management.md` §18).
 
 **Still out of scope (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; note sync / server-side notes.
 
@@ -128,7 +128,7 @@ flowchart TB
 
 - Access JWT (minutes, `aud=dco-owner`) + refresh JWT (days, rotating) in secure storage.
 - Dio attaches Bearer access. On 401, refresh once per request cycle, then retry.
-- Password reset revokes all refresh families (server). Client discards tokens on logout.
+- Password reset revokes all refresh tokens (server). Client discards tokens on logout.
 - Logout: tokens discarded. Outbox remains, bound to `user_id`. A different account on the same phone must not push the previous outbox.
 - Unauthenticated: only welcome / login / signup / password-reset. Authenticated: those screens are unreachable without logout.
 
@@ -221,7 +221,7 @@ mobile/
         data/
         domain/
         presentation/
-      family/
+      vehicle_sharing/
         data/
         domain/
         presentation/

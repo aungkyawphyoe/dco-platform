@@ -46,7 +46,7 @@ Aggregation runs **locally** (Drift/SQLite). There are no `/v1/stats` endpoints.
 - **Compare By** dimensions (location, fuel type, category) — no location field exists; category split is deferred
 - **Charge form extension**: home vs away, AC/DC, duration, temperature, battery %, estimated range — none are collected; all related Autozis KPIs (incl. Temperature Insights) are out
 - **Insights / cross-screen** view (combined cost per 100 km across fuel + maintenance + expenses)
-- Server-side aggregation endpoints; stats on web admin / family dashboard / fleet portal
+- Server-side aggregation endpoints; stats on web admin / owner web surface / fleet portal
 - PDF / CSV export
 - Cost-per-unit trend chart, monthly volume/distance charts, monthly count charts
 - Odometer on maintenance or expense forms (service records already have one)
@@ -349,7 +349,7 @@ Events (add to `mobile/lib/core/analytics/analytics.dart`)
 - Insights screen: cross-section cost per 100 km (fuel + maintenance + expenses)
 - Charge form extension (charging source, AC/DC, duration, battery %) → Home vs Away, AC vs DC, charge-speed KPIs
 - Cost-per-unit trend chart; monthly volume / distance charts
-- Server aggregation for web / family dashboard read-only stats
+- Server aggregation for web / owner web read-only stats
 - Odometer backfill helper (prompt to set odometer from vehicle mileage on next log)
 - PDF / CSV export of a period
 - Per-card info tooltips instead of / alongside the modal

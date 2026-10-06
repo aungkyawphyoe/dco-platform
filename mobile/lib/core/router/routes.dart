@@ -63,9 +63,12 @@ abstract final class AppRoutes {
 
   static const sync = '/sync';
 
-  static const family = '/family';
-  static const familyNew = '/family/new';
-  static String familyJoin(String code) => '/family/join/$code';
+  // Vehicle sharing (per-vehicle invites + share code/QR)
+  static const sharedWithMe = '/shares/shared-with-me';
+  static const vehicleShareJoin = '/vehicle/share/join';
+  static const vehicleShareAccept = '/vehicle/share/accept';
+  static String vehicleShareManage(String id) => '/vehicle/$id/share';
+  static String vehicleShareNew(String id) => '/vehicle/$id/share/new';
 
   static const fleet = '/fleet';
   static const fleetOrg = '/fleet/org';

@@ -25,6 +25,7 @@ export function publicPlan(row: typeof planItems.$inferSelect) {
     enabled: row.enabled,
     notes: row.notes,
     catalog_key: row.catalogKey,
+    created_by: row.createdBy,
   };
 }
 
@@ -42,6 +43,7 @@ export async function loadService(appDb: Db, id: string) {
     workshop_name: row.workshopName,
     notes: row.notes,
     receipt_media_id: row.receiptMediaId,
+    created_by: row.createdBy,
     items: items.map((i) => ({
       id: i.id,
       plan_item_id: i.planItemId,
@@ -60,6 +62,7 @@ export function publicPart(row: typeof parts.$inferSelect) {
     brand: row.brand,
     part_number: row.partNumber,
     notes: row.notes,
+    created_by: row.createdBy,
   };
 }
 
@@ -104,6 +107,7 @@ export async function publicExpense(appDb: Db, id: string) {
     incurred_on: dateOnly(row.incurredOn),
     notes: row.notes,
     receipt_media_id: row.receiptMediaId,
+    created_by: row.createdBy,
     parts: assigned.map((p) => ({ id: p.id, part_id: p.partId, name: p.name })),
   };
 }

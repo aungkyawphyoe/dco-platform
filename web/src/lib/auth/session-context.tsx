@@ -16,7 +16,6 @@ export type SessionUser = {
   email: string;
   display_name: string | null;
   role: string;
-  family_id: string | null;
 };
 
 type SessionState = {
@@ -51,7 +50,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         if (!res.ok) throw new Error("me failed");
         const me = (await res.json()) as SessionUser;
         if (!active) return;
-        setUser({ id: me.id, email: me.email, display_name: me.display_name, role: me.role, family_id: me.family_id });
+        setUser({ id: me.id, email: me.email, display_name: me.display_name, role: me.role });
       } catch {
         clearToken();
         setUser(null);

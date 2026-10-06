@@ -16,8 +16,7 @@ class VehicleCard extends StatelessWidget {
     this.lengthUnit = MileageUnit.km,
     this.onSetActive,
     this.onEdit,
-    this.isFamily = false,
-    this.onDelete,
+    this.onShare,
   });
 
   final Vehicle vehicle;
@@ -26,8 +25,7 @@ class VehicleCard extends StatelessWidget {
   final MileageUnit lengthUnit;
   final VoidCallback? onSetActive;
   final VoidCallback? onEdit;
-  final bool isFamily;
-  final VoidCallback? onDelete;
+  final VoidCallback? onShare;
 
   @override
   Widget build(BuildContext context) {
@@ -71,10 +69,10 @@ class VehicleCard extends StatelessWidget {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                if (isFamily || vehicle.source == VehicleSource.family) ...[
+                                if (vehicle.source == VehicleSource.shared) ...[
                                   SizedBox(width: tokens.space.s2),
                                   _Badge(
-                                    label: s.garageFamilyBadge,
+                                    label: s.garageSharedBadge,
                                     color: tokens.text.accent,
                                     background: tokens.background.card,
                                   ),
@@ -101,11 +99,11 @@ class VehicleCard extends StatelessWidget {
                               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                               padding: EdgeInsets.zero,
                             ),
-                          if (onDelete != null)
+                          if (onShare != null)
                             IconButton(
-                              tooltip: s.vehicleRemoveTooltip,
-                              onPressed: onDelete,
-                              icon: Icon(Icons.delete_outline, size: 20, color: tokens.status.dangerFg),
+                              tooltip: s.vehicleShareTooltip,
+                              onPressed: onShare,
+                              icon: Icon(Icons.share_outlined, size: 20, color: tokens.icon.inactive),
                               constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
                               padding: EdgeInsets.zero,
                             ),

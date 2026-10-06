@@ -6,6 +6,12 @@ export type Mailer = {
   sendOrganizationInvitation(to: string, organizationName: string, role: string): Promise<void>;
   sendOrganizationActivated(to: string, organizationName: string): Promise<void>;
   sendWorkshopInvitation(to: string, workshopName: string): Promise<void>;
+  sendVehicleShareInvitation(
+    to: string,
+    vehicleName: string,
+    inviterName: string,
+    inviteUrl: string,
+  ): Promise<void>;
 };
 
 function link(env: Env, path: string, token: string): string {
@@ -54,6 +60,14 @@ export function createMailer(env: Env): Mailer {
         return;
       }
       await sendAcs(env, to, `AutoHub Workshop access: ${workshopName}`, body);
+    },
+    async sendVehicleShareInvitation(to, vehicleName, inviterName, inviteUrl) {
+      const body = `${inviterName} shared the vehicle "${vehicleName}" with you. Open the AutoHub app and accept the invitation: ${inviteUrl}`;
+      if (env.MAIL_PROVIDER === "stdout") {
+        console.log(`[mail] vehicle share invite ${to}: ${body}`);
+        return;
+      }
+      await sendAcs(env, to, `AutoHub: ${vehicleName} shared with you`, body);
     },
   };
 }

@@ -1,5 +1,6 @@
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/vehicle.dart';
+import '../../../../features/vehicle_sharing/domain/entities/vehicle_share.dart';
 
 Vehicle vehicleFromDrift(VehicleRecord row) {
   return Vehicle(
@@ -25,6 +26,8 @@ Vehicle vehicleFromDrift(VehicleRecord row) {
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
     source: VehicleSource.parse(row.source),
-    permission: row.permission,
+    accessLevel: row.permission != null
+        ? ShareAccessLevel.parse(row.permission!)
+        : null,
   );
 }

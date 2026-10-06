@@ -1,4 +1,5 @@
 import 'package:dco_mobile/core/units/mileage_unit.dart';
+import '../../../../features/vehicle_sharing/domain/entities/vehicle_share.dart';
 
 export 'package:dco_mobile/core/units/mileage_unit.dart';
 
@@ -29,7 +30,7 @@ enum FuelType {
 
 enum VehicleSource {
   owned,
-  family;
+  shared;
 
   String get storage => name;
 
@@ -65,7 +66,7 @@ class Vehicle {
     this.photoMediaId,
     this.archivedAt,
     this.source = VehicleSource.owned,
-    this.permission,
+    this.accessLevel,
   });
 
   final String id;
@@ -90,7 +91,7 @@ class Vehicle {
   final DateTime updatedAt;
   final DateTime createdAt;
   final VehicleSource source;
-  final String? permission;
+  final ShareAccessLevel? accessLevel;
 
   String get displayName {
     final nick = nickname?.trim();

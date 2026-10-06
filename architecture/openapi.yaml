@@ -27,7 +27,8 @@ tags:
   - name: Media
   - name: Sync
   - name: Admin
-  - name: Family
+  - name: Vehicle Sharing
+  - name: Licenses
   - name: Fleet
 security:
   - bearerAuth: []
@@ -273,8 +274,8 @@ paths:
   /me/entitlements:
     get:
       tags: [Me]
-      summary: Current account and Family/Fleet entitlements for navigation
-      description: Navigation hints only; protected operations re-check plan, membership, organization status, and role.
+      summary: Current account and Vehicle Sharing/Fleet entitlements for navigation
+      description: Navigation hints only; protected operations re-check plan, plan limits, organization status, and role.
       responses:
         '200':
           description: Entitlements
@@ -285,15 +286,29 @@ paths:
                 properties:
                   plan:
                     $ref: '#/components/schemas/Plan'
-                  family:
+                  vehicle_sharing:
                     type: object
+                    properties:
+                      available:
+                        type: boolean
+                      can_share:
+                        type: boolean
+                      limits:
+                        type: object
+                        properties:
+                          per_vehicle:
+                            type: integer
+                          total:
+                            type: integer
+                      active_shares:
+                        type: integer
                   organization:
                     type: object
                     nullable: true
                   features:
                     type: object
                     properties:
-                      family:
+                      vehicle_sharing:
                         type: boolean
                       fleet:
                         type: boolean
@@ -1266,73 +1281,202 @@ paths:
           description: Deleted
         '404':
           $ref: '#/components/responses/Error'
-  /families:
+  /vehicles/{vehicleId}/shares:
+    get:
+      tags: [Vehicle Sharing]
+      summary: List shares, pending invitations, share code, and plan limits (owner only)
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Shares detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleSharesDetail'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
     post:
-      tags: [Family]
-      summary: Create a new family
-      description: Requires a Premium user plan. Joining an existing family is available to invited users without Premium.
+      tags: [Vehicle Sharing]
+      summary: Invite by email or create a code/QR share (owner only)
+      description: >-
+        `method: "email"` sends an invitation link to `email` and returns an
+        `invite_token` / `invite_url`. `method: "code_qr"` replaces the vehicle's
+        outstanding share code and returns `share_code` / `qr_code_data`.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [name]
+              required: [method]
               properties:
-                name:
+                method:
                   type: string
-                  minLength: 1
-                  maxLength: 100
+                  enum: [email, code_qr]
+                email:
+                  type: string
+                  format: email
+                access_level:
+                  $ref: '#/components/schemas/ShareAccessLevel'
       responses:
         '201':
-          description: Family created
+          description: Invitation created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Family'
-        '409':
+                $ref: '#/components/schemas/VehicleShareInvitation'
+        '400':
           $ref: '#/components/responses/Error'
         '403':
           $ref: '#/components/responses/Error'
-  /families/me:
-    get:
-      tags: [Family]
-      summary: Get current user's family
-      responses:
-        '200':
-          description: Family with user's role
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Family'
-                  - type: object
-                    properties:
-                      my_role:
-                        $ref: '#/components/schemas/FamilyRole'
         '404':
           $ref: '#/components/responses/Error'
-  /families/{code}:
-    get:
-      tags: [Family]
-      summary: Lookup family by share code
+        '409':
+          $ref: '#/components/responses/Error'
+  /vehicles/{vehicleId}/shares/{shareId}:
+    patch:
+      tags: [Vehicle Sharing]
+      summary: Change a share's access level or regenerate its code (owner only)
       parameters:
-        - $ref: '#/components/parameters/familyCode'
+        - $ref: '#/components/parameters/vehicleId'
+        - $ref: '#/components/parameters/shareId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                access_level:
+                  $ref: '#/components/schemas/ShareAccessLevel'
+                regenerate_code:
+                  type: boolean
       responses:
         '200':
-          description: Family summary
+          description: Updated share
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FamilyLookup'
+                $ref: '#/components/schemas/VehicleShare'
+        '403':
+          $ref: '#/components/responses/Error'
         '404':
           $ref: '#/components/responses/Error'
-  /families/{familyId}/join:
+    delete:
+      tags: [Vehicle Sharing]
+      summary: Revoke a share (owner only)
+      description: >-
+        Deletes the share, drops any pending invitation for the same email, and
+        writes a `vehicle_share` delete change to both the shared user and owner.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+        - $ref: '#/components/parameters/shareId'
+      responses:
+        '204':
+          description: Revoked
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+  /vehicles/{vehicleId}/invitations/{inviteId}/resend:
     post:
-      tags: [Family]
-      summary: Join a family by share code (invitee does not need Premium)
+      tags: [Vehicle Sharing]
+      summary: Resend a pending email invitation (owner only)
+      description: Rotates the invitation token, so the new link supersedes any earlier one.
       parameters:
-        - $ref: '#/components/parameters/familyId'
+        - $ref: '#/components/parameters/vehicleId'
+        - $ref: '#/components/parameters/inviteId'
+      responses:
+        '200':
+          description: Invitation resent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleShareInvitation'
+        '400':
+          $ref: '#/components/responses/Error'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /vehicles/{vehicleId}/invitations/{inviteId}:
+    delete:
+      tags: [Vehicle Sharing]
+      summary: Cancel a pending invitation (owner only)
+      description: Also removes the placeholder pending share created for an already-registered email.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+        - $ref: '#/components/parameters/inviteId'
+      responses:
+        '204':
+          description: Cancelled
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+  /vehicles/shared:
+    get:
+      tags: [Vehicle Sharing]
+      summary: List vehicles shared with the current user
+      responses:
+        '200':
+          description: Non-archived vehicles with an active share on the caller
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/SharedVehicle'
+  /vehicles/shares/accept:
+    post:
+      tags: [Vehicle Sharing]
+      summary: Accept an email invitation by token
+      description: >-
+        The signed-in user's email must match the invited email. Seeds the
+        vehicle and its plan items, service records, parts, fuel logs,
+        documents, and expenses into the accepter's change log.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        '200':
+          description: Share activated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VehicleShare'
+        '403':
+          $ref: '#/components/responses/Error'
+        '404':
+          $ref: '#/components/responses/Error'
+        '409':
+          $ref: '#/components/responses/Error'
+        '410':
+          $ref: '#/components/responses/Error'
+  /vehicles/shares/join:
+    post:
+      tags: [Vehicle Sharing]
+      summary: Join a vehicle with an 8-character share code (Code/QR flow)
       requestBody:
         required: true
         content:
@@ -1346,248 +1490,61 @@ paths:
                   minLength: 8
                   maxLength: 8
       responses:
-        '200':
-          description: Joined family
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: '#/components/schemas/Family'
-                  - type: object
-                    properties:
-                      my_role:
-                        $ref: '#/components/schemas/FamilyRole'
-        '404':
-          $ref: '#/components/responses/Error'
-        '409':
-          $ref: '#/components/responses/Error'
-  /families/{familyId}:
-    parameters:
-      - $ref: '#/components/parameters/familyId'
-    patch:
-      tags: [Family]
-      summary: Update family name or regenerate share code (Primary Owner only)
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                name:
-                  type: string
-                  minLength: 1
-                  maxLength: 100
-                regenerate_share_code:
-                  type: boolean
-                  default: false
-      responses:
-        '200':
-          description: Updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Family'
-        '403':
-          $ref: '#/components/responses/Error'
-    delete:
-      tags: [Family]
-      summary: Archive family (Primary Owner only, requires ownership transfer first)
-      responses:
-        '204':
-          description: Archived
-        '403':
-          $ref: '#/components/responses/Error'
-        '409':
-          $ref: '#/components/responses/Error'
-  /families/{familyId}/members:
-    get:
-      tags: [Family]
-      summary: List family members
-      parameters:
-        - $ref: '#/components/parameters/familyId'
-      responses:
-        '200':
-          description: Member list
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [items]
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/FamilyMember'
-        '403':
-          $ref: '#/components/responses/Error'
-  /families/{familyId}/members/{userId}:
-    parameters:
-      - $ref: '#/components/parameters/familyId'
-      - $ref: '#/components/parameters/userId'
-    patch:
-      tags: [Family]
-      summary: Update member role (Primary Owner only)
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [role]
-              properties:
-                role:
-                  $ref: '#/components/schemas/FamilyRole'
-      responses:
-        '200':
-          description: Updated
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/FamilyMember'
-        '403':
-          $ref: '#/components/responses/Error'
-        '404':
-          $ref: '#/components/responses/Error'
-    delete:
-      tags: [Family]
-      summary: Remove member (Primary Owner only)
-      responses:
-        '204':
-          description: Removed
-        '403':
-          $ref: '#/components/responses/Error'
-        '404':
-          $ref: '#/components/responses/Error'
-  /families/{familyId}/vehicle-grants:
-    post:
-      tags: [Family]
-      summary: Grant vehicle access to a family member
-      parameters:
-        - $ref: '#/components/parameters/familyId'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [vehicle_id, user_id, permission]
-              properties:
-                vehicle_id:
-                  type: string
-                  format: uuid
-                user_id:
-                  type: string
-                  format: uuid
-                permission:
-                  type: string
-                  enum: [full, drive_only]
-      responses:
         '201':
-          description: Grant created
+          description: Share created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/VehicleGrant'
+                $ref: '#/components/schemas/VehicleShare'
         '403':
           $ref: '#/components/responses/Error'
         '404':
           $ref: '#/components/responses/Error'
         '409':
           $ref: '#/components/responses/Error'
-  /families/{familyId}/vehicle-grants/{grantId}:
-    delete:
-      tags: [Family]
-      summary: Revoke vehicle grant
-      parameters:
-        - $ref: '#/components/parameters/familyId'
-        - $ref: '#/components/parameters/grantId'
-      responses:
-        '204':
-          description: Revoked
-        '403':
+        '410':
           $ref: '#/components/responses/Error'
-        '404':
-          $ref: '#/components/responses/Error'
-  /families/me/vehicles:
-    get:
-      tags: [Family]
-      summary: List family vehicles
-      description: >-
-        Owner sees all their non-archived vehicles that are in the family.
-        Member/Driver sees vehicles they have grants for.
-      responses:
-        '200':
-          description: Vehicle list with permission info
-          content:
-            application/json:
-              schema:
-                type: object
-                required: [items]
-                properties:
-                  items:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/FamilyVehicle'
-        '404':
-          $ref: '#/components/responses/Error'
+  /vehicles/shares/decline:
     post:
-      tags: [Family]
-      summary: Add vehicle to family (Primary Owner only)
+      tags: [Vehicle Sharing]
+      summary: Decline an email invitation by token
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [vehicle_id]
+              required: [token]
               properties:
-                vehicle_id:
+                token:
                   type: string
-                  format: uuid
       responses:
-        '201':
-          description: Vehicle added to family
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    format: uuid
-                  family_id:
-                    type: string
-                    format: uuid
-                  vehicle_id:
-                    type: string
-                    format: uuid
-                  added_by:
-                    type: string
-                    format: uuid
-                  added_at:
-                    type: string
-                    format: date-time
-        '403':
+        '204':
+          description: Declined
+        '404':
           $ref: '#/components/responses/Error'
         '409':
           $ref: '#/components/responses/Error'
-  /families/me/vehicles/{vehicleId}:
-    delete:
-      tags: [Family]
-      summary: Remove vehicle from family (Primary Owner only)
-      description: Removes vehicle from family and auto-revokes all grants for it.
+  /vehicles/shares/{code}:
+    get:
+      tags: [Vehicle Sharing]
+      summary: Preview a share code before joining
       parameters:
-        - $ref: '#/components/parameters/vehicleId'
+        - $ref: '#/components/parameters/shareCode'
       responses:
-        '204':
-          description: Removed
-        '403':
-          $ref: '#/components/responses/Error'
+        '200':
+          description: Vehicle preview
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShareCodePreview'
         '404':
+          $ref: '#/components/responses/Error'
+        '410':
           $ref: '#/components/responses/Error'
   /users/me/license:
     get:
-      tags: [Family]
+      tags: [Licenses]
       summary: Get current user's driving license
       responses:
         '200':
@@ -1599,7 +1556,7 @@ paths:
         '404':
           $ref: '#/components/responses/Error'
     put:
-      tags: [Family]
+      tags: [Licenses]
       summary: Create or update driving license
       requestBody:
         required: true
@@ -1644,7 +1601,7 @@ paths:
           $ref: '#/components/responses/Error'
   /users/me/license/media:
     post:
-      tags: [Family]
+      tags: [Licenses]
       summary: Upload driving license photo
       requestBody:
         required: true
@@ -1675,8 +1632,8 @@ paths:
           $ref: '#/components/responses/Error'
   /users/{userId}/license:
     get:
-      tags: [Family]
-      summary: Get family member's driving license
+      tags: [Licenses]
+      summary: Get another user's driving license (requires a shared vehicle)
       parameters:
         - $ref: '#/components/parameters/userId'
       responses:
@@ -1693,7 +1650,7 @@ paths:
   /vehicles/{vehicleId}/detail:
     get:
       tags: [Vehicles]
-      summary: Vehicle detail with family grants, documents, and assigned drivers
+      summary: Vehicle detail with shares, documents, and shared users
       parameters:
         - $ref: '#/components/parameters/vehicleId'
       responses:
@@ -1708,7 +1665,7 @@ paths:
   /users/{userId}/detail:
     get:
       tags: [Me]
-      summary: User detail with family info, license, and owned vehicles
+      summary: User detail with license, owned vehicles, and vehicles shared with them
       parameters:
         - $ref: '#/components/parameters/userId'
       responses:
@@ -2744,14 +2701,7 @@ components:
       schema:
         type: string
         format: uuid
-    familyId:
-      in: path
-      name: familyId
-      required: true
-      schema:
-        type: string
-        format: uuid
-    familyCode:
+    shareCode:
       in: path
       name: code
       required: true
@@ -2759,10 +2709,17 @@ components:
         type: string
         minLength: 8
         maxLength: 8
-      description: 8-char alphanumeric share code
-    grantId:
+      description: 8-char alphanumeric share code (case-insensitive)
+    shareId:
       in: path
-      name: grantId
+      name: shareId
+      required: true
+      schema:
+        type: string
+        format: uuid
+    inviteId:
+      in: path
+      name: inviteId
       required: true
       schema:
         type: string
@@ -3113,6 +3070,11 @@ components:
         catalog_key:
           type: string
           nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: User who created this plan item
     PlanItemWrite:
       type: object
       required: [id, name]
@@ -3193,6 +3155,11 @@ components:
           type: string
           format: uuid
           nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: User who created this service record
         items:
           type: array
           minItems: 1
@@ -3347,6 +3314,11 @@ components:
         notes:
           type: string
           nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: User who created this part
     PartWrite:
       type: object
       required: [id, name]
@@ -3513,6 +3485,11 @@ components:
           type: string
           format: uuid
           nullable: true
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: User who created this expense
         parts:
           type: array
           items:
@@ -3636,7 +3613,7 @@ components:
       properties:
         entity_type:
           type: string
-          enum: [vehicle, plan_item, service_record, document, expense, notification, media, part, fuel_type, fuel_log, family, family_membership, vehicle_grant, driving_license, family_vehicle]
+          enum: [vehicle, plan_item, service_record, document, expense, notification, media, part, fuel_type, fuel_log]
         entity_id:
           type: string
           format: uuid
@@ -3982,81 +3959,15 @@ components:
           type: integer
         enabled:
           type: boolean
-    FamilyRole:
+    ShareAccessLevel:
       type: string
-      enum: [primary_owner, member, driver]
-    Family:
+      enum: [view, add_edit_own]
+    ShareStatus:
+      type: string
+      enum: [pending, active, revoked]
+    VehicleShare:
       type: object
-      required: [id, name, share_code, status, created_by, created_at]
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        share_code:
-          type: string
-          minLength: 8
-          maxLength: 8
-        qr_code_data:
-          type: object
-        status:
-          type: string
-          enum: [active, archived]
-        created_by:
-          type: string
-          format: uuid
-        created_at:
-          type: string
-          format: date-time
-        archived_at:
-          type: string
-          format: date-time
-          nullable: true
-        vehicle_count:
-          type: integer
-    FamilyLookup:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        name:
-          type: string
-        member_count:
-          type: integer
-        vehicle_count:
-          type: integer
-    FamilyMember:
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        user_id:
-          type: string
-          format: uuid
-        email:
-          type: string
-        display_name:
-          type: string
-          nullable: true
-        role:
-          $ref: '#/components/schemas/FamilyRole'
-        joined_at:
-          type: string
-          format: date-time
-        invited_by:
-          type: string
-          format: uuid
-        vehicle_count:
-          type: integer
-        license_status:
-          type: string
-          nullable: true
-          enum: [valid, expiring_soon, expired]
-    VehicleGrant:
-      type: object
+      required: [id, vehicle_id, user_id, granted_by, access_level, status, created_at]
       properties:
         id:
           type: string
@@ -4070,24 +3981,155 @@ components:
         granted_by:
           type: string
           format: uuid
-        permission:
+        access_level:
+          $ref: '#/components/schemas/ShareAccessLevel'
+        status:
+          $ref: '#/components/schemas/ShareStatus'
+        invited_email:
           type: string
-          enum: [full, drive_only]
+          format: email
+          nullable: true
+        share_code:
+          type: string
+          minLength: 8
+          maxLength: 8
+          nullable: true
+        qr_code_data:
+          type: object
+          nullable: true
+        accepted_at:
+          type: string
+          format: date-time
+          nullable: true
         created_at:
           type: string
           format: date-time
-    FamilyVehicle:
+        display_name:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+    VehicleShareInvitation:
+      type: object
+      required: [id, vehicle_id, access_level, expires_at, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        vehicle_id:
+          type: string
+          format: uuid
+        invited_email:
+          type: string
+          format: email
+          nullable: true
+        access_level:
+          $ref: '#/components/schemas/ShareAccessLevel'
+        share_code:
+          type: string
+          minLength: 8
+          maxLength: 8
+          nullable: true
+        expires_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        accepted_at:
+          type: string
+          format: date-time
+          nullable: true
+        invite_token:
+          type: string
+          nullable: true
+          description: Returned only by create/resend responses for email invitations.
+        invite_url:
+          type: string
+          nullable: true
+          description: Deep link `dco://vehicle/share/accept?token=...`.
+        join_url:
+          type: string
+          nullable: true
+          description: Deep link `dco://vehicle/share/join?code=...`.
+        qr_code_data:
+          type: object
+          nullable: true
+    VehicleShareLimits:
+      type: object
+      properties:
+        per_vehicle:
+          type: integer
+          description: Plan cap of active shares per vehicle (free 1, premium 5).
+        total:
+          type: integer
+          description: Plan cap of total active shares the owner may hold (free 3, premium 20).
+        active_on_vehicle:
+          type: integer
+    VehicleSharesDetail:
+      type: object
+      required: [vehicle, shares, pending_invites, limits]
+      properties:
+        vehicle:
+          $ref: '#/components/schemas/Vehicle'
+        shares:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleShare'
+        pending_invites:
+          type: array
+          items:
+            $ref: '#/components/schemas/VehicleShareInvitation'
+        share_code:
+          type: string
+          minLength: 8
+          maxLength: 8
+          nullable: true
+          description: Outstanding code/QR invitation, or null when none exists.
+        qr_code_data:
+          type: object
+          nullable: true
+        limits:
+          $ref: '#/components/schemas/VehicleShareLimits'
+    SharedVehicle:
       allOf:
         - $ref: '#/components/schemas/Vehicle'
         - type: object
           properties:
             source:
               type: string
-              enum: [owned, family]
-            permission:
-              type: string
-              enum: [full, drive_only]
-              nullable: true
+              enum: [shared]
+            access_level:
+              $ref: '#/components/schemas/ShareAccessLevel'
+            owner:
+              type: object
+              properties:
+                id:
+                  type: string
+                  format: uuid
+                display_name:
+                  type: string
+                  nullable: true
+                email:
+                  type: string
+                  nullable: true
+    ShareCodePreview:
+      type: object
+      required: [vehicle_nickname, license_plate, access_level, expires_at]
+      properties:
+        vehicle_nickname:
+          type: string
+        license_plate:
+          type: string
+        owner_display_name:
+          type: string
+          nullable: true
+        access_level:
+          $ref: '#/components/schemas/ShareAccessLevel'
+        expires_at:
+          type: string
+          format: date-time
     DrivingLicense:
       type: object
       properties:
@@ -4128,15 +4170,15 @@ components:
         - $ref: '#/components/schemas/Vehicle'
         - type: object
           properties:
-            grants:
+            shares:
               type: array
               items:
-                $ref: '#/components/schemas/VehicleGrant'
+                $ref: '#/components/schemas/VehicleShare'
             documents:
               type: array
               items:
                 $ref: '#/components/schemas/Document'
-            assigned_drivers:
+            shared_users:
               type: array
               items:
                 type: object
@@ -4146,10 +4188,12 @@ components:
                     format: uuid
                   display_name:
                     type: string
-                  permission:
-                    type: string
-                    enum: [full, drive_only]
-                  license_status:
+                    nullable: true
+                  access_level:
+                    $ref: '#/components/schemas/ShareAccessLevel'
+                  status:
+                    $ref: '#/components/schemas/ShareStatus'
+                  share_code:
                     type: string
                     nullable: true
     UserDetail:
@@ -4157,13 +4201,6 @@ components:
         - $ref: '#/components/schemas/User'
         - type: object
           properties:
-            family_id:
-              type: string
-              format: uuid
-              nullable: true
-            family_role:
-              $ref: '#/components/schemas/FamilyRole'
-              nullable: true
             driving_license:
               $ref: '#/components/schemas/DrivingLicense'
               nullable: true
@@ -4171,3 +4208,15 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Vehicle'
+            shared_vehicles:
+              type: array
+              items:
+                allOf:
+                  - $ref: '#/components/schemas/Vehicle'
+                  - type: object
+                    properties:
+                      access_level:
+                        $ref: '#/components/schemas/ShareAccessLevel'
+                      owner_id:
+                        type: string
+                        format: uuid

@@ -7,7 +7,7 @@ This module extends the existing Auth and Admin modules to support post-signup p
 **No email server or domain exists.** Email verification is skipped. Admin-created accounts use temporary passwords communicated out-of-band.
 
 **Source of truth:** `product/mvp-scope.md`.
-**Extends:** `product/frd/auth.md`, `product/frd/admin.md`, `product/frd/family-sharing.md`.
+**Extends:** `product/frd/auth.md`, `product/frd/admin.md`, `product/frd/vehicle-sharing.md`.
 
 ---
 
@@ -17,7 +17,7 @@ Enable users to:
 
 - Complete their profile after account creation (photo, name, contact, address)
 - Delete their account when they no longer want to use the system
-- Have their vehicles and family memberships handled correctly on deletion
+- Have their vehicles and shares handled correctly on deletion
 
 Enable admins to:
 
@@ -33,9 +33,9 @@ Enable admins to:
 - Profile completion prompt after signup
 - Profile edit screen in Settings
 - User-initiated account deletion (soft-delete)
-- Cascading behavior: vehicles archived, family handled
+- Cascading behavior: vehicles archived, shares revoked
 - Admin: create user (email + temp password + profile fields)
-- Admin: delete user (soft-delete) with vehicle/family handling
+- Admin: delete user (soft-delete) with vehicle/share handling
 - Admin: view new profile fields on user detail
 
 ---
@@ -57,7 +57,7 @@ Enable admins to:
 |---------|-------------|
 | **New Owner** | Just signed up, needs to complete profile |
 | **Existing Owner** | Wants to update profile or delete account |
-| **Primary Owner** | Must handle family before deleting |
+| **Vehicle Owner** | Owns vehicles; shares revoked on deletion |
 | **Platform Admin** | Creates/supports user accounts |
 
 ---
@@ -171,7 +171,7 @@ Enable admins to:
   "status": "active",
   "email_verified": false,
   "active_vehicle_id": "uuid",
-  "family_id": "uuid",
+  "active_shares_count": 3,
   "created_at": "2026-09-17T00:00:00Z"
 }
 ```
@@ -192,14 +192,11 @@ Enable admins to:
 
 **Behavior:**
 1. Validate password
-2. Check family status:
-   - If Primary Owner with other members → **reject** with `409 transfer_required`
-   - If Primary Owner, sole member → dissolve family (archive family, remove membership)
-   - If Member/Driver → remove membership, revoke vehicle grants
-3. Archive all vehicles owned by user (`archived=true`, `archived_at` set)
-4. Set `users.status = 'deactivated'`
-5. Revoke all refresh tokens
-6. Clear `users.family_id`
+2. Revoke all vehicle shares the user holds on other people's vehicles
+3. Archive all vehicles owned by user (`archived=true`, `archived_at` set); for each, revoke all shares and delete pending invitations on those vehicles
+4. Delete any pending invitations the user created on other people's vehicles
+5. Set `users.status = 'deactivated'`
+6. Revoke all refresh tokens
 7. Return `204`
 
 **After deletion:**
@@ -207,6 +204,7 @@ Enable admins to:
 - Local data remains on device until they sign in again (they cannot)
 - Outbox remains bound to `user_id` (never pushed)
 - Vehicle data preserved (archived, not deleted)
+- All shares and pending invitations involving the user are revoked
 - Admin can reactivate if needed
 
 #### Get Public User (updated)
@@ -221,8 +219,9 @@ The existing `GET /v1/users/:id/detail` endpoint returns:
   "address": "string",
   "profile_photo_url": "string",
   "role": "owner",
-  "family_role": "primary_owner",
-  "vehicles": [...],
+  "plan": "free",
+  "owned_vehicles": [...],
+  "shared_vehicles": [...],
   "license": {...}
 }
 ```
@@ -280,17 +279,11 @@ Type your password to confirm:
 
 **Validation:**
 - Password required
-- If user is Primary Owner with family members → show different message: "You must transfer ownership of your family before deleting. Go to Family Settings."
-- Block deletion, do not proceed
 
 **On success:**
-- Show confirmation: "Your account has been deleted."
+- Show confirmation: "Your account has been deleted. Any vehicle shares you held have been removed."
 - Clear local tokens (same as logout)
 - Navigate to Welcome screen
-
-**On error (transfer required):**
-- Show message: "You are the Primary Owner of a family. Transfer ownership or dissolve your family before deleting your account."
-- Offer "Go to Family Settings" button
 
 ### 4. Admin Changes
 
@@ -333,17 +326,15 @@ Type your password to confirm:
 **Behavior:**
 1. Prevent admin from deleting themselves
 2. Prevent deleting the last admin account
-3. If user is Primary Owner with family members:
-   - Dissolve family (archive, remove all memberships, revoke grants)
-   - OR block and return error asking admin to resolve family first
-4. Archive all vehicles owned by user
-5. Set `users.status = 'deactivated'`
-6. Revoke all refresh tokens
-7. Clear `users.family_id`
+3. Revoke all vehicle shares the user holds on other people's vehicles
+4. Archive all vehicles owned by the user; for each, revoke shares and delete pending invitations
+5. Delete any pending invitations the user created
+6. Set `users.status = 'deactivated'`
+7. Revoke all refresh tokens
 8. Audit log the action
 9. Return `204`
 
-**Decision**: Admin delete should be **forceful** — dissolve family automatically, archive vehicles. The admin is a support role and should be able to clean up. If the user needs family transfer, that's a user-facing concern, not admin.
+**Decision**: Admin delete is **forceful** — revoke all shares, archive vehicles. The admin is a support role and should be able to clean up.
 
 #### Update User Profile (Admin)
 
@@ -395,12 +386,12 @@ The `GET /v1/admin/users/:userId` endpoint now includes:
   "email_verified": false,
   "plan": "free",
   "status": "active",
-  "family": {
-    "id": "uuid",
-    "name": "string",
-    "role": "primary_owner"
+  "vehicle_sharing": {
+    "active_shares_count": 3,
+    "active_invites_count": 1
   },
-  "vehicles": [...],
+  "owned_vehicles": [...],
+  "shared_vehicles": [...],
   "documents_count": 5,
   "created_at": "2026-09-17T00:00:00Z"
 }
@@ -431,7 +422,7 @@ Delete User [email]?
 This will:
 - Deactivate their account
 - Archive all their vehicles
-- Dissolve their family (if Primary Owner)
+- Revoke all their vehicle shares and pending invitations
 
 This action can be reversed by reactivating the account.
 
@@ -457,10 +448,9 @@ This action can be reversed by reactivating the account.
 
 1. **Profile completion is optional** — users can use the app without filling profile fields. Prompt is non-blocking.
 2. **display_name is the completion trigger** — when set, the Dashboard prompt is dismissed.
-3. **User self-delete is soft-delete** — account deactivated, vehicles archived, family handled. Data preserved for admin recovery.
-4. **Primary Owner cannot delete** if family has other members — must transfer ownership or dissolve family first.
-5. **Member/Driver deletion** — removes membership, revokes grants, clears family_id. Family continues.
-6. **Admin delete is forceful** — dissolves family, archives vehicles, deactivates. No transfer step required.
+3. **User self-delete is soft-delete** — account deactivated, vehicles archived, all shares and pending invitations revoked. Data preserved for admin recovery.
+4. **Vehicle Owner deletion** — archives vehicles, revokes all shares on those vehicles and shares held by the user. No blocking condition.
+5. **Admin delete is forceful** — same cascade as self-delete; archives vehicles, revokes all shares and invitations. No transfer step required.
 7. **Admin cannot delete themselves** or the last admin.
 8. **Temp password** — admin-created accounts require the user to change password on first login (prompt after login).
 9. **No email verification** — skipped for now. `email_verified` stays false. No blocking behavior.
@@ -488,10 +478,10 @@ Signup (email + password)
 Settings → Profile → "Delete Account"
   → Confirmation dialog
   → Enter password
-  → If Primary Owner with family → BLOCKED, show message
-  → If OK → Account deactivated
+  → Account deactivated
   → Vehicles archived
-  → Family handled (dissolved if sole owner, membership removed if member)
+  → Shares revoked (shares held + shares on owned vehicles)
+  → Pending invitations deleted
   → Tokens cleared
   → Welcome screen
 ```
@@ -514,7 +504,8 @@ Admin Portal → Users → [user] → "Delete User"
   → Confirm
   → Account deactivated
   → Vehicles archived
-  → Family dissolved
+  → Shares revoked (shares held + shares on owned vehicles)
+  → Pending invitations deleted
   → User cannot sign in
 ```
 
@@ -533,7 +524,7 @@ Admin Portal → Users → [user] → "Delete User"
 
 ### Account Deletion (User)
 - Password required and must match
-- Must not be Primary Owner with family members
+- (No blocking condition — shares are simply revoked)
 
 ### Admin Create User
 - Email: required, valid format, unique
@@ -553,7 +544,7 @@ Admin Portal → Users → [user] → "Delete User"
 | Profile photo too large | 413 `photo_too_large` |
 | Invalid photo format | 400 `invalid_photo_format` |
 | Password mismatch on delete | 401 `invalid_password` |
-| Primary Owner with family | 409 `transfer_required` |
+| (Removed — self-delete always succeeds; shares revoked automatically) |
 | Admin tries to delete self | 409 `cannot_delete_self` |
 | Admin tries to delete last admin | 409 `last_admin` |
 | Email already exists (admin create) | 409 `email_taken` |
@@ -579,9 +570,9 @@ Admin Portal → Users → [user] → "Delete User"
 | `profile_completed` | `fields_set` (count), `has_photo` |
 | `profile_updated` | `fields_changed` |
 | `profile_photo_uploaded` | `size_bytes` |
-| `account_deleted` | `reason`, `had_vehicles`, `had_family`, `family_role` |
+| `account_deleted` | `reason`, `had_vehicles`, `had_shares`, `active_shares_count` |
 | `admin_user_created` | `role`, `plan` |
-| `admin_user_deleted` | `target_user_id`, `had_vehicles`, `had_family` |
+| `admin_user_deleted` | `target_user_id`, `had_vehicles`, `had_shares`, `active_shares_count` |
 
 ---
 
@@ -600,7 +591,7 @@ Admin Portal → Users → [user] → "Delete User"
 - Auth (JWT, session management, password validation)
 - Media storage (profile photo pipeline)
 - Vehicles API (archive on delete)
-- Family Sharing API (dissolve/remove membership on delete)
+- Vehicle Sharing API (revoke shares and invitations on delete)
 - Sync Engine (profile edits via outbox)
 - Admin API (existing user management)
 
@@ -634,6 +625,6 @@ Admin Portal → Users → [user] → "Delete User"
 ## Open Decisions
 
 1. **Profile photo orphan cleanup** — When a user uploads a new photo, the old `media_objects` row is orphaned. Add a periodic cleanup job, or delete immediately on new upload? (Recommend: delete immediately, simpler.)
-2. **Admin force-delete family** — Should admin dissolution of family notify other members? (Recommend: no notification in MVP, just remove memberships.)
+2. **Admin force-delete shares** — Should admin revocation of shares notify sharees? (Recommend: no notification in MVP, just revoke; sharees see access lost on next sync.)
 3. **Temp password expiry** — Should the temp password expire if unused? (Recommend: no expiry in MVP. Admin can deactivate if needed.)
 4. **Hard delete later** — Should we plan for a future hard-delete/purge endpoint with a grace period? (Recommend: yes, document as future enhancement.)

@@ -53,6 +53,7 @@ class ServiceRecord {
     this.receiptLocalPath,
     this.receiptMediaId,
     this.parts = const [],
+    this.createdBy,
   });
 
   final String id;
@@ -67,6 +68,7 @@ class ServiceRecord {
   final String? receiptMediaId;
   final List<ServiceLine> items;
   final List<AssignedPart> parts;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
 
@@ -79,6 +81,7 @@ class ServiceRecord {
     'notes': notes,
     'title': title,
     'receipt_media_id': receiptMediaId,
+    'created_by': createdBy,
     'items': items.map((item) => item.toWriteJson()).toList(),
     'parts': parts.map((part) => part.toWriteJson()).toList(),
   };

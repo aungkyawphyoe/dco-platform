@@ -403,3 +403,162 @@ export function useAdminFleetView() {
     queryFn: () => apiGet<AdminFleetView>("/admin/fleet-view"),
   });
 }
+
+// ── Vehicle sharing (owner surface) ──
+
+export type ShareAccessLevel = "view" | "add_edit_own";
+
+export type VehicleShareRow = {
+  id: string;
+  vehicle_id: string;
+  user_id: string;
+  granted_by: string | null;
+  access_level: ShareAccessLevel;
+  status: "pending" | "active" | "revoked";
+  invited_email: string | null;
+  share_code: string | null;
+  accepted_at: string | null;
+  created_at: string;
+  display_name: string | null;
+  email: string | null;
+};
+
+export type ShareInvitationRow = {
+  id: string;
+  vehicle_id: string;
+  invited_email: string | null;
+  access_level: ShareAccessLevel;
+  share_code: string | null;
+  expires_at: string;
+  created_at: string;
+  accepted_at: string | null;
+};
+
+export type VehicleSharesDetail = {
+  vehicle: {
+    id: string;
+    name: string;
+    nickname: string | null;
+    license_plate: string;
+    make: string;
+    model: string;
+    year: number;
+  };
+  shares: VehicleShareRow[];
+  pending_invites: ShareInvitationRow[];
+  share_code: string | null;
+  qr_code_data: { code: string; vehicle_id: string; expires_at: string } | null;
+  limits: { per_vehicle: number; total: number; active_on_vehicle: number };
+};
+
+export type OwnerVehicle = {
+  id: string;
+  name: string;
+  nickname: string | null;
+  make: string;
+  model: string;
+  year: number;
+  license_plate: string;
+  archived: boolean;
+  source?: "owned" | "shared";
+  access_level?: ShareAccessLevel;
+  owner?: { id: string; display_name: string | null; email: string | null };
+};
+
+export type CreatedShare = ShareInvitationRow & {
+  invite_token?: string;
+  invite_url?: string;
+  share_code?: string | null;
+  qr_code_data?: { code: string; vehicle_id: string; expires_at: string } | null;
+  join_url?: string;
+};
+
+const shareKeys = (vehicleId: string) => ["vehicle", vehicleId, "shares"];
+
+export function useOwnedVehicles() {
+  return useQuery({
+    queryKey: ["owner", "vehicles"],
+    queryFn: () => apiGet<{ items?: OwnerVehicle[] }>("/vehicles"),
+  });
+}
+
+export function useSharedVehicles() {
+  return useQuery({
+    queryKey: ["owner", "vehicles", "shared"],
+    queryFn: () => apiGet<{ items?: OwnerVehicle[] }>("/vehicles/shared"),
+  });
+}
+
+export function useVehicleShares(vehicleId: string | null) {
+  return useQuery({
+    queryKey: shareKeys(vehicleId ?? ""),
+    queryFn: () => apiGet<VehicleSharesDetail>(`/vehicles/${vehicleId}/shares`),
+    enabled: Boolean(vehicleId),
+  });
+}
+
+export function useCreateVehicleShare(vehicleId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: {
+      method: "email" | "code_qr";
+      email?: string;
+      access_level?: ShareAccessLevel;
+    }) => apiPost<CreatedShare>(`/vehicles/${vehicleId}/shares`, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: shareKeys(vehicleId) });
+    },
+  });
+}
+
+export function useUpdateVehicleShare(vehicleId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      shareId,
+      ...body
+    }: {
+      shareId: string;
+      access_level?: ShareAccessLevel;
+      regenerate_code?: boolean;
+    }) => apiPatch<VehicleShareRow>(`/vehicles/${vehicleId}/shares/${shareId}`, body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: shareKeys(vehicleId) });
+    },
+  });
+}
+
+export function useRevokeVehicleShare(vehicleId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (shareId: string) =>
+      apiDelete(`/vehicles/${vehicleId}/shares/${shareId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: shareKeys(vehicleId) });
+    },
+  });
+}
+
+export function useResendShareInvite(vehicleId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (inviteId: string) =>
+      apiPost<ShareInvitationRow>(
+        `/vehicles/${vehicleId}/invitations/${inviteId}/resend`,
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: shareKeys(vehicleId) });
+    },
+  });
+}
+
+export function useCancelShareInvite(vehicleId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (inviteId: string) =>
+      apiDelete(`/vehicles/${vehicleId}/invitations/${inviteId}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: shareKeys(vehicleId) });
+    },
+  });
+}

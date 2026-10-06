@@ -7,7 +7,7 @@ import { AppError } from "../lib/errors.js";
 import { dateOnly, getUser, num, recordChange, reqNum } from "../lib/dbx.js";
 import { publicUser, publicVehicle } from "../lib/serialize.js";
 import { requireOwner } from "./auth.js";
-import { fanOutVehicleChange, getFamilyVehicleDetail, getVehicleAccessLevel, requireVehicleAccess } from "./family.js";
+import { fanOutVehicleChange, getVehicleSharesDetail, getVehicleAccessLevel, requireVehicleAccess } from "./vehicle-shares.js";
 
 const fuelEnum = z.enum(["petrol", "electric", "hybrid_plugin"]);
 
@@ -87,7 +87,8 @@ export async function getAccessibleVehicle(
   if (!row || (!includeArchived && row.archived)) throw new AppError(404, "not_found", "Vehicle not found");
   const [organizationLink] = await db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId)).limit(1);
   if (organizationLink) throw new AppError(404, "not_found", "Vehicle is managed in Fleet mode");
-  await requireVehicleAccess(db, userId, vehicleId, requiredPermission);
+  const requiredLevel = requiredPermission === "full" ? "add_edit_own" : "view";
+  await requireVehicleAccess(db, userId, vehicleId, requiredLevel);
   return row;
 }
 
@@ -302,11 +303,11 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     };
   });
 
-  // Vehicle detail with family grants, documents, assigned drivers
+  // Vehicle detail with shares, documents, shared users
   app.get("/vehicles/:vehicleId/detail", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const detail = await getFamilyVehicleDetail(app.db, vehicleId, request.authUser!.sub);
+    const detail = await getVehicleSharesDetail(app.db, vehicleId, request.authUser!.sub);
     if (!detail) throw new AppError(403, "no_vehicle_access", "No access to this vehicle");
     return detail;
   });

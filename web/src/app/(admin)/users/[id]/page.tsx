@@ -327,8 +327,8 @@ export default function UserProfilePage({
       >
         <p>
           This will permanently deactivate <strong>{user.email}</strong>,
-          archive all their vehicles, and dissolve their family if they are a
-          Primary Owner. This action can be reversed by reactivating the
+          archive all their vehicles, and revoke any vehicle shares they have
+          granted or received. This action can be reversed by reactivating the
           account.
         </p>
       </Modal>

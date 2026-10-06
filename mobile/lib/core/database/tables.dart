@@ -72,6 +72,7 @@ class PlanItemRecords extends Table {
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
   TextColumn get notes => text().nullable()();
   TextColumn get catalogKey => text().nullable()();
+  TextColumn get createdBy => text().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -93,6 +94,7 @@ class ServiceRecordRows extends Table {
   TextColumn get notes => text().nullable()();
   TextColumn get receiptLocalPath => text().nullable()();
   TextColumn get receiptMediaId => text().nullable()();
+  TextColumn get createdBy => text().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -125,6 +127,7 @@ class PartRecords extends Table {
   TextColumn get brand => text().nullable()();
   TextColumn get partNumber => text().nullable()();
   TextColumn get notes => text().nullable()();
+  TextColumn get createdBy => text().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -195,6 +198,7 @@ class ExpenseRecords extends Table {
   TextColumn get notes => text().nullable()();
   TextColumn get receiptLocalPath => text().nullable()();
   TextColumn get receiptMediaId => text().nullable()();
+  TextColumn get createdBy => text().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
 
@@ -235,66 +239,42 @@ class NotificationRecords extends Table {
   Set<Column<Object>> get primaryKey => {id};
 }
 
-class FamilyRecords extends Table {
+class VehicleShareRecords extends Table {
   @override
-  String get tableName => 'families';
-
-  TextColumn get id => text()();
-  TextColumn get name => text()();
-  TextColumn get shareCode => text()();
-  TextColumn get qrCodeData => text().nullable()();
-  TextColumn get createdBy => text()();
-  TextColumn get status => text().withDefault(const Constant('active'))();
-  DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get archivedAt => dateTime().nullable()();
-  DateTimeColumn get syncedAt => dateTime().nullable()();
-
-  @override
-  Set<Column<Object>> get primaryKey => {id};
-}
-
-class FamilyMembershipRecords extends Table {
-  @override
-  String get tableName => 'family_memberships';
-
-  TextColumn get id => text()();
-  TextColumn get familyId => text()();
-  TextColumn get userId => text()();
-  TextColumn get role => text()(); // primary_owner, member, driver
-  DateTimeColumn get joinedAt => dateTime()();
-  TextColumn get invitedBy => text().nullable()();
-  DateTimeColumn get syncedAt => dateTime().nullable()();
-
-  @override
-  Set<Column<Object>> get primaryKey => {id};
-}
-
-class VehicleGrantRecords extends Table {
-  @override
-  String get tableName => 'vehicle_grants';
+  String get tableName => 'vehicle_shares';
 
   TextColumn get id => text()();
   TextColumn get vehicleId => text()();
   TextColumn get userId => text()();
-  TextColumn get grantedBy => text()();
-  TextColumn get permission => text()(); // full, drive_only
+  TextColumn get grantedBy => text().nullable()();
+  TextColumn get accessLevel => text()(); // view, add_edit_own
+  TextColumn get status => text().withDefault(const Constant('pending'))();
+  TextColumn get invitedEmail => text().nullable()();
+  TextColumn get shareCode => text().nullable()();
+  TextColumn get displayName => text().nullable()();
+  TextColumn get email => text().nullable()();
+  DateTimeColumn get acceptedAt => dateTime().nullable()();
   DateTimeColumn get createdAt => dateTime()();
-  DateTimeColumn get syncedAt => dateTime().nullable()();
+  TextColumn get syncedAt => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};
 }
 
-class FamilyVehicleRecords extends Table {
+class VehicleShareInvitationRecords extends Table {
   @override
-  String get tableName => 'family_vehicles';
+  String get tableName => 'vehicle_share_invitations';
 
   TextColumn get id => text()();
-  TextColumn get familyId => text()();
   TextColumn get vehicleId => text()();
-  TextColumn get addedBy => text()();
-  DateTimeColumn get addedAt => dateTime()();
-  DateTimeColumn get syncedAt => dateTime().nullable()();
+  TextColumn get invitedEmail => text().nullable()();
+  TextColumn get invitedBy => text()();
+  TextColumn get accessLevel => text()();
+  TextColumn get shareCode => text().nullable()();
+  DateTimeColumn get expiresAt => dateTime()();
+  DateTimeColumn get acceptedAt => dateTime().nullable()();
+  DateTimeColumn get createdAt => dateTime()();
+  TextColumn get syncedAt => text().nullable()();
 
   @override
   Set<Column<Object>> get primaryKey => {id};

@@ -740,12 +740,6 @@ abstract class AppLocalizations {
   /// **'Track maintenance, expenses & documents'**
   String get garageAddCardSubtitle;
 
-  /// No description provided for @garageFamilyBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'Family'**
-  String get garageFamilyBadge;
-
   /// No description provided for @vehicleEditTitle.
   ///
   /// In en, this message translates to:
@@ -883,12 +877,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Edit vehicle'**
   String get vehicleEditTooltip;
-
-  /// No description provided for @vehicleRemoveTooltip.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove from family'**
-  String get vehicleRemoveTooltip;
 
   /// No description provided for @vehiclePlateDuplicate.
   ///
@@ -3074,42 +3062,6 @@ abstract class AppLocalizations {
   /// **'Sync'**
   String get settingsSyncSection;
 
-  /// No description provided for @settingsFamilySection.
-  ///
-  /// In en, this message translates to:
-  /// **'Family'**
-  String get settingsFamilySection;
-
-  /// No description provided for @settingsLoadingFamily.
-  ///
-  /// In en, this message translates to:
-  /// **'Loading family...'**
-  String get settingsLoadingFamily;
-
-  /// No description provided for @settingsFamilyLoadError.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to load family'**
-  String get settingsFamilyLoadError;
-
-  /// No description provided for @settingsFamilyTapRetry.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap to retry'**
-  String get settingsFamilyTapRetry;
-
-  /// No description provided for @settingsFamilyFallback.
-  ///
-  /// In en, this message translates to:
-  /// **'Family'**
-  String get settingsFamilyFallback;
-
-  /// No description provided for @settingsFamilySubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Create or join a family to share vehicles'**
-  String get settingsFamilySubtitle;
-
   /// No description provided for @settingsSignOut.
   ///
   /// In en, this message translates to:
@@ -3289,12 +3241,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter your password to confirm'**
   String get profileDeleteAccountPassword;
-
-  /// No description provided for @profileDeleteAccountBlocked.
-  ///
-  /// In en, this message translates to:
-  /// **'You are the Primary Owner of a family. Transfer ownership or dissolve your family before deleting your account.'**
-  String get profileDeleteAccountBlocked;
 
   /// No description provided for @profileDeleteAccountSuccess.
   ///
@@ -3660,480 +3606,6 @@ abstract class AppLocalizations {
   /// **'Policies for {vehicleName} will live here. For now, store insurance papers in Documents.'**
   String insuranceEmptyBody(Object vehicleName);
 
-  /// No description provided for @familyJoinTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Join Family'**
-  String get familyJoinTitle;
-
-  /// No description provided for @familyCreateTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Family'**
-  String get familyCreateTitle;
-
-  /// No description provided for @familyJoining.
-  ///
-  /// In en, this message translates to:
-  /// **'Joining family...'**
-  String get familyJoining;
-
-  /// No description provided for @familyCreateHeading.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Your Family'**
-  String get familyCreateHeading;
-
-  /// No description provided for @familyCreateBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Invite members to share vehicles and manage access together.'**
-  String get familyCreateBody;
-
-  /// No description provided for @familyNameLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Family Name'**
-  String get familyNameLabel;
-
-  /// No description provided for @familyNameHint.
-  ///
-  /// In en, this message translates to:
-  /// **'e.g., Smith Family'**
-  String get familyNameHint;
-
-  /// No description provided for @familyNameRequired.
-  ///
-  /// In en, this message translates to:
-  /// **'Family name is required'**
-  String get familyNameRequired;
-
-  /// No description provided for @familyNameMaxLength.
-  ///
-  /// In en, this message translates to:
-  /// **'Name must be 100 characters or fewer'**
-  String get familyNameMaxLength;
-
-  /// No description provided for @familyCreating.
-  ///
-  /// In en, this message translates to:
-  /// **'Creating...'**
-  String get familyCreating;
-
-  /// No description provided for @familyCreateButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Family'**
-  String get familyCreateButton;
-
-  /// No description provided for @familyCreatedSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Family created! Share the code with family members.'**
-  String get familyCreatedSuccess;
-
-  /// No description provided for @familyCreateFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to create family: {error}'**
-  String familyCreateFailed(Object error);
-
-  /// No description provided for @familyJoinedSuccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Joined family successfully!'**
-  String get familyJoinedSuccess;
-
-  /// No description provided for @familyJoinFailed.
-  ///
-  /// In en, this message translates to:
-  /// **'Failed to join family: {error}'**
-  String familyJoinFailed(Object error);
-
-  /// No description provided for @familyCreatedHeading.
-  ///
-  /// In en, this message translates to:
-  /// **'Family Created!'**
-  String get familyCreatedHeading;
-
-  /// No description provided for @familyCreatedBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Share this code with family members so they can join.'**
-  String get familyCreatedBody;
-
-  /// No description provided for @familyShareCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Share Code'**
-  String get familyShareCode;
-
-  /// No description provided for @familyShareCodeHelper.
-  ///
-  /// In en, this message translates to:
-  /// **'Scan with AutoHub app to join'**
-  String get familyShareCodeHelper;
-
-  /// No description provided for @familyCopyCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy Code'**
-  String get familyCopyCode;
-
-  /// No description provided for @familyCodeCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Code copied!'**
-  String get familyCodeCopied;
-
-  /// No description provided for @familyShare.
-  ///
-  /// In en, this message translates to:
-  /// **'Share'**
-  String get familyShare;
-
-  /// No description provided for @familyShareText.
-  ///
-  /// In en, this message translates to:
-  /// **'Join my AutoHub family! Code: {code}'**
-  String familyShareText(Object code);
-
-  /// No description provided for @familyCodeExpiryHelper.
-  ///
-  /// In en, this message translates to:
-  /// **'Code expires in 7 days. Regenerating invalidates the old code.'**
-  String get familyCodeExpiryHelper;
-
-  /// No description provided for @familyGoToManagement.
-  ///
-  /// In en, this message translates to:
-  /// **'Go to Family Management'**
-  String get familyGoToManagement;
-
-  /// No description provided for @familyManagementTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Family'**
-  String get familyManagementTitle;
-
-  /// No description provided for @familyManagementMembersTab.
-  ///
-  /// In en, this message translates to:
-  /// **'Members'**
-  String get familyManagementMembersTab;
-
-  /// No description provided for @familyManagementVehiclesTab.
-  ///
-  /// In en, this message translates to:
-  /// **'Vehicles'**
-  String get familyManagementVehiclesTab;
-
-  /// No description provided for @familyManagementInviteTab.
-  ///
-  /// In en, this message translates to:
-  /// **'Invite'**
-  String get familyManagementInviteTab;
-
-  /// No description provided for @familyManagementJoinTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Join Family'**
-  String get familyManagementJoinTitle;
-
-  /// No description provided for @familyManagementJoinHint.
-  ///
-  /// In en, this message translates to:
-  /// **'Enter share code'**
-  String get familyManagementJoinHint;
-
-  /// No description provided for @familyManagementJoinLabel.
-  ///
-  /// In en, this message translates to:
-  /// **'Share Code'**
-  String get familyManagementJoinLabel;
-
-  /// No description provided for @familyManagementJoinButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Join'**
-  String get familyManagementJoinButton;
-
-  /// No description provided for @familyManagementNoFamily.
-  ///
-  /// In en, this message translates to:
-  /// **'No family yet'**
-  String get familyManagementNoFamily;
-
-  /// No description provided for @familyManagementNoFamilyBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Create a family to share vehicles,\nor join an existing one.'**
-  String get familyManagementNoFamilyBody;
-
-  /// No description provided for @familyManagementCreateButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Create Family'**
-  String get familyManagementCreateButton;
-
-  /// No description provided for @familyManagementJoinFamilyButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Join Family'**
-  String get familyManagementJoinFamilyButton;
-
-  /// No description provided for @membersTabEmptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'No members yet'**
-  String get membersTabEmptyTitle;
-
-  /// No description provided for @membersTabEmptyBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Invite family to get started.'**
-  String get membersTabEmptyBody;
-
-  /// No description provided for @membersTabManageTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage {name}'**
-  String membersTabManageTitle(Object name);
-
-  /// No description provided for @membersTabRoleSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Role'**
-  String get membersTabRoleSection;
-
-  /// No description provided for @membersTabRoleMember.
-  ///
-  /// In en, this message translates to:
-  /// **'Member'**
-  String get membersTabRoleMember;
-
-  /// No description provided for @membersTabRoleDriver.
-  ///
-  /// In en, this message translates to:
-  /// **'Driver'**
-  String get membersTabRoleDriver;
-
-  /// No description provided for @membersTabSaveRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Save Role'**
-  String get membersTabSaveRole;
-
-  /// No description provided for @membersTabRemoveButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove from Family'**
-  String get membersTabRemoveButton;
-
-  /// No description provided for @membersTabRemoveTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove Member?'**
-  String get membersTabRemoveTitle;
-
-  /// No description provided for @membersTabRemoveBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove {name} from the family?'**
-  String membersTabRemoveBody(Object name);
-
-  /// No description provided for @membersTabRemoveAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove'**
-  String get membersTabRemoveAction;
-
-  /// No description provided for @membersTabYouBadge.
-  ///
-  /// In en, this message translates to:
-  /// **'You'**
-  String get membersTabYouBadge;
-
-  /// No description provided for @membersTabPrimaryOwner.
-  ///
-  /// In en, this message translates to:
-  /// **'Primary Owner'**
-  String get membersTabPrimaryOwner;
-
-  /// No description provided for @membersTabLicenseValid.
-  ///
-  /// In en, this message translates to:
-  /// **'Valid'**
-  String get membersTabLicenseValid;
-
-  /// No description provided for @membersTabLicenseExpiringSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Expiring Soon'**
-  String get membersTabLicenseExpiringSoon;
-
-  /// No description provided for @membersTabLicenseExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'Expired'**
-  String get membersTabLicenseExpired;
-
-  /// No description provided for @membersTabLicenseNone.
-  ///
-  /// In en, this message translates to:
-  /// **'No License'**
-  String get membersTabLicenseNone;
-
-  /// No description provided for @membersTabVehicleCount.
-  ///
-  /// In en, this message translates to:
-  /// **'{count, plural, =1{# vehicle} other{# vehicles}}'**
-  String membersTabVehicleCount(num count);
-
-  /// No description provided for @vehiclesTabTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Family Vehicles'**
-  String get vehiclesTabTitle;
-
-  /// No description provided for @vehiclesTabAdd.
-  ///
-  /// In en, this message translates to:
-  /// **'Add'**
-  String get vehiclesTabAdd;
-
-  /// No description provided for @vehiclesTabEmptyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'No vehicles in family'**
-  String get vehiclesTabEmptyTitle;
-
-  /// No description provided for @vehiclesTabEmptyBodyOwner.
-  ///
-  /// In en, this message translates to:
-  /// **'Tap \"Add\" to share a vehicle with your family'**
-  String get vehiclesTabEmptyBodyOwner;
-
-  /// No description provided for @vehiclesTabEmptyBodyNonOwner.
-  ///
-  /// In en, this message translates to:
-  /// **'Ask the owner to share a vehicle'**
-  String get vehiclesTabEmptyBodyNonOwner;
-
-  /// No description provided for @vehiclesTabSelectTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Select a vehicle to share'**
-  String get vehiclesTabSelectTitle;
-
-  /// No description provided for @vehiclesTabSelectSubtitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose vehicles from your garage to share with your family'**
-  String get vehiclesTabSelectSubtitle;
-
-  /// No description provided for @vehiclesTabNoVehiclesToAdd.
-  ///
-  /// In en, this message translates to:
-  /// **'No vehicles available to add. Add vehicles to your garage first.'**
-  String get vehiclesTabNoVehiclesToAdd;
-
-  /// No description provided for @vehiclesTabAddSelected.
-  ///
-  /// In en, this message translates to:
-  /// **'Add {count,plural, =1{1 vehicle} other{{count} vehicles}}'**
-  String vehiclesTabAddSelected(num count);
-
-  /// No description provided for @vehiclesTabRemoveTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove Vehicle'**
-  String get vehiclesTabRemoveTitle;
-
-  /// No description provided for @vehiclesTabRemoveBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove {vehicleName} from family?'**
-  String vehiclesTabRemoveBody(Object vehicleName);
-
-  /// No description provided for @inviteTabHeading.
-  ///
-  /// In en, this message translates to:
-  /// **'Share Your Family'**
-  String get inviteTabHeading;
-
-  /// No description provided for @inviteTabBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Invite family members to join and share vehicles.'**
-  String get inviteTabBody;
-
-  /// No description provided for @inviteTabShareCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Share Code'**
-  String get inviteTabShareCode;
-
-  /// No description provided for @inviteTabShareCodeHelper.
-  ///
-  /// In en, this message translates to:
-  /// **'Scan with AutoHub app to join'**
-  String get inviteTabShareCodeHelper;
-
-  /// No description provided for @inviteTabCopyCode.
-  ///
-  /// In en, this message translates to:
-  /// **'Copy Code'**
-  String get inviteTabCopyCode;
-
-  /// No description provided for @inviteTabCodeCopied.
-  ///
-  /// In en, this message translates to:
-  /// **'Code copied!'**
-  String get inviteTabCodeCopied;
-
-  /// No description provided for @inviteTabShare.
-  ///
-  /// In en, this message translates to:
-  /// **'Share'**
-  String get inviteTabShare;
-
-  /// No description provided for @inviteTabShareText.
-  ///
-  /// In en, this message translates to:
-  /// **'Join my AutoHub family! Code: {code}'**
-  String inviteTabShareText(Object code);
-
-  /// No description provided for @inviteTabRegenerateButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Regenerate Code'**
-  String get inviteTabRegenerateButton;
-
-  /// No description provided for @inviteTabRegenerateTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Regenerate Share Code?'**
-  String get inviteTabRegenerateTitle;
-
-  /// No description provided for @inviteTabRegenerateBody.
-  ///
-  /// In en, this message translates to:
-  /// **'This will invalidate the current code. Members with the old code won\'t be able to join.'**
-  String get inviteTabRegenerateBody;
-
-  /// No description provided for @inviteTabRegenerateAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Regenerate'**
-  String get inviteTabRegenerateAction;
-
-  /// No description provided for @inviteTabCodeExpiryHelper.
-  ///
-  /// In en, this message translates to:
-  /// **'Code expires in 7 days. Regenerating invalidates the old code.'**
-  String get inviteTabCodeExpiryHelper;
-
   /// No description provided for @vehicleDetailTitle.
   ///
   /// In en, this message translates to:
@@ -4362,72 +3834,6 @@ abstract class AppLocalizations {
   /// **'Add Document'**
   String get carDetailAddDocumentAction;
 
-  /// No description provided for @carDetailDriversSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Assigned Drivers'**
-  String get carDetailDriversSection;
-
-  /// No description provided for @carDetailManageDrivers.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage'**
-  String get carDetailManageDrivers;
-
-  /// No description provided for @carDetailNoDrivers.
-  ///
-  /// In en, this message translates to:
-  /// **'No drivers assigned'**
-  String get carDetailNoDrivers;
-
-  /// No description provided for @carDetailNoDriversBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Add family members as drivers for this vehicle.'**
-  String get carDetailNoDriversBody;
-
-  /// No description provided for @carDetailAssignDriver.
-  ///
-  /// In en, this message translates to:
-  /// **'Assign Driver'**
-  String get carDetailAssignDriver;
-
-  /// No description provided for @carDetailLicenseValid.
-  ///
-  /// In en, this message translates to:
-  /// **'Valid'**
-  String get carDetailLicenseValid;
-
-  /// No description provided for @carDetailLicenseExpiringSoon.
-  ///
-  /// In en, this message translates to:
-  /// **'Expiring Soon'**
-  String get carDetailLicenseExpiringSoon;
-
-  /// No description provided for @carDetailLicenseExpired.
-  ///
-  /// In en, this message translates to:
-  /// **'Expired'**
-  String get carDetailLicenseExpired;
-
-  /// No description provided for @carDetailLicenseNone.
-  ///
-  /// In en, this message translates to:
-  /// **'No License'**
-  String get carDetailLicenseNone;
-
-  /// No description provided for @carDetailFullAccess.
-  ///
-  /// In en, this message translates to:
-  /// **'Full Access'**
-  String get carDetailFullAccess;
-
-  /// No description provided for @carDetailDriveOnly.
-  ///
-  /// In en, this message translates to:
-  /// **'Drive Only'**
-  String get carDetailDriveOnly;
-
   /// No description provided for @carDetailQuickActions.
   ///
   /// In en, this message translates to:
@@ -4451,48 +3857,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Document'**
   String get carDetailAddDocumentButton;
-
-  /// No description provided for @carDetailManageDriversButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage Drivers'**
-  String get carDetailManageDriversButton;
-
-  /// No description provided for @carDetailManageDriversSheet.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage Drivers'**
-  String get carDetailManageDriversSheet;
-
-  /// No description provided for @carDetailCurrentDrivers.
-  ///
-  /// In en, this message translates to:
-  /// **'Current Drivers'**
-  String get carDetailCurrentDrivers;
-
-  /// No description provided for @carDetailAddDriver.
-  ///
-  /// In en, this message translates to:
-  /// **'Add Driver'**
-  String get carDetailAddDriver;
-
-  /// No description provided for @carDetailAllAssigned.
-  ///
-  /// In en, this message translates to:
-  /// **'All family members are already assigned'**
-  String get carDetailAllAssigned;
-
-  /// No description provided for @carDetailLicensePrefix.
-  ///
-  /// In en, this message translates to:
-  /// **'License: '**
-  String get carDetailLicensePrefix;
-
-  /// No description provided for @carDetailAssign.
-  ///
-  /// In en, this message translates to:
-  /// **'Assign'**
-  String get carDetailAssign;
 
   /// No description provided for @userDetailProfileTitle.
   ///
@@ -4584,77 +3948,11 @@ abstract class AppLocalizations {
   /// **'B, BE'**
   String get userDetailCategoriesHint;
 
-  /// No description provided for @userDetailLeaveFamilyTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave Family?'**
-  String get userDetailLeaveFamilyTitle;
-
-  /// No description provided for @userDetailLeaveFamilyBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to leave this family? You will lose access to shared vehicles.'**
-  String get userDetailLeaveFamilyBody;
-
-  /// No description provided for @userDetailLeaveFamilyAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave'**
-  String get userDetailLeaveFamilyAction;
-
-  /// No description provided for @userDetailLeftFamily.
-  ///
-  /// In en, this message translates to:
-  /// **'Left family'**
-  String get userDetailLeftFamily;
-
-  /// No description provided for @userDetailRemoveMemberTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove Member?'**
-  String get userDetailRemoveMemberTitle;
-
-  /// No description provided for @userDetailRemoveMemberBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Are you sure you want to remove this member from the family? They will lose access to all shared vehicles.'**
-  String get userDetailRemoveMemberBody;
-
-  /// No description provided for @userDetailRemoveMemberAction.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove'**
-  String get userDetailRemoveMemberAction;
-
-  /// No description provided for @userDetailMemberRemoved.
-  ///
-  /// In en, this message translates to:
-  /// **'Member removed'**
-  String get userDetailMemberRemoved;
-
   /// No description provided for @userDetailUploadLicensePhoto.
   ///
   /// In en, this message translates to:
   /// **'Upload License Photo'**
   String get userDetailUploadLicensePhoto;
-
-  /// No description provided for @userDetailPrimaryOwner.
-  ///
-  /// In en, this message translates to:
-  /// **'Primary Owner'**
-  String get userDetailPrimaryOwner;
-
-  /// No description provided for @userDetailMemberRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Member'**
-  String get userDetailMemberRole;
-
-  /// No description provided for @userDetailDriverRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Driver'**
-  String get userDetailDriverRole;
 
   /// No description provided for @userDetailDrivingLicenseSection.
   ///
@@ -4679,12 +3977,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No license uploaded'**
   String get userDetailNoLicense;
-
-  /// No description provided for @userDetailNoLicenseBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Add your driving license to track expiry and share with family.'**
-  String get userDetailNoLicenseBody;
 
   /// No description provided for @userDetailUploadLicenseAction.
   ///
@@ -4745,210 +4037,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No License'**
   String get userDetailLicenseNone;
-
-  /// No description provided for @userDetailAccessLevelSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Access Level'**
-  String get userDetailAccessLevelSection;
-
-  /// No description provided for @userDetailPrimaryOwnerDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Primary Owner'**
-  String get userDetailPrimaryOwnerDescription;
-
-  /// No description provided for @userDetailFullControl.
-  ///
-  /// In en, this message translates to:
-  /// **'Full control over family'**
-  String get userDetailFullControl;
-
-  /// No description provided for @userDetailManageAllVehicles.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage all vehicles'**
-  String get userDetailManageAllVehicles;
-
-  /// No description provided for @userDetailAddRemoveMembers.
-  ///
-  /// In en, this message translates to:
-  /// **'Add/remove members'**
-  String get userDetailAddRemoveMembers;
-
-  /// No description provided for @userDetailAssignDriversPerm.
-  ///
-  /// In en, this message translates to:
-  /// **'Assign drivers'**
-  String get userDetailAssignDriversPerm;
-
-  /// No description provided for @userDetailTransferOwnership.
-  ///
-  /// In en, this message translates to:
-  /// **'Transfer ownership'**
-  String get userDetailTransferOwnership;
-
-  /// No description provided for @userDetailMemberDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Member (Secondary Owner)'**
-  String get userDetailMemberDescription;
-
-  /// No description provided for @userDetailFullAccessAssigned.
-  ///
-  /// In en, this message translates to:
-  /// **'Full access to assigned vehicles'**
-  String get userDetailFullAccessAssigned;
-
-  /// No description provided for @userDetailLogMaintenanceExpenses.
-  ///
-  /// In en, this message translates to:
-  /// **'Log maintenance & expenses'**
-  String get userDetailLogMaintenanceExpenses;
-
-  /// No description provided for @userDetailManageDocumentsPerm.
-  ///
-  /// In en, this message translates to:
-  /// **'Manage documents'**
-  String get userDetailManageDocumentsPerm;
-
-  /// No description provided for @userDetailAssignDriversToVehicles.
-  ///
-  /// In en, this message translates to:
-  /// **'Assign drivers to vehicles'**
-  String get userDetailAssignDriversToVehicles;
-
-  /// No description provided for @userDetailDriverDescription.
-  ///
-  /// In en, this message translates to:
-  /// **'Driver'**
-  String get userDetailDriverDescription;
-
-  /// No description provided for @userDetailViewAssignedVehicles.
-  ///
-  /// In en, this message translates to:
-  /// **'View assigned vehicles'**
-  String get userDetailViewAssignedVehicles;
-
-  /// No description provided for @userDetailLogFuelCharge.
-  ///
-  /// In en, this message translates to:
-  /// **'Log fuel/charge'**
-  String get userDetailLogFuelCharge;
-
-  /// No description provided for @userDetailViewMaintenanceDue.
-  ///
-  /// In en, this message translates to:
-  /// **'View maintenance due'**
-  String get userDetailViewMaintenanceDue;
-
-  /// No description provided for @userDetailViewDocumentsPerm.
-  ///
-  /// In en, this message translates to:
-  /// **'View documents'**
-  String get userDetailViewDocumentsPerm;
-
-  /// No description provided for @userDetailPermissionsSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Permissions'**
-  String get userDetailPermissionsSection;
-
-  /// No description provided for @userDetailMyVehiclesSection.
-  ///
-  /// In en, this message translates to:
-  /// **'My Vehicles'**
-  String get userDetailMyVehiclesSection;
-
-  /// No description provided for @userDetailActionsSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Actions'**
-  String get userDetailActionsSection;
-
-  /// No description provided for @userDetailLeaveFamilyButton.
-  ///
-  /// In en, this message translates to:
-  /// **'Leave Family'**
-  String get userDetailLeaveFamilyButton;
-
-  /// No description provided for @userDetailAdminActionsSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Admin Actions'**
-  String get userDetailAdminActionsSection;
-
-  /// No description provided for @userDetailChangeRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Change Role'**
-  String get userDetailChangeRole;
-
-  /// No description provided for @userDetailAssignVehicles.
-  ///
-  /// In en, this message translates to:
-  /// **'Assign Vehicles'**
-  String get userDetailAssignVehicles;
-
-  /// No description provided for @userDetailRemoveFromFamily.
-  ///
-  /// In en, this message translates to:
-  /// **'Remove from Family'**
-  String get userDetailRemoveFromFamily;
-
-  /// No description provided for @userDetailChangeRoleSheet.
-  ///
-  /// In en, this message translates to:
-  /// **'Change Role'**
-  String get userDetailChangeRoleSheet;
-
-  /// No description provided for @userDetailCurrentRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Current: {role}'**
-  String userDetailCurrentRole(Object role);
-
-  /// No description provided for @userDetailNewRole.
-  ///
-  /// In en, this message translates to:
-  /// **'New Role'**
-  String get userDetailNewRole;
-
-  /// No description provided for @userDetailSaveRole.
-  ///
-  /// In en, this message translates to:
-  /// **'Save'**
-  String get userDetailSaveRole;
-
-  /// No description provided for @userDetailAssignVehiclesSheet.
-  ///
-  /// In en, this message translates to:
-  /// **'Assign Vehicles'**
-  String get userDetailAssignVehiclesSheet;
-
-  /// No description provided for @userDetailNoVehiclesInGarage.
-  ///
-  /// In en, this message translates to:
-  /// **'No vehicles in garage'**
-  String get userDetailNoVehiclesInGarage;
-
-  /// No description provided for @familyRolePrimaryOwner.
-  ///
-  /// In en, this message translates to:
-  /// **'Primary Owner'**
-  String get familyRolePrimaryOwner;
-
-  /// No description provided for @familyRoleMember.
-  ///
-  /// In en, this message translates to:
-  /// **'Member'**
-  String get familyRoleMember;
-
-  /// No description provided for @familyRoleDriver.
-  ///
-  /// In en, this message translates to:
-  /// **'Driver'**
-  String get familyRoleDriver;
 
   /// No description provided for @drawerQuickAccess.
   ///
@@ -5021,12 +4109,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expense Stats'**
   String get drawerExpenseStats;
-
-  /// No description provided for @drawerFamily.
-  ///
-  /// In en, this message translates to:
-  /// **'Family'**
-  String get drawerFamily;
 
   /// No description provided for @drawerFleet.
   ///
@@ -6935,6 +6017,564 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Spend grouped by category; smaller groups combine into Other.'**
   String get statsDefDonutCategory;
+
+  /// No description provided for @garageSharedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get garageSharedBadge;
+
+  /// No description provided for @vehicleShareTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Share vehicle'**
+  String get vehicleShareTooltip;
+
+  /// No description provided for @drawerShareVehicles.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle Sharing'**
+  String get drawerShareVehicles;
+
+  /// No description provided for @drawerSharedWithMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with Me'**
+  String get drawerSharedWithMe;
+
+  /// No description provided for @drawerJoinShare.
+  ///
+  /// In en, this message translates to:
+  /// **'Join Vehicle Share'**
+  String get drawerJoinShare;
+
+  /// No description provided for @shareVehicleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share Vehicle'**
+  String get shareVehicleTitle;
+
+  /// No description provided for @shareEmailTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite by Email'**
+  String get shareEmailTab;
+
+  /// No description provided for @shareCodeTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Code / QR'**
+  String get shareCodeTab;
+
+  /// No description provided for @shareEmailLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email address'**
+  String get shareEmailLabel;
+
+  /// No description provided for @shareEmailHint.
+  ///
+  /// In en, this message translates to:
+  /// **'name@example.com'**
+  String get shareEmailHint;
+
+  /// No description provided for @shareEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Email is required'**
+  String get shareEmailRequired;
+
+  /// No description provided for @shareEmailInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address'**
+  String get shareEmailInvalid;
+
+  /// No description provided for @shareAccessLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Access level'**
+  String get shareAccessLabel;
+
+  /// No description provided for @shareAccessView.
+  ///
+  /// In en, this message translates to:
+  /// **'View only'**
+  String get shareAccessView;
+
+  /// No description provided for @shareAccessAddEditOwn.
+  ///
+  /// In en, this message translates to:
+  /// **'Add & edit own'**
+  String get shareAccessAddEditOwn;
+
+  /// No description provided for @shareAccessViewDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'See the vehicle, maintenance, documents, and expenses.'**
+  String get shareAccessViewDescription;
+
+  /// No description provided for @shareAccessAddEditOwnDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Also add and edit their own records on this vehicle.'**
+  String get shareAccessAddEditOwnDescription;
+
+  /// No description provided for @shareSendInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Send invitation'**
+  String get shareSendInvite;
+
+  /// No description provided for @shareInviteSent.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation sent to {email}'**
+  String shareInviteSent(Object email);
+
+  /// No description provided for @shareSending.
+  ///
+  /// In en, this message translates to:
+  /// **'Sending...'**
+  String get shareSending;
+
+  /// No description provided for @shareCodeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Share code'**
+  String get shareCodeLabel;
+
+  /// No description provided for @shareCodeHelper.
+  ///
+  /// In en, this message translates to:
+  /// **'Share this code, or let someone scan the QR to join.'**
+  String get shareCodeHelper;
+
+  /// No description provided for @shareCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Code copied'**
+  String get shareCodeCopied;
+
+  /// No description provided for @shareCodeExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'Codes expire in 7 days. Regenerating invalidates the old one.'**
+  String get shareCodeExpiry;
+
+  /// No description provided for @shareQrHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan with the AutoHub app'**
+  String get shareQrHint;
+
+  /// No description provided for @shareRegenerate.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate code'**
+  String get shareRegenerate;
+
+  /// No description provided for @shareRegenerateTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate share code?'**
+  String get shareRegenerateTitle;
+
+  /// No description provided for @shareRegenerateBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The current code stops working immediately.'**
+  String get shareRegenerateBody;
+
+  /// No description provided for @shareRegenerateAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Regenerate'**
+  String get shareRegenerateAction;
+
+  /// No description provided for @shareManagementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Share management'**
+  String get shareManagementTitle;
+
+  /// No description provided for @shareTabActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get shareTabActive;
+
+  /// No description provided for @shareTabPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending'**
+  String get shareTabPending;
+
+  /// No description provided for @shareTabCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Code & QR'**
+  String get shareTabCode;
+
+  /// No description provided for @shareActiveEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No one has access yet'**
+  String get shareActiveEmpty;
+
+  /// No description provided for @shareActiveEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Invite by email or share the code to give someone access.'**
+  String get shareActiveEmptyBody;
+
+  /// No description provided for @sharePendingEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No pending invitations'**
+  String get sharePendingEmpty;
+
+  /// No description provided for @sharePendingEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitations you send show up here until they are accepted.'**
+  String get sharePendingEmptyBody;
+
+  /// No description provided for @shareRevoke.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke'**
+  String get shareRevoke;
+
+  /// No description provided for @shareRevokeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke access?'**
+  String get shareRevokeTitle;
+
+  /// No description provided for @shareRevokeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} will lose access to this vehicle.'**
+  String shareRevokeBody(Object name);
+
+  /// No description provided for @shareRevokeAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Revoke'**
+  String get shareRevokeAction;
+
+  /// No description provided for @shareRevoked.
+  ///
+  /// In en, this message translates to:
+  /// **'Access revoked'**
+  String get shareRevoked;
+
+  /// No description provided for @shareChangeAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Change access'**
+  String get shareChangeAccess;
+
+  /// No description provided for @shareResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend'**
+  String get shareResend;
+
+  /// No description provided for @shareCancelInvite.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel invite'**
+  String get shareCancelInvite;
+
+  /// No description provided for @shareInviteResent.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation resent'**
+  String get shareInviteResent;
+
+  /// No description provided for @shareInviteCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation cancelled'**
+  String get shareInviteCancelled;
+
+  /// No description provided for @shareExpiresOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires {date}'**
+  String shareExpiresOn(Object date);
+
+  /// No description provided for @shareJoinedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Joined {date}'**
+  String shareJoinedOn(Object date);
+
+  /// No description provided for @sharePendingSince.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent {date}'**
+  String sharePendingSince(Object date);
+
+  /// No description provided for @shareLimits.
+  ///
+  /// In en, this message translates to:
+  /// **'{active} of {limit} active shares on this vehicle'**
+  String shareLimits(Object active, Object limit);
+
+  /// No description provided for @sharePlanLimitReached.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan allows {limit} active shares per vehicle'**
+  String sharePlanLimitReached(Object limit);
+
+  /// No description provided for @shareOwnerOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Only the vehicle owner can manage shares.'**
+  String get shareOwnerOnly;
+
+  /// No description provided for @shareManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage shares'**
+  String get shareManage;
+
+  /// No description provided for @shareAcceptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle shared with you'**
+  String get shareAcceptTitle;
+
+  /// No description provided for @shareAcceptBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{owner} wants to share a vehicle with you.'**
+  String shareAcceptBody(Object owner);
+
+  /// No description provided for @shareAcceptVehicleLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get shareAcceptVehicleLabel;
+
+  /// No description provided for @shareAcceptAccessLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Access level'**
+  String get shareAcceptAccessLabel;
+
+  /// No description provided for @shareAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get shareAccept;
+
+  /// No description provided for @shareDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get shareDecline;
+
+  /// No description provided for @shareAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Access accepted'**
+  String get shareAccepted;
+
+  /// No description provided for @shareDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'Invitation declined'**
+  String get shareDeclined;
+
+  /// No description provided for @shareAcceptInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is invalid or expired'**
+  String get shareAcceptInvalid;
+
+  /// No description provided for @shareJoinTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Join vehicle share'**
+  String get shareJoinTitle;
+
+  /// No description provided for @shareJoinBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the 8-character code shared with you.'**
+  String get shareJoinBody;
+
+  /// No description provided for @shareJoinLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Share code'**
+  String get shareJoinLabel;
+
+  /// No description provided for @shareJoinHint.
+  ///
+  /// In en, this message translates to:
+  /// **'ABCD1234'**
+  String get shareJoinHint;
+
+  /// No description provided for @shareJoinAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Join'**
+  String get shareJoinAction;
+
+  /// No description provided for @shareJoining.
+  ///
+  /// In en, this message translates to:
+  /// **'Joining...'**
+  String get shareJoining;
+
+  /// No description provided for @shareJoinPreviewVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle'**
+  String get shareJoinPreviewVehicle;
+
+  /// No description provided for @shareJoinPreviewOwner.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get shareJoinPreviewOwner;
+
+  /// No description provided for @shareJoinPreviewAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Access level'**
+  String get shareJoinPreviewAccess;
+
+  /// No description provided for @shareJoinInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid or expired share code'**
+  String get shareJoinInvalid;
+
+  /// No description provided for @shareJoined.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle shared with you'**
+  String get shareJoined;
+
+  /// No description provided for @shareJoinUnknownCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid 8-character code first.'**
+  String get shareJoinUnknownCode;
+
+  /// No description provided for @sharedWithMeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared with Me'**
+  String get sharedWithMeTitle;
+
+  /// No description provided for @sharedWithMeEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No shared vehicles yet'**
+  String get sharedWithMeEmpty;
+
+  /// No description provided for @sharedWithMeEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'When someone shares a vehicle with you it appears here.'**
+  String get sharedWithMeEmptyBody;
+
+  /// No description provided for @sharedWithMeJoin.
+  ///
+  /// In en, this message translates to:
+  /// **'Join with code'**
+  String get sharedWithMeJoin;
+
+  /// No description provided for @shareOwnerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Owner'**
+  String get shareOwnerLabel;
+
+  /// No description provided for @shareAccessViewBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get shareAccessViewBadge;
+
+  /// No description provided for @shareAccessAddEditBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Add & edit'**
+  String get shareAccessAddEditBadge;
+
+  /// No description provided for @shareSectionSharedUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared users'**
+  String get shareSectionSharedUsers;
+
+  /// No description provided for @shareErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not share this vehicle'**
+  String get shareErrorGeneric;
+
+  /// No description provided for @share.
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get share;
+
+  /// No description provided for @shareAlreadyShared.
+  ///
+  /// In en, this message translates to:
+  /// **'That person already has access to this vehicle.'**
+  String get shareAlreadyShared;
+
+  /// No description provided for @shareOwnedBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned'**
+  String get shareOwnedBadge;
+
+  /// No description provided for @shareSelfBadge.
+  ///
+  /// In en, this message translates to:
+  /// **'You'**
+  String get shareSelfBadge;
+
+  /// No description provided for @shareAcceptIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'ve been invited to access someone\'s vehicle. Accept to see it in your garage.'**
+  String get shareAcceptIntro;
+
+  /// No description provided for @shareAcceptFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not accept this invitation'**
+  String get shareAcceptFailed;
+
+  /// No description provided for @shareAcceptedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The vehicle is now listed under Shared with Me.'**
+  String get shareAcceptedBody;
+
+  /// No description provided for @shareDeclinedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The owner will not see this invitation again.'**
+  String get shareDeclinedBody;
+
+  /// No description provided for @shareExpiresAt.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires'**
+  String get shareExpiresAt;
 }
 
 class _AppLocalizationsDelegate

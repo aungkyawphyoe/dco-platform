@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { auditEvents, documents, families, familyMemberships, familyVehicles, maintenanceCatalog, organizationMembers, organizationVehicles, organizations, partners, refreshTokens, users, vehicles, vehicleGrants, workshopMembers, driverAssignments } from "../db/schema.js";
+import { auditEvents, documents, maintenanceCatalog, organizationMembers, organizationVehicles, organizations, partners, refreshTokens, users, vehicles, vehicleShares, vehicleShareInvitations, workshopMembers, driverAssignments } from "../db/schema.js";
 import { hashPassword, newId, randomToken, sha256 } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { emailTokens } from "../db/schema.js";
@@ -53,9 +53,8 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     await app.db.execute(sql`DELETE FROM vehicle_assignments`);
     await app.db.execute(sql`DELETE FROM organization_members`);
     await app.db.execute(sql`DELETE FROM organizations`);
-    await app.db.execute(sql`DELETE FROM family_vehicle_grants`);
-    await app.db.execute(sql`DELETE FROM family_members`);
-    await app.db.execute(sql`DELETE FROM families`);
+    await app.db.execute(sql`DELETE FROM vehicle_shares`);
+    await app.db.execute(sql`DELETE FROM vehicle_share_invitations`);
     await app.db.execute(sql`DELETE FROM sync_changes`);
     await app.db.execute(sql`DELETE FROM notifications`);
     await app.db.execute(sql`DELETE FROM plan_items`);
@@ -386,18 +385,12 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
       const docs = await app.db.select().from(documents).where(eq(documents.vehicleId, vehicle.id));
       documentsCount += docs.length;
     }
-    let family = null;
-    if (u.familyId) {
-      const [fam] = await app.db.select().from(families).where(eq(families.id, u.familyId)).limit(1);
-      if (fam) {
-        const [membership] = await app.db
-          .select()
-          .from(familyMemberships)
-          .where(eq(familyMemberships.userId, userId))
-          .limit(1);
-        family = { id: fam.id, name: fam.name, role: membership?.role ?? null };
-      }
-    }
+    // Get shared vehicles count
+    const [sharedCount] = await app.db
+      .select({ count: sql`count(*)` })
+      .from(vehicleShares)
+      .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
+      .where(and(eq(vehicles.userId, userId), eq(vehicleShares.status, "active")));
     const [organizationMembership] = await app.db.select({ membership: organizationMembers, organization: organizations })
       .from(organizationMembers)
       .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
@@ -415,7 +408,9 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
       vehicle_count: v.filter((x) => !x.archived).length,
       created_at: u.createdAt.toISOString(),
       email_verified: u.emailVerified,
-      family,
+      vehicle_sharing: {
+        active_shares: Number(sharedCount?.count ?? 0),
+      },
       organization: organizationMembership ? {
         id: organizationMembership.organization.id,
         name: organizationMembership.organization.name,
@@ -532,33 +527,21 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
       if (Number(count) <= 1) throw new AppError(409, "last_admin", "Cannot delete the last admin account");
     }
 
-    const [membership] = await app.db
-      .select()
-      .from(familyMemberships)
-      .where(eq(familyMemberships.userId, userId))
-      .limit(1);
-
-    if (membership) {
-      await app.db.delete(familyMemberships).where(eq(familyMemberships.familyId, membership.familyId));
-      await app.db.delete(familyVehicles).where(eq(familyVehicles.familyId, membership.familyId));
-      await app.db.delete(vehicleGrants).where(eq(vehicleGrants.userId, userId));
-      if (membership.role === "primary_owner") {
-        const otherMembers = await app.db
-          .select()
-          .from(familyMemberships)
-          .where(eq(familyMemberships.familyId, membership.familyId));
-        if (otherMembers.length === 0) {
-          await app.db.update(families).set({ status: "archived", archivedAt: new Date() }).where(eq(families.id, membership.familyId));
-        }
-      }
-    }
+    // Revoke any vehicle shares the user has on other people's vehicles
+    await app.db.delete(vehicleShares).where(eq(vehicleShares.userId, userId));
 
     const userVehicles = await app.db.select().from(vehicles).where(eq(vehicles.userId, userId));
     for (const v of userVehicles) {
       await app.db.update(vehicles).set({ archived: true, archivedAt: new Date() }).where(eq(vehicles.id, v.id));
+      // Revoke shares on the user's own vehicles
+      await app.db.delete(vehicleShares).where(eq(vehicleShares.vehicleId, v.id));
+      // Delete pending invitations on the user's vehicles
+      await app.db.delete(vehicleShareInvitations).where(eq(vehicleShareInvitations.vehicleId, v.id));
     }
+    // Delete pending invitations created by the user
+    await app.db.delete(vehicleShareInvitations).where(eq(vehicleShareInvitations.invitedBy, userId));
 
-    await app.db.update(users).set({ status: "deactivated", familyId: null }).where(eq(users.id, userId));
+    await app.db.update(users).set({ status: "deactivated" }).where(eq(users.id, userId));
     await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, userId));
 
     await audit(app, adminId, "user.delete", { userId, email: u.email });

@@ -5,7 +5,7 @@
 class Entitlements {
   const Entitlements({
     required this.plan,
-    required this.family,
+    required this.vehicleSharing,
     required this.organization,
     required this.features,
   });
@@ -14,8 +14,8 @@ class Entitlements {
     final organization = json['organization'];
     return Entitlements(
       plan: json['plan'] as String? ?? 'free',
-      family: FamilyEntitlement.fromJson(
-        (json['family'] as Map<String, dynamic>?) ?? const {},
+      vehicleSharing: VehicleSharingEntitlement.fromJson(
+        (json['vehicle_sharing'] as Map<String, dynamic>?) ?? const {},
       ),
       organization: organization is Map<String, dynamic>
           ? OrganizationContext.fromJson(organization)
@@ -27,7 +27,7 @@ class Entitlements {
   }
 
   final String plan;
-  final FamilyEntitlement family;
+  final VehicleSharingEntitlement vehicleSharing;
   final OrganizationContext? organization;
   final FleetFeatures features;
 
@@ -35,27 +35,31 @@ class Entitlements {
   bool get canUseFleet => features.fleet && organization != null;
 }
 
-class FamilyEntitlement {
-  const FamilyEntitlement({
+class VehicleSharingEntitlement {
+  const VehicleSharingEntitlement({
     required this.available,
-    required this.role,
-    required this.canCreate,
-    required this.canManage,
+    required this.canShare,
+    required this.perVehicle,
+    required this.total,
+    required this.activeShares,
   });
 
-  factory FamilyEntitlement.fromJson(Map<String, dynamic> json) {
-    return FamilyEntitlement(
+  factory VehicleSharingEntitlement.fromJson(Map<String, dynamic> json) {
+    final limits = (json['limits'] as Map<String, dynamic>?) ?? const {};
+    return VehicleSharingEntitlement(
       available: json['available'] as bool? ?? false,
-      role: json['role'] as String?,
-      canCreate: json['can_create'] as bool? ?? false,
-      canManage: json['can_manage'] as bool? ?? false,
+      canShare: json['can_share'] as bool? ?? false,
+      perVehicle: limits['per_vehicle'] as int? ?? 1,
+      total: limits['total'] as int? ?? 3,
+      activeShares: json['active_shares'] as int? ?? 0,
     );
   }
 
   final bool available;
-  final String? role;
-  final bool canCreate;
-  final bool canManage;
+  final bool canShare;
+  final int perVehicle;
+  final int total;
+  final int activeShares;
 }
 
 class OrganizationContext {
@@ -92,15 +96,15 @@ class OrganizationContext {
 }
 
 class FleetFeatures {
-  const FleetFeatures({required this.family, required this.fleet});
+  const FleetFeatures({required this.vehicleSharing, required this.fleet});
 
   factory FleetFeatures.fromJson(Map<String, dynamic> json) {
     return FleetFeatures(
-      family: json['family'] as bool? ?? false,
+      vehicleSharing: json['vehicle_sharing'] as bool? ?? false,
       fleet: json['fleet'] as bool? ?? false,
     );
   }
 
-  final bool family;
+  final bool vehicleSharing;
   final bool fleet;
 }

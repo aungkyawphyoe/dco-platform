@@ -12,6 +12,7 @@ class PlanItem {
     this.nextDueOn,
     this.notes,
     this.catalogKey,
+    this.createdBy,
   });
 
   final String id;
@@ -24,6 +25,7 @@ class PlanItem {
   final bool enabled;
   final String? notes;
   final String? catalogKey;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
 
@@ -39,6 +41,7 @@ class PlanItem {
     DateTime? nextDueOn,
     bool? enabled,
     String? notes,
+    String? createdBy,
     bool clearIntervalDays = false,
     bool clearIntervalDistance = false,
     bool clearNextDueMileage = false,
@@ -58,6 +61,7 @@ class PlanItem {
       enabled: enabled ?? this.enabled,
       notes: clearNotes ? null : notes ?? this.notes,
       catalogKey: catalogKey,
+      createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt,
       createdAt: createdAt,
     );
@@ -73,6 +77,7 @@ class PlanItem {
     'enabled': enabled,
     'notes': notes,
     'catalog_key': catalogKey,
+    'created_by': createdBy,
   };
 }
 

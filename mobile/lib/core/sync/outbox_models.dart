@@ -18,5 +18,5 @@ abstract final class OutboxEntityType {
   static const notification = 'notification';
   static const media = 'media';
   static const user = 'user';
-  static const familyVehicle = 'family_vehicle';
+  static const vehicleShare = 'vehicle_share';
 }

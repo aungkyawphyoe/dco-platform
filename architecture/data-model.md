@@ -29,7 +29,6 @@ erDiagram
     enum status
     bool email_verified
     uuid active_vehicle_id FK
-    uuid family_id FK
     timestamptz created_at
   }
 
@@ -203,43 +202,41 @@ erDiagram
     timestamptz at
   }
 
-  users ||--o{ families : creates
-  users ||--o{ family_memberships : belongs_to
-  families ||--o{ family_memberships : has
-  users ||--o{ vehicle_grants : grants
-  users ||--o{ vehicle_grants : receives
-  vehicles ||--o{ vehicle_grants : granted_on
+  users ||--o{ vehicle_shares : receives
+  users ||--o{ vehicle_shares : grants
+  vehicles ||--o{ vehicle_shares : shared_on
+  users ||--o{ vehicle_share_invitations : sends
+  vehicles ||--o{ vehicle_share_invitations : invites_on
   users ||--|| driving_licenses : has
   driving_licenses }|--|| media_objects : front_photo
   driving_licenses }|--|| media_objects : back_photo
 
-  families {
-    uuid id PK
-    string name
-    string share_code UK
-    jsonb qr_code_data
-    uuid created_by FK
-    timestamptz created_at
-    string status
-    timestamptz archived_at
-  }
-
-  family_memberships {
-    uuid id PK
-    uuid family_id FK
-    uuid user_id FK UK
-    enum role
-    timestamptz joined_at
-    uuid invited_by FK
-  }
-
-  vehicle_grants {
+  vehicle_shares {
     uuid id PK
     uuid vehicle_id FK
     uuid user_id FK
     uuid granted_by FK
-    enum permission
+    enum access_level
+    enum status
+    string invited_email
+    string share_code UK
+    jsonb qr_code_data
+    timestamptz accepted_at
     timestamptz created_at
+  }
+
+  vehicle_share_invitations {
+    uuid id PK
+    uuid vehicle_id FK
+    uuid invited_by FK
+    string invited_email
+    enum access_level
+    string token UK
+    string share_code UK
+    timestamptz expires_at
+    timestamptz created_at
+    timestamptz accepted_at
+    uuid accepted_by FK
   }
 
   driving_licenses {
@@ -268,7 +265,7 @@ Local-only (mobile, not a server table): **outbox** rows (`entity_type`, `entity
 |-------|------|
 | `email` | Unique, stored lowercase, max 254 |
 | `role` | `owner` (default on signup) or `admin` (granted by an existing admin / seed) |
-| `plan` | `free` \| `premium`, DCO-admin-managed until billing is added. Premium is required for a Primary Owner to create/manage Family; invited Family members need no Premium. Free vehicle-count gating remains off. |
+| `plan` | `free` \| `premium`, DCO-admin-managed until billing is added. `plan` only sizes Vehicle Sharing limits (free: 1 active share per vehicle, 3 total; premium: 5 per vehicle, 20 total) and unlocks the premium UI. Anyone can share and accept shares; free vehicle-count gating remains off. |
 | `status` | `active` \| `deactivated`. Deactivated cannot sign in |
 | `active_vehicle_id` | Null only when the garage is empty. After the first vehicle, always one active vehicle |
 | `email_verified` | Prompt until true; does not block adding a vehicle |
@@ -312,10 +309,22 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 - Amount is litres/gallons or kWh from the catalog type's `unit`. Name and unit are snapshotted on the log.
 - `fuel_logs.odometer` is **optional**, in the vehicle's `mileage_unit`. When set: ≥ vehicle mileage; if greater, bump `vehicles.mileage` (same rule as service odometer). It feeds distance/consumption KPIs in `product/frd/stats.md`. Still do not copy Autozis partial/full tank or cost-per-unit fields.
 
+### vehicle_shares / vehicle_share_invitations
+
+Schema detail, access matrix, and query patterns: [`architecture/data-model-vehicle-sharing.md`](data-model-vehicle-sharing.md).
+
+- There is **no family/group entity**. Access is granted per vehicle, one row per `(vehicle_id, user_id)`.
+- `access_level`: `view` (read, plus fuel-log writes) or `add_edit_own` (read + write, records attributed to the writer).
+- `status`: `pending` (email invited, not yet accepted) → `active` → `revoked` (row deleted, not kept).
+- Two ways in: `POST /v1/vehicles/:id/shares` with `method: code_qr` (8-char code, 7-day expiry, stored on `vehicle_share_invitations.share_code`) or `method: email` (random token, 7-day expiry, emailed link).
+- `vehicle_share_invitations` is the invite ledger; `vehicle_shares` is the access ledger. Both are needed because a code/QR invite has no addressee.
+- `users.family_id` was dropped in `backend/drizzle/0008_vehicle_sharing.sql`, which also converts legacy `vehicle_grants` and `family_vehicles` rows into `vehicle_shares`.
+- `driving_licenses` is a **standalone** per-user module, unrelated to sharing; it stays even though the family tables were removed.
+
 ### change_log
 
 - Append-only. Cursor is opaque (`seq` encoded, not invented by clients).
-- Entity types in MVP: `user`, `vehicle`, `plan_item`, `service_record`, `document`, `expense`, `notification`, `media`, `part`, `fuel_type`, `fuel_log`, `family`, `family_membership`, `vehicle_grant`, `driving_license`.
+- Entity types: `user`, `vehicle`, `plan_item`, `service_record`, `document`, `expense`, `notification`, `media`, `part`, `fuel_type`, `fuel_log`, `vehicle_share`, `driving_license`. Vehicle rows and their history are fanned out to the vehicle's **change audience** — the owner plus every user holding an active share.
 - Duplicate create with the same client UUID → idempotent success.
 - Archive vs later edit: **archive wins**.
 
@@ -354,7 +363,7 @@ Fleet entitlement is **organization-scoped**, not a `users.plan` value or `users
 | `users.must_change_password` | Boolean, default false. Set on temp-password accounts (Fleet Admin provisioning, driver creation, admin password reset). Enforced server-side: fleet/driver routes except profile/password return 403 `password_change_required`. |
 | `users.status` | `deactivated` reused for driver soft delete by the Fleet Admin: login blocked, active `driver_assignments` cascaded to `completed` + `unassigned_at`, history rows retained, reactivation allowed, username never freed. |
 
-Authorization checks run against the live database for each request: Fleet requires Enterprise plan + active organization + membership; role controls each operation. Fleet Dashboard tokens use `dco-fleet`, mobile remains `dco-owner`, and verified workshop accounts use `dco-workshop` (scoped to active approved-warranty vehicles only; buyer personal data is not exposed). Premium downgrade archives the Primary Owner's family, revokes family grants/membership, and expires refresh tokens; invited family participants retain access only while the family is active.
+Authorization checks run against the live database for each request: Fleet requires Enterprise plan + active organization + membership; role controls each operation. Fleet Dashboard tokens use `dco-fleet`, mobile remains `dco-owner`, and verified workshop accounts use `dco-workshop` (scoped to active approved-warranty vehicles only; buyer personal data is not exposed). `plan` changes only resizing limits: downgrading from Premium does not revoke existing shares, but new shares are refused while the owner is over the free-plan caps.
 
 ---
 
@@ -374,7 +383,7 @@ Authorization checks run against the live database for each request: Fleet requi
 | Archive vehicle | `archived=true`, `archived_at` set. Cancel local notifications. Hide from garage and dashboard switcher. Keep all child rows. |
 | Un-archive | Not in MVP UI. Do not resurrect from an older outbox edit if archive already applied. |
 | Delete document / expense | Hard-delete that row + queue remote delete + delete media. Not the same as vehicle archive. |
-| Delete user | **Soft-delete** (deactivate). Vehicles archived, family dissolved/removed. Admin can reactivate. |
+| Delete user | **Soft-delete** (deactivate). Vehicles archived; shares where they are the grantee or grantor are deleted. Admin can reactivate. |
 | Logout | Tokens discarded. Outbox remains encrypted, bound to `user_id`. |
 
 ---
@@ -395,10 +404,11 @@ Observed in the Autozis demo (Toyota Camry dashboard, multi-vehicle garage, expe
 | Parts catalog (name, brand, number) assigned on service / expense | Per-vehicle parts + service assignment | **Adopt** (expense assignment with the expenses form) |
 | Documents with multiple attachments, notes | One file per document | **Adopt simplified** |
 | Receipt scanning / OCR ("Load from Receipt") | Attach photo, no extract | **Defer** |
-| Vehicle sharing, import/export, PDF reports, AI assistant | — | **Defer** |
+| Vehicle sharing | Per-vehicle shares via 8-char Code/QR or email invitation (`vehicle_shares`), access `view` \| `add_edit_own` | **Adopt simplified** — no household/group entity |
+| Import/export, PDF reports, AI assistant | — | **Defer** |
 | Online web owner app, instant sync | Flutter offline-first + change log | **Different architecture** (intentional) |
 | No staff admin | Users + partners + audit | **DCO-only** |
-| Freemium (advanced features gated) | `plan` field; Family management requires Premium, no billing yet; vehicle-count gate remains off | **Adopt plan + Family entitlement gate** |
+| Freemium (advanced features gated) | `plan` field sizes Vehicle Sharing limits; no billing yet; vehicle-count gate remains off | **Adopt plan + share-limit gate** |
 
 Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to this schema. Fuel logs are a DCO slice (`fuel_types`, `fuel_logs`), not Autozis efficiency tracking.
 
@@ -407,3 +417,5 @@ Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to thi
 ## Freemium field
 
 `users.plan` is `free` or `premium`. MVP does not enforce the one-vehicle cap in UI copy beyond Settings ("Free Plan · 1/1 vehicles" on tldraw screen 9). API may return `vehicle_limit` on `GET /v1/me` so clients can hide "Register another vehicle" later without a schema break.
+
+Plan limits are enforced per owner, not per vehicle alone: `checkShareLimits` refuses a share when the owner already holds `SHARE_LIMITS[plan].perVehicle` active shares on that vehicle, or `SHARE_LIMITS[plan].total` active shares across all vehicles. The limits are duplicated in `backend/src/modules/vehicle-shares.ts`, `backend/src/lib/me.ts`, and `backend/src/lib/entitlements.ts` — keep the three in step.

@@ -7,11 +7,11 @@ void main() {
     test('parses active Enterprise member with fleet feature', () {
       final entitlements = Entitlements.fromJson({
         'plan': 'free',
-        'family': {
-          'available': false,
-          'role': null,
-          'can_create': false,
-          'can_manage': false,
+        'vehicle_sharing': {
+          'available': true,
+          'can_share': true,
+          'limits': {'per_vehicle': 1, 'total': 3},
+          'active_shares': 0,
         },
         'organization': {
           'id': 'org-1',
@@ -20,11 +20,13 @@ void main() {
           'status': 'active',
           'role': 'org_admin',
         },
-        'features': {'family': false, 'fleet': true},
+        'features': {'vehicle_sharing': true, 'fleet': true},
       });
 
       expect(entitlements.plan, 'free');
-      expect(entitlements.family.available, isFalse);
+      expect(entitlements.vehicleSharing.available, isTrue);
+      expect(entitlements.vehicleSharing.perVehicle, 1);
+      expect(entitlements.vehicleSharing.total, 3);
       expect(entitlements.organization?.id, 'org-1');
       expect(entitlements.organization?.isActiveEnterprise, isTrue);
       expect(entitlements.organization?.canManageOrg, isTrue);
@@ -35,9 +37,9 @@ void main() {
     test('non-member hides fleet entry', () {
       final entitlements = Entitlements.fromJson({
         'plan': 'free',
-        'family': {'available': false, 'can_create': false, 'can_manage': false},
+        'vehicle_sharing': {'available': true, 'can_share': true},
         'organization': null,
-        'features': {'family': false, 'fleet': false},
+        'features': {'vehicle_sharing': true, 'fleet': false},
       });
 
       expect(entitlements.organization, isNull);
@@ -47,7 +49,12 @@ void main() {
     test('pending organization does not grant fleet access', () {
       final entitlements = Entitlements.fromJson({
         'plan': 'premium',
-        'family': {'available': true, 'role': 'primary_owner', 'can_create': false, 'can_manage': true},
+        'vehicle_sharing': {
+          'available': true,
+          'can_share': true,
+          'limits': {'per_vehicle': 5, 'total': 20},
+          'active_shares': 2,
+        },
         'organization': {
           'id': 'org-2',
           'type': 'business',
@@ -55,20 +62,23 @@ void main() {
           'status': 'pending',
           'role': 'org_driver',
         },
-        'features': {'family': true, 'fleet': false},
+        'features': {'vehicle_sharing': true, 'fleet': false},
       });
 
       expect(entitlements.features.fleet, isFalse);
       expect(entitlements.canUseFleet, isFalse);
       expect(entitlements.organization?.isDriver, isTrue);
-      expect(entitlements.family.canManage, isTrue);
+      expect(entitlements.vehicleSharing.activeShares, 2);
+      expect(entitlements.vehicleSharing.total, 20);
     });
 
     test('tolerates missing optional maps', () {
       final entitlements = Entitlements.fromJson(const {'plan': 'free'});
 
       expect(entitlements.features.fleet, isFalse);
-      expect(entitlements.family.available, isFalse);
+      expect(entitlements.vehicleSharing.available, isFalse);
+      expect(entitlements.vehicleSharing.perVehicle, 1);
+      expect(entitlements.vehicleSharing.total, 3);
       expect(entitlements.organization, isNull);
     });
   });

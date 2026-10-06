@@ -349,9 +349,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get garageAddCardSubtitle => 'Track maintenance, expenses & documents';
 
   @override
-  String get garageFamilyBadge => 'Family';
-
-  @override
   String get vehicleEditTitle => 'Edit Vehicle';
 
   @override
@@ -420,9 +417,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get vehicleEditTooltip => 'Edit vehicle';
-
-  @override
-  String get vehicleRemoveTooltip => 'Remove from family';
 
   @override
   String get vehiclePlateDuplicate =>
@@ -1598,25 +1592,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSyncSection => 'Sync';
 
   @override
-  String get settingsFamilySection => 'Family';
-
-  @override
-  String get settingsLoadingFamily => 'Loading family...';
-
-  @override
-  String get settingsFamilyLoadError => 'Failed to load family';
-
-  @override
-  String get settingsFamilyTapRetry => 'Tap to retry';
-
-  @override
-  String get settingsFamilyFallback => 'Family';
-
-  @override
-  String get settingsFamilySubtitle =>
-      'Create or join a family to share vehicles';
-
-  @override
   String get settingsSignOut => 'Sign out';
 
   @override
@@ -1712,10 +1687,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get profileDeleteAccountPassword => 'Enter your password to confirm';
-
-  @override
-  String get profileDeleteAccountBlocked =>
-      'You are the Primary Owner of a family. Transfer ownership or dissolve your family before deleting your account.';
 
   @override
   String get profileDeleteAccountSuccess => 'Your account has been deleted.';
@@ -1922,284 +1893,6 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get familyJoinTitle => 'Join Family';
-
-  @override
-  String get familyCreateTitle => 'Create Family';
-
-  @override
-  String get familyJoining => 'Joining family...';
-
-  @override
-  String get familyCreateHeading => 'Create Your Family';
-
-  @override
-  String get familyCreateBody =>
-      'Invite members to share vehicles and manage access together.';
-
-  @override
-  String get familyNameLabel => 'Family Name';
-
-  @override
-  String get familyNameHint => 'e.g., Smith Family';
-
-  @override
-  String get familyNameRequired => 'Family name is required';
-
-  @override
-  String get familyNameMaxLength => 'Name must be 100 characters or fewer';
-
-  @override
-  String get familyCreating => 'Creating...';
-
-  @override
-  String get familyCreateButton => 'Create Family';
-
-  @override
-  String get familyCreatedSuccess =>
-      'Family created! Share the code with family members.';
-
-  @override
-  String familyCreateFailed(Object error) {
-    return 'Failed to create family: $error';
-  }
-
-  @override
-  String get familyJoinedSuccess => 'Joined family successfully!';
-
-  @override
-  String familyJoinFailed(Object error) {
-    return 'Failed to join family: $error';
-  }
-
-  @override
-  String get familyCreatedHeading => 'Family Created!';
-
-  @override
-  String get familyCreatedBody =>
-      'Share this code with family members so they can join.';
-
-  @override
-  String get familyShareCode => 'Share Code';
-
-  @override
-  String get familyShareCodeHelper => 'Scan with AutoHub app to join';
-
-  @override
-  String get familyCopyCode => 'Copy Code';
-
-  @override
-  String get familyCodeCopied => 'Code copied!';
-
-  @override
-  String get familyShare => 'Share';
-
-  @override
-  String familyShareText(Object code) {
-    return 'Join my AutoHub family! Code: $code';
-  }
-
-  @override
-  String get familyCodeExpiryHelper =>
-      'Code expires in 7 days. Regenerating invalidates the old code.';
-
-  @override
-  String get familyGoToManagement => 'Go to Family Management';
-
-  @override
-  String get familyManagementTitle => 'Family';
-
-  @override
-  String get familyManagementMembersTab => 'Members';
-
-  @override
-  String get familyManagementVehiclesTab => 'Vehicles';
-
-  @override
-  String get familyManagementInviteTab => 'Invite';
-
-  @override
-  String get familyManagementJoinTitle => 'Join Family';
-
-  @override
-  String get familyManagementJoinHint => 'Enter share code';
-
-  @override
-  String get familyManagementJoinLabel => 'Share Code';
-
-  @override
-  String get familyManagementJoinButton => 'Join';
-
-  @override
-  String get familyManagementNoFamily => 'No family yet';
-
-  @override
-  String get familyManagementNoFamilyBody =>
-      'Create a family to share vehicles,\nor join an existing one.';
-
-  @override
-  String get familyManagementCreateButton => 'Create Family';
-
-  @override
-  String get familyManagementJoinFamilyButton => 'Join Family';
-
-  @override
-  String get membersTabEmptyTitle => 'No members yet';
-
-  @override
-  String get membersTabEmptyBody => 'Invite family to get started.';
-
-  @override
-  String membersTabManageTitle(Object name) {
-    return 'Manage $name';
-  }
-
-  @override
-  String get membersTabRoleSection => 'Role';
-
-  @override
-  String get membersTabRoleMember => 'Member';
-
-  @override
-  String get membersTabRoleDriver => 'Driver';
-
-  @override
-  String get membersTabSaveRole => 'Save Role';
-
-  @override
-  String get membersTabRemoveButton => 'Remove from Family';
-
-  @override
-  String get membersTabRemoveTitle => 'Remove Member?';
-
-  @override
-  String membersTabRemoveBody(Object name) {
-    return 'Remove $name from the family?';
-  }
-
-  @override
-  String get membersTabRemoveAction => 'Remove';
-
-  @override
-  String get membersTabYouBadge => 'You';
-
-  @override
-  String get membersTabPrimaryOwner => 'Primary Owner';
-
-  @override
-  String get membersTabLicenseValid => 'Valid';
-
-  @override
-  String get membersTabLicenseExpiringSoon => 'Expiring Soon';
-
-  @override
-  String get membersTabLicenseExpired => 'Expired';
-
-  @override
-  String get membersTabLicenseNone => 'No License';
-
-  @override
-  String membersTabVehicleCount(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '# vehicles',
-      one: '# vehicle',
-    );
-    return '$_temp0';
-  }
-
-  @override
-  String get vehiclesTabTitle => 'Family Vehicles';
-
-  @override
-  String get vehiclesTabAdd => 'Add';
-
-  @override
-  String get vehiclesTabEmptyTitle => 'No vehicles in family';
-
-  @override
-  String get vehiclesTabEmptyBodyOwner =>
-      'Tap \"Add\" to share a vehicle with your family';
-
-  @override
-  String get vehiclesTabEmptyBodyNonOwner => 'Ask the owner to share a vehicle';
-
-  @override
-  String get vehiclesTabSelectTitle => 'Select a vehicle to share';
-
-  @override
-  String get vehiclesTabSelectSubtitle =>
-      'Choose vehicles from your garage to share with your family';
-
-  @override
-  String get vehiclesTabNoVehiclesToAdd =>
-      'No vehicles available to add. Add vehicles to your garage first.';
-
-  @override
-  String vehiclesTabAddSelected(num count) {
-    String _temp0 = intl.Intl.pluralLogic(
-      count,
-      locale: localeName,
-      other: '$count vehicles',
-      one: '1 vehicle',
-    );
-    return 'Add $_temp0';
-  }
-
-  @override
-  String get vehiclesTabRemoveTitle => 'Remove Vehicle';
-
-  @override
-  String vehiclesTabRemoveBody(Object vehicleName) {
-    return 'Remove $vehicleName from family?';
-  }
-
-  @override
-  String get inviteTabHeading => 'Share Your Family';
-
-  @override
-  String get inviteTabBody =>
-      'Invite family members to join and share vehicles.';
-
-  @override
-  String get inviteTabShareCode => 'Share Code';
-
-  @override
-  String get inviteTabShareCodeHelper => 'Scan with AutoHub app to join';
-
-  @override
-  String get inviteTabCopyCode => 'Copy Code';
-
-  @override
-  String get inviteTabCodeCopied => 'Code copied!';
-
-  @override
-  String get inviteTabShare => 'Share';
-
-  @override
-  String inviteTabShareText(Object code) {
-    return 'Join my AutoHub family! Code: $code';
-  }
-
-  @override
-  String get inviteTabRegenerateButton => 'Regenerate Code';
-
-  @override
-  String get inviteTabRegenerateTitle => 'Regenerate Share Code?';
-
-  @override
-  String get inviteTabRegenerateBody =>
-      'This will invalidate the current code. Members with the old code won\'t be able to join.';
-
-  @override
-  String get inviteTabRegenerateAction => 'Regenerate';
-
-  @override
-  String get inviteTabCodeExpiryHelper =>
-      'Code expires in 7 days. Regenerating invalidates the old code.';
-
-  @override
   String get vehicleDetailTitle => 'My Vehicle';
 
   @override
@@ -2315,40 +2008,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get carDetailAddDocumentAction => 'Add Document';
 
   @override
-  String get carDetailDriversSection => 'Assigned Drivers';
-
-  @override
-  String get carDetailManageDrivers => 'Manage';
-
-  @override
-  String get carDetailNoDrivers => 'No drivers assigned';
-
-  @override
-  String get carDetailNoDriversBody =>
-      'Add family members as drivers for this vehicle.';
-
-  @override
-  String get carDetailAssignDriver => 'Assign Driver';
-
-  @override
-  String get carDetailLicenseValid => 'Valid';
-
-  @override
-  String get carDetailLicenseExpiringSoon => 'Expiring Soon';
-
-  @override
-  String get carDetailLicenseExpired => 'Expired';
-
-  @override
-  String get carDetailLicenseNone => 'No License';
-
-  @override
-  String get carDetailFullAccess => 'Full Access';
-
-  @override
-  String get carDetailDriveOnly => 'Drive Only';
-
-  @override
   String get carDetailQuickActions => 'Quick Actions';
 
   @override
@@ -2359,27 +2018,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get carDetailAddDocumentButton => 'Add Document';
-
-  @override
-  String get carDetailManageDriversButton => 'Manage Drivers';
-
-  @override
-  String get carDetailManageDriversSheet => 'Manage Drivers';
-
-  @override
-  String get carDetailCurrentDrivers => 'Current Drivers';
-
-  @override
-  String get carDetailAddDriver => 'Add Driver';
-
-  @override
-  String get carDetailAllAssigned => 'All family members are already assigned';
-
-  @override
-  String get carDetailLicensePrefix => 'License: ';
-
-  @override
-  String get carDetailAssign => 'Assign';
 
   @override
   String get userDetailProfileTitle => 'Profile';
@@ -2429,42 +2067,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get userDetailCategoriesHint => 'B, BE';
 
   @override
-  String get userDetailLeaveFamilyTitle => 'Leave Family?';
-
-  @override
-  String get userDetailLeaveFamilyBody =>
-      'Are you sure you want to leave this family? You will lose access to shared vehicles.';
-
-  @override
-  String get userDetailLeaveFamilyAction => 'Leave';
-
-  @override
-  String get userDetailLeftFamily => 'Left family';
-
-  @override
-  String get userDetailRemoveMemberTitle => 'Remove Member?';
-
-  @override
-  String get userDetailRemoveMemberBody =>
-      'Are you sure you want to remove this member from the family? They will lose access to all shared vehicles.';
-
-  @override
-  String get userDetailRemoveMemberAction => 'Remove';
-
-  @override
-  String get userDetailMemberRemoved => 'Member removed';
-
-  @override
   String get userDetailUploadLicensePhoto => 'Upload License Photo';
-
-  @override
-  String get userDetailPrimaryOwner => 'Primary Owner';
-
-  @override
-  String get userDetailMemberRole => 'Member';
-
-  @override
-  String get userDetailDriverRole => 'Driver';
 
   @override
   String get userDetailDrivingLicenseSection => 'Driving License';
@@ -2477,10 +2080,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userDetailNoLicense => 'No license uploaded';
-
-  @override
-  String get userDetailNoLicenseBody =>
-      'Add your driving license to track expiry and share with family.';
 
   @override
   String get userDetailUploadLicenseAction => 'Upload License';
@@ -2511,110 +2110,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get userDetailLicenseNone => 'No License';
-
-  @override
-  String get userDetailAccessLevelSection => 'Access Level';
-
-  @override
-  String get userDetailPrimaryOwnerDescription => 'Primary Owner';
-
-  @override
-  String get userDetailFullControl => 'Full control over family';
-
-  @override
-  String get userDetailManageAllVehicles => 'Manage all vehicles';
-
-  @override
-  String get userDetailAddRemoveMembers => 'Add/remove members';
-
-  @override
-  String get userDetailAssignDriversPerm => 'Assign drivers';
-
-  @override
-  String get userDetailTransferOwnership => 'Transfer ownership';
-
-  @override
-  String get userDetailMemberDescription => 'Member (Secondary Owner)';
-
-  @override
-  String get userDetailFullAccessAssigned => 'Full access to assigned vehicles';
-
-  @override
-  String get userDetailLogMaintenanceExpenses => 'Log maintenance & expenses';
-
-  @override
-  String get userDetailManageDocumentsPerm => 'Manage documents';
-
-  @override
-  String get userDetailAssignDriversToVehicles => 'Assign drivers to vehicles';
-
-  @override
-  String get userDetailDriverDescription => 'Driver';
-
-  @override
-  String get userDetailViewAssignedVehicles => 'View assigned vehicles';
-
-  @override
-  String get userDetailLogFuelCharge => 'Log fuel/charge';
-
-  @override
-  String get userDetailViewMaintenanceDue => 'View maintenance due';
-
-  @override
-  String get userDetailViewDocumentsPerm => 'View documents';
-
-  @override
-  String get userDetailPermissionsSection => 'Permissions';
-
-  @override
-  String get userDetailMyVehiclesSection => 'My Vehicles';
-
-  @override
-  String get userDetailActionsSection => 'Actions';
-
-  @override
-  String get userDetailLeaveFamilyButton => 'Leave Family';
-
-  @override
-  String get userDetailAdminActionsSection => 'Admin Actions';
-
-  @override
-  String get userDetailChangeRole => 'Change Role';
-
-  @override
-  String get userDetailAssignVehicles => 'Assign Vehicles';
-
-  @override
-  String get userDetailRemoveFromFamily => 'Remove from Family';
-
-  @override
-  String get userDetailChangeRoleSheet => 'Change Role';
-
-  @override
-  String userDetailCurrentRole(Object role) {
-    return 'Current: $role';
-  }
-
-  @override
-  String get userDetailNewRole => 'New Role';
-
-  @override
-  String get userDetailSaveRole => 'Save';
-
-  @override
-  String get userDetailAssignVehiclesSheet => 'Assign Vehicles';
-
-  @override
-  String get userDetailNoVehiclesInGarage => 'No vehicles in garage';
-
-  @override
-  String get familyRolePrimaryOwner => 'Primary Owner';
-
-  @override
-  String get familyRoleMember => 'Member';
-
-  @override
-  String get familyRoleDriver => 'Driver';
 
   @override
   String get drawerQuickAccess => 'Quick Access';
@@ -2651,9 +2146,6 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get drawerExpenseStats => 'Expense Stats';
-
-  @override
-  String get drawerFamily => 'Family';
 
   @override
   String get drawerFleet => 'Fleet';
@@ -3676,4 +3168,311 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statsDefDonutCategory =>
       'Spend grouped by category; smaller groups combine into Other.';
+
+  @override
+  String get garageSharedBadge => 'Shared';
+
+  @override
+  String get vehicleShareTooltip => 'Share vehicle';
+
+  @override
+  String get drawerShareVehicles => 'Vehicle Sharing';
+
+  @override
+  String get drawerSharedWithMe => 'Shared with Me';
+
+  @override
+  String get drawerJoinShare => 'Join Vehicle Share';
+
+  @override
+  String get shareVehicleTitle => 'Share Vehicle';
+
+  @override
+  String get shareEmailTab => 'Invite by Email';
+
+  @override
+  String get shareCodeTab => 'Code / QR';
+
+  @override
+  String get shareEmailLabel => 'Email address';
+
+  @override
+  String get shareEmailHint => 'name@example.com';
+
+  @override
+  String get shareEmailRequired => 'Email is required';
+
+  @override
+  String get shareEmailInvalid => 'Enter a valid email address';
+
+  @override
+  String get shareAccessLabel => 'Access level';
+
+  @override
+  String get shareAccessView => 'View only';
+
+  @override
+  String get shareAccessAddEditOwn => 'Add & edit own';
+
+  @override
+  String get shareAccessViewDescription =>
+      'See the vehicle, maintenance, documents, and expenses.';
+
+  @override
+  String get shareAccessAddEditOwnDescription =>
+      'Also add and edit their own records on this vehicle.';
+
+  @override
+  String get shareSendInvite => 'Send invitation';
+
+  @override
+  String shareInviteSent(Object email) {
+    return 'Invitation sent to $email';
+  }
+
+  @override
+  String get shareSending => 'Sending...';
+
+  @override
+  String get shareCodeLabel => 'Share code';
+
+  @override
+  String get shareCodeHelper =>
+      'Share this code, or let someone scan the QR to join.';
+
+  @override
+  String get shareCodeCopied => 'Code copied';
+
+  @override
+  String get shareCodeExpiry =>
+      'Codes expire in 7 days. Regenerating invalidates the old one.';
+
+  @override
+  String get shareQrHint => 'Scan with the AutoHub app';
+
+  @override
+  String get shareRegenerate => 'Regenerate code';
+
+  @override
+  String get shareRegenerateTitle => 'Regenerate share code?';
+
+  @override
+  String get shareRegenerateBody =>
+      'The current code stops working immediately.';
+
+  @override
+  String get shareRegenerateAction => 'Regenerate';
+
+  @override
+  String get shareManagementTitle => 'Share management';
+
+  @override
+  String get shareTabActive => 'Active';
+
+  @override
+  String get shareTabPending => 'Pending';
+
+  @override
+  String get shareTabCode => 'Code & QR';
+
+  @override
+  String get shareActiveEmpty => 'No one has access yet';
+
+  @override
+  String get shareActiveEmptyBody =>
+      'Invite by email or share the code to give someone access.';
+
+  @override
+  String get sharePendingEmpty => 'No pending invitations';
+
+  @override
+  String get sharePendingEmptyBody =>
+      'Invitations you send show up here until they are accepted.';
+
+  @override
+  String get shareRevoke => 'Revoke';
+
+  @override
+  String get shareRevokeTitle => 'Revoke access?';
+
+  @override
+  String shareRevokeBody(Object name) {
+    return '$name will lose access to this vehicle.';
+  }
+
+  @override
+  String get shareRevokeAction => 'Revoke';
+
+  @override
+  String get shareRevoked => 'Access revoked';
+
+  @override
+  String get shareChangeAccess => 'Change access';
+
+  @override
+  String get shareResend => 'Resend';
+
+  @override
+  String get shareCancelInvite => 'Cancel invite';
+
+  @override
+  String get shareInviteResent => 'Invitation resent';
+
+  @override
+  String get shareInviteCancelled => 'Invitation cancelled';
+
+  @override
+  String shareExpiresOn(Object date) {
+    return 'Expires $date';
+  }
+
+  @override
+  String shareJoinedOn(Object date) {
+    return 'Joined $date';
+  }
+
+  @override
+  String sharePendingSince(Object date) {
+    return 'Sent $date';
+  }
+
+  @override
+  String shareLimits(Object active, Object limit) {
+    return '$active of $limit active shares on this vehicle';
+  }
+
+  @override
+  String sharePlanLimitReached(Object limit) {
+    return 'Your plan allows $limit active shares per vehicle';
+  }
+
+  @override
+  String get shareOwnerOnly => 'Only the vehicle owner can manage shares.';
+
+  @override
+  String get shareManage => 'Manage shares';
+
+  @override
+  String get shareAcceptTitle => 'Vehicle shared with you';
+
+  @override
+  String shareAcceptBody(Object owner) {
+    return '$owner wants to share a vehicle with you.';
+  }
+
+  @override
+  String get shareAcceptVehicleLabel => 'Vehicle';
+
+  @override
+  String get shareAcceptAccessLabel => 'Access level';
+
+  @override
+  String get shareAccept => 'Accept';
+
+  @override
+  String get shareDecline => 'Decline';
+
+  @override
+  String get shareAccepted => 'Access accepted';
+
+  @override
+  String get shareDeclined => 'Invitation declined';
+
+  @override
+  String get shareAcceptInvalid => 'This invitation is invalid or expired';
+
+  @override
+  String get shareJoinTitle => 'Join vehicle share';
+
+  @override
+  String get shareJoinBody => 'Enter the 8-character code shared with you.';
+
+  @override
+  String get shareJoinLabel => 'Share code';
+
+  @override
+  String get shareJoinHint => 'ABCD1234';
+
+  @override
+  String get shareJoinAction => 'Join';
+
+  @override
+  String get shareJoining => 'Joining...';
+
+  @override
+  String get shareJoinPreviewVehicle => 'Vehicle';
+
+  @override
+  String get shareJoinPreviewOwner => 'Owner';
+
+  @override
+  String get shareJoinPreviewAccess => 'Access level';
+
+  @override
+  String get shareJoinInvalid => 'Invalid or expired share code';
+
+  @override
+  String get shareJoined => 'Vehicle shared with you';
+
+  @override
+  String get shareJoinUnknownCode => 'Enter a valid 8-character code first.';
+
+  @override
+  String get sharedWithMeTitle => 'Shared with Me';
+
+  @override
+  String get sharedWithMeEmpty => 'No shared vehicles yet';
+
+  @override
+  String get sharedWithMeEmptyBody =>
+      'When someone shares a vehicle with you it appears here.';
+
+  @override
+  String get sharedWithMeJoin => 'Join with code';
+
+  @override
+  String get shareOwnerLabel => 'Owner';
+
+  @override
+  String get shareAccessViewBadge => 'View';
+
+  @override
+  String get shareAccessAddEditBadge => 'Add & edit';
+
+  @override
+  String get shareSectionSharedUsers => 'Shared users';
+
+  @override
+  String get shareErrorGeneric => 'Could not share this vehicle';
+
+  @override
+  String get share => 'Share';
+
+  @override
+  String get shareAlreadyShared =>
+      'That person already has access to this vehicle.';
+
+  @override
+  String get shareOwnedBadge => 'Owned';
+
+  @override
+  String get shareSelfBadge => 'You';
+
+  @override
+  String get shareAcceptIntro =>
+      'You\'ve been invited to access someone\'s vehicle. Accept to see it in your garage.';
+
+  @override
+  String get shareAcceptFailed => 'Could not accept this invitation';
+
+  @override
+  String get shareAcceptedBody =>
+      'The vehicle is now listed under Shared with Me.';
+
+  @override
+  String get shareDeclinedBody =>
+      'The owner will not see this invitation again.';
+
+  @override
+  String get shareExpiresAt => 'Expires';
 }

@@ -10,7 +10,7 @@ export function middleware(request: NextRequest) {
   if (pathname === "/login") {
     if (hasSession) {
       if (hasAdminSession) return NextResponse.redirect(new URL("/", request.url));
-      if (hasOwnerSession) return NextResponse.redirect(new URL("/family", request.url));
+      if (hasOwnerSession) return NextResponse.redirect(new URL("/vehicles", request.url));
     }
     return NextResponse.next();
   }
@@ -28,10 +28,13 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Family routes (Primary Owner only)
-  if (pathname.startsWith("/family")) {
+  // Owner routes (vehicle sharing)
+  if (pathname.startsWith("/vehicles") || pathname.startsWith("/family")) {
     if (!hasOwnerSession) {
       return NextResponse.redirect(new URL("/login", request.url));
+    }
+    if (pathname.startsWith("/family")) {
+      return NextResponse.redirect(new URL("/vehicles", request.url));
     }
     return NextResponse.next();
   }

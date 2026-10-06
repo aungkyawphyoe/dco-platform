@@ -2,7 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics.dart';
 import '../../../core/providers.dart';
-import '../../family/providers.dart';
+import '../../vehicle_sharing/providers.dart';
 import '../domain/auth_failure.dart';
 import '../domain/entities/session.dart';
 
@@ -48,7 +48,7 @@ class SessionController extends AsyncNotifier<Session?> {
     await ref.read(authRepositoryProvider).signOut();
     ref.read(analyticsProvider).track(AnalyticsEvent.authSignedOut);
     try {
-      await ref.read(familyRepositoryProvider).clearFamilyCache();
+      await ref.read(vehicleShareRepositoryProvider).clearCache();
     } catch (_) {}
     state = const AsyncData(null);
   }

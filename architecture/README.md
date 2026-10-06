@@ -5,12 +5,12 @@ MVP system design. Product contract remains `product/mvp-scope.md`.
 | Document | Contents |
 |----------|----------|
 | [system.md](system.md) | Surfaces, trust boundaries, JWT, offline vs online, media, Container Apps |
-| [iam.md](iam.md) | Owner/admin/family IAM and future fleet/partner map |
-| [iam-family.md](iam-family.md) | Family sharing authorization model, JWT claims, route guards |
-| [data-model.md](data-model.md) | ERD (including family tables), mileage/archive rules, Autozis comparison |
-| [data-model-family.md](data-model-family.md) | Family sharing schema detail, access control matrix, query patterns |
+| [iam.md](iam.md) | Owner/admin IAM and future fleet/partner map |
+| [iam-vehicle-sharing.md](iam-vehicle-sharing.md) | Vehicle sharing authorization model, permission gates, route guards |
+| [data-model.md](data-model.md) | ERD (including share tables), mileage/archive rules, Autozis comparison |
+| [data-model-vehicle-sharing.md](data-model-vehicle-sharing.md) | Share schema detail, access control matrix, query patterns, migration |
 | [api.md](api.md) | Pointer to the OpenAPI file |
-| [openapi.yaml](openapi.yaml) | `/v1` REST contract for mobile and admin (includes family endpoints) |
+| [openapi.yaml](openapi.yaml) | `/v1` REST contract for mobile and admin (includes vehicle sharing endpoints) |
 
 As-built product guide (what the code does today): `docs/mvp-as-built.md`.
 

@@ -16,6 +16,7 @@ PlanItem planItemFromDrift(PlanItemRecord row) {
     enabled: row.enabled,
     notes: row.notes,
     catalogKey: row.catalogKey,
+    createdBy: row.createdBy,
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
   );
@@ -33,6 +34,7 @@ PlanItemRecordsCompanion planItemToCompanion(PlanItem item) {
     enabled: Value(item.enabled),
     notes: Value(item.notes),
     catalogKey: Value(item.catalogKey),
+    createdBy: Value(item.createdBy),
     updatedAt: item.updatedAt,
     createdAt: item.createdAt,
   );
@@ -56,6 +58,7 @@ ServiceRecord serviceRecordFromDrift(
     receiptMediaId: row.receiptMediaId,
     items: lines.map(serviceLineFromDrift).toList(),
     parts: parts.map(assignedPartFromDrift).toList(),
+    createdBy: row.createdBy,
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
   );
