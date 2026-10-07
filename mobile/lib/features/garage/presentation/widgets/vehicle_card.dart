@@ -65,7 +65,9 @@ class VehicleCard extends StatelessWidget {
                                 Flexible(
                                   child: Text(
                                     vehicle.displayName,
-                                    style: Theme.of(context).textTheme.titleMedium,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
@@ -81,37 +83,65 @@ class VehicleCard extends StatelessWidget {
                             ),
                           ),
                           if (isActive)
-                            _Badge(label: s.active, color: tokens.status.infoFg, background: tokens.status.infoBg)
+                            _Badge(
+                              label: s.active,
+                              color: tokens.status.infoFg,
+                              background: tokens.status.infoBg,
+                            )
                           else if (onSetActive != null)
                             TextButton(
                               onPressed: onSetActive,
                               style: TextButton.styleFrom(
                                 minimumSize: const Size(44, 44),
-                                padding: EdgeInsets.symmetric(horizontal: tokens.space.s2),
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: tokens.space.s2,
+                                ),
                               ),
-                              child: Text(s.vehicleSetActive, style: TextStyle(color: tokens.text.link, fontSize: 12)),
+                              child: Text(
+                                s.vehicleSetActive,
+                                style: TextStyle(
+                                  color: tokens.text.link,
+                                  fontSize: 12,
+                                ),
+                              ),
                             ),
                           if (onEdit != null)
                             IconButton(
                               tooltip: s.vehicleEditTooltip,
                               onPressed: onEdit,
-                              icon: Icon(Icons.edit_outlined, size: 20, color: tokens.icon.inactive),
-                              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                              icon: Icon(
+                                Icons.edit_outlined,
+                                size: 20,
+                                color: tokens.icon.inactive,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 44,
+                                minHeight: 44,
+                              ),
                               padding: EdgeInsets.zero,
                             ),
                           if (onShare != null)
                             IconButton(
                               tooltip: s.vehicleShareTooltip,
                               onPressed: onShare,
-                              icon: Icon(Icons.share_outlined, size: 20, color: tokens.icon.inactive),
-                              constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+                              icon: Icon(
+                                Icons.ios_share,
+                                size: 20,
+                                color: tokens.icon.inactive,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 44,
+                                minHeight: 44,
+                              ),
                               padding: EdgeInsets.zero,
                             ),
                         ],
                       ),
                       Text(
                         '${vehicle.yearMakeModel}  ${vehicle.licensePlate}',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.secondary),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.secondary,
+                        ),
                       ),
                       SizedBox(height: tokens.space.s2),
                       Text(
@@ -134,7 +164,11 @@ class VehicleCard extends StatelessWidget {
 }
 
 class _Badge extends StatelessWidget {
-  const _Badge({required this.label, required this.color, required this.background});
+  const _Badge({
+    required this.label,
+    required this.color,
+    required this.background,
+  });
 
   final String label;
   final Color color;
@@ -148,7 +182,14 @@ class _Badge extends StatelessWidget {
         color: background,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }
@@ -169,14 +210,20 @@ class _Photo extends StatelessWidget {
         child: path == null
             ? ColoredBox(
                 color: tokens.background.input,
-                child: Icon(Icons.directions_car_outlined, color: tokens.icon.inactive),
+                child: Icon(
+                  Icons.directions_car_outlined,
+                  color: tokens.icon.inactive,
+                ),
               )
             : Image.file(
                 File(path!),
                 fit: BoxFit.cover,
                 errorBuilder: (_, __, ___) => ColoredBox(
                   color: tokens.background.input,
-                  child: Icon(Icons.directions_car_outlined, color: tokens.icon.inactive),
+                  child: Icon(
+                    Icons.directions_car_outlined,
+                    color: tokens.icon.inactive,
+                  ),
                 ),
               ),
       ),

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
 import '../../../../core/widgets/dco_empty_state.dart';
-import '../../../../core/router/routes.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/entities/vehicle_share.dart';
 import '../../domain/repositories/vehicle_share_repository.dart';
@@ -26,8 +24,7 @@ class ShareManagementScreen extends ConsumerStatefulWidget {
       _ShareManagementScreenState();
 }
 
-class _ShareManagementScreenState
-    extends ConsumerState<ShareManagementScreen>
+class _ShareManagementScreenState extends ConsumerState<ShareManagementScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   bool _busy = false;
@@ -44,11 +41,9 @@ class _ShareManagementScreenState
     super.dispose();
   }
 
-  VehicleShareRepository get _repo =>
-      ref.read(vehicleShareRepositoryProvider);
+  VehicleShareRepository get _repo => ref.read(vehicleShareRepositoryProvider);
 
-  void _refresh() =>
-      ref.invalidate(vehicleSharesProvider(widget.vehicleId));
+  void _refresh() => ref.invalidate(vehicleSharesProvider(widget.vehicleId));
 
   Future<void> _run(Future<void> Function() action) async {
     if (_busy) return;
@@ -73,12 +68,10 @@ class _ShareManagementScreenState
             for (final level in ShareAccessLevel.values)
               ListTile(
                 contentPadding: EdgeInsets.zero,
-                title: Text(
-                  switch (level) {
-                    ShareAccessLevel.view => s.shareAccessView,
-                    ShareAccessLevel.addEditOwn => s.shareAccessAddEditOwn,
-                  },
-                ),
+                title: Text(switch (level) {
+                  ShareAccessLevel.view => s.shareAccessView,
+                  ShareAccessLevel.addEditOwn => s.shareAccessAddEditOwn,
+                }),
                 trailing: level == share.accessLevel
                     ? Icon(Icons.check, color: context.tokens.icon.active)
                     : null,
@@ -128,43 +121,34 @@ class _ShareManagementScreenState
     );
     if (confirmed != true) return;
     await _run(
-      () => _repo.revokeShare(
-        vehicleId: widget.vehicleId,
-        shareId: share.id,
-      ),
+      () => _repo.revokeShare(vehicleId: widget.vehicleId, shareId: share.id),
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(s.shareRevoked)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(s.shareRevoked)));
   }
 
   Future<void> _resend(ShareInvitation invite) async {
     final s = AppLocalizations.of(context)!;
     await _run(
-      () => _repo.resendInvite(
-        vehicleId: widget.vehicleId,
-        invitation: invite,
-      ),
+      () => _repo.resendInvite(vehicleId: widget.vehicleId, invitation: invite),
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(s.shareInviteResent)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(s.shareInviteResent)));
   }
 
   Future<void> _cancelInvite(ShareInvitation invite) async {
     final s = AppLocalizations.of(context)!;
     await _run(
-      () => _repo.cancelInvite(
-        vehicleId: widget.vehicleId,
-        invitation: invite,
-      ),
+      () => _repo.cancelInvite(vehicleId: widget.vehicleId, invitation: invite),
     );
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(s.shareInviteCancelled)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(s.shareInviteCancelled)));
   }
 
   Future<void> _regenerateCode() async {
@@ -202,55 +186,59 @@ class _ShareManagementScreenState
     final sharesAsync = ref.watch(vehicleSharesProvider(widget.vehicleId));
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(s.shareManagementTitle),
-        actions: [
-          IconButton(
-            tooltip: s.shareSendInvite,
-            icon: Icon(Icons.person_add_alt_1_outlined, color: tokens.icon.active),
-            onPressed: () => context.push(
-              AppRoutes.vehicleShareNew(widget.vehicleId),
-            ),
-          ),
+      appBar: AppBar(title: Text(s.shareManagementTitle), actions: [
         ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: tokens.text.accent,
-          unselectedLabelColor: tokens.text.tertiary,
-          indicatorColor: tokens.text.accent,
-          tabs: [
-            Tab(icon: const Icon(Icons.people_outline), text: s.shareTabActive),
-            Tab(
-              icon: const Icon(Icons.mail_outline),
-              text: s.shareTabPending,
-            ),
-            Tab(icon: const Icon(Icons.qr_code), text: s.shareTabCode),
-          ],
-        ),
       ),
       body: sharesAsync.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: tokens.text.accent),
+        loading: () => CustomScrollView(
+          slivers: [
+            _buildHeaderSliver(context, null),
+            const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+          ],
         ),
-        error: (error, _) => DcoEmptyState(
-          title: s.error,
-          body: error.toString(),
-          actionLabel: s.retry,
-          onAction: _refresh,
+        error: (error, _) => CustomScrollView(
+          slivers: [
+            _buildHeaderSliver(context, null),
+            SliverFillRemaining(
+              child: DcoEmptyState(
+                title: s.error,
+                body: error.toString(),
+                actionLabel: s.retry,
+                onAction: _refresh,
+              ),
+            ),
+          ],
         ),
         data: (detail) {
           if (detail == null) {
-            return DcoEmptyState(
-              title: s.shareOwnerOnly,
-              body: s.error,
-              actionLabel: s.retry,
-              onAction: _refresh,
+            return CustomScrollView(
+              slivers: [
+                _buildHeaderSliver(context, null),
+                SliverFillRemaining(
+                  child: DcoEmptyState(
+                    title: s.shareOwnerOnly,
+                    body: s.error,
+                    actionLabel: s.retry,
+                    onAction: _refresh,
+                  ),
+                ),
+              ],
             );
           }
-          return Column(
-            children: [
-              _Header(detail: detail),
-              Expanded(
+          return CustomScrollView(
+            slivers: [
+              _buildHeaderSliver(context, detail),
+              SliverPersistentHeader(
+                pinned: true,
+                delegate: _TabBarDelegate(
+                  controller: _tabController,
+                  tokens: tokens,
+                  s: s,
+                ),
+              ),
+              SliverFillRemaining(
                 child: TabBarView(
                   controller: _tabController,
                   children: [
@@ -281,49 +269,53 @@ class _ShareManagementScreenState
       ),
     );
   }
-}
 
-class _Header extends StatelessWidget {
-  const _Header({required this.detail});
-
-  final VehicleSharesDetail detail;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget _buildHeaderSliver(BuildContext context, VehicleSharesDetail? detail) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
-    return Container(
-      width: double.infinity,
-      padding: EdgeInsets.all(tokens.space.s3),
-      color: tokens.background.card,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            detail.vehicleName.isEmpty ? s.shareVehicleTitle : detail.vehicleName,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(color: tokens.text.primary),
-          ),
-          SizedBox(height: tokens.space.s1),
-          Text(
-            detail.licensePlate,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: tokens.text.secondary,
-              fontFamily: 'IBM Plex Mono',
+    final vehicleName = detail?.vehicleName.isNotEmpty == true
+        ? detail!.vehicleName
+        : s.shareVehicleTitle;
+    final licensePlate = detail?.licensePlate ?? '';
+    final activeCount = detail?.limits.activeOnVehicle ?? 0;
+    final perVehicleLimit = detail?.limits.perVehicle ?? 0;
+
+    return SliverToBoxAdapter(
+      child: Container(
+        width: double.infinity,
+        padding: EdgeInsets.fromLTRB(
+          tokens.space.s4,
+          tokens.space.s4,
+          tokens.space.s4,
+          tokens.space.s3,
+        ),
+        color: tokens.background.primary,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              vehicleName,
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(color: tokens.text.primary),
             ),
-          ),
-          SizedBox(height: tokens.space.s2),
-          Text(
-            s.shareLimits(
-              detail.limits.activeOnVehicle,
-              detail.limits.perVehicle,
+            SizedBox(height: tokens.space.s1),
+            Text(
+              licensePlate,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: tokens.text.secondary,
+                fontFamily: 'IBM Plex Mono',
+              ),
             ),
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: tokens.text.tertiary),
-          ),
-        ],
+            SizedBox(height: tokens.space.s2),
+            Text(
+              s.shareLimits(activeCount, perVehicleLimit),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: tokens.text.tertiary),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -356,76 +348,112 @@ class _ActiveTab extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: EdgeInsets.all(tokens.space.s4),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s1,
+        tokens.space.s3,
+        tokens.space.s1,
+        tokens.space.s3,
+      ),
       itemCount: items.length,
       separatorBuilder: (_, _) => SizedBox(height: tokens.space.s2),
       itemBuilder: (context, index) {
         final share = items[index];
-        final joined = share.acceptedAt ?? share.createdAt;
-        return Container(
-          padding: EdgeInsets.all(tokens.space.s3),
-          decoration: BoxDecoration(
-            color: tokens.background.card,
-            borderRadius: BorderRadius.circular(tokens.radius.md),
-            border: Border.all(color: tokens.border.defaultColor),
-          ),
-          child: Row(
+        final List<Widget> children = <Widget>[
+          Row(
             children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            share.label,
-                            style: Theme.of(context).textTheme.titleSmall
-                                ?.copyWith(color: tokens.text.primary),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        SizedBox(width: tokens.space.s2),
-                        ShareAccessBadge(accessLevel: share.accessLevel),
-                      ],
-                    ),
-                    if (share.email != null) ...[
-                      SizedBox(height: tokens.space.s1),
-                      Text(
-                        share.email!,
-                        style: Theme.of(context).textTheme.bodySmall
-                            ?.copyWith(color: tokens.text.secondary),
-                      ),
-                    ],
-                    SizedBox(height: tokens.space.s1),
-                    Text(
-                      s.shareJoinedOn(DateFormat.yMMMd().format(joined)),
-                      style: Theme.of(context).textTheme.bodySmall
-                          ?.copyWith(color: tokens.text.tertiary),
-                    ),
-                  ],
+              Flexible(
+                child: Text(
+                  share.label,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: context.tokens.text.primary,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              PopupMenuButton<String>(
-                enabled: !busy,
-                icon: Icon(Icons.more_vert, color: tokens.icon.inactive),
-                onSelected: (value) {
-                  switch (value) {
-                    case 'access':
-                      onChangeAccess(share);
-                    case 'revoke':
-                      onRevoke(share);
-                  }
-                },
-                itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'access',
-                    child: Text(s.shareChangeAccess),
-                  ),
-                  PopupMenuItem(value: 'revoke', child: Text(s.shareRevoke)),
-                ],
-              ),
+              SizedBox(width: context.tokens.space.s2),
+              ShareAccessBadge(accessLevel: share.accessLevel),
             ],
+          ),
+        ];
+        if (share.email != null) {
+          children.add(SizedBox(height: context.tokens.space.s1));
+          children.add(
+            Text(
+              share.email!,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: context.tokens.text.secondary,
+              ),
+            ),
+          );
+        }
+        children.add(SizedBox(height: context.tokens.space.s1));
+        children.add(
+          Text(
+            AppLocalizations.of(context)!.shareJoinedOn(
+              DateFormat.yMMMd().format(share.acceptedAt ?? share.createdAt),
+            ),
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              color: context.tokens.text.tertiary,
+            ),
+          ),
+        );
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: context.tokens.space.s4),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(context.tokens.radius.lg),
+              boxShadow: context.tokens.shadows.card,
+            ),
+            child: Material(
+              color: context.tokens.background.card,
+              borderRadius: BorderRadius.circular(context.tokens.radius.lg),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(context.tokens.radius.lg),
+                onTap: () {},
+                child: Padding(
+                  padding: EdgeInsets.all(context.tokens.space.s3),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: children,
+                        ),
+                      ),
+                      PopupMenuButton<String>(
+                        enabled: !busy,
+                        icon: Icon(
+                          Icons.more_vert,
+                          color: context.tokens.icon.inactive,
+                        ),
+                        onSelected: (value) {
+                          switch (value) {
+                            case 'access':
+                              onChangeAccess(share);
+                            case 'revoke':
+                              onRevoke(share);
+                          }
+                        },
+                        itemBuilder: (context) => [
+                          PopupMenuItem(
+                            value: 'access',
+                            child: Text(
+                              AppLocalizations.of(context)!.shareChangeAccess,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'revoke',
+                            child: Text(
+                              AppLocalizations.of(context)!.shareRevoke,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -463,71 +491,133 @@ class _PendingTab extends StatelessWidget {
     }
 
     return ListView.separated(
-      padding: EdgeInsets.all(tokens.space.s4),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s1,
+        tokens.space.s3,
+        tokens.space.s1,
+        tokens.space.s3,
+      ),
       itemCount: items.length,
       separatorBuilder: (_, _) => SizedBox(height: tokens.space.s2),
       itemBuilder: (context, index) {
         final invite = items[index];
-        return Container(
-          padding: EdgeInsets.all(tokens.space.s3),
-          decoration: BoxDecoration(
-            color: tokens.background.card,
-            borderRadius: BorderRadius.circular(tokens.radius.md),
-            border: Border.all(color: tokens.border.defaultColor),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      invite.invitedEmail ?? '',
-                      style: Theme.of(context).textTheme.titleSmall
-                          ?.copyWith(color: tokens.text.primary),
-                      overflow: TextOverflow.ellipsis,
+        return Padding(
+          padding: EdgeInsets.symmetric(horizontal: tokens.space.s4),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(tokens.radius.lg),
+              boxShadow: tokens.shadows.card,
+            ),
+            child: Material(
+              color: tokens.background.card,
+              borderRadius: BorderRadius.circular(tokens.radius.lg),
+              child: Padding(
+                padding: EdgeInsets.all(tokens.space.s3),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            invite.invitedEmail ?? '',
+                            style: Theme.of(context).textTheme.titleSmall
+                                ?.copyWith(color: tokens.text.primary),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        ShareAccessBadge(accessLevel: invite.accessLevel),
+                      ],
                     ),
-                  ),
-                  ShareAccessBadge(accessLevel: invite.accessLevel),
-                ],
-              ),
-              SizedBox(height: tokens.space.s1),
-              Text(
-                invite.isExpired
-                    ? s.shareExpiresOn(
-                        DateFormat.yMMMd().format(invite.expiresAt),
-                      )
-                    : s.sharePendingSince(DateFormat.yMMMd().format(invite.createdAt)),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: tokens.text.tertiary),
-              ),
-              SizedBox(height: tokens.space.s2),
-              Row(
-                children: [
-                  Expanded(
-                    child: DcoButton(
-                      label: s.shareResend,
-                      variant: DcoButtonVariant.secondary,
-                      loading: busy,
-                      onPressed: () => onResend(invite),
+                    SizedBox(height: tokens.space.s1),
+                    Text(
+                      invite.isExpired
+                          ? s.shareExpiresOn(
+                              DateFormat.yMMMd().format(invite.expiresAt),
+                            )
+                          : s.sharePendingSince(
+                              DateFormat.yMMMd().format(invite.createdAt),
+                            ),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.text.tertiary,
+                      ),
                     ),
-                  ),
-                  SizedBox(width: tokens.space.s2),
-                  Expanded(
-                    child: DcoButton(
-                      label: s.shareCancelInvite,
-                      variant: DcoButtonVariant.destructive,
-                      loading: busy,
-                      onPressed: () => onCancel(invite),
+                    SizedBox(height: tokens.space.s2),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: DcoButton(
+                            label: s.shareResend,
+                            variant: DcoButtonVariant.secondary,
+                            loading: busy,
+                            onPressed: () => onResend(invite),
+                          ),
+                        ),
+                        SizedBox(width: tokens.space.s2),
+                        Expanded(
+                          child: DcoButton(
+                            label: s.shareCancelInvite,
+                            variant: DcoButtonVariant.destructive,
+                            loading: busy,
+                            onPressed: () => onCancel(invite),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ],
+            ),
           ),
         );
       },
     );
+  }
+}
+
+class _TabBarDelegate extends SliverPersistentHeaderDelegate {
+  _TabBarDelegate({
+    required this.controller,
+    required this.tokens,
+    required this.s,
+  });
+
+  final TabController controller;
+  final DcoTokens tokens;
+  final AppLocalizations s;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return Container(
+      color: tokens.background.primary,
+      child: TabBar(
+        controller: controller,
+        labelColor: tokens.text.accent,
+        unselectedLabelColor: tokens.text.tertiary,
+        indicatorColor: tokens.text.accent,
+        tabs: [
+          Tab(icon: const Icon(Icons.people_outline), text: s.shareTabActive),
+          Tab(icon: const Icon(Icons.mail_outline), text: s.shareTabPending),
+          Tab(icon: const Icon(Icons.qr_code), text: s.shareTabCode),
+        ],
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => kToolbarHeight;
+
+  @override
+  double get minExtent => kToolbarHeight;
+
+  @override
+  bool shouldRebuild(_TabBarDelegate oldDelegate) {
+    return oldDelegate.controller != controller ||
+        oldDelegate.tokens != tokens ||
+        oldDelegate.s != s;
   }
 }

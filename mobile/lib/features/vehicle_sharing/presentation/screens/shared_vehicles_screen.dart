@@ -38,9 +38,8 @@ class SharedVehiclesScreen extends ConsumerWidget {
         ],
       ),
       body: sharedAsync.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: tokens.text.accent),
-        ),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
         error: (error, _) => DcoEmptyState(
           title: s.error,
           body: error.toString(),
@@ -64,8 +63,7 @@ class SharedVehiclesScreen extends ConsumerWidget {
               padding: EdgeInsets.all(tokens.space.s4),
               itemCount: items.length,
               separatorBuilder: (_, _) => SizedBox(height: tokens.space.s2),
-              itemBuilder: (context, index) =>
-                  _Tile(vehicle: items[index]),
+              itemBuilder: (context, index) => _Tile(vehicle: items[index]),
             ),
           );
         },
@@ -91,84 +89,104 @@ class _Tile extends ConsumerWidget {
       borderRadius: BorderRadius.circular(tokens.radius.md),
       onTap: () => context.push(AppRoutes.vehicleDetail(vehicle.id)),
       child: Container(
-        padding: EdgeInsets.all(tokens.space.s3),
+        padding: EdgeInsets.all(tokens.space.s1),
         decoration: BoxDecoration(
-          color: tokens.background.card,
-          borderRadius: BorderRadius.circular(tokens.radius.md),
-          border: Border.all(color: tokens.border.defaultColor),
+          borderRadius: BorderRadius.circular(context.tokens.radius.lg),
+          boxShadow: context.tokens.shadows.card,
         ),
-        child: Row(
-          children: [
-            Icon(Icons.directions_car_outlined, color: tokens.icon.inactive),
-            SizedBox(width: tokens.space.s3),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
+        child: Material(
+          color: context.tokens.background.card,
+          borderRadius: BorderRadius.circular(context.tokens.radius.lg),
+          child: Padding(
+            padding: EdgeInsets.all(context.tokens.space.s3),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.directions_car_outlined,
+                  color: tokens.icon.inactive,
+                ),
+                SizedBox(width: tokens.space.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Flexible(
-                        child: Text(
-                          vehicle.displayName,
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(color: tokens.text.primary),
-                          overflow: TextOverflow.ellipsis,
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(
+                              vehicle.displayName,
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(color: tokens.text.primary),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          SizedBox(width: tokens.space.s2),
+                          ShareAccessBadge(accessLevel: vehicle.accessLevel),
+                        ],
+                      ),
+                      SizedBox(height: tokens.space.s1),
+                      Text(
+                        vehicle.licensePlate,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.secondary,
+                          fontFamily: 'IBM Plex Mono',
                         ),
                       ),
-                      SizedBox(width: tokens.space.s2),
-                      ShareAccessBadge(accessLevel: vehicle.accessLevel),
+                      SizedBox(height: tokens.space.s1),
+                      Text(
+                        owner.isEmpty
+                            ? s.shareOwnerLabel
+                            : '${s.shareOwnerLabel}: $owner',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.tertiary,
+                        ),
+                      ),
                     ],
                   ),
-                  SizedBox(height: tokens.space.s1),
-                  Text(
-                    vehicle.licensePlate,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: tokens.text.secondary,
-                      fontFamily: 'IBM Plex Mono',
-                    ),
-                  ),
-                  SizedBox(height: tokens.space.s1),
-                  Text(
-                    owner.isEmpty
-                        ? s.shareOwnerLabel
-                        : '${s.shareOwnerLabel}: $owner',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: tokens.text.tertiary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (!isActive)
-              TextButton(
-                onPressed: () async {
-                  try {
-                    await ref.read(setActiveVehicleProvider)(vehicle.id);
-                    ref.read(analyticsProvider).track(AnalyticsEvent.vehicleSwitched);
-                  } catch (_) {
-                    if (context.mounted) {
-                      unawaited(
-                        showDcoErrorDialog(
-                          context,
-                          title: s.garageSwitchFailed,
-                          message: s.garageSwitchFailedBody,
-                        ),
-                      );
-                    }
-                    return;
-                  }
-                  if (context.mounted) context.go(AppRoutes.dashboard);
-                },
-                style: TextButton.styleFrom(
-                  minimumSize: const Size(44, 44),
-                  padding: EdgeInsets.symmetric(horizontal: tokens.space.s2),
                 ),
-                child: Text(s.vehicleSetActive, style: TextStyle(color: tokens.text.link, fontSize: 12)),
-              )
-            else
-              _Badge(label: s.active, color: tokens.status.infoFg, background: tokens.status.infoBg),
-            Icon(Icons.chevron_right, color: tokens.icon.inactive),
-          ],
+                if (!isActive)
+                  TextButton(
+                    onPressed: () async {
+                      try {
+                        await ref.read(setActiveVehicleProvider)(vehicle.id);
+                        ref
+                            .read(analyticsProvider)
+                            .track(AnalyticsEvent.vehicleSwitched);
+                      } catch (_) {
+                        if (context.mounted) {
+                          unawaited(
+                            showDcoErrorDialog(
+                              context,
+                              title: s.garageSwitchFailed,
+                              message: s.garageSwitchFailedBody,
+                            ),
+                          );
+                        }
+                        return;
+                      }
+                      if (context.mounted) context.go(AppRoutes.dashboard);
+                    },
+                    style: TextButton.styleFrom(
+                      minimumSize: const Size(44, 44),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: tokens.space.s2,
+                      ),
+                    ),
+                    child: Text(
+                      s.vehicleSetActive,
+                      style: TextStyle(color: tokens.text.link, fontSize: 12),
+                    ),
+                  )
+                else
+                  _Badge(
+                    label: s.active,
+                    color: tokens.status.infoFg,
+                    background: tokens.status.infoBg,
+                  ),
+                Icon(Icons.chevron_right, color: tokens.icon.inactive),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -176,7 +194,11 @@ class _Tile extends ConsumerWidget {
 }
 
 class _Badge extends StatelessWidget {
-  const _Badge({required this.label, required this.color, required this.background});
+  const _Badge({
+    required this.label,
+    required this.color,
+    required this.background,
+  });
 
   final String label;
   final Color color;
@@ -190,7 +212,14 @@ class _Badge extends StatelessWidget {
         color: background,
         borderRadius: BorderRadius.circular(999),
       ),
-      child: Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w500)),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
     );
   }
 }

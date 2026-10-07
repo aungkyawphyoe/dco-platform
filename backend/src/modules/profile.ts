@@ -15,6 +15,7 @@ import { AppError } from "../lib/errors.js";
 import { recordChange } from "../lib/dbx.js";
 import { publicUser } from "../lib/serialize.js";
 import { requireOwner } from "./auth.js";
+import { getVehicleAccessLevel } from "./vehicle-shares.js";
 
 const PROFILE_PHOTO_MAX_BYTES = 5 * 1024 * 1024;
 
@@ -35,6 +36,7 @@ export const profilePlugin: FastifyPluginAsync = async (app) => {
         display_name: z.string().max(50).optional(),
         contact_phone: z.string().max(20).optional().nullable(),
         address: z.string().max(500).optional().nullable(),
+        active_vehicle_id: z.string().uuid().nullable().optional(),
       })
       .parse(request.body ?? {});
 
@@ -42,6 +44,26 @@ export const profilePlugin: FastifyPluginAsync = async (app) => {
     if (body.display_name !== undefined) set.displayName = body.display_name;
     if (body.contact_phone !== undefined) set.contactPhone = body.contact_phone;
     if (body.address !== undefined) set.address = body.address;
+
+    if (body.active_vehicle_id !== undefined) {
+      const vehicleId = body.active_vehicle_id;
+      if (vehicleId !== null) {
+        const [v] = await app.db
+          .select()
+          .from(vehicles)
+          .where(eq(vehicles.id, vehicleId))
+          .limit(1);
+        const allowed =
+          v &&
+          !v.archived &&
+          (v.userId === userId ||
+            (await getVehicleAccessLevel(app.db, userId, v.id)) !== null);
+        if (!allowed) {
+          throw new AppError(422, "invalid_vehicle", "Active vehicle not found");
+        }
+      }
+      set.activeVehicleId = vehicleId;
+    }
 
     if (Object.keys(set).length === 0) {
       const [u] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);

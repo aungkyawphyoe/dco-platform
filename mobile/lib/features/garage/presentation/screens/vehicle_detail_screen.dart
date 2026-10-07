@@ -104,6 +104,25 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                 s.vehicleDetailTitle,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
+              actions: [
+                if (vehicle.source == VehicleSource.owned)
+                  IconButton(
+                    tooltip: s.vehicleShareTooltip,
+                    onPressed: () => context.push(
+                      AppRoutes.vehicleShareManage(vehicle.id),
+                    ),
+                    icon: Icon(
+                      Icons.ios_share,
+                      size: 20,
+                      color: tokens.icon.inactive,
+                    ),
+                    constraints: const BoxConstraints(
+                      minWidth: 44,
+                      minHeight: 44,
+                    ),
+                    padding: EdgeInsets.zero,
+                  ),
+              ],
               flexibleSpace: FlexibleSpaceBar(
                 background: _VehicleHero(
                   vehicle: vehicle,
@@ -207,7 +226,7 @@ class _VehicleHero extends StatelessWidget {
                     child: hasPhoto
                         ? null
                         : ColoredBox(
-                            color: tokens.background.card,
+                            color: tokens.background.primary,
                             child: Center(
                               child: Icon(
                                 Icons.directions_car_outlined,
@@ -240,11 +259,23 @@ class _VehicleHero extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          vehicle.displayName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.headlineSmall,
+                        Row(
+                          children: [
+                            Text(
+                              vehicle.displayName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            const Spacer(),
+                            if (!isActive) ...[
+                              SizedBox(height: tokens.space.s1),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: _SetActiveChip(onTap: onSetActive),
+                              ),
+                            ],
+                          ],
                         ),
                         Row(
                           children: [
@@ -266,13 +297,6 @@ class _VehicleHero extends StatelessWidget {
                               ),
                           ],
                         ),
-                        if (!isActive) ...[
-                          SizedBox(height: tokens.space.s1),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: _SetActiveChip(onTap: onSetActive),
-                          ),
-                        ],
                       ],
                     ),
                   ),

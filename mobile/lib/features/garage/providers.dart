@@ -45,6 +45,9 @@ final setActiveVehicleProvider = Provider<SetActiveVehicle>((ref) {
           userId: userId,
           vehicleId: vehicleId,
         );
+      } else {
+        // Re-throw non-network errors (e.g., invalid_vehicle) so caller can show proper error
+        rethrow;
       }
     }
   };

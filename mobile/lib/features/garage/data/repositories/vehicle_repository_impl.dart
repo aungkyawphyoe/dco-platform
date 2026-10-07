@@ -236,7 +236,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
     return updated;
   }
 
-  @override
+@override
   Future<void> setActive({
     required String userId,
     required String vehicleId,
@@ -245,18 +245,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
     if (existing == null || existing.archived) {
       throw const VehicleNotFoundFailure();
     }
-    if (existing.userId != userId) {
-      // Vehicles shared with me (recorded locally when the share synced) can
-      // be activated too; the server re-validates access on profile update.
-      final shared = await (_db.select(_db.vehicleShareRecords)..where(
-          (row) =>
-              row.vehicleId.equals(vehicleId) &
-              row.userId.equals(userId) &
-              row.status.equals('active'),
-        ))
-          .getSingleOrNull();
-      if (shared == null) throw const VehicleNotFoundFailure();
-    }
+    // For shared vehicles, trust the server to validate access on profile update.
+    // Local share record may not be synced yet; server-side check in /users/me/profile
+    // is authoritative.
     await _upsertActive(userId, vehicleId);
   }
 

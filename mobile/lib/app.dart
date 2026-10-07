@@ -12,6 +12,7 @@ import 'core/theme/dco_theme.dart';
 import 'core/theme/dco_tokens.dart';
 import 'core/widgets/dco_error_dialog.dart';
 import 'features/auth/presentation/session_controller.dart';
+import 'features/garage/providers.dart';
 import 'features/notifications/presentation/reminder_sync_controller.dart';
 import 'features/settings/domain/entities/user_preferences.dart';
 import 'features/settings/providers.dart';
@@ -110,6 +111,15 @@ class _DcoAppState extends ConsumerState<DcoApp> {
         if (activeVehicleId != null) {
           ref.read(maintenanceCatalogRepositoryProvider).fetchAndCache(activeVehicleId);
         }
+      }
+    });
+
+    // Fetch maintenance catalog when active vehicle changes
+    ref.listen(activeVehicleProvider, (previous, next) {
+      final vehicle = next.valueOrNull;
+      final previousVehicle = previous?.valueOrNull;
+      if (vehicle != null && vehicle.id != previousVehicle?.id) {
+        ref.read(maintenanceCatalogRepositoryProvider).fetchAndCache(vehicle.id);
       }
     });
 

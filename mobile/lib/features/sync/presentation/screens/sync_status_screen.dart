@@ -101,7 +101,7 @@ class SyncStatusScreen extends ConsumerWidget {
               child: FilledButton.icon(
                 style: FilledButton.styleFrom(
                   backgroundColor: tokens.button.primary.background,
-                  foregroundColor: tokens.text.primary,
+                  foregroundColor: tokens.text.onAccent,
                 ),
                 onPressed: isSyncing
                     ? null
