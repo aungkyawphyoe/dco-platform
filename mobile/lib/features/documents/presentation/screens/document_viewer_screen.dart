@@ -6,6 +6,8 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -75,6 +77,11 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
     }
 
     final doc = _document!;
+    final access = VehicleAccess.of(
+      ref.watch(activeVehicleProvider).valueOrNull,
+      ref.watch(currentUserIdProvider),
+    );
+    final canEdit = access.canEditRecord(doc.createdBy);
     final isImage = doc.localFilePath != null &&
         (doc.localFilePath!.endsWith('.jpg') ||
             doc.localFilePath!.endsWith('.jpeg') ||
@@ -84,11 +91,12 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
       appBar: AppBar(
         title: Text(doc.name),
         actions: [
-          IconButton(
-            tooltip: s.documentViewerEdit,
-            onPressed: () => context.push(AppRoutes.documentEdit(doc.id)),
-            icon: Icon(Icons.edit_outlined, color: tokens.icon.active),
-          ),
+          if (canEdit)
+            IconButton(
+              tooltip: s.documentViewerEdit,
+              onPressed: () => context.push(AppRoutes.documentEdit(doc.id)),
+              icon: Icon(Icons.edit_outlined, color: tokens.icon.active),
+            ),
         ],
       ),
       body: Column(

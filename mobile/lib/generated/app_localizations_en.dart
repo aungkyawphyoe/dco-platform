@@ -587,7 +587,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serviceDetailParts => 'Parts';
 
   @override
+  String get loggedBy => 'Logged by';
+
+  @override
   String get registerServiceTitle => 'Register Service';
+
+  @override
+  String get registerServiceEditTitle => 'Edit service';
 
   @override
   String get registerServiceNoActiveVehicleBody =>
@@ -924,6 +930,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get expensesAllFilter => 'All';
+
+  @override
+  String get expenseDetailTitle => 'Expense details';
+
+  @override
+  String get expenseDetailNotFound => 'Expense not found';
+
+  @override
+  String get expenseDetailNotFoundBody =>
+      'This expense is no longer available.';
+
+  @override
+  String get expenseDetailAmount => 'Amount';
+
+  @override
+  String get expenseDetailNotes => 'Notes';
+
+  @override
+  String get expenseDetailParts => 'Parts';
 
   @override
   String get expenseFormEditTitle => 'Edit expense';
@@ -1379,6 +1404,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fuelLogsThisMonth => 'This month';
+
+  @override
+  String get fuelLogDetailTitle => 'Refuel details';
+
+  @override
+  String get fuelLogDetailNotFound => 'Refuel log not found';
+
+  @override
+  String get fuelLogDetailNotFoundBody => 'This log is no longer available.';
+
+  @override
+  String get fuelLogDetailAmount => 'Amount';
+
+  @override
+  String get fuelLogDetailCost => 'Cost';
 
   @override
   String get fuelLogFormTypeSheetTitle => 'Fuel Type';

@@ -12,6 +12,7 @@ Part partFromDrift(PartRecord row) {
     brand: row.brand,
     partNumber: row.partNumber,
     notes: row.notes,
+    createdBy: row.createdBy,
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
   );
@@ -26,6 +27,7 @@ PartRecordsCompanion partToCompanion(Part part) {
     brand: Value(part.brand),
     partNumber: Value(part.partNumber),
     notes: Value(part.notes),
+    createdBy: Value(part.createdBy),
     updatedAt: part.updatedAt,
     createdAt: part.createdAt,
   );

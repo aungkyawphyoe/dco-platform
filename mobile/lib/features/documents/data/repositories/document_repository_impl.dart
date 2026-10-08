@@ -63,6 +63,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
       notes: _emptyToNull(draft.notes),
       expiresOn: draft.expiresOn,
       localFilePath: draft.localFilePath,
+      createdBy: userId,
       updatedAt: now,
       createdAt: now,
     );

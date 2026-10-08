@@ -7,6 +7,7 @@ import 'package:dco_mobile/core/units/mileage_unit.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/features/stats/domain/fuel_stats_calculator.dart';
@@ -93,6 +94,7 @@ class _FuelStatsScreenState extends ConsumerState<FuelStatsScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
     final stats = ref.watch(fuelStatsProvider);
     final period = ref.watch(fuelStatsPeriodProvider);
     final currency = ref.watch(currencyProvider).code;
@@ -113,11 +115,15 @@ class _FuelStatsScreenState extends ConsumerState<FuelStatsScreen> {
             body: stats.mode == FuelStatsMode.charge
                 ? s.statsEmptyFuelBodyCharges(vehicle.displayName)
                 : s.statsEmptyFuelBodyRefuels(vehicle.displayName),
-            actionLabel: stats.mode == FuelStatsMode.charge
+            actionLabel: !access.canCreate
+                ? null
+                : stats.mode == FuelStatsMode.charge
                 ? FuelLogKind.charge.addLabel
                 : FuelLogKind.refuel.addLabel,
             actionKey: const Key('stats-empty-cta'),
-            onAction: () => context.push(AppRoutes.fuelLogNew),
+            onAction: access.canCreate
+                ? () => context.push(AppRoutes.fuelLogNew)
+                : null,
           )
         : !stats.hasRecordsInPeriod
         ? DcoEmptyState(

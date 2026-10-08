@@ -29,8 +29,8 @@ import {
   publicPlan,
 } from "../lib/serialize-records.js";
 import { requireOwner } from "./auth.js";
-import { getVehicleAccessLevel, getVehicleChangeAudience } from "./vehicle-shares.js";
-import { getAccessibleVehicle } from "./vehicles.js";
+import { getVehicleAccessLevel, getVehicleChangeAudience, fanOutVehicleChange } from "./vehicle-shares.js";
+import { getAccessibleVehicle, getOwnedVehicle } from "./vehicles.js";
 
 const uuid = z.string().uuid();
 
@@ -49,17 +49,112 @@ function dueFrom(intervalDays: number | null | undefined, intervalDistance: numb
  * the vehicle, so by-id reads must not be gated on `fuel_logs.user_id` — the
  * vehicle owner has to be able to open logs a shared user created.
  *
- * `read` needs any access level; `write` additionally allows the author, so a
- * `view` holder can edit only their own rows while `add_edit_own` holders can
- * edit anyone's on the vehicle.
+ * `read` needs any access level. `write` follows the sharing matrix: the owner
+ * may edit any log on their vehicle, an `add_edit_own` sharee only logs they
+ * created, and a `view` sharee never writes at all.
  */
 async function loadFuelLogFor(db: Db, callerId: string, fuelLogId: string, mode: "read" | "write") {
   const [row] = await db.select().from(fuelLogs).where(eq(fuelLogs.id, fuelLogId)).limit(1);
   if (!row) throw new AppError(404, "not_found", "Fuel log not found");
   const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
   if (!access) throw new AppError(404, "not_found", "Fuel log not found");
-  if (mode === "write" && access === "view" && row.userId !== callerId) {
+  if (mode === "write" && access === "view") {
     throw new AppError(403, "insufficient_permission", "Full access required");
+  }
+  if (mode === "write" && access === "add_edit_own" && row.userId !== callerId) {
+    throw new AppError(403, "insufficient_permission", "Can only edit own fuel logs");
+  }
+  return row;
+}
+
+/**
+ * Load a plan item with permission check.
+ * Read: any access level (view or add_edit_own)
+ * Write: only owner (plan items are owner-managed)
+ */
+async function loadPlanItemFor(db: Db, callerId: string, planItemId: string, mode: "read" | "write") {
+  const [row] = await db.select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
+  if (!row) throw new AppError(404, "not_found", "Plan item not found");
+  const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
+  if (!access) throw new AppError(404, "not_found", "Plan item not found");
+  if (mode === "write" && access !== "owner") {
+    throw new AppError(403, "insufficient_permission", "Owner access required for plan items");
+  }
+  return row;
+}
+
+/**
+ * Load a service record with permission check.
+ * Read: any access level (view or add_edit_own)
+ * Write: owner or author (for add_edit_own users, only their own records)
+ */
+async function loadServiceRecordFor(db: Db, callerId: string, serviceRecordId: string, mode: "read" | "write") {
+  const [row] = await db.select().from(serviceRecords).where(eq(serviceRecords.id, serviceRecordId)).limit(1);
+  if (!row) throw new AppError(404, "not_found", "Service record not found");
+  const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
+  if (!access) throw new AppError(404, "not_found", "Service record not found");
+  if (mode === "write" && access === "view") {
+    throw new AppError(403, "insufficient_permission", "Full access required");
+  }
+  if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
+    throw new AppError(403, "insufficient_permission", "Can only edit own service records");
+  }
+  return row;
+}
+
+/**
+ * Load an expense with permission check.
+ * Read: any access level (view or add_edit_own)
+ * Write: owner or author (for add_edit_own users, only their own records)
+ */
+async function loadExpenseFor(db: Db, callerId: string, expenseId: string, mode: "read" | "write") {
+  const [row] = await db.select().from(expenses).where(eq(expenses.id, expenseId)).limit(1);
+  if (!row) throw new AppError(404, "not_found", "Expense not found");
+  const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
+  if (!access) throw new AppError(404, "not_found", "Expense not found");
+  if (mode === "write" && access === "view") {
+    throw new AppError(403, "insufficient_permission", "Full access required");
+  }
+  if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
+    throw new AppError(403, "insufficient_permission", "Can only edit own expenses");
+  }
+  return row;
+}
+
+/**
+ * Load a document with permission check.
+ * Read: any access level (view or add_edit_own)
+ * Write: owner or author (for add_edit_own users, only their own records)
+ */
+async function loadDocumentFor(db: Db, callerId: string, documentId: string, mode: "read" | "write") {
+  const [row] = await db.select().from(documents).where(eq(documents.id, documentId)).limit(1);
+  if (!row) throw new AppError(404, "not_found", "Document not found");
+  const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
+  if (!access) throw new AppError(404, "not_found", "Document not found");
+  if (mode === "write" && access === "view") {
+    throw new AppError(403, "insufficient_permission", "Full access required");
+  }
+  if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
+    throw new AppError(403, "insufficient_permission", "Can only edit own documents");
+  }
+  return row;
+}
+
+/**
+ * Load a part with permission check.
+ * Read: any access level (view or add_edit_own)
+ * Write: owner or author (for add_edit_own users, only their own records)
+ */
+async function loadPartFor(db: Db, callerId: string, partId: string, mode: "read" | "write") {
+  const [row] = await db.select().from(parts).where(eq(parts.id, partId)).limit(1);
+  if (!row) throw new AppError(404, "not_found", "Part not found");
+  const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
+  if (!access) throw new AppError(404, "not_found", "Part not found");
+  if (mode === "write" && access === "view") {
+    throw new AppError(403, "insufficient_permission", "Full access required");
+  }
+  if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
+    throw new AppError(403, "insufficient_permission", "Can only edit own parts");
   }
   return row;
 }
@@ -109,7 +204,6 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
 
   app.get("/vehicles/:vehicleId/plan-items", async (request) => {
-    requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const items = await db().select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
@@ -119,24 +213,30 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/plan-items", async (request, reply) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
+    const vehicle = await getOwnedVehicle(db(), uid(request), vehicleId);
     const body = z
       .object({
         id: uuid,
         name: z.string().min(1).max(80),
         interval_days: z.number().int().optional().nullable(),
         interval_distance: z.number().optional().nullable(),
+        next_due_on: z.string().optional().nullable(),
+        next_due_mileage: z.number().optional().nullable(),
         notes: z.string().optional().nullable(),
         catalog_key: z.string().optional().nullable(),
         enabled: z.boolean().optional(),
       })
       .parse(request.body);
-    if (!body.interval_days && !body.interval_distance) {
+    if (!body.interval_days && !body.interval_distance && body.next_due_on == null && body.next_due_mileage == null) {
       throw new AppError(422, "invalid_interval", "Provide a time interval, a distance interval, or both");
     }
     const [existing] = await db().select().from(planItems).where(eq(planItems.id, body.id)).limit(1);
     if (existing) return reply.code(201).send(publicPlan(existing));
-    const due = dueFrom(body.interval_days, body.interval_distance, reqNum(vehicle.mileage));
+    const computed = dueFrom(body.interval_days, body.interval_distance, reqNum(vehicle.mileage));
+    const due = {
+      nextDueOn: body.next_due_on ?? computed.nextDueOn,
+      nextDueMileage: body.next_due_mileage ?? computed.nextDueMileage,
+    };
     const [row] = await db()
       .insert(planItems)
       .values({
@@ -159,7 +259,6 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/vehicles/:vehicleId/suggested-plan-items", async (request) => {
-    requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only");
     const rows = await db()
@@ -181,14 +280,14 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.patch("/plan-items/:planItemId", async (request) => {
     requireOwner(request);
     const { planItemId } = request.params as { planItemId: string };
-    const [row] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
-    if (!row) throw new AppError(404, "not_found", "Plan item not found");
-    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
+    await loadPlanItemFor(db(), uid(request), planItemId, "write");
     const body = z
       .object({
         name: z.string().optional(),
         interval_days: z.number().int().nullable().optional(),
         interval_distance: z.number().nullable().optional(),
+        next_due_on: z.string().nullable().optional(),
+        next_due_mileage: z.number().nullable().optional(),
         notes: z.string().optional().nullable(),
         enabled: z.boolean().optional(),
       })
@@ -200,6 +299,10 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         ...(body.interval_days !== undefined ? { intervalDays: body.interval_days } : {}),
         ...(body.interval_distance !== undefined
           ? { intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null }
+          : {}),
+        ...(body.next_due_on !== undefined ? { nextDueOn: body.next_due_on } : {}),
+        ...(body.next_due_mileage !== undefined
+          ? { nextDueMileage: body.next_due_mileage != null ? String(body.next_due_mileage) : null }
           : {}),
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
         ...(body.enabled !== undefined ? { enabled: body.enabled } : {}),
@@ -216,7 +319,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { planItemId } = request.params as { planItemId: string };
     const [row] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
     if (!row) return reply.code(204).send();
-    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
+    await loadPlanItemFor(db(), uid(request), planItemId, "write");
     await db().delete(planItems).where(eq(planItems.id, planItemId));
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "plan_item", entityId: planItemId, op: "delete", payload: { id: planItemId } });
     return reply.code(204).send();
@@ -242,7 +345,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/service-records", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const rows = await db().select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId)).orderBy(desc(serviceRecords.servicedOn));
     const items = [];
     for (const row of rows) items.push(await loadService(db(), row.id));
@@ -302,6 +405,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     }
     if (body.odometer > reqNum(vehicle.mileage)) {
       await db().update(vehicles).set({ mileage: String(body.odometer), updatedAt: new Date() }).where(eq(vehicles.id, vehicleId));
+      await fanOutVehicleChange(db(), { vehicleId, entityType: "vehicle", entityId: vehicleId, op: "upsert", payload: { id: vehicleId, mileage: body.odometer, name: vehicle.name } });
     }
     const payload = await loadService(db(), body.id);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "service_record", entityId: body.id, op: "upsert", payload });
@@ -313,7 +417,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { serviceRecordId } = request.params as { serviceRecordId: string };
     const payload = await loadService(db(), serviceRecordId);
     if (!payload) throw new AppError(404, "not_found", "Service record not found");
-    await getAccessibleVehicle(db(), uid(request), payload.vehicle_id, "full", true);
+    await getAccessibleVehicle(db(), uid(request), payload.vehicle_id, "drive_only", true);
     return payload;
   });
 
@@ -322,7 +426,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { serviceRecordId } = request.params as { serviceRecordId: string };
     const existing = await loadService(db(), serviceRecordId);
     if (!existing) throw new AppError(404, "not_found", "Service record not found");
-    await getAccessibleVehicle(db(), uid(request), existing.vehicle_id, "full");
+    await loadServiceRecordFor(db(), uid(request), serviceRecordId, "write");
     const body = serviceBody.partial().parse(request.body ?? {});
     await db()
       .update(serviceRecords)
@@ -335,6 +439,36 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         ...(body.receipt_media_id !== undefined ? { receiptMediaId: body.receipt_media_id } : {}),
       })
       .where(eq(serviceRecords.id, serviceRecordId));
+    if (body.items !== undefined) {
+      await db().delete(serviceRecordItems).where(eq(serviceRecordItems.serviceRecordId, serviceRecordId));
+      for (const item of body.items) {
+        await db().insert(serviceRecordItems).values({
+          id: item.id ?? newId(),
+          serviceRecordId,
+          planItemId: item.plan_item_id ?? null,
+          name: item.name,
+          lineCost: item.line_cost != null ? String(item.line_cost) : null,
+        });
+      }
+    }
+    if (body.parts !== undefined) {
+      await db().delete(serviceRecordParts).where(eq(serviceRecordParts.serviceRecordId, serviceRecordId));
+      for (const part of body.parts) {
+        await db().insert(serviceRecordParts).values({
+          id: part.id ?? newId(),
+          serviceRecordId,
+          partId: part.part_id,
+          name: part.name,
+        });
+      }
+    }
+    if (body.odometer !== undefined && body.odometer != null) {
+      const [vehicle] = await db().select({ mileage: vehicles.mileage, name: vehicles.name }).from(vehicles).where(eq(vehicles.id, existing.vehicle_id)).limit(1);
+      if (vehicle && body.odometer > reqNum(vehicle.mileage)) {
+        await db().update(vehicles).set({ mileage: String(body.odometer), updatedAt: new Date() }).where(eq(vehicles.id, existing.vehicle_id));
+        await fanOutVehicleChange(db(), { vehicleId: existing.vehicle_id, entityType: "vehicle", entityId: existing.vehicle_id, op: "upsert", payload: { id: existing.vehicle_id, mileage: body.odometer, name: vehicle.name } });
+      }
+    }
     const payload = await loadService(db(), serviceRecordId);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: existing.vehicle_id, entityType: "service_record", entityId: serviceRecordId, op: "upsert", payload });
     return payload;
@@ -343,7 +477,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/parts", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const items = await db().select().from(parts).where(eq(parts.vehicleId, vehicleId)).orderBy(asc(parts.name));
     return {
       items: items.map((p) => ({
@@ -392,9 +526,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.patch("/parts/:partId", async (request) => {
     requireOwner(request);
     const { partId } = request.params as { partId: string };
-    const [row] = await db().select().from(parts).where(eq(parts.id, partId)).limit(1);
-    if (!row) throw new AppError(404, "not_found", "Part not found");
-    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
+    await loadPartFor(db(), uid(request), partId, "write");
     const body = z.object({
       name: z.string().optional(),
       brand: z.string().optional().nullable(),
@@ -494,7 +626,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.post("/vehicles/:vehicleId/fuel-logs", async (request, reply) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only");
+    const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = z.object({
       id: uuid,
       fuel_type_id: uuid,
@@ -503,7 +635,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       cost: z.number().min(0),
       odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body);
-    if (body.logged_on > new Date().toISOString().slice(0, 10)) {
+    if (body.logged_on.slice(0, 10) > new Date().toISOString().slice(0, 10)) {
       throw new AppError(422, "invalid_date", "Date cannot be in the future");
     }
     const [existing] = await db().select().from(fuelLogs).where(eq(fuelLogs.id, body.id)).limit(1);
@@ -538,6 +670,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       .returning();
     if (body.odometer != null && body.odometer > reqNum(vehicle.mileage)) {
       await db().update(vehicles).set({ mileage: String(body.odometer), updatedAt: new Date() }).where(eq(vehicles.id, vehicleId));
+      await fanOutVehicleChange(db(), { vehicleId, entityType: "vehicle", entityId: vehicleId, op: "upsert", payload: { id: vehicleId, mileage: body.odometer, name: vehicle.name } });
     }
     const payload = publicFuelLog(row);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "fuel_log", entityId: row.id, op: "upsert", payload });
@@ -585,6 +718,13 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       })
       .where(eq(fuelLogs.id, fuelLogId))
       .returning();
+    if (body.odometer != null) {
+      const [vehicle] = await db().select({ mileage: vehicles.mileage, name: vehicles.name }).from(vehicles).where(eq(vehicles.id, row.vehicleId)).limit(1);
+      if (body.odometer > reqNum(vehicle?.mileage ?? 0)) {
+        await db().update(vehicles).set({ mileage: String(body.odometer), updatedAt: new Date() }).where(eq(vehicles.id, row.vehicleId));
+        await fanOutVehicleChange(db(), { vehicleId: row.vehicleId, entityType: "vehicle", entityId: row.vehicleId, op: "upsert", payload: { id: row.vehicleId, mileage: body.odometer, name: vehicle?.name } });
+      }
+    }
     const payload = publicFuelLog(updated);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "fuel_log", entityId: updated.id, op: "upsert", payload });
     return payload;
@@ -624,6 +764,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         notes: body.notes ?? null,
         expiresOn: body.expires_on ?? null,
         mediaId: body.media_id ?? null,
+        createdBy: uid(request),
       })
       .returning();
     const payload = publicDoc(row);
@@ -643,9 +784,9 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.patch("/documents/:documentId", async (request) => {
     requireOwner(request);
     const { documentId } = request.params as { documentId: string };
+    await loadDocumentFor(db(), uid(request), documentId, "write");
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
     if (!row) throw new AppError(404, "not_found", "Document not found");
-    await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
     const body = z.object({
       name: z.string().optional(),
       category: z.enum(["insurance", "registration", "invoice", "warranty", "receipt", "other"]).optional(),
@@ -674,7 +815,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { documentId } = request.params as { documentId: string };
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
     if (row) {
-      await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full", true);
+      await loadDocumentFor(db(), uid(request), documentId, "write");
       await db().delete(documents).where(eq(documents.id, documentId));
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "document", entityId: documentId, op: "delete", payload: { id: documentId } });
     }
@@ -694,7 +835,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/expenses", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const category = (request.query as { category?: string }).category;
     let rows = await db().select().from(expenses).where(eq(expenses.vehicleId, vehicleId)).orderBy(desc(expenses.incurredOn));
     if (category) rows = rows.filter((r) => r.category === category);
@@ -736,7 +877,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/expenses/summary", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const rows = await db().select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
     const prefix = new Date().toISOString().slice(0, 7);
     const total = rows.reduce((s, e) => s + reqNum(e.amount), 0);
@@ -757,9 +898,9 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   app.patch("/expenses/:expenseId", async (request) => {
     requireOwner(request);
     const { expenseId } = request.params as { expenseId: string };
+    await loadExpenseFor(db(), uid(request), expenseId, "write");
     const current = await publicExpense(db(), expenseId);
     if (!current) throw new AppError(404, "not_found", "Expense not found");
-    await getAccessibleVehicle(db(), uid(request), current.vehicle_id, "full", true);
     const body = expenseBody.partial().parse(request.body ?? {});
     await db()
       .update(expenses)
@@ -771,6 +912,17 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         ...(body.receipt_media_id !== undefined ? { receiptMediaId: body.receipt_media_id } : {}),
       })
       .where(eq(expenses.id, expenseId));
+    if (body.parts !== undefined) {
+      await db().delete(expenseParts).where(eq(expenseParts.expenseId, expenseId));
+      for (const part of body.parts) {
+        await db().insert(expenseParts).values({
+          id: part.id ?? newId(),
+          expenseId,
+          partId: part.part_id,
+          name: part.name,
+        });
+      }
+    }
     const payload = await publicExpense(db(), expenseId);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: current.vehicle_id, entityType: "expense", entityId: expenseId, op: "upsert", payload });
     return payload;
@@ -781,7 +933,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const { expenseId } = request.params as { expenseId: string };
     const current = await publicExpense(db(), expenseId);
     if (current) {
-      await getAccessibleVehicle(db(), uid(request), current.vehicle_id, "full", true);
+      await loadExpenseFor(db(), uid(request), expenseId, "write");
       await db().delete(expenseParts).where(eq(expenseParts.expenseId, expenseId));
       await db().delete(expenses).where(eq(expenses.id, expenseId));
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: current.vehicle_id, entityType: "expense", entityId: expenseId, op: "delete", payload: { id: expenseId } });

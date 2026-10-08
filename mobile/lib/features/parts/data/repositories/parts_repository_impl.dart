@@ -62,6 +62,7 @@ class PartsRepositoryImpl implements PartsRepository {
       brand: _emptyToNull(draft.brand),
       partNumber: _emptyToNull(draft.partNumber),
       notes: _emptyToNull(draft.notes),
+      createdBy: userId,
       updatedAt: now,
       createdAt: now,
     );
@@ -88,7 +89,9 @@ class PartsRepositoryImpl implements PartsRepository {
   }) async {
     _assertDraft(draft);
     final existing = await getById(partId);
-    if (existing == null || existing.userId != userId) {
+    // Ownership is enforced by the API (owner or the record's creator); the
+    // local row only needs to exist for the edit to proceed.
+    if (existing == null) {
       throw const PartNotFoundFailure();
     }
     await _assertUniqueName(vehicleId: existing.vehicleId, name: draft.name, excludingId: partId);
@@ -101,6 +104,7 @@ class PartsRepositoryImpl implements PartsRepository {
       brand: _emptyToNull(draft.brand),
       partNumber: _emptyToNull(draft.partNumber),
       notes: _emptyToNull(draft.notes),
+      createdBy: existing.createdBy,
       updatedAt: DateTime.now().toUtc(),
       createdAt: existing.createdAt,
     );

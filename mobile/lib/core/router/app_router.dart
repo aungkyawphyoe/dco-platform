@@ -13,6 +13,7 @@ import '../../features/documents/domain/entities/document.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
 import '../../features/documents/presentation/screens/document_form_screen.dart';
 import '../../features/documents/presentation/screens/document_viewer_screen.dart';
+import '../../features/expenses/presentation/screens/expense_detail_screen.dart';
 import '../../features/expenses/presentation/screens/expense_form_screen.dart';
 import '../../features/fleet/presentation/screens/driver_fuel_log_screen.dart';
 import '../../features/fleet/presentation/screens/driver_inspection_screen.dart';
@@ -28,6 +29,7 @@ import '../../features/fleet/presentation/screens/fleet_warranty_templates_scree
 import '../../features/fleet/presentation/screens/fleet_work_order_detail_screen.dart';
 import '../../features/fleet/presentation/screens/org_management_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
+import '../../features/fuel/presentation/screens/fuel_log_detail_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_logs_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_type_form_screen.dart';
@@ -230,6 +232,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                           logId: state.pathParameters['logId'],
                         ),
                       ),
+                      GoRoute(
+                        path: ':logId',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => FuelLogDetailScreen(
+                          logId: state.pathParameters['logId']!,
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -262,6 +271,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     builder: (context, state) => ServiceDetailScreen(
                       serviceId: state.pathParameters['serviceId']!,
                     ),
+                    routes: [
+                      GoRoute(
+                        path: 'edit',
+                        parentNavigatorKey: rootNavigatorKey,
+                        builder: (context, state) => RegisterServiceScreen(
+                          editServiceId: state.pathParameters['serviceId'],
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -283,6 +301,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => ExpenseFormScreen(
                       expenseId: state.pathParameters['expenseId'],
+                    ),
+                  ),
+                  GoRoute(
+                    path: ':expenseId',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => ExpenseDetailScreen(
+                      expenseId: state.pathParameters['expenseId']!,
                     ),
                   ),
                 ],

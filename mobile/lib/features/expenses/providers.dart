@@ -14,3 +14,7 @@ final vehicleExpenseSummaryProvider = StreamProvider<ExpenseSummary>((ref) {
   if (vehicleId == null) return Stream.value(ExpenseSummary.empty);
   return ref.watch(expenseRepositoryProvider).watchSummary(vehicleId);
 });
+
+final expenseDetailProvider = FutureProvider.family<Expense?, String>((ref, id) {
+  return ref.watch(expenseRepositoryProvider).getById(id);
+});

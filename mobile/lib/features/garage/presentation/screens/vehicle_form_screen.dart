@@ -53,6 +53,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
   bool _loading = true;
   bool _saving = false;
   bool _fuelError = false;
+  bool _isOwner = false;
 
   @override
   void initState() {
@@ -68,6 +69,8 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
     final vehicle = await ref.read(vehicleRepositoryProvider).getById(widget.vehicleId!);
     if (!mounted) return;
     if (vehicle != null) {
+      _isOwner =
+          vehicle.userId == ref.read(sessionControllerProvider).valueOrNull?.user.id;
       _name.text = vehicle.name;
       _make.text = vehicle.make;
       _year.text = '${vehicle.year}';
@@ -387,7 +390,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                   SizedBox(height: tokens.space.s4),
                   Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
                 ],
-                if (widget.isEditing) ...[
+                if (widget.isEditing && _isOwner) ...[
                   SizedBox(height: tokens.space.s6),
                   DcoButton(
                     label: s.vehicleArchiveButton,

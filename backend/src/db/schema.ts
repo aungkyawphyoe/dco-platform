@@ -284,6 +284,7 @@ export const documents = pgTable("documents", {
   notes: text("notes"),
   expiresOn: date("expires_on"),
   mediaId: uuid("media_id"),
+  createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

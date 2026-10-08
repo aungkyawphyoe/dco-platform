@@ -3257,6 +3257,11 @@ components:
         created_at:
           type: string
           format: date-time
+        created_by:
+          type: string
+          format: uuid
+          nullable: true
+          description: User who created the document. Shared users may only edit or delete documents they created.
     DocumentWrite:
       type: object
       required: [id, name, category]
@@ -4172,6 +4177,7 @@ components:
           properties:
             shares:
               type: array
+              description: Owner only. Empty for shared users — sharees never see the share roster.
               items:
                 $ref: '#/components/schemas/VehicleShare'
             documents:
@@ -4180,6 +4186,7 @@ components:
                 $ref: '#/components/schemas/Document'
             shared_users:
               type: array
+              description: Owner only. Empty for shared users — sharees never see other participants.
               items:
                 type: object
                 properties:

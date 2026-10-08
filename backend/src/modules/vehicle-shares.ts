@@ -258,7 +258,10 @@ export async function getVehicleSharesDetail(db: Db, vehicleId: string, userId: 
   const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
   if (!vehicle) return null;
 
-  const shares = await db.select().from(vehicleShares).where(eq(vehicleShares.vehicleId, vehicleId));
+  // The share roster — who else holds a share, their statuses, and the share
+  // code — is owner-managed data. Sharees get the vehicle, its documents, and
+  // its history, but never a view of other participants.
+  const shares = access === "owner" ? await db.select().from(vehicleShares).where(eq(vehicleShares.vehicleId, vehicleId)) : [];
   const docs = await db.select().from(documents).where(eq(documents.vehicleId, vehicleId));
 
   const sharedUsers: Array<{
@@ -291,6 +294,7 @@ export async function getVehicleSharesDetail(db: Db, vehicleId: string, userId: 
       expires_on: dateOnly(d.expiresOn),
       media_id: d.mediaId,
       created_at: iso(d.createdAt),
+      created_by: d.createdBy,
     })),
     shared_users: sharedUsers,
   };
@@ -394,6 +398,15 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
       .where(and(eq(vehicles.id, vehicleId), eq(vehicles.userId, userId), eq(vehicles.archived, false)))
       .limit(1);
     if (!vehicle) throw new AppError(404, "vehicle_not_found", "Vehicle not found or not owned by you");
+
+    // Fleet-managed (org-linked) vehicles live in Fleet mode and are not
+    // shareable through the personal sharing path.
+    const [organizationLink] = await db()
+      .select({ vehicleId: organizationVehicles.vehicleId })
+      .from(organizationVehicles)
+      .where(eq(organizationVehicles.vehicleId, vehicleId))
+      .limit(1);
+    if (organizationLink) throw new AppError(404, "vehicle_not_found", "Vehicle not found or not owned by you");
 
     await checkShareLimits(db(), userId, vehicleId);
 
@@ -608,14 +621,24 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
         .set(updates)
         .where(eq(vehicleShares.id, shareId))
         .returning();
+      const payload = publicVehicleShare(updated);
+      // Tell both parties: the owner's roster and the sharee's own copy of the
+      // share (which stamps their access level in the mobile client).
       await recordChange(db(), {
         userId,
         entityType: "vehicle_share",
         entityId: shareId,
         op: "upsert",
-        payload: publicVehicleShare(updated),
+        payload,
       });
-      return publicVehicleShare(updated);
+      await recordChange(db(), {
+        userId: share.userId,
+        entityType: "vehicle_share",
+        entityId: shareId,
+        op: "upsert",
+        payload,
+      });
+      return payload;
     }
 
     return publicVehicleShare(share);
@@ -773,7 +796,12 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
       .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
       .where(and(eq(vehicleShares.userId, userId), eq(vehicleShares.status, "active"), eq(vehicles.archived, false)));
 
-    const ownerIds = [...new Set(rows.map((r) => r.vehicle.userId))];
+    // Fleet-managed vehicles are excluded from personal sharing entirely.
+    const orgRows = await db().select({ vehicleId: organizationVehicles.vehicleId }).from(organizationVehicles);
+    const orgVehicleIds = new Set(orgRows.map((r) => r.vehicleId));
+    const visible = rows.filter((r) => !orgVehicleIds.has(r.vehicle.id));
+
+    const ownerIds = [...new Set(visible.map((r) => r.vehicle.userId))];
     const ownerMap = new Map<string, { display_name: string | null; email: string | null }>();
     if (ownerIds.length) {
       const owners = await db().select().from(users).where(inArray(users.id, ownerIds));
@@ -781,7 +809,7 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
     }
 
     return {
-      items: rows.map((r) => ({
+      items: visible.map((r) => ({
         ...publicVehicle(r.vehicle),
         source: "shared",
         access_level: r.share.accessLevel,

@@ -118,6 +118,83 @@ void main() {
     );
   });
 
+  test('updateService replaces fields, allows historical odometer, keeps author', () async {
+    final vehicle = await addVehicle();
+    final record = await maintenance.registerService(
+      userId: 'user-1',
+      vehicle: vehicle,
+      draft: ServiceRecordDraft(
+        servicedOn: DateTime(2026, 8, 19),
+        odometer: 12000,
+        totalCost: 85,
+        items: [ServiceLineDraft(name: 'Oil Change', lineCost: 85)],
+      ),
+    );
+
+    final updated = await maintenance.updateService(
+      userId: 'user-2',
+      vehicle: vehicle,
+      serviceRecordId: record.id,
+      draft: ServiceRecordDraft(
+        servicedOn: DateTime(2026, 8, 19),
+        odometer: 9000,
+        totalCost: 95,
+        notes: 'edited',
+        items: [ServiceLineDraft(name: 'Oil Change 5w30', lineCost: 95)],
+      ),
+    );
+
+    expect(updated.totalCost, 95);
+    expect(updated.odometer, 9000);
+    expect(updated.createdBy, 'user-1');
+
+    final history = await maintenance.watchHistory(vehicle.id).first;
+    expect(history, hasLength(1));
+    expect(history.single.notes, 'edited');
+    expect(history.single.items, hasLength(1));
+    expect(history.single.items.single.name, 'Oil Change 5w30');
+
+    final updatedVehicle = await vehicles.getById(vehicle.id);
+    expect(updatedVehicle?.mileage, 12000);
+
+    final queued = await db.select(db.outboxEntries).get();
+    final recordEntries = queued
+        .where((row) => row.entityType == 'service_record' && row.entityId == record.id)
+        .toList();
+    expect(recordEntries, isNotEmpty);
+    expect(recordEntries.last.payload, contains('Oil Change 5w30'));
+  });
+
+  test('updateService bumps vehicle mileage when odometer increases', () async {
+    final vehicle = await addVehicle();
+    final record = await maintenance.registerService(
+      userId: 'user-1',
+      vehicle: vehicle,
+      draft: ServiceRecordDraft(
+        servicedOn: DateTime(2026, 9, 1),
+        odometer: 11000,
+        totalCost: 0,
+        items: [ServiceLineDraft(name: 'Wash')],
+      ),
+    );
+
+    final updated = await maintenance.updateService(
+      userId: 'user-1',
+      vehicle: vehicle,
+      serviceRecordId: record.id,
+      draft: ServiceRecordDraft(
+        servicedOn: DateTime(2026, 9, 1),
+        odometer: 13000,
+        totalCost: 0,
+        items: [ServiceLineDraft(name: 'Wash')],
+      ),
+    );
+
+    expect(updated.odometer, 13000);
+    final updatedVehicle = await vehicles.getById(vehicle.id);
+    expect(updatedVehicle?.mileage, 13000);
+  });
+
   test('suggested catalog items become user-owned copies', () async {
     final vehicle = await addVehicle();
     const suggestion = SuggestedPlanItem(

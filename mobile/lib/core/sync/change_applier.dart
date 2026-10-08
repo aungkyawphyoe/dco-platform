@@ -84,30 +84,85 @@ class ChangeApplier {
       return;
     }
 
-    final companion = VehicleRecordsCompanion.insert(
-      id: id,
-      userId: _str(payload['user_id'], fallback: userId),
-      name: _str(payload['name']),
-      nickname: Value(_strN(payload['nickname'])),
-      make: _str(payload['make']),
-      model: _str(payload['model']),
-      year: _int(payload['year']) ?? existing?.year ?? 1900,
-      licensePlate: _str(payload['license_plate'], fallback: ''),
-      vin: Value(_strN(payload['vin'])),
-      color: Value(_strN(payload['color'])),
-      fuelType: _str(payload['fuel_type'], fallback: 'petrol'),
-      mileage: effectiveMileage,
-      mileageUnit: Value(_str(payload['mileage_unit'], fallback: 'mi')),
-      purchaseDate: Value(_dateN(payload['purchase_date'])),
-      purchasePrice: Value(_dbl(payload['purchase_price'])),
-      photoLocalPath: Value(existing?.photoLocalPath),
-      photoMediaId: Value(_strN(payload['photo_media_id']) ?? existing?.photoMediaId),
-      archived: Value(existing?.archived ?? false),
-      archivedAt: Value(_dt(payload['archived_at'])),
-      updatedAt: remoteUpdatedAt,
-      createdAt: existing?.createdAt ?? change.serverTs,
+    if (existing == null) {
+      final companion = VehicleRecordsCompanion.insert(
+        id: id,
+        userId: _str(payload['user_id'], fallback: userId),
+        name: _str(payload['name']),
+        nickname: Value(_strN(payload['nickname'])),
+        make: _str(payload['make']),
+        model: _str(payload['model']),
+        year: _int(payload['year']) ?? 1900,
+        licensePlate: _str(payload['license_plate'], fallback: ''),
+        vin: Value(_strN(payload['vin'])),
+        color: Value(_strN(payload['color'])),
+        fuelType: _str(payload['fuel_type'], fallback: 'petrol'),
+        mileage: effectiveMileage,
+        mileageUnit: Value(_str(payload['mileage_unit'], fallback: 'mi')),
+        purchaseDate: Value(_dateN(payload['purchase_date'])),
+        purchasePrice: Value(_dbl(payload['purchase_price'])),
+        photoMediaId: Value(_strN(payload['photo_media_id'])),
+        archived: Value(payload['archived'] as bool? ?? false),
+        archivedAt: Value(_dt(payload['archived_at'])),
+        updatedAt: remoteUpdatedAt,
+        createdAt: change.serverTs,
+      );
+      await _db.into(_db.vehicleRecords).insertOnConflictUpdate(companion);
+      await _stampVehicleFromShare(id, userId);
+      return;
+    }
+
+    // Merge: overlay only the keys the payload actually carries. Mileage
+    // fan-out payloads are partial ({id, name, mileage}) and must not wipe
+    // identity fields or reassign ownership on the pulling device.
+    await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(id))).write(
+      VehicleRecordsCompanion(
+        userId: payload.containsKey('user_id')
+            ? Value(_str(payload['user_id'], fallback: existing.userId))
+            : const Value.absent(),
+        name: payload.containsKey('name')
+            ? Value(_str(payload['name'], fallback: existing.name))
+            : const Value.absent(),
+        nickname: payload.containsKey('nickname')
+            ? Value(_strN(payload['nickname']))
+            : const Value.absent(),
+        make: payload.containsKey('make')
+            ? Value(_str(payload['make'], fallback: existing.make))
+            : const Value.absent(),
+        model: payload.containsKey('model')
+            ? Value(_str(payload['model'], fallback: existing.model))
+            : const Value.absent(),
+        year: payload.containsKey('year')
+            ? Value(_int(payload['year']) ?? existing.year)
+            : const Value.absent(),
+        licensePlate: payload.containsKey('license_plate')
+            ? Value(_str(payload['license_plate'], fallback: existing.licensePlate))
+            : const Value.absent(),
+        vin: payload.containsKey('vin')
+            ? Value(_strN(payload['vin']))
+            : const Value.absent(),
+        color: payload.containsKey('color')
+            ? Value(_strN(payload['color']))
+            : const Value.absent(),
+        fuelType: payload.containsKey('fuel_type')
+            ? Value(_str(payload['fuel_type'], fallback: existing.fuelType))
+            : const Value.absent(),
+        mileageUnit: payload.containsKey('mileage_unit')
+            ? Value(_str(payload['mileage_unit'], fallback: existing.mileageUnit))
+            : const Value.absent(),
+        purchaseDate: payload.containsKey('purchase_date')
+            ? Value(_dateN(payload['purchase_date']))
+            : const Value.absent(),
+        purchasePrice: payload.containsKey('purchase_price')
+            ? Value(_dbl(payload['purchase_price']))
+            : const Value.absent(),
+        photoMediaId: payload.containsKey('photo_media_id')
+            ? Value(_strN(payload['photo_media_id']) ?? existing.photoMediaId)
+            : const Value.absent(),
+        mileage: Value(effectiveMileage),
+        updatedAt: Value(remoteUpdatedAt),
+      ),
     );
-    await _db.into(_db.vehicleRecords).insertOnConflictUpdate(companion);
   }
 
   Future<void> _applyPlanItem(SyncChange change) async {
@@ -134,6 +189,7 @@ class ChangeApplier {
         enabled: Value(payload['enabled'] as bool? ?? existing?.enabled ?? true),
         notes: Value(_strN(payload['notes'])),
         catalogKey: Value(_strN(payload['catalog_key'])),
+        createdBy: Value(_strN(payload['created_by']) ?? existing?.createdBy),
         updatedAt: change.serverTs,
         createdAt: existing?.createdAt ?? change.serverTs,
       ),
@@ -174,6 +230,7 @@ class ChangeApplier {
         notes: Value(_strN(payload['notes'])),
         receiptLocalPath: Value(existing?.receiptLocalPath),
         receiptMediaId: Value(_strN(payload['receipt_media_id']) ?? existing?.receiptMediaId),
+        createdBy: Value(_strN(payload['created_by']) ?? existing?.createdBy),
         updatedAt: change.serverTs,
         createdAt: existing?.createdAt ?? change.serverTs,
       ),
@@ -229,6 +286,7 @@ class ChangeApplier {
         brand: Value(_strN(payload['brand'])),
         partNumber: Value(_strN(payload['part_number'])),
         notes: Value(_strN(payload['notes'])),
+        createdBy: Value(_strN(payload['created_by']) ?? existing?.createdBy),
         updatedAt: change.serverTs,
         createdAt: existing?.createdAt ?? change.serverTs,
       ),
@@ -318,6 +376,7 @@ class ChangeApplier {
         notes: Value(_strN(payload['notes'])),
         receiptLocalPath: Value(existing?.receiptLocalPath),
         receiptMediaId: Value(_strN(payload['receipt_media_id']) ?? existing?.receiptMediaId),
+        createdBy: Value(_strN(payload['created_by']) ?? existing?.createdBy),
         updatedAt: change.serverTs,
         createdAt: existing?.createdAt ?? change.serverTs,
       ),
@@ -382,7 +441,7 @@ class ChangeApplier {
     if (change.op == SyncChangeOp.delete) {
       await (_db.delete(_db.vehicleShareRecords)..where((row) => row.id.equals(id))).go();
       if (isMine && vehicleId != null) {
-        await _unshareVehicle(vehicleId);
+        await _unshareVehicle(vehicleId, userId);
       }
       return;
     }
@@ -412,7 +471,10 @@ class ChangeApplier {
       final vehicle = await (_db.select(
         _db.vehicleRecords,
       )..where((row) => row.id.equals(vehicleId))).getSingleOrNull();
-      if (vehicle != null && vehicle.source != 'shared') {
+      // Stamp (or re-stamp) whenever the vehicle belongs to someone else —
+      // the owner can change the level later, and the row's denormalized
+      // permission must follow the share mirror on every active update.
+      if (vehicle != null && vehicle.userId != userId) {
         await (_db.update(
           _db.vehicleRecords,
         )..where((row) => row.id.equals(vehicleId))).write(
@@ -425,13 +487,38 @@ class ChangeApplier {
     }
   }
 
+  /// Stamps `source`/`permission` from an already-applied share row. Share
+  /// changes can be pulled before the vehicle row exists (page splits,
+  /// partial history), so the vehicle insert must pick the level up from the
+  /// local share mirror instead of leaving it null forever.
+  Future<void> _stampVehicleFromShare(String vehicleId, String userId) async {
+    final share = await (_db.select(_db.vehicleShareRecords)
+          ..where(
+            (row) =>
+                row.vehicleId.equals(vehicleId) &
+                row.userId.equals(userId) &
+                row.status.equals('active'),
+          ))
+        .getSingleOrNull();
+    if (share == null) return;
+    await (_db.update(
+      _db.vehicleRecords,
+    )..where((row) => row.id.equals(vehicleId))).write(
+      VehicleRecordsCompanion(
+        source: const Value('shared'),
+        permission: Value(share.accessLevel),
+      ),
+    );
+  }
+
   /// Drops a vehicle that was only present because it was shared with us.
-  /// Owned vehicles are never touched here.
-  Future<void> _unshareVehicle(String vehicleId) async {
+  /// Vehicles we own are never touched here (ownership beats the `source`
+  /// column, which may predate the share stamp).
+  Future<void> _unshareVehicle(String vehicleId, String userId) async {
     final vehicle = await (_db.select(
       _db.vehicleRecords,
     )..where((row) => row.id.equals(vehicleId))).getSingleOrNull();
-    if (vehicle == null || vehicle.source != 'shared') return;
+    if (vehicle == null || vehicle.userId == userId) return;
     await (_db.delete(_db.vehicleRecords)..where((row) => row.id.equals(vehicleId))).go();
   }
 
@@ -464,6 +551,7 @@ class ChangeApplier {
                 : existing.expiresOn,
           ),
           mediaId: Value(_strN(payload['media_id']) ?? existing.mediaId),
+          createdBy: Value(_strN(payload['created_by']) ?? existing.createdBy),
           updatedAt: Value(remoteUpdatedAt),
         ),
       );
@@ -477,6 +565,7 @@ class ChangeApplier {
           notes: Value(_strN(payload['notes'])),
           expiresOn: Value(_dt(payload['expires_on'])),
           mediaId: Value(_strN(payload['media_id'])),
+          createdBy: Value(_strN(payload['created_by'])),
           updatedAt: remoteUpdatedAt,
           createdAt: _dt(payload['created_at']) ?? remoteUpdatedAt,
         ),

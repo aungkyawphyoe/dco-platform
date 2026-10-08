@@ -28,6 +28,7 @@ class Document {
     this.expiresOn,
     this.localFilePath,
     this.mediaId,
+    this.createdBy,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -40,6 +41,7 @@ class Document {
   final DateTime? expiresOn;
   final String? localFilePath;
   final String? mediaId;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
 
@@ -50,6 +52,7 @@ class Document {
 
   Map<String, dynamic> toWriteJson() => {
         'id': id,
+        'vehicle_id': vehicleId,
         'name': name,
         'category': category.storage,
         if (notes != null) 'notes': notes,
@@ -77,6 +80,7 @@ class Document {
           : expiresOn as DateTime?,
       localFilePath: localFilePath ?? this.localFilePath,
       mediaId: mediaId ?? this.mediaId,
+      createdBy: createdBy,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt,
     );

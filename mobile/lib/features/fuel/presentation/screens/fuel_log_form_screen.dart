@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
@@ -10,6 +11,7 @@ import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 import 'package:dco_mobile/features/fuel/domain/fuel_failure.dart';
 import 'package:dco_mobile/features/fuel/domain/fuel_validators.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -80,6 +82,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   String? _formError;
   bool _loading = true;
   bool _saving = false;
+  String? _createdBy;
 
   @override
   void initState() {
@@ -90,13 +93,17 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
 
   Future<void> _hydrate() async {
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
-    if (vehicle != null) {
-      await ref.read(fuelRepositoryProvider).ensureDefaultFuelTypes(vehicle.userId);
+    final catalogUserId = ref.read(currentUserIdProvider);
+    if (catalogUserId != null) {
+      await ref
+          .read(fuelRepositoryProvider)
+          .ensureDefaultFuelTypes(catalogUserId);
     }
 
     if (widget.logId != null) {
       final log = await ref.read(fuelRepositoryProvider).getLog(widget.logId!);
       if (log != null && mounted) {
+        _createdBy = log.userId;
         _loggedOn = log.loggedOn;
         _date.text = DateFormat.yMMMd().format(log.loggedOn);
         _fuelTypeId = log.fuelTypeId;
@@ -111,7 +118,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     } else if (vehicle != null) {
       final types = await ref
           .read(fuelRepositoryProvider)
-          .watchFuelTypes(vehicle.userId, kind: widget.kind.catalogKind)
+          .watchFuelTypes(catalogUserId ?? '', kind: widget.kind.catalogKind)
           .first;
       if (types.isNotEmpty && mounted) {
         _fuelTypeId = types.first.id;
@@ -157,17 +164,30 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     );
   }
 
+  bool _canWrite() {
+    final access = VehicleAccess.of(
+      ref.read(activeVehicleProvider).valueOrNull,
+      ref.read(sessionControllerProvider).valueOrNull?.user.id,
+    );
+    return widget.isEditing
+        ? access.canEditRecord(_createdBy)
+        : access.canCreate;
+  }
+
   Future<void> _save() async {
     final draft = _draftOrNull();
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
+    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    if (currentUserId == null) return;
+    if (!_canWrite()) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(fuelRepositoryProvider);
       if (widget.isEditing) {
         await repo.updateLog(
-          userId: vehicle.userId,
+          userId: currentUserId,
           logId: widget.logId!,
           kind: widget.kind,
           draft: draft,
@@ -175,7 +195,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         ref.read(analyticsProvider).track(AnalyticsEvent.fuelLogUpdated);
       } else {
         await repo.addLog(
-          userId: vehicle.userId,
+          userId: currentUserId,
           vehicleId: vehicle.id,
           kind: widget.kind,
           draft: draft,
@@ -276,6 +296,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
       }
     }
     final unit = selected?.unit ?? widget.kind.catalogKind.defaultUnit;
+    final canWrite = _canWrite();
 
     if (_loading) {
       return Scaffold(
@@ -388,7 +409,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   child: DcoButton(
                     key: const Key('fuel-log-save'),
                     label: s.save,
-                    onPressed: _save,
+                    onPressed: canWrite ? _save : null,
                     loading: _saving,
                   ),
                 ),

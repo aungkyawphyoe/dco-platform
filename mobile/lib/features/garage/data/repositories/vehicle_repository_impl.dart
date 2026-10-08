@@ -101,23 +101,51 @@ class VehicleRepositoryImpl implements VehicleRepository {
         _db.userProfiles,
         _db.userProfiles.activeVehicleId.equalsExp(_db.vehicleRecords.id),
       ),
+      leftOuterJoin(
+        _db.vehicleShareRecords,
+        _db.vehicleShareRecords.vehicleId.equalsExp(_db.vehicleRecords.id) &
+            _db.vehicleShareRecords.userId.equals(userId) &
+            _db.vehicleShareRecords.status.equals('active'),
+      ),
     ])..where(
         _db.userProfiles.userId.equals(userId) & _db.vehicleRecords.archived.equals(false),
       );
     return query.watch().map((rows) {
       if (rows.isEmpty) return null;
-      return vehicleFromDrift(rows.first.readTable(_db.vehicleRecords));
+      return _withShare(rows.first, userId);
     });
   }
 
   @override
-  Stream<Vehicle?> watchById(String id) {
-    final query = _db.select(_db.vehicleRecords)
-      ..where((row) => row.id.equals(id));
+  Stream<Vehicle?> watchById(String id, {String? userId}) {
+    final query = _db.select(_db.vehicleRecords).join([
+      if (userId != null)
+        leftOuterJoin(
+          _db.vehicleShareRecords,
+          _db.vehicleShareRecords.vehicleId.equalsExp(_db.vehicleRecords.id) &
+              _db.vehicleShareRecords.userId.equals(userId) &
+              _db.vehicleShareRecords.status.equals('active'),
+        ),
+    ])
+      ..where(_db.vehicleRecords.id.equals(id));
     return query.watch().map((rows) {
       if (rows.isEmpty) return null;
-      return vehicleFromDrift(rows.first);
+      return _withShare(rows.first, userId);
     });
+  }
+
+  /// Maps a joined vehicle row, letting the active share row (the local
+  /// mirror of the server's access level) win over the vehicle's stale
+  /// denormalized `source`/`permission` columns for this account.
+  Vehicle _withShare(TypedResult row, String? userId) {
+    final vehicle = row.readTable(_db.vehicleRecords);
+    if (userId == null) return vehicleFromDrift(vehicle);
+    final share = row.readTableOrNull(_db.vehicleShareRecords);
+    if (share == null) return vehicleFromDrift(vehicle);
+    return vehicleFromDrift(vehicle.copyWith(
+      source: 'shared',
+      permission: Value(share.accessLevel),
+    ));
   }
 
   @override

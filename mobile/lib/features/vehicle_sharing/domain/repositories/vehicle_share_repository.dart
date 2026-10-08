@@ -62,6 +62,11 @@ abstract class VehicleShareRepository {
   /// Profile of someone you share a vehicle with (or yourself).
   Future<UserDetail?> getUserDetail(String userId);
 
+  /// Display name (or email) for [userId] from locally cached share rows —
+  /// works offline for people who share a vehicle with you. Null when the
+  /// person has never been seen on this device.
+  Future<String?> cachedUserName(String userId);
+
   /// Wipes local share rows on sign-out.
   Future<void> clearCache();
 }

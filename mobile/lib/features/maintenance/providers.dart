@@ -44,3 +44,7 @@ final suggestedItemsProvider = StreamProvider<List<SuggestedPlanItem>>((ref) {
   if (vehicle == null) return Stream.value(const []);
   return ref.watch(maintenanceCatalogRepositoryProvider).watchByFuelType(vehicle.fuelType);
 });
+
+final serviceDetailProvider = FutureProvider.family<ServiceRecord?, String>((ref, id) {
+  return ref.watch(maintenanceRepositoryProvider).getServiceRecord(id);
+});

@@ -34,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'dco_owner'));
 
   @override
-  int get schemaVersion => 20;
+  int get schemaVersion => 21;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -119,6 +119,10 @@ class AppDatabase extends _$AppDatabase {
         await migrator.addColumn(serviceRecordRows, serviceRecordRows.createdBy);
         await migrator.addColumn(partRecords, partRecords.createdBy);
         await migrator.addColumn(expenseRecords, expenseRecords.createdBy);
+      }
+      if (from < 21) {
+        // Sharing: track who created each document so sharees only edit their own.
+        await migrator.addColumn(documentRecords, documentRecords.createdBy);
       }
     },
   );

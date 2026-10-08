@@ -14,6 +14,7 @@ import 'package:dco_mobile/features/dashboard/presentation/widgets/quick_actions
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
@@ -186,6 +187,10 @@ class _PopulatedDashboard extends ConsumerWidget {
         ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
     final recent = history.take(DashboardScreen.recentActivityLimit).toList();
     final thresholds = ref.watch(reminderThresholdsProvider);
+    final access = VehicleAccess.of(
+      vehicle,
+      ref.watch(currentUserIdProvider),
+    );
     final next = DueCalculator.nearest(
       items: plan,
       vehicleMileage: vehicle.mileage,
@@ -306,12 +311,13 @@ class _PopulatedDashboard extends ConsumerWidget {
         SizedBox(height: tokens.space.s3),
         QuickActionsGrid(
           items: [
-            QuickActionItem(
-              label: s.dashboardLogService,
-              icon: Icons.car_repair,
-              color: tokens.chart.maintenance,
-              onTap: () => context.push(AppRoutes.maintenanceRegister),
-            ),
+            if (access.canCreate)
+              QuickActionItem(
+                label: s.dashboardLogService,
+                icon: Icons.car_repair,
+                color: tokens.chart.maintenance,
+                onTap: () => context.push(AppRoutes.maintenanceRegister),
+              ),
             QuickActionItem(
               label: s.dashboardHistory,
               icon: Icons.work_history_outlined,
@@ -347,7 +353,7 @@ class _PopulatedDashboard extends ConsumerWidget {
           item: next,
           lengthUnit: lengthUnit,
           thresholds: thresholds,
-          onLogService: next == null
+          onLogService: next == null || !access.canCreate
               ? () => context.push(AppRoutes.maintenancePlan)
               : () {
                   ref

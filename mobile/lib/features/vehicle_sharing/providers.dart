@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
+import '../auth/presentation/session_controller.dart';
 import 'data/repositories/vehicle_share_repository_impl.dart';
 import 'domain/entities/user_detail.dart';
 import 'domain/entities/vehicle_share.dart';
@@ -37,6 +38,37 @@ final userDetailProvider = FutureProvider.family<UserDetail?, String>((
   final currentUserId = ref.watch(currentUserIdProvider);
   if (currentUserId == null) return null;
   return ref.watch(vehicleShareRepositoryProvider).getUserDetail(userId);
+});
+
+/// Resolves a human-readable name for [userId] to label who logged a record.
+///
+/// Resolution order: your own session profile, then locally cached share rows
+/// (works offline for people you share vehicles with), then the network
+/// profile. Null when the name cannot be resolved — callers show a dash.
+final userNameProvider = FutureProvider.family<String?, String>((
+  ref,
+  userId,
+) async {
+  final currentUserId = ref.watch(currentUserIdProvider);
+  if (userId == currentUserId) {
+    final user = ref.watch(sessionControllerProvider).valueOrNull?.user;
+    final name = user?.displayName?.trim();
+    if (name != null && name.isNotEmpty) return name;
+    return user?.email;
+  }
+  final cached = await ref.watch(vehicleShareRepositoryProvider).cachedUserName(userId);
+  if (cached != null) return cached;
+  try {
+    final detail = await ref.watch(userDetailProvider(userId).future);
+    if (detail != null) {
+      final name = detail.displayName?.trim();
+      if (name != null && name.isNotEmpty) return name;
+      return detail.email;
+    }
+  } catch (_) {
+    // Offline or transient failure — fall through to null.
+  }
+  return null;
 });
 
 /// Preview of a share code before the user commits to joining.

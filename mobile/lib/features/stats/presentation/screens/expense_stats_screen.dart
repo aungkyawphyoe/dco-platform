@@ -5,6 +5,7 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/features/stats/domain/expense_stats_calculator.dart';
@@ -79,6 +80,7 @@ class _ExpenseStatsScreenState extends ConsumerState<ExpenseStatsScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
     final stats = ref.watch(expenseStatsProvider);
     final period = ref.watch(expenseStatsPeriodProvider);
     final currency = ref.watch(currencyProvider).code;
@@ -94,9 +96,11 @@ class _ExpenseStatsScreenState extends ConsumerState<ExpenseStatsScreen> {
         ? DcoEmptyState(
             title: s.expensesEmptyTitle,
             body: s.statsEmptyExpensesBody(vehicle.displayName),
-            actionLabel: s.expensesAddExpense,
+            actionLabel: access.canCreate ? s.expensesAddExpense : null,
             actionKey: const Key('stats-empty-cta'),
-            onAction: () => context.push(AppRoutes.expenseNew),
+            onAction: access.canCreate
+                ? () => context.push(AppRoutes.expenseNew)
+                : null,
           )
         : !stats.hasRecordsInPeriod
         ? DcoEmptyState(

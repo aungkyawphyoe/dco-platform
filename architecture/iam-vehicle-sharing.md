@@ -15,8 +15,8 @@
 | Principal | Surface | JWT `aud` | `users.role` | Share | What they can do |
 |-----------|---------|-----------|--------------|-------|------------------|
 | Vehicle owner | Flutter + Web | `dco-owner` | `owner` | — (they hold `vehicles.user_id`) | Own garage + share management on their vehicles + web shares page |
-| Vehicle sharee (`add_edit_own`) | Flutter | `dco-owner` | `owner` | `vehicle_shares.access_level = add_edit_own` | Read the shared vehicle, write plan/service/part/document/expense/fuel rows attributed to themselves |
-| Vehicle sharee (`view`) | Flutter | `dco-owner` | `owner` | `vehicle_shares.access_level = view` | Read the shared vehicle, read + write fuel logs only |
+| Vehicle sharee (`add_edit_own`) | Flutter | `dco-owner` | `owner` | `vehicle_shares.access_level = add_edit_own` | Read the shared vehicle; create service/expense/part/document/fuel rows and edit or delete only rows they created; no plan, vehicle identity, or share management |
+| Vehicle sharee (`view`) | Flutter | `dco-owner` | `owner` | `vehicle_shares.access_level = view` | Read the shared vehicle (read-only — every write is rejected) |
 | Platform Admin | Web admin | `dco-admin` | `admin` | — | `/v1/admin/*` only (unchanged) |
 
 There is no "primary owner", "member", "driver", or household role. Every participant is an
@@ -82,14 +82,16 @@ exist, is archived (unless allowed), or is linked to an organization.
 |-------------------|----------|-------|
 | `GET /v1/vehicles` | own rows only | `vehicles.userId === caller` |
 | `GET /v1/vehicles/shared` | any active share | self |
-| `GET /v1/vehicles/:id`, `PATCH`, `/archive` | `owner` | `getOwnedVehicle` |
-| `GET /v1/vehicles/:id/dashboard` | `owner` | `getOwnedVehicle` |
-| `GET /v1/vehicles/:id/detail` | any access | `getVehicleAccessLevel` |
+| `GET /v1/vehicles/:id`, `/dashboard`, `/warranty` | any access | `getAccessibleVehicle(..., "drive_only")` |
+| `GET /v1/vehicles/:id/detail` | any access | `getVehicleSharesDetail` (share roster stays owner-only) |
+| `PATCH /v1/vehicles/:id`, `/archive` | `owner` | `getOwnedVehicle` |
 | `POST /v1/vehicles/:id/activate` | any access | `getVehicleAccessLevel` |
-| Plan items (read), fuel logs (read), documents (read) | `view` | `getAccessibleVehicle(..., "drive_only")` |
-| Plan items (write), service records, parts, documents (write), expenses | `add_edit_own` | `getAccessibleVehicle(..., "full")` |
-| Fuel log create, fuel log edit of your own row | `view` | `drive_only`, or `loadFuelLogFor(..., "write")` |
-| Fuel log edit of someone else's row | `add_edit_own` | `loadFuelLogFor(..., "write")` |
+| Reads of plan items, suggested items, service records, parts, expenses + summary, fuel logs, documents | `view` | `getAccessibleVehicle(..., "drive_only")` |
+| Create service records, parts, expenses, fuel logs, documents | `add_edit_own` | `getAccessibleVehicle(..., "full")` |
+| Edit / delete plan items | `owner` | `getOwnedVehicle` (create) / `loadPlanItemFor(..., "write")` |
+| Edit / delete service records, parts, expenses, documents | owner or row author | `loadServiceRecordFor` / `loadPartFor` / `loadExpenseFor` / `loadDocumentFor` (`... "write"`) |
+| Edit / delete fuel logs | owner or row author (`fuel_logs.user_id`) | `loadFuelLogFor(..., "write")` — denied outright at `view` |
+| Advance mileage (service or fuel odometer) | owner or `add_edit_own`, monotonic only | body `odometer > vehicle.mileage` checked in the write path |
 | `POST/PATCH/DELETE /v1/vehicles/:id/shares…`, `/invitations…` | `owner` | inline `vehicles.userId === caller` → `403 not_vehicle_owner` |
 | `POST /v1/vehicles/shares/accept|join|decline` | any authenticated owner | self; owner-of-vehicle → `409 owner_cannot_join` |
 | `GET /v1/users/:userId/license` | share overlap | `sharesVehicleWith` → `403 not_shared` |
@@ -241,7 +243,7 @@ No token rotation is needed anywhere in this table.
 | `family_status` / `family_role` / `grant_permission` enums | `share_status` / `share_access` |
 | `primary_owner` → owns the family | is simply `vehicles.user_id` |
 | `member` → `add_edit_own` on family vehicles | `member` → `add_edit_own` |
-| `driver` → `view` + fuel | `view` (fuel writes allowed at `view`) |
+| `driver` → `view` + fuel | `view` (now read-only; fuel writes moved to `add_edit_own`) |
 | Share code on `families.share_code` | Share code on `vehicle_share_invitations.share_code` |
 | Family-scoped sync entities | `vehicle_share` entity; audience = owner ∪ active shares |
 

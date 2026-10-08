@@ -9,6 +9,7 @@ class Part {
     this.brand,
     this.partNumber,
     this.notes,
+    this.createdBy,
   });
 
   final String id;
@@ -18,6 +19,7 @@ class Part {
   final String? brand;
   final String? partNumber;
   final String? notes;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
 

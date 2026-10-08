@@ -312,6 +312,7 @@ class DocumentRecords extends Table {
   DateTimeColumn get expiresOn => dateTime().nullable()();
   TextColumn get localFilePath => text().nullable()();
   TextColumn get mediaId => text().nullable()();
+  TextColumn get createdBy => text().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
 

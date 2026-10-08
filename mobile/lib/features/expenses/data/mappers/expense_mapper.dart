@@ -13,6 +13,7 @@ Expense expenseFromDrift(ExpenseRecord row, [List<ExpensePartRecord> parts = con
     notes: row.notes,
     receiptLocalPath: row.receiptLocalPath,
     receiptMediaId: row.receiptMediaId,
+    createdBy: row.createdBy,
     parts: parts.map(expenseAssignedPartFromDrift).toList(),
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
@@ -37,6 +38,7 @@ ExpenseRecordsCompanion expenseToCompanion(Expense expense) {
     notes: Value(expense.notes),
     receiptLocalPath: Value(expense.receiptLocalPath),
     receiptMediaId: Value(expense.receiptMediaId),
+    createdBy: Value(expense.createdBy),
     updatedAt: expense.updatedAt,
     createdAt: expense.createdAt,
   );

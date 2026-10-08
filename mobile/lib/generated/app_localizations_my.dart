@@ -602,7 +602,13 @@ class AppLocalizationsMy extends AppLocalizations {
   String get serviceDetailParts => 'အပိုပစ္စည်းများ';
 
   @override
+  String get loggedBy => 'မှတ်တမ်းတင်သူ';
+
+  @override
   String get registerServiceTitle => 'မှတ်တမ်းထည့်မည်';
+
+  @override
+  String get registerServiceEditTitle => 'ပြုပြင်ထိန်းသိမ်းမှု ပြင်ဆင်မည်';
 
   @override
   String get registerServiceNoActiveVehicleBody =>
@@ -943,6 +949,25 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get expensesAllFilter => 'အားလုံး';
+
+  @override
+  String get expenseDetailTitle => 'အသုံးစရိတ် အသေးစိတ်';
+
+  @override
+  String get expenseDetailNotFound => 'အသုံးစရိတ် မှတ်တမ်း ရှာမတွေ့ပါ';
+
+  @override
+  String get expenseDetailNotFoundBody =>
+      'ဒီမှတ်တမ်း ရရှိနိုင်တော့မည် မဟုတ်ပါ။';
+
+  @override
+  String get expenseDetailAmount => 'ပမာဏ';
+
+  @override
+  String get expenseDetailNotes => 'မှတ်ချက်များ';
+
+  @override
+  String get expenseDetailParts => 'အပိုပစ္စည်းများ';
 
   @override
   String get expenseFormEditTitle => 'ကုန်ကျစရိတ် ပြင်မည်';
@@ -1400,6 +1425,22 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get fuelLogsThisMonth => 'ဒီလ';
+
+  @override
+  String get fuelLogDetailTitle => 'ဆီဖြည့်/အားသွင်း အသေးစိတ်';
+
+  @override
+  String get fuelLogDetailNotFound => 'ဆီဖြည့် မှတ်တမ်း ရှာမတွေ့ပါ';
+
+  @override
+  String get fuelLogDetailNotFoundBody =>
+      'ဒီမှတ်တမ်း ရရှိနိုင်တော့မည် မဟုတ်ပါ။';
+
+  @override
+  String get fuelLogDetailAmount => 'ပမာဏ';
+
+  @override
+  String get fuelLogDetailCost => 'ကုန်ကျစရိတ်';
 
   @override
   String get fuelLogFormTypeSheetTitle => 'လောင်စာဆီ အမျိုးအစား';

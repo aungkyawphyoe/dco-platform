@@ -143,6 +143,16 @@ class SyncEngine {
           message: error.message,
         ),
       );
+    } catch (_) {
+      // Non-ApiError failures (drift/type errors while applying a change)
+      // must not leave the UI stuck on "syncing" with no feedback.
+      _emit(
+        SyncState(
+          phase: SyncPhase.error,
+          lastSyncedAt: _state.lastSyncedAt,
+          message: 'Sync failed',
+        ),
+      );
     } finally {
       _running = false;
       if (_queuedAfterRun) {
@@ -386,7 +396,12 @@ class SyncEngine {
       if (pulled.changes.isNotEmpty) {
         await _db.transaction(() async {
           for (final change in pulled.changes) {
-            await _applier.apply(change, userId: userId);
+            try {
+              await _applier.apply(change, userId: userId);
+            } catch (_) {
+              // One malformed change must not roll back the whole page or
+              // permanently stall the cursor; skip it and keep the rest.
+            }
           }
         });
       }

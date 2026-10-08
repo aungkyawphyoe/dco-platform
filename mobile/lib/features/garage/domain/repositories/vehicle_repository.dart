@@ -5,7 +5,7 @@ abstract class VehicleRepository {
 
   Stream<Vehicle?> watchActive(String userId);
 
-  Stream<Vehicle?> watchById(String id);
+  Stream<Vehicle?> watchById(String id, {String? userId});
 
   Future<Vehicle?> getById(String id);
 

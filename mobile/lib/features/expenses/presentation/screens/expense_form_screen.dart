@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
@@ -11,6 +12,7 @@ import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/domain/expense_failure.dart';
 import 'package:dco_mobile/features/expenses/domain/expense_validators.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/providers.dart';
@@ -49,6 +51,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
   String? _receiptMediaId;
   String? _formError;
   bool _loading = true;
+  String? _createdBy;
   bool _saving = false;
   bool _missing = false;
 
@@ -63,6 +66,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     if (widget.expenseId != null) {
       final expense = await ref.read(expenseRepositoryProvider).getById(widget.expenseId!);
       if (expense != null && mounted) {
+        _createdBy = expense.createdBy;
         _category = expense.category;
         _categoryLabel.text = expense.category.label;
         _amount.text = MoneyFormat.input(expense.amount, ref.read(currencyProvider).code);
@@ -120,19 +124,21 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
+    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    if (currentUserId == null) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(expenseRepositoryProvider);
       if (widget.isEditing) {
         await repo.update(
-          userId: vehicle.userId,
+          userId: currentUserId,
           expenseId: widget.expenseId!,
           draft: draft,
         );
         ref.read(analyticsProvider).track(AnalyticsEvent.expenseUpdated);
       } else {
         await repo.add(
-          userId: vehicle.userId,
+          userId: currentUserId,
           vehicleId: vehicle.id,
           draft: draft,
         );
@@ -148,7 +154,8 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
   Future<void> _delete() async {
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
-    if (vehicle == null || widget.expenseId == null) return;
+    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    if (vehicle == null || currentUserId == null || widget.expenseId == null) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -167,7 +174,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     setState(() => _saving = true);
     try {
       await ref.read(expenseRepositoryProvider).delete(
-        userId: vehicle.userId,
+        userId: currentUserId,
         expenseId: widget.expenseId!,
       );
       ref.read(analyticsProvider).track(AnalyticsEvent.expenseDeleted);
@@ -357,6 +364,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final canWrite = widget.isEditing
+        ? access.canEditRecord(_createdBy)
+        : access.canCreate;
     final currency = ref.watch(currencyProvider).code;
     ref.watch(vehiclePartsProvider);
 
@@ -493,7 +504,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   SizedBox(height: tokens.space.s4),
                   Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
                 ],
-                if (widget.isEditing) ...[
+                if (widget.isEditing && canWrite) ...[
                   SizedBox(height: tokens.space.s5),
                   DcoButton(
                     key: const Key('expense-delete'),
@@ -526,7 +537,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   child: DcoButton(
                     key: const Key('expense-save'),
                     label: s.save,
-                    onPressed: _save,
+                    onPressed: canWrite ? _save : null,
                     loading: _saving,
                   ),
                 ),

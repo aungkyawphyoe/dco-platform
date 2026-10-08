@@ -57,4 +57,16 @@ abstract class MaintenanceRepository {
     required Vehicle vehicle,
     required ServiceRecordDraft draft,
   });
+
+  /// Replaces the editable fields of an existing service record.
+  ///
+  /// Unlike [registerService] this allows an odometer below the vehicle's
+  /// current mileage (historical edits), does not advance plan items and does
+  /// not auto-create an expense. The record's author is preserved.
+  Future<ServiceRecord> updateService({
+    required String userId,
+    required Vehicle vehicle,
+    required String serviceRecordId,
+    required ServiceRecordDraft draft,
+  });
 }

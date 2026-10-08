@@ -69,6 +69,7 @@ class PlanItem {
 
   Map<String, dynamic> toWriteJson() => {
     'id': id,
+    'vehicle_id': vehicleId,
     'name': name,
     'interval_days': intervalDays,
     'interval_distance': intervalDistance,

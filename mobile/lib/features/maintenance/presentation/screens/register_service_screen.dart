@@ -1,5 +1,6 @@
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
@@ -25,9 +26,17 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class RegisterServiceScreen extends ConsumerStatefulWidget {
-  const RegisterServiceScreen({super.key, this.preselectedPlanItemId});
+  const RegisterServiceScreen({
+    super.key,
+    this.preselectedPlanItemId,
+    this.editServiceId,
+  });
 
   final String? preselectedPlanItemId;
+
+  /// When set, the screen loads and updates this existing record instead of
+  /// creating a new one.
+  final String? editServiceId;
 
   @override
   ConsumerState<RegisterServiceScreen> createState() =>
@@ -50,11 +59,15 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   bool _totalTouched = false;
   bool _mileagePrefill = false;
   bool _itemPrefill = false;
+  bool _hydrated = false;
+
+  bool get _isEdit => widget.editServiceId != null;
 
   @override
   void initState() {
     super.initState();
     _date.text = DateFormat.yMMMd().format(_servicedOn);
+    _hydrateEdit();
   }
 
   @override
@@ -86,6 +99,51 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
         _addLine(match.first);
       }
     }
+  }
+
+  Future<void> _hydrateEdit() async {
+    final id = widget.editServiceId;
+    if (id == null || _hydrated) return;
+    _hydrated = true;
+    final record = await ref.read(maintenanceRepositoryProvider).getServiceRecord(id);
+    if (!mounted) return;
+    if (record == null) {
+      context.pop();
+      return;
+    }
+    setState(() {
+      _title.text = record.title;
+      _servicedOn = record.servicedOn;
+      _date.text = DateFormat.yMMMd().format(record.servicedOn);
+      _mileagePrefill = true;
+      _itemPrefill = true;
+      _mileage.text = MileageFormat.input(
+        record.odometer,
+        ref.read(lengthUnitProvider),
+      );
+      _notes.text = record.notes ?? '';
+      _total.text = _formatAmount(record.totalCost);
+      _totalTouched = true;
+      for (final item in record.items) {
+        final line = _ServiceLineInput(name: item.name, planItemId: item.planItemId);
+        if (item.lineCost != null) {
+          line.costController.text = _formatAmount(item.lineCost!);
+        }
+        _lines.add(line);
+      }
+      _parts.addAll(
+        record.parts.map(
+          (part) => AssignedPartDraft(partId: part.partId, name: part.name),
+        ),
+      );
+    });
+  }
+
+  String _formatAmount(double value) {
+    if (value == 0) return '';
+    return value.truncateToDouble() == value
+        ? value.toStringAsFixed(0)
+        : value.toString();
   }
 
   void _addLine(PlanItem item) {
@@ -131,6 +189,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   }
 
   String? _mileageBelowMinError(Vehicle vehicle, MileageUnit unit) {
+    if (_isEdit) return null;
     final parsed = PlanItemValidators.parseMileage(_mileage.text);
     if (parsed != null && parsed < unit.toDisplay(vehicle.mileage)) {
       return AppLocalizations.of(context)!.maintenanceMileageDecrease;
@@ -189,12 +248,26 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
+    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    if (currentUserId == null) return;
     setState(() => _saving = true);
     try {
+      if (_isEdit) {
+        await ref
+            .read(maintenanceRepositoryProvider)
+            .updateService(
+              userId: currentUserId,
+              vehicle: vehicle,
+              serviceRecordId: widget.editServiceId!,
+              draft: draft,
+            );
+        if (mounted) context.pop();
+        return;
+      }
       final record = await ref
           .read(maintenanceRepositoryProvider)
           .registerService(
-            userId: vehicle.userId,
+            userId: currentUserId,
             vehicle: vehicle,
             draft: draft,
           );
@@ -433,7 +506,9 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
 
     if (vehicle == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(s.registerServiceTitle)),
+        appBar: AppBar(
+          title: Text(_isEdit ? s.registerServiceEditTitle : s.registerServiceTitle),
+        ),
         body: DcoEmptyState(
           title: s.maintenanceNoActiveVehicle,
           body: s.registerServiceNoActiveVehicleBody,
@@ -442,7 +517,9 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.registerServiceTitle)),
+      appBar: AppBar(
+        title: Text(_isEdit ? s.registerServiceEditTitle : s.registerServiceTitle),
+      ),
       body: Column(
         children: [
           Expanded(

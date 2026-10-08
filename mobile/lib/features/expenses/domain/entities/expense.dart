@@ -67,6 +67,7 @@ class Expense {
     this.notes,
     this.receiptLocalPath,
     this.receiptMediaId,
+    this.createdBy,
     this.parts = const [],
   });
 
@@ -78,6 +79,7 @@ class Expense {
   final String? notes;
   final String? receiptLocalPath;
   final String? receiptMediaId;
+  final String? createdBy;
   final List<ExpenseAssignedPart> parts;
   final DateTime updatedAt;
   final DateTime createdAt;

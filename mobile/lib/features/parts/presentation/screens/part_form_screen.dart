@@ -1,8 +1,10 @@
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/domain/part_failure.dart';
@@ -33,6 +35,7 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
   String? _formError;
   bool _loading = true;
   bool _saving = false;
+  String? _createdBy;
 
   @override
   void initState() {
@@ -48,6 +51,7 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
     final part = await ref.read(partsRepositoryProvider).getById(widget.partId!);
     if (!mounted) return;
     if (part != null) {
+      _createdBy = part.createdBy;
       _name.text = part.name;
       _brand.text = part.brand ?? '';
       _partNumber.text = part.partNumber ?? '';
@@ -83,19 +87,32 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
     );
   }
 
+  bool _canWrite() {
+    final access = VehicleAccess.of(
+      ref.read(activeVehicleProvider).valueOrNull,
+      ref.read(sessionControllerProvider).valueOrNull?.user.id,
+    );
+    return widget.isEditing
+        ? access.canEditRecord(_createdBy)
+        : access.canCreate;
+  }
+
   Future<void> _save() async {
     final draft = _draftOrNull();
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
+    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    if (currentUserId == null) return;
+    if (!_canWrite()) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(partsRepositoryProvider);
       if (widget.isEditing) {
-        await repo.update(userId: vehicle.userId, partId: widget.partId!, draft: draft);
+        await repo.update(userId: currentUserId, partId: widget.partId!, draft: draft);
         ref.read(analyticsProvider).track(AnalyticsEvent.partUpdated);
       } else {
-        await repo.add(userId: vehicle.userId, vehicleId: vehicle.id, draft: draft);
+        await repo.add(userId: currentUserId, vehicleId: vehicle.id, draft: draft);
         ref.read(analyticsProvider).track(AnalyticsEvent.partAdded);
       }
       if (mounted) context.pop();
@@ -116,6 +133,7 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
         body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
       );
     }
+    final canWrite = _canWrite();
 
     return Scaffold(
       appBar: AppBar(title: Text(widget.isEditing ? s.partFormEditTitle : s.partFormAddTitle)),
@@ -189,7 +207,7 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
                   child: DcoButton(
                     key: const Key('part-save'),
                     label: s.save,
-                    onPressed: _save,
+                    onPressed: canWrite ? _save : null,
                     loading: _saving,
                   ),
                 ),

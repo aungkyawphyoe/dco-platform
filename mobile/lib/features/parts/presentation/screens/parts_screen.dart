@@ -1,6 +1,8 @@
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/providers.dart';
@@ -18,6 +20,7 @@ class PartsScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final parts = ref.watch(vehiclePartsProvider);
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
 
     return Scaffold(
       appBar: AppBar(
@@ -25,8 +28,8 @@ class PartsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: s.partsAddTooltip,
-            onPressed: vehicle == null ? null : () => context.push(AppRoutes.partNew),
-            icon: Icon(Icons.add, color: vehicle == null ? tokens.icon.inactive : tokens.icon.active),
+            onPressed: !access.canCreate ? null : () => context.push(AppRoutes.partNew),
+            icon: Icon(Icons.add, color: !access.canCreate ? tokens.icon.inactive : tokens.icon.active),
           ),
         ],
       ),
@@ -43,8 +46,10 @@ class PartsScreen extends ConsumerWidget {
                   return DcoEmptyState(
                     title: s.partsEmptyTitle,
                     body: s.partsEmptyBody(vehicle.displayName),
-                    actionLabel: s.partsAddPart,
-                    onAction: () => context.push(AppRoutes.partNew),
+                    actionLabel: access.canCreate ? s.partsAddPart : null,
+                    onAction: access.canCreate
+                        ? () => context.push(AppRoutes.partNew)
+                        : null,
                   );
                 }
                 return ListView.builder(
@@ -61,7 +66,9 @@ class PartsScreen extends ConsumerWidget {
                       padding: EdgeInsets.only(bottom: tokens.space.s3),
                       child: _PartTile(
                         part: part,
-                        onTap: () => context.push(AppRoutes.partEdit(part.id)),
+                        onTap: access.canEditRecord(part.createdBy)
+                            ? () => context.push(AppRoutes.partEdit(part.id))
+                            : null,
                       ),
                     );
                   },
@@ -73,10 +80,10 @@ class PartsScreen extends ConsumerWidget {
 }
 
 class _PartTile extends StatelessWidget {
-  const _PartTile({required this.part, required this.onTap});
+  const _PartTile({required this.part, this.onTap});
 
   final Part part;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

@@ -1,6 +1,7 @@
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
@@ -79,14 +80,17 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
+    final currentUserId =
+        ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    if (currentUserId == null) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(fuelRepositoryProvider);
       if (widget.isEditing) {
-        await repo.updateFuelType(userId: vehicle.userId, fuelTypeId: widget.fuelTypeId!, draft: draft);
+        await repo.updateFuelType(userId: currentUserId, fuelTypeId: widget.fuelTypeId!, draft: draft);
         ref.read(analyticsProvider).track(AnalyticsEvent.fuelTypeUpdated);
       } else {
-        await repo.addFuelType(userId: vehicle.userId, draft: draft);
+        await repo.addFuelType(userId: currentUserId, draft: draft);
         ref.read(analyticsProvider).track(AnalyticsEvent.fuelTypeAdded);
       }
       if (mounted) context.pop();

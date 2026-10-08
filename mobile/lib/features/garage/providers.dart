@@ -21,7 +21,8 @@ final activeVehicleProvider = StreamProvider<Vehicle?>((ref) {
 /// that must reference a non-active vehicle.
 final vehicleByIdProvider = StreamProvider.family<Vehicle?, String>((ref, vehicleId) {
   if (vehicleId.isEmpty) return Stream.value(null);
-  return ref.watch(vehicleRepositoryProvider).watchById(vehicleId);
+  final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
+  return ref.watch(vehicleRepositoryProvider).watchById(vehicleId, userId: userId);
 });
 
 typedef SetActiveVehicle = Future<void> Function(String vehicleId);

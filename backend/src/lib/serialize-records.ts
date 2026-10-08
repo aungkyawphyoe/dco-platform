@@ -92,6 +92,7 @@ export function publicDoc(row: typeof documents.$inferSelect) {
     expires_on: dateOnly(row.expiresOn),
     media_id: row.mediaId,
     created_at: row.createdAt.toISOString(),
+    created_by: row.createdBy,
   };
 }
 

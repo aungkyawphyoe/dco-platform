@@ -74,6 +74,7 @@ class ServiceRecord {
 
   Map<String, dynamic> toWriteJson() => {
     'id': id,
+    'vehicle_id': vehicleId,
     'serviced_on': servicedOn.toIso8601String().split('T').first,
     'odometer': odometer,
     'total_cost': totalCost,

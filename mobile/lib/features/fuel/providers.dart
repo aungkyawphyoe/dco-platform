@@ -10,7 +10,7 @@ FuelLogKind fuelLogKindFor(Vehicle vehicle) {
 }
 
 final seedFuelTypesProvider = FutureProvider<void>((ref) async {
-  final userId = ref.watch(activeVehicleProvider).valueOrNull?.userId;
+  final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return;
   await ref.watch(fuelRepositoryProvider).ensureDefaultFuelTypes(userId);
 });
@@ -22,7 +22,7 @@ final vehicleFuelLogKindProvider = Provider<FuelLogKind?>((ref) {
 });
 
 final fuelCatalogProvider = StreamProvider<List<FuelCatalogType>>((ref) {
-  final userId = ref.watch(activeVehicleProvider).valueOrNull?.userId;
+  final userId = ref.watch(currentUserIdProvider);
   if (userId == null) return Stream.value(const []);
   return ref.watch(fuelRepositoryProvider).watchFuelTypes(userId);
 });
@@ -41,4 +41,8 @@ final vehicleFuelLogsProvider = StreamProvider<List<FuelLog>>((ref) {
     vehicleId: vehicle.id,
     kind: fuelLogKindFor(vehicle),
   );
+});
+
+final fuelLogDetailProvider = FutureProvider.family<FuelLog?, String>((ref, id) {
+  return ref.watch(fuelRepositoryProvider).getLog(id);
 });

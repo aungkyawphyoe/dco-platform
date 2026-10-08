@@ -163,9 +163,9 @@ So that I do not join the wrong car.
 
 As a sharee with `view`,
 
-I want to read history and log fuel
+I want to read the shared vehicle's history and records
 
-So that I can keep the tank record current without editing the owner's records.
+So that I stay informed without changing anything.
 
 ---
 
@@ -222,14 +222,28 @@ Behavior
 
 ## Access levels
 
-| Capability | `view` | `add_edit_own` |
-|------------|:------:|:--------------:|
-| See the shared vehicle, read plan items, documents, fuel logs | ✓ | ✓ |
-| Create fuel logs; edit fuel logs you wrote | ✓ | ✓ |
-| Read service records, parts, expenses | ✗ | ✓ |
-| Create/edit service records, plan items, parts, documents, expenses | ✗ | ✓ |
-| Edit vehicle info, archive, manage shares | ✗ | ✗ |
-| Edit a fuel log someone else wrote | ✗ | ✓ |
+Three roles: the vehicle **owner**, a sharee with `add_edit_own` (contributor), and a sharee with
+`view` (read-only). This table is the contract for both the API and the mobile UI.
+
+| Capability | Owner | `add_edit_own` | `view` |
+|------------|:-----:|:--------------:|:------:|
+| Read the vehicle, plan items, service records, parts, expenses, fuel logs, documents, dashboard, warranty | ✓ | ✓ | ✓ |
+| Create service records, expenses, parts, documents, fuel logs | ✓ | ✓ | ✗ |
+| Edit/delete records you created | ✓ | ✓ | ✗ |
+| Edit/delete records someone else created | ✓ | ✗ | ✗ |
+| Edit vehicle identity, archive the vehicle | ✓ | ✗ | ✗ |
+| Create/edit/delete maintenance plan items | ✓ | ✗ | ✗ |
+| Create, edit, revoke, resend shares (share roster) | ✓ | ✗ | ✗ |
+| Advance mileage (service or fuel odometer) | ✓ | ✓ | ✗ |
+
+Notes:
+
+- Completing a plan item happens as a side effect of registering a service record, so anyone who
+  can create service records can check an item off — the plan item itself stays owner-managed.
+- Fuel types and notifications are per-user: every user, including a sharee, reads and manages
+  their own fuel-type catalog, and a fuel log must reference a type from the logging user's catalog.
+- The API stays authoritative; the mobile UI hides actions it knows are not allowed instead of
+  surfacing 403s.
 
 ## Shared with Me (sharee)
 
@@ -245,7 +259,8 @@ Behavior
 - One row per `(vehicle_id, user_id)` — you cannot be granted the same vehicle twice
 - Only `status='active'` grants access; `pending` never does
 - Only the vehicle owner creates, edits, revokes, resends, or cancels shares
-- Sharees cannot edit vehicle identity, archive the vehicle, or see other sharees
+- Sharees cannot edit vehicle identity, archive the vehicle, manage the maintenance plan, or see
+  other sharees
 - Vehicles linked to an organization cannot be shared and are invisible to this path
 - Plan limits are enforced per **owner**, on create and on accept/join:
 
@@ -316,7 +331,8 @@ Access level
 
 - `403 not_vehicle_owner` — managing shares on a vehicle you do not own
 - `403 no_vehicle_access` — reading a vehicle you have no share on
-- `403 insufficient_permission` — write with `view`, or editing someone else's fuel log
+- `403 insufficient_permission` — any write with `view`, or editing/deleting a record you did not
+  create on a vehicle you do not own (owner-only: vehicle identity, plan items, shares)
 - `403 share_limit_reached` — over the per-vehicle or total cap
 - `403 email_mismatch` — accepting with the wrong account
 - `404 share_not_found` / `invitation_not_found` / `share_code_not_found` / `vehicle_not_found`

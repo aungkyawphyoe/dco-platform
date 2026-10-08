@@ -100,6 +100,15 @@ async function applyOp(app: FastifyInstance, auth: string, op: Op): Promise<"app
     });
   };
 
+  // Upserts must update an existing row when the entity is already on the
+  // server: POST create endpoints return 201 without applying changes, so
+  // edits would be silently dropped. Try PATCH first, fall back to POST.
+  const upsert = async (patchUrl: string, postUrl: string) => {
+    const patched = await call("PATCH", patchUrl, payload);
+    if (patched.statusCode === 404) return finish(await call("POST", postUrl, payload));
+    return finish(patched);
+  };
+
   if (op.entity_type === "vehicle" && op.op === "upsert") {
     const existing = await call("GET", `/vehicles/${op.entity_id}`);
     if (existing.statusCode === 200) {
@@ -113,14 +122,13 @@ async function applyOp(app: FastifyInstance, auth: string, op: Op): Promise<"app
     return finish(await call("POST", `/vehicles/${op.entity_id}/archive`));
   }
   if (op.entity_type === "plan_item" && op.op === "upsert") {
-    if (vehicleId) return finish(await call("POST", `/vehicles/${vehicleId}/plan-items`, payload));
-    return finish(await call("PATCH", `/plan-items/${op.entity_id}`, op.payload));
+    return upsert(`/plan-items/${op.entity_id}`, `/vehicles/${vehicleId}/plan-items`);
   }
   if (op.entity_type === "plan_item" && op.op === "delete") {
     return finish(await call("DELETE", `/plan-items/${op.entity_id}`));
   }
   if (op.entity_type === "service_record" && op.op === "upsert") {
-    return finish(await call("POST", `/vehicles/${vehicleId}/service-records`, payload));
+    return upsert(`/service-records/${op.entity_id}`, `/vehicles/${vehicleId}/service-records`);
   }
   if (op.entity_type === "document" && op.op === "upsert") {
     const existing = await call("GET", `/documents/${op.entity_id}`);
@@ -133,19 +141,19 @@ async function applyOp(app: FastifyInstance, auth: string, op: Op): Promise<"app
     return finish(await call("DELETE", `/documents/${op.entity_id}`));
   }
   if (op.entity_type === "expense" && op.op === "upsert") {
-    return finish(await call("POST", `/vehicles/${vehicleId}/expenses`, payload));
+    return upsert(`/expenses/${op.entity_id}`, `/vehicles/${vehicleId}/expenses`);
   }
   if (op.entity_type === "expense" && op.op === "delete") {
     return finish(await call("DELETE", `/expenses/${op.entity_id}`));
   }
   if (op.entity_type === "part" && op.op === "upsert") {
-    return finish(await call("POST", `/vehicles/${vehicleId}/parts`, payload));
+    return upsert(`/parts/${op.entity_id}`, `/vehicles/${vehicleId}/parts`);
   }
   if (op.entity_type === "fuel_type" && op.op === "upsert") {
-    return finish(await call("POST", "/fuel-types", payload));
+    return upsert(`/fuel-types/${op.entity_id}`, "/fuel-types");
   }
   if (op.entity_type === "fuel_log" && op.op === "upsert") {
-    return finish(await call("POST", `/vehicles/${vehicleId}/fuel-logs`, payload));
+    return upsert(`/fuel-logs/${op.entity_id}`, `/vehicles/${vehicleId}/fuel-logs`);
   }
   if (op.entity_type === "notification" && op.op === "upsert") {
     return finish(await call("PATCH", `/notifications/${op.entity_id}`, op.payload));

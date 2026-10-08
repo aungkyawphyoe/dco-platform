@@ -1196,11 +1196,23 @@ abstract class AppLocalizations {
   /// **'Parts'**
   String get serviceDetailParts;
 
+  /// No description provided for @loggedBy.
+  ///
+  /// In en, this message translates to:
+  /// **'Logged by'**
+  String get loggedBy;
+
   /// No description provided for @registerServiceTitle.
   ///
   /// In en, this message translates to:
   /// **'Register Service'**
   String get registerServiceTitle;
+
+  /// No description provided for @registerServiceEditTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit service'**
+  String get registerServiceEditTitle;
 
   /// No description provided for @registerServiceNoActiveVehicleBody.
   ///
@@ -1813,6 +1825,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'All'**
   String get expensesAllFilter;
+
+  /// No description provided for @expenseDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense details'**
+  String get expenseDetailTitle;
+
+  /// No description provided for @expenseDetailNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense not found'**
+  String get expenseDetailNotFound;
+
+  /// No description provided for @expenseDetailNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This expense is no longer available.'**
+  String get expenseDetailNotFoundBody;
+
+  /// No description provided for @expenseDetailAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get expenseDetailAmount;
+
+  /// No description provided for @expenseDetailNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get expenseDetailNotes;
+
+  /// No description provided for @expenseDetailParts.
+  ///
+  /// In en, this message translates to:
+  /// **'Parts'**
+  String get expenseDetailParts;
 
   /// No description provided for @expenseFormEditTitle.
   ///
@@ -2653,6 +2701,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This month'**
   String get fuelLogsThisMonth;
+
+  /// No description provided for @fuelLogDetailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refuel details'**
+  String get fuelLogDetailTitle;
+
+  /// No description provided for @fuelLogDetailNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Refuel log not found'**
+  String get fuelLogDetailNotFound;
+
+  /// No description provided for @fuelLogDetailNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This log is no longer available.'**
+  String get fuelLogDetailNotFoundBody;
+
+  /// No description provided for @fuelLogDetailAmount.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get fuelLogDetailAmount;
+
+  /// No description provided for @fuelLogDetailCost.
+  ///
+  /// In en, this message translates to:
+  /// **'Cost'**
+  String get fuelLogDetailCost;
 
   /// No description provided for @fuelLogFormTypeSheetTitle.
   ///

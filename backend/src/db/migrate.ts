@@ -48,6 +48,10 @@ export function auditTrailSql(): string {
   return readSql("0009_audit_trail.sql");
 }
 
+export function documentCreatedBySql(): string {
+  return readSql("0010_document_created_by.sql");
+}
+
 export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Promise<void> {
   await exec(initSql());
   await exec(maintenanceCatalogSql());
@@ -59,4 +63,5 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(usersUsernameSql());
   await exec(vehicleSharingSql());
   await exec(auditTrailSql());
+  await exec(documentCreatedBySql());
 }

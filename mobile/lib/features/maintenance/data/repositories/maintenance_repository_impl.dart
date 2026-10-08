@@ -140,6 +140,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       enabled: draft.enabled,
       notes: _emptyToNull(draft.notes),
       catalogKey: draft.catalogKey,
+      createdBy: userId,
       updatedAt: now,
       createdAt: now,
     );
@@ -186,6 +187,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       enabled: draft.enabled,
       notes: _emptyToNull(draft.notes),
       catalogKey: existing.catalogKey ?? draft.catalogKey,
+      createdBy: existing.createdBy,
       updatedAt: now,
       createdAt: existing.createdAt,
     );
@@ -272,6 +274,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           enabled: true,
           notes: null,
           catalogKey: suggestion.catalogKey,
+          createdBy: userId,
           updatedAt: now,
           createdAt: now,
         );
@@ -366,6 +369,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       parts: assigned,
       updatedAt: now,
       createdAt: now,
+      createdBy: userId,
     );
 
     await _db.transaction(() async {
@@ -381,6 +385,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
               totalCost: record.totalCost,
               workshopName: Value(record.workshopName),
               notes: Value(record.notes),
+              createdBy: Value(record.createdBy),
               updatedAt: record.updatedAt,
               createdAt: record.createdAt,
             ),
@@ -447,6 +452,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           enabled: item.recurring,
           notes: item.notes,
           catalogKey: item.catalogKey,
+          createdBy: item.createdBy,
           updatedAt: now,
           createdAt: item.createdAt,
         );
@@ -482,6 +488,141 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         ),
       );
     }
+    _sync?.requestSync();
+    return record;
+  }
+
+  @override
+  Future<ServiceRecord> updateService({
+    required String userId,
+    required Vehicle vehicle,
+    required String serviceRecordId,
+    required ServiceRecordDraft draft,
+  }) async {
+    if (draft.items.isEmpty) {
+      throw const MaintenanceValidationFailure('Add at least one service');
+    }
+    if (draft.odometer < 0) {
+      throw const MaintenanceValidationFailure('Enter a valid mileage');
+    }
+    if (draft.totalCost < 0) {
+      throw const MaintenanceValidationFailure('Enter a valid amount');
+    }
+
+    final existing = await getServiceRecord(serviceRecordId);
+    if (existing == null || existing.vehicleId != vehicle.id) {
+      throw const ServiceRecordNotFoundFailure();
+    }
+
+    final now = DateTime.now().toUtc();
+    final lines = draft.items
+        .map(
+          (item) => ServiceLine(
+            id: _uuid.v4(),
+            planItemId: item.planItemId,
+            name: item.name.trim(),
+            lineCost: item.lineCost,
+          ),
+        )
+        .toList();
+    final assigned = draft.parts
+        .map(
+          (part) => AssignedPart(
+            id: _uuid.v4(),
+            partId: part.partId,
+            name: part.name.trim(),
+          ),
+        )
+        .toList();
+    final title = _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
+    final record = ServiceRecord(
+      id: existing.id,
+      vehicleId: existing.vehicleId,
+      title: title,
+      servicedOn: DueCalculator.dateOnly(draft.servicedOn),
+      odometer: draft.odometer,
+      totalCost: draft.totalCost,
+      workshopName: _emptyToNull(draft.workshopName),
+      notes: _emptyToNull(draft.notes),
+      items: lines,
+      parts: assigned,
+      receiptLocalPath: existing.receiptLocalPath,
+      receiptMediaId: existing.receiptMediaId,
+      updatedAt: now,
+      createdAt: existing.createdAt,
+      createdBy: existing.createdBy,
+    );
+
+    await _db.transaction(() async {
+      await (_db.update(
+        _db.serviceRecordRows,
+      )..where((row) => row.id.equals(serviceRecordId))).write(
+        ServiceRecordRowsCompanion(
+          title: Value(record.title),
+          servicedOn: Value(record.servicedOn),
+          odometer: Value(record.odometer),
+          totalCost: Value(record.totalCost),
+          workshopName: Value(record.workshopName),
+          notes: Value(record.notes),
+          updatedAt: Value(record.updatedAt),
+        ),
+      );
+      await (_db.delete(
+        _db.serviceLineRecords,
+      )..where((row) => row.serviceRecordId.equals(serviceRecordId))).go();
+      await (_db.delete(
+        _db.servicePartRecords,
+      )..where((row) => row.serviceRecordId.equals(serviceRecordId))).go();
+      for (final line in lines) {
+        await _db
+            .into(_db.serviceLineRecords)
+            .insert(
+              ServiceLineRecordsCompanion.insert(
+                id: line.id,
+                serviceRecordId: record.id,
+                planItemId: Value(line.planItemId),
+                name: line.name,
+                lineCost: Value(line.lineCost),
+              ),
+            );
+      }
+      for (final part in assigned) {
+        await _db
+            .into(_db.servicePartRecords)
+            .insert(
+              ServicePartRecordsCompanion.insert(
+                id: part.id,
+                serviceRecordId: record.id,
+                partId: part.partId,
+                name: part.name,
+              ),
+            );
+      }
+
+      if (draft.odometer > vehicle.mileage) {
+        await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(vehicle.id))).write(
+          VehicleRecordsCompanion(
+            mileage: Value(draft.odometer),
+            updatedAt: Value(now),
+          ),
+        );
+        await _outbox.enqueue(
+          userId: userId,
+          entityType: OutboxEntityType.vehicle,
+          entityId: vehicle.id,
+          op: OutboxOp.upsert,
+          payload: vehicle.toWriteJson()..['mileage'] = draft.odometer,
+        );
+      }
+
+      await _outbox.enqueue(
+        userId: userId,
+        entityType: OutboxEntityType.serviceRecord,
+        entityId: record.id,
+        op: OutboxOp.upsert,
+        payload: record.toWriteJson(),
+      );
+    });
     _sync?.requestSync();
     return record;
   }

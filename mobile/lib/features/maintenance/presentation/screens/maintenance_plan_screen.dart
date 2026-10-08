@@ -5,6 +5,7 @@ import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_tile.dart';
@@ -30,6 +31,12 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
   final _seededVehicleIds = <String>{};
 
   void _seedDefaults(Vehicle vehicle) {
+    // Only the owner manages the maintenance plan; sharees never write to it.
+    final access = VehicleAccess.of(
+      vehicle,
+      ref.read(currentUserIdProvider),
+    );
+    if (!access.canManagePlan) return;
     if (!_seededVehicleIds.add(vehicle.id)) return;
     unawaited(
       ref.read(maintenanceRepositoryProvider).ensureDefaultPlan(
@@ -79,6 +86,10 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
                       body: '$error',
                     ),
                     data: (items) {
+                      final access = VehicleAccess.of(
+                        vehicle,
+                        ref.watch(currentUserIdProvider),
+                      );
                       if (items.isEmpty) {
                         _seedDefaults(vehicle);
                         return DcoEmptyState(
@@ -110,9 +121,11 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
                               now: now,
                               lengthUnit: lengthUnit,
                               thresholds: thresholds,
-                              onTap: () => context.push(
-                                AppRoutes.maintenancePlanEdit(item.id),
-                              ),
+                              onTap: access.canManagePlan
+                                  ? () => context.push(
+                                        AppRoutes.maintenancePlanEdit(item.id),
+                                      )
+                                  : null,
                             ),
                           ),
                         ],
@@ -120,7 +133,9 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
                     },
                   ),
           ),
-          if (vehicle != null)
+          if (vehicle != null &&
+              VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider))
+                  .canManagePlan)
             DcoStickyActions(
               secondaryLabel: s.maintenancePlanAddItem,
               onSecondary: () => context.push(AppRoutes.maintenancePlanNew),

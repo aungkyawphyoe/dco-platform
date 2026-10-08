@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/features/documents/providers.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,7 @@ class DocumentsScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final documents = ref.watch(vehicleDocumentsProvider);
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
 
     return Scaffold(
       appBar: AppBar(
@@ -28,12 +31,12 @@ class DocumentsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: s.documentsAddTooltip,
-            onPressed: vehicle == null
+            onPressed: !access.canCreate
                 ? null
                 : () => context.push(AppRoutes.documentNew),
             icon: Icon(
               Icons.add,
-              color: vehicle == null
+              color: !access.canCreate
                   ? tokens.icon.inactive
                   : tokens.icon.active,
             ),
@@ -60,9 +63,12 @@ class DocumentsScreen extends ConsumerWidget {
                       child: DcoEmptyState(
                         title: s.documentsEmptyTitle,
                         body: s.documentsEmptyBody(vehicle.displayName),
-                        actionLabel: s.documentsAddDocument,
-                        onAction: () =>
-                            context.push(AppRoutes.documentNew),
+                        actionLabel: access.canCreate
+                            ? s.documentsAddDocument
+                            : null,
+                        onAction: access.canCreate
+                            ? () => context.push(AppRoutes.documentNew)
+                            : null,
                       ),
                     )
                   : ListView.builder(
@@ -82,13 +88,16 @@ class DocumentsScreen extends ConsumerWidget {
                           child: _DocumentTile(
                             document: doc,
                             onTap: () {
-                              if (doc.hasLocalFile || doc.mediaId != null) {
+                              final hasFile =
+                                  doc.hasLocalFile || doc.mediaId != null;
+                              if (!hasFile &&
+                                  access.canEditRecord(doc.createdBy)) {
                                 context.push(
-                                  AppRoutes.documentView(doc.id),
+                                  AppRoutes.documentEdit(doc.id),
                                 );
                               } else {
                                 context.push(
-                                  AppRoutes.documentEdit(doc.id),
+                                  AppRoutes.documentView(doc.id),
                                 );
                               }
                             },

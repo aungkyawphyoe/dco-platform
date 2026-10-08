@@ -165,7 +165,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const row = await getOwnedVehicle(app.db, request.authUser!.sub, vehicleId, true);
+    const row = await getAccessibleVehicle(app.db, request.authUser!.sub, vehicleId, "drive_only", true);
     return publicVehicle(row, await nextMaintenance(app.db, row.id, reqNum(row.mileage)));
   });
 
@@ -270,7 +270,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/dashboard", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const row = await getOwnedVehicle(app.db, request.authUser!.sub, vehicleId);
+    const row = await getAccessibleVehicle(app.db, request.authUser!.sub, vehicleId, "drive_only");
     const expenseRows = await app.db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
     const now = new Date();
     const monthPrefix = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -315,7 +315,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
   app.get("/vehicles/:vehicleId/warranty", async (request) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const vehicle = await getOwnedVehicle(app.db, request.authUser!.sub, vehicleId);
+    const vehicle = await getAccessibleVehicle(app.db, request.authUser!.sub, vehicleId, "drive_only");
     const [warranty] = await app.db.select().from(vehicleWarranties).where(eq(vehicleWarranties.vehicleId, vehicleId)).limit(1);
     if (!warranty) throw new AppError(404, "warranty_not_found", "Vehicle has no warranty record");
     const expiredByDate = (dateOnly(warranty.warrantyEndDate) ?? "9999-12-31") < new Date().toISOString().slice(0, 10);

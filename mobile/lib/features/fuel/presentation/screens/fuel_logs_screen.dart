@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
@@ -5,6 +6,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -36,6 +38,7 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
     final currency = ref.watch(currencyProvider).code;
     final title = kind?.label ?? s.fuelLogsTitle;
     ref.watch(seedFuelTypesProvider);
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
 
     return Scaffold(
       appBar: AppBar(
@@ -51,8 +54,8 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
           ),
           IconButton(
             tooltip: kind == FuelLogKind.charge ? s.fuelLogsAddChargeTooltip : s.fuelLogsAddRefuelTooltip,
-            onPressed: vehicle == null ? null : () => context.push(AppRoutes.fuelLogNew),
-            icon: Icon(Icons.add, color: vehicle == null ? tokens.icon.inactive : tokens.icon.active),
+            onPressed: !access.canCreate ? null : () => context.push(AppRoutes.fuelLogNew),
+            icon: Icon(Icons.add, color: !access.canCreate ? tokens.icon.inactive : tokens.icon.active),
           ),
         ],
       ),
@@ -83,8 +86,10 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
                               body: kind == FuelLogKind.charge
                                   ? s.fuelLogsEmptyBodyCharges(vehicle.displayName)
                                   : s.fuelLogsEmptyBodyRefuels(vehicle.displayName),
-                              actionLabel: kind.addLabel,
-                              onAction: () => context.push(AppRoutes.fuelLogNew),
+                              actionLabel: access.canCreate ? kind.addLabel : null,
+                              onAction: access.canCreate
+                                  ? () => context.push(AppRoutes.fuelLogNew)
+                                  : null,
                             )
                           : filtered.isEmpty
                           ? DcoEmptyState(
@@ -106,7 +111,8 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
                                   child: _FuelLogTile(
                                     log: log,
                                     currency: currency,
-                                    onTap: () => context.push(AppRoutes.fuelLogEdit(log.id)),
+                                    onTap: () =>
+                                        context.push(AppRoutes.fuelLogDetail(log.id)),
                                   ),
                                 );
                               },
@@ -238,12 +244,12 @@ class _FuelLogTile extends StatelessWidget {
   const _FuelLogTile({
     required this.log,
     required this.currency,
-    required this.onTap,
+    this.onTap,
   });
 
   final FuelLog log;
   final String currency;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {

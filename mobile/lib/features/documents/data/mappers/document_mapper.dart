@@ -13,6 +13,7 @@ Document documentFromDrift(DocumentRecord row) {
     expiresOn: row.expiresOn,
     localFilePath: row.localFilePath,
     mediaId: row.mediaId,
+    createdBy: row.createdBy,
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
   );
@@ -28,6 +29,7 @@ DocumentRecordsCompanion documentToCompanion(Document doc) {
     expiresOn: Value(doc.expiresOn),
     localFilePath: Value(doc.localFilePath),
     mediaId: Value(doc.mediaId),
+    createdBy: Value(doc.createdBy),
     updatedAt: doc.updatedAt,
     createdAt: doc.createdAt,
   );

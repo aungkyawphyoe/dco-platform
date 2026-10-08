@@ -183,6 +183,20 @@ class VehicleShareRepositoryImpl implements VehicleShareRepository {
   }
 
   @override
+  Future<String?> cachedUserName(String userId) async {
+    final rows = await (_db.select(
+      _db.vehicleShareRecords,
+    )..where((row) => row.userId.equals(userId))).get();
+    for (final row in rows) {
+      final name = row.displayName?.trim();
+      if (name != null && name.isNotEmpty) return name;
+      final email = row.email?.trim();
+      if (email != null && email.isNotEmpty) return email;
+    }
+    return null;
+  }
+
+  @override
   Future<void> clearCache() async {
     await _db.delete(_db.vehicleShareRecords).go();
     await _db.delete(_db.vehicleShareInvitationRecords).go();

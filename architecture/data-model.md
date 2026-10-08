@@ -314,7 +314,9 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 Schema detail, access matrix, and query patterns: [`architecture/data-model-vehicle-sharing.md`](data-model-vehicle-sharing.md).
 
 - There is **no family/group entity**. Access is granted per vehicle, one row per `(vehicle_id, user_id)`.
-- `access_level`: `view` (read, plus fuel-log writes) or `add_edit_own` (read + write, records attributed to the writer).
+- `access_level`: `view` (read-only) or `add_edit_own` (read + create, editing/deleting only rows
+  the writer created; vehicle identity, maintenance plan items, and shares stay owner-only).
+  Records carry `created_by` (`fuel_logs.user_id`) so authorship is enforceable.
 - `status`: `pending` (email invited, not yet accepted) → `active` → `revoked` (row deleted, not kept).
 - Two ways in: `POST /v1/vehicles/:id/shares` with `method: code_qr` (8-char code, 7-day expiry, stored on `vehicle_share_invitations.share_code`) or `method: email` (random token, 7-day expiry, emailed link).
 - `vehicle_share_invitations` is the invite ledger; `vehicle_shares` is the access ledger. Both are needed because a code/QR invite has no addressee.

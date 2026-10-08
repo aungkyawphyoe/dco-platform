@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
+import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
@@ -8,6 +9,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/features/documents/domain/document_failure.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -50,6 +52,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   bool _loading = true;
   bool _saving = false;
   bool _missing = false;
+  String? _createdBy;
 
   @override
   void initState() {
@@ -63,6 +66,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
           .read(documentRepositoryProvider)
           .getById(widget.documentId!);
       if (doc != null && mounted) {
+        _createdBy = doc.createdBy;
         _name.text = doc.name;
         _category = doc.category;
         _categoryLabel.text = _categoryLabelFor(doc.category);
@@ -91,6 +95,23 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     super.dispose();
   }
 
+  bool _canWrite() {
+    final vehicle = ref
+        .read(
+          widget.vehicleId != null
+              ? vehicleByIdProvider(widget.vehicleId!)
+              : activeVehicleProvider,
+        )
+        .valueOrNull;
+    final access = VehicleAccess.of(
+      vehicle,
+      ref.read(sessionControllerProvider).valueOrNull?.user.id,
+    );
+    return widget.isEditing
+        ? access.canEditRecord(_createdBy)
+        : access.canCreate;
+  }
+
   DocumentDraft? _draftOrNull() {
     setState(() {
       _errors
@@ -114,9 +135,9 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     final vehicleId =
         widget.vehicleId ?? ref.read(activeVehicleProvider).valueOrNull?.id;
     final userId =
-        ref.read(activeVehicleProvider).valueOrNull?.userId ??
-            ref.read(vehicleByIdProvider(vehicleId ?? '')).valueOrNull?.userId;
+        ref.read(sessionControllerProvider).valueOrNull?.user.id;
     if (vehicleId == null || userId == null) return;
+    if (widget.isEditing && !_canWrite()) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(documentRepositoryProvider);
@@ -149,14 +170,10 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   Future<void> _delete() async {
-    final vehicleId =
-        widget.vehicleId ?? ref.read(activeVehicleProvider).valueOrNull?.id;
     final userId =
-        ref.read(activeVehicleProvider).valueOrNull?.userId ??
-            ref.read(vehicleByIdProvider(vehicleId ?? '')).valueOrNull?.userId;
-    if (vehicleId == null || userId == null || widget.documentId == null) {
-      return;
-    }
+        ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    if (userId == null || widget.documentId == null) return;
+    if (!_canWrite()) return;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -396,6 +413,11 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       );
     }
 
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final canWrite = widget.isEditing
+        ? access.canEditRecord(_createdBy)
+        : access.canCreate;
+
     if (_missing) {
       return Scaffold(
         appBar: AppBar(title: Text(s.documentFormEditTitle)),
@@ -494,7 +516,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                   Text(_formError!,
                       style: TextStyle(color: tokens.status.dangerFg)),
                 ],
-                if (widget.isEditing) ...[
+                if (widget.isEditing && canWrite) ...[
                   SizedBox(height: tokens.space.s5),
                   DcoButton(
                     key: const Key('document-delete'),
@@ -527,7 +549,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                   child: DcoButton(
                     key: const Key('document-save'),
                     label: s.save,
-                    onPressed: _save,
+                    onPressed: canWrite ? _save : null,
                     loading: _saving,
                   ),
                 ),

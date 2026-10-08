@@ -10438,6 +10438,17 @@ class $DocumentRecordsTable extends DocumentRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _createdByMeta = const VerificationMeta(
+    'createdBy',
+  );
+  @override
+  late final GeneratedColumn<String> createdBy = GeneratedColumn<String>(
+    'created_by',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _updatedAtMeta = const VerificationMeta(
     'updatedAt',
   );
@@ -10470,6 +10481,7 @@ class $DocumentRecordsTable extends DocumentRecords
     expiresOn,
     localFilePath,
     mediaId,
+    createdBy,
     updatedAt,
     createdAt,
   ];
@@ -10541,6 +10553,12 @@ class $DocumentRecordsTable extends DocumentRecords
         mediaId.isAcceptableOrUnknown(data['media_id']!, _mediaIdMeta),
       );
     }
+    if (data.containsKey('created_by')) {
+      context.handle(
+        _createdByMeta,
+        createdBy.isAcceptableOrUnknown(data['created_by']!, _createdByMeta),
+      );
+    }
     if (data.containsKey('updated_at')) {
       context.handle(
         _updatedAtMeta,
@@ -10598,6 +10616,10 @@ class $DocumentRecordsTable extends DocumentRecords
         DriftSqlType.string,
         data['${effectivePrefix}media_id'],
       ),
+      createdBy: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by'],
+      ),
       updatedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
@@ -10624,6 +10646,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
   final DateTime? expiresOn;
   final String? localFilePath;
   final String? mediaId;
+  final String? createdBy;
   final DateTime updatedAt;
   final DateTime createdAt;
   const DocumentRecord({
@@ -10635,6 +10658,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     this.expiresOn,
     this.localFilePath,
     this.mediaId,
+    this.createdBy,
     required this.updatedAt,
     required this.createdAt,
   });
@@ -10656,6 +10680,9 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     }
     if (!nullToAbsent || mediaId != null) {
       map['media_id'] = Variable<String>(mediaId);
+    }
+    if (!nullToAbsent || createdBy != null) {
+      map['created_by'] = Variable<String>(createdBy);
     }
     map['updated_at'] = Variable<DateTime>(updatedAt);
     map['created_at'] = Variable<DateTime>(createdAt);
@@ -10680,6 +10707,9 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
       mediaId: mediaId == null && nullToAbsent
           ? const Value.absent()
           : Value(mediaId),
+      createdBy: createdBy == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdBy),
       updatedAt: Value(updatedAt),
       createdAt: Value(createdAt),
     );
@@ -10699,6 +10729,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
       expiresOn: serializer.fromJson<DateTime?>(json['expiresOn']),
       localFilePath: serializer.fromJson<String?>(json['localFilePath']),
       mediaId: serializer.fromJson<String?>(json['mediaId']),
+      createdBy: serializer.fromJson<String?>(json['createdBy']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
     );
@@ -10715,6 +10746,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
       'expiresOn': serializer.toJson<DateTime?>(expiresOn),
       'localFilePath': serializer.toJson<String?>(localFilePath),
       'mediaId': serializer.toJson<String?>(mediaId),
+      'createdBy': serializer.toJson<String?>(createdBy),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'createdAt': serializer.toJson<DateTime>(createdAt),
     };
@@ -10729,6 +10761,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     Value<DateTime?> expiresOn = const Value.absent(),
     Value<String?> localFilePath = const Value.absent(),
     Value<String?> mediaId = const Value.absent(),
+    Value<String?> createdBy = const Value.absent(),
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => DocumentRecord(
@@ -10742,6 +10775,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
         ? localFilePath.value
         : this.localFilePath,
     mediaId: mediaId.present ? mediaId.value : this.mediaId,
+    createdBy: createdBy.present ? createdBy.value : this.createdBy,
     updatedAt: updatedAt ?? this.updatedAt,
     createdAt: createdAt ?? this.createdAt,
   );
@@ -10757,6 +10791,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
           ? data.localFilePath.value
           : this.localFilePath,
       mediaId: data.mediaId.present ? data.mediaId.value : this.mediaId,
+      createdBy: data.createdBy.present ? data.createdBy.value : this.createdBy,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
     );
@@ -10773,6 +10808,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
           ..write('expiresOn: $expiresOn, ')
           ..write('localFilePath: $localFilePath, ')
           ..write('mediaId: $mediaId, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt')
           ..write(')'))
@@ -10789,6 +10825,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     expiresOn,
     localFilePath,
     mediaId,
+    createdBy,
     updatedAt,
     createdAt,
   );
@@ -10804,6 +10841,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
           other.expiresOn == this.expiresOn &&
           other.localFilePath == this.localFilePath &&
           other.mediaId == this.mediaId &&
+          other.createdBy == this.createdBy &&
           other.updatedAt == this.updatedAt &&
           other.createdAt == this.createdAt);
 }
@@ -10817,6 +10855,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
   final Value<DateTime?> expiresOn;
   final Value<String?> localFilePath;
   final Value<String?> mediaId;
+  final Value<String?> createdBy;
   final Value<DateTime> updatedAt;
   final Value<DateTime> createdAt;
   final Value<int> rowid;
@@ -10829,6 +10868,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     this.expiresOn = const Value.absent(),
     this.localFilePath = const Value.absent(),
     this.mediaId = const Value.absent(),
+    this.createdBy = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -10842,6 +10882,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     this.expiresOn = const Value.absent(),
     this.localFilePath = const Value.absent(),
     this.mediaId = const Value.absent(),
+    this.createdBy = const Value.absent(),
     required DateTime updatedAt,
     required DateTime createdAt,
     this.rowid = const Value.absent(),
@@ -10860,6 +10901,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     Expression<DateTime>? expiresOn,
     Expression<String>? localFilePath,
     Expression<String>? mediaId,
+    Expression<String>? createdBy,
     Expression<DateTime>? updatedAt,
     Expression<DateTime>? createdAt,
     Expression<int>? rowid,
@@ -10873,6 +10915,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
       if (expiresOn != null) 'expires_on': expiresOn,
       if (localFilePath != null) 'local_file_path': localFilePath,
       if (mediaId != null) 'media_id': mediaId,
+      if (createdBy != null) 'created_by': createdBy,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (createdAt != null) 'created_at': createdAt,
       if (rowid != null) 'rowid': rowid,
@@ -10888,6 +10931,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     Value<DateTime?>? expiresOn,
     Value<String?>? localFilePath,
     Value<String?>? mediaId,
+    Value<String?>? createdBy,
     Value<DateTime>? updatedAt,
     Value<DateTime>? createdAt,
     Value<int>? rowid,
@@ -10901,6 +10945,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
       expiresOn: expiresOn ?? this.expiresOn,
       localFilePath: localFilePath ?? this.localFilePath,
       mediaId: mediaId ?? this.mediaId,
+      createdBy: createdBy ?? this.createdBy,
       updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt ?? this.createdAt,
       rowid: rowid ?? this.rowid,
@@ -10934,6 +10979,9 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     if (mediaId.present) {
       map['media_id'] = Variable<String>(mediaId.value);
     }
+    if (createdBy.present) {
+      map['created_by'] = Variable<String>(createdBy.value);
+    }
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
@@ -10957,6 +11005,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
           ..write('expiresOn: $expiresOn, ')
           ..write('localFilePath: $localFilePath, ')
           ..write('mediaId: $mediaId, ')
+          ..write('createdBy: $createdBy, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('createdAt: $createdAt, ')
           ..write('rowid: $rowid')
@@ -17420,6 +17469,7 @@ typedef $$DocumentRecordsTableCreateCompanionBuilder =
       Value<DateTime?> expiresOn,
       Value<String?> localFilePath,
       Value<String?> mediaId,
+      Value<String?> createdBy,
       required DateTime updatedAt,
       required DateTime createdAt,
       Value<int> rowid,
@@ -17434,6 +17484,7 @@ typedef $$DocumentRecordsTableUpdateCompanionBuilder =
       Value<DateTime?> expiresOn,
       Value<String?> localFilePath,
       Value<String?> mediaId,
+      Value<String?> createdBy,
       Value<DateTime> updatedAt,
       Value<DateTime> createdAt,
       Value<int> rowid,
@@ -17485,6 +17536,11 @@ class $$DocumentRecordsTableFilterComposer
 
   ColumnFilters<String> get mediaId => $composableBuilder(
     column: $table.mediaId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17548,6 +17604,11 @@ class $$DocumentRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get createdBy => $composableBuilder(
+    column: $table.createdBy,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
@@ -17593,6 +17654,9 @@ class $$DocumentRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get mediaId =>
       $composableBuilder(column: $table.mediaId, builder: (column) => column);
+
+  GeneratedColumn<String> get createdBy =>
+      $composableBuilder(column: $table.createdBy, builder: (column) => column);
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
@@ -17646,6 +17710,7 @@ class $$DocumentRecordsTableTableManager
                 Value<DateTime?> expiresOn = const Value.absent(),
                 Value<String?> localFilePath = const Value.absent(),
                 Value<String?> mediaId = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
@@ -17658,6 +17723,7 @@ class $$DocumentRecordsTableTableManager
                 expiresOn: expiresOn,
                 localFilePath: localFilePath,
                 mediaId: mediaId,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,
@@ -17672,6 +17738,7 @@ class $$DocumentRecordsTableTableManager
                 Value<DateTime?> expiresOn = const Value.absent(),
                 Value<String?> localFilePath = const Value.absent(),
                 Value<String?> mediaId = const Value.absent(),
+                Value<String?> createdBy = const Value.absent(),
                 required DateTime updatedAt,
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
@@ -17684,6 +17751,7 @@ class $$DocumentRecordsTableTableManager
                 expiresOn: expiresOn,
                 localFilePath: localFilePath,
                 mediaId: mediaId,
+                createdBy: createdBy,
                 updatedAt: updatedAt,
                 createdAt: createdAt,
                 rowid: rowid,

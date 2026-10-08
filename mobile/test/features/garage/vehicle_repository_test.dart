@@ -3,6 +3,8 @@ import 'package:dco_mobile/core/sync/outbox_writer.dart';
 import 'package:dco_mobile/features/garage/data/repositories/vehicle_repository_impl.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_failure.dart';
+import 'package:dco_mobile/features/vehicle_sharing/domain/entities/vehicle_share.dart';
+import 'package:drift/drift.dart' show Value;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -85,5 +87,59 @@ void main() {
       ),
       throwsA(isA<MileageDecreaseFailure>()),
     );
+  });
+
+  test('watchActive takes access level from the active share row', () async {
+    const owner = 'owner-1';
+    const member = 'member-1';
+    const vehicleId = 'vehicle-shared-1';
+    final now = DateTime(2026, 10, 8, 12);
+
+    // Local vehicle row with a stale denormalized permission (owner upgraded
+    // the share after the row was first stamped, or it was never stamped).
+    await db.into(db.vehicleRecords).insert(
+          VehicleRecordsCompanion.insert(
+            id: vehicleId,
+            userId: owner,
+            name: 'Shared Car',
+            make: 'Toyota',
+            model: 'Corolla',
+            year: 2021,
+            licensePlate: 'SHR001',
+            fuelType: 'petrol',
+            mileage: 5000,
+            updatedAt: now,
+            createdAt: now,
+            source: const Value('shared'),
+            permission: const Value('view'),
+          ),
+        );
+    await db.into(db.vehicleShareRecords).insert(
+          VehicleShareRecordsCompanion.insert(
+            id: 'share-1',
+            vehicleId: vehicleId,
+            userId: member,
+            grantedBy: const Value(owner),
+            accessLevel: 'add_edit_own',
+            status: const Value('active'),
+            createdAt: now,
+          ),
+        );
+    await db.into(db.userProfiles).insert(
+          UserProfilesCompanion.insert(
+            userId: member,
+            activeVehicleId: const Value(vehicleId),
+          ),
+        );
+
+    final active = await repo.watchActive(member).first;
+    expect(active, isNotNull);
+    expect(active!.accessLevel, ShareAccessLevel.addEditOwn,
+        reason: 'the share mirror must win over the stale row permission');
+    expect(active.source, VehicleSource.shared);
+
+    final byId = await repo.watchById(vehicleId, userId: member).first;
+    expect(byId?.accessLevel, ShareAccessLevel.addEditOwn,
+        reason: 'vehicle detail gating must see the same level');
   });
 }

@@ -13,6 +13,7 @@ abstract final class AppRoutes {
   static const serviceHistory = '/dashboard/services';
   static const fuelLogs = '/dashboard/fuel';
   static const fuelLogNew = '/dashboard/fuel/new';
+  static String fuelLogDetail(String id) => '/dashboard/fuel/$id';
   static String fuelLogEdit(String id) => '/dashboard/fuel/$id/edit';
   static const fuelTypes = '/dashboard/fuel/types';
   static const fuelTypeNew = '/dashboard/fuel/types/new';
@@ -24,9 +25,11 @@ abstract final class AppRoutes {
   static String maintenanceRegisterItem(String planItemId) =>
       '/maintenance/register?item=$planItemId';
   static String serviceDetail(String id) => '/maintenance/history/$id';
+  static String serviceEdit(String id) => '/maintenance/history/$id/edit';
 
   static const expenses = '/expenses';
   static const expenseNew = '/expenses/new';
+  static String expenseDetail(String id) => '/expenses/$id';
   static String expenseEdit(String id) => '/expenses/$id/edit';
 
   static const settings = '/settings';

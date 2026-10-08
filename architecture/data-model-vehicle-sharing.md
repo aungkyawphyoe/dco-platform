@@ -123,35 +123,35 @@ return `null` (Fleet vehicles are not shareable through this path).
 
 | Action | Owner | `add_edit_own` | `view` | No access |
 |--------|:-----:|:--------------:|:------:|:---------:|
-| `GET /v1/vehicles` (own garage) | ✓ | — | — | ✗ |
+| `GET /v1/vehicles` (own garage) | ✓ | — | — | — |
 | `GET /v1/vehicles/shared` | — | ✓ | ✓ | ✗ |
-| `GET /v1/vehicles/:id` | ✓ | ✗ | ✗ | ✗ |
+| `GET /v1/vehicles/:id` | ✓ | ✓ | ✓ | ✗ |
 | `GET /v1/vehicles/:id/detail` | ✓ | ✓ | ✓ | ✗ |
-| `GET /v1/vehicles/:id/dashboard` | ✓ | ✗ | ✗ | ✗ |
+| `GET /v1/vehicles/:id/dashboard` | ✓ | ✓ | ✓ | ✗ |
 | `PATCH /v1/vehicles/:id`, `/archive` | ✓ | ✗ | ✗ | ✗ |
 | `POST /v1/vehicles/:id/activate` (set active) | ✓ | ✓ | ✓ | ✗ |
 | View plan items, suggested items | ✓ | ✓ | ✓ | ✗ |
-| Create / edit / delete plan items | ✓ | ✓ | ✗ | ✗ |
-| View service records | ✓ | ✓ | ✗ | ✗ |
-| Create / edit service records | ✓ | ✓ | ✗ | ✗ |
-| View parts | ✓ | ✓ | ✗ | ✗ |
-| Create / edit parts | ✓ | ✓ | ✗ | ✗ |
-| View fuel logs | ✓ | ✓ | ✓ | ✗ |
-| Create fuel log | ✓ | ✓ | ✓ | ✗ |
-| Edit a fuel log you wrote | ✓ | ✓ | ✓ | ✗ |
-| Edit a fuel log someone else wrote | ✓ | ✓ | ✗ | ✗ |
-| View documents | ✓ | ✓ | ✓ | ✗ |
-| Create / edit / delete documents | ✓ | ✓ | ✗ | ✗ |
-| View expenses + summary | ✓ | ✓ | ✗ | ✗ |
-| Create / edit / delete expenses | ✓ | ✓ | ✗ | ✗ |
+| Create / edit / delete plan items | ✓ | ✗ | ✗ | ✗ |
+| View service records, parts, expenses + summary, fuel logs, documents | ✓ | ✓ | ✓ | ✗ |
+| Create service records, parts, expenses, fuel logs, documents | ✓ | ✓ | ✗ | ✗ |
+| Edit / delete a row you created | ✓ | ✓ | ✗ | ✗ |
+| Edit / delete a row someone else created | ✓ | ✗ | ✗ | ✗ |
+| Advance mileage (service or fuel odometer, monotonic) | ✓ | ✓ | ✗ | ✗ |
 | Manage shares (list/create/patch/revoke/resend/cancel) | ✓ | ✗ | ✗ | ✗ |
 | View another user's driving license | ✓ | ✓ | ✓ | ✗ |
 | Fuel types / notifications / profile / sync | own rows only, regardless of sharing | | | |
 
 Route guards funnel through `getAccessibleVehicle(db, caller, vehicleId, "full" | "drive_only")`
 (`backend/src/modules/vehicles.ts`), which maps `"full"` → `add_edit_own` and `"drive_only"` →
-`view`. `loadFuelLogFor` handles by-id fuel logs, where `fuel_logs.user_id` is the author and
-cannot be used as the access check.
+`view`. Reads of vehicles, detail, dashboard, and every record type use `"drive_only"`; writes use
+`"full"`, except plan-item and share management routes which call `getOwnedVehicle` (owner only).
+
+Record writes by id go through the author-scoped loaders (`loadServiceRecordFor`, `loadExpenseFor`,
+`loadPartFor`, `loadDocumentFor`, `loadPlanItemFor`, `loadFuelLogFor` …`"write"`): the caller must
+be the row's `created_by` (`fuel_logs.user_id` for fuel logs) or the vehicle owner. A `view` sharee
+fails every write, and an `add_edit_own` sharee can only write rows they authored. Mileage advances
+additionally require the posted odometer to exceed the vehicle's current mileage, so shared writes
+can never move it backwards.
 
 ---
 

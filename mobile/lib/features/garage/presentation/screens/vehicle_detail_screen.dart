@@ -10,6 +10,7 @@ import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/features/documents/domain/registration_expiry.dart';
 import 'package:dco_mobile/features/documents/providers.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
@@ -88,6 +89,8 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
 
     final activeId = ref.watch(activeVehicleProvider).valueOrNull?.id;
     final currentUserId = ref.watch(currentUserIdProvider);
+    // Vehicle identity (name, plate, photo, archive) is owner-only; shared
+    // users view the vehicle and contribute records without editing it.
     final canEdit = vehicle.userId == currentUserId;
 
     return DefaultTabController(
@@ -388,6 +391,7 @@ class _OverviewTab extends ConsumerWidget {
         const <Document>[];
     final thresholds = ref.watch(reminderThresholdsProvider);
     final lengthUnit = ref.watch(lengthUnitProvider);
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
 
     final now = DateTime.now();
     final next = DueCalculator.nearest(
@@ -443,7 +447,7 @@ class _OverviewTab extends ConsumerWidget {
               ? null
               : _nextServiceCopy(next, urgency!, vehicle, lengthUnit, s),
           subtitleColor: urgencyColor,
-          onTap: next == null
+          onTap: next == null || !access.canCreate
               ? () => onOpenForVehicle(AppRoutes.maintenancePlan)
               : () => onOpenForVehicle(
                   AppRoutes.maintenanceRegisterItem(next.id),
@@ -492,9 +496,11 @@ class _OverviewTab extends ConsumerWidget {
               ? s.vehicleDetailNoTireService
               : DateFormat.yMMMd().format(tire.servicedOn),
           valueColor: tire == null ? tokens.text.secondary : null,
-          onTap: tire == null
+          onTap: tire != null
+              ? () => onPush(AppRoutes.serviceDetail(tire.id))
+              : access.canCreate
               ? () => onOpenForVehicle(AppRoutes.maintenanceRegister)
-              : () => onPush(AppRoutes.serviceDetail(tire.id)),
+              : () {},
         ),
         _OverviewTile(
           icon: Icons.event_outlined,
@@ -542,12 +548,15 @@ class _OverviewTab extends ConsumerWidget {
           onTap: () {
             final doc = registration.document;
             if (doc == null) {
+              if (!access.canCreate) return;
               onPush(
                 '${AppRoutes.documentNew}'
                 '?vehicle=${vehicle.id}&category=registration',
               );
-            } else {
+            } else if (access.canEditRecord(doc.createdBy)) {
               onPush(AppRoutes.documentEdit(doc.id));
+            } else if (doc.hasLocalFile || doc.mediaId != null) {
+              onPush(AppRoutes.documentView(doc.id));
             }
           },
         ),

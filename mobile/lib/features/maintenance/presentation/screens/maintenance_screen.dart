@@ -1,6 +1,8 @@
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
@@ -54,6 +56,7 @@ class MaintenanceScreen extends ConsumerWidget {
               body: s.maintenanceNoActiveVehicleBody,
             );
           }
+          final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
           final items = plan.valueOrNull ?? const <PlanItem>[];
           final now = DateTime.now();
           final upcoming = items.where((item) {
@@ -118,9 +121,11 @@ class MaintenanceScreen extends ConsumerWidget {
                               now: now,
                               lengthUnit: lengthUnit,
                               thresholds: thresholds,
-                              onTap: () => context.push(
-                                AppRoutes.maintenanceRegisterItem(item.id),
-                              ),
+                              onTap: access.canCreate
+                                  ? () => context.push(
+                                        AppRoutes.maintenanceRegisterItem(item.id),
+                                      )
+                                  : null,
                             ),
                           ),
                         MaintenanceSectionHeader(
@@ -138,9 +143,11 @@ class MaintenanceScreen extends ConsumerWidget {
                               now: now,
                               lengthUnit: lengthUnit,
                               thresholds: thresholds,
-                              onTap: () => context.push(
-                                AppRoutes.maintenanceRegisterItem(item.id),
-                              ),
+                              onTap: access.canCreate
+                                  ? () => context.push(
+                                        AppRoutes.maintenanceRegisterItem(item.id),
+                                      )
+                                  : null,
                             ),
                           ),
                         const SizedBox(height: 80),
@@ -157,26 +164,27 @@ class MaintenanceScreen extends ConsumerWidget {
                   // SizedBox(height: 70.0),
                 ],
               ),
-              Positioned(
-                right: 16,
-                bottom: 90,
-                child: SizedBox(
-                  width: 150.0,
-                  height: 56.0,
-                  child: FloatingActionButton.extended(
-                    backgroundColor: tokens.button.primary.background,
-                    foregroundColor: tokens.text.onAccent,
-                    heroTag: 'btn-add-maintenance',
-                    onPressed: () =>
-                        context.push(AppRoutes.maintenanceRegister),
-                    label: Text(s.dashboardLogService),
-                    icon: const Icon(Icons.car_repair),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(tokens.radius.full),
+              if (access.canCreate)
+                Positioned(
+                  right: 16,
+                  bottom: 90,
+                  child: SizedBox(
+                    width: 150.0,
+                    height: 56.0,
+                    child: FloatingActionButton.extended(
+                      backgroundColor: tokens.button.primary.background,
+                      foregroundColor: tokens.text.onAccent,
+                      heroTag: 'btn-add-maintenance',
+                      onPressed: () =>
+                          context.push(AppRoutes.maintenanceRegister),
+                      label: Text(s.dashboardLogService),
+                      icon: const Icon(Icons.car_repair),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(tokens.radius.full),
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           );
         },

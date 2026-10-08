@@ -72,6 +72,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       draft: draft,
       createdAt: now,
       updatedAt: now,
+      createdBy: userId,
     );
 
     await _db.transaction(() async {
@@ -105,6 +106,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       draft: draft,
       createdAt: existing.createdAt,
       updatedAt: DateTime.now().toUtc(),
+      createdBy: existing.createdBy,
     );
 
     await _db.transaction(() async {
@@ -157,6 +159,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     required ExpenseDraft draft,
     required DateTime createdAt,
     required DateTime updatedAt,
+    String? createdBy,
   }) {
     final seen = <String>{};
     final parts = <ExpenseAssignedPart>[];
@@ -182,6 +185,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       notes: _emptyToNull(draft.notes),
       receiptLocalPath: _emptyToNull(draft.receiptLocalPath),
       receiptMediaId: _emptyToNull(draft.receiptMediaId),
+      createdBy: createdBy,
       parts: parts,
       updatedAt: updatedAt,
       createdAt: createdAt,

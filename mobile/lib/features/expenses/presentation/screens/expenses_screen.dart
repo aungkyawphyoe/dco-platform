@@ -1,9 +1,11 @@
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -33,6 +35,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
         ref.watch(vehicleExpenseSummaryProvider).valueOrNull ??
         ExpenseSummary.empty;
     final currency = ref.watch(currencyProvider).code;
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
 
     return Scaffold(
       appBar: AppBar(
@@ -87,9 +90,12 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                                     body: s.expensesEmptyBody(
                                       vehicle.displayName,
                                     ),
-                                    actionLabel: s.expensesAddExpense,
-                                    onAction: () =>
-                                        context.push(AppRoutes.expenseNew),
+                                    actionLabel: access.canCreate
+                                        ? s.expensesAddExpense
+                                        : null,
+                                    onAction: access.canCreate
+                                        ? () => context.push(AppRoutes.expenseNew)
+                                        : null,
                                   ),
                                 )
                               : filtered.isEmpty
@@ -117,7 +123,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                                         expense: expense,
                                         currency: currency,
                                         onTap: () => context.push(
-                                          AppRoutes.expenseEdit(expense.id),
+                                          AppRoutes.expenseDetail(expense.id),
                                         ),
                                       ),
                                     );
@@ -126,27 +132,28 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                         ),
                       ],
                     ),
-                    Positioned(
-                      right: 16,
-                      bottom: 90,
-                      child: SizedBox(
-                        width: 150.0,
-                        height: 56.0,
-                        child: FloatingActionButton.extended(
-                          backgroundColor: tokens.button.primary.background,
-                          foregroundColor: tokens.text.onAccent,
-                          heroTag: 'btn-add-expense',
-                          onPressed: () => context.push(AppRoutes.expenseNew),
-                          label: Text(s.expensesAddExpense),
-                          icon: const Icon(Icons.add),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              tokens.radius.full,
+                    if (access.canCreate)
+                      Positioned(
+                        right: 16,
+                        bottom: 90,
+                        child: SizedBox(
+                          width: 150.0,
+                          height: 56.0,
+                          child: FloatingActionButton.extended(
+                            backgroundColor: tokens.button.primary.background,
+                            foregroundColor: tokens.text.onAccent,
+                            heroTag: 'btn-add-expense',
+                            onPressed: () => context.push(AppRoutes.expenseNew),
+                            label: Text(s.expensesAddExpense),
+                            icon: const Icon(Icons.add),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                tokens.radius.full,
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
                   ],
                 );
               },
@@ -397,12 +404,12 @@ class _ExpenseTile extends StatelessWidget {
   const _ExpenseTile({
     required this.expense,
     required this.currency,
-    required this.onTap,
+    this.onTap,
   });
 
   final Expense expense;
   final String currency;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
