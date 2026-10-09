@@ -1,5 +1,6 @@
 "use client";
 
+import type { Plan } from "../plans";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiDelete, apiGet, apiPatch, apiPost } from "./client";
 import type { components } from "./schema";
@@ -45,7 +46,7 @@ export function useAdminUser(id: string | null) {
 export function useUpdateUserPlan() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, plan }: { id: string; plan: "free" | "premium" }) =>
+    mutationFn: ({ id, plan }: { id: string; plan: Plan }) =>
       apiPatch<AdminUserProfile>(`/admin/users/${id}`, { plan }),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ["admin", "users"] });
@@ -93,7 +94,7 @@ export function useCreateUser() {
       temporary_password: string;
       display_name?: string;
       role?: "owner" | "admin";
-      plan?: "free" | "premium";
+      plan?: Plan;
     }) => apiPost<AdminUserProfile>("/admin/users", body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "users"] });
@@ -124,7 +125,7 @@ export function useUpdateUserProfile() {
       display_name?: string | null;
       contact_phone?: string | null;
       address?: string | null;
-      plan?: "free" | "premium";
+      plan?: Plan;
     }) => apiPatch<AdminUserProfile>(`/admin/users/${id}/profile`, body),
     onSuccess: (_data, variables) => {
       qc.invalidateQueries({ queryKey: ["admin", "users"] });

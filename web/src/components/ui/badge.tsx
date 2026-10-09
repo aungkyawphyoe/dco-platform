@@ -38,5 +38,7 @@ export const partnerStatusTone: Record<string, BadgeTone> = {
 
 export const planTone: Record<string, BadgeTone> = {
   free: "neutral",
-  premium: "info",
+  lite: "info",
+  standard: "success",
+  fleet: "info",
 };

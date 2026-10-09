@@ -14,8 +14,8 @@ Fleet Management enables **business accounts** (showrooms, dealerships, taxi fle
 
 | Account/context | Entitlement source | Available capabilities |
 |-----------------|--------------------|------------------------|
-| Normal user (`users.plan=free`) | User account | Basic personal app functionality plus Vehicle Sharing capped at 1 active share per vehicle / 3 total. No Fleet entry point unless the user has an active organization membership. |
-| Premium user (`users.plan=premium`) | User account | Basic personal app functionality + raised Vehicle Sharing caps (5 active shares per vehicle / 20 total). Premium is assigned by DCO Admin for this phase; in-app billing and subscription management are out of scope. |
+| Free user (`users.plan=free`) | User account | Basic personal app functionality plus Vehicle Sharing capped at 1 active share (per vehicle and total). No Fleet entry point unless the user has an active organization membership. |
+| Paid tier user (`users.plan=lite|standard|fleet`) | User account | Basic personal app functionality + raised caps per `docs/pricing.md` (sharing 3 / unlimited / unlimited; vehicles 3 / 10 / unlimited). Assigned by DCO Admin for this phase; in-app billing and subscription management are out of scope. |
 | Enterprise user | Organization (`organizations.plan=enterprise`) | Basic personal app functionality + Fleet context while the user has an active membership in an `active` Enterprise organization. Organization role limits Fleet actions. Enterprise is not a value of `users.plan`. |
 
 **Entitlement rules:**
@@ -749,7 +749,7 @@ Enable organizations to:
   "features": { "vehicle_sharing": true, "fleet": true }
 }
 ```
-`vehicle_sharing.can_share` reflects the plan caps (free 1/3, premium 5/20) and whether the caller is already at them; `active_shares` counts the caller's outgoing active shares. `features.fleet` is true only for active Enterprise org members. This payload controls navigation visibility only; operation-level role and entitlement checks remain server-side.
+`vehicle_sharing.can_share` reflects the plan caps (free 1, lite 3, standard/fleet unlimited) and whether the caller is already at them; `active_shares` counts the caller's outgoing active shares. `features.fleet` is true only for active Enterprise org members. This payload controls navigation visibility only; operation-level role and entitlement checks remain server-side.
 
 | Method | Path | Audience | Description |
 |--------|------|----------|-------------|
@@ -1121,11 +1121,11 @@ Enable organizations to:
 ```
 User (Mobile)
   Logs in → app loads account plan and current share/org context
-  → Normal (`free`) user: basic personal app + Vehicle Sharing within free caps (1/vehicle, 3 total); no Fleet entry unless invited to an active org
-  → Premium (`premium`) user: basic personal app + Vehicle Sharing within premium caps (5/vehicle, 20 total)
+  → Free (`free`) user: basic personal app + Vehicle Sharing within free caps (1 share); no Fleet entry unless invited to an active org
+  → Paid tier (`lite`/`standard`/`fleet`) user: basic personal app + Vehicle Sharing within tier caps (3 / unlimited / unlimited)
   → Enterprise org member: basic personal app + Fleet entry only when org is active
-  → Premium user who is also an active org member: both Vehicle Sharing and Fleet are available
-  → Sharee on `free`: Shared with Me entry is available for their share scope; no Premium required
+  → Paid user who is also an active org member: both Vehicle Sharing and Fleet are available
+  → Sharee on `free`: Shared with Me entry is available for their share scope; no paid plan required
   → User may switch Personal/Fleet contexts; personal vehicles remain in Personal mode
 
 Backend (every protected request)
@@ -1292,8 +1292,8 @@ Platform Admin (Web Admin Portal)
 ### Feature Access
 - Fleet access requires `organizations.plan=enterprise`, `status=active`, and an active membership for the authenticated user
 - Role checks apply after entitlement checks; user-level `plan` does not grant Fleet access
-- Vehicle Sharing caps are plan-scoped: free 1 active share per vehicle / 3 total, premium 5 / 20 (see `vehicle-sharing.md`)
-- Sharees retain `view` / `add_edit_own` access without their own Premium plan
+- Vehicle Sharing caps are plan-scoped: free 1, lite 3, standard/fleet unlimited (see `vehicle-sharing.md`)
+- Sharees retain `view` / `add_edit_own` access without their own paid plan
 - `GET /v1/me/entitlements` is a display/navigation hint; protected API routes independently enforce access
 
 ### Member Invitation (Manager / Mechanic only)
@@ -1377,7 +1377,7 @@ Platform Admin (Web Admin Portal)
 
 | Scenario | Response |
 |----------|----------|
-| User is at or over their plan's Vehicle Sharing caps | 403 `premium_required` |
+| User is at or over their plan's Vehicle Sharing caps | 403 `share_limit_reached` |
 | User lacks active Enterprise organization membership | 403 `fleet_access_required` |
 | Organization is not Enterprise-entitled | 403 `enterprise_org_required` |
 | User has no active membership in requested org | 403 `not_org_member` |
@@ -1582,8 +1582,8 @@ Platform Admin (Web Admin Portal)
 ## Confirmed Access Decisions
 
 1. Enterprise entitlement belongs to the organization (`organizations.plan=enterprise`); it is not a user plan or user role.
-2. Enterprise and Premium are independent. Premium is DCO-admin-managed for this phase; no purchase/billing flow is included.
-3. Vehicle Sharing is open to both plans within caps (free 1/3, premium 5/20); sharees use granted access without their own Premium plan. A downgrade does not revoke existing shares — it only blocks new creation while over the free caps.
+2. Enterprise and the user plan are independent. Plans are DCO-admin-managed for this phase; no purchase/billing flow is included.
+3. Vehicle Sharing is open to every plan within caps (free 1, lite 3, standard/fleet unlimited); sharees use granted access without their own paid plan. A downgrade revokes shares above the new caps (oldest kept) and blocks new creation while over the cap.
 4. Fleet access requires active membership in an active Enterprise organization; membership role limits actions. Organization provisioning starts pending and DCO Admin explicitly activates it.
 5. Hide unavailable Vehicle Sharing/Fleet entry points. API authorization is authoritative and re-checks plan caps, vehicle access level, membership, status, and role.
 6. Flutter uses `dco-owner`; Fleet Dashboard uses `dco-fleet`; DCO support uses `dco-admin` through Web Admin. Workshop accounts follow the separate `dco-workshop` audience in `architecture/iam.md`.

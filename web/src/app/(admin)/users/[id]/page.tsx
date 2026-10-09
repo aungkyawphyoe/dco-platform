@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Modal } from "@/components/ui/modal";
+import { Select } from "@/components/ui/select";
 import {
   Table,
   TableHead,
@@ -28,6 +29,7 @@ import {
   useSendPasswordReset,
   useDeleteUser,
 } from "@/lib/api/hooks";
+import { PLAN_OPTIONS, type Plan } from "@/lib/plans";
 
 export default function UserProfilePage({
   params,
@@ -202,24 +204,20 @@ export default function UserProfilePage({
           Actions
         </h2>
         <div className="mt-4 flex flex-wrap gap-3">
-          <Button
-            variant="secondary"
-            size="sm"
+          <Select
+            label="Plan"
+            options={[...PLAN_OPTIONS]}
+            value={user.plan ?? "free"}
             disabled={updatePlan.isPending}
-            onClick={() =>
+            onChange={(v) =>
               updatePlan.mutate(
-                { id, plan: user.plan === "premium" ? "free" : "premium" },
+                { id, plan: v as Plan },
                 {
-                  onSuccess: () =>
-                    setFeedback(
-                      `Plan changed to ${user.plan === "premium" ? "free" : "premium"}.`,
-                    ),
+                  onSuccess: () => setFeedback(`Plan changed to ${v}.`),
                 },
               )
             }
-          >
-            Switch to {user.plan === "premium" ? "Free" : "Premium"}
-          </Button>
+          />
 
           <Button
             variant="secondary"

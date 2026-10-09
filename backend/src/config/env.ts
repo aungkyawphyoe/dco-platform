@@ -27,6 +27,9 @@ const schema = z.object({
   CORS_ORIGINS: z.string().default("http://localhost:3000,http://localhost:5173"),
   OPENAPI_SPEC_PATH: z.string().optional(),
   PUBLIC_API_URL: z.string().default("http://localhost:8080/v1"),
+  LICENSE_KID: z.string().default("lic-2026-10"),
+  LICENSE_ED25519_KEY: z.string().optional(),
+  LICENSE_TTL_DAYS: z.coerce.number().int().positive().default(30),
 });
 
 export type Env = z.infer<typeof schema>;

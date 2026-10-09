@@ -542,8 +542,10 @@ export interface paths {
                                 available?: boolean;
                                 can_share?: boolean;
                                 limits?: {
-                                    per_vehicle?: number;
-                                    total?: number;
+                                    /** @description Active shares allowed per vehicle; null = unlimited. */
+                                    per_vehicle?: number | null;
+                                    /** @description Total active shares allowed; null = unlimited. */
+                                    total?: number | null;
                                 };
                                 active_shares?: number;
                             };
@@ -552,6 +554,48 @@ export interface paths {
                                 vehicle_sharing?: boolean;
                                 fleet?: boolean;
                             };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/license": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Issue the offline entitlement license (EdDSA JWT)
+         * @description Self-contained signed license for offline feature gating (architecture/feature-gating.md §5). Claims carry the full tier entitlements; clients must verify the signature against the bundled kid keyring before trusting claims.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description License issued */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description EdDSA-signed compact JWT; header kid identifies the signing key. */
+                            license: string;
                         };
                     };
                 };
@@ -659,6 +703,15 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["Vehicle"];
+                    };
+                };
+                /** @description Plan vehicle limit reached — error.code LIMIT_EXCEEDED, details { metric, current, limit, upgrade_url } (docs/pricing.md "Limit Check Response"). */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
                     };
                 };
                 409: components["responses"]["Error"];
@@ -5543,7 +5596,7 @@ export interface components {
             };
         };
         /** @enum {string} */
-        Plan: "free" | "premium";
+        Plan: "free" | "lite" | "standard" | "fleet";
         /** @enum {string} */
         Role: "owner" | "admin";
         /** @enum {string} */
@@ -5598,7 +5651,7 @@ export interface components {
             must_change_password: boolean;
             /** Format: uuid */
             active_vehicle_id?: string | null;
-            /** @description 1 for free, null for unlimited premium; vehicle-count gating is still not enforced. */
+            /** @description Per-plan cap — free 1, lite 3, standard 10, null = unlimited (fleet). Advisory; vehicle-count enforcement lands with server limit checks (architecture/feature-gating.md PR3). */
             vehicle_limit?: number | null;
             /** Format: date-time */
             created_at?: string;
@@ -5807,6 +5860,11 @@ export interface components {
             media_id?: string | null;
             /** Format: date-time */
             created_at?: string;
+            /**
+             * Format: uuid
+             * @description User who created the document. Shared users may only edit or delete documents they created.
+             */
+            created_by?: string | null;
         };
         DocumentWrite: {
             /** Format: uuid */
@@ -6232,10 +6290,10 @@ export interface components {
             qr_code_data?: Record<string, never> | null;
         };
         VehicleShareLimits: {
-            /** @description Plan cap of active shares per vehicle (free 1, premium 5). */
-            per_vehicle?: number;
-            /** @description Plan cap of total active shares the owner may hold (free 3, premium 20). */
-            total?: number;
+            /** @description Plan cap of active shares per vehicle (free 1, lite 3, null = unlimited). */
+            per_vehicle?: number | null;
+            /** @description Plan cap of total active shares the owner may hold (free 1, lite 3, null = unlimited). */
+            total?: number | null;
             active_on_vehicle?: number;
         };
         VehicleSharesDetail: {
@@ -6286,8 +6344,10 @@ export interface components {
             updated_at?: string;
         };
         VehicleDetail: components["schemas"]["Vehicle"] & {
+            /** @description Owner only. Empty for shared users — sharees never see the share roster. */
             shares?: components["schemas"]["VehicleShare"][];
             documents?: components["schemas"]["Document"][];
+            /** @description Owner only. Empty for shared users — sharees never see other participants. */
             shared_users?: {
                 /** Format: uuid */
                 user_id?: string;

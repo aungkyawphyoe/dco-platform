@@ -21,7 +21,7 @@ Rules:
 
 - Owner signup always creates `role=owner`. Admins are seeded out of band (`BOOTSTRAP_ADMIN_*`), never via `/v1/auth/signup`.
 - An owner JWT must not call `/v1/admin/*`. An admin JWT must not call owner garage routes.
-- User `plan` (`free` \| `premium`) lives on the **user** and only sizes Vehicle Sharing limits (free 1/3, premium 5/20) plus premium UI. Sharing and accepting are open to both plans; downgrading does not revoke existing shares. Billing remains out of scope.
+- User `plan` (`free` \| `lite` \| `standard` \| `fleet`, per `docs/pricing.md`) lives on the **user** and sizes Vehicle Sharing limits (free 1, lite 3, standard/fleet unlimited — one cap for per-vehicle and total) plus the advisory `vehicle_limit`. Sharing and accepting are open to all plans; downgrading revokes shares above the new caps (oldest kept) and never touches vehicles. Billing lands with the payment flow; offline local gating design: `architecture/feature-gating.md`.
 - Partner rows (`workshop` \| `insurer`) are CRM records. `verified` does not issue tokens or unlock booking/claims.
 - Vehicle authorization uses `getVehicleAccessLevel` → `owner` | `view` | `add_edit_own` | `null`, resolved from `vehicles.user_id` plus an active `vehicle_shares` row on every request. See `architecture/iam-vehicle-sharing.md`.
 - Sync outbox and `change_log` are bound to `user_id`. After logout, another account on the same device must not push the previous outbox.
@@ -62,12 +62,14 @@ Fleet and verified-workshop REST/auth/schema foundations are implemented. Fleet/
 
 ### Implemented Backend Entitlements (Vehicle Sharing + Fleet)
 
-- Keep `users.plan` as `free` or `premium`; Premium remains DCO-admin-managed until billing is explicitly added.
-- Resolve Vehicle Sharing and Fleet as separate entitlements. Enterprise membership does not set or imply a user's Premium plan.
+- Keep `users.plan` as `free` / `lite` / `standard` / `fleet` (four-tier, `docs/pricing.md`); plan changes remain DCO-admin-managed until billing is explicitly added.
+- Resolve Vehicle Sharing and Fleet as separate entitlements. Enterprise membership does not set or imply a user's plan.
 - Fleet access requires an Enterprise organization, organization `status=active`, and active membership; organization role authorizes the requested operation.
-- Both plans can share and accept shares. `SHARE_LIMITS` caps a free owner at 1 active share per vehicle / 3 total and a premium owner at 5 / 20; the caps are re-checked server-side on every share create and accept/join.
-- Downgrading from Premium does not revoke existing shares; it only shrinks the caps, so the owner cannot create new shares until they are back under the free-plan limits.
-- `GET /v1/me/entitlements` returns `vehicle_sharing.{available,can_share,limits,active_shares}` and `features.vehicle_sharing` as navigation hints. Every protected API operation re-checks plan, membership, org status, and role server-side; mobile/portal navigation wiring remains pending.
+- All plans can share and accept shares. `shareLimits` (`backend/src/lib/plans.ts` — single source, mirrored by `plans` table rows) caps free at 1 and lite at 3 active shares (per vehicle and total); standard/fleet are unlimited (`null`). Caps are re-checked server-side on every share create and accept/join.
+- Downgrading revokes shares above the target plan's caps (oldest kept); upgrades and unlimited targets never revoke. Vehicles are never revoked — over-limit rows stay readable and editable, only new creates are blocked.
+- `POST /v1/vehicles` enforces `vehicleLimit` (active/non-archived count): at cap it returns 403 `LIMIT_EXCEEDED` with `details { metric, current, limit, upgrade_url }` (`docs/pricing.md` §Limit Check Response). Idempotent replays and edits of existing rows are unaffected; sync pushes apply the same path and surface as `rejected` operations.
+- `GET /v1/me/entitlements` returns `vehicle_sharing.{available,can_share,limits,active_shares}` (limit `null` = unlimited) and `features.vehicle_sharing` as navigation hints. Every protected API operation re-checks plan, membership, org status, and role server-side; mobile/portal navigation wiring remains pending.
+- `GET /v1/me/license` (owner audience) issues the offline entitlement license: EdDSA compact JWT, `kid` header, self-contained tier claims, `LICENSE_TTL_DAYS` rolling expiry until billing lands (`architecture/feature-gating.md` §5). The Ed25519 private key is server-only (Key Vault/env); mobile verifies against the bundled public keyring.
 - DCO Admin creates Enterprise organizations in `pending` and explicitly activates them after provisioning. A user's login does not activate an organization.
 - Fleet Dashboard receives `dco-fleet`; Flutter remains on `dco-owner`. Shared Fleet APIs authorize by organization membership/role independently of audience.
 

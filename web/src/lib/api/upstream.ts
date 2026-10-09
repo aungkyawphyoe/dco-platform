@@ -1,3 +1,4 @@
+import type { Plan } from "../plans";
 import { apiBaseUrl } from "@/lib/api/config";
 
 export async function upstream(
@@ -16,7 +17,7 @@ export type SessionUser = {
   email: string;
   display_name: string | null;
   role: "owner" | "admin";
-  plan: "free" | "premium";
+  plan: Plan;
 };
 
 export type UpstreamSession = {

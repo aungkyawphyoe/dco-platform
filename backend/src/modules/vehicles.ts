@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Db } from "../db/client.js";
 import { documents, expenses, organizationVehicles, planItems, serviceRecords, users, vehicleWarranties, vehicles } from "../db/schema.js";
 import { AppError } from "../lib/errors.js";
+import { assertVehicleLimit } from "../lib/limits.js";
 import { dateOnly, getUser, num, recordChange, reqNum } from "../lib/dbx.js";
 import { publicUser, publicVehicle } from "../lib/serialize.js";
 import { requireOwner } from "./auth.js";
@@ -131,7 +132,12 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
       if (existing.userId !== userId) throw new AppError(409, "id_conflict", "Vehicle id already exists");
       return reply.code(201).send(publicVehicle(existing, await nextMaintenance(app.db, existing.id, reqNum(existing.mileage))));
     }
+    const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) throw new AppError(401, "unauthorized", "Unknown user");
+    // Plate/vin conflicts are request-validity errors (409) independent of
+    // tier — report them before the plan capacity check (403).
     await assertPlateVin(app.db, userId, body.license_plate, body.vin ?? null);
+    await assertVehicleLimit(app.db, userId, user.plan);
     const [row] = await app.db
       .insert(vehicles)
       .values({
@@ -153,8 +159,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
         photoMediaId: body.photo_media_id ?? null,
       })
       .returning();
-    const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (user && !user.activeVehicleId) {
+    if (!user.activeVehicleId) {
       await app.db.update(users).set({ activeVehicleId: row.id }).where(eq(users.id, userId));
     }
     const payload = publicVehicle(row, null);

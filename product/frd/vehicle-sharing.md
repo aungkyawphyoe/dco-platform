@@ -35,7 +35,7 @@ Enable users to:
 - Owner's per-vehicle **Share Management** screen: active shares, pending invitations, current
   code/QR card, access-level change, revoke, resend, cancel, regenerate code
 - Invitee screens: **Accept invite**, **Join by code** (with vehicle preview), **Shared with Me**
-- Plan-based share limits (free / premium)
+- Plan-based share limits (free 1, lite 3, standard/fleet unlimited — one cap for per-vehicle and total)
 - Sync: share changes reach both parties through the change log; shared vehicle history is seeded
   into the invitee's log on accept/join
 - Web owner surface: owned + shared vehicle lists and the shares page
@@ -266,11 +266,13 @@ Notes:
 
   | Plan | Active shares per vehicle | Active shares total |
   |------|---------------------------|---------------------|
-  | `free` | 1 | 3 |
-  | `premium` | 5 | 20 |
+  | `free` | 1 | 1 |
+  | `lite` | 3 | 3 |
+  | `standard` | unlimited | unlimited |
+  | `fleet` | unlimited | unlimited |
 
-- Downgrading from Premium does not revoke existing shares; it only blocks new ones while over
-  the free caps
+- Downgrading revokes shares above the new plan's caps (oldest kept) and blocks new ones while
+  over the cap; vehicles are never revoked or hidden
 - Revoking deletes the row (the enum's `revoked` value is never written)
 - Fuel types and notifications stay user-scoped: a sharee uses their own fuel-type catalog
 - Admin deactivating a user deletes their shares in both directions and archives their vehicles

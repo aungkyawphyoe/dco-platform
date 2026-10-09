@@ -154,7 +154,7 @@ Vehicle photos, service receipts, expense receipts, and vault documents share th
 
 - Every owner entity belongs to a `user_id` and (except the user row itself) a `vehicle_id`.
 - Archive vehicle = soft-delete. Plan items, services, expenses, and documents stay attached and hidden with the vehicle. They are not hard-deleted.
-- Server is authoritative for `user.id` and `plan` (`free` / `premium`). Monetization is off; the field still exists.
+- Server is authoritative for `user.id` and `plan` (`free` / `lite` / `standard` / `fleet`, per `docs/pricing.md`). Billing is not live yet; the tier field, share/vehicle limits, and the offline license design (`architecture/feature-gating.md`) land ahead of it.
 
 ---
 

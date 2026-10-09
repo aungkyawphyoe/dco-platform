@@ -40,15 +40,15 @@ Auth, app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, docu
 
 ### Account and feature entitlements
 
-- **Normal (`users.plan=free`)**: basic personal garage, maintenance, expenses, documents, and fuel features, plus Vehicle Sharing capped at **1 active share per vehicle / 3 total**. Fleet entry points are hidden unless the user has an active membership.
-- **Premium (`users.plan=premium`)**: basic personal features plus raised Vehicle Sharing caps (**5 active shares per vehicle / 20 total**). Premium is DCO-admin-managed for now; no in-app purchase or subscription billing flow.
+- **Free (`users.plan=free`)**: basic personal garage, maintenance, expenses, documents, and fuel features, plus Vehicle Sharing capped at **1 active share** (per vehicle and total) and **1 vehicle** (create enforced server-side: 403 `LIMIT_EXCEEDED`, `architecture/feature-gating.md` §9). Fleet entry points are hidden unless the user has an active membership.
+- **Paid tiers (`users.plan=lite|standard|fleet`)** per `docs/pricing.md`: vehicles 3 / 10 / unlimited, sharing 3 / unlimited / unlimited, storage 150 MB / 500 MB / 5 GB. DCO-admin-managed for now; no in-app purchase or subscription billing flow yet (payment flow is the next slice). Offline local gating design: `architecture/feature-gating.md`.
 - **Enterprise (`organizations.plan=enterprise`)**: organization-level Fleet access for active members of an active organization, with actions restricted by organization role. DCO Admin provisions the organization and explicitly activates it. Enterprise does not change a member's personal `users.plan`.
 - **Fleet account alignment (Oct 2026, pending implementation)** — details in `product/frd/fleet-management.md`:
   - Fleet Admin (`org_admin`) accounts are created by DCO Admin with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations.
   - Drivers are created/deactivated by the Fleet Admin with **username + password, no email**; login accepts email or username (customer signup stays email-only). Driver deactivation is a soft delete: assignment cascaded, history retained, username reserved.
   - Fleet Portal sidebar is role-gated: full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`. Mobile drawer Fleet entry stays visible to all org members.
   - Driver login forces Driver mode; drivers may edit only their own profile/password and cannot create/edit/delete vehicles or other users (server-enforced).
-- Sharing works on both plans: a sharee never needs Premium to hold or use a share, and downgrading the owner does not revoke existing shares — it only blocks new ones while over the free caps.
+- Sharing works on every plan: a sharee never needs a paid plan to hold or use a share. Downgrading the owner revokes shares above the new plan's caps (oldest kept) and blocks new ones while over the cap; vehicles are never revoked or hidden.
 - Backend authorization is authoritative. Hiding unavailable feature entry points in the mobile/web clients is a separate client requirement.
 
 Notes rules:

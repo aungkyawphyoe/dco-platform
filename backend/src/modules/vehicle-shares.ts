@@ -32,13 +32,9 @@ import {
 import { AppError } from "../lib/errors.js";
 import type { Mailer } from "../lib/mail.js";
 import { requireOwner } from "./auth.js";
+import { shareLimits } from "../lib/plans.js";
 
 const uuid = z.string().uuid();
-
-const SHARE_LIMITS = {
-  free: { perVehicle: 1, total: 3 },
-  premium: { perVehicle: 5, total: 20 },
-} as const;
 
 const SHARE_CODE_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 const SHARE_CODE_EXPIRY_MS = 7 * 86400000;
@@ -82,23 +78,27 @@ async function inviterLabel(db: Db, userId: string): Promise<string> {
 async function checkShareLimits(db: Db, ownerId: string, vehicleId: string): Promise<void> {
   const [owner] = await db.select({ plan: users.plan }).from(users).where(eq(users.id, ownerId)).limit(1);
   const plan = owner?.plan ?? "free";
-  const limits = SHARE_LIMITS[plan];
+  const limits = shareLimits(plan);
 
-  const [perVehicleCount] = await db
-    .select({ count: sql`count(*)` })
-    .from(vehicleShares)
-    .where(and(eq(vehicleShares.vehicleId, vehicleId), eq(vehicleShares.status, "active")));
-  if (Number(perVehicleCount?.count ?? 0) >= limits.perVehicle) {
-    throw new AppError(403, "share_limit_reached", `Your plan allows ${limits.perVehicle} share(s) per vehicle`);
+  if (limits.perVehicle != null) {
+    const [perVehicleCount] = await db
+      .select({ count: sql`count(*)` })
+      .from(vehicleShares)
+      .where(and(eq(vehicleShares.vehicleId, vehicleId), eq(vehicleShares.status, "active")));
+    if (Number(perVehicleCount?.count ?? 0) >= limits.perVehicle) {
+      throw new AppError(403, "share_limit_reached", `Your plan allows ${limits.perVehicle} share(s) per vehicle`);
+    }
   }
 
-  const [totalCount] = await db
-    .select({ count: sql`count(*)` })
-    .from(vehicleShares)
-    .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
-    .where(and(eq(vehicles.userId, ownerId), eq(vehicleShares.status, "active")));
-  if (Number(totalCount?.count ?? 0) >= limits.total) {
-    throw new AppError(403, "share_limit_reached", `Your plan allows ${limits.total} total active shares`);
+  if (limits.total != null) {
+    const [totalCount] = await db
+      .select({ count: sql`count(*)` })
+      .from(vehicleShares)
+      .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
+      .where(and(eq(vehicles.userId, ownerId), eq(vehicleShares.status, "active")));
+    if (Number(totalCount?.count ?? 0) >= limits.total) {
+      throw new AppError(403, "share_limit_reached", `Your plan allows ${limits.total} total active shares`);
+    }
   }
 }
 
@@ -541,7 +541,7 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
       .where(and(eq(vehicleShareInvitations.vehicleId, vehicleId), isNull(vehicleShareInvitations.acceptedAt)));
 
     const [owner] = await db().select().from(users).where(eq(users.id, userId)).limit(1);
-    const limits = SHARE_LIMITS[owner?.plan ?? "free"];
+    const limits = shareLimits(owner?.plan ?? "free");
     const [activeCount] = await db()
       .select({ count: sql`count(*)` })
       .from(vehicleShares)

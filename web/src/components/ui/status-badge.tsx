@@ -2,7 +2,7 @@ import { Badge, type BadgeTone } from "./badge";
 
 type UserStatus = "active" | "deactivated";
 type PartnerStatus = "draft" | "pending_verification" | "verified" | "rejected";
-type Plan = "free" | "premium";
+import type { Plan } from "@/lib/plans";
 type PartnerType = "workshop" | "insurer";
 
 const userStatusTone: Record<UserStatus, BadgeTone> = {
@@ -19,7 +19,9 @@ const partnerStatusTone: Record<PartnerStatus, BadgeTone> = {
 
 const planTone: Record<Plan, BadgeTone> = {
   free: "neutral",
-  premium: "info",
+  lite: "info",
+  standard: "success",
+  fleet: "info",
 };
 
 const partnerTypeTone: Record<PartnerType, BadgeTone> = {

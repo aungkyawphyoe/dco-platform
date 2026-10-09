@@ -45,7 +45,7 @@ Accessible from **any screen** via the leading hamburger icon in the app bar. Op
 #### Sharing & Fleet (bottom section — conditional)
 | Menu Item | Icon | Destination | Notes |
 |-----------|------|-------------|-------|
-| **Sharing** | share | Vehicle Sharing / Shared with Me | Visible to all users; share creation capped by plan (free 1/3, premium 5/20). |
+| **Sharing** | share | Vehicle Sharing / Shared with Me | Visible to all users; share creation capped by plan (free 1, lite 3, standard/fleet unlimited). |
 | **Fleet** | truck | Fleet Mode / Org Management | Visible only to members of an active Enterprise organization; role limits actions. |
 
 ```text

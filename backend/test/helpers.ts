@@ -28,6 +28,10 @@ export const testEnv = loadEnv({
   MEDIA_SIGNING_KEY: "test-media-signing-key",
   CORS_ORIGINS: "http://localhost:5173",
   PUBLIC_API_URL: "http://localhost:8080/v1",
+  LICENSE_KID: "lic-test-2026-10",
+  // Deterministic Ed25519 test key (minted via `npm run license:key`); test-only.
+  LICENSE_ED25519_KEY: "MC4CAQAwBQYDK2VwBCIEIG9YssLh8bg7iAcnYU-5xCpVFnDS5OCL5joOZ72HwPas",
+  LICENSE_TTL_DAYS: "30",
 } as NodeJS.ProcessEnv);
 
 export async function createTestApp() {

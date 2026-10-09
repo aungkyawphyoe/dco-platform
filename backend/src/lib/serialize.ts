@@ -1,5 +1,6 @@
 import type { users, vehicles } from "../db/schema.js";
 import { dateOnly, iso, num, reqNum } from "./dbx.js";
+import { vehicleLimit } from "./plans.js";
 
 type UserRow = typeof users.$inferSelect;
 type VehicleRow = typeof vehicles.$inferSelect;
@@ -19,7 +20,7 @@ export function publicUser(row: UserRow) {
     email_verified: row.emailVerified,
     must_change_password: row.mustChangePassword,
     active_vehicle_id: row.activeVehicleId,
-    vehicle_limit: row.plan === "free" ? 1 : null,
+    vehicle_limit: vehicleLimit(row.plan),
     created_at: iso(row.createdAt),
   };
 }

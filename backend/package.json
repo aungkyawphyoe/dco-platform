@@ -13,7 +13,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:migrate": "tsx src/db/run-migrate.ts",
-    "seed:org": "tsx src/scripts/seed-org.ts"
+    "seed:org": "tsx src/scripts/seed-org.ts",
+    "license:key": "tsx src/scripts/generate-license-key.ts"
   },
   "dependencies": {
     "@azure/communication-email": "^1.0.0",

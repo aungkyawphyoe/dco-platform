@@ -168,7 +168,7 @@ Behavior
 
 - Email is unique and stored lowercase
 - One person has one user account in MVP
-- Plan field exists (`free` / `premium`) but billing is off
+- Plan field is `free` / `lite` / `standard` / `fleet` (per `docs/pricing.md`); billing is off — plan changes are DCO-admin-managed
 - Access token is short-lived; refresh token is longer-lived and rotated on use
 - Failed login attempts are rate-limited on the server
 

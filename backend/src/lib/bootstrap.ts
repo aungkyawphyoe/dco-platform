@@ -17,7 +17,7 @@ export async function bootstrapAdmin(db: Db, env: Env): Promise<void> {
     passwordHash: await hashPassword(env.BOOTSTRAP_ADMIN_PASSWORD),
     displayName: "Bootstrap admin",
     role: "admin",
-    plan: "premium",
+    plan: "standard",
     emailVerified: true,
   });
   console.log(`[bootstrap] admin ${email} created — rotate BOOTSTRAP_ADMIN_PASSWORD`);

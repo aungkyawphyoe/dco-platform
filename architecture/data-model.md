@@ -265,7 +265,7 @@ Local-only (mobile, not a server table): **outbox** rows (`entity_type`, `entity
 |-------|------|
 | `email` | Unique, stored lowercase, max 254 |
 | `role` | `owner` (default on signup) or `admin` (granted by an existing admin / seed) |
-| `plan` | `free` \| `premium`, DCO-admin-managed until billing is added. `plan` only sizes Vehicle Sharing limits (free: 1 active share per vehicle, 3 total; premium: 5 per vehicle, 20 total) and unlocks the premium UI. Anyone can share and accept shares; free vehicle-count gating remains off. |
+| `plan` | `free` \| `lite` \| `standard` \| `fleet` (per `docs/pricing.md`), DCO-admin-managed until billing is added. Sizes Vehicle Sharing caps (free 1, lite 3, standard/fleet unlimited — one cap for per-vehicle and total) and the advisory `vehicle_limit` (1 / 3 / 10 / null). Anyone can share and accept shares; vehicle-count enforcement lands with the server limit checks (`architecture/feature-gating.md` PR3). |
 | `status` | `active` \| `deactivated`. Deactivated cannot sign in |
 | `active_vehicle_id` | Null only when the garage is empty. After the first vehicle, always one active vehicle |
 | `email_verified` | Prompt until true; does not block adding a vehicle |
@@ -418,6 +418,6 @@ Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to thi
 
 ## Freemium field
 
-`users.plan` is `free` or `premium`. MVP does not enforce the one-vehicle cap in UI copy beyond Settings ("Free Plan · 1/1 vehicles" on tldraw screen 9). API may return `vehicle_limit` on `GET /v1/me` so clients can hide "Register another vehicle" later without a schema break.
+`users.plan` is `free` / `lite` / `standard` / `fleet`. `vehicle_limit` on `GET /v1/me` is advisory (free 1, lite 3, standard 10, null = unlimited); enforcement lands with the server limit checks (`architecture/feature-gating.md` PR3).
 
-Plan limits are enforced per owner, not per vehicle alone: `checkShareLimits` refuses a share when the owner already holds `SHARE_LIMITS[plan].perVehicle` active shares on that vehicle, or `SHARE_LIMITS[plan].total` active shares across all vehicles. The limits are duplicated in `backend/src/modules/vehicle-shares.ts`, `backend/src/lib/me.ts`, and `backend/src/lib/entitlements.ts` — keep the three in step.
+Plan limits are enforced per owner, not per vehicle alone: `checkShareLimits` refuses a share when the owner already holds `shareLimits[plan]` active shares on that vehicle, or that many across all vehicles. The limits live in one place — `backend/src/lib/plans.ts`, mirrored by the `plans` table — so there is nothing to keep in step.

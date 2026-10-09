@@ -13,7 +13,7 @@ Users and Organizations are **separate entities** with independent lifecycles an
 | **Table** | `users` | `organizations` |
 | **Status values** | `active`, `deactivated` | `pending`, `active`, `suspended`, `archived` |
 | **Purpose** | Human account (login, ownership, family, org membership) | Business entity (fleet, showroom, taxi, rental, etc.) |
-| **Plan** | `free`, `premium` | `enterprise` (only) |
+| **Plan** | `free`, `lite`, `standard`, `fleet` | `enterprise` (only) |
 | **Roles** | `owner`, `admin` | `org_admin`, `org_manager`, `org_mechanic`, `org_driver` (via membership) |
 
 ---

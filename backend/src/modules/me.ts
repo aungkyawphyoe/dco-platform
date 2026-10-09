@@ -8,11 +8,8 @@ import { getUser } from "../lib/dbx.js";
 import { publicUser } from "../lib/serialize.js";
 import { requireFleetClient, requireOwner } from "./auth.js";
 import { getVehicleAccessLevel, getUserDetail } from "./vehicle-shares.js";
-
-const SHARE_LIMITS = {
-  free: { perVehicle: 1, total: 3 },
-  premium: { perVehicle: 5, total: 20 },
-} as const;
+import { shareLimits } from "../lib/plans.js";
+import { issueLicense } from "../lib/license.js";
 
 export const mePlugin: FastifyPluginAsync = async (app) => {
   app.get("/me", async (request) => {
@@ -35,7 +32,7 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     const organization = organizationMembership?.organization ?? null;
     const fleetFeature = Boolean(organization && organization.plan === "enterprise" && organization.status === "active");
 
-    const limits = SHARE_LIMITS[user.plan];
+    const limits = shareLimits(user.plan);
     const [activeShares] = await app.db.select({ count: sql`count(*)` })
       .from(vehicleShares)
       .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
@@ -61,6 +58,15 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
       } : null,
       features: { vehicle_sharing: true, fleet: fleetFeature },
     };
+  });
+
+  app.get("/me/license", async (request) => {
+    requireOwner(request);
+    const userId = request.authUser!.sub;
+    const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user) throw new AppError(401, "unauthorized", "Unknown user");
+    const { license } = await issueLicense(app.env, { userId, plan: user.plan });
+    return { license };
   });
 
   app.patch("/me", async (request) => {

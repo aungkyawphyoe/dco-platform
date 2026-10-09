@@ -7,6 +7,7 @@ import { AppError } from "../lib/errors.js";
 import { emailTokens } from "../db/schema.js";
 import { publicUser } from "../lib/serialize.js";
 import { changeUserPlan } from "../lib/entitlements.js";
+import { PLAN_IDS } from "../lib/plans.js";
 import { createInvitedOwnerAccount } from "../lib/account-invites.js";
 import { generateUniqueUsername } from "../lib/username.js";
 import { requireAdmin } from "./auth.js";
@@ -69,7 +70,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     // Create 2 customer users
     await app.db.execute(sql`
       INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
-      VALUES (gen_random_uuid(), 'customer1@example.com', 'customer1', ${passwordHash}, 'Customer One', 'owner', 'premium', 'active', true)
+      VALUES (gen_random_uuid(), 'customer1@example.com', 'customer1', ${passwordHash}, 'Customer One', 'owner', 'standard', 'active', true)
     `);
     await app.db.execute(sql`
       INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
@@ -79,7 +80,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     // Create 1 fleet portal user
     await app.db.execute(sql`
       INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
-      VALUES (gen_random_uuid(), 'fleet@example.com', 'fleetuser', ${passwordHash}, 'Fleet User', 'owner', 'premium', 'active', true)
+      VALUES (gen_random_uuid(), 'fleet@example.com', 'fleetuser', ${passwordHash}, 'Fleet User', 'owner', 'standard', 'active', true)
     `);
 
     return { message: "Users reset successfully", users: ["customer1@example.com", "customer2@example.com", "fleet@example.com"] };
@@ -429,7 +430,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
 
   app.patch("/admin/users/:userId", async (request) => {
     const { userId } = request.params as { userId: string };
-    const body = z.object({ plan: z.enum(["free", "premium"]).optional() }).parse(request.body ?? {});
+    const body = z.object({ plan: z.enum(PLAN_IDS).optional() }).parse(request.body ?? {});
     const [u] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!u) throw new AppError(404, "not_found", "User not found");
     const updated = body.plan ? await changeUserPlan(app.db, userId, body.plan) : u;
@@ -483,7 +484,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
         temporary_password: z.string().min(8),
         display_name: z.string().max(50).optional(),
         role: z.enum(["owner", "admin"]).default("owner"),
-        plan: z.enum(["free", "premium"]).default("free"),
+        plan: z.enum(PLAN_IDS).default("free"),
       })
       .parse(request.body);
 
@@ -555,7 +556,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
         display_name: z.string().max(50).optional().nullable(),
         contact_phone: z.string().max(20).optional().nullable(),
         address: z.string().max(500).optional().nullable(),
-        plan: z.enum(["free", "premium"]).optional(),
+        plan: z.enum(PLAN_IDS).optional(),
       })
       .parse(request.body ?? {});
 

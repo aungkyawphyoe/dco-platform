@@ -42,6 +42,9 @@ Placeholders only. Store in Key Vault (Azure) or a local ignored `.env` (`chmod 
 | `AZURE_STORAGE_CONNECTION_STRING` | API | When Blob is on. |
 | `AZURE_BLOB_CONTAINER` | API | Separate containers per env. |
 | `MEDIA_SIGNING_KEY` | API | For short-lived download URLs if not using native Blob SAS. |
+| `LICENSE_KID` | API / mobile | Key id in the license JWT header (`kid`), e.g. `lic-2026-10`. Mobile keyring (`assets/license_keys.json`) maps it to the public key. |
+| `LICENSE_ED25519_KEY` | API only | Ed25519 PKCS8 private key, base64url (`architecture/feature-gating.md` §5). Mint with `npm run license:key`. Never ships to clients. |
+| `LICENSE_TTL_DAYS` | API | Rolling license TTL while billing is absent (default 30). After billing: `period_end` + 7d grace instead. |
 | `CORS_ORIGINS` | API | Admin web origin(s) only. Mobile does not need CORS. |
 | `SENTRY_DSN` or equivalent | API / clients | Optional until first slice ships. |
 | `PUSH_PROVIDER_*` | API | Register device tokens now; **do not send campaigns**. Keys can wait. |
@@ -52,6 +55,7 @@ Mobile (`--dart-define` or flavor config, not committed secrets):
 |----------|--------|
 | `API_BASE_URL` | Per flavor |
 | `JWT_OWNER_AUD` | Must match server |
+| License public keyring | Bundled asset `assets/license_keys.json` (`kid` → Ed25519 public key), not a secret; mint the pair with `npm run license:key` in `backend/`. |
 
 Web admin:
 
@@ -67,6 +71,7 @@ Web admin:
 | Key | Holder | Not held by |
 |-----|--------|-------------|
 | JWT access / refresh secrets | Key Vault → Container Apps | Flutter app, admin JS, git, chat logs |
+| License signing key (Ed25519) | Key Vault → Container Apps | Flutter app (holds only the public keyring), git, chat logs |
 | TLS cert private key | Container Apps ingress | Application code |
 | Blob account key / managed identity | API (managed identity preferred on Azure) | Clients |
 | Mail API key | API | Clients |

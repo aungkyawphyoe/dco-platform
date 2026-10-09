@@ -16,7 +16,7 @@ export type SessionUser = {
   email: string;
   display_name: string | null;
   role: "owner" | "admin";
-  plan: "free" | "premium";
+  plan: "free" | "lite" | "standard" | "fleet";
   family_id: string | null;
 };
 

@@ -52,6 +52,10 @@ export function documentCreatedBySql(): string {
   return readSql("0010_document_created_by.sql");
 }
 
+export function planTiersSql(): string {
+  return readSql("0011_plan_tiers.sql");
+}
+
 export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Promise<void> {
   await exec(initSql());
   await exec(maintenanceCatalogSql());
@@ -64,4 +68,5 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(vehicleSharingSql());
   await exec(auditTrailSql());
   await exec(documentCreatedBySql());
+  await exec(planTiersSql());
 }

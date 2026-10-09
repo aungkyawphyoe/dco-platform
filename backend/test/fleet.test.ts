@@ -98,17 +98,17 @@ describe("Vehicle sharing entitlement", () => {
     });
     expect(service.statusCode).toBe(201);
 
-    // Premium raises the per-vehicle cap so a second member can join.
-    const premium = await app.inject({
+    // Lite raises the per-vehicle cap so a second member can join.
+    const lite = await app.inject({
       method: "PATCH",
       url: `/v1/admin/users/${owner.id}`,
       headers: auth(platformAdmin),
-      payload: { plan: "premium" },
+      payload: { plan: "lite" },
     });
-    expect(premium.statusCode).toBe(200);
+    expect(lite.statusCode).toBe(200);
 
-    const premiumEntitlements = await app.inject({ method: "GET", url: "/v1/me/entitlements", headers: auth(owner.token) });
-    expect(premiumEntitlements.json().vehicle_sharing.limits.per_vehicle).toBe(5);
+    const liteEntitlements = await app.inject({ method: "GET", url: "/v1/me/entitlements", headers: auth(owner.token) });
+    expect(liteEntitlements.json().vehicle_sharing.limits.per_vehicle).toBe(3);
 
     const shareSecond = await app.inject({
       method: "POST",

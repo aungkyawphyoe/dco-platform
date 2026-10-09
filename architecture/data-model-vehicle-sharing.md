@@ -102,13 +102,14 @@ method: email  ──┘      (accepted_at IS NULL)        └── POST /v1/ve
 
 ## Plan Limits
 
-`SHARE_LIMITS` in `backend/src/modules/vehicle-shares.ts` (mirrored in `backend/src/lib/me.ts`
-and `backend/src/lib/entitlements.ts`):
+`shareLimits` in `backend/src/lib/plans.ts` (single source; the `plans` table mirrors it):
 
 | Plan | Active shares per vehicle | Active shares total |
 |------|---------------------------|---------------------|
-| `free` | 1 | 3 |
-| `premium` | 5 | 20 |
+| `free` | 1 | 1 |
+| `lite` | 3 | 3 |
+| `standard` | unlimited (`null`) | unlimited (`null`) |
+| `fleet` | unlimited (`null`) | unlimited (`null`) |
 
 `checkShareLimits(db, ownerId, vehicleId)` runs on **create** and on **accept/join** (never on
 resend/cancel/revoke). Errors are `403 share_limit_reached`.

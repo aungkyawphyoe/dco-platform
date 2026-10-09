@@ -30,8 +30,9 @@ There is no "primary owner", "member", "driver", or household role. Every partic
 3. **No group entity.** A user can hold shares from many owners and own vehicles at the same
    time; there is nothing to create before sharing and nothing to dissolve after.
 4. **Share limits are entitlements, not permissions.** `users.plan` only sizes
-   `SHARE_LIMITS` (free 1/3, premium 5/20). Both plans can share and accept; downgrading does
-   not revoke existing shares.
+   `shareLimits` (`backend/src/lib/plans.ts`: free 1, lite 3, standard/fleet unlimited — one
+   cap for both per-vehicle and total). All plans can share and accept; downgrading revokes
+   shares above the new caps (oldest kept).
 5. **Owner-only management.** Creating, editing, revoking, resending, and cancelling shares
    requires `vehicle.userId === caller`. Sharees never see another sharee's identity beyond
    what the shared vehicle itself exposes.
@@ -122,7 +123,7 @@ exist, is archived (unless allowed), or is linked to an organization.
 {
   "sub": "user-uuid",
   "role": "owner",
-  "plan": "free|premium",
+  "plan": "free|lite|standard|fleet",
   "aud": "dco-owner",
   "iat": 1234567890,
   "exp": 1234567890

@@ -23,7 +23,7 @@
 - **Sharing:** Granular per-vehicle grants; owner controls permissions per share
 - **Roles:** `owner` (implicit), `shared_user` (granted) — permissions: `view`, `add_edit_own`
 - **Privacy:** Owner records private; shared user records private; AI chats private
-- **Limits:** Plan-based active share limits (free vs premium)
+- **Limits:** Plan-based active share limits (free 1, lite 3, standard/fleet unlimited)
 - **Management Screen:** Per-vehicle share management screen for owner (view active/pending shares, change access, revoke)
 
 ---

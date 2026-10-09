@@ -140,7 +140,7 @@ Behavior
 - Every document belongs to exactly one vehicle
 - The list always shows the active vehicle's documents
 - Categories are a fixed enum in MVP (no user-defined categories)
-- Free/premium does not limit document count in MVP
+- Plan tiers (free/lite/standard/fleet) do not limit document count in MVP
 - Maximum file size: 15 MB after image compression; reject with an error if still over
 
 ---

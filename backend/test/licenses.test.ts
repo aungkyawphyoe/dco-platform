@@ -98,7 +98,7 @@ describe("driving licenses (standalone module)", () => {
       method: "PATCH",
       url: `/v1/admin/users/${owner.id}`,
       headers: auth(admin),
-      payload: { plan: "premium" },
+      payload: { plan: "standard" },
     });
 
     const vehicleId = await createVehicle(app, owner.token, "LIC");

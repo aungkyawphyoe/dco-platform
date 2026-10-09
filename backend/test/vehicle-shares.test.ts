@@ -64,13 +64,13 @@ describe("vehicle share sync propagation", () => {
     const memberA = await signup(app, "sync-member-a");
     const memberB = await signup(app, "sync-member-b");
 
-    const premium = await app.inject({
+    const standard = await app.inject({
       method: "PATCH",
       url: `/v1/admin/users/${owner.id}`,
       headers: auth(platformAdmin),
-      payload: { plan: "premium" },
+      payload: { plan: "standard" },
     });
-    expect(premium.statusCode).toBe(200);
+    expect(standard.statusCode).toBe(200);
 
     // Owner builds a vehicle with a full history.
     const vehicleId = await createVehicle(app, owner.token, "SYN");
@@ -207,7 +207,7 @@ describe("vehicle share sync propagation", () => {
     });
     expect(management.statusCode).toBe(200);
     expect(management.json().shares).toHaveLength(2);
-    expect(management.json().limits.per_vehicle).toBe(5);
+    expect(management.json().limits.per_vehicle).toBeNull();
     expect(management.json().limits.active_on_vehicle).toBe(2);
 
     // Baseline pulls: seeded history reaches both members.
@@ -317,31 +317,35 @@ describe("vehicle share sync propagation", () => {
     await app.close();
   });
 
-  it("enforces plan share limits on free accounts", async () => {
+  it("enforces plan share limits (per-vehicle and total)", async () => {
     const { app } = await createTestApp();
     const owner = await signup(app, "limit-owner");
     const first = await signup(app, "limit-first");
     const second = await signup(app, "limit-second");
     const third = await signup(app, "limit-third");
+    const platformAdmin = await adminToken(app);
+
+    const join = async (vehicleId: string, joiner: { token: string }) => {
+      const codeShare = await app.inject({
+        method: "POST",
+        url: `/v1/vehicles/${vehicleId}/shares`,
+        headers: auth(owner.token),
+        payload: { method: "code_qr" },
+      });
+      expect(codeShare.statusCode).toBe(201);
+      const joined = await app.inject({
+        method: "POST",
+        url: "/v1/vehicles/shares/join",
+        headers: auth(joiner.token),
+        payload: { code: codeShare.json().share_code },
+      });
+      expect(joined.statusCode).toBe(201);
+    };
 
     const vehicleId = await createVehicle(app, owner.token, "LIM");
+    await join(vehicleId, first);
 
-    const codeShare = await app.inject({
-      method: "POST",
-      url: `/v1/vehicles/${vehicleId}/shares`,
-      headers: auth(owner.token),
-      payload: { method: "code_qr" },
-    });
-    expect(codeShare.statusCode).toBe(201);
-    const joinFirst = await app.inject({
-      method: "POST",
-      url: "/v1/vehicles/shares/join",
-      headers: auth(first.token),
-      payload: { code: codeShare.json().share_code },
-    });
-    expect(joinFirst.statusCode).toBe(201);
-
-    // Free plan allows one share per vehicle; a second one is refused.
+    // Free plan allows one active share — a second code is refused.
     const overLimit = await app.inject({
       method: "POST",
       url: `/v1/vehicles/${vehicleId}/shares`,
@@ -351,35 +355,41 @@ describe("vehicle share sync propagation", () => {
     expect(overLimit.statusCode).toBe(403);
     expect(overLimit.json().error.code).toBe("share_limit_reached");
 
-    // Fill the free plan's 3 active shares in total across vehicles.
-    for (const [label, user] of [["second", second], ["third", third]] as const) {
-      const nextVehicle = await createVehicle(app, owner.token, `L${label.slice(0, 2).toUpperCase()}`);
-      const nextShare = await app.inject({
-        method: "POST",
-        url: `/v1/vehicles/${nextVehicle}/shares`,
-        headers: auth(owner.token),
-        payload: { method: "code_qr" },
-      });
-      expect(nextShare.statusCode).toBe(201);
-      const joined = await app.inject({
-        method: "POST",
-        url: "/v1/vehicles/shares/join",
-        headers: auth(user.token),
-        payload: { code: nextShare.json().share_code },
-      });
-      expect(joined.statusCode).toBe(201);
-    }
+    // Lite lifts both caps (3 vehicles / 3 shares); the kept share counts.
+    await app.inject({
+      method: "PATCH",
+      url: `/v1/admin/users/${owner.id}`,
+      headers: auth(platformAdmin),
+      payload: { plan: "lite" },
+    });
 
-    // The fourth active share exceeds the free plan's total cap.
-    const vehicle4 = await createVehicle(app, owner.token, "LIM");
+    // Fill to the lite total of 3 active shares on vehicle 1.
+    await join(vehicleId, second);
+    await join(vehicleId, third);
+
+    // 4th share on a vehicle already at the per-vehicle cap → per-vehicle branch.
+    const overVehicle = await app.inject({
+      method: "POST",
+      url: `/v1/vehicles/${vehicleId}/shares`,
+      headers: auth(owner.token),
+      payload: { method: "code_qr" },
+    });
+    expect(overVehicle.statusCode).toBe(403);
+    expect(overVehicle.json().error.code).toBe("share_limit_reached");
+    expect(overVehicle.json().error.message).toContain("per vehicle");
+
+    // Total at 3/3: a share on another vehicle (itself at 0) is refused
+    // by the total cap → total branch.
+    const vehicle2 = await createVehicle(app, owner.token, "LI2");
     const overTotal = await app.inject({
       method: "POST",
-      url: `/v1/vehicles/${vehicle4}/shares`,
+      url: `/v1/vehicles/${vehicle2}/shares`,
       headers: auth(owner.token),
       payload: { method: "code_qr" },
     });
     expect(overTotal.statusCode).toBe(403);
     expect(overTotal.json().error.code).toBe("share_limit_reached");
+    expect(overTotal.json().error.message).toContain("total active shares");
 
     await app.close();
   });
@@ -395,7 +405,7 @@ describe("vehicle share sync propagation", () => {
       method: "PATCH",
       url: `/v1/admin/users/${owner.id}`,
       headers: auth(platformAdmin),
-      payload: { plan: "premium" },
+      payload: { plan: "standard" },
     });
 
     const vehicleId = await createVehicle(app, owner.token, "FUE");
@@ -519,7 +529,7 @@ describe("vehicle share sync propagation", () => {
       method: "PATCH",
       url: `/v1/admin/users/${owner.id}`,
       headers: auth(platformAdmin),
-      payload: { plan: "premium" },
+      payload: { plan: "standard" },
     });
 
     const vehicleId = await createVehicle(app, owner.token, "MTX");

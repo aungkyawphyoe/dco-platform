@@ -300,7 +300,7 @@ Type your password to confirm:
   "temporary_password": "string (required, min 8 chars)",
   "display_name": "string (optional)",
   "role": "owner | admin (default: owner)",
-  "plan": "free | premium (default: free)"
+  "plan": "free | lite | standard | fleet (default: free)"
 }
 ```
 
@@ -348,7 +348,7 @@ Type your password to confirm:
   "display_name": "string",
   "contact_phone": "string",
   "address": "string",
-  "plan": "free | premium"
+  "plan": "free | lite | standard | fleet"
 }
 ```
 

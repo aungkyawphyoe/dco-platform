@@ -17,7 +17,7 @@ import {
 import { sql } from "drizzle-orm";
 
 export const roleEnum = pgEnum("user_role", ["owner", "admin"]);
-export const planEnum = pgEnum("user_plan", ["free", "premium"]);
+export const planEnum = pgEnum("user_plan", ["free", "lite", "standard", "fleet"]);
 export const accountStatusEnum = pgEnum("account_status", ["active", "deactivated"]);
 export const vehicleFuelEnum = pgEnum("vehicle_fuel_type", ["petrol", "electric", "hybrid_plugin"]);
 export const mileageUnitEnum = pgEnum("mileage_unit", ["mi", "km"]);
@@ -77,6 +77,19 @@ export const warrantyStatusEnum = pgEnum("warranty_status", ["active", "expired"
 export const inspectionTypeEnum = pgEnum("inspection_type", ["pre_trip", "post_trip", "random"]);
 export const inspectionStatusEnum = pgEnum("inspection_status", ["in_progress", "completed", "failed"]);
 export const vehicleImportStatusEnum = pgEnum("vehicle_import_status", ["processing", "completed", "failed"]);
+
+export const plans = pgTable("plans", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  vehicleLimit: integer("vehicle_limit"),
+  sharingLimit: integer("sharing_limit"),
+  storageBytes: bigint("storage_bytes", { mode: "number" }),
+  aiTier: text("ai_tier").notNull(),
+  priceMonthlyMmk: integer("price_monthly_mmk").notNull().default(0),
+  priceAnnualMmk: integer("price_annual_mmk").notNull().default(0),
+  stripePriceId: text("stripe_price_id"),
+  localGatewayPlanId: text("local_gateway_plan_id"),
+});
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey(),

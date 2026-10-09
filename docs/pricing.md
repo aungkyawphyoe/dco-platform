@@ -223,14 +223,21 @@ CREATE TABLE usage_counters (
 ```
 
 ### Limit Check Response (403)
+Wrapped in the platform error envelope (`architecture/openapi.yaml` → `ErrorBody`);
+the pricing fields live in `details`.
+
 ```json
 {
-  "error": "LIMIT_EXCEEDED",
-  "metric": "vehicles",
-  "current": 1,
-  "limit": 1,
-  "upgrade_url": "/pricing",
-  "message": "Free plan allows 1 vehicle. Upgrade to Lite for 3 vehicles."
+  "error": {
+    "code": "LIMIT_EXCEEDED",
+    "message": "Free plan allows 1 vehicle. Upgrade to Lite for 3 vehicles.",
+    "details": {
+      "metric": "vehicles",
+      "current": 1,
+      "limit": 1,
+      "upgrade_url": "/pricing"
+    }
+  }
 }
 ```
 

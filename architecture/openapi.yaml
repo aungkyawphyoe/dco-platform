@@ -298,8 +298,12 @@ paths:
                         properties:
                           per_vehicle:
                             type: integer
+                            nullable: true
+                            description: Active shares allowed per vehicle; null = unlimited.
                           total:
                             type: integer
+                            nullable: true
+                            description: Total active shares allowed; null = unlimited.
                       active_shares:
                         type: integer
                   organization:
@@ -312,6 +316,27 @@ paths:
                         type: boolean
                       fleet:
                         type: boolean
+  /me/license:
+    get:
+      tags: [Me]
+      summary: Issue the offline entitlement license (EdDSA JWT)
+      description: >
+        Self-contained signed license for offline feature gating
+        (architecture/feature-gating.md §5). Claims carry the full tier
+        entitlements; clients must verify the signature against the bundled
+        kid keyring before trusting claims.
+      responses:
+        '200':
+          description: License issued
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [license]
+                properties:
+                  license:
+                    type: string
+                    description: EdDSA-signed compact JWT; header kid identifies the signing key.
   /me/device-tokens:
     post:
       tags: [Me]
@@ -369,6 +394,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Vehicle'
+        '403':
+          description: >
+            Plan vehicle limit reached — error.code LIMIT_EXCEEDED, details
+            { metric, current, limit, upgrade_url } (docs/pricing.md
+            "Limit Check Response").
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
         '409':
           $ref: '#/components/responses/Error'
         '422':
@@ -2757,7 +2791,7 @@ components:
               additionalProperties: true
     Plan:
       type: string
-      enum: [free, premium]
+      enum: [free, lite, standard, fleet]
     Role:
       type: string
       enum: [owner, admin]
@@ -2857,7 +2891,7 @@ components:
         vehicle_limit:
           type: integer
           nullable: true
-          description: 1 for free, null for unlimited premium; vehicle-count gating is still not enforced.
+          description: Per-plan cap — free 1, lite 3, standard 10, null = unlimited (fleet). Advisory; vehicle-count enforcement lands with server limit checks (architecture/feature-gating.md PR3).
         created_at:
           type: string
           format: date-time
@@ -4066,10 +4100,12 @@ components:
       properties:
         per_vehicle:
           type: integer
-          description: Plan cap of active shares per vehicle (free 1, premium 5).
+          nullable: true
+          description: Plan cap of active shares per vehicle (free 1, lite 3, null = unlimited).
         total:
           type: integer
-          description: Plan cap of total active shares the owner may hold (free 3, premium 20).
+          nullable: true
+          description: Plan cap of total active shares the owner may hold (free 1, lite 3, null = unlimited).
         active_on_vehicle:
           type: integer
     VehicleSharesDetail:

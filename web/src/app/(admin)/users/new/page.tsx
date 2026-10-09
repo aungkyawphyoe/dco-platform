@@ -10,6 +10,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { useCreateUser } from "@/lib/api/hooks";
+import { PLAN_OPTIONS, type Plan } from "@/lib/plans";
 
 export default function NewUserPage() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function NewUserPage() {
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [role, setRole] = useState<"owner" | "admin">("owner");
-  const [plan, setPlan] = useState<"free" | "premium">("free");
+  const [plan, setPlan] = useState<Plan>("free");
   const [errors, setErrors] = useState<{
     email?: string;
     password?: string;
@@ -111,12 +112,9 @@ export default function NewUserPage() {
           <Select
             label="Plan"
             placeholder="Free (default)"
-            options={[
-              { value: "free", label: "Free" },
-              { value: "premium", label: "Premium" },
-            ]}
+            options={[...PLAN_OPTIONS]}
             value={plan}
-            onChange={(v) => setPlan(v as "free" | "premium")}
+            onChange={(v) => setPlan(v as Plan)}
           />
 
           {create.isError && (

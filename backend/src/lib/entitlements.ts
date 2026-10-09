@@ -3,20 +3,21 @@ import type { Plan } from "./crypto.js";
 import type { Db } from "../db/client.js";
 import { changeLog, refreshTokens, users, vehicleShares, vehicles } from "../db/schema.js";
 import { AppError } from "./errors.js";
-
-const SHARE_LIMITS = {
-  free: { perVehicle: 1, total: 3 },
-  premium: { perVehicle: 5, total: 20 },
-} as const;
+import { shareLimits } from "./plans.js";
 
 export async function changeUserPlan(db: Db, userId: string, nextPlan: Plan) {
   return db.transaction(async (tx) => {
     const [user] = await tx.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) throw new AppError(404, "not_found", "User not found");
 
-    if (user.plan === "premium" && nextPlan === "free") {
-      // When downgrading to free, revoke excess shares beyond free plan limits
-      const limits = SHARE_LIMITS.free;
+    const target = shareLimits(nextPlan);
+    const revoking =
+      user.plan !== nextPlan && (target.perVehicle != null || target.total != null);
+
+    if (revoking) {
+      // Downgrade: revoke shares beyond the target plan's caps (oldest kept,
+      // excess deleted). Upgrades and unlimited targets never revoke.
+      const limits = target;
 
       // Get user's owned vehicles
       const ownedVehicles = await tx.select().from(vehicles).where(eq(vehicles.userId, userId));
@@ -30,7 +31,7 @@ export async function changeUserPlan(db: Db, userId: string, nextPlan: Plan) {
           .where(and(eq(vehicleShares.vehicleId, vehicleId), eq(vehicleShares.status, "active")))
           .orderBy(sql`${vehicleShares.createdAt} ASC`);
 
-        if (shares.length > limits.perVehicle) {
+        if (limits.perVehicle != null && shares.length > limits.perVehicle) {
           const excessShares = shares.slice(limits.perVehicle);
           for (const share of excessShares) {
             await tx.insert(changeLog).values({
@@ -62,7 +63,7 @@ export async function changeUserPlan(db: Db, userId: string, nextPlan: Plan) {
         .where(and(eq(vehicles.userId, userId), eq(vehicleShares.status, "active")))
         .orderBy(sql`${vehicleShares.createdAt} ASC`);
 
-      if (allActiveShares.length > limits.total) {
+      if (limits.total != null && allActiveShares.length > limits.total) {
         const excessShares = allActiveShares.slice(limits.total);
         for (const share of excessShares) {
           await tx.insert(changeLog).values({

@@ -2,12 +2,13 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import bcrypt from "bcryptjs";
 import { SignJWT, jwtVerify, type JWTPayload } from "jose";
 import type { Env } from "../config/env.js";
+import type { Plan } from "./plans.js";
 
 const ACCESS_TYP = "access";
 const REFRESH_TYP = "refresh";
 
 export type Role = "owner" | "admin";
-export type Plan = "free" | "premium";
+export type { Plan };
 
 export type AccessClaims = {
   sub: string;
