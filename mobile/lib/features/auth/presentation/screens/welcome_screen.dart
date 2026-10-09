@@ -1,3 +1,5 @@
+import '../widgets/language_action.dart';
+import '../widgets/social_buttons.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -15,6 +17,7 @@ class WelcomeScreen extends StatelessWidget {
     final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
     return Scaffold(
+      appBar: AppBar(actions: const [LanguageAction()]),
       body: SafeArea(
         child: Padding(
           padding: EdgeInsets.all(tokens.space.s5),
@@ -24,13 +27,19 @@ class WelcomeScreen extends StatelessWidget {
               const Spacer(),
               const DcoLogo(),
               SizedBox(height: tokens.space.s3),
-              Text(s.welcomeTagline, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                s.welcomeTagline,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               SizedBox(height: tokens.space.s3),
               Text(
                 s.welcomeBody,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               const Spacer(),
+              const SocialButtons(),
               DcoButton(
                 label: s.createAccount,
                 onPressed: () => context.push(AppRoutes.signup),

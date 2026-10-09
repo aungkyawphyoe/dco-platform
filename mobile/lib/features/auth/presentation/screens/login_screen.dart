@@ -1,3 +1,6 @@
+import '../widgets/auth_feedback.dart';
+import '../widgets/social_buttons.dart';
+import '../widgets/language_action.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -40,21 +43,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Future<void> _submit() async {
     final s = AppLocalizations.of(context)!;
     setState(() {
-      _identifierError = AuthValidators.identifier(_identifier.text);
-      _passwordError = AuthValidators.password(_password.text);
+      _identifierError = AuthValidators.identifier(_identifier.text) == null
+          ? null
+          : s.authInvalidIdentifier;
+      _passwordError = AuthValidators.password(_password.text) == null
+          ? null
+          : s.authPasswordRequired;
       _formError = null;
     });
     if (_identifierError != null || _passwordError != null) return;
 
     setState(() => _submitting = true);
     try {
-      await ref.read(sessionControllerProvider.notifier).signIn(
-        email: _identifier.text,
-        password: _password.text,
-      );
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .signIn(email: _identifier.text, password: _password.text);
     } catch (failure) {
-      final message =
-          failure is AuthFailure ? failure.message : s.somethingWentWrongTryAgain;
+      if (!mounted) return;
+      final message = authFeedback(context, failure);
       if (mounted) {
         setState(() => _formError = message);
         unawaited(
@@ -63,8 +69,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             title: s.signInFailed,
             message: message,
             actionLabel: failure is NetworkAuthFailure ? s.retry : s.ok,
-            onAction:
-                failure is NetworkAuthFailure ? () => _submit() : null,
+            onAction: failure is NetworkAuthFailure ? () => _submit() : null,
           ),
         );
       }
@@ -78,18 +83,23 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(s.signIn)),
+      appBar: AppBar(title: Text(s.signIn), actions: const [LanguageAction()]),
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.all(tokens.space.s5),
           children: [
+            const SocialButtons(),
+            const SizedBox(height: 24),
             DcoTextField(
               label: s.identifierLabel,
               controller: _identifier,
               hint: s.identifierHint,
               errorText: _identifierError,
               textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.email, AutofillHints.username],
+              autofillHints: const [
+                AutofillHints.email,
+                AutofillHints.username,
+              ],
               onChanged: (_) => setState(() => _identifierError = null),
             ),
             SizedBox(height: tokens.space.s4),
@@ -107,11 +117,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               alignment: Alignment.centerRight,
               child: TextButton(
                 onPressed: () => context.push(AppRoutes.forgotPassword),
-                child: Text(s.forgotPassword, style: TextStyle(color: tokens.text.link)),
+                child: Text(
+                  s.forgotPassword,
+                  style: TextStyle(color: tokens.text.link),
+                ),
               ),
             ),
             if (_formError != null) ...[
-              Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+              Text(
+                _formError!,
+                style: TextStyle(color: tokens.status.dangerFg),
+              ),
               SizedBox(height: tokens.space.s3),
             ],
             DcoButton(
@@ -123,7 +139,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             SizedBox(height: tokens.space.s4),
             TextButton(
               onPressed: () => context.go(AppRoutes.signup),
-              child: Text(s.createAnAccount, style: TextStyle(color: tokens.text.link)),
+              child: Text(
+                s.createAnAccount,
+                style: TextStyle(color: tokens.text.link),
+              ),
             ),
           ],
         ),

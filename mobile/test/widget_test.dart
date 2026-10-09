@@ -38,6 +38,7 @@ void main() {
           ),
           tokenStoreProvider.overrideWithValue(MemoryTokenStore()),
           licenseStoreProvider.overrideWithValue(MemoryLicenseStore()),
+          licenseKeyringProvider.overrideWith((ref) async => const []),
           appDatabaseProvider.overrideWithValue(database),
           localNotificationClientProvider.overrideWithValue(
             NoopLocalNotificationClient(),
@@ -50,7 +51,7 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Your garage, on the phone.'), findsOneWidget);
+    expect(find.text('Choose your language'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('welcome-sign-in')));
     await tester.pumpAndSettle();
@@ -62,6 +63,40 @@ void main() {
 
     return database;
   }
+
+  testWidgets(
+    'failed sign-in retains the form and displays localized feedback',
+    (tester) async {
+      final database = await pumpSignedInApp(tester);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(DcoApp)),
+      );
+      await container.read(sessionControllerProvider.notifier).signOut();
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('welcome-sign-in')));
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).at(0), 'owner@example.com');
+      await tester.enterText(find.byType(TextField).at(1), 'wrong-password');
+      await tester.tap(find.byKey(const Key('login-submit')));
+      await tester.pumpAndSettle();
+      expect(
+        container
+            .read(goRouterProvider)
+            .routerDelegate
+            .currentConfiguration
+            .last
+            .matchedLocation,
+        AppRoutes.login,
+      );
+      expect(
+        find.text('Your email, username, or password is incorrect.'),
+        findsWidgets,
+      );
+      expect(find.byType(TextField), findsNWidgets(2));
+      await tester.pumpWidget(const SizedBox());
+      await database.close();
+    },
+  );
 
   testWidgets('welcome to dashboard via mock sign in', (tester) async {
     final database = await pumpSignedInApp(tester);

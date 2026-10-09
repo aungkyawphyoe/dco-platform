@@ -1,3 +1,6 @@
+import '../widgets/auth_feedback.dart';
+import '../widgets/social_buttons.dart';
+import '../widgets/language_action.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -43,22 +46,32 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Future<void> _submit() async {
     final s = AppLocalizations.of(context)!;
     setState(() {
-      _emailError = AuthValidators.email(_email.text);
-      _passwordError = AuthValidators.password(_password.text);
-      _confirmError = AuthValidators.confirmPassword(_confirm.text, _password.text);
+      _emailError = AuthValidators.email(_email.text) == null
+          ? null
+          : s.authInvalidEmail;
+      _passwordError = AuthValidators.password(_password.text) == null
+          ? null
+          : s.authPasswordRequired;
+      _confirmError =
+          AuthValidators.confirmPassword(_confirm.text, _password.text) == null
+          ? null
+          : s.authPasswordMismatch;
       _formError = null;
     });
-    if (_emailError != null || _passwordError != null || _confirmError != null) return;
+    if (_emailError != null ||
+        _passwordError != null ||
+        _confirmError != null) {
+      return;
+    }
 
     setState(() => _submitting = true);
     try {
-      await ref.read(sessionControllerProvider.notifier).signUp(
-        email: _email.text,
-        password: _password.text,
-      );
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .signUp(email: _email.text, password: _password.text);
     } catch (failure) {
-      final message =
-          failure is AuthFailure ? failure.message : s.somethingWentWrongTryAgain;
+      if (!mounted) return;
+      final message = authFeedback(context, failure);
       if (mounted) {
         setState(() => _formError = message);
         unawaited(
@@ -81,11 +94,16 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(s.createAccount)),
+      appBar: AppBar(
+        title: Text(s.createAccount),
+        actions: const [LanguageAction()],
+      ),
       body: SafeArea(
         child: ListView(
           padding: EdgeInsets.all(tokens.space.s5),
           children: [
+            const SocialButtons(),
+            const SizedBox(height: 24),
             DcoTextField(
               label: s.emailLabel,
               controller: _email,
@@ -118,14 +136,24 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
             ),
             SizedBox(height: tokens.space.s5),
             if (_formError != null) ...[
-              Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+              Text(
+                _formError!,
+                style: TextStyle(color: tokens.status.dangerFg),
+              ),
               SizedBox(height: tokens.space.s3),
             ],
-            DcoButton(label: s.createAccount, onPressed: _submit, loading: _submitting),
+            DcoButton(
+              label: s.createAccount,
+              onPressed: _submit,
+              loading: _submitting,
+            ),
             SizedBox(height: tokens.space.s4),
             TextButton(
               onPressed: () => context.go(AppRoutes.login),
-              child: Text(s.alreadyHaveAccount, style: TextStyle(color: tokens.text.link)),
+              child: Text(
+                s.alreadyHaveAccount,
+                style: TextStyle(color: tokens.text.link),
+              ),
             ),
           ],
         ),

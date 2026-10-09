@@ -34,6 +34,9 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          ListTile(leading: const Icon(Icons.link), title: Text(s.authConnections), onTap: () => context.push(AppRoutes.accountConnections)),
+          if (user != null && !user.emailVerified && user.email.isNotEmpty)
+            ListTile(leading: const Icon(Icons.mark_email_unread_outlined), title: Text(s.authVerifyTitle), onTap: () => context.push(AppRoutes.verifyEmail)),
           InkWell(
             onTap: () {
               final id = user?.id;

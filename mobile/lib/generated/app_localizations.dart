@@ -437,7 +437,7 @@ abstract class AppLocalizations {
   /// No description provided for @authNetworkError.
   ///
   /// In en, this message translates to:
-  /// **'Check your connection and try again'**
+  /// **'Could not connect. Check your connection and try again.'**
   String get authNetworkError;
 
   /// No description provided for @authTooManyAttempts.
@@ -6689,6 +6689,288 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Expires'**
   String get shareExpiresAt;
+
+  /// No description provided for @chooseLanguage.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose your language'**
+  String get chooseLanguage;
+
+  /// No description provided for @languageIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Make AutoHub feel like home. You can change this later.'**
+  String get languageIntro;
+
+  /// No description provided for @introGarageTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'A home for your car'**
+  String get introGarageTitle;
+
+  /// No description provided for @introGarageBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep vehicle details and important documents together, wherever you go.'**
+  String get introGarageBody;
+
+  /// No description provided for @introMaintenanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Stay one step ahead'**
+  String get introMaintenanceTitle;
+
+  /// No description provided for @introMaintenanceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Track service history and get reminders for what is due next.'**
+  String get introMaintenanceBody;
+
+  /// No description provided for @introExpensesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Know where your money goes'**
+  String get introExpensesTitle;
+
+  /// No description provided for @introExpensesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Record fuel and expenses, then see your spending clearly.'**
+  String get introExpensesBody;
+
+  /// No description provided for @authNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get authNext;
+
+  /// No description provided for @authSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip introduction'**
+  String get authSkip;
+
+  /// No description provided for @authLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Do this later'**
+  String get authLater;
+
+  /// No description provided for @authGetStarted.
+  ///
+  /// In en, this message translates to:
+  /// **'Get started'**
+  String get authGetStarted;
+
+  /// No description provided for @authGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Google'**
+  String get authGoogle;
+
+  /// No description provided for @authApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in with Apple'**
+  String get authApple;
+
+  /// No description provided for @authAccountChoice.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your garage in one account'**
+  String get authAccountChoice;
+
+  /// No description provided for @authExistingAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'I already have an account'**
+  String get authExistingAccount;
+
+  /// No description provided for @authNewAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Create a new account'**
+  String get authNewAccount;
+
+  /// No description provided for @authVerifyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email'**
+  String get authVerifyTitle;
+
+  /// No description provided for @authVerifyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the six-digit code from your email. Personal features are available now; verify before creating or accepting a share.'**
+  String get authVerifyBody;
+
+  /// No description provided for @authCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Six-digit code'**
+  String get authCode;
+
+  /// No description provided for @authSendCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Send code'**
+  String get authSendCode;
+
+  /// No description provided for @authResend.
+  ///
+  /// In en, this message translates to:
+  /// **'Resend code'**
+  String get authResend;
+
+  /// No description provided for @authCheckCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify email'**
+  String get authCheckCode;
+
+  /// No description provided for @authCorrectEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Correct email address'**
+  String get authCorrectEmail;
+
+  /// No description provided for @authRecoveryInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'If this email has a password account, a code will arrive shortly. If you use Google or Apple, sign in with that provider.'**
+  String get authRecoveryInfo;
+
+  /// No description provided for @authResetDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Password updated. Sign in with your new password.'**
+  String get authResetDone;
+
+  /// No description provided for @authFirstVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your garage starts here'**
+  String get authFirstVehicle;
+
+  /// No description provided for @authFirstVehicleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first vehicle, or explore AutoHub and add one later.'**
+  String get authFirstVehicleBody;
+
+  /// No description provided for @authAddVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add your first vehicle'**
+  String get authAddVehicle;
+
+  /// No description provided for @authConnections.
+  ///
+  /// In en, this message translates to:
+  /// **'Account connections'**
+  String get authConnections;
+
+  /// No description provided for @authLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get authLinked;
+
+  /// No description provided for @authConnectGoogle.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Google'**
+  String get authConnectGoogle;
+
+  /// No description provided for @authConnectApple.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect Apple'**
+  String get authConnectApple;
+
+  /// No description provided for @authFinishLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to this account'**
+  String get authFinishLink;
+
+  /// No description provided for @authFirstPassword.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a password'**
+  String get authFirstPassword;
+
+  /// No description provided for @authRecentLogin.
+  ///
+  /// In en, this message translates to:
+  /// **'For your security, sign in again and return here.'**
+  String get authRecentLogin;
+
+  /// No description provided for @authCodeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is incorrect, expired, or already used. Request a new code if needed.'**
+  String get authCodeInvalid;
+
+  /// No description provided for @authRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please wait before trying again.'**
+  String get authRateLimited;
+
+  /// No description provided for @authNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'This sign-in service is not available yet. Please use email sign-in.'**
+  String get authNotConfigured;
+
+  /// No description provided for @authEmailTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This email already has an account. Sign in or reset its password before connecting.'**
+  String get authEmailTaken;
+
+  /// No description provided for @authDeliveryError.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not send the email. Please try again shortly.'**
+  String get authDeliveryError;
+
+  /// No description provided for @authGenericError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not complete this action. Please try again.'**
+  String get authGenericError;
+
+  /// No description provided for @authPasswordMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Use at least eight characters and make both passwords match.'**
+  String get authPasswordMismatch;
+
+  /// No description provided for @authInvalidEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address (up to 254 characters).'**
+  String get authInvalidEmail;
+
+  /// No description provided for @authInvalidIdentifier.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a valid email address or username.'**
+  String get authInvalidIdentifier;
+
+  /// No description provided for @authPasswordRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a password with at least eight characters.'**
+  String get authPasswordRequired;
+
+  /// No description provided for @authInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email, username, or password is incorrect.'**
+  String get authInvalidCredentials;
 }
 
 class _AppLocalizationsDelegate

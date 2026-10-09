@@ -95,6 +95,8 @@ class SyncEngine {
 
   Timer? _timer;
   bool _running = false;
+  bool _pausedForAccountChange = false;
+  Completer<void>? _finished;
   bool _queuedAfterRun = false;
   SyncState _state = SyncState.initial;
   final _states = StreamController<SyncState>.broadcast();
@@ -104,8 +106,21 @@ class SyncEngine {
 
   /// Debounced trigger used by repositories after local writes.
   /// Respects auto-sync setting — won't trigger if disabled.
+  Future<void> pauseForAccountChange() async {
+    _pausedForAccountChange = true;
+    _timer?.cancel();
+    final finished = _finished;
+    if (finished != null) await finished.future;
+    _queuedAfterRun = false;
+  }
+
+  void resumeAfterAccountChange() {
+    _pausedForAccountChange = false;
+    if (_currentUser() != null) unawaited(syncNow());
+  }
+
   void requestSync() {
-    if (!_autoSyncEnabled()) return;
+    if (_pausedForAccountChange || !_autoSyncEnabled()) return;
     _timer?.cancel();
     _timer = Timer(_debounce, syncNow);
   }
@@ -114,21 +129,25 @@ class SyncEngine {
   /// If called manually (from Sync Now button), [force] should be true
   /// to bypass auto-sync setting.
   Future<void> syncNow({bool force = false}) async {
-    if (!force && !_autoSyncEnabled()) return;
+    if (_pausedForAccountChange || (!force && !_autoSyncEnabled())) return;
     _timer?.cancel();
     if (_running) {
       _queuedAfterRun = true;
       return;
     }
     _running = true;
+    _finished = Completer<void>();
     _emit(const SyncState(phase: SyncPhase.syncing));
     try {
       final userId = _currentUser();
       if (userId == null || userId.isEmpty) {
-        _emit(SyncState(phase: SyncPhase.idle, lastSyncedAt: _state.lastSyncedAt));
+        _emit(
+          SyncState(phase: SyncPhase.idle, lastSyncedAt: _state.lastSyncedAt),
+        );
         return;
       }
       await _pushAll(userId);
+      if (_pausedForAccountChange) return;
       final linked = await _uploadPendingMedia(userId);
       if (linked > 0) {
         await _pushAll(userId);
@@ -154,7 +173,14 @@ class SyncEngine {
         ),
       );
     } finally {
+      if (_pausedForAccountChange) {
+        _emit(
+          SyncState(phase: SyncPhase.idle, lastSyncedAt: _state.lastSyncedAt),
+        );
+      }
       _running = false;
+      _finished?.complete();
+      _finished = null;
       if (_queuedAfterRun) {
         _queuedAfterRun = false;
         requestSync();
@@ -165,16 +191,18 @@ class SyncEngine {
   Future<int> _pushAll(String userId) async {
     var pushedBatches = 0;
     while (true) {
-      final rows = await (_db.select(_db.outboxEntries)
-            ..where(
-              (row) =>
-                  row.userId.equals(userId) &
-                  row.parked.equals(false) &
-                  row.attemptCount.isSmallerThanValue(_maxAttempts),
-            )
-            ..orderBy([(row) => OrderingTerm.asc(row.id)])
-            ..limit(_batchSize))
-          .get();
+      if (_pausedForAccountChange) return pushedBatches;
+      final rows =
+          await (_db.select(_db.outboxEntries)
+                ..where(
+                  (row) =>
+                      row.userId.equals(userId) &
+                      row.parked.equals(false) &
+                      row.attemptCount.isSmallerThanValue(_maxAttempts),
+                )
+                ..orderBy([(row) => OrderingTerm.asc(row.id)])
+                ..limit(_batchSize))
+              .get();
       if (rows.isEmpty) return pushedBatches;
 
       final operations = rows
@@ -189,21 +217,28 @@ class SyncEngine {
           )
           .toList();
       final results = await _api.push(operations);
-      final byEntityId = {for (final result in results) result.entityId: result};
+      final byEntityId = {
+        for (final result in results) result.entityId: result,
+      };
 
       var ackedCount = 0;
       for (final row in rows) {
         final result = byEntityId[row.entityId];
         if (result != null && result.acked) {
-          await (_db.delete(_db.outboxEntries)..where((r) => r.id.equals(row.id))).go();
+          await (_db.delete(
+            _db.outboxEntries,
+          )..where((r) => r.id.equals(row.id))).go();
           ackedCount++;
           continue;
         }
-        final reason = result?.error?.message ?? result?.status.name ?? 'no_result';
+        final reason =
+            result?.error?.message ?? result?.status.name ?? 'no_result';
         // Plan-limit rejections park immediately instead of burning
         // retries; siblings keep syncing (feature-gating §9).
         final limitRejected = result?.error?.code == 'LIMIT_EXCEEDED';
-        await (_db.update(_db.outboxEntries)..where((r) => r.id.equals(row.id))).write(
+        await (_db.update(
+          _db.outboxEntries,
+        )..where((r) => r.id.equals(row.id))).write(
           OutboxEntriesCompanion(
             attemptCount: limitRejected
                 ? Value(row.attemptCount)
@@ -237,24 +272,24 @@ class SyncEngine {
   }
 
   Future<int> _flushVehiclePhotos(String userId) async {
-    final rows = await (_db.select(_db.vehicleRecords)
-          ..where(
-            (row) =>
-                row.userId.equals(userId) &
-                row.photoLocalPath.isNotNull() &
-                row.photoMediaId.isNull(),
-          ))
-        .get();
+    final rows =
+        await (_db.select(_db.vehicleRecords)..where(
+              (row) =>
+                  row.userId.equals(userId) &
+                  row.photoLocalPath.isNotNull() &
+                  row.photoMediaId.isNull(),
+            ))
+            .get();
     var linked = 0;
     for (final row in rows) {
+      if (_pausedForAccountChange) return linked;
       final media = await _uploadFile(
         file: File(row.photoLocalPath!),
         purpose: MediaPurpose.vehiclePhoto,
       );
       if (media == null) continue;
-      await (_db.update(_db.vehicleRecords)..where((r) => r.id.equals(row.id))).write(
-        VehicleRecordsCompanion(photoMediaId: Value(media)),
-      );
+      await (_db.update(_db.vehicleRecords)..where((r) => r.id.equals(row.id)))
+          .write(VehicleRecordsCompanion(photoMediaId: Value(media)));
       final refreshed = await (_db.select(
         _db.vehicleRecords,
       )..where((r) => r.id.equals(row.id))).getSingle();
@@ -265,22 +300,29 @@ class SyncEngine {
   }
 
   Future<int> _flushServiceReceipts(String userId) async {
-    final rows = await (_db.select(_db.serviceRecordRows)
-          ..where(
-            (row) =>
-                row.receiptLocalPath.isNotNull() & row.receiptMediaId.isNull(),
-          ))
-        .get();
+    final rows =
+        await (_db.select(_db.serviceRecordRows)..where(
+              (row) =>
+                  row.vehicleId.isInQuery(
+                    _db.selectOnly(_db.vehicleRecords)
+                      ..addColumns([_db.vehicleRecords.id])
+                      ..where(_db.vehicleRecords.userId.equals(userId)),
+                  ) &
+                  row.receiptLocalPath.isNotNull() &
+                  row.receiptMediaId.isNull(),
+            ))
+            .get();
     var linked = 0;
     for (final row in rows) {
+      if (_pausedForAccountChange) return linked;
       final media = await _uploadFile(
         file: File(row.receiptLocalPath!),
         purpose: MediaPurpose.serviceReceipt,
       );
       if (media == null) continue;
-      await (_db.update(_db.serviceRecordRows)..where((r) => r.id.equals(row.id))).write(
-        ServiceRecordRowsCompanion(receiptMediaId: Value(media)),
-      );
+      await (_db.update(_db.serviceRecordRows)
+            ..where((r) => r.id.equals(row.id)))
+          .write(ServiceRecordRowsCompanion(receiptMediaId: Value(media)));
       final refreshed = await (_db.select(
         _db.serviceRecordRows,
       )..where((r) => r.id.equals(row.id))).getSingle();
@@ -291,22 +333,28 @@ class SyncEngine {
   }
 
   Future<int> _flushExpenseReceipts(String userId) async {
-    final rows = await (_db.select(_db.expenseRecords)
-          ..where(
-            (row) =>
-                row.receiptLocalPath.isNotNull() & row.receiptMediaId.isNull(),
-          ))
-        .get();
+    final rows =
+        await (_db.select(_db.expenseRecords)..where(
+              (row) =>
+                  row.vehicleId.isInQuery(
+                    _db.selectOnly(_db.vehicleRecords)
+                      ..addColumns([_db.vehicleRecords.id])
+                      ..where(_db.vehicleRecords.userId.equals(userId)),
+                  ) &
+                  row.receiptLocalPath.isNotNull() &
+                  row.receiptMediaId.isNull(),
+            ))
+            .get();
     var linked = 0;
     for (final row in rows) {
+      if (_pausedForAccountChange) return linked;
       final media = await _uploadFile(
         file: File(row.receiptLocalPath!),
         purpose: MediaPurpose.expenseReceipt,
       );
       if (media == null) continue;
-      await (_db.update(_db.expenseRecords)..where((r) => r.id.equals(row.id))).write(
-        ExpenseRecordsCompanion(receiptMediaId: Value(media)),
-      );
+      await (_db.update(_db.expenseRecords)..where((r) => r.id.equals(row.id)))
+          .write(ExpenseRecordsCompanion(receiptMediaId: Value(media)));
       final refreshed = await (_db.select(
         _db.expenseRecords,
       )..where((r) => r.id.equals(row.id))).getSingle();
@@ -317,22 +365,28 @@ class SyncEngine {
   }
 
   Future<int> _flushDocuments(String userId) async {
-    final rows = await (_db.select(_db.documentRecords)
-          ..where(
-            (row) =>
-                row.localFilePath.isNotNull() & row.mediaId.isNull(),
-          ))
-        .get();
+    final rows =
+        await (_db.select(_db.documentRecords)..where(
+              (row) =>
+                  row.vehicleId.isInQuery(
+                    _db.selectOnly(_db.vehicleRecords)
+                      ..addColumns([_db.vehicleRecords.id])
+                      ..where(_db.vehicleRecords.userId.equals(userId)),
+                  ) &
+                  row.localFilePath.isNotNull() &
+                  row.mediaId.isNull(),
+            ))
+            .get();
     var linked = 0;
     for (final row in rows) {
+      if (_pausedForAccountChange) return linked;
       final media = await _uploadFile(
         file: File(row.localFilePath!),
         purpose: MediaPurpose.document,
       );
       if (media == null) continue;
-      await (_db.update(_db.documentRecords)..where((r) => r.id.equals(row.id))).write(
-        DocumentRecordsCompanion(mediaId: Value(media)),
-      );
+      await (_db.update(_db.documentRecords)..where((r) => r.id.equals(row.id)))
+          .write(DocumentRecordsCompanion(mediaId: Value(media)));
       final refreshed = await (_db.select(
         _db.documentRecords,
       )..where((r) => r.id.equals(row.id))).getSingle();
@@ -342,10 +396,17 @@ class SyncEngine {
     return linked;
   }
 
-  Future<String?> _uploadFile({required File file, required MediaPurpose purpose}) async {
+  Future<String?> _uploadFile({
+    required File file,
+    required MediaPurpose purpose,
+  }) async {
     if (!file.existsSync()) return null;
     try {
-      final media = await _mediaApi.upload(id: _uuid.v4(), file: file, purpose: purpose);
+      final media = await _mediaApi.upload(
+        id: _uuid.v4(),
+        file: file,
+        purpose: purpose,
+      );
       return media.id;
     } on ApiError catch (error) {
       // Connectivity problems abort the whole drain; permanent rejects
@@ -365,7 +426,10 @@ class SyncEngine {
     );
   }
 
-  Future<void> _enqueueServiceRecordUpsert(ServiceRecordRow row, String userId) async {
+  Future<void> _enqueueServiceRecordUpsert(
+    ServiceRecordRow row,
+    String userId,
+  ) async {
     final lines = await (_db.select(
       _db.serviceLineRecords,
     )..where((item) => item.serviceRecordId.equals(row.id))).get();
@@ -408,6 +472,7 @@ class SyncEngine {
     var cursor = await _readCursor(userId);
     const maxPages = 100;
     for (var page = 0; page < maxPages; page++) {
+      if (_pausedForAccountChange) return;
       final pulled = await _api.pull(cursor);
       if (pulled.changes.isNotEmpty) {
         await _db.transaction(() async {
@@ -429,8 +494,9 @@ class SyncEngine {
 
   Future<String> _readCursor(String userId) async {
     final key = 'sync_cursor:$userId';
-    final row = await (_db.select(_db.appMeta)..where((m) => m.key.equals(key)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.appMeta,
+    )..where((m) => m.key.equals(key))).getSingleOrNull();
     return row?.value ?? '';
   }
 
@@ -443,9 +509,8 @@ class SyncEngine {
       _db.appMeta,
     )..where((m) => m.key.equals(key))).getSingleOrNull();
     if (existing != null) {
-      await (_db.update(_db.appMeta)..where((m) => m.id.equals(existing.id))).write(
-        AppMetaCompanion(value: Value(value)),
-      );
+      await (_db.update(_db.appMeta)..where((m) => m.id.equals(existing.id)))
+          .write(AppMetaCompanion(value: Value(value)));
     } else {
       await _db
           .into(_db.appMeta)

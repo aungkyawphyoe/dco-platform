@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dco_mobile/core/database/app_database.dart';
@@ -7,7 +8,7 @@ import 'package:dco_mobile/core/sync/outbox_models.dart';
 import 'package:dco_mobile/core/sync/outbox_writer.dart';
 import 'package:dco_mobile/core/sync/sync_api.dart';
 import 'package:dco_mobile/core/sync/sync_engine.dart';
-import 'package:drift/drift.dart' hide isNotNull;
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uuid/uuid.dart';
@@ -16,16 +17,23 @@ class FakeSyncApi implements SyncApi {
   FakeSyncApi();
 
   final recordedOps = <SyncOperationDto>[];
+  Completer<void>? beforePush;
+  final enteredPush = Completer<void>();
   List<SyncPushResult> Function(List<SyncOperationDto> ops)? pushHandler;
   SyncPullPage Function(String cursor)? pullHandler;
 
   @override
   Future<List<SyncPushResult>> push(List<SyncOperationDto> operations) async {
     recordedOps.addAll(operations);
+    if (!enteredPush.isCompleted) enteredPush.complete();
+    if (beforePush != null) await beforePush!.future;
     if (pushHandler != null) return pushHandler!(operations);
     return operations
         .map(
-          (op) => SyncPushResult(entityId: op.entityId, status: SyncPushStatus.applied),
+          (op) => SyncPushResult(
+            entityId: op.entityId,
+            status: SyncPushStatus.applied,
+          ),
         )
         .toList();
   }
@@ -125,7 +133,10 @@ void main() {
                   status: SyncPushStatus.rejected,
                   error: ApiError(code: 'validation', message: 'bad payload'),
                 )
-              : SyncPushResult(entityId: op.entityId, status: SyncPushStatus.applied),
+              : SyncPushResult(
+                  entityId: op.entityId,
+                  status: SyncPushStatus.applied,
+                ),
         )
         .toList();
 
@@ -139,7 +150,9 @@ void main() {
   });
 
   test('dead-lettered ops stop being pushed', () async {
-    await (db.into(db.outboxEntries).insert(
+    await (db
+        .into(db.outboxEntries)
+        .insert(
           OutboxEntriesCompanion.insert(
             userId: 'u1',
             entityType: OutboxEntityType.vehicle,
@@ -160,7 +173,8 @@ void main() {
 
   test('network failure keeps the queue and reports error state', () async {
     await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v1');
-    api.pushHandler = (ops) => throw const ApiError(code: 'network', message: 'offline');
+    api.pushHandler = (ops) =>
+        throw const ApiError(code: 'network', message: 'offline');
 
     await engine.syncNow();
 
@@ -170,7 +184,11 @@ void main() {
   });
 
   test("only the signed-in user's rows are drained", () async {
-    await enqueue('u2', entityType: OutboxEntityType.vehicle, entityId: 'other');
+    await enqueue(
+      'u2',
+      entityType: OutboxEntityType.vehicle,
+      entityId: 'other',
+    );
 
     await engine.syncNow();
 
@@ -206,13 +224,13 @@ void main() {
 
     await engine.syncNow();
 
-    final vehicle = await (db.select(db.vehicleRecords)
-          ..where((r) => r.id.equals('v1')))
-        .getSingle();
+    final vehicle = await (db.select(
+      db.vehicleRecords,
+    )..where((r) => r.id.equals('v1'))).getSingle();
     expect(vehicle.name, 'From server');
-    final cursorRow = await (db.select(db.appMeta)
-          ..where((m) => m.key.equals('sync_cursor:u1')))
-        .getSingle();
+    final cursorRow = await (db.select(
+      db.appMeta,
+    )..where((m) => m.key.equals('sync_cursor:u1'))).getSingle();
     expect(cursorRow.value, 'cursor-2');
   });
 
@@ -253,20 +271,20 @@ void main() {
 
     await engine.syncNow();
     expect(callCount, 1);
-    final cursor1 = await (db.select(db.appMeta)
-          ..where((m) => m.key.equals('sync_cursor:u1')))
-        .getSingleOrNull();
+    final cursor1 = await (db.select(
+      db.appMeta,
+    )..where((m) => m.key.equals('sync_cursor:u1'))).getSingleOrNull();
     expect(cursor1?.value, 'page1');
 
     await engine.syncNow();
     expect(callCount, 3);
-    final vehicle = await (db.select(db.vehicleRecords)
-          ..where((r) => r.id.equals('v-pulled')))
-        .getSingleOrNull();
+    final vehicle = await (db.select(
+      db.vehicleRecords,
+    )..where((r) => r.id.equals('v-pulled'))).getSingleOrNull();
     expect(vehicle?.name, 'Synced vehicle');
-    final cursor2 = await (db.select(db.appMeta)
-          ..where((m) => m.key.equals('sync_cursor:u1')))
-        .getSingleOrNull();
+    final cursor2 = await (db.select(
+      db.appMeta,
+    )..where((m) => m.key.equals('sync_cursor:u1'))).getSingleOrNull();
     expect(cursor2?.value, 'page2');
   });
 
@@ -285,34 +303,155 @@ void main() {
     expect(calls, 1);
   });
 
+  test(
+    'account transition waits for in-flight sync and prevents another drain',
+    () async {
+      api.beforePush = Completer<void>();
+      await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v1');
+      final running = engine.syncNow();
+      await api.enteredPush.future;
+      var paused = false;
+      final pause = engine.pauseForAccountChange().then((_) => paused = true);
+      await Future<void>.delayed(Duration.zero);
+      expect(paused, false);
+      api.beforePush!.complete();
+      await running;
+      await pause;
+      expect(paused, true);
+      expect(engine.state.phase, SyncPhase.idle);
+      await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v2');
+      await engine.syncNow(force: true);
+      expect(api.recordedOps.map((op) => op.entityId), ['v1']);
+    },
+  );
+
+  test(
+    'attachment uploads stay within the current account after account switching',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('dco_account_media');
+      final file = File('${dir.path}/receipt.jpg')..writeAsBytesSync([1, 2, 3]);
+      addTearDown(() => dir.delete(recursive: true));
+      final now = DateTime.now().toUtc();
+      for (final user in ['u1', 'u2']) {
+        await db
+            .into(db.vehicleRecords)
+            .insert(
+              VehicleRecordsCompanion.insert(
+                id: 'vehicle-$user',
+                userId: user,
+                name: 'Car',
+                make: 'Toyota',
+                model: 'Camry',
+                year: 2022,
+                licensePlate: user,
+                fuelType: 'petrol',
+                mileage: 10,
+                updatedAt: now,
+                createdAt: now,
+              ),
+            );
+        await db
+            .into(db.expenseRecords)
+            .insert(
+              ExpenseRecordsCompanion.insert(
+                id: 'expense-$user',
+                vehicleId: 'vehicle-$user',
+                category: 'fuel',
+                amount: 10,
+                incurredOn: now,
+                receiptLocalPath: Value(file.path),
+                updatedAt: now,
+                createdAt: now,
+              ),
+            );
+        await db
+            .into(db.documentRecords)
+            .insert(
+              DocumentRecordsCompanion.insert(
+                id: 'document-$user',
+                vehicleId: 'vehicle-$user',
+                name: 'Registration',
+                category: 'registration',
+                localFilePath: Value(file.path),
+                updatedAt: now,
+                createdAt: now,
+              ),
+            );
+        await db
+            .into(db.serviceRecordRows)
+            .insert(
+              ServiceRecordRowsCompanion.insert(
+                id: 'service-$user',
+                vehicleId: 'vehicle-$user',
+                title: 'Service',
+                servicedOn: now,
+                odometer: 10,
+                totalCost: 10,
+                receiptLocalPath: Value(file.path),
+                updatedAt: now,
+                createdAt: now,
+              ),
+            );
+      }
+      await engine.syncNow();
+      expect(mediaApi.uploads.length, 3);
+      expect(api.recordedOps.map((op) => op.entityId).toSet(), {
+        'expense-u1',
+        'document-u1',
+        'service-u1',
+      });
+      expect(
+        (await (db.select(
+          db.expenseRecords,
+        )..where((r) => r.id.equals('expense-u2'))).getSingle()).receiptMediaId,
+        isNull,
+      );
+      expect(
+        (await (db.select(
+          db.documentRecords,
+        )..where((r) => r.id.equals('document-u2'))).getSingle()).mediaId,
+        isNull,
+      );
+      expect(
+        (await (db.select(
+          db.serviceRecordRows,
+        )..where((r) => r.id.equals('service-u2'))).getSingle()).receiptMediaId,
+        isNull,
+      );
+    },
+  );
+
   test('pending media bytes upload then link via follow-up upsert', () async {
     final dir = await Directory.systemTemp.createTemp('dco_media_test');
-    final file = File('${dir.path}/photo.jpg')..writeAsBytesSync(List.filled(16, 1));
+    final file = File('${dir.path}/photo.jpg')
+      ..writeAsBytesSync(List.filled(16, 1));
     addTearDown(() => dir.delete(recursive: true));
 
-    await db.into(db.vehicleRecords).insert(
-      VehicleRecordsCompanion.insert(
-        id: 'v1',
-        userId: 'u1',
-        name: 'Daily',
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2022,
-        licensePlate: 'ABC123',
-        fuelType: 'petrol',
-        mileage: 1000,
-        photoLocalPath: Value(file.path),
-        updatedAt: DateTime.now().toUtc(),
-        createdAt: DateTime.now().toUtc(),
-      ),
-    );
+    await db
+        .into(db.vehicleRecords)
+        .insert(
+          VehicleRecordsCompanion.insert(
+            id: 'v1',
+            userId: 'u1',
+            name: 'Daily',
+            make: 'Toyota',
+            model: 'Camry',
+            year: 2022,
+            licensePlate: 'ABC123',
+            fuelType: 'petrol',
+            mileage: 1000,
+            photoLocalPath: Value(file.path),
+            updatedAt: DateTime.now().toUtc(),
+            createdAt: DateTime.now().toUtc(),
+          ),
+        );
 
     await engine.syncNow();
 
     expect(mediaApi.uploads.single.purpose, MediaPurpose.vehiclePhoto);
-    final vehicle = await (db.select(db.vehicleRecords)
-          ..where((r) => r.id.equals('v1')))
-        .getSingle();
+    final vehicle = await (db.select(
+      db.vehicleRecords,
+    )..where((r) => r.id.equals('v1'))).getSingle();
     expect(vehicle.photoMediaId, 'media-1');
 
     final linkOp = api.recordedOps.where((op) => op.entityId == 'v1').single;

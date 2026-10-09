@@ -1,3 +1,4 @@
+import '../../core/storage/entry_preferences.dart';
 import 'dart:ui';
 
 import 'package:dco_mobile/core/providers.dart';
@@ -14,18 +15,25 @@ final userPreferencesProvider = StreamProvider<UserPreferences>((ref) {
 });
 
 final localeProvider = Provider<Locale>((ref) {
-  final language =
-      ref.watch(userPreferencesProvider).valueOrNull?.language ??
-      AppLanguage.english;
-  return Locale(language.code);
+  final entry =
+      ref.watch(entryPreferencesProvider).valueOrNull?.language ?? 'en';
+  final signedIn = ref.watch(sessionControllerProvider).valueOrNull != null;
+  return Locale(
+    signedIn
+        ? (ref.watch(userPreferencesProvider).valueOrNull?.language.code ??
+              entry)
+        : entry,
+  );
 });
 
 final lengthUnitProvider = Provider<MileageUnit>((ref) {
-  return ref.watch(userPreferencesProvider).valueOrNull?.lengthUnit ?? MileageUnit.km;
+  return ref.watch(userPreferencesProvider).valueOrNull?.lengthUnit ??
+      MileageUnit.km;
 });
 
 final currencyProvider = Provider<AppCurrency>((ref) {
-  return ref.watch(userPreferencesProvider).valueOrNull?.currency ?? AppCurrency.mmk;
+  return ref.watch(userPreferencesProvider).valueOrNull?.currency ??
+      AppCurrency.mmk;
 });
 
 /// Light / Dark / System choice from Settings → Appearance (default: system).
@@ -36,7 +44,9 @@ final themeModeProvider = Provider<AppThemeMode>((ref) {
 
 /// Clamped reminder thresholds (soon days / soon distance) from user prefs.
 final reminderThresholdsProvider = Provider<DueThresholds>((ref) {
-  final prefs = ref.watch(userPreferencesProvider).valueOrNull ?? UserPreferences.defaults;
+  final prefs =
+      ref.watch(userPreferencesProvider).valueOrNull ??
+      UserPreferences.defaults;
   return DueThresholds.fromValues(
     soonDays: prefs.soonDays,
     soonDistanceKm: prefs.soonDistanceKm,

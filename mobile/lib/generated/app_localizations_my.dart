@@ -185,7 +185,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get authNetworkError =>
-      'အင်တာနက်ချိတ်ဆက်မှုကို စစ်ဆေးပြီး ပြန်ကြိုးစားပါ';
+      'ချိတ်ဆက်၍ မရပါ။ အင်တာနက်ကို စစ်ဆေးပြီး ပြန်ကြိုးစားပါ။';
 
   @override
   String get authTooManyAttempts =>
@@ -3577,4 +3577,166 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get shareExpiresAt => 'သက်တမ်းကုန်';
+
+  @override
+  String get chooseLanguage => 'ဘာသာစကား ရွေးချယ်ပါ';
+
+  @override
+  String get languageIntro =>
+      'AutoHub ကို သင်နှစ်သက်သည့် ဘာသာစကားဖြင့် အသုံးပြုပါ။ နောက်မှ ပြောင်းလဲနိုင်ပါသည်။';
+
+  @override
+  String get introGarageTitle => 'သင့်ကားအတွက် နေရာတစ်ခု';
+
+  @override
+  String get introGarageBody =>
+      'ကားအချက်အလက်နှင့် အရေးကြီးစာရွက်စာတမ်းများကို တစ်နေရာတည်းတွင် သိမ်းဆည်းပါ။';
+
+  @override
+  String get introMaintenanceTitle => 'ကြိုတင်ပြင်ဆင်ထားပါ';
+
+  @override
+  String get introMaintenanceBody =>
+      'ပြုပြင်ထိန်းသိမ်းမှုမှတ်တမ်းများနှင့် လာမည့်လုပ်ဆောင်ချက်များအတွက် သတိပေးချက်များကို ကြည့်ပါ။';
+
+  @override
+  String get introExpensesTitle => 'သင့်အသုံးစရိတ်ကို သိရှိပါ';
+
+  @override
+  String get introExpensesBody =>
+      'ဆီနှင့် အသုံးစရိတ်များကို မှတ်တမ်းတင်ပြီး ရှင်းလင်းစွာ ကြည့်ရှုပါ။';
+
+  @override
+  String get authNext => 'ဆက်လုပ်မည်';
+
+  @override
+  String get authSkip => 'မိတ်ဆက်ကို ကျော်မည်';
+
+  @override
+  String get authLater => 'နောက်မှ လုပ်မည်';
+
+  @override
+  String get authGetStarted => 'စတင်မည်';
+
+  @override
+  String get authGoogle => 'Google ဖြင့် ဝင်မည်';
+
+  @override
+  String get authApple => 'Apple ဖြင့် ဝင်မည်';
+
+  @override
+  String get authAccountChoice =>
+      'သင့်ကားဂိုဒေါင်ကို အကောင့်တစ်ခုတည်းတွင် ထားပါ';
+
+  @override
+  String get authExistingAccount => 'အကောင့်ရှိပြီးသား ဖြစ်ပါသည်';
+
+  @override
+  String get authNewAccount => 'အကောင့်အသစ် ဖန်တီးမည်';
+
+  @override
+  String get authVerifyTitle => 'အီးမေးလ် အတည်ပြုပါ';
+
+  @override
+  String get authVerifyBody =>
+      'အီးမေးလ်မှ ဂဏန်းခြောက်လုံးကုဒ်ကို ထည့်ပါ။ ကိုယ်ပိုင်လုပ်ဆောင်ချက်များကို အသုံးပြုနိုင်ပြီး မျှဝေရန် သို့မဟုတ် လက်ခံရန် အတည်ပြုရပါမည်။';
+
+  @override
+  String get authCode => 'ဂဏန်းခြောက်လုံးကုဒ်';
+
+  @override
+  String get authSendCode => 'ကုဒ်ပို့မည်';
+
+  @override
+  String get authResend => 'ကုဒ်ပြန်ပို့မည်';
+
+  @override
+  String get authCheckCode => 'အီးမေးလ် အတည်ပြုမည်';
+
+  @override
+  String get authCorrectEmail => 'အီးမေးလ်လိပ်စာ ပြင်မည်';
+
+  @override
+  String get authRecoveryInfo =>
+      'ဤအီးမေးလ်တွင် စကားဝှက်အကောင့်ရှိပါက ကုဒ်ရရှိပါမည်။ Google သို့မဟုတ် Apple အသုံးပြုပါက ထိုဝန်ဆောင်မှုဖြင့် ဝင်ပါ။';
+
+  @override
+  String get authResetDone =>
+      'စကားဝှက် ပြင်ပြီးပါပြီ။ စကားဝှက်အသစ်ဖြင့် ဝင်ပါ။';
+
+  @override
+  String get authFirstVehicle => 'သင့်ကားဂိုဒေါင်ကို စတင်ပါ';
+
+  @override
+  String get authFirstVehicleBody =>
+      'သင့်ပထမဆုံးကားကို ထည့်ပါ။ သို့မဟုတ် AutoHub ကို လေ့လာပြီး နောက်မှ ထည့်နိုင်ပါသည်။';
+
+  @override
+  String get authAddVehicle => 'ပထမဆုံးကား ထည့်မည်';
+
+  @override
+  String get authConnections => 'အကောင့် ချိတ်ဆက်မှုများ';
+
+  @override
+  String get authLinked => 'ချိတ်ဆက်ပြီး';
+
+  @override
+  String get authConnectGoogle => 'Google ချိတ်ဆက်မည်';
+
+  @override
+  String get authConnectApple => 'Apple ချိတ်ဆက်မည်';
+
+  @override
+  String get authFinishLink => 'ဤအကောင့်နှင့် ချိတ်ဆက်မည်';
+
+  @override
+  String get authFirstPassword => 'စကားဝှက် ထည့်မည်';
+
+  @override
+  String get authRecentLogin =>
+      'လုံခြုံရေးအတွက် ပြန်ဝင်ပြီး ဤနေရာသို့ ပြန်လာပါ။';
+
+  @override
+  String get authCodeInvalid =>
+      'ကုဒ် မမှန်ပါ၊ သက်တမ်းကုန်ပါပြီ သို့မဟုတ် အသုံးပြုပြီးပါပြီ။ လိုအပ်ပါက ကုဒ်အသစ် တောင်းပါ။';
+
+  @override
+  String get authRateLimited =>
+      'ကြိုးစားမှုများလွန်းပါသည်။ ခဏစောင့်ပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get authNotConfigured =>
+      'ဤဝင်ရောက်မှုဝန်ဆောင်မှု မရရှိသေးပါ။ အီးမေးလ်ဖြင့် ဝင်ပါ။';
+
+  @override
+  String get authEmailTaken =>
+      'ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးပါပြီ။ ချိတ်ဆက်ရန် ဝင်ပါ သို့မဟုတ် စကားဝှက် ပြန်သတ်မှတ်ပါ။';
+
+  @override
+  String get authDeliveryError =>
+      'အီးမေးလ်ပို့၍ မရပါ။ ခဏကြာလျှင် ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get authGenericError =>
+      'ဤလုပ်ဆောင်ချက် မပြီးမြောက်ပါ။ ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get authPasswordMismatch =>
+      'အနည်းဆုံး စာလုံးရှစ်လုံးသုံးပြီး စကားဝှက်နှစ်ခု တူညီအောင် ထည့်ပါ။';
+
+  @override
+  String get authInvalidEmail =>
+      'မှန်ကန်သော အီးမေးလ်လိပ်စာ ထည့်ပါ (စာလုံး ၂၅၄ လုံးအထိ)။';
+
+  @override
+  String get authInvalidIdentifier =>
+      'မှန်ကန်သော အီးမေးလ်လိပ်စာ သို့မဟုတ် အသုံးပြုသူအမည် ထည့်ပါ။';
+
+  @override
+  String get authPasswordRequired =>
+      'အနည်းဆုံး စာလုံးရှစ်လုံးပါသော စကားဝှက် ထည့်ပါ။';
+
+  @override
+  String get authInvalidCredentials =>
+      'အီးမေးလ်၊ အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မမှန်ပါ။';
 }

@@ -1,102 +1,163 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../../../../core/theme/dco_tokens.dart';
-import '../../../../core/widgets/dco_button.dart';
-import '../../../../core/widgets/dco_error_dialog.dart';
-import '../../../../core/widgets/dco_text_field.dart';
-import 'package:dco_mobile/generated/app_localizations.dart';
-
-import '../../domain/auth_failure.dart';
-import '../../domain/auth_validators.dart';
-import '../session_controller.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/router/routes.dart';
+import '../../../../generated/app_localizations.dart';
+import '../../account_security_providers.dart';
+import '../widgets/auth_feedback.dart';
+import '../widgets/language_action.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
-
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
-  final _email = TextEditingController();
-  String? _emailError;
-  String? _info;
-  bool _submitting = false;
+  final email = TextEditingController(),
+      code = TextEditingController(),
+      password = TextEditingController(),
+      confirm = TextEditingController();
+  String? challenge, error;
+  bool busy = false, done = false;
+  DateTime? resendAt;
+  Timer? timer;
+  int get remaining => resendAt == null
+      ? 0
+      : resendAt!.difference(DateTime.now()).inSeconds.clamp(0, 60);
+  @override
+  void initState() {
+    super.initState();
+    timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && resendAt != null) setState(() {});
+    });
+  }
 
   @override
   void dispose() {
-    _email.dispose();
+    timer?.cancel();
+    email.dispose();
+    code.dispose();
+    password.dispose();
+    confirm.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
+  Future<void> run({bool send = false}) async {
     final s = AppLocalizations.of(context)!;
+    if (!send && (password.text.length < 8 || password.text != confirm.text)) {
+      setState(() => error = s.authPasswordMismatch);
+      return;
+    }
     setState(() {
-      _emailError = AuthValidators.email(_email.text);
-      _info = null;
+      busy = true;
+      error = null;
     });
-    if (_emailError != null) return;
-
-    setState(() => _submitting = true);
     try {
-      await ref.read(sessionControllerProvider.notifier).requestPasswordReset(email: _email.text);
-      if (mounted) {
-        setState(() {
-          _info = s.resetLinkSent;
+      final api = ref.read(accountSecurityProvider);
+      if (send) {
+        final result = await api.request('/auth/recovery-code', {
+          'email': email.text.trim(),
+          'locale': Localizations.localeOf(context).languageCode,
         });
+        if (mounted) {
+          setState(() {
+            challenge = result['challenge_id'] as String;
+            resendAt = DateTime.now().add(
+              Duration(seconds: result['resend_after'] as int),
+            );
+            code.clear();
+          });
+        }
+      } else {
+        await api.request('/auth/recovery-code/confirm', {
+          'challenge_id': challenge,
+          'code': code.text,
+          'password': password.text,
+        });
+        if (mounted) setState(() => done = true);
       }
-    } catch (failure) {
-      final message =
-          failure is AuthFailure ? failure.message : s.somethingWentWrongTryAgain;
-      if (mounted) {
-        setState(() => _info = message);
-        unawaited(
-          showDcoErrorDialog(
-            context,
-            title: s.resetFailed,
-            message: message,
-            actionLabel: failure is NetworkAuthFailure ? s.retry : s.ok,
-            onAction: failure is NetworkAuthFailure ? () => _submit() : null,
-          ),
-        );
-      }
+    } catch (e) {
+      if (mounted) setState(() => error = authFeedback(context, e));
     } finally {
-      if (mounted) setState(() => _submitting = false);
+      if (mounted) setState(() => busy = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
     return Scaffold(
-      appBar: AppBar(title: Text(s.resetPassword)),
+      appBar: AppBar(
+        title: Text(s.resetPassword),
+        actions: const [LanguageAction()],
+      ),
       body: SafeArea(
         child: ListView(
-          padding: EdgeInsets.all(tokens.space.s5),
+          padding: const EdgeInsets.all(24),
           children: [
-            Text(
-              s.resetPasswordBody,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
-            ),
-            SizedBox(height: tokens.space.s5),
-            DcoTextField(
-              label: s.emailLabel,
-              controller: _email,
-              errorText: _emailError,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.done,
-              onSubmitted: (_) => _submit(),
-            ),
-            SizedBox(height: tokens.space.s5),
-            if (_info != null) ...[
-              Text(_info!, style: TextStyle(color: tokens.status.infoFg)),
-              SizedBox(height: tokens.space.s3),
+            Text(done ? s.authResetDone : s.authRecoveryInfo),
+            const SizedBox(height: 24),
+            if (error != null)
+              Text(
+                error!,
+                style: TextStyle(color: Theme.of(context).colorScheme.error),
+              ),
+            if (done)
+              FilledButton(
+                onPressed: () => context.go(AppRoutes.login),
+                child: Text(s.signIn),
+              )
+            else ...[
+              TextField(
+                controller: email,
+                enabled: !busy,
+                decoration: InputDecoration(labelText: s.emailLabel),
+                keyboardType: TextInputType.emailAddress,
+                autofillHints: const [AutofillHints.email],
+                onChanged: (_) => setState(() => challenge = null),
+              ),
+              TextButton(
+                onPressed: busy || remaining > 0 ? null : () => run(send: true),
+                child: Text(
+                  remaining > 0
+                      ? '${s.authResend} (${remaining}s)'
+                      : s.authSendCode,
+                ),
+              ),
+              if (challenge != null) ...[
+                TextField(
+                  controller: code,
+                  decoration: InputDecoration(labelText: s.authCode),
+                  maxLength: 6,
+                  keyboardType: TextInputType.number,
+                  autofillHints: const [AutofillHints.oneTimeCode],
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                ),
+                TextField(
+                  controller: password,
+                  decoration: InputDecoration(labelText: s.passwordLabel),
+                  obscureText: true,
+                  autofillHints: const [AutofillHints.newPassword],
+                ),
+                TextField(
+                  controller: confirm,
+                  decoration: InputDecoration(
+                    labelText: s.confirmPasswordLabel,
+                  ),
+                  obscureText: true,
+                ),
+                const SizedBox(height: 20),
+                FilledButton(
+                  onPressed: busy ? null : run,
+                  child: Text(s.resetPassword),
+                ),
+              ],
+              if (busy) const LinearProgressIndicator(),
             ],
-            DcoButton(label: s.sendResetLink, onPressed: _submit, loading: _submitting),
           ],
         ),
       ),

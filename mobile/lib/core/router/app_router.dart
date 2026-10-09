@@ -1,3 +1,8 @@
+import '../storage/entry_preferences.dart';
+import '../../features/auth/presentation/screens/introduction_screen.dart';
+import '../../features/auth/presentation/screens/email_verification_screen.dart';
+import '../../features/auth/presentation/screens/first_vehicle_screen.dart';
+import '../../features/auth/presentation/screens/account_connections_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -104,11 +109,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final onFleetOrDriver = _isFleetOrDriverRoute(location);
 
       if (session.isLoading) {
+        // Keep entered credentials and validation feedback mounted during login/signup.
+        if (onAuth) return null;
         return onSplash ? null : AppRoutes.splash;
       }
 
       final signedIn = session.valueOrNull != null;
+      final collaboration =
+          location == AppRoutes.vehicleShareAccept ||
+          location == AppRoutes.vehicleShareJoin ||
+          RegExp(r'^/vehicle/[^/]+/share/new$').hasMatch(location);
       if (!signedIn) {
+        if (collaboration) {
+          ref.read(pendingCollaborationProvider.notifier).state = state.uri
+              .toString();
+        }
         if (onAuth) return null;
         return AppRoutes.welcome;
       }
@@ -117,7 +132,15 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final mustChange = user?.mustChangePassword ?? false;
 
       if (onAuth || onSplash) {
-        return AppRoutes.dashboard;
+        return ref.read(postAuthRouteProvider) ??
+            ref.read(pendingCollaborationProvider) ??
+            AppRoutes.dashboard;
+      }
+
+      if (collaboration && user?.emailVerified != true) {
+        ref.read(pendingCollaborationProvider.notifier).state = state.uri
+            .toString();
+        return AppRoutes.verifyEmail;
       }
 
       // Force password change for fleet/driver routes if must_change_password is set.
@@ -129,12 +152,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     },
     routes: [
       GoRoute(
+        path: AppRoutes.verifyEmail,
+        builder: (context, state) => const EmailVerificationScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.firstVehicle,
+        builder: (context, state) => const FirstVehicleScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.accountConnections,
+        builder: (context, state) => const AccountConnectionsScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.splash,
         builder: (context, state) => const AuthLoadingScreen(),
       ),
       GoRoute(
         path: AppRoutes.welcome,
-        builder: (context, state) => const WelcomeScreen(),
+        builder: (context, state) => const IntroductionScreen(),
       ),
       GoRoute(
         path: AppRoutes.login,

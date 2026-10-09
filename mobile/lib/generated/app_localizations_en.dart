@@ -180,7 +180,8 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authEmailAlreadyRegistered => 'That email is already registered';
 
   @override
-  String get authNetworkError => 'Check your connection and try again';
+  String get authNetworkError =>
+      'Could not connect. Check your connection and try again.';
 
   @override
   String get authTooManyAttempts => 'Too many attempts. Try again shortly';
@@ -3540,4 +3541,165 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get shareExpiresAt => 'Expires';
+
+  @override
+  String get chooseLanguage => 'Choose your language';
+
+  @override
+  String get languageIntro =>
+      'Make AutoHub feel like home. You can change this later.';
+
+  @override
+  String get introGarageTitle => 'A home for your car';
+
+  @override
+  String get introGarageBody =>
+      'Keep vehicle details and important documents together, wherever you go.';
+
+  @override
+  String get introMaintenanceTitle => 'Stay one step ahead';
+
+  @override
+  String get introMaintenanceBody =>
+      'Track service history and get reminders for what is due next.';
+
+  @override
+  String get introExpensesTitle => 'Know where your money goes';
+
+  @override
+  String get introExpensesBody =>
+      'Record fuel and expenses, then see your spending clearly.';
+
+  @override
+  String get authNext => 'Continue';
+
+  @override
+  String get authSkip => 'Skip introduction';
+
+  @override
+  String get authLater => 'Do this later';
+
+  @override
+  String get authGetStarted => 'Get started';
+
+  @override
+  String get authGoogle => 'Sign in with Google';
+
+  @override
+  String get authApple => 'Sign in with Apple';
+
+  @override
+  String get authAccountChoice => 'Keep your garage in one account';
+
+  @override
+  String get authExistingAccount => 'I already have an account';
+
+  @override
+  String get authNewAccount => 'Create a new account';
+
+  @override
+  String get authVerifyTitle => 'Verify your email';
+
+  @override
+  String get authVerifyBody =>
+      'Enter the six-digit code from your email. Personal features are available now; verify before creating or accepting a share.';
+
+  @override
+  String get authCode => 'Six-digit code';
+
+  @override
+  String get authSendCode => 'Send code';
+
+  @override
+  String get authResend => 'Resend code';
+
+  @override
+  String get authCheckCode => 'Verify email';
+
+  @override
+  String get authCorrectEmail => 'Correct email address';
+
+  @override
+  String get authRecoveryInfo =>
+      'If this email has a password account, a code will arrive shortly. If you use Google or Apple, sign in with that provider.';
+
+  @override
+  String get authResetDone =>
+      'Password updated. Sign in with your new password.';
+
+  @override
+  String get authFirstVehicle => 'Your garage starts here';
+
+  @override
+  String get authFirstVehicleBody =>
+      'Add your first vehicle, or explore AutoHub and add one later.';
+
+  @override
+  String get authAddVehicle => 'Add your first vehicle';
+
+  @override
+  String get authConnections => 'Account connections';
+
+  @override
+  String get authLinked => 'Connected';
+
+  @override
+  String get authConnectGoogle => 'Connect Google';
+
+  @override
+  String get authConnectApple => 'Connect Apple';
+
+  @override
+  String get authFinishLink => 'Connect to this account';
+
+  @override
+  String get authFirstPassword => 'Add a password';
+
+  @override
+  String get authRecentLogin =>
+      'For your security, sign in again and return here.';
+
+  @override
+  String get authCodeInvalid =>
+      'The code is incorrect, expired, or already used. Request a new code if needed.';
+
+  @override
+  String get authRateLimited =>
+      'Too many attempts. Please wait before trying again.';
+
+  @override
+  String get authNotConfigured =>
+      'This sign-in service is not available yet. Please use email sign-in.';
+
+  @override
+  String get authEmailTaken =>
+      'This email already has an account. Sign in or reset its password before connecting.';
+
+  @override
+  String get authDeliveryError =>
+      'We could not send the email. Please try again shortly.';
+
+  @override
+  String get authGenericError =>
+      'Could not complete this action. Please try again.';
+
+  @override
+  String get authPasswordMismatch =>
+      'Use at least eight characters and make both passwords match.';
+
+  @override
+  String get authInvalidEmail =>
+      'Enter a valid email address (up to 254 characters).';
+
+  @override
+  String get authInvalidIdentifier =>
+      'Enter a valid email address or username.';
+
+  @override
+  String get authPasswordRequired =>
+      'Enter a password with at least eight characters.';
+
+  @override
+  String get authInvalidCredentials =>
+      'Your email, username, or password is incorrect.';
 }
