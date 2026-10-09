@@ -1,3 +1,5 @@
+import { socialAuthPlugin } from "./modules/social-auth.js";
+import { accountSecurityPlugin } from "./modules/account-security.js";
 import Fastify from "fastify";
 import cors from "@fastify/cors";
 import multipart from "@fastify/multipart";
@@ -24,7 +26,10 @@ import { fleetOperationsPlugin } from "./modules/fleet-operations.js";
 import "./types.js";
 
 export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: MediaStore }) {
-  const app = Fastify({ logger: deps.env.APP_ENV !== "local" });
+  const app = Fastify({ trustProxy: deps.env.AUTH_TRUST_PROXY_HOPS > 0 ? (_address: string, hop: number) => hop < deps.env.AUTH_TRUST_PROXY_HOPS : false, logger: deps.env.APP_ENV === "local" ? false : {
+    redact: ["req.headers.authorization", "req.headers.cookie"],
+    serializers: { req: (req) => ({ method: req.method, url: req.url?.split("?")[0], remoteAddress: req.ip }) },
+  } });
   app.decorate("env", deps.env);
   app.decorate("db", deps.db);
   app.decorate("mailer", deps.mailer);
@@ -58,6 +63,8 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await attachAuth(v1);
       await v1.register(healthPlugin);
       await v1.register(authPlugin);
+      await v1.register(accountSecurityPlugin);
+      await v1.register(socialAuthPlugin);
       await v1.register(mePlugin);
       await v1.register(vehiclesPlugin);
       await v1.register(ownerPlugin);

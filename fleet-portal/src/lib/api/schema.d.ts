@@ -4,6 +4,580 @@
  */
 
 export interface paths {
+    "/auth/email-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Send or resend a six-digit email verification code
+         * @description Requires AUTH_CODES_ENABLED. Ten-minute expiry, five attempts, sixty-second resend cooldown. Resend invalidates the previous challenge.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["AuthCodeLocale"];
+                };
+            };
+            responses: {
+                200: components["responses"]["AuthChallengeResponse"];
+                /** @description Rate limit or resend cooldown reached */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not configured or delivery failed */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/email-code/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify the authenticated account's email using a code */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AuthCodeConfirmation"];
+                };
+            };
+            responses: {
+                /** @description Verified account */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            user?: components["schemas"]["User"];
+                        };
+                    };
+                };
+                /** @description Incorrect, expired, exhausted, wrong-account or consumed challenge */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/email-correction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Correct an unverified email after recent authentication and send a code */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AuthCodeLocale"] & {
+                        /** Format: email */
+                        email: string;
+                        /** @description Existing password for reauthentication when the session is older than five minutes */
+                        password?: string;
+                    };
+                };
+            };
+            responses: {
+                200: components["responses"]["AuthChallengeResponse"];
+                /** @description Recent authentication required */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Address already verified or belongs to another account; no automatic merging */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/recovery-code": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Request a password recovery code
+         * @description Same public response for unknown, social-only, and password accounts. Only active password accounts receive a usable code.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AuthCodeLocale"] & {
+                        /** Format: email */
+                        email: string;
+                    };
+                };
+            };
+            responses: {
+                200: components["responses"]["AuthChallengeResponse"];
+                /** @description Rate limit or cooldown reached */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/recovery-code/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Consume a recovery code and set a replacement password
+         * @description Atomically changes an existing password and revokes old access and refresh tokens. Cannot create a first password.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AuthCodeConfirmation"] & {
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Password replaced; sign in again */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Incorrect, expired, exhausted or consumed challenge */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/first-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Add a first password after recent sign-in and email verification */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Password added */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Sign in again with the connected provider */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Password already exists or email is unverified */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/social/{provider}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a browser Google or Apple sign-in on Android or iOS */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    provider: components["parameters"]["AuthProvider"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Keep the secret in app memory; open authorization_url in the system browser */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            flow_id: string;
+                            secret: string;
+                            /** Format: uri */
+                            authorization_url: string;
+                        };
+                    };
+                };
+                /** @description Provider configuration missing */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/social/{provider}/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                provider: components["parameters"]["AuthProvider"];
+            };
+            cookie?: never;
+        };
+        /** Google browser callback; exchanges and validates provider proof */
+        get: {
+            parameters: {
+                query: {
+                    state: string;
+                    code?: string;
+                    error?: string;
+                };
+                header?: never;
+                path: {
+                    provider: components["parameters"]["AuthProvider"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Return to dco-auth callback with flow_id only; no session or exchange secrets */
+                302: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /** Apple form-post browser callback */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    provider: components["parameters"]["AuthProvider"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/x-www-form-urlencoded": {
+                        state: string;
+                        code?: string;
+                        error?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Return to dco-auth callback with flow_id only */
+                302: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/social/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete provider login or explicitly create a new owner account
+         * @description Unknown identities require a create/existing choice. Email collisions require authenticated linking, never automatic merging.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AuthSocialFlow"] & {
+                        /** @default false */
+                        create_account?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description DCO session plus is_new, or needs_account_choice true without a session */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": (components["schemas"]["SessionResponse"] & {
+                            is_new: boolean;
+                        }) | {
+                            /** @enum {boolean} */
+                            needs_account_choice: true;
+                        };
+                    };
+                };
+                /** @description Authenticate the existing account before linking */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/social/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bind provider proof to the recently authenticated owner account */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AuthSocialFlow"] & {
+                        password?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Connected; provider proof is consumed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            linked: boolean;
+                        };
+                    };
+                };
+                /** @description Recent existing-account authentication required */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Identity belongs to another account */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List connected providers and whether the account has a password */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Account connection state */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            providers: ("google" | "apple")[];
+                            has_password: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/health": {
         parameters: {
             query?: never;
@@ -5581,6 +6155,23 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AuthCodeLocale: {
+            /**
+             * @default en
+             * @enum {string}
+             */
+            locale: "en" | "my";
+        };
+        AuthCodeConfirmation: {
+            /** Format: uuid */
+            challenge_id: string;
+            code: string;
+        };
+        AuthSocialFlow: {
+            /** Format: uuid */
+            flow_id: string;
+            secret: string;
+        };
         HealthStatus: {
             /** @enum {string} */
             status: "ok" | "ready";
@@ -6368,6 +6959,22 @@ export interface components {
         };
     };
     responses: {
+        /** @description Challenge issued; no code is returned in the response */
+        AuthChallengeResponse: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": {
+                    /** Format: uuid */
+                    challenge_id: string;
+                    /** @example 600 */
+                    expires_in: number;
+                    /** @example 60 */
+                    resend_after: number;
+                };
+            };
+        };
         /** @description Error */
         Error: {
             headers: {
@@ -6379,6 +6986,7 @@ export interface components {
         };
     };
     parameters: {
+        AuthProvider: "google" | "apple";
         vehicleId: string;
         planItemId: string;
         serviceRecordId: string;

@@ -1,4 +1,5 @@
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { authLimit } from "./account-security.js";
+import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import { emailTokens, fuelTypes, organizationMembers, organizations, partners, refreshTokens, users, workshopMembers } from "../db/schema.js";
@@ -38,12 +39,13 @@ const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 export const authPlugin: FastifyPluginAsync = async (app) => {
   app.post("/auth/signup", { config: { public: true } }, async (request, reply) => {
     const body = signupBody.parse(request.body);
+    if (app.env.AUTH_CODES_ENABLED === "on") await authLimit(app.db, `signup:${request.ip}`, 10);
     const email = body.email.toLowerCase();
     const existing = await app.db.select().from(users).where(eq(users.email, email)).limit(1);
     if (existing[0]) throw new AppError(409, "email_taken", "Email already registered");
     const id = newId();
     const passwordHash = await hashPassword(body.password);
-    const emailVerification = app.env.EMAIL_VERIFICATION === "on";
+    const emailVerification = app.env.EMAIL_VERIFICATION === "on" || app.env.AUTH_CODES_ENABLED === "on";
     const username = await generateUniqueUsername(app.db, email);
     const [user] = await app.db
       .insert(users)
@@ -55,7 +57,8 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
         displayName: body.display_name ?? null,
         role: "owner",
         plan: "free",
-        emailVerified: !emailVerification,
+        // Disabling delivery must never count as proof of address ownership.
+        emailVerified: false,
       })
       .returning();
     for (const ft of DEFAULT_FUEL_TYPES) {
@@ -68,7 +71,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
       });
     }
     await recordChange(app.db, { userId: id, entityType: "user", entityId: id, op: "upsert", payload: publicUser(user) });
-    if (emailVerification) {
+    if (emailVerification && app.env.AUTH_CODES_ENABLED !== "on") {
       const verify = randomToken();
       await app.db.insert(emailTokens).values({
         id: newId(),
@@ -89,6 +92,10 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/login", { config: { public: true } }, async (request) => {
     const body = loginBody.parse(request.body);
+    if (app.env.AUTH_CODES_ENABLED === "on") {
+      await authLimit(app.db, `login-ip:${request.ip}`, 60);
+      await authLimit(app.db, `login-account:${body.email.trim().toLowerCase()}`, 20);
+    }
     const identifier = body.email.trim().toLowerCase();
     const [user] = identifier.includes("@")
       ? await app.db.select().from(users).where(eq(users.email, identifier)).limit(1)
@@ -154,8 +161,8 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     if (!stored) throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
     await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.id, stored.id));
     const [user] = await app.db.select().from(users).where(eq(users.id, stored.userId)).limit(1);
-    if (!user || user.status === "deactivated") throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
-    return issueSession(app, user, stored.audience);
+    if (!user || user.status === "deactivated" || Number(payload.ver ?? 0) !== user.authVersion) throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
+    return issueSession(app, user, stored.audience, Number(payload.auth_time ?? payload.iat ?? 0));
   });
 
   app.post("/auth/logout", { config: { public: true } }, async (request, reply) => {
@@ -238,13 +245,18 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     if (!row || row.usedAt || row.expiresAt < new Date()) {
       throw new AppError(400, "invalid_token", "Verification token is invalid");
     }
-    await app.db.update(emailTokens).set({ usedAt: new Date() }).where(eq(emailTokens.id, row.id));
-    await app.db.update(users).set({ emailVerified: true }).where(eq(users.id, row.userId));
+    await app.db.transaction(async (tx) => {
+      await tx.select().from(users).where(eq(users.id, row.userId)).for("update");
+      const used = await tx.update(emailTokens).set({ usedAt: new Date() }).where(and(eq(emailTokens.id, row.id), isNull(emailTokens.usedAt), gt(emailTokens.expiresAt, new Date()))).returning();
+      if (!used.length) throw new AppError(400, "invalid_token", "Verification token is invalid");
+      await tx.update(users).set({ emailVerified: true }).where(eq(users.id, row.userId));
+    });
     return reply.code(204).send();
   });
 
   app.post("/auth/resend-verification", async (request, reply) => {
     const userId = request.authUser!.sub;
+    if (app.env.AUTH_CODES_ENABLED === "on") await authLimit(app.db, `legacy-verify:${userId}`, 5);
     const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (user && !user.emailVerified && user.email) {
       const token = randomToken();
@@ -262,8 +274,12 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/forgot-password", { config: { public: true } }, async (request, reply) => {
     const body = z.object({ email: z.string().email() }).parse(request.body);
+    if (app.env.AUTH_CODES_ENABLED === "on") {
+      await authLimit(app.db, `legacy-reset:${body.email.toLowerCase()}`, 5);
+      await authLimit(app.db, `legacy-reset-ip:${request.ip}`, 20);
+    }
     const [user] = await app.db.select().from(users).where(eq(users.email, body.email.toLowerCase())).limit(1);
-    if (user) {
+    if (user?.passwordHash) {
       const token = randomToken();
       await app.db.insert(emailTokens).values({
         id: newId(),
@@ -287,9 +303,15 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     if (!row || row.usedAt || row.expiresAt < new Date()) {
       throw new AppError(400, "invalid_token", "Reset token is invalid");
     }
-    await app.db.update(emailTokens).set({ usedAt: new Date() }).where(eq(emailTokens.id, row.id));
-    await app.db.update(users).set({ passwordHash: await hashPassword(body.password) }).where(eq(users.id, row.userId));
-    await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, row.userId));
+    const passwordHash = await hashPassword(body.password);
+    await app.db.transaction(async (tx) => {
+      const [account] = await tx.select().from(users).where(eq(users.id, row.userId)).for("update");
+      if (!account?.passwordHash) throw new AppError(400, "invalid_token", "Reset token is invalid");
+      const used = await tx.update(emailTokens).set({ usedAt: new Date() }).where(and(eq(emailTokens.id, row.id), isNull(emailTokens.usedAt))).returning();
+      if (!used.length) throw new AppError(400, "invalid_token", "Reset token is invalid");
+      await tx.update(users).set({ passwordHash, authVersion: sql`${users.authVersion} + 1` }).where(eq(users.id, row.userId));
+      await tx.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, row.userId));
+    });
     return reply.code(204).send();
   });
 };
@@ -315,6 +337,8 @@ export async function attachAuth(app: Parameters<FastifyPluginAsync>[0]): Promis
     if (!token) throw new AppError(401, "unauthorized", "Missing access token");
     try {
       const claims = await verifyAccess(app.env, token);
+      const [account] = await app.db.select().from(users).where(eq(users.id, claims.sub));
+      if (!account || account.status !== "active" || (claims.ver ?? 0) !== account.authVersion) throw new Error("revoked");
       request.authUser = claims as AccessClaims & { sub: string };
     } catch {
       throw new AppError(401, "unauthorized", "Invalid access token");
@@ -354,15 +378,18 @@ async function issueSession(
   app: { env: import("../config/env.js").Env; db: import("../db/client.js").Db },
   user: typeof users.$inferSelect,
   audience = user.role === "admin" ? app.env.JWT_ADMIN_AUD : app.env.JWT_OWNER_AUD,
+  authTime = Math.floor(Date.now() / 1000),
 ) {
   const access = await signAccess(app.env, {
     sub: user.id,
     role: user.role,
     plan: user.plan,
     aud: audience,
+    ver: user.authVersion,
+    auth_time: authTime,
   });
   const jti = newId();
-  const refresh = await signRefresh(app.env, user.id, jti);
+  const refresh = await signRefresh(app.env, user.id, jti, authTime, user.authVersion);
   await app.db.insert(refreshTokens).values({
     id: jti,
     userId: user.id,

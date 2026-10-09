@@ -17,14 +17,16 @@ export type AccessClaims = {
   role: Role;
   plan: Plan;
   typ: typeof ACCESS_TYP;
+  ver?: number;
+  auth_time?: number;
 };
 
 export function hashPassword(password: string): Promise<string> {
   return bcrypt.hash(password, 10);
 }
 
-export function verifyPassword(password: string, hash: string): Promise<boolean> {
-  return bcrypt.compare(password, hash);
+export function verifyPassword(password: string, hash: string | null): Promise<boolean> {
+  return hash ? bcrypt.compare(password, hash) : Promise.resolve(false);
 }
 
 export function sha256(value: string): string {
@@ -54,10 +56,10 @@ export async function signAccess(env: Env, input: Omit<AccessClaims, "typ" | "au
   const aud = input.aud ?? (input.role === "admin" ? env.JWT_ADMIN_AUD : env.JWT_OWNER_AUD);
   const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
   const expiresIn = ttlToSeconds(env.JWT_ACCESS_TTL);
-  const token = await new SignJWT({ 
-    role: input.role, 
-    plan: input.plan, 
-    typ: ACCESS_TYP 
+  const token = await new SignJWT({
+    role: input.role,
+    plan: input.plan,
+    typ: ACCESS_TYP, ver: input.ver ?? 0, auth_time: input.auth_time ?? Math.floor(Date.now() / 1000)
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(input.sub)
@@ -68,10 +70,10 @@ export async function signAccess(env: Env, input: Omit<AccessClaims, "typ" | "au
   return { token, expiresIn, aud };
 }
 
-export async function signRefresh(env: Env, userId: string, jti: string) {
+export async function signRefresh(env: Env, userId: string, jti: string, authTime = Math.floor(Date.now() / 1000), version = 0) {
   const secret = new TextEncoder().encode(env.JWT_REFRESH_SECRET);
   const expiresIn = ttlToSeconds(env.JWT_REFRESH_TTL);
-  const token = await new SignJWT({ typ: REFRESH_TYP })
+  const token = await new SignJWT({ typ: REFRESH_TYP, auth_time: authTime, ver: version })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(userId)
     .setJti(jti)

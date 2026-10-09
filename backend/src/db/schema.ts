@@ -95,7 +95,8 @@ export const users = pgTable("users", {
   id: uuid("id").primaryKey(),
   email: text("email").unique(),
   username: text("username").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
+  passwordHash: text("password_hash"),
+  authVersion: integer("auth_version").notNull().default(0),
   displayName: text("display_name"),
   profilePhotoMediaId: uuid("profile_photo_media_id"),
   contactPhone: text("contact_phone"),
@@ -644,3 +645,24 @@ export const workshopMembers = pgTable("workshop_members", {
   uniquePartnerMember: unique().on(table.partnerId, table.userId),
   partnerIndex: index("workshop_members_partner_idx").on(table.partnerId),
 }));
+
+export const authChallenges = pgTable("auth_challenges", {
+  id: uuid("id").primaryKey(), userId: uuid("user_id").references(() => users.id),
+  email: text("email").notNull(), purpose: text("purpose").notNull(), digest: text("digest").notNull(),
+  attempts: integer("attempts").notNull().default(0), expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  consumedAt: timestamp("consumed_at", { withTimezone: true }), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const authLimits = pgTable("auth_limits", {
+  key: text("key").primaryKey(), count: integer("count").notNull().default(0), expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+export const authIdentities = pgTable("auth_identities", {
+  id: uuid("id").primaryKey(), userId: uuid("user_id").notNull().references(() => users.id),
+  provider: text("provider").notNull(), subject: text("subject").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [unique().on(t.provider, t.subject)]);
+export const authFlows = pgTable("auth_flows", {
+  id: uuid("id").primaryKey(), provider: text("provider").notNull(), secretHash: text("secret_hash").notNull(),
+  state: text("state").notNull().unique(), nonce: text("nonce").notNull(), verifier: text("verifier").notNull(),
+  claims: jsonb("claims").$type<{ subject: string; email?: string; verified: boolean; error?: string }>(),
+  claimedAt: timestamp("claimed_at", { withTimezone: true }), consumedAt: timestamp("consumed_at", { withTimezone: true }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});

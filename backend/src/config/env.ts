@@ -2,6 +2,15 @@ import { z } from "zod";
 
 const schema = z.object({
   APP_ENV: z.enum(["local", "dev", "stage", "prod"]).default("local"),
+  AUTH_TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(3).default(0),
+  AUTH_CODES_ENABLED: z.enum(["off", "on"]).default("off"),
+  AUTH_CODE_SECRET: z.string().min(32).optional(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  APPLE_CLIENT_ID: z.string().optional(),
+  APPLE_TEAM_ID: z.string().optional(),
+  APPLE_KEY_ID: z.string().optional(),
+  APPLE_PRIVATE_KEY: z.string().optional(),
   PORT: z.coerce.number().default(8080),
   DATABASE_URL: z.string().default("postgres://dco:dco@localhost:5432/dco"),
   JWT_ACCESS_SECRET: z.string().min(16),
@@ -38,6 +47,9 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const parsed = schema.safeParse(source);
   if (!parsed.success) {
     throw new Error(`Invalid environment: ${parsed.error.message}`);
+  }
+  if (parsed.data.AUTH_CODES_ENABLED === "on" && !parsed.data.AUTH_CODE_SECRET) {
+    throw new Error("AUTH_CODE_SECRET is required when AUTH_CODES_ENABLED=on");
   }
   return parsed.data;
 }

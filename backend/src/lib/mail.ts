@@ -1,6 +1,7 @@
 import type { Env } from "../config/env.js";
 
 export type Mailer = {
+  sendCode(to: string, code: string, purpose: "verify" | "reset", locale: "en" | "my"): Promise<void>;
   sendVerification(to: string, token: string): Promise<void>;
   sendPasswordReset(to: string, token: string): Promise<void>;
   sendOrganizationInvitation(to: string, organizationName: string, role: string): Promise<void>;
@@ -21,6 +22,18 @@ function link(env: Env, path: string, token: string): string {
 
 export function createMailer(env: Env): Mailer {
   return {
+    async sendCode(to, code, purpose, locale) {
+      const subject = locale === "my" ? "AutoHub အတည်ပြုကုဒ်" : (purpose === "reset" ? "Reset your AutoHub password" : "Verify your AutoHub email");
+      const body = locale === "my"
+        ? `သင်၏ ${purpose === "reset" ? "စကားဝှက်ပြန်သတ်မှတ်ရန်" : "အီးမေးလ်အတည်ပြုရန်"} ကုဒ်မှာ ${code} ဖြစ်ပါသည်။ ၁၀ မိနစ်အတွင်း အသုံးပြုပါ။ ဤကုဒ်ကို မျှဝေခြင်းမပြုပါနှင့်။`
+        : `Your ${purpose === "reset" ? "password reset" : "email verification"} code is ${code}. It expires in 10 minutes. Do not share it.`;
+      if (env.MAIL_PROVIDER === "stdout") {
+        if (env.APP_ENV === "prod") throw new Error("Production email delivery is not configured");
+        console.log(`[mail] ${purpose} code ${to}: ${code}`);
+        return;
+      }
+      await sendAcs(env, to, subject, body);
+    },
     async sendVerification(to, token) {
       const url = link(env, "/auth/verify-email", token);
       if (env.MAIL_PROVIDER === "stdout") {
@@ -77,9 +90,11 @@ async function sendAcs(env: Env, to: string, subject: string, body: string): Pro
   const connection = env.MAIL_API_KEY ?? env.ACS_ENDPOINT;
   if (!connection) throw new Error("ACS mail is not configured");
   const client = new EmailClient(connection);
-  await client.beginSend({
+  const poller = await client.beginSend({
     senderAddress: env.MAIL_FROM,
     content: { subject, plainText: body },
     recipients: { to: [{ address: to }] },
   });
+  const result = await poller.pollUntilDone();
+  if (result.status !== "Succeeded") throw new Error("Email delivery failed");
 }

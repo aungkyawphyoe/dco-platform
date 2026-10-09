@@ -1,3 +1,4 @@
+import { requireVerifiedForSharing } from "./account-security.js";
 import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
@@ -377,6 +378,7 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
   // ─── Create Share (email invite or code/QR) ─────────────────────
 
   app.post("/vehicles/:id/shares", async (request, reply) => {
+    await requireVerifiedForSharing(app, request.authUser!.sub);
     requireOwner(request);
     const userId = uid(request);
     const vehicleId = (request.params as { id: string }).id;
@@ -825,6 +827,7 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
   // ─── Accept Share by Token (email flow) ─────────────────────────
 
   app.post("/vehicles/shares/accept", async (request) => {
+    await requireVerifiedForSharing(app, request.authUser!.sub);
     requireOwner(request);
     const userId = uid(request);
     const body = z.object({ token: z.string().min(1) }).parse(request.body);
@@ -928,6 +931,7 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
   // ─── Join Share by Code (Code/QR flow) ─────────────────────────
 
   app.post("/vehicles/shares/join", async (request, reply) => {
+    await requireVerifiedForSharing(app, request.authUser!.sub);
     requireOwner(request);
     const userId = uid(request);
     const body = z.object({ code: z.string().min(8).max(8) }).parse(request.body);

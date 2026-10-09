@@ -69,4 +69,5 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(auditTrailSql());
   await exec(documentCreatedBySql());
   await exec(planTiersSql());
+  await exec(readSql("0012_auth_onboarding.sql"));
 }

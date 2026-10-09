@@ -33,6 +33,265 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /auth/email-code:
+    post:
+      tags: [Auth]
+      summary: Send or resend a six-digit email verification code
+      description: Requires AUTH_CODES_ENABLED. Ten-minute expiry, five attempts, sixty-second resend cooldown. Resend invalidates the previous challenge.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthCodeLocale'
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthChallengeResponse'
+        '429':
+          description: Rate limit or resend cooldown reached
+        '503':
+          description: Not configured or delivery failed
+  /auth/email-code/confirm:
+    post:
+      tags: [Auth]
+      summary: Verify the authenticated account's email using a code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthCodeConfirmation'
+      responses:
+        '200':
+          description: Verified account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user:
+                    $ref: '#/components/schemas/User'
+        '400':
+          description: Incorrect, expired, exhausted, wrong-account or consumed challenge
+  /auth/email-correction:
+    post:
+      tags: [Auth]
+      summary: Correct an unverified email after recent authentication and send a code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthCodeLocale'
+                - type: object
+                  required: [email]
+                  properties:
+                    email: {type: string, format: email, maxLength: 254}
+                    password: {type: string, description: Existing password for reauthentication when the session is older than five minutes}
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthChallengeResponse'
+        '409':
+          description: Address already verified or belongs to another account; no automatic merging
+        '401':
+          description: Recent authentication required
+  /auth/recovery-code:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Request a password recovery code
+      description: Same public response for unknown, social-only, and password accounts. Only active password accounts receive a usable code.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthCodeLocale'
+                - type: object
+                  required: [email]
+                  properties:
+                    email: {type: string, format: email, maxLength: 254}
+      responses:
+        '200':
+          $ref: '#/components/responses/AuthChallengeResponse'
+        '429':
+          description: Rate limit or cooldown reached
+  /auth/recovery-code/confirm:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Consume a recovery code and set a replacement password
+      description: Atomically changes an existing password and revokes old access and refresh tokens. Cannot create a first password.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthCodeConfirmation'
+                - type: object
+                  required: [password]
+                  properties:
+                    password: {type: string, minLength: 8, maxLength: 128}
+      responses:
+        '204':
+          description: Password replaced; sign in again
+        '400':
+          description: Incorrect, expired, exhausted or consumed challenge
+  /auth/first-password:
+    post:
+      tags: [Auth]
+      summary: Add a first password after recent sign-in and email verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [password]
+              properties:
+                password: {type: string, minLength: 8, maxLength: 128}
+      responses:
+        '204':
+          description: Password added
+        '401':
+          description: Sign in again with the connected provider
+        '409':
+          description: Password already exists or email is unverified
+  /auth/social/{provider}/start:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Start a browser Google or Apple sign-in on Android or iOS
+      parameters:
+        - $ref: '#/components/parameters/AuthProvider'
+      responses:
+        '200':
+          description: Keep the secret in app memory; open authorization_url in the system browser
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [flow_id, secret, authorization_url]
+                properties:
+                  flow_id: {type: string, format: uuid}
+                  secret: {type: string}
+                  authorization_url: {type: string, format: uri}
+        '503':
+          description: Provider configuration missing
+  /auth/social/{provider}/callback:
+    parameters:
+      - $ref: '#/components/parameters/AuthProvider'
+    get:
+      tags: [Auth]
+      security: []
+      summary: Google browser callback; exchanges and validates provider proof
+      parameters:
+        - {in: query, name: state, required: true, schema: {type: string}}
+        - {in: query, name: code, schema: {type: string}}
+        - {in: query, name: error, schema: {type: string}}
+      responses:
+        '302':
+          description: Return to dco-auth callback with flow_id only; no session or exchange secrets
+    post:
+      tags: [Auth]
+      security: []
+      summary: Apple form-post browser callback
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [state]
+              properties:
+                state: {type: string}
+                code: {type: string}
+                error: {type: string}
+      responses:
+        '302':
+          description: Return to dco-auth callback with flow_id only
+  /auth/social/complete:
+    post:
+      tags: [Auth]
+      security: []
+      summary: Complete provider login or explicitly create a new owner account
+      description: Unknown identities require a create/existing choice. Email collisions require authenticated linking, never automatic merging.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthSocialFlow'
+                - type: object
+                  properties:
+                    create_account: {type: boolean, default: false}
+      responses:
+        '200':
+          description: DCO session plus is_new, or needs_account_choice true without a session
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/SessionResponse'
+                      - type: object
+                        required: [is_new]
+                        properties:
+                          is_new: {type: boolean}
+                  - type: object
+                    required: [needs_account_choice]
+                    properties:
+                      needs_account_choice: {type: boolean, enum: [true]}
+        '409':
+          description: Authenticate the existing account before linking
+  /auth/social/link:
+    post:
+      tags: [Auth]
+      summary: Bind provider proof to the recently authenticated owner account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/AuthSocialFlow'
+                - type: object
+                  properties:
+                    password: {type: string}
+      responses:
+        '200':
+          description: Connected; provider proof is consumed
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [linked]
+                properties:
+                  linked: {type: boolean}
+        '401':
+          description: Recent existing-account authentication required
+        '409':
+          description: Identity belongs to another account
+  /auth/connections:
+    get:
+      tags: [Auth]
+      summary: List connected providers and whether the account has a password
+      responses:
+        '200':
+          description: Account connection state
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [providers, has_password]
+                properties:
+                  providers:
+                    type: array
+                    items: {type: string, enum: [google, apple]}
+                  has_password: {type: boolean}
   /health:
     get:
       tags: [Health]
@@ -2651,6 +2910,11 @@ components:
       scheme: bearer
       bearerFormat: JWT
   parameters:
+    AuthProvider:
+      in: path
+      name: provider
+      required: true
+      schema: {type: string, enum: [google, apple]}
     vehicleId:
       in: path
       name: vehicleId
@@ -2759,6 +3023,17 @@ components:
         type: string
         format: uuid
   responses:
+    AuthChallengeResponse:
+      description: Challenge issued; no code is returned in the response
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [challenge_id, expires_in, resend_after]
+            properties:
+              challenge_id: {type: string, format: uuid}
+              expires_in: {type: integer, example: 600}
+              resend_after: {type: integer, example: 60}
     Error:
       description: Error
       content:
@@ -2766,6 +3041,22 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorBody'
   schemas:
+    AuthCodeLocale:
+      type: object
+      properties:
+        locale: {type: string, enum: [en, my], default: en}
+    AuthCodeConfirmation:
+      type: object
+      required: [challenge_id, code]
+      properties:
+        challenge_id: {type: string, format: uuid}
+        code: {type: string, pattern: '^\d{6}$'}
+    AuthSocialFlow:
+      type: object
+      required: [flow_id, secret]
+      properties:
+        flow_id: {type: string, format: uuid}
+        secret: {type: string, minLength: 32, maxLength: 128}
     HealthStatus:
       type: object
       required: [status]
