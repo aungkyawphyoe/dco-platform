@@ -56,6 +56,10 @@ export function planTiersSql(): string {
   return readSql("0011_plan_tiers.sql");
 }
 
+export function authOnboardingSql(): string {
+  return readSql("0012_auth_onboarding.sql");
+}
+
 export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Promise<void> {
   await exec(initSql());
   await exec(maintenanceCatalogSql());
@@ -69,5 +73,5 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(auditTrailSql());
   await exec(documentCreatedBySql());
   await exec(planTiersSql());
-  await exec(readSql("0012_auth_onboarding.sql"));
+  await exec(authOnboardingSql());
 }
