@@ -37,7 +37,7 @@ Superseded FRDs move to [`archive/`](archive/).
 |--------|------|---------|----------|-------|
 | Dashboard | [dashboard.md](dashboard.md) | Mobile (default after login) | **Done** | Spend is expenses-only. Insurance quick action is a placeholder. Documents quick action opens an empty screen. |
 | Garage | [garage.md](garage.md) | Mobile + API | **Done** | Un-archive is not in the UI. Freemium one-vehicle cap is not enforced. |
-| Auth | [auth.md](auth.md) | Mobile + API | **Done** | Email/password. Debug builds mock the API. No Google/Apple (out of scope). |
+| Auth | [auth.md](auth.md) | Mobile + API | **Partial** | Email/password baseline exists. October code implemented: onboarding, Google/Apple on both platforms, code verification, linking, and recovery. Live setup/device acceptance pending. See [implementation plan](../../docs/onboarding-auth-implementation.md). |
 | Maintenance | [maintenance.md](maintenance.md) | Mobile + API | **Done** | Plan, suggested catalog, register service, history. OS local reminders are owned by [notifications.md](notifications.md). |
 | Documents | [documents.md](documents.md) | Mobile + API | **Done** | Full vault: Drift table, CRUD, upload/viewer, sync outbox. |
 | Expenses | [expenses.md](expenses.md) | Mobile + API | **Done** | Categories, summaries, receipt photo, assign parts. |
