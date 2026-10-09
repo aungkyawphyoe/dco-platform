@@ -1,6 +1,6 @@
 # Offline feature gating (tiered plans)
 
-**Status:** Proposed.
+**Status:** Accepted. All four PRs implemented — PR1 (backend tier migration), PR2 (license issuance), PR3 (server limit checks), PR4 (mobile gating).
 **Contract:** `docs/pricing.md` (tier matrix, limits, error contract). Server remains authoritative per `product/production-scope.md`.
 **Scope:** Mobile (Flutter) owner surface + backend. Fleet/Pro stays an org/enterprise entitlement — see §4.
 
@@ -13,8 +13,8 @@
 - `planEnum ('free','premium')` hardcoded at `backend/src/db/schema.ts:20`, `backend/src/lib/crypto.ts:10`, `backend/src/modules/admin.ts` (432/486/558), `backend/src/lib/bootstrap.ts:20`
 - Only sharing invites are enforced (`vehicle-shares.ts:83-101`); `vehicle_limit` is advisory (`openapi.yaml:2860`)
 - No `plans` / `subscriptions` / `usage_counters` tables, no billing code
-- Mobile parses `User.vehicleLimit` and `Entitlements` but **nothing consumes them**; no client-side JWT parsing exists at all
-- `mobile/AGENTS.md:150` currently forbids paywalls (monetization off) — must be updated as part of delivery
+- Mobile parses `User.vehicleLimit` and `Entitlements` but **nothing consumes them**; no client-side JWT parsing exists at all. (The enum/table/site fixes above landed in PR1: `backend/src/lib/plans.ts`, `backend/drizzle/0011_plan_tiers.sql`.)
+- `mobile/AGENTS.md` paywall prohibition was replaced in PR1 with a pointer to this design (billing still off)
 
 The app is offline-first. A user who bought Standard must keep Standard without network; a user who must not have Standard must not be able to grant it to themselves by editing local storage.
 
@@ -48,6 +48,7 @@ The app is offline-first. A user who bought Standard must keep Standard without 
 | 14 | License refresh | Foreground-if-stale (>24h old or <48h to expiry) + auth refresh + payment events; never blocks startup |
 | 15 | Gate API shape | Reactive snapshot: in-memory license + Drift `watch` counts folded into one synchronous read |
 | 16 | Counting | Active-only: non-archived vehicles, non-revoked shares (revoke returns the slot — `pricing.md:115`) |
+| 17 | Share cap mapping | pricing.md's single `sharing_limit` is **one cap for both per-vehicle and total**: free 1, lite 3, standard/fleet unlimited (`null`). Tightens free from the legacy 1/3 — existing free users keep current shares but cannot create past the cap |
 
 ## 4. Tier model & migration
 
@@ -57,6 +58,7 @@ The app is offline-first. A user who bought Standard must keep Standard without 
 - `openapi.yaml` `Plan` enum and `Session.plan` parsing updated; `mobile/AGENTS.md:150` paywall prohibition replaced with a pointer to this doc
 - **Mobile sells/gates Free/Lite/Standard only** (`pricing.md:151`). `fleet` on mobile is never a purchasable license tier — fleet features remain gated by organization `plan=enterprise` via the existing `GET /v1/me/entitlements` path (`entitlements.dart`, `app_drawer.dart:18`)
 - After migration, `premium` no longer exists anywhere. Old premium users silently gain Standard's unlimited sharing (was 5/20) — accepted in decision 5
+- Share caps are the single `sharing_limit` number applied to both per-vehicle and total checks (decision 17); `null` = unlimited is nullable end-to-end (openapi, mobile `ShareLimits`)
 
 ## 5. Signed license token
 
@@ -75,7 +77,7 @@ const license = await new SignJWT({
   sharing_limit: plan.sharingLimit,    // number | null
   storage_bytes: plan.storageBytes,
   ai_tier: plan.aiTier,
-  features: plan.features,             // { pdf, receipt_scan, import_general, api_access, ... }
+  features: plan.features,             // { data_import_general, api_access, priority_support }
   period_end: sub.currentPeriodEnd.toISOString(),
 })
   .setProtectedHeader({ alg: 'EdDSA', kid: env.LICENSE_KID })
@@ -83,6 +85,12 @@ const license = await new SignJWT({
   .setExpirationTime(sub.currentPeriodEnd.getTime() / 1000 + 7 * 86400) // +7d grace
   .sign(await importPrivateKey(env.LICENSE_ED25519_KEY));
 ```
+
+**Pre-billing (PR2 state):** there is no `subscriptions` table yet, so `period_end` is issued
+as `null` and `exp = iat + LICENSE_TTL_DAYS` (default 30d rolling) — implemented in
+`backend/src/lib/license.ts` as `issueLicense(…, { periodEnd })`. When billing lands, pass
+`sub.currentPeriodEnd` and the grace math above takes over unchanged; the claim shape is
+already final.
 
 | Claim | Meaning |
 |-------|---------|
@@ -93,7 +101,8 @@ const license = await new SignJWT({
 | `period_end` | Billing period end — display only ("renews at…") |
 | `exp` | **`period_end` + 7d grace, baked server-side** — client cannot extend the grace |
 
-Free tier: license is issued too, with `vehicle_limit: 1` etc. and a far-future `exp` (or no expiry check for `plan_id: free`).
+Free tier: license is issued too, with `vehicle_limit: 1` etc.; it uses the same rolling TTL —
+an expired free license evaluates to Free anyway (decision 10, never a lockout).
 
 ### 5.2 Verification (client, offline)
 
@@ -160,8 +169,8 @@ Degradation is always **to Free, never a lockout** — the app keeps working; th
 
 | What | Where | Why |
 |------|-------|-----|
-| Signed license JWT | `flutter_secure_storage` key `dco.license` | Not reachable by DB editors; Keychain/Keystore backed |
-| `max_seen` timestamp | `flutter_secure_storage` key `dco.license.max_seen` | Must not be rollback-able via Drift |
+| Signed license JWT | `flutter_secure_storage` key `dco.license.<userId>` | Not reachable by DB editors; Keychain/Keystore backed. Per-user suffix: a different account on the same phone must not inherit the previous account's license (same rule as the outbox) |
+| `max_seen` timestamp | `flutter_secure_storage` key `dco.license.max_seen.<userId>` | Must not be rollback-able via Drift; also scoped per user so one account cannot freeze another's clock anchor |
 | Public keyring | Bundled app asset (`assets/license_keys.json`) | Rotation without code change |
 | Vehicle/share **counts** | Drift (existing tables) | Reactive, source of truth for counts |
 | Fleet entitlements | `AppMeta fleet:<uid>.entitlements` (existing) | Server-driven org gate, unchanged |
@@ -227,7 +236,7 @@ class FeatureGateSnapshot {
 }
 ```
 
-Counts mirror existing semantics: vehicles match `_countGarage` (`vehicle_repository_impl.dart:351`, `userId` + `!archived`); shares exclude `revoked | declined | expired`.
+Counts mirror existing semantics: vehicles match `_countGarage` (`userId` + `!archived`); shares count only rows with server status `active` on owned vehicles — pending invitations do not consume a slot, mirroring the server's `checkShareLimits` (decision 16: active-only counts).
 
 ### 8.3 Enforcement points (interactive creates)
 
@@ -244,13 +253,16 @@ Archiving a vehicle frees a slot; revoking a share frees a slot. Existing over-l
 
 Local gating is UX; every write path is checked server-side in this series (decision 8):
 
-- `POST /v1/vehicles` gains a count check (today: none); share checks already exist
+- `POST /v1/vehicles` counts active (non-archived) vehicles against `vehicleLimit` (`backend/src/lib/limits.ts`); share checks already exist in `vehicle-shares.ts`
 - Limits read from the `plans` table — one source, not per-module constants
-- Error contract per `pricing.md:227`:
+- Idempotent replays (same `id`) and edits of existing rows are never blocked (decision 7); plate/vin conflicts keep 409 precedence over the capacity 403
+- Sync pushes route through the same `POST /v1/vehicles` path, so `LIMIT_EXCEEDED` surfaces there as a `rejected` operation
+- Error contract per `pricing.md` §Limit Check Response, in the platform envelope:
 
 ```json
-{ "error": "LIMIT_EXCEEDED", "metric": "vehicles", "current": 1, "limit": 1,
-  "upgrade_url": "/pricing", "message": "Free plan allows 1 vehicle. Upgrade to Lite for 3 vehicles." }
+{ "error": { "code": "LIMIT_EXCEEDED",
+  "message": "Free plan allows 1 vehicle. Upgrade to Lite for 3 vehicles.",
+  "details": { "metric": "vehicles", "current": 1, "limit": 1, "upgrade_url": "/pricing" } } }
 ```
 
 ### Outbox behavior on `LIMIT_EXCEEDED`
@@ -268,12 +280,12 @@ Non-`LIMIT_EXCEEDED` errors keep today's retry behavior.
 
 | PR | Contents | Verifiable by |
 |----|----------|---------------|
-| **1. Backend tier migration** | `plans` table + `0011_plan_tiers.sql`, `planEnum` → 4 tiers, `premium→standard` data migration, JWT claim, admin endpoints, `/me/entitlements` claims, dedupe `SHARE_LIMITS`, openapi `Plan` enum, `mobile/AGENTS.md` + `architecture/iam.md` plan-rule edits | backend vitest suite green |
-| **2. License issuance** | Ed25519 keypair + `kid`, `GET /v1/me/license`, openapi path, issuance tests | vitest: sign→verify round-trip, expiry = period_end+7d |
-| **3. Server limit checks** | Vehicle create count check, `LIMIT_EXCEEDED` contract, limits centralized in plans module | vitest: 403 at limit, unlimited tier passes |
-| **4. Mobile gating** | License store/verifier/clock guard, FeatureGate providers, enforcement at create entry points, outbox park-on-403 + sync UI surfacing | flutter test (§11) |
+| **1. Backend tier migration** ✅ | `plans` table + `0011_plan_tiers.sql`, `planEnum` → 4 tiers, `premium→standard` data migration, JWT claim, admin endpoints, `/me/entitlements` claims, dedupe `SHARE_LIMITS` into `plans.ts`, openapi `Plan` enum + nullable share limits, contract edits (`mobile/AGENTS.md`, `iam.md`, `production-scope.md`, web admin plan picker), mobile nullable `ShareLimits` | backend vitest 33/33, mobile 265/265, web + fleet-portal builds green |
+| **2. License issuance** ✅ | Ed25519 signing (`backend/src/lib/license.ts`), `npm run license:key` keypair script, `LICENSE_KID`/`LICENSE_ED25519_KEY`/`LICENSE_TTL_DAYS` env, `GET /v1/me/license` (owner-only, self-contained claims from `plans.ts`, pre-billing rolling TTL §5.1), openapi path + generated types, issuance tests | backend vitest 40/40, tsc clean, web + fleet-portal lint/build green |
+| **3. Server limit checks** ✅ | Vehicle create count check (`backend/src/lib/limits.ts`, active-only), `LIMIT_EXCEEDED` contract in the platform envelope (pricing fields in `details`), sync-push rejection surface, openapi 403 + regenerated types, share-limit test reworked for the tightened free tier (1 vehicle) | backend vitest 45/45, tsc clean, web + fleet-portal types regenerated |
+| **4. Mobile gating** ✅ | `core/gating/` (license store + verifier + trusted clock + FeatureGate providers), lifecycle/staleness refresh (§5.3) + access-JWT iat anchor (§6.3), enforcement at vehicle-form and share entry points (§8.3), outbox `parked` column (schema v22) + park-on-`LIMIT_EXCEEDED` + sync-screen surfacing + requeue-after-upgrade (§9) | flutter analyze clean, flutter test 295/295 (30 gating/sync tests covering §11) |
 
-PR 4 may start in parallel with 2–3 behind the existing `entitlementsProvider` pattern; the license fetch lands when PR 2 is available.
+PR 4 was developed in parallel with 2–3 behind the existing `entitlementsProvider` pattern; the license fetch landed with PR 2.
 
 ## 11. Testing
 
