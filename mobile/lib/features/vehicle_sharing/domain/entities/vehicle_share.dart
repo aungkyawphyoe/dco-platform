@@ -167,24 +167,28 @@ class ShareInvitation {
   };
 }
 
-/// Plan caps returned alongside the share list.
+/// Plan caps returned alongside the share list. `null` limits mean the
+/// plan is unlimited (standard/fleet); a missing key falls back to the
+/// free-plan caps so absent data is never read as unlimited.
 class ShareLimits {
   const ShareLimits({
-    required this.perVehicle,
-    required this.total,
+    this.perVehicle,
+    this.total,
     this.activeOnVehicle = 0,
   });
 
-  final int perVehicle;
-  final int total;
+  final int? perVehicle;
+  final int? total;
   final int activeOnVehicle;
 
-  bool get atVehicleLimit => activeOnVehicle >= perVehicle;
+  bool get atVehicleLimit =>
+      perVehicle != null && activeOnVehicle >= perVehicle!;
 
   factory ShareLimits.fromJson(Map<String, dynamic> json) {
     return ShareLimits(
-      perVehicle: json['per_vehicle'] as int? ?? 1,
-      total: json['total'] as int? ?? 3,
+      perVehicle:
+          json.containsKey('per_vehicle') ? json['per_vehicle'] as int? : 1,
+      total: json.containsKey('total') ? json['total'] as int? : 1,
       activeOnVehicle: json['active_on_vehicle'] as int? ?? 0,
     );
   }

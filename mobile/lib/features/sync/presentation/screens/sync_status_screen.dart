@@ -18,6 +18,7 @@ class SyncStatusScreen extends ConsumerWidget {
     final isSyncing = syncState.phase == SyncPhase.syncing;
     final autoSyncEnabled = ref.watch(autoSyncProvider);
     final pendingCount = ref.watch(pendingOutboxCountProvider);
+    final parkedCount = ref.watch(parkedOutboxCountProvider);
     final connectivity = ref.watch(connectivityProvider);
     final isOnline =
         connectivity.valueOrNull?.any((r) => r != ConnectivityResult.none) ??
@@ -94,6 +95,12 @@ class SyncStatusScreen extends ConsumerWidget {
           _PendingCard(pendingCount: pendingCount, tokens: tokens, s: s),
           SizedBox(height: tokens.space.s3),
 
+          // -- Plan-rejected (parked) items — feature-gating §9
+          if ((parkedCount.valueOrNull ?? 0) > 0) ...[
+            _ParkedCard(parkedCount: parkedCount, tokens: tokens, s: s),
+            SizedBox(height: tokens.space.s3),
+          ],
+
           // -- Sync now button (hidden when auto-sync is on)
           if (!autoSyncEnabled)
             SizedBox(
@@ -108,6 +115,7 @@ class SyncStatusScreen extends ConsumerWidget {
                     : () async {
                         await ref.read(syncEngineProvider).syncNow(force: true);
                         ref.invalidate(pendingOutboxCountProvider);
+                        ref.invalidate(parkedOutboxCountProvider);
                       },
                 icon: isSyncing
                     ? SizedBox(
@@ -288,6 +296,63 @@ class _StatusHeroCard extends StatelessWidget {
 // ---------------------------------------------------------------------------
 // Pending items card
 // ---------------------------------------------------------------------------
+
+class _ParkedCard extends StatelessWidget {
+  const _ParkedCard({
+    required this.parkedCount,
+    required this.tokens,
+    required this.s,
+  });
+
+  final AsyncValue<int> parkedCount;
+  final DcoTokens tokens;
+  final AppLocalizations s;
+
+  @override
+  Widget build(BuildContext context) {
+    final count = parkedCount.valueOrNull ?? 0;
+    return _InfoCard(
+      tokens: tokens,
+      child: Row(
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: tokens.status.dangerFg.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              Icons.block,
+              color: tokens.status.dangerFg,
+              size: 22,
+            ),
+          ),
+          SizedBox(width: tokens.space.s3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  s.syncParkedTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                SizedBox(height: tokens.space.s1),
+                Text(
+                  s.syncParkedBody(count),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: tokens.text.secondary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class _PendingCard extends StatelessWidget {
   const _PendingCard({

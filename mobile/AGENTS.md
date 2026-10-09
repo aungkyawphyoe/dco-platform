@@ -134,7 +134,7 @@ flowchart TB
 
 ### Sync and conflicts
 
-- Outbox columns: `entity_type`, `entity_id`, `op`, `payload`, `client_ts`, `attempt_count`.
+- Outbox columns: `entity_type`, `entity_id`, `op`, `payload`, `client_ts`, `attempt_count`, `parked`. A `LIMIT_EXCEEDED` rejection parks the row (no attempt burn); other rows keep syncing. Parked rows surface on the sync screen and become pushable again after `requeueParked` runs with a fresh license (`architecture/feature-gating.md` §9).
 - Mileage conflict: `max(local, remote)` wins. Never decrease mileage.
 - Archive vs later edit: **archive wins**.
 - Media: compress → store local path on the row → upload bytes after metadata ack; retry bytes without duplicating the record.
@@ -147,7 +147,8 @@ flowchart TB
 - Archive vehicles (soft-delete). Do not hard-delete vehicles or their child records.
 - Fuel type required: `petrol` | `electric` | `hybrid_plugin`.
 - Year: 1900 … current year + 1. Plate max 20 chars. Mileage ≥ 0 and monotonic.
-- `users.plan` exists (`free` / `premium`). Monetization is off; do not invent a paywall.
+- `users.plan` is `free` / `lite` / `standard` / `fleet` (`docs/pricing.md`). Billing is not live: do not invent purchase UI. Local gating hides entry points only — the server is authoritative (`architecture/feature-gating.md`).
+- Offline license: signed EdDSA JWT from `GET /v1/me/license`, verified against `mobile/assets/license_keys.json` (ships empty). Mint keypairs with `npm run license:key` in `backend/` — private key goes to backend env only, public entry to the keyring. Gating lives in `lib/core/gating/` (`architecture/feature-gating.md`).
 - Expense `fuel` is money only (no litres, no kWh). Volume and kWh live on fuel logs. Dashboard totals read **expenses only**, not service-record costs or fuel-log costs.
 
 ---

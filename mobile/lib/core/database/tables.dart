@@ -56,6 +56,10 @@ class OutboxEntries extends Table {
   DateTimeColumn get clientTs => dateTime()();
   IntColumn get attemptCount => integer().withDefault(const Constant(0))();
   TextColumn get lastError => text().nullable()();
+
+  /// Parked by a server plan-limit rejection (`LIMIT_EXCEEDED`) — out of
+  /// the retry loop until requeued after a license refresh (§9).
+  BoolColumn get parked => boolean().withDefault(const Constant(false))();
 }
 
 class PlanItemRecords extends Table {

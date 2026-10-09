@@ -4254,6 +4254,18 @@ abstract class AppLocalizations {
   /// **'Changes waiting to be synced to the server'**
   String get syncPendingItemsDescription;
 
+  /// No description provided for @syncParkedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Rejected changes'**
+  String get syncParkedTitle;
+
+  /// No description provided for @syncParkedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} changes rejected — upgrade to keep them syncing'**
+  String syncParkedBody(Object count);
+
   /// No description provided for @syncNoPendingItems.
   ///
   /// In en, this message translates to:
@@ -6407,6 +6419,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your plan allows {limit} active shares per vehicle'**
   String sharePlanLimitReached(Object limit);
+
+  /// No description provided for @planLimitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan limit reached'**
+  String get planLimitTitle;
+
+  /// No description provided for @planLimitVehicle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your {plan} plan allows {limit} vehicles.'**
+  String planLimitVehicle(Object limit, Object plan);
+
+  /// No description provided for @planLimitUpgradeTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Upgrade to {plan} for {limit} vehicles.'**
+  String planLimitUpgradeTo(Object limit, Object plan);
+
+  /// No description provided for @planLimitChecking.
+  ///
+  /// In en, this message translates to:
+  /// **'Checking your plan. Please try again in a moment.'**
+  String get planLimitChecking;
 
   /// No description provided for @shareOwnerOnly.
   ///

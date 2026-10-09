@@ -56,7 +56,7 @@ class SettingsScreen extends ConsumerWidget {
                         name: user?.displayName ?? user?.email ?? '?',
                         radius: 28,
                       ),
-                      if (user?.plan == 'premium')
+                      if (user?.plan != null && user?.plan != 'free')
                         Positioned(
                           right: -2,
                           bottom: -2,

@@ -278,7 +278,7 @@ class _ShareManagementScreenState extends ConsumerState<ShareManagementScreen>
         : s.shareVehicleTitle;
     final licensePlate = detail?.licensePlate ?? '';
     final activeCount = detail?.limits.activeOnVehicle ?? 0;
-    final perVehicleLimit = detail?.limits.perVehicle ?? 0;
+    final perVehicleLimit = detail?.limits.perVehicle;
 
     return SliverToBoxAdapter(
       child: Container(
@@ -308,12 +308,13 @@ class _ShareManagementScreenState extends ConsumerState<ShareManagementScreen>
               ),
             ),
             SizedBox(height: tokens.space.s2),
-            Text(
-              s.shareLimits(activeCount, perVehicleLimit),
-              style: Theme.of(
-                context,
-              ).textTheme.bodySmall?.copyWith(color: tokens.text.tertiary),
-            ),
+            if (perVehicleLimit != null)
+              Text(
+                s.shareLimits(activeCount, perVehicleLimit),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(color: tokens.text.tertiary),
+              ),
           ],
         ),
       ),

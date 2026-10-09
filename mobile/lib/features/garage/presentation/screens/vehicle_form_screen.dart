@@ -1,11 +1,14 @@
 import 'dart:io';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
+import 'package:dco_mobile/core/gating/gate_messages.dart';
+import 'package:dco_mobile/core/gating/providers.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
+import 'package:dco_mobile/core/widgets/dco_error_dialog.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
@@ -143,6 +146,25 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
     if (draft == null) return;
     final userId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
     if (userId == null) return;
+
+    // Local gate on interactive creates only — edits of existing
+    // vehicles are always allowed (decision 7). Null gate = hydrating =
+    // deny (§8.1).
+    if (!widget.isEditing) {
+      final gate = ref.read(featureGateProvider);
+      if (gate == null || !gate.canCreateVehicle) {
+        if (!mounted) return;
+        final s = AppLocalizations.of(context)!;
+        await showDcoErrorDialog(
+          context,
+          title: s.planLimitTitle,
+          message: gate == null
+              ? s.planLimitChecking
+              : gate.vehicleBlockMessage(s),
+        );
+        return;
+      }
+    }
 
     setState(() => _saving = true);
     try {

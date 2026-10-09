@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/dco_tokens.dart';
+import '../../../../core/gating/gate_messages.dart';
+import '../../../../core/gating/providers.dart';
 import '../../../../core/widgets/dco_button.dart';
+import '../../../../core/widgets/dco_error_dialog.dart';
 import '../../../../core/widgets/dco_empty_state.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/entities/vehicle_share.dart';
@@ -44,7 +47,24 @@ class _ShareVehicleScreenState extends ConsumerState<ShareVehicleScreen>
     super.dispose();
   }
 
+  /// Local pre-block on new invites: the server re-checks anyway, but
+  /// the gate gives instant offline-correct feedback (§8.3). Null gate
+  /// (hydrating) denies.
+  Future<bool> _canStartShare() async {
+    final gate = ref.read(featureGateProvider);
+    if (gate != null && gate.canCreateShare) return true;
+    if (!mounted) return false;
+    final s = AppLocalizations.of(context)!;
+    await showDcoErrorDialog(
+      context,
+      title: s.planLimitTitle,
+      message: gate == null ? s.planLimitChecking : gate.shareBlockMessage(s),
+    );
+    return false;
+  }
+
   Future<void> _sendInvitation() async {
+    if (!await _canStartShare()) return;
     final s = AppLocalizations.of(context)!;
     final email = _emailController.text.trim();
     if (email.isEmpty) {
@@ -83,6 +103,7 @@ class _ShareVehicleScreenState extends ConsumerState<ShareVehicleScreen>
   }
 
   Future<void> _generateCode() async {
+    if (!await _canStartShare()) return;
     final s = AppLocalizations.of(context)!;
     setState(() {
       _error = null;
@@ -134,7 +155,7 @@ class _ShareVehicleScreenState extends ConsumerState<ShareVehicleScreen>
       final limit =
           ref.read(vehicleSharesProvider(widget.vehicleId)).valueOrNull
               ?.limits.perVehicle ??
-          5;
+          1;
       return s.sharePlanLimitReached(limit);
     }
     if (text.contains('already_shared')) return s.shareAlreadyShared;

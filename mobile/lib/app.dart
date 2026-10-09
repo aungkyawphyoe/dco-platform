@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers.dart';
+import 'core/gating/providers.dart';
 import 'core/router/app_router.dart';
 import 'core/sync/sync_engine.dart';
 import 'core/theme/dco_theme.dart';
@@ -67,8 +68,42 @@ class DcoApp extends ConsumerStatefulWidget {
   ConsumerState<DcoApp> createState() => _DcoAppState();
 }
 
-class _DcoAppState extends ConsumerState<DcoApp> {
+class _DcoAppState extends ConsumerState<DcoApp>
+    with WidgetsBindingObserver {
   ({String message, DateTime at})? _lastSyncDialog;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Cold-start license refresh behind the cached gate (decision 14).
+    unawaited(_refreshLicenseIfStale());
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      unawaited(_refreshLicenseIfStale());
+    }
+  }
+
+  /// Foreground trigger for §5.3 staleness (>24h old or <48h to expiry).
+  /// Best-effort: the cached license already gates the UI.
+  Future<void> _refreshLicenseIfStale() async {
+    try {
+      await ref.read(licenseControllerProvider.future);
+      if (!mounted) return;
+      await ref.read(licenseControllerProvider.notifier).refreshIfStale();
+    } catch (_) {
+      // Offline or unauthenticated — cached/Free claims stand.
+    }
+  }
 
   void _onSyncStatus(AsyncValue<SyncState> status) {
     final state = status.valueOrNull;
@@ -99,6 +134,10 @@ class _DcoAppState extends ConsumerState<DcoApp> {
   Widget build(BuildContext context) {
     final router = ref.watch(goRouterProvider);
     ref.watch(reminderSyncControllerProvider);
+    // Warm the feature gate (license + active counts) so the first
+    // interactive check reads a settled snapshot instead of racing
+    // hydration (§8.1).
+    ref.watch(featureGateProvider);
 
     ref.listen(sessionControllerProvider, (previous, next) {
       final userId = next.valueOrNull?.user.id;

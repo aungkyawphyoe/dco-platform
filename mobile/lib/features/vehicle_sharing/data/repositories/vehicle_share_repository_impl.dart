@@ -310,7 +310,7 @@ class VehicleShareRepositoryImpl implements VehicleShareRepository {
             ),
           )
           .toList(),
-      limits: const ShareLimits(perVehicle: 1, total: 3),
+      limits: const ShareLimits(perVehicle: 1, total: 1),
     );
   }
 

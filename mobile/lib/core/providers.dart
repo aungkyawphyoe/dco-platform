@@ -1,9 +1,13 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'gating/providers.dart';
+import 'gating/trusted_clock.dart';
 
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/datasources/dio_auth_remote_datasource.dart';
@@ -98,6 +102,18 @@ final dioProvider = Provider<Dio>((ref) {
           refreshToken: session.refreshToken,
           userJson: jsonEncode(session.user.toJson()),
         );
+        // §6.3: the access-JWT iat is a server-attested time anchor —
+        // advance max_seen so a wrong device clock can't stretch a
+        // license window.
+        final issuedAt = jwtIssuedAt(session.accessToken);
+        if (issuedAt != null) {
+          unawaited(
+            TrustedClock(
+              store: ref.read(licenseStoreProvider),
+              userId: session.user.id,
+            ).observe(issuedAt),
+          );
+        }
         return (
           accessToken: session.accessToken,
           refreshToken: session.refreshToken,
@@ -352,7 +368,22 @@ final pendingOutboxCountProvider = FutureProvider<int>((ref) async {
   final rows = await (db.select(db.outboxEntries)
         ..where(
           (row) => row.userId.equals(userId) &
+              row.parked.equals(false) &
               row.attemptCount.isSmallerOrEqualValue(4),
+        ))
+      .get();
+  return rows.length;
+});
+
+/// Rows parked by a `LIMIT_EXCEEDED` rejection — surfaced on the sync
+/// screen until a fresh license requeues them (feature-gating §9).
+final parkedOutboxCountProvider = FutureProvider<int>((ref) async {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null || userId.isEmpty) return 0;
+  final db = ref.watch(appDatabaseProvider);
+  final rows = await (db.select(db.outboxEntries)
+        ..where(
+          (row) => row.userId.equals(userId) & row.parked.equals(true),
         ))
       .get();
   return rows.length;

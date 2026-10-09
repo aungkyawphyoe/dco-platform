@@ -34,7 +34,7 @@ class AppDatabase extends _$AppDatabase {
       : super(executor ?? driftDatabase(name: 'dco_owner'));
 
   @override
-  int get schemaVersion => 21;
+  int get schemaVersion => 22;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -123,6 +123,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 21) {
         // Sharing: track who created each document so sharees only edit their own.
         await migrator.addColumn(documentRecords, documentRecords.createdBy);
+      }
+      if (from < 22) {
+        // Gating: outbox rows parked by a LIMIT_EXCEEDED rejection (§9).
+        await migrator.addColumn(outboxEntries, outboxEntries.parked);
       }
     },
   );

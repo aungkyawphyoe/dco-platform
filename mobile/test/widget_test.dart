@@ -1,5 +1,7 @@
 import 'package:dco_mobile/app.dart';
 import 'package:dco_mobile/core/config/app_config.dart';
+import 'package:dco_mobile/core/gating/license_store.dart';
+import 'package:dco_mobile/core/gating/providers.dart';
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/core/notifications/local_notification_client.dart';
 import 'package:dco_mobile/core/providers.dart';
@@ -35,6 +37,7 @@ void main() {
             ),
           ),
           tokenStoreProvider.overrideWithValue(MemoryTokenStore()),
+          licenseStoreProvider.overrideWithValue(MemoryLicenseStore()),
           appDatabaseProvider.overrideWithValue(database),
           localNotificationClientProvider.overrideWithValue(
             NoopLocalNotificationClient(),

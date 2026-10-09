@@ -2249,6 +2249,14 @@ class AppLocalizationsMy extends AppLocalizations {
       'ဆာဗာသို့ ချိတ်ဆက်ရန် စောင့်ဆိုင်းနေသည့် ပြောင်းလဲမှုများ';
 
   @override
+  String get syncParkedTitle => 'Rejected changes';
+
+  @override
+  String syncParkedBody(Object count) {
+    return '$count changes rejected — upgrade to keep them syncing';
+  }
+
+  @override
   String get syncNoPendingItems => 'ပြောင်းလဲမှု အားလုံး ချိတ်ဆက်ပြီးပါပြီ';
 
   @override
@@ -3420,6 +3428,23 @@ class AppLocalizationsMy extends AppLocalizations {
   String sharePlanLimitReached(Object limit) {
     return 'သင့်အစီအစဉ်အရ ယာဉ်တစ်စီးလျှင် မျှဝေမှု $limit ခုသာ ခွင့်ပြုသည်';
   }
+
+  @override
+  String get planLimitTitle => 'Plan limit reached';
+
+  @override
+  String planLimitVehicle(Object limit, Object plan) {
+    return 'Your $plan plan allows $limit vehicles.';
+  }
+
+  @override
+  String planLimitUpgradeTo(Object limit, Object plan) {
+    return 'Upgrade to $plan for $limit vehicles.';
+  }
+
+  @override
+  String get planLimitChecking =>
+      'Checking your plan. Please try again in a moment.';
 
   @override
   String get shareOwnerOnly => 'ယာဉ်ပိုင်ရှင်သာ မျှဝေမှုများကို စီမံနိုင်သည်။';

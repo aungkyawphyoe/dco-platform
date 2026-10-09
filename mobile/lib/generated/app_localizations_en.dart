@@ -2223,6 +2223,14 @@ class AppLocalizationsEn extends AppLocalizations {
       'Changes waiting to be synced to the server';
 
   @override
+  String get syncParkedTitle => 'Rejected changes';
+
+  @override
+  String syncParkedBody(Object count) {
+    return '$count changes rejected — upgrade to keep them syncing';
+  }
+
+  @override
   String get syncNoPendingItems => 'All changes synced';
 
   @override
@@ -3385,6 +3393,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String sharePlanLimitReached(Object limit) {
     return 'Your plan allows $limit active shares per vehicle';
   }
+
+  @override
+  String get planLimitTitle => 'Plan limit reached';
+
+  @override
+  String planLimitVehicle(Object limit, Object plan) {
+    return 'Your $plan plan allows $limit vehicles.';
+  }
+
+  @override
+  String planLimitUpgradeTo(Object limit, Object plan) {
+    return 'Upgrade to $plan for $limit vehicles.';
+  }
+
+  @override
+  String get planLimitChecking =>
+      'Checking your plan. Please try again in a moment.';
 
   @override
   String get shareOwnerOnly => 'Only the vehicle owner can manage shares.';

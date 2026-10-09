@@ -2130,6 +2130,19 @@ class $OutboxEntriesTable extends OutboxEntries
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _parkedMeta = const VerificationMeta('parked');
+  @override
+  late final GeneratedColumn<bool> parked = GeneratedColumn<bool>(
+    'parked',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("parked" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -2141,6 +2154,7 @@ class $OutboxEntriesTable extends OutboxEntries
     clientTs,
     attemptCount,
     lastError,
+    parked,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2217,6 +2231,12 @@ class $OutboxEntriesTable extends OutboxEntries
         lastError.isAcceptableOrUnknown(data['last_error']!, _lastErrorMeta),
       );
     }
+    if (data.containsKey('parked')) {
+      context.handle(
+        _parkedMeta,
+        parked.isAcceptableOrUnknown(data['parked']!, _parkedMeta),
+      );
+    }
     return context;
   }
 
@@ -2262,6 +2282,10 @@ class $OutboxEntriesTable extends OutboxEntries
         DriftSqlType.string,
         data['${effectivePrefix}last_error'],
       ),
+      parked: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}parked'],
+      )!,
     );
   }
 
@@ -2281,6 +2305,10 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
   final DateTime clientTs;
   final int attemptCount;
   final String? lastError;
+
+  /// Parked by a server plan-limit rejection (`LIMIT_EXCEEDED`) — out of
+  /// the retry loop until requeued after a license refresh (§9).
+  final bool parked;
   const OutboxEntry({
     required this.id,
     required this.userId,
@@ -2291,6 +2319,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     required this.clientTs,
     required this.attemptCount,
     this.lastError,
+    required this.parked,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2306,6 +2335,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     if (!nullToAbsent || lastError != null) {
       map['last_error'] = Variable<String>(lastError);
     }
+    map['parked'] = Variable<bool>(parked);
     return map;
   }
 
@@ -2322,6 +2352,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
       lastError: lastError == null && nullToAbsent
           ? const Value.absent()
           : Value(lastError),
+      parked: Value(parked),
     );
   }
 
@@ -2340,6 +2371,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
       clientTs: serializer.fromJson<DateTime>(json['clientTs']),
       attemptCount: serializer.fromJson<int>(json['attemptCount']),
       lastError: serializer.fromJson<String?>(json['lastError']),
+      parked: serializer.fromJson<bool>(json['parked']),
     );
   }
   @override
@@ -2355,6 +2387,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
       'clientTs': serializer.toJson<DateTime>(clientTs),
       'attemptCount': serializer.toJson<int>(attemptCount),
       'lastError': serializer.toJson<String?>(lastError),
+      'parked': serializer.toJson<bool>(parked),
     };
   }
 
@@ -2368,6 +2401,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     DateTime? clientTs,
     int? attemptCount,
     Value<String?> lastError = const Value.absent(),
+    bool? parked,
   }) => OutboxEntry(
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -2378,6 +2412,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     clientTs: clientTs ?? this.clientTs,
     attemptCount: attemptCount ?? this.attemptCount,
     lastError: lastError.present ? lastError.value : this.lastError,
+    parked: parked ?? this.parked,
   );
   OutboxEntry copyWithCompanion(OutboxEntriesCompanion data) {
     return OutboxEntry(
@@ -2394,6 +2429,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
           ? data.attemptCount.value
           : this.attemptCount,
       lastError: data.lastError.present ? data.lastError.value : this.lastError,
+      parked: data.parked.present ? data.parked.value : this.parked,
     );
   }
 
@@ -2408,7 +2444,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
           ..write('payload: $payload, ')
           ..write('clientTs: $clientTs, ')
           ..write('attemptCount: $attemptCount, ')
-          ..write('lastError: $lastError')
+          ..write('lastError: $lastError, ')
+          ..write('parked: $parked')
           ..write(')'))
         .toString();
   }
@@ -2424,6 +2461,7 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     clientTs,
     attemptCount,
     lastError,
+    parked,
   );
   @override
   bool operator ==(Object other) =>
@@ -2437,7 +2475,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
           other.payload == this.payload &&
           other.clientTs == this.clientTs &&
           other.attemptCount == this.attemptCount &&
-          other.lastError == this.lastError);
+          other.lastError == this.lastError &&
+          other.parked == this.parked);
 }
 
 class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
@@ -2450,6 +2489,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
   final Value<DateTime> clientTs;
   final Value<int> attemptCount;
   final Value<String?> lastError;
+  final Value<bool> parked;
   const OutboxEntriesCompanion({
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
@@ -2460,6 +2500,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     this.clientTs = const Value.absent(),
     this.attemptCount = const Value.absent(),
     this.lastError = const Value.absent(),
+    this.parked = const Value.absent(),
   });
   OutboxEntriesCompanion.insert({
     this.id = const Value.absent(),
@@ -2471,6 +2512,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     required DateTime clientTs,
     this.attemptCount = const Value.absent(),
     this.lastError = const Value.absent(),
+    this.parked = const Value.absent(),
   }) : userId = Value(userId),
        entityType = Value(entityType),
        entityId = Value(entityId),
@@ -2487,6 +2529,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     Expression<DateTime>? clientTs,
     Expression<int>? attemptCount,
     Expression<String>? lastError,
+    Expression<bool>? parked,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -2498,6 +2541,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
       if (clientTs != null) 'client_ts': clientTs,
       if (attemptCount != null) 'attempt_count': attemptCount,
       if (lastError != null) 'last_error': lastError,
+      if (parked != null) 'parked': parked,
     });
   }
 
@@ -2511,6 +2555,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     Value<DateTime>? clientTs,
     Value<int>? attemptCount,
     Value<String?>? lastError,
+    Value<bool>? parked,
   }) {
     return OutboxEntriesCompanion(
       id: id ?? this.id,
@@ -2522,6 +2567,7 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
       clientTs: clientTs ?? this.clientTs,
       attemptCount: attemptCount ?? this.attemptCount,
       lastError: lastError ?? this.lastError,
+      parked: parked ?? this.parked,
     );
   }
 
@@ -2555,6 +2601,9 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     if (lastError.present) {
       map['last_error'] = Variable<String>(lastError.value);
     }
+    if (parked.present) {
+      map['parked'] = Variable<bool>(parked.value);
+    }
     return map;
   }
 
@@ -2569,7 +2618,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
           ..write('payload: $payload, ')
           ..write('clientTs: $clientTs, ')
           ..write('attemptCount: $attemptCount, ')
-          ..write('lastError: $lastError')
+          ..write('lastError: $lastError, ')
+          ..write('parked: $parked')
           ..write(')'))
         .toString();
   }
@@ -13114,6 +13164,7 @@ typedef $$OutboxEntriesTableCreateCompanionBuilder =
       required DateTime clientTs,
       Value<int> attemptCount,
       Value<String?> lastError,
+      Value<bool> parked,
     });
 typedef $$OutboxEntriesTableUpdateCompanionBuilder =
     OutboxEntriesCompanion Function({
@@ -13126,6 +13177,7 @@ typedef $$OutboxEntriesTableUpdateCompanionBuilder =
       Value<DateTime> clientTs,
       Value<int> attemptCount,
       Value<String?> lastError,
+      Value<bool> parked,
     });
 
 class $$OutboxEntriesTableFilterComposer
@@ -13179,6 +13231,11 @@ class $$OutboxEntriesTableFilterComposer
 
   ColumnFilters<String> get lastError => $composableBuilder(
     column: $table.lastError,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get parked => $composableBuilder(
+    column: $table.parked,
     builder: (column) => ColumnFilters(column),
   );
 }
@@ -13236,6 +13293,11 @@ class $$OutboxEntriesTableOrderingComposer
     column: $table.lastError,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get parked => $composableBuilder(
+    column: $table.parked,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$OutboxEntriesTableAnnotationComposer
@@ -13277,6 +13339,9 @@ class $$OutboxEntriesTableAnnotationComposer
 
   GeneratedColumn<String> get lastError =>
       $composableBuilder(column: $table.lastError, builder: (column) => column);
+
+  GeneratedColumn<bool> get parked =>
+      $composableBuilder(column: $table.parked, builder: (column) => column);
 }
 
 class $$OutboxEntriesTableTableManager
@@ -13319,6 +13384,7 @@ class $$OutboxEntriesTableTableManager
                 Value<DateTime> clientTs = const Value.absent(),
                 Value<int> attemptCount = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
+                Value<bool> parked = const Value.absent(),
               }) => OutboxEntriesCompanion(
                 id: id,
                 userId: userId,
@@ -13329,6 +13395,7 @@ class $$OutboxEntriesTableTableManager
                 clientTs: clientTs,
                 attemptCount: attemptCount,
                 lastError: lastError,
+                parked: parked,
               ),
           createCompanionCallback:
               ({
@@ -13341,6 +13408,7 @@ class $$OutboxEntriesTableTableManager
                 required DateTime clientTs,
                 Value<int> attemptCount = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
+                Value<bool> parked = const Value.absent(),
               }) => OutboxEntriesCompanion.insert(
                 id: id,
                 userId: userId,
@@ -13351,6 +13419,7 @@ class $$OutboxEntriesTableTableManager
                 clientTs: clientTs,
                 attemptCount: attemptCount,
                 lastError: lastError,
+                parked: parked,
               ),
           withReferenceMapper: (p0) => p0
               .map(

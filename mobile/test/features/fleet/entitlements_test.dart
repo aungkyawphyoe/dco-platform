@@ -10,7 +10,7 @@ void main() {
         'vehicle_sharing': {
           'available': true,
           'can_share': true,
-          'limits': {'per_vehicle': 1, 'total': 3},
+          'limits': {'per_vehicle': 1, 'total': 1},
           'active_shares': 0,
         },
         'organization': {
@@ -26,7 +26,7 @@ void main() {
       expect(entitlements.plan, 'free');
       expect(entitlements.vehicleSharing.available, isTrue);
       expect(entitlements.vehicleSharing.perVehicle, 1);
-      expect(entitlements.vehicleSharing.total, 3);
+      expect(entitlements.vehicleSharing.total, 1);
       expect(entitlements.organization?.id, 'org-1');
       expect(entitlements.organization?.isActiveEnterprise, isTrue);
       expect(entitlements.organization?.canManageOrg, isTrue);
@@ -48,11 +48,11 @@ void main() {
 
     test('pending organization does not grant fleet access', () {
       final entitlements = Entitlements.fromJson({
-        'plan': 'premium',
+        'plan': 'standard',
         'vehicle_sharing': {
           'available': true,
           'can_share': true,
-          'limits': {'per_vehicle': 5, 'total': 20},
+          'limits': {'per_vehicle': null, 'total': null},
           'active_shares': 2,
         },
         'organization': {
@@ -69,7 +69,8 @@ void main() {
       expect(entitlements.canUseFleet, isFalse);
       expect(entitlements.organization?.isDriver, isTrue);
       expect(entitlements.vehicleSharing.activeShares, 2);
-      expect(entitlements.vehicleSharing.total, 20);
+      expect(entitlements.vehicleSharing.perVehicle, isNull);
+      expect(entitlements.vehicleSharing.total, isNull);
     });
 
     test('tolerates missing optional maps', () {
@@ -78,7 +79,7 @@ void main() {
       expect(entitlements.features.fleet, isFalse);
       expect(entitlements.vehicleSharing.available, isFalse);
       expect(entitlements.vehicleSharing.perVehicle, 1);
-      expect(entitlements.vehicleSharing.total, 3);
+      expect(entitlements.vehicleSharing.total, 1);
       expect(entitlements.organization, isNull);
     });
   });

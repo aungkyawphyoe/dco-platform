@@ -49,16 +49,18 @@ class VehicleSharingEntitlement {
     return VehicleSharingEntitlement(
       available: json['available'] as bool? ?? false,
       canShare: json['can_share'] as bool? ?? false,
-      perVehicle: limits['per_vehicle'] as int? ?? 1,
-      total: limits['total'] as int? ?? 3,
+      // `null` = unlimited (standard/fleet); missing key = free-plan caps.
+      perVehicle:
+          limits.containsKey('per_vehicle') ? limits['per_vehicle'] as int? : 1,
+      total: limits.containsKey('total') ? limits['total'] as int? : 1,
       activeShares: json['active_shares'] as int? ?? 0,
     );
   }
 
   final bool available;
   final bool canShare;
-  final int perVehicle;
-  final int total;
+  final int? perVehicle;
+  final int? total;
   final int activeShares;
 }
 

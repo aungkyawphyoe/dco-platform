@@ -169,6 +169,7 @@ class SyncEngine {
             ..where(
               (row) =>
                   row.userId.equals(userId) &
+                  row.parked.equals(false) &
                   row.attemptCount.isSmallerThanValue(_maxAttempts),
             )
             ..orderBy([(row) => OrderingTerm.asc(row.id)])
@@ -199,16 +200,31 @@ class SyncEngine {
           continue;
         }
         final reason = result?.error?.message ?? result?.status.name ?? 'no_result';
+        // Plan-limit rejections park immediately instead of burning
+        // retries; siblings keep syncing (feature-gating §9).
+        final limitRejected = result?.error?.code == 'LIMIT_EXCEEDED';
         await (_db.update(_db.outboxEntries)..where((r) => r.id.equals(row.id))).write(
           OutboxEntriesCompanion(
-            attemptCount: Value(row.attemptCount + 1),
+            attemptCount: limitRejected
+                ? Value(row.attemptCount)
+                : Value(row.attemptCount + 1),
             lastError: Value(reason),
+            parked: Value(limitRejected),
           ),
         );
       }
       pushedBatches++;
       if (ackedCount < rows.length) return pushedBatches;
     }
+  }
+
+  /// Requeue rows parked by a `LIMIT_EXCEEDED` rejection — called after
+  /// a fresh license arrives so an upgraded plan retries them
+  /// (feature-gating §9, "requeue after upgrade").
+  Future<void> requeueParked(String userId) {
+    return (_db.update(_db.outboxEntries)
+          ..where((row) => row.userId.equals(userId) & row.parked.equals(true)))
+        .write(const OutboxEntriesCompanion(parked: Value(false)));
   }
 
   Future<int> _uploadPendingMedia(String userId) async {
