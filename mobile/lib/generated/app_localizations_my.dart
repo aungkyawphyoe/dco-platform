@@ -3579,13 +3579,6 @@ class AppLocalizationsMy extends AppLocalizations {
   String get shareExpiresAt => 'သက်တမ်းကုန်';
 
   @override
-  String get chooseLanguage => 'ဘာသာစကား ရွေးချယ်ပါ';
-
-  @override
-  String get languageIntro =>
-      'AutoHub ကို သင်နှစ်သက်သည့် ဘာသာစကားဖြင့် အသုံးပြုပါ။ နောက်မှ ပြောင်းလဲနိုင်ပါသည်။';
-
-  @override
   String get introGarageTitle => 'သင့်ကားအတွက် နေရာတစ်ခု';
 
   @override
@@ -3610,7 +3603,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get authNext => 'ဆက်လုပ်မည်';
 
   @override
-  String get authSkip => 'မိတ်ဆက်ကို ကျော်မည်';
+  String get authSkip => 'ကျော်မည်';
 
   @override
   String get authLater => 'နောက်မှ လုပ်မည်';

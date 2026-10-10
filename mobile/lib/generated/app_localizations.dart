@@ -6690,18 +6690,6 @@ abstract class AppLocalizations {
   /// **'Expires'**
   String get shareExpiresAt;
 
-  /// No description provided for @chooseLanguage.
-  ///
-  /// In en, this message translates to:
-  /// **'Choose your language'**
-  String get chooseLanguage;
-
-  /// No description provided for @languageIntro.
-  ///
-  /// In en, this message translates to:
-  /// **'Make AutoHub feel like home. You can change this later.'**
-  String get languageIntro;
-
   /// No description provided for @introGarageTitle.
   ///
   /// In en, this message translates to:
@@ -6747,7 +6735,7 @@ abstract class AppLocalizations {
   /// No description provided for @authSkip.
   ///
   /// In en, this message translates to:
-  /// **'Skip introduction'**
+  /// **'Skip'**
   String get authSkip;
 
   /// No description provided for @authLater.

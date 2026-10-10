@@ -51,7 +51,10 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('Choose your language'), findsOneWidget);
+    expect(find.text('A home for your car'), findsOneWidget);
+
+    await tester.tap(find.text('Skip'));
+    await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('welcome-sign-in')));
     await tester.pumpAndSettle();

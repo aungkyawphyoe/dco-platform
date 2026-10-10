@@ -43,7 +43,7 @@ Documents is reached from Expenses (header) and from vehicle flows — not a tab
 
 **Still out of scope (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; note sync / server-side notes.
 
-Wireframes: [`wireframes/dco-mobile-wireframes.tldraw`](../wireframes/dco-mobile-wireframes.tldraw). The October onboarding/auth release in `product/frd/auth.md` supersedes the original auth wireframes: language-first illustrated introduction, Google/Apple on both platforms, code verification and recovery, and account linking.
+Wireframes: [`wireframes/dco-mobile-wireframes.tldraw`](../wireframes/dco-mobile-wireframes.tldraw). The October onboarding/auth release in `product/frd/auth.md` supersedes the original auth wireframes: swipeable illustrated introduction (language switched from the app bar, not a first screen), Google/Apple on both platforms, code verification and recovery, and account linking.
 
 ---
 
@@ -130,7 +130,7 @@ flowchart TB
 - Dio attaches Bearer access. On 401, refresh once per request cycle, then retry.
 - Password reset revokes access and refresh tokens through the server auth version. Client discards tokens on logout.
 - Logout: tokens discarded. Outbox remains, bound to `user_id`. A different account on the same phone must not push the previous outbox.
-- Unauthenticated: language/introduction, welcome, login, signup, and code recovery. Authenticated: verification, optional first vehicle setup, and account connections are available; signup/login remain inaccessible. New sharing/acceptance requires email verification, while personal features and existing shares remain usable.
+- Unauthenticated: introduction, welcome, login, signup, and code recovery. Authenticated: verification, optional first vehicle setup, and account connections are available; signup/login remain inaccessible. New sharing/acceptance requires email verification, while personal features and existing shares remain usable.
 
 ### Sync and conflicts
 
@@ -238,7 +238,7 @@ mobile/
     core/
     features/
   integration_test/
-  assets/                          # only if we later self-host fonts; default is google_fonts
+  assets/                          # branding logo, license keyring, onboarding illustrations (SVG); default fonts come from google_fonts
 ```
 
 ### What lives where

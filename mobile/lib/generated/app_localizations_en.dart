@@ -3543,13 +3543,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareExpiresAt => 'Expires';
 
   @override
-  String get chooseLanguage => 'Choose your language';
-
-  @override
-  String get languageIntro =>
-      'Make AutoHub feel like home. You can change this later.';
-
-  @override
   String get introGarageTitle => 'A home for your car';
 
   @override
@@ -3574,7 +3567,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authNext => 'Continue';
 
   @override
-  String get authSkip => 'Skip introduction';
+  String get authSkip => 'Skip';
 
   @override
   String get authLater => 'Do this later';

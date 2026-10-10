@@ -4,7 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/storage/entry_preferences.dart';
 import '../../../../generated/app_localizations.dart';
-import 'introduction_screen.dart';
+import '../widgets/auth_illustration.dart';
 
 class FirstVehicleScreen extends ConsumerWidget {
   const FirstVehicleScreen({super.key});
@@ -23,18 +23,11 @@ class FirstVehicleScreen extends ConsumerWidget {
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            SizedBox(
-              height: 220,
-              child: CustomPaint(
-                painter: GarageIllustration(
-                  page: 0,
-                  colors: Theme.of(context).colorScheme,
-                ),
-              ),
-            ),
+            const AuthIllustration(asset: 'assets/onboarding/01-car-home.svg'),
+            const SizedBox(height: 24),
             Text(
               s.authFirstVehicle,
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: Theme.of(context).textTheme.displaySmall,
             ),
             const SizedBox(height: 12),
             Text(s.authFirstVehicleBody),

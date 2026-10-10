@@ -1,11 +1,19 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../core/storage/entry_preferences.dart';
-import '../../../../core/router/routes.dart';
+import '../../../../core/theme/dco_tokens.dart';
 import '../../../../generated/app_localizations.dart';
+import '../widgets/auth_illustration.dart';
 import '../widgets/language_action.dart';
 import 'welcome_screen.dart';
+
+const List<String> _onboardingArt = [
+  'assets/onboarding/01-car-home.svg',
+  'assets/onboarding/02-service-reminders.svg',
+  'assets/onboarding/03-spending.svg',
+];
 
 class IntroductionScreen extends ConsumerStatefulWidget {
   const IntroductionScreen({super.key});
@@ -14,10 +22,47 @@ class IntroductionScreen extends ConsumerStatefulWidget {
 }
 
 class _IntroductionScreenState extends ConsumerState<IntroductionScreen> {
-  int page = -1;
-  Future<void> finish([bool login = false]) async {
+  late final PageController _pageController;
+  late final ValueNotifier<double> _scroll;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController();
+    _scroll = ValueNotifier<double>(0);
+    _pageController.addListener(_trackScroll);
+  }
+
+  void _trackScroll() {
+    final page = _pageController.page;
+    if (page != null) _scroll.value = page;
+  }
+
+  @override
+  void dispose() {
+    _pageController.removeListener(_trackScroll);
+    _pageController.dispose();
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  Future<void> finish() async {
     await ref.read(entryPreferencesProvider.notifier).complete();
-    if (mounted && login) context.go(AppRoutes.login);
+  }
+
+  void _next() {
+    final index = _scroll.value.round();
+    if (index >= _onboardingArt.length - 1) {
+      finish();
+      return;
+    }
+    final motion = context.tokens.motion;
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    _pageController.animateToPage(
+      index + 1,
+      duration: Duration(milliseconds: reduce ? 0 : motion.base),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -46,183 +91,294 @@ class _IntroductionScreenState extends ConsumerState<IntroductionScreen> {
       s.introMaintenanceBody,
       s.introExpensesBody,
     ];
+    final reduce = MediaQuery.disableAnimationsOf(context);
     return Scaffold(
-      appBar: AppBar(
-        actions: [
-          const LanguageAction(),
-          TextButton(
-            key: const Key('welcome-sign-in'),
-            onPressed: () => finish(true),
-            child: Text(s.signIn),
-          ),
-        ],
-      ),
+      appBar: AppBar(actions: const [LanguageAction()]),
       body: SafeArea(
-        child: LayoutBuilder(
-          builder: (context, constraints) => SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                minHeight: (constraints.maxHeight - 48).clamp(
-                  0,
-                  double.infinity,
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                itemCount: _onboardingArt.length,
+                itemBuilder: (context, index) => _OnboardingPage(
+                  index: index,
+                  asset: _onboardingArt[index],
+                  title: titles[index],
+                  body: captions[index],
+                  scroll: _scroll,
+                  reduceMotion: reduce,
                 ),
               ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  ExcludeSemantics(
-                    child: SizedBox(
-                      height: 220,
-                      child: CustomPaint(
-                        painter: GarageIllustration(
-                          page: page,
-                          colors: Theme.of(context).colorScheme,
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    page < 0 ? s.chooseLanguage : titles[page],
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    page < 0 ? s.languageIntro : captions[page],
-                    style: Theme.of(context).textTheme.bodyLarge,
-                  ),
-                  const SizedBox(height: 28),
-                  if (page < 0) ...[
-                    SegmentedButton<String>(
-                      segments: const [
-                        ButtonSegment(value: 'my', label: Text('မြန်မာ')),
-                        ButtonSegment(value: 'en', label: Text('English')),
-                      ],
-                      selected: {entry.valueOrNull?.language ?? 'en'},
-                      onSelectionChanged: (v) => ref
-                          .read(entryPreferencesProvider.notifier)
-                          .language(v.first),
-                    ),
-                    const SizedBox(height: 24),
-                  ] else ...[
-                    Semantics(
-                      label: '${page + 1} / 3',
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          3,
-                          (i) => Padding(
-                            padding: const EdgeInsets.all(5),
-                            child: Icon(
-                              i == page
-                                  ? Icons.radio_button_checked
-                                  : Icons.radio_button_unchecked,
-                              size: 14,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                  ],
-                  FilledButton(
-                    onPressed: () =>
-                        page == 2 ? finish() : setState(() => page++),
-                    child: Text(page == 2 ? s.authGetStarted : s.authNext),
-                  ),
-                  if (page >= 0)
-                    TextButton(onPressed: finish, child: Text(s.authSkip)),
-                ],
-              ),
             ),
-          ),
+            _OnboardingControls(scroll: _scroll, onSkip: finish, onNext: _next),
+          ],
         ),
       ),
     );
   }
 }
 
-/// Original code-drawn artwork; text stays in localized widgets.
-class GarageIllustration extends CustomPainter {
-  GarageIllustration({required this.page, required this.colors});
-  final int page;
-  final ColorScheme colors;
+class _OnboardingControls extends StatelessWidget {
+  const _OnboardingControls({
+    required this.scroll,
+    required this.onSkip,
+    required this.onNext,
+  });
+
+  final ValueNotifier<double> scroll;
+  final VoidCallback onSkip;
+  final VoidCallback onNext;
+
   @override
-  void paint(Canvas canvas, Size size) {
-    canvas.save();
-    canvas.translate((size.width - 280) / 2, (size.height - 200) / 2);
-    final fill = Paint()..color = colors.surfaceContainerHighest;
-    final line = Paint()
-      ..color = colors.onSurfaceVariant
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..strokeCap = StrokeCap.round;
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(10, 5, 260, 185),
-        const Radius.circular(28),
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final s = AppLocalizations.of(context)!;
+    final reduce = MediaQuery.disableAnimationsOf(context);
+    return Padding(
+      padding: EdgeInsets.symmetric(
+        horizontal: tokens.space.s5,
+        vertical: tokens.space.s4,
       ),
-      fill,
+      child: ValueListenableBuilder<double>(
+        valueListenable: scroll,
+        builder: (context, page, _) {
+          final index = page.round().clamp(0, _onboardingArt.length - 1);
+          final last = index == _onboardingArt.length - 1;
+          return Row(
+            children: [
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: tokens.space.s2,
+                      ),
+                      minimumSize: const Size(44, 44),
+                    ),
+                    onPressed: onSkip,
+                    child: Text(
+                      s.authSkip,
+                      maxLines: 1,
+                      style: TextStyle(fontSize: 18),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+              Semantics(
+                label: '${index + 1} / ${_onboardingArt.length}',
+                child: _PageDots(
+                  count: _onboardingArt.length,
+                  active: index,
+                  reduceMotion: reduce,
+                ),
+              ),
+              Expanded(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    style: TextButton.styleFrom(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: tokens.space.s2,
+                      ),
+                      minimumSize: const Size(44, 44),
+                    ),
+                    onPressed: onNext,
+                    child: Text(
+                      last ? s.authGetStarted : s.authNext,
+                      maxLines: 1,
+                      style: TextStyle(fontSize: 18),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
     );
-    canvas.drawLine(const Offset(25, 166), const Offset(255, 166), line);
-    if (page <= 0) {
-      canvas.drawPath(
-        Path()
-          ..moveTo(44, 130)
-          ..lineTo(61, 92)
-          ..lineTo(93, 72)
-          ..lineTo(174, 72)
-          ..lineTo(205, 110)
-          ..lineTo(235, 120)
-          ..lineTo(235, 148)
-          ..lineTo(44, 148)
-          ..close(),
-        line,
-      );
-      canvas.drawLine(const Offset(104, 78), const Offset(90, 110), line);
-      canvas.drawLine(const Offset(90, 110), const Offset(193, 110), line);
-      for (final x in [80.0, 199.0]) {
-        canvas.drawCircle(Offset(x, 148), 17, Paint()..color = colors.surface);
-        canvas.drawCircle(Offset(x, 148), 17, line);
-        canvas.drawCircle(Offset(x, 148), 6, line);
-      }
-    } else if (page == 1) {
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          const Rect.fromLTWH(58, 36, 164, 123),
-          const Radius.circular(12),
-        ),
-        line,
-      );
-      canvas.drawLine(const Offset(58, 72), const Offset(222, 72), line);
-      for (final x in [90.0, 190.0]) {
-        canvas.drawLine(Offset(x, 24), Offset(x, 48), line);
-      }
-      canvas.drawPath(
-        Path()
-          ..moveTo(108, 111)
-          ..lineTo(132, 132)
-          ..lineTo(177, 91),
-        line..strokeWidth = 5,
-      );
-    } else {
-      for (var i = 0; i < 4; i++) {
-        final height = [35.0, 72.0, 54.0, 105.0][i];
-        canvas.drawRRect(
-          RRect.fromRectAndRadius(
-            Rect.fromLTWH(48 + i * 49, 155 - height, 28, height),
-            const Radius.circular(6),
+  }
+}
+
+class _PageDots extends StatelessWidget {
+  const _PageDots({
+    required this.count,
+    required this.active,
+    required this.reduceMotion,
+  });
+
+  final int count;
+  final int active;
+  final bool reduceMotion;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        for (var i = 0; i < count; i++)
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: tokens.space.s1),
+            child: AnimatedContainer(
+              duration: Duration(
+                milliseconds: reduceMotion ? 0 : tokens.motion.fast,
+              ),
+              curve: Curves.easeOutCubic,
+              width: i == active ? 20 : 8,
+              height: 8,
+              decoration: BoxDecoration(
+                color: i == active ? tokens.text.primary : tokens.text.caption,
+                borderRadius: BorderRadius.circular(tokens.radius.full),
+              ),
+            ),
           ),
-          line,
-        );
-      }
-    }
-    canvas.restore();
+      ],
+    );
+  }
+}
+
+class _OnboardingPage extends StatelessWidget {
+  const _OnboardingPage({
+    required this.index,
+    required this.asset,
+    required this.title,
+    required this.body,
+    required this.scroll,
+    required this.reduceMotion,
+  });
+
+  final int index;
+  final String asset;
+  final String title;
+  final String body;
+  final ValueNotifier<double> scroll;
+  final bool reduceMotion;
+
+  Widget _enter({
+    required double from,
+    required double to,
+    required Duration duration,
+    required Widget child,
+  }) {
+    if (reduceMotion) return child;
+    return TweenAnimationBuilder<double>(
+      tween: Tween<double>(begin: 0, end: 1),
+      duration: duration,
+      curve: Interval(from, to, curve: Curves.easeOutCubic),
+      builder: (context, value, child) => Opacity(
+        opacity: value.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, (1 - value) * 16),
+          child: child,
+        ),
+      ),
+      child: child,
+    );
   }
 
   @override
-  bool shouldRepaint(GarageIllustration old) =>
-      old.page != page || old.colors != colors;
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final stagger = Duration(milliseconds: tokens.motion.slow);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final artWidth = math.min(
+          constraints.maxWidth - tokens.space.s5 * 2,
+          420.0,
+        );
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: tokens.space.s5),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: SizedBox(
+                      width: artWidth,
+                      child: _enter(
+                        from: 0,
+                        to: 0.65,
+                        duration: stagger,
+                        child: _Illustration(
+                          asset: asset,
+                          index: index,
+                          viewportWidth: constraints.maxWidth,
+                          scroll: scroll,
+                          reduceMotion: reduceMotion,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: tokens.space.s6),
+                  _enter(
+                    from: 0.2,
+                    to: 0.8,
+                    duration: stagger,
+                    child: Text(
+                      title,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.displaySmall,
+                    ),
+                  ),
+                  SizedBox(height: tokens.space.s3),
+                  _enter(
+                    from: 0.35,
+                    to: 1,
+                    duration: stagger,
+                    child: Text(
+                      body,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        color: tokens.text.secondary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _Illustration extends StatelessWidget {
+  const _Illustration({
+    required this.asset,
+    required this.index,
+    required this.viewportWidth,
+    required this.scroll,
+    required this.reduceMotion,
+  });
+
+  final String asset;
+  final int index;
+  final double viewportWidth;
+  final ValueNotifier<double> scroll;
+  final bool reduceMotion;
+
+  @override
+  Widget build(BuildContext context) {
+    final art = AuthIllustration(asset: asset);
+    if (reduceMotion) return art;
+    return ValueListenableBuilder<double>(
+      valueListenable: scroll,
+      builder: (context, page, child) {
+        final delta = (index - page).clamp(-1.0, 1.0);
+        return Transform.translate(
+          offset: Offset(delta * viewportWidth * 0.35, 0),
+          child: Transform.scale(scale: 1 - delta.abs() * 0.06, child: child),
+        );
+      },
+      child: art,
+    );
+  }
 }

@@ -19,6 +19,7 @@ dependencies:
   drift_flutter: ^0.3.1
   flutter_riverpod: ^2.6.1
   flutter_secure_storage: ^11.0.0
+  flutter_svg: ^2.2.1
   go_router: ^17.5.0
   google_fonts: ^8.2.1
   intl: ^0.20.2
@@ -70,3 +71,6 @@ flutter:
   assets:
     - assets/branding/dco-logo.png
     - assets/license_keys.json
+    - assets/onboarding/01-car-home.svg
+    - assets/onboarding/02-service-reminders.svg
+    - assets/onboarding/03-spending.svg

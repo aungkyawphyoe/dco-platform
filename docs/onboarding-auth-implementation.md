@@ -6,7 +6,7 @@
 
 ## Outcome
 
-A new owner chooses Burmese or English, explores three optional illustrated introduction screens, and creates an account using email/password, Google, or Apple. Email signup offers immediate code verification with a skip action. First vehicle setup is optional. Personal access never depends on email verification; new share creation and invitation acceptance do. Existing shares continue working.
+A new owner explores three optional illustrated introduction screens (Burmese/English preselected from the device language and switchable from the app bar), and creates an account using email/password, Google, or Apple. Email signup offers immediate code verification with a skip action. First vehicle setup is optional. Personal access never depends on email verification; new share creation and invitation acceptance do. Existing shares continue working.
 
 ## Current implementation and gaps
 
@@ -20,7 +20,7 @@ A new owner chooses Burmese or English, explores three optional illustrated intr
 ## Mobile flow and state
 
 1. Resolve an existing session before showing first-run UI. Existing authenticated installations must not be trapped by a newly introduced completion flag.
-2. For a fresh unauthenticated installation, show language selection and the three-page introduction. Persist completion on finish, skip, or Sign in.
+2. For a fresh unauthenticated installation, show the three-page illustrated introduction; language comes from the device (switchable from the app bar). Persist completion on finish, skip, or Sign in.
 3. Account entry offers email signup/login and Google/Apple. Preserve pending invitations across auth and verification; validate return destinations rather than accepting arbitrary URLs.
 4. For an unknown provider identity, exchange proof for a short-lived server-bound continuation, then display new/existing account choices. Authenticate the existing account before binding the identity.
 5. Email signup leads to verification with resend, correction, and Do this later. Social signup with validated verified email skips the code.
