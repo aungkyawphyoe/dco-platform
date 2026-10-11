@@ -160,7 +160,7 @@ Fleet and driver detail screens push on the **root** navigator (not a tab stack)
 
 From `product/frd/auth.md`:
 
-- Unauthenticated: only welcome / login / signup / password-reset.
+- Unauthenticated: only introduction / login / signup / password-reset.
 - Authenticated: those screens are unreachable without logout.
 - Admin portal URLs are not part of the Flutter app.
 

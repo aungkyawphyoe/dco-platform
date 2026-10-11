@@ -29,6 +29,15 @@ A new owner explores three optional illustrated introduction screens (Burmese/En
 
 Screen responsibilities belong in auth presentation and repositories; shared pre-login locale/installation state belongs in core. No direct Dio or Drift access from screens. New illustration assets should match existing themes, have a license/provenance record, and leave text in localization resources rather than baked into images. Final Burmese copy needs language review.
 
+### Account entry screens (visual)
+
+Login, signup, and password recovery share `AuthScaffold` (title-less app bar with the language switcher, large body heading, subtitle link, staggered fade-up entrance honoring reduced motion). There is no standalone Welcome screen: Skip / Get started on the introduction navigate to Sign in, and the router serves Sign in directly once the introduction is handled.
+
+- Fields use the auth-local `AuthTextField` (icon-leading, filled, placeholder inside, eye toggle); the shared `DcoTextField` is unchanged elsewhere. Primary actions are `DcoButton` gold pills.
+- Social sign-in renders as icon tiles (`assets/auth/{google,apple}.svg`, provenance in `assets/auth/README.md`) via `SocialButtons`; account-settings connect mode adds labels under the icons. Google and Apple are the only providers — do not add Facebook/X until the backend supports them.
+- Login and signup end with an "or" divider (`AuthDivider`), a social heading, and `AuthTermsFooter`: link-styled Terms of Service / Privacy Policy wording, intentionally non-tappable until legal pages and URLs exist.
+- Navigation, validators, dialogs, analytics, and recovery flow are unchanged; test keys: `login-submit`, `signup-submit`, `forgot-send-code`, `forgot-submit`, `social-google`, `social-apple`. UI coverage lives in `test/features/auth/auth_ui_test.dart` (screenshot captures: `DCO_CAPTURE_AUTH=1` [`_DARK=1`]).
+
 ## Backend design
 
 ### Identity and account data

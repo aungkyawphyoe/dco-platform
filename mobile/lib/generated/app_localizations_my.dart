@@ -119,13 +119,6 @@ class AppLocalizationsMy extends AppLocalizations {
   String get navSettings => 'Setting';
 
   @override
-  String get welcomeTagline => 'သင့်ယာဉ်ဂိုဒေါင် ဖုန်းထဲမှာရှိသည်';
-
-  @override
-  String get welcomeBody =>
-      'သင့်ပိုင်ဆိုင်သော ယာဉ်တိုင်း၏ ပြုပြင်ထိန်းသိမ်းမှု၊ စာရွက်စာတမ်းများနှင့် ကုန်ကျစရိတ်များကို အော့ဖ်လိုင်းဖြစ်နေချိန်မှာပင် မှတ်တမ်းတင်ထားပါ။';
-
-  @override
   String get createAccount => 'အကောင့်သစ်ဖွင့်မည်';
 
   @override
@@ -3732,4 +3725,28 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get authInvalidCredentials =>
       'အီးမေးလ်၊ အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မမှန်ပါ။';
+
+  @override
+  String get authOr => 'သို့မဟုတ်';
+
+  @override
+  String get authSocialHeading => 'လူမှုကွန်ရက်အကောင့်ဖြင့် ဆက်လုပ်ပါ';
+
+  @override
+  String get authNewUser => 'အသုံးပြုသူအသစ်လား?';
+
+  @override
+  String get alreadyHaveAccountPrefix => 'အကောင့်ရှိပြီးသားလား?';
+
+  @override
+  String get authTermsIntro => 'အကောင့်ဖြင့် ဝင်ရောက်ပါက ကျွန်ုပ်တို့၏';
+
+  @override
+  String get termsOfService => 'ဝန်ဆောင်မှုစည်းမျဉ်းများ';
+
+  @override
+  String get authAnd => 'နှင့်';
+
+  @override
+  String get privacyPolicy => 'ကိုယ်ရေးအချက်အလက် မူဝါဒ';
 }

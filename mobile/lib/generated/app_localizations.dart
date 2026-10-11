@@ -314,18 +314,6 @@ abstract class AppLocalizations {
   /// **'Setting'**
   String get navSettings;
 
-  /// No description provided for @welcomeTagline.
-  ///
-  /// In en, this message translates to:
-  /// **'Your garage, on the phone.'**
-  String get welcomeTagline;
-
-  /// No description provided for @welcomeBody.
-  ///
-  /// In en, this message translates to:
-  /// **'Track maintenance, documents, and spend for every vehicle you own — even offline.'**
-  String get welcomeBody;
-
   /// No description provided for @createAccount.
   ///
   /// In en, this message translates to:
@@ -6959,6 +6947,54 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Your email, username, or password is incorrect.'**
   String get authInvalidCredentials;
+
+  /// No description provided for @authOr.
+  ///
+  /// In en, this message translates to:
+  /// **'or'**
+  String get authOr;
+
+  /// No description provided for @authSocialHeading.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue with a social account'**
+  String get authSocialHeading;
+
+  /// No description provided for @authNewUser.
+  ///
+  /// In en, this message translates to:
+  /// **'New user?'**
+  String get authNewUser;
+
+  /// No description provided for @alreadyHaveAccountPrefix.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have an account?'**
+  String get alreadyHaveAccountPrefix;
+
+  /// No description provided for @authTermsIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'By signing in with an account, you agree to our'**
+  String get authTermsIntro;
+
+  /// No description provided for @termsOfService.
+  ///
+  /// In en, this message translates to:
+  /// **'Terms of Service'**
+  String get termsOfService;
+
+  /// No description provided for @authAnd.
+  ///
+  /// In en, this message translates to:
+  /// **'and'**
+  String get authAnd;
+
+  /// No description provided for @privacyPolicy.
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
 }
 
 class _AppLocalizationsDelegate

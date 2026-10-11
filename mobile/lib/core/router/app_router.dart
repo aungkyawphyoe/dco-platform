@@ -12,7 +12,7 @@ import '../../features/auth/presentation/screens/forced_change_password_screen.d
 import '../../features/auth/presentation/screens/forgot_password_screen.dart';
 import '../../features/auth/presentation/screens/login_screen.dart';
 import '../../features/auth/presentation/screens/signup_screen.dart';
-import '../../features/auth/presentation/screens/welcome_screen.dart';
+import '../../features/auth/presentation/screens/auth_loading_screen.dart';
 import '../../features/auth/presentation/session_controller.dart';
 import '../../features/documents/domain/entities/document.dart';
 import '../../features/documents/presentation/screens/documents_screen.dart';
@@ -125,7 +125,9 @@ final goRouterProvider = Provider<GoRouter>((ref) {
               .toString();
         }
         if (onAuth) return null;
-        return AppRoutes.welcome;
+        final introHandled =
+            ref.read(entryPreferencesProvider).valueOrNull?.completed ?? false;
+        return introHandled ? AppRoutes.login : AppRoutes.introduction;
       }
 
       final user = session.valueOrNull?.user;
@@ -168,7 +170,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const AuthLoadingScreen(),
       ),
       GoRoute(
-        path: AppRoutes.welcome,
+        path: AppRoutes.introduction,
         builder: (context, state) => const IntroductionScreen(),
       ),
       GoRoute(

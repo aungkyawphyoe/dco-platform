@@ -74,3 +74,5 @@ flutter:
     - assets/onboarding/01-car-home.svg
     - assets/onboarding/02-service-reminders.svg
     - assets/onboarding/03-spending.svg
+    - assets/auth/google.svg
+    - assets/auth/apple.svg

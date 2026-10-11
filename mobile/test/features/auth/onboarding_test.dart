@@ -5,6 +5,7 @@ import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/storage/entry_preferences.dart';
 import 'package:dco_mobile/core/theme/dco_theme.dart';
 import 'package:dco_mobile/features/auth/presentation/screens/introduction_screen.dart';
+import 'package:dco_mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/material.dart';
@@ -123,7 +124,7 @@ void main() {
       await capture('page-3');
       await tester.tap(find.text('Skip'));
       await tester.pumpAndSettle();
-      expect(find.text('Your garage, on the phone.'), findsOneWidget);
+      expect(find.byType(LoginScreen), findsOneWidget);
       expect(
         (await db.select(db.appMeta).get()).any(
           (row) => row.key == 'entry.completed' && row.value == 'true',

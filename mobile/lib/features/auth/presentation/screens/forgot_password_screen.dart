@@ -4,10 +4,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
+import '../../../../core/theme/dco_tokens.dart';
+import '../../../../core/widgets/dco_button.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../account_security_providers.dart';
 import '../widgets/auth_feedback.dart';
-import '../widgets/language_action.dart';
+import '../widgets/auth_scaffold.dart';
+import '../widgets/auth_text_field.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -89,78 +92,99 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(s.resetPassword),
-        actions: const [LanguageAction()],
+    return AuthScaffold(
+      heading: s.resetPassword,
+      subtitle: Text(
+        done ? s.authResetDone : s.authRecoveryInfo,
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            Text(done ? s.authResetDone : s.authRecoveryInfo),
-            const SizedBox(height: 24),
-            if (error != null)
-              Text(
-                error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
+      children: [
+        if (error != null) ...[
+          Text(
+            error!,
+            style: TextStyle(color: tokens.status.dangerFg),
+          ),
+          SizedBox(height: tokens.space.s3),
+        ],
+        if (done)
+          DcoButton(
+            key: const Key('forgot-back-to-sign-in'),
+            label: s.signIn,
+            onPressed: () => context.go(AppRoutes.login),
+          )
+        else ...[
+          AuthTextField(
+            label: s.emailLabel,
+            controller: email,
+            enabled: !busy,
+            hint: s.emailHint,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.email],
+            icon: Icons.mail_outline,
+            onChanged: (_) => setState(() => challenge = null),
+          ),
+          SizedBox(height: tokens.space.s3),
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton(
+              key: const Key('forgot-send-code'),
+              style: TextButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: tokens.space.s2),
               ),
-            if (done)
-              FilledButton(
-                onPressed: () => context.go(AppRoutes.login),
-                child: Text(s.signIn),
-              )
-            else ...[
-              TextField(
-                controller: email,
-                enabled: !busy,
-                decoration: InputDecoration(labelText: s.emailLabel),
-                keyboardType: TextInputType.emailAddress,
-                autofillHints: const [AutofillHints.email],
-                onChanged: (_) => setState(() => challenge = null),
+              onPressed: busy || remaining > 0 ? null : () => run(send: true),
+              child: Text(
+                remaining > 0
+                    ? '${s.authResend} (${remaining}s)'
+                    : s.authSendCode,
+                style: TextStyle(color: tokens.text.link),
               ),
-              TextButton(
-                onPressed: busy || remaining > 0 ? null : () => run(send: true),
-                child: Text(
-                  remaining > 0
-                      ? '${s.authResend} (${remaining}s)'
-                      : s.authSendCode,
-                ),
-              ),
-              if (challenge != null) ...[
-                TextField(
-                  controller: code,
-                  decoration: InputDecoration(labelText: s.authCode),
-                  maxLength: 6,
-                  keyboardType: TextInputType.number,
-                  autofillHints: const [AutofillHints.oneTimeCode],
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                ),
-                TextField(
-                  controller: password,
-                  decoration: InputDecoration(labelText: s.passwordLabel),
-                  obscureText: true,
-                  autofillHints: const [AutofillHints.newPassword],
-                ),
-                TextField(
-                  controller: confirm,
-                  decoration: InputDecoration(
-                    labelText: s.confirmPasswordLabel,
-                  ),
-                  obscureText: true,
-                ),
-                const SizedBox(height: 20),
-                FilledButton(
-                  onPressed: busy ? null : run,
-                  child: Text(s.resetPassword),
-                ),
-              ],
-              if (busy) const LinearProgressIndicator(),
-            ],
+            ),
+          ),
+          if (challenge != null) ...[
+            AuthTextField(
+              label: s.authCode,
+              controller: code,
+              hint: s.authCode,
+              maxLength: 6,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              icon: Icons.pin_outlined,
+            ),
+            SizedBox(height: tokens.space.s4),
+            AuthTextField(
+              label: s.passwordLabel,
+              controller: password,
+              obscureText: true,
+              autofillHints: const [AutofillHints.newPassword],
+              icon: Icons.lock_outline,
+            ),
+            SizedBox(height: tokens.space.s4),
+            AuthTextField(
+              label: s.confirmPasswordLabel,
+              controller: confirm,
+              obscureText: true,
+              icon: Icons.lock_outline,
+            ),
+            SizedBox(height: tokens.space.s4),
+            DcoButton(
+              key: const Key('forgot-submit'),
+              label: s.resetPassword,
+              onPressed: busy ? null : run,
+              loading: busy,
+            ),
           ],
-        ),
-      ),
+          if (busy) ...[
+            SizedBox(height: tokens.space.s3),
+            const LinearProgressIndicator(minHeight: 2),
+          ],
+        ],
+      ],
     );
   }
 }

@@ -117,13 +117,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navSettings => 'Setting';
 
   @override
-  String get welcomeTagline => 'Your garage, on the phone.';
-
-  @override
-  String get welcomeBody =>
-      'Track maintenance, documents, and spend for every vehicle you own — even offline.';
-
-  @override
   String get createAccount => 'Create account';
 
   @override
@@ -3695,4 +3688,29 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authInvalidCredentials =>
       'Your email, username, or password is incorrect.';
+
+  @override
+  String get authOr => 'or';
+
+  @override
+  String get authSocialHeading => 'Continue with a social account';
+
+  @override
+  String get authNewUser => 'New user?';
+
+  @override
+  String get alreadyHaveAccountPrefix => 'Already have an account?';
+
+  @override
+  String get authTermsIntro =>
+      'By signing in with an account, you agree to our';
+
+  @override
+  String get termsOfService => 'Terms of Service';
+
+  @override
+  String get authAnd => 'and';
+
+  @override
+  String get privacyPolicy => 'Privacy Policy';
 }

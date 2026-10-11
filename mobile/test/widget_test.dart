@@ -8,6 +8,7 @@ import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/app_router.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/storage/memory_token_store.dart';
+import 'package:dco_mobile/features/auth/presentation/screens/login_screen.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/notifications/domain/entities/notification.dart';
@@ -56,8 +57,7 @@ void main() {
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byKey(const Key('welcome-sign-in')));
-    await tester.pumpAndSettle();
+    expect(find.byType(LoginScreen), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).at(0), 'owner@example.com');
     await tester.enterText(find.byType(TextField).at(1), 'password12');
@@ -76,8 +76,7 @@ void main() {
       );
       await container.read(sessionControllerProvider.notifier).signOut();
       await tester.pumpAndSettle();
-      await tester.tap(find.byKey(const Key('welcome-sign-in')));
-      await tester.pumpAndSettle();
+      expect(find.byType(LoginScreen), findsOneWidget);
       await tester.enterText(find.byType(TextField).at(0), 'owner@example.com');
       await tester.enterText(find.byType(TextField).at(1), 'wrong-password');
       await tester.tap(find.byKey(const Key('login-submit')));
@@ -101,7 +100,7 @@ void main() {
     },
   );
 
-  testWidgets('welcome to dashboard via mock sign in', (tester) async {
+  testWidgets('sign in to dashboard via mock sign in', (tester) async {
     final database = await pumpSignedInApp(tester);
 
     expect(find.text('Register a vehicle'), findsWidgets);

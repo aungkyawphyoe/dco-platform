@@ -2,12 +2,15 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import '../../../../core/router/routes.dart';
 import '../../../../core/storage/entry_preferences.dart';
 import '../../../../core/theme/dco_tokens.dart';
 import '../../../../generated/app_localizations.dart';
 import '../widgets/auth_illustration.dart';
 import '../widgets/language_action.dart';
-import 'welcome_screen.dart';
+import 'auth_loading_screen.dart';
+import 'login_screen.dart';
 
 const List<String> _onboardingArt = [
   'assets/onboarding/01-car-home.svg',
@@ -48,6 +51,8 @@ class _IntroductionScreenState extends ConsumerState<IntroductionScreen> {
 
   Future<void> finish() async {
     await ref.read(entryPreferencesProvider.notifier).complete();
+    if (!mounted) return;
+    if (GoRouter.maybeOf(context) != null) context.go(AppRoutes.login);
   }
 
   void _next() {
@@ -80,7 +85,7 @@ class _IntroductionScreenState extends ConsumerState<IntroductionScreen> {
         ),
       );
     }
-    if (entry.valueOrNull?.completed == true) return const WelcomeScreen();
+    if (entry.valueOrNull?.completed == true) return const LoginScreen();
     final titles = [
       s.introGarageTitle,
       s.introMaintenanceTitle,

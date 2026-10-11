@@ -1,6 +1,10 @@
+import '../widgets/auth_divider.dart';
 import '../widgets/auth_feedback.dart';
+import '../widgets/auth_scaffold.dart';
+import '../widgets/auth_subtitle_link.dart';
+import '../widgets/auth_terms_footer.dart';
+import '../widgets/auth_text_field.dart';
 import '../widgets/social_buttons.dart';
-import '../widgets/language_action.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -11,7 +15,6 @@ import '../../../../core/router/routes.dart';
 import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
 import '../../../../core/widgets/dco_error_dialog.dart';
-import '../../../../core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 
 import '../../domain/auth_failure.dart';
@@ -93,71 +96,75 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(s.createAccount),
-        actions: const [LanguageAction()],
+    return AuthScaffold(
+      heading: s.createAccount,
+      subtitle: AuthSubtitleLink(
+        prefix: s.alreadyHaveAccountPrefix,
+        linkText: s.signIn,
+        onLink: () => context.go(AppRoutes.login),
       ),
-      body: SafeArea(
-        child: ListView(
-          padding: EdgeInsets.all(tokens.space.s5),
-          children: [
-            const SocialButtons(),
-            const SizedBox(height: 24),
-            DcoTextField(
-              label: s.emailLabel,
-              controller: _email,
-              hint: s.emailHint,
-              errorText: _emailError,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.email],
-              onChanged: (_) => setState(() => _emailError = null),
-            ),
-            SizedBox(height: tokens.space.s4),
-            DcoTextField(
-              label: s.passwordLabel,
-              controller: _password,
-              obscureText: true,
-              errorText: _passwordError,
-              textInputAction: TextInputAction.next,
-              autofillHints: const [AutofillHints.newPassword],
-              onChanged: (_) => setState(() => _passwordError = null),
-            ),
-            SizedBox(height: tokens.space.s4),
-            DcoTextField(
-              label: s.confirmPasswordLabel,
-              controller: _confirm,
-              obscureText: true,
-              errorText: _confirmError,
-              textInputAction: TextInputAction.done,
-              onChanged: (_) => setState(() => _confirmError = null),
-              onSubmitted: (_) => _submit(),
-            ),
-            SizedBox(height: tokens.space.s5),
-            if (_formError != null) ...[
-              Text(
-                _formError!,
-                style: TextStyle(color: tokens.status.dangerFg),
-              ),
-              SizedBox(height: tokens.space.s3),
-            ],
-            DcoButton(
-              label: s.createAccount,
-              onPressed: _submit,
-              loading: _submitting,
-            ),
-            SizedBox(height: tokens.space.s4),
-            TextButton(
-              onPressed: () => context.go(AppRoutes.login),
-              child: Text(
-                s.alreadyHaveAccount,
-                style: TextStyle(color: tokens.text.link),
-              ),
-            ),
-          ],
+      children: [
+        AuthTextField(
+          label: s.emailLabel,
+          controller: _email,
+          hint: s.emailHint,
+          errorText: _emailError,
+          keyboardType: TextInputType.emailAddress,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.email],
+          icon: Icons.mail_outline,
+          onChanged: (_) => setState(() => _emailError = null),
         ),
-      ),
+        SizedBox(height: tokens.space.s4),
+        AuthTextField(
+          label: s.passwordLabel,
+          controller: _password,
+          obscureText: true,
+          errorText: _passwordError,
+          textInputAction: TextInputAction.next,
+          autofillHints: const [AutofillHints.newPassword],
+          icon: Icons.lock_outline,
+          onChanged: (_) => setState(() => _passwordError = null),
+        ),
+        SizedBox(height: tokens.space.s4),
+        AuthTextField(
+          label: s.confirmPasswordLabel,
+          controller: _confirm,
+          obscureText: true,
+          errorText: _confirmError,
+          textInputAction: TextInputAction.done,
+          icon: Icons.lock_outline,
+          onChanged: (_) => setState(() => _confirmError = null),
+          onSubmitted: (_) => _submit(),
+        ),
+        SizedBox(height: tokens.space.s3),
+        if (_formError != null) ...[
+          Text(
+            _formError!,
+            style: TextStyle(color: tokens.status.dangerFg),
+          ),
+          SizedBox(height: tokens.space.s3),
+        ],
+        DcoButton(
+          key: const Key('signup-submit'),
+          label: s.createAccount,
+          onPressed: _submit,
+          loading: _submitting,
+        ),
+        SizedBox(height: tokens.space.s5),
+        const AuthDivider(),
+        SizedBox(height: tokens.space.s4),
+        Text(
+          s.authSocialHeading,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            color: tokens.text.secondary,
+          ),
+        ),
+        SizedBox(height: tokens.space.s3),
+        const SocialButtons(),
+        const AuthTermsFooter(),
+      ],
     );
   }
 }

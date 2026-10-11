@@ -13,7 +13,7 @@ Existing email/password login and sessions remain the baseline. Verification tok
 - Apply the selected language immediately to onboarding, authentication, validation, and recovery copy. Remember it locally before a session exists.
 - The introduction is three swipeable illustrated screens: digital garage and documents; maintenance history and reminders; fuel, expenses, and stats. Each screen shows one illustration.
 - Each screen has a short headline and caption, uses existing light/dark tokens, and supports accessible text scaling and illustration semantics. Motion is scroll-linked parallax with a staggered entrance and a Skip / page-indicator / Continue row; reduced-motion settings disable animation. The illustration sits on a soft stage in dark mode.
-- The introduction is skippable; Skip and Get started both land on the Welcome screen, which offers Sign in and account creation. Completing, skipping, or choosing Sign in marks introduction handled for this installation; logout does not reset it. No repeated tour on upgrades. Reinstallation behavior must account for OS backup restoration.
+- The introduction is skippable; Skip and Get started both land on Sign in, which offers account creation. Completing, skipping, or choosing Sign in marks introduction handled for this installation; logout does not reset it. No repeated tour on upgrades. Reinstallation behavior must account for OS backup restoration.
 - After login, use the existing user's saved language preference when available; otherwise retain the pre-login choice. New users inherit the selected language. Language switching remains available before login and in Settings.
 - Fleet drivers use Sign in and existing role-based routing. There is no public Owner/Driver registration selector.
 

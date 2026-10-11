@@ -35,8 +35,6 @@
   "navMaintenance": "Maintenance",
   "navExpenses": "Expenses",
   "navSettings": "Setting",
-  "welcomeTagline": "Your garage, on the phone.",
-  "welcomeBody": "Track maintenance, documents, and spend for every vehicle you own — even offline.",
   "createAccount": "Create account",
   "signIn": "Sign in",
   "emailLabel": "Email",
@@ -1141,5 +1139,13 @@
   "authInvalidEmail": "Enter a valid email address (up to 254 characters).",
   "authInvalidIdentifier": "Enter a valid email address or username.",
   "authPasswordRequired": "Enter a password with at least eight characters.",
-  "authInvalidCredentials": "Your email, username, or password is incorrect."
+  "authInvalidCredentials": "Your email, username, or password is incorrect.",
+  "authOr": "or",
+  "authSocialHeading": "Continue with a social account",
+  "authNewUser": "New user?",
+  "alreadyHaveAccountPrefix": "Already have an account?",
+  "authTermsIntro": "By signing in with an account, you agree to our",
+  "termsOfService": "Terms of Service",
+  "authAnd": "and",
+  "privacyPolicy": "Privacy Policy"
 }
