@@ -7,7 +7,7 @@ class LanguageAction extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) => PopupMenuButton<String>(
     tooltip: 'မြန်မာ / English',
-    icon: const Icon(Icons.language),
+    icon: const Icon(Icons.language, color: Color(0xFF6C7D8A)),
     onSelected: (value) =>
         ref.read(entryPreferencesProvider.notifier).language(value),
     itemBuilder: (_) => const [

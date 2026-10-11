@@ -34,9 +34,12 @@ class SettingsScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
-          ListTile(leading: const Icon(Icons.link), title: Text(s.authConnections), onTap: () => context.push(AppRoutes.accountConnections)),
           if (user != null && !user.emailVerified && user.email.isNotEmpty)
-            ListTile(leading: const Icon(Icons.mark_email_unread_outlined), title: Text(s.authVerifyTitle), onTap: () => context.push(AppRoutes.verifyEmail)),
+            ListTile(
+              leading: const Icon(Icons.mark_email_unread_outlined),
+              title: Text(s.authVerifyTitle),
+              onTap: () => context.push(AppRoutes.verifyEmail),
+            ),
           InkWell(
             onTap: () {
               final id = user?.id;
@@ -120,6 +123,29 @@ class SettingsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(tokens.radius.lg),
                     child: Column(
                       children: [
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              tokens.radius.lg,
+                            ),
+                          ),
+                          leading: Icon(
+                            Icons.link,
+                            color: tokens.icon.inactive,
+                          ),
+                          title: Text(s.authConnections),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                          onTap: () =>
+                              context.push(AppRoutes.accountConnections),
+                        ),
+                        Divider(
+                          height: 1,
+                          indent: 16,
+                          color: tokens.border.divider,
+                        ),
                         ListTile(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(

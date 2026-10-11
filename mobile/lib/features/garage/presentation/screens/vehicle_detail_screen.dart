@@ -111,9 +111,8 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                 if (vehicle.source == VehicleSource.owned)
                   IconButton(
                     tooltip: s.vehicleShareTooltip,
-                    onPressed: () => context.push(
-                      AppRoutes.vehicleShareManage(vehicle.id),
-                    ),
+                    onPressed: () =>
+                        context.push(AppRoutes.vehicleShareManage(vehicle.id)),
                     icon: Icon(
                       Icons.ios_share,
                       size: 20,
@@ -778,7 +777,11 @@ class _DetailsTab extends ConsumerWidget {
                 children: [
                   for (var i = 0; i < rows.length; i++) ...[
                     if (i > 0)
-                      Divider(height: 1, color: tokens.border.defaultColor),
+                      Divider(
+                        height: 1,
+                        indent: 16,
+                        color: tokens.border.divider,
+                      ),
                     _DetailRow(
                       label: rows[i].$1,
                       value: rows[i].$2,
