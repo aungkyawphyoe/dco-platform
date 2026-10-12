@@ -46,16 +46,29 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
         actions: [
           IconButton(
             tooltip: s.fuelLogsTypesTooltip,
-            onPressed: vehicle == null ? null : () => context.push(AppRoutes.fuelTypes),
+            onPressed: vehicle == null
+                ? null
+                : () => context.push(AppRoutes.fuelTypes),
             icon: Icon(
               Icons.local_gas_station_outlined,
-              color: vehicle == null ? tokens.icon.inactive : tokens.icon.active,
+              color: vehicle == null
+                  ? tokens.icon.inactive
+                  : tokens.icon.active,
             ),
           ),
           IconButton(
-            tooltip: kind == FuelLogKind.charge ? s.fuelLogsAddChargeTooltip : s.fuelLogsAddRefuelTooltip,
-            onPressed: !access.canCreate ? null : () => context.push(AppRoutes.fuelLogNew),
-            icon: Icon(Icons.add, color: !access.canCreate ? tokens.icon.inactive : tokens.icon.active),
+            tooltip: kind == FuelLogKind.charge
+                ? s.fuelLogsAddChargeTooltip
+                : s.fuelLogsAddRefuelTooltip,
+            onPressed: !access.canCreate
+                ? null
+                : () => context.push(AppRoutes.fuelLogNew),
+            icon: Icon(
+              Icons.add,
+              color: !access.canCreate
+                  ? tokens.icon.inactive
+                  : tokens.icon.active,
+            ),
           ),
         ],
       ),
@@ -65,8 +78,13 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
               body: s.fuelLogsNoActiveVehicleBody,
             )
           : logs.when(
-              loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-              error: (error, _) => DcoEmptyState(title: s.fuelLogsLoadError(title), body: '$error'),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: tokens.text.accent),
+              ),
+              error: (error, _) => DcoEmptyState(
+                title: s.fuelLogsLoadError(title),
+                body: '$error',
+              ),
               data: (items) {
                 final filtered = _applyFilters(items);
                 return Column(
@@ -77,16 +95,25 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
                       selectedTypeId: _fuelTypeId,
                       period: _period,
                       onTypeSelected: (id) => setState(() => _fuelTypeId = id),
-                      onPeriodSelected: (period) => setState(() => _period = period),
+                      onPeriodSelected: (period) =>
+                          setState(() => _period = period),
                     ),
                     Expanded(
                       child: items.isEmpty
                           ? DcoEmptyState(
-                              title: kind == FuelLogKind.charge ? s.fuelLogsEmptyTitleCharges : s.fuelLogsEmptyTitleRefuels,
+                              title: kind == FuelLogKind.charge
+                                  ? s.fuelLogsEmptyTitleCharges
+                                  : s.fuelLogsEmptyTitleRefuels,
                               body: kind == FuelLogKind.charge
-                                  ? s.fuelLogsEmptyBodyCharges(vehicle.displayName)
-                                  : s.fuelLogsEmptyBodyRefuels(vehicle.displayName),
-                              actionLabel: access.canCreate ? kind.addLabel : null,
+                                  ? s.fuelLogsEmptyBodyCharges(
+                                      vehicle.displayName,
+                                    )
+                                  : s.fuelLogsEmptyBodyRefuels(
+                                      vehicle.displayName,
+                                    ),
+                              actionLabel: access.canCreate
+                                  ? kind.addLabel
+                                  : null,
                               onAction: access.canCreate
                                   ? () => context.push(AppRoutes.fuelLogNew)
                                   : null,
@@ -107,12 +134,15 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
                               itemBuilder: (context, index) {
                                 final log = filtered[index];
                                 return Padding(
-                                  padding: EdgeInsets.only(bottom: tokens.space.s3),
+                                  padding: EdgeInsets.only(
+                                    bottom: tokens.space.s3,
+                                  ),
                                   child: _FuelLogTile(
                                     log: log,
                                     currency: currency,
-                                    onTap: () =>
-                                        context.push(AppRoutes.fuelLogDetail(log.id)),
+                                    onTap: () => context.push(
+                                      AppRoutes.fuelLogDetail(log.id),
+                                    ),
                                   ),
                                 );
                               },
@@ -159,7 +189,12 @@ class _FilterBar extends StatelessWidget {
     final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
     return Padding(
-      padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s3, tokens.space.s4, tokens.space.s2),
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s4,
+        tokens.space.s3,
+        tokens.space.s4,
+        tokens.space.s2,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -206,7 +241,11 @@ class _FilterBar extends StatelessWidget {
 }
 
 class _FilterChip extends StatelessWidget {
-  const _FilterChip({required this.label, required this.selected, required this.onTap});
+  const _FilterChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -216,7 +255,9 @@ class _FilterChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Material(
-      color: selected ? tokens.button.primary.background : tokens.background.input,
+      color: selected
+          ? tokens.button.primary.background
+          : tokens.background.input,
       borderRadius: BorderRadius.circular(tokens.radius.full),
       child: InkWell(
         onTap: onTap,
@@ -241,11 +282,7 @@ class _FilterChip extends StatelessWidget {
 }
 
 class _FuelLogTile extends StatelessWidget {
-  const _FuelLogTile({
-    required this.log,
-    required this.currency,
-    this.onTap,
-  });
+  const _FuelLogTile({required this.log, required this.currency, this.onTap});
 
   final FuelLog log;
   final String currency;
@@ -256,54 +293,72 @@ class _FuelLogTile extends StatelessWidget {
     final tokens = context.tokens;
     final isCharge = log.kind == FuelLogKind.charge;
     final color = tokens.chart.fuel;
-    return Material(
-      color: tokens.background.card,
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.s3),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(tokens.radius.sm),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        boxShadow: tokens.shadows.card,
+      ),
+      child: Material(
+        color: tokens.background.card,
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(tokens.radius.lg),
+          child: Padding(
+            padding: EdgeInsets.all(tokens.space.s3),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.16),
+                    borderRadius: BorderRadius.circular(tokens.radius.full),
+                  ),
+                  child: Icon(
+                    isCharge
+                        ? Icons.bolt_outlined
+                        : Icons.local_gas_station_outlined,
+                    color: color,
+                    size: 22,
+                  ),
                 ),
-                child: Icon(
-                  isCharge ? Icons.bolt_outlined : Icons.local_gas_station_outlined,
-                  color: color,
-                  size: 22,
+                SizedBox(width: tokens.space.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        DateFormat.yMMMd().format(log.loggedOn),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.caption,
+                        ),
+                      ),
+                      SizedBox(height: tokens.space.s1),
+                      Text(
+                        log.fuelTypeName,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      SizedBox(height: tokens.space.s1),
+                      Text(
+                        log.amountLabel,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.caption,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              SizedBox(width: tokens.space.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      DateFormat.yMMMd().format(log.loggedOn),
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
-                    ),
-                    SizedBox(height: tokens.space.s1),
-                    Text(log.fuelTypeName, style: Theme.of(context).textTheme.titleMedium),
-                    SizedBox(height: tokens.space.s1),
-                    Text(
-                      log.amountLabel,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
-                    ),
-                  ],
+                Text(
+                  MoneyFormat.labeled(log.cost, currency),
+                  style: GoogleFonts.ibmPlexMono(
+                    color: tokens.text.secondary,
+                    fontSize: 13,
+                  ),
                 ),
-              ),
-              Text(
-                MoneyFormat.labeled(log.cost, currency),
-                style: GoogleFonts.ibmPlexMono(color: tokens.text.secondary, fontSize: 13),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

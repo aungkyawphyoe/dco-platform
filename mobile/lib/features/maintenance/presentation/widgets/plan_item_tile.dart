@@ -109,18 +109,30 @@ class PlanItemTile extends StatelessWidget {
                             ),
                             SizedBox(height: tokens.space.s1),
                             ClipRRect(
-                              borderRadius: BorderRadius.circular(tokens.radius.sm),
+                              borderRadius: BorderRadius.circular(
+                                tokens.radius.sm,
+                              ),
                               child: LinearProgressIndicator(
                                 value: _progress(item, vehicle, now),
                                 minHeight: 6,
                                 backgroundColor: tokens.background.input,
-                                valueColor: AlwaysStoppedAnimation<Color>(accent),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  accent,
+                                ),
                               ),
                             ),
                             SizedBox(height: tokens.space.s2),
-                            ..._dueLine(item, vehicle, overdue, lengthUnit, s).map(
+                            ..._dueLine(
+                              item,
+                              vehicle,
+                              overdue,
+                              lengthUnit,
+                              s,
+                            ).map(
                               (line) => Padding(
-                                padding: EdgeInsets.only(bottom: tokens.space.s1),
+                                padding: EdgeInsets.only(
+                                  bottom: tokens.space.s1,
+                                ),
                                 child: Text(
                                   line,
                                   style: Theme.of(context).textTheme.bodySmall
@@ -138,7 +150,8 @@ class PlanItemTile extends StatelessWidget {
                               style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(color: tokens.text.secondary),
                             ),
-                            if (item.notes != null && item.notes!.isNotEmpty) ...[
+                            if (item.notes != null &&
+                                item.notes!.isNotEmpty) ...[
                               SizedBox(height: tokens.space.s1),
                               Text(
                                 item.notes!,
@@ -308,13 +321,18 @@ class HistoryTile extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  Text(
+                    DateFormat.yMMMd().format(record.servicedOn),
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                  ),
+                  SizedBox(height: tokens.space.s1),
                   Row(
                     children: [
                       Text(
-                        DateFormat.yMMMd().format(record.servicedOn),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: tokens.text.caption,
-                        ),
+                        record.title,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const Spacer(),
                       Text(
@@ -328,11 +346,6 @@ class HistoryTile extends StatelessWidget {
                   ),
                   SizedBox(height: tokens.space.s1),
                   Text(
-                    record.title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  SizedBox(height: tokens.space.s1),
-Text(
                     workshop == null || workshop.isEmpty
                         ? odometer
                         : '$odometer  $workshop',

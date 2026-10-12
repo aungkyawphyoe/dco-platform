@@ -2839,7 +2839,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Support plan change */
+        /** Support plan or account role change */
         patch: {
             parameters: {
                 query?: never;
@@ -2853,6 +2853,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         plan?: components["schemas"]["Plan"];
+                        /** @enum {string} */
+                        role?: "owner" | "admin";
                     };
                 };
             };
@@ -2864,6 +2866,69 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["AdminUserProfile"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/admin/users/{userId}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Demo-period account access control (verify email, clear must-change-password, set password)
+         * @description Directly sets email_verified / must_change_password, or replaces the password (revoking all sessions). Intended for demo and support workflows.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: components["parameters"]["userId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        email_verified?: boolean;
+                        must_change_password?: boolean;
+                        password?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated access flags */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id?: string;
+                            email_verified?: boolean;
+                            must_change_password?: boolean;
+                        };
+                    };
+                };
+                /** @description User not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
                     };
                 };
             };
@@ -6716,6 +6781,11 @@ export interface components {
         };
         AdminUserProfile: components["schemas"]["AdminUserListItem"] & {
             address?: string | null;
+            /**
+             * @description Account role (DCO platform role, not organization role)
+             * @enum {string}
+             */
+            role?: "owner" | "admin";
             email_verified?: boolean;
             must_change_password?: boolean;
             vehicles?: {

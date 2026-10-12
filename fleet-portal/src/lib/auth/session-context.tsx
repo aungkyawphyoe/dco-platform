@@ -10,7 +10,8 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { clearToken, ensureFreshToken, setToken } from "@/lib/auth/token-store";
-import { apiGet } from "@/lib/api/client";
+import { ApiError, apiGet, apiPost } from "@/lib/api/client";
+import { apiBaseUrl } from "@/lib/api/config";
 import type { OrgContext } from "@/lib/api/types";
 
 export type SessionUser = {
@@ -25,9 +26,15 @@ type SessionState = {
   user: SessionUser | null;
   org: OrgContext | null;
   ready: boolean;
+  passwordChangeRequired: boolean;
   signIn: (input: { email: string; password: string }) => Promise<SessionUser>;
   signOut: () => Promise<void>;
+  changePassword: (input: { currentPassword: string; newPassword: string }) => Promise<void>;
 };
+
+function isPasswordChangeRequired(err: unknown): boolean {
+  return err instanceof ApiError && err.code === "password_change_required";
+}
 
 const SessionContext = createContext<SessionState | null>(null);
 
@@ -35,6 +42,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [org, setOrg] = useState<OrgContext | null>(null);
   const [ready, setReady] = useState(false);
+  const [passwordChangeRequired, setPasswordChangeRequired] = useState(false);
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -49,10 +57,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/v1"}/me`,
-          { headers: { authorization: `Bearer ${token}` } },
-        );
+        const res = await fetch(`${apiBaseUrl()}/me`, {
+          headers: { authorization: `Bearer ${token}` },
+        });
         if (!res.ok) throw new Error("me failed");
         const me = (await res.json()) as SessionUser;
         if (!active) return;
@@ -65,9 +72,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         });
         try {
           const context = await apiGet<OrgContext>("/organizations/me");
-          if (active) setOrg(context);
-        } catch {
-          if (active) setOrg(null);
+          if (active) {
+            setOrg(context);
+            setPasswordChangeRequired(false);
+          }
+        } catch (err) {
+          if (active) {
+            setOrg(null);
+            setPasswordChangeRequired(isPasswordChangeRequired(err));
+          }
         }
       } catch {
         clearToken();
@@ -109,8 +122,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       try {
         const context = await apiGet<OrgContext>("/organizations/me");
         setOrg(context);
-      } catch {
+        setPasswordChangeRequired(false);
+      } catch (err) {
         setOrg(null);
+        setPasswordChangeRequired(isPasswordChangeRequired(err));
       }
       return data.user;
     },
@@ -122,12 +137,30 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     clearToken();
     setUser(null);
     setOrg(null);
+    setPasswordChangeRequired(false);
     queryClient.clear();
   }, [queryClient]);
 
+  const changePassword = useCallback(
+    async ({ currentPassword, newPassword }: { currentPassword: string; newPassword: string }) => {
+      await apiPost("/auth/change-password", {
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
+      // The backend revokes all refresh tokens on password change, so re-sign-in
+      // with the new password to establish a fresh session and cookies.
+      if (user?.email) {
+        await signIn({ email: user.email, password: newPassword });
+      }
+      setPasswordChangeRequired(false);
+      queryClient.invalidateQueries();
+    },
+    [user, signIn, queryClient],
+  );
+
   const value = useMemo(
-    () => ({ user, org, ready, signIn, signOut }),
-    [user, org, ready, signIn, signOut],
+    () => ({ user, org, ready, passwordChangeRequired, signIn, signOut, changePassword }),
+    [user, org, ready, passwordChangeRequired, signIn, signOut, changePassword],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

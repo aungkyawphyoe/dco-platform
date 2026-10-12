@@ -1384,7 +1384,7 @@ paths:
                 $ref: '#/components/schemas/AdminUserProfile'
     patch:
       tags: [Admin]
-      summary: Support plan change
+      summary: Support plan or account role change
       requestBody:
         content:
           application/json:
@@ -1393,6 +1393,9 @@ paths:
               properties:
                 plan:
                   $ref: '#/components/schemas/Plan'
+                role:
+                  type: string
+                  enum: [owner, admin]
       responses:
         '200':
           description: Updated
@@ -1400,6 +1403,49 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AdminUserProfile'
+  /admin/users/{userId}/access:
+    patch:
+      tags: [Admin]
+      summary: Demo-period account access control (verify email, clear must-change-password, set password)
+      description: Directly sets email_verified / must_change_password, or replaces the password (revoking all sessions). Intended for demo and support workflows.
+      parameters:
+        - $ref: '#/components/parameters/userId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email_verified:
+                  type: boolean
+                must_change_password:
+                  type: boolean
+                password:
+                  type: string
+                  minLength: 8
+              description: At least one property must be provided
+      responses:
+        '200':
+          description: Updated access flags
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  email_verified:
+                    type: boolean
+                  must_change_password:
+                    type: boolean
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
   /admin/users/{userId}/deactivate:
     post:
       tags: [Admin]
@@ -4057,6 +4103,10 @@ components:
             address:
               type: string
               nullable: true
+            role:
+              type: string
+              enum: [owner, admin]
+              description: Account role (DCO platform role, not organization role)
             email_verified:
               type: boolean
             must_change_password:

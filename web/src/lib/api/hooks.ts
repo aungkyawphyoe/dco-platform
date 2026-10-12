@@ -55,6 +55,41 @@ export function useUpdateUserPlan() {
   });
 }
 
+export function useUpdateUserRole() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, role }: { id: string; role: "owner" | "admin" }) =>
+      apiPatch<AdminUserProfile>(`/admin/users/${id}`, { role }),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ["admin", "users", variables.id] });
+    },
+  });
+}
+
+export function useUpdateUserAccess() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...body
+    }: {
+      id: string;
+      email_verified?: boolean;
+      must_change_password?: boolean;
+      password?: string;
+    }) =>
+      apiPatch<{ id: string; email_verified: boolean; must_change_password: boolean }>(
+        `/admin/users/${id}/access`,
+        body,
+      ),
+    onSuccess: (_data, variables) => {
+      qc.invalidateQueries({ queryKey: ["admin", "users"] });
+      qc.invalidateQueries({ queryKey: ["admin", "users", variables.id] });
+    },
+  });
+}
+
 export function useDeactivateUser() {
   const qc = useQueryClient();
   return useMutation({

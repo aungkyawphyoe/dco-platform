@@ -27,16 +27,14 @@ export async function POST(request: NextRequest) {
       | { error?: { code?: string; message?: string } }
       | null;
     const code = body?.error?.code;
-    if (res.status === 403 && code === "fleet_access_required") {
-      return NextResponse.json(
-        {
-          error: {
-            code: "fleet_access_required",
-            message: "An active Enterprise organization membership is required",
-          },
-        },
-        { status: 403 },
-      );
+    if (res.status === 403) {
+      const message =
+        code === "fleet_access_required"
+          ? "An active Enterprise organization membership is required"
+          : code === "portal_access_restricted"
+            ? "Drivers do not use the Fleet Portal. Sign in on the mobile app instead."
+            : (body?.error?.message ?? "Access denied for this account");
+      return NextResponse.json({ error: { code: code ?? "forbidden", message } }, { status: 403 });
     }
     if (res.status === 401) {
       return NextResponse.json(

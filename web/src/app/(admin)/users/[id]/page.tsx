@@ -21,9 +21,13 @@ import {
   UserStatusBadge,
   PlanBadge,
 } from "@/components/ui/status-badge";
+import { Input } from "@/components/ui/input";
 import {
   useAdminUser,
   useUpdateUserPlan,
+  useUpdateUserRole,
+  useUpdateUserAccess,
+  useUpdateUserProfile,
   useDeactivateUser,
   useReactivateUser,
   useSendPasswordReset,
@@ -41,6 +45,9 @@ export default function UserProfilePage({
   const { data: user, isLoading, error } = useAdminUser(id);
 
   const updatePlan = useUpdateUserPlan();
+  const updateRole = useUpdateUserRole();
+  const updateAccess = useUpdateUserAccess();
+  const updateProfile = useUpdateUserProfile();
   const deactivate = useDeactivateUser();
   const reactivate = useReactivateUser();
   const sendReset = useSendPasswordReset();
@@ -49,6 +56,11 @@ export default function UserProfilePage({
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showReactivateModal, setShowReactivateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showProfileModal, setShowProfileModal] = useState(false);
+  const [profileDraft, setProfileDraft] = useState({ display_name: "", contact_phone: "", address: "" });
   const [feedback, setFeedback] = useState<string | null>(null);
 
   if (isLoading) {
@@ -110,22 +122,6 @@ export default function UserProfilePage({
             <div className="flex justify-between">
               <dt className="text-ink-caption">Username</dt>
               <dd className="font-mono text-ink">{user.username ?? "—"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Verified</dt>
-              <dd>
-                <Badge tone={user.email_verified ? "success" : "warning"}>
-                  {user.email_verified ? "Yes" : "No"}
-                </Badge>
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Must change password</dt>
-              <dd>
-                <Badge tone={user.must_change_password ? "warning" : "success"}>
-                  {user.must_change_password ? "Yes" : "No"}
-                </Badge>
-              </dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-ink-caption">Display name</dt>
@@ -201,6 +197,73 @@ export default function UserProfilePage({
 
       <Card className="p-5">
         <h2 className="font-display text-base font-semibold text-ink">
+          Account access <span className="ml-2 text-xs font-normal text-gold">demo controls</span>
+        </h2>
+        <div className="mt-4 flex flex-wrap items-end gap-3">
+          <div>
+            <p className="text-label uppercase tracking-wide text-ink-caption">Email verified</p>
+            <div className="mt-1.5">
+              <Badge tone={user.email_verified ? "success" : "warning"}>
+                {user.email_verified ? "Yes" : "No"}
+              </Badge>
+            </div>
+          </div>
+          {!user.email_verified && (
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={updateAccess.isPending}
+              onClick={() =>
+                updateAccess.mutate(
+                  { id, email_verified: true },
+                  { onSuccess: () => setFeedback("Email marked as verified.") },
+                )
+              }
+            >
+              Mark email verified
+            </Button>
+          )}
+
+          <div>
+            <p className="text-label uppercase tracking-wide text-ink-caption">Must change password</p>
+            <div className="mt-1.5">
+              <Badge tone={user.must_change_password ? "warning" : "success"}>
+                {user.must_change_password ? "Yes" : "No"}
+              </Badge>
+            </div>
+          </div>
+          {user.must_change_password && (
+            <Button
+              variant="secondary"
+              size="sm"
+              disabled={updateAccess.isPending}
+              onClick={() =>
+                updateAccess.mutate(
+                  { id, must_change_password: false },
+                  { onSuccess: () => setFeedback("Password-change requirement cleared.") },
+                )
+              }
+            >
+              Clear requirement
+            </Button>
+          )}
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setNewPassword("");
+              setPasswordError(null);
+              setShowSetPasswordModal(true);
+            }}
+          >
+            Set password
+          </Button>
+        </div>
+      </Card>
+
+      <Card className="p-5">
+        <h2 className="font-display text-base font-semibold text-ink">
           Actions
         </h2>
         <div className="mt-4 flex flex-wrap gap-3">
@@ -218,6 +281,43 @@ export default function UserProfilePage({
               )
             }
           />
+
+          <Select
+            label="Account role"
+            options={[
+              { value: "owner", label: "Owner" },
+              { value: "admin", label: "Admin" },
+            ]}
+            value={user.role ?? "owner"}
+            disabled={updateRole.isPending}
+            onChange={(v) =>
+              updateRole.mutate(
+                { id, role: v as "owner" | "admin" },
+                {
+                  onSuccess: () => setFeedback(`Account role changed to ${v}.`),
+                  onError: (err) =>
+                    setFeedback(err instanceof Error ? err.message : "Role change failed."),
+                },
+              )
+            }
+          />
+
+          <div className="self-end">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                setProfileDraft({
+                  display_name: user.display_name ?? "",
+                  contact_phone: user.contact_phone ?? "",
+                  address: user.address ?? "",
+                });
+                setShowProfileModal(true);
+              }}
+            >
+              Edit profile
+            </Button>
+          </div>
 
           <Button
             variant="secondary"
@@ -329,6 +429,95 @@ export default function UserProfilePage({
           granted or received. This action can be reversed by reactivating the
           account.
         </p>
+      </Modal>
+
+      <Modal
+        open={showSetPasswordModal}
+        onClose={() => setShowSetPasswordModal(false)}
+        title="Set password"
+        confirmLabel="Set password"
+        loading={updateAccess.isPending}
+        onSubmit={() => {
+          if (newPassword.length < 8) {
+            setPasswordError("Password must be at least 8 characters");
+            return;
+          }
+          setPasswordError(null);
+          updateAccess.mutate(
+            { id, password: newPassword },
+            {
+              onSuccess: () => {
+                setShowSetPasswordModal(false);
+                setFeedback(
+                  "Password updated. All existing sessions for this user have been signed out.",
+                );
+              },
+            },
+          );
+        }}
+      >
+        <p className="mb-4">
+          Directly set a new password for <strong>{user.email}</strong>. No
+          email is sent; share the password out-of-band. All active sessions
+          will be revoked.
+        </p>
+        <Input
+          label="New password"
+          type="text"
+          autoComplete="new-password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+          error={passwordError}
+          hint="At least 8 characters"
+        />
+      </Modal>
+
+      <Modal
+        open={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        title="Edit profile"
+        confirmLabel="Save"
+        loading={updateProfile.isPending}
+        onSubmit={() =>
+          updateProfile.mutate(
+            {
+              id,
+              display_name: profileDraft.display_name || null,
+              contact_phone: profileDraft.contact_phone || null,
+              address: profileDraft.address || null,
+            },
+            {
+              onSuccess: () => {
+                setShowProfileModal(false);
+                setFeedback("Profile updated.");
+              },
+            },
+          )
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <Input
+            label="Display name"
+            value={profileDraft.display_name}
+            onChange={(e) =>
+              setProfileDraft((d) => ({ ...d, display_name: e.target.value }))
+            }
+          />
+          <Input
+            label="Contact phone"
+            value={profileDraft.contact_phone}
+            onChange={(e) =>
+              setProfileDraft((d) => ({ ...d, contact_phone: e.target.value }))
+            }
+          />
+          <Input
+            label="Address"
+            value={profileDraft.address}
+            onChange={(e) =>
+              setProfileDraft((d) => ({ ...d, address: e.target.value }))
+            }
+          />
+        </div>
       </Modal>
     </div>
   );

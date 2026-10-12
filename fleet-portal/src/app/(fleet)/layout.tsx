@@ -7,7 +7,7 @@ import { useSession, useOrgRole } from "@/lib/auth/session-context";
 import { Card } from "@/components/ui/card";
 
 export default function FleetLayout({ children }: { children: React.ReactNode }) {
-  const { ready, user, org } = useSession();
+  const { ready, user, org, passwordChangeRequired } = useSession();
   const role = useOrgRole();
   const router = useRouter();
 
@@ -15,10 +15,22 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
     if (ready && !user) router.replace("/login");
   }, [ready, user, router]);
 
+  useEffect(() => {
+    if (ready && user && passwordChangeRequired) router.replace("/change-password");
+  }, [ready, user, passwordChangeRequired, router]);
+
   if (!ready || !user) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-sm text-ink-caption">Restoring session…</p>
+      </div>
+    );
+  }
+
+  if (passwordChangeRequired) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-sm text-ink-caption">Redirecting to password change…</p>
       </div>
     );
   }

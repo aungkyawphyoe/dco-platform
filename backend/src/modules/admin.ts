@@ -400,15 +400,18 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     return {
       id: u.id,
       email: u.email,
+      username: u.username,
       display_name: u.displayName,
       contact_phone: u.contactPhone,
       address: u.address,
       profile_photo_media_id: u.profilePhotoMediaId,
       plan: u.plan,
+      role: u.role,
       status: u.status,
       vehicle_count: v.filter((x) => !x.archived).length,
       created_at: u.createdAt.toISOString(),
       email_verified: u.emailVerified,
+      must_change_password: u.mustChangePassword,
       vehicle_sharing: {
         active_shares: Number(sharedCount?.count ?? 0),
       },
@@ -430,12 +433,56 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
 
   app.patch("/admin/users/:userId", async (request) => {
     const { userId } = request.params as { userId: string };
-    const body = z.object({ plan: z.enum(PLAN_IDS).optional() }).parse(request.body ?? {});
+    const body = z.object({
+      plan: z.enum(PLAN_IDS).optional(),
+      role: z.enum(["owner", "admin"]).optional(),
+    }).parse(request.body ?? {});
     const [u] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!u) throw new AppError(404, "not_found", "User not found");
-    const updated = body.plan ? await changeUserPlan(app.db, userId, body.plan) : u;
-    await audit(app, request.authUser!.sub, "user.plan_change", { userId, plan: updated.plan });
-    return { id: updated.id, plan: updated.plan, email: updated.email, status: updated.status };
+    let updated = u;
+    if (body.role && body.role !== u.role) {
+      if (u.role === "admin") {
+        const [{ count }] = await app.db.select({ count: sql`count(*)::int` })
+          .from(users).where(eq(users.role, "admin"));
+        if (Number(count) <= 1) throw new AppError(409, "last_admin", "Cannot change the role of the last admin");
+      }
+      updated = await app.db.update(users).set({ role: body.role }).where(eq(users.id, userId)).returning().then((rows) => rows[0]!);
+      await audit(app, request.authUser!.sub, "user.role_change", { userId, role: body.role });
+    }
+    if (body.plan && body.plan !== updated.plan) {
+      updated = await changeUserPlan(app.db, userId, body.plan);
+      await audit(app, request.authUser!.sub, "user.plan_change", { userId, plan: updated.plan });
+    }
+    return { id: updated.id, plan: updated.plan, role: updated.role, email: updated.email, status: updated.status };
+  });
+
+  app.patch("/admin/users/:userId/access", async (request) => {
+    const { userId } = request.params as { userId: string };
+    const body = z.object({
+      email_verified: z.boolean().optional(),
+      must_change_password: z.boolean().optional(),
+      password: z.string().min(8).optional(),
+    }).refine(
+      (value) => value.email_verified !== undefined || value.must_change_password !== undefined || value.password !== undefined,
+      "Specify email_verified, must_change_password, or password",
+    ).parse(request.body ?? {});
+    const [u] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!u) throw new AppError(404, "not_found", "User not found");
+    const [updated] = await app.db.update(users).set({
+      ...(body.email_verified !== undefined ? { emailVerified: body.email_verified } : {}),
+      ...(body.must_change_password !== undefined ? { mustChangePassword: body.must_change_password } : {}),
+      ...(body.password !== undefined ? { passwordHash: await hashPassword(body.password), authVersion: sql`${users.authVersion} + 1` } : {}),
+    }).where(eq(users.id, userId)).returning();
+    if (body.password !== undefined) {
+      await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, userId));
+    }
+    await audit(app, request.authUser!.sub, "user.access_update", {
+      userId,
+      email_verified: body.email_verified,
+      must_change_password: body.must_change_password,
+      password_set: body.password !== undefined,
+    });
+    return { id: updated.id, email_verified: updated.emailVerified, must_change_password: updated.mustChangePassword };
   });
 
   app.post("/admin/users/:userId/deactivate", async (request, reply) => {
@@ -504,6 +551,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
         plan: body.plan,
         status: "active",
         emailVerified: false,
+        mustChangePassword: true,
       })
       .returning();
 
