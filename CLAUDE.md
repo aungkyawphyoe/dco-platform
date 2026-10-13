@@ -8,7 +8,7 @@ Product is production-ready. `product/production-scope.md` is the active scope c
 
 Implementation docs are in place: `architecture/system.md` (Accepted), `architecture/data-model.md` (Binding), `architecture/iam.md` (Binding), `architecture/openapi.yaml`, `docs/app-shell.md`, `docs/environment-secrets.md`. Admin wireframes live on `wireframes/dco-mobile-wireframes.tldraw` (A1–A7).
 
-Mobile Flutter app is implemented in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell, offline-first sync, vehicle sharing, local-only Notes, Fleet/Driver modes online-first). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin is Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, admin dashboard, user management, organization provisioning (create/activate Enterprise orgs + Org Admin invites), partner onboarding, shared vehicles dashboard. Fleet portal is a separate Next.js 15 app in `fleet-portal/` (JWT audience `dco-fleet`, BFF session with `surface: "fleet"`) — fleet dashboard, vehicles, work orders, inspections, assignments, members, workshops, warranty templates, reports.
+Mobile Flutter app is implemented in `mobile/` (Garage Minimal Dark theme, email/password auth, four-tab shell, offline-first sync, vehicle sharing, local-only Notes, Fleet/Driver modes online-first). Agent contract: [`mobile/AGENTS.md`](mobile/AGENTS.md). Backend is Fastify + Drizzle + PostgreSQL (`docs/adr/backend-stack.md`) on Azure Container Apps (`docs/adr/azure-hosting.md`). Web admin is Next.js 15 (`docs/adr/web-stack.md`) — BFF httpOnly-cookie session, admin dashboard, user management, organization provisioning (create/activate Enterprise orgs + Org Admin invites), partner onboarding, shared vehicles dashboard. Fleet portal is a separate Next.js 15 app in `fleet-portal/` (JWT audience `dco-fleet`, BFF session with `surface: "fleet"`) — fleet dashboard, vehicles, work orders, inspections, assignments, members, workshops, warranty templates, reports. Marketing site is a public Next.js 15 app in `site/` (no auth) — landing, personal, fleet, pricing (fed by public `GET /v1/pricing`), and FAQ pages for the Drivvo-inspired companion web platform.
 
 The working plan is: mobile app (Flutter) is the primary surface (Dashboard after login; bottom nav Garage / Maintenance / Expenses / Settings), backend REST API + DB serves mobile and web, web portal handles admin user management, partner onboarding, and shared vehicles dashboard.
 
@@ -19,6 +19,7 @@ The working plan is: mobile app (Flutter) is the primary surface (Dashboard afte
 - `backend/` — server / API layer
 - `web/` — web frontend (admin + shared vehicles dashboard)
 - `fleet-portal/` — Fleet management web portal (separate Next.js app)
+- `site/` — public marketing site (landing, personal, fleet, pricing, FAQ)
 - `mobile/` — Flutter owner app (see `mobile/AGENTS.md`)
 - `architecture/` — system design / architectural docs
 - `product/` — product definitions, requirements
@@ -80,6 +81,21 @@ npm run build
 
 Stack: same as `web/` (Next.js 15, TanStack Query, Tailwind, generated OpenAPI types). Login BFF posts `surface: "fleet"` → `dco-fleet` JWT; cookies `dco_fleet_access` / `dco_fleet_refresh`.
 
+### Marketing site (Next.js)
+
+From `site/`:
+
+```bash
+npm install
+npm run gen:theme
+npm run dev
+npm run lint
+npm run build
+```
+
+Stack: Next.js 15 App Router, Tailwind v4 + tokens from `docs/theme/garage-minimal-{dark,light}.json` (public, no auth, dark default). Pricing page server-fetches public `GET /v1/pricing` with a bundled fallback (`src/content/pricing-fallback.ts`); store links come from `NEXT_PUBLIC_APP_STORE_URL` / `NEXT_PUBLIC_PLAY_STORE_URL` env placeholders. Page copy lives in `src/content/`.
+
 - Mobile: Flutter owner app, offline-first, JWT audience `dco-owner`
 - Backend: REST `/v1` + JWT (Fastify, PostgreSQL, `aud` `dco-owner` / `dco-admin`)
 - Web: admin portal (Next.js 15, JWT audience `dco-admin` via BFF)
+- Site: public marketing site (Next.js 15, no auth, dynamic pricing from `GET /v1/pricing`)

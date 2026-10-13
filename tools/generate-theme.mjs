@@ -9,9 +9,10 @@
  * Outputs (all committed; re-run after editing either JSON):
  *   web/src/app/theme-tokens.css
  *   fleet-portal/src/app/theme-tokens.css
+ *   site/src/app/theme-tokens.css
  *   mobile/lib/core/theme/dco_tokens.g.dart
  *
- * Run: node tools/generate-theme.mjs   (or `npm run gen:theme` from web/ or fleet-portal/)
+ * Run: node tools/generate-theme.mjs   (or `npm run gen:theme` from web/, fleet-portal/, or site/)
  * Rules: docs/design-system.md
  */
 import { readFileSync, writeFileSync } from "node:fs";
@@ -418,6 +419,7 @@ ${dcoTokensConst(light)}
 const outputs = [
   ["web/src/app/theme-tokens.css", css],
   ["fleet-portal/src/app/theme-tokens.css", css],
+  ["site/src/app/theme-tokens.css", css],
   ["mobile/lib/core/theme/dco_tokens.g.dart", dart],
 ];
 

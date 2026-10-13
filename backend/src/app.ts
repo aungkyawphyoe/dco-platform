@@ -11,6 +11,7 @@ import type { Mailer } from "./lib/mail.js";
 import { MEDIA_MAX_BYTES, type MediaStore } from "./lib/media.js";
 import { attachAuth, authPlugin } from "./modules/auth.js";
 import { healthPlugin } from "./modules/health.js";
+import { pricingPlugin } from "./modules/pricing.js";
 import { mePlugin } from "./modules/me.js";
 import { vehiclesPlugin } from "./modules/vehicles.js";
 import { ownerPlugin } from "./modules/owner.js";
@@ -62,6 +63,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
     async (v1) => {
       await attachAuth(v1);
       await v1.register(healthPlugin);
+      await v1.register(pricingPlugin);
       await v1.register(authPlugin);
       await v1.register(accountSecurityPlugin);
       await v1.register(socialAuthPlugin);

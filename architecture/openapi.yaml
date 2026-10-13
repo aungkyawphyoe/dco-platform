@@ -14,6 +14,7 @@ servers:
     description: placeholder — replace per env (see docs/environment-secrets.md)
 tags:
   - name: Health
+  - name: Pricing
   - name: Auth
   - name: Me
   - name: Vehicles
@@ -318,6 +319,22 @@ paths:
                 $ref: '#/components/schemas/HealthStatus'
         '503':
           $ref: '#/components/responses/Error'
+  /pricing:
+    get:
+      tags: [Pricing]
+      security: []
+      summary: Public plan tiers and feature matrix (marketing site)
+      description: >
+        Serves the four plan tiers from the `plans` reference table with MMK
+        prices, USD display prices, plan limits, marketing bullets, and the
+        as-built feature matrix. Unauthenticated.
+      responses:
+        '200':
+          description: Current pricing catalog
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PricingResponse'
   /auth/signup:
     post:
       tags: [Auth]
@@ -3110,6 +3127,87 @@ components:
         status:
           type: string
           enum: [ok, ready]
+    PricingResponse:
+      type: object
+      required: [billing_periods, currency, plans, feature_matrix]
+      properties:
+        billing_periods:
+          type: array
+          items: {type: string, enum: [monthly, annual]}
+        currency:
+          type: object
+          required: [primary, secondary]
+          properties:
+            primary: {type: string, example: MMK}
+            secondary: {type: string, example: USD}
+        plans:
+          type: array
+          items: {$ref: '#/components/schemas/PricingPlan'}
+        feature_matrix:
+          type: array
+          items: {$ref: '#/components/schemas/PricingFeatureGroup'}
+    PricingPlan:
+      type: object
+      required: [id, name, tagline, audience, highlighted, prices, limits, features]
+      properties:
+        id: {$ref: '#/components/schemas/Plan'}
+        name: {type: string}
+        tagline: {type: string}
+        audience: {type: string, enum: [personal, fleet]}
+        highlighted: {type: boolean}
+        prices:
+          type: object
+          required: [monthly, annual]
+          properties:
+            monthly: {$ref: '#/components/schemas/PricingMoney'}
+            annual: {$ref: '#/components/schemas/PricingMoney'}
+        limits:
+          type: object
+          required: [vehicles, sharing, storage_bytes, ai_tier]
+          properties:
+            vehicles:
+              type: integer
+              nullable: true
+              description: Max active vehicles; null means unlimited
+            sharing:
+              type: integer
+              nullable: true
+              description: Vehicle sharing cap; null means unlimited
+            storage_bytes: {type: integer}
+            ai_tier: {type: string}
+        features:
+          type: array
+          items: {type: string}
+    PricingMoney:
+      type: object
+      required: [mmk, usd]
+      properties:
+        mmk: {type: integer}
+        usd: {type: number}
+    PricingFeatureGroup:
+      type: object
+      required: [category, rows]
+      properties:
+        category: {type: string}
+        rows:
+          type: array
+          items:
+            type: object
+            required: [label, values]
+            properties:
+              label: {type: string}
+              values:
+                type: object
+                required: [free, lite, standard, fleet]
+                additionalProperties:
+                  oneOf:
+                    - {type: boolean}
+                    - {type: string}
+                properties:
+                  free: {oneOf: [{type: boolean}, {type: string}]}
+                  lite: {oneOf: [{type: boolean}, {type: string}]}
+                  standard: {oneOf: [{type: boolean}, {type: string}]}
+                  fleet: {oneOf: [{type: boolean}, {type: string}]}
     ErrorBody:
       type: object
       required: [error]
