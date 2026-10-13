@@ -26,8 +26,8 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "DCO — Your Digital Garage",
-    template: "%s · DCO",
+    default: "AutoX — Your Digital Garage",
+    template: "%s · AutoX",
   },
   description:
     "Track fuel, charging, maintenance, expenses and documents for every vehicle you own. Offline-first mobile app for personal vehicles and fleets.",

@@ -37,7 +37,7 @@ export const PERSONAL_PROBLEM = {
 } as const;
 
 export const PERSONAL_SOLUTION = {
-  heading: "DCO solves this for you",
+  heading: "AutoX solves this for you",
   intro:
     "All your vehicle information stays organized in one place. Log fuel, expenses and maintenance — and truly understand what your vehicle costs.",
   bullets: [
@@ -98,7 +98,7 @@ export const PERSONAL_BENEFITS = [
 export const PERSONAL_STEPS = [
   {
     title: "Install the app",
-    description: "Download DCO free on Google Play or the App Store.",
+    description: "Download AutoX free on Google Play or the App Store.",
   },
   {
     title: "Add your vehicle",

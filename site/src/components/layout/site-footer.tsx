@@ -14,11 +14,11 @@ export function SiteFooter() {
         <div className="flex flex-col gap-10 md:flex-row md:justify-between">
           <div className="max-w-sm">
             <div className="flex items-center gap-2.5">
-              <Image src="/dco-logo.png" alt="DCO" width={28} height={28} className="rounded-sm" />
-              <span className="font-display text-lg font-semibold tracking-tight">DCO</span>
+              <Image src="/logo.png" alt="AutoX" width={28} height={28} className="rounded-sm" />
+              <span className="font-display text-lg font-semibold tracking-tight">AutoX</span>
             </div>
             <p className="mt-3 text-sm leading-6 text-ink-muted">
-              Digital Car Ownership — the digital garage for every vehicle you own. Track fuel, maintenance and
+              AutoX — the digital garage for every vehicle you own. Track fuel, maintenance and
               costs, offline-first.
             </p>
           </div>
@@ -62,7 +62,7 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-10 border-t border-line pt-6">
-          <p className="text-xs text-ink-faint">© {new Date().getFullYear()} DCO. All rights reserved.</p>
+          <p className="text-xs text-ink-faint">© {new Date().getFullYear()} AutoX. All rights reserved.</p>
         </div>
       </div>
     </footer>

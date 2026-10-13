@@ -123,7 +123,7 @@ export default function PersonalPage() {
       {/* Benefits */}
       <section className="border-y border-line bg-panel">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <SectionHeading eyebrow="Benefits" title="Why use DCO?" />
+          <SectionHeading eyebrow="Benefits" title="Why use AutoX?" />
           <div className="mt-10">
             <BenefitList items={PERSONAL_BENEFITS} />
           </div>

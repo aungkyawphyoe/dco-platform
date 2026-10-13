@@ -42,8 +42,8 @@ export default function HomePage() {
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
           eyebrow="Choose your path"
-          title="How do you want to use DCO?"
-          intro="DCO adapts to your needs — track your own vehicles or manage an entire fleet."
+          title="How do you want to use AutoX?"
+          intro="AutoX adapts to your needs — track your own vehicles or manage an entire fleet."
         />
         <div className="mt-10">
           <PathCards items={PATHS} />
@@ -110,7 +110,7 @@ export default function HomePage() {
             Start your digital garage now
           </h2>
           <p className="max-w-xl text-base leading-7 text-ink-muted sm:text-lg">
-            Free forever for one vehicle. Download DCO and log your first fill-up in under a minute.
+            Free forever for one vehicle. Download AutoX and log your first fill-up in under a minute.
           </p>
           <StoreBadges className="justify-center" />
           <p className="text-xs text-ink-caption">Android and iOS · Offline-first · No credit card</p>

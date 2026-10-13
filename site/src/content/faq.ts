@@ -7,23 +7,23 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
     label: "General",
     items: [
       {
-        q: "What is DCO?",
-        a: "DCO (Digital Car Ownership) is a platform for tracking everything about the vehicles you own. You can record fuel and charging entries, expenses, maintenance services, documents and reminders — and see the full history of each vehicle in one place.",
+        q: "What is AutoX?",
+        a: "AutoX is a platform for tracking everything about the vehicles you own. You can record fuel and charging entries, expenses, maintenance services, documents and reminders — and see the full history of each vehicle in one place.",
       },
       {
-        q: "Who is DCO designed for?",
+        q: "Who is AutoX designed for?",
         a: "Two audiences: personal use for people who want to track costs and history of their own vehicles, and fleet use for companies that manage vehicles, drivers and workshop operations.",
       },
       {
-        q: "Which platforms does DCO support?",
-        a: "DCO is available on Android and iOS, with a dedicated web fleet portal for organization managers. Your data syncs automatically across devices on the same account.",
+        q: "Which platforms does AutoX support?",
+        a: "AutoX is available on Android and iOS, with a dedicated web fleet portal for organization managers. Your data syncs automatically across devices on the same account.",
       },
       {
         q: "What types of vehicles can I manage?",
         a: "Cars, motorcycles, electric vehicles and hybrid plugin vehicles. Fuel tracking covers petrol refuels and electric charging; maintenance plans adapt suggestions to your fuel type.",
       },
       {
-        q: "Is DCO free?",
+        q: "Is AutoX free?",
         a: "Yes. The Free plan covers one vehicle with fuel logs, maintenance plans, reminders, expenses and documents. Paid plans unlock more vehicles, sharing and storage — see the pricing page for current tiers.",
       },
       {
@@ -58,7 +58,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Can I transfer my records to the buyer of the vehicle?",
-        a: "Vehicle sharing lets you grant access to another DCO user by code or email invite, including a view-only level — useful during a sale so the buyer can see the service history.",
+        a: "Vehicle sharing lets you grant access to another AutoX user by code or email invite, including a view-only level — useful during a sale so the buyer can see the service history.",
       },
     ],
   },
@@ -71,12 +71,12 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
         a: "Yes. How many depends on your plan — Free covers 1 vehicle, Lite 3, Standard 10 and Fleet/Pro unlimited. You switch the active vehicle in one tap.",
       },
       {
-        q: "Does DCO work for electric vehicles?",
+        q: "Does AutoX work for electric vehicles?",
         a: "Yes. Charge logs track electricity cost and energy for electric vehicles, alongside the same maintenance, expenses and documents as petrol cars.",
       },
       {
-        q: "Is DCO useful for ride share or delivery drivers?",
-        a: "Yes. Many drivers use DCO to log fuel, charging, mileage and expenses to understand the real operating cost of the vehicle they work with.",
+        q: "Is AutoX useful for ride share or delivery drivers?",
+        a: "Yes. Many drivers use AutoX to log fuel, charging, mileage and expenses to understand the real operating cost of the vehicle they work with.",
       },
       {
         q: "Can I attach documents and receipts to my records?",
@@ -87,7 +87,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
         a: "Yes. Vehicle sharing invites by code/QR or email with two access levels: view only, or add and edit your own records. Share counts are limited by plan.",
       },
       {
-        q: "Does DCO work without an internet connection?",
+        q: "Does AutoX work without an internet connection?",
         a: "Yes. The app is offline-first — you can log fuel, expenses and services with no signal. Everything syncs automatically once you reconnect.",
       },
     ],
@@ -97,7 +97,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
     label: "Fleet management",
     items: [
       {
-        q: "Does DCO work for companies?",
+        q: "Does AutoX work for companies?",
         a: "Yes. Fleet management adds an organization workspace where managers handle vehicles, drivers, work orders, inspections, workshops and reports — plus the mobile Fleet and Driver modes.",
       },
       {

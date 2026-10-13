@@ -7,7 +7,7 @@ import { CtaBanner } from "@/components/marketing/cta-banner";
 export const metadata: Metadata = {
   title: "FAQ",
   description:
-    "Answers to common questions about DCO — platforms, accounts, personal use, fleet management, maintenance, fuel and plans.",
+    "Answers to common questions about AutoX — platforms, accounts, personal use, fleet management, maintenance, fuel and plans.",
 };
 
 export default function FaqPage() {
@@ -18,7 +18,7 @@ export default function FaqPage() {
           <SectionHeading
             eyebrow="Help center"
             title="Frequently asked questions"
-            intro="Find answers to the most common questions about DCO."
+            intro="Find answers to the most common questions about AutoX."
           />
           <nav aria-label="FAQ categories" className="mt-8 flex flex-wrap justify-center gap-2">
             {FAQ_CATEGORIES.map((category) => (
@@ -42,7 +42,7 @@ export default function FaqPage() {
 
       <CtaBanner
         title="Still have questions?"
-        subtitle="Start with the free plan and try DCO with zero commitment."
+        subtitle="Start with the free plan and try AutoX with zero commitment."
         primary={{ href: "/pricing", label: "See pricing" }}
         secondary={{ href: "/#download", label: "Download the app" }}
       />

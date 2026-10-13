@@ -19,8 +19,8 @@ export function SiteNav() {
           className="flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           onClick={() => setOpen(false)}
         >
-          <Image src="/dco-logo.png" alt="DCO" width={30} height={30} className="rounded-sm" />
-          <span className="font-display text-lg font-semibold tracking-tight">DCO</span>
+          <Image src="/logo.png" alt="AutoX" width={30} height={30} className="rounded-sm" />
+          <span className="font-display text-lg font-semibold tracking-tight">AutoX</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">

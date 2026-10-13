@@ -176,7 +176,7 @@ export default function FleetPage() {
       {/* Comparison */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
-          eyebrow="Spreadsheets vs DCO"
+          eyebrow="Spreadsheets vs AutoX"
           title={FLEET_COMPARISON.heading}
         />
         <div className="mt-10 overflow-hidden rounded-xl border border-line-subtle bg-card">
@@ -185,7 +185,7 @@ export default function FleetPage() {
               Manual control
             </div>
             <div className="border-l border-line px-5 py-3 text-xs font-medium uppercase tracking-wide text-gold">
-              With DCO
+              With AutoX
             </div>
           </div>
           {FLEET_COMPARISON.rows.map((row) => (
