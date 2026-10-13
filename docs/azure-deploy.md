@@ -25,7 +25,7 @@ Step-by-step guide for deploying the DCO backend API to Azure Container Apps. Us
 | Log Analytics | `log-24739` | Logs and diagnostics |
 | App Insights | `appi-24739` | Telemetry |
 
-**Production URL:** `https://dco-api-24739.wonderfulplant-4ba5225f.southeastasia.azurecontainerapps.io/v1`
+**Production URL:** `https://api.autoxmm.com/v1` (custom domain; CNAME → `dco-api-24739.wonderfulplant-4ba5225f.southeastasia.azurecontainerapps.io`)
 
 ---
 
@@ -126,7 +126,7 @@ curl -s -X PATCH "https://management.azure.com${RESOURCE_ID}?api-version=2024-03
               {"name": "MEDIA_SIGNING_KEY", "secretRef": "media-signing-key"},
               {"name": "BOOTSTRAP_ADMIN_EMAIL", "value": "<ADMIN_EMAIL>"},
               {"name": "BOOTSTRAP_ADMIN_PASSWORD", "value": "<ADMIN_PASSWORD>"},
-              {"name": "PUBLIC_API_URL", "value": "https://dco-api-24739.wonderfulplant-4ba5225f.southeastasia.azurecontainerapps.io/v1"},
+              {"name": "PUBLIC_API_URL", "value": "https://api.autoxmm.com/v1"},
               {"name": "DEPLOY_TS", "value": "<TIMESTAMP>"}
             ]
           }
@@ -169,8 +169,8 @@ Wait for `Running` state. Typical startup: 30-60 seconds.
 ### Check health endpoints
 
 ```bash
-curl -s https://dco-api-24739.wonderfulplant-4ba5225f.southeastasia.azurecontainerapps.io/v1/health | jq .
-curl -s https://dco-api-24739.wonderfulplant-4ba5225f.southeastasia.azurecontainerapps.io/v1/ready | jq .
+curl -s https://api.autoxmm.com/v1/health | jq .
+curl -s https://api.autoxmm.com/v1/ready | jq .
 ```
 
 Expected: `{"status": "ok"}` and `{"status": "ready"}`.
@@ -195,7 +195,7 @@ You should see `[STARTUP]` messages and `Server listening at` in the logs.
 
 ```bash
 # Should return 401 (not 404) — proves the route is registered
-curl -s https://dco-api-24739.wonderfulplant-4ba5225f.southeastasia.azurecontainerapps.io/v1/families/me/vehicles | jq .
+curl -s https://api.autoxmm.com/v1/me/entitlements | jq .
 ```
 
 ---

@@ -96,8 +96,9 @@ npm run seed:org -- --email driver@example.com --role org_driver
 
 ## 4. Before production — cleanup checklist
 
+- [x] Backend `v1.8.0` deployed (2026-10-13) with `PATCH /admin/users/:id/access` — Set password / Mark verified / Clear requirement available in Web Admin; `PUBLIC_API_URL` set to `https://api.autoxmm.com/v1`; CORS includes `www.autoxmm.com`.
 - [ ] Remove `POST /admin/reset-users` from `backend/src/modules/admin.ts` (and `backend/reset_users.js`).
 - [ ] Decide policy for the `PATCH /admin/users/:id/access` overrides (keep as restricted support tooling vs. remove).
 - [ ] Rotate all demo passwords; do not carry `password123` accounts into production.
-- [ ] Enable a real mail provider so invite/reset emails work without the Set-password bypass.
+- [ ] Enable Azure Communication Services mail (`MAIL_PROVIDER=acs` — see `docs/deployment.md` §Email) so invite/reset emails work without the Set-password bypass. Current env is `MAIL_PROVIDER=stdout` (emails only print to container logs).
 - [ ] Set strong `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD` and complete first-login hardening.

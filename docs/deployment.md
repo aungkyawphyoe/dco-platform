@@ -48,12 +48,12 @@ curl -s https://<app>.wonderfulplant-4ba5225f.southeastasia.azurecontainerapps.i
 **Build:**
 ```bash
 cd backend
-az acr build --registry dcoacr24739 --image dco-api:v1.7.1 --image dco-api:latest .
+az acr build --registry dcoacr24739 --image dco-api:v1.8.0 --image dco-api:latest .
 ```
 
 **Deploy:**
 ```bash
-az containerapp update --name dco-api-24739 --resource-group dco-rg --image dcoacr24739.azurecr.io/dco-api:v1.7.1
+az containerapp update --name dco-api-24739 --resource-group dco-rg --image dcoacr24739.azurecr.io/dco-api:v1.8.0
 ```
 
 **Required env/secrets (managed in portal or `az containerapp update`):**
@@ -84,6 +84,20 @@ az containerapp update --name dco-api-24739 --resource-group dco-rg --image dcoa
 ```bash
 DATABASE_URL="<prod-url>" npm run db:migrate
 ```
+
+**Email (ACS):** The API mailer supports `stdout` (dev/demo — prints to container logs, never delivers) and `acs` (Azure Communication Services — delivers for real). Current demo env uses `MAIL_PROVIDER=stdout`, so invite/reset emails never reach inboxes; recover accounts via Web Admin → user → **Set password** instead. To enable real delivery:
+
+1. Create an ACS resource and a verified sending domain (or use the ACS default domain for testing).
+2. Set on the container app:
+   - `MAIL_PROVIDER=acs`
+   - `MAIL_API_KEY=<ACS access key>` (or `ACS_ENDPOINT=<ACS endpoint>`)
+   - `MAIL_FROM=<verified sender address>`
+   ```bash
+   az containerapp update --name dco-api-24739 --resource-group dco-rg \
+     --set-secrets mail-api-key=<ACS-key> \
+     --set-env-vars MAIL_PROVIDER=acs MAIL_FROM=<verified-sender> \
+     --secret-ref MAIL_API_KEY=mail-api-key
+   ```
 
 **License key generation (one-time, store in Key Vault):**
 ```bash

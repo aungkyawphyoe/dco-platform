@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { clearToken, ensureFreshToken, setToken } from "@/lib/auth/token-store";
+import { apiBaseUrl } from "@/lib/api/config";
 
 export type SessionUser = {
   id: string;
@@ -43,10 +44,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080/v1"}/me`,
-          { headers: { authorization: `Bearer ${token}` } },
-        );
+        const res = await fetch(`${apiBaseUrl()}/me`, {
+          headers: { authorization: `Bearer ${token}` },
+        });
         if (!res.ok) throw new Error("me failed");
         const me = (await res.json()) as SessionUser;
         if (!active) return;
