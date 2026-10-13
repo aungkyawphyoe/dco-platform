@@ -68,7 +68,7 @@ export function QrCodeModal({
           </Button>
         </div>
         <p className="text-xs text-ink-caption text-center">
-          Expires in 7 days. Scan with AutoHub mobile app to join.
+          Expires in 7 days. Scan with AutoX mobile app to join.
         </p>
       </div>
     </Modal>

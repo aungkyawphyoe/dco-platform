@@ -58,11 +58,11 @@ Fleet and verified-workshop REST/auth/schema foundations are implemented. Fleet/
 - Driver accounts (`org_driver`) are created only by the Fleet Admin with username + display name + initial password and no email; `users.must_change_password=true` blocks fleet/driver API calls (except profile/password routes) with 403 `password_change_required` until changed.
 - Driver deactivation = `users.status=deactivated` (soft delete): login blocked, active `driver_assignments` cascaded to completed, history retained, reactivation allowed, username reserved permanently.
 - Fleet Portal login rejects `org_driver` (403 `portal_access_restricted`); portal sidebar visibility is role-gated (admin full, manager/mechanic reduced, driver none). Mobile remains `dco-owner` for all org members, including drivers.
-- Fleet Admin (`org_admin`) accounts are provisioned by DCO Admin with email + temporary password (forced change); exactly one admin per org, created only by DCO Admin.
+- Fleet Admin (`org_admin`) accounts are provisioned by AutoX Admin with email + temporary password (forced change); exactly one admin per org, created only by AutoX Admin.
 
 ### Implemented Backend Entitlements (Vehicle Sharing + Fleet)
 
-- Keep `users.plan` as `free` / `lite` / `standard` / `fleet` (four-tier, `docs/pricing.md`); plan changes remain DCO-admin-managed until billing is explicitly added.
+- Keep `users.plan` as `free` / `lite` / `standard` / `fleet` (four-tier, `docs/pricing.md`); plan changes remain AutoX-admin-managed until billing is explicitly added.
 - Resolve Vehicle Sharing and Fleet as separate entitlements. Enterprise membership does not set or imply a user's plan.
 - Fleet access requires an Enterprise organization, organization `status=active`, and active membership; organization role authorizes the requested operation.
 - All plans can share and accept shares. `shareLimits` (`backend/src/lib/plans.ts` — single source, mirrored by `plans` table rows) caps free at 1 and lite at 3 active shares (per vehicle and total); standard/fleet are unlimited (`null`). Caps are re-checked server-side on every share create and accept/join.
@@ -70,7 +70,7 @@ Fleet and verified-workshop REST/auth/schema foundations are implemented. Fleet/
 - `POST /v1/vehicles` enforces `vehicleLimit` (active/non-archived count): at cap it returns 403 `LIMIT_EXCEEDED` with `details { metric, current, limit, upgrade_url }` (`docs/pricing.md` §Limit Check Response). Idempotent replays and edits of existing rows are unaffected; sync pushes apply the same path and surface as `rejected` operations.
 - `GET /v1/me/entitlements` returns `vehicle_sharing.{available,can_share,limits,active_shares}` (limit `null` = unlimited) and `features.vehicle_sharing` as navigation hints. Every protected API operation re-checks plan, membership, org status, and role server-side; mobile/portal navigation wiring remains pending.
 - `GET /v1/me/license` (owner audience) issues the offline entitlement license: EdDSA compact JWT, `kid` header, self-contained tier claims, `LICENSE_TTL_DAYS` rolling expiry until billing lands (`architecture/feature-gating.md` §5). The Ed25519 private key is server-only (Key Vault/env); mobile verifies against the bundled public keyring.
-- DCO Admin creates Enterprise organizations in `pending` and explicitly activates them after provisioning. A user's login does not activate an organization.
+- AutoX Admin creates Enterprise organizations in `pending` and explicitly activates them after provisioning. A user's login does not activate an organization.
 - Fleet Dashboard receives `dco-fleet`; Flutter remains on `dco-owner`. Shared Fleet APIs authorize by organization membership/role independently of audience.
 
 ---

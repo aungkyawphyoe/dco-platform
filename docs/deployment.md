@@ -1,4 +1,4 @@
-# DCO Platform — Deployment Guide
+# AutoX Platform — Deployment Guide
 
 ## Overview
 
@@ -178,6 +178,17 @@ az acr build --registry dcoacr24739 --image dco-site:v1.0.0 --image dco-site:lat
 az containerapp update --name dco-site --resource-group dco-rg --image dcoacr24739.azurecr.io/dco-site:v1.0.0
 ```
 
+**Tag discipline:** always bump the version tag (e.g. `v1.0.0` → `v1.0.1`) on every
+deploy. `az containerapp update` with the same image string as the running revision
+is a no-op — even if the tag now points to a newer digest. And never deploy a tag
+that was not built first: a revision referencing a missing tag goes into
+`ImagePullBackOff` and the old revision keeps serving (`az containerapp replica list`
+shows the reason).
+
+**Fonts:** the site self-hosts Barlow + IBM Plex (woff2 in `site/public/fonts`,
+`@font-face` in `globals.css`) — do **not** switch back to `next/font/google`: the
+ACR build environment cannot reach `fonts.googleapis.com` and `next build` fails.
+
 **No auth.** Public pages: `/`, `/personal`, `/fleet`, `/pricing`, `/faq`.
 
 **Env vars:**
@@ -247,6 +258,8 @@ az containerapp ingress traffic set --name <app> --resource-group dco-rg --revis
 | License 500 | Missing `LICENSE_ED25519_KEY` env var; run `npm run license:key` |
 | CORS error | Update `CORS_ORIGINS` secret + redeploy API |
 | Build fails (types) | Run `npm run gen:api` in web/fleet-portal after API OpenAPI changes |
+| Deploy "did nothing" | Old content still serving: (1) the deployed tag was never built → `ImagePullBackOff`, check `az containerapp replica list`; (2) tag not bumped → update was a no-op; always use a new tag per deploy |
+| Site build fails on fonts | `next/font/google` cannot reach Google Fonts from ACR — fonts are self-hosted in `site/public/fonts`; keep `@font-face` setup |
 
 ---
 

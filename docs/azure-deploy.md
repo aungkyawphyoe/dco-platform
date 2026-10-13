@@ -1,6 +1,6 @@
 # Azure Manual Deployment Guide
 
-Step-by-step guide for deploying the DCO backend API to Azure Container Apps. Use this when `azd deploy` is unavailable or when you need fine-grained control over the deployment.
+Step-by-step guide for deploying the AutoX backend API to Azure Container Apps. Use this when `azd deploy` is unavailable or when you need fine-grained control over the deployment.
 
 ---
 

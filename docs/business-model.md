@@ -2,7 +2,7 @@
 
 ## Executive Summary
 
-The Digital Car Ownership Platform is a B2C-first platform with a long-term ecosystem strategy. Revenue is generated through premium subscriptions, marketplace commissions, partner integrations, and business services while delivering free core functionality to attract a broad user base.
+The AutoX Platform is a B2C-first platform with a long-term ecosystem strategy. Revenue is generated through premium subscriptions, marketplace commissions, partner integrations, and business services while delivering free core functionality to attract a broad user base.
 
 ---
 

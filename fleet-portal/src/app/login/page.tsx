@@ -33,7 +33,7 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Image
-            src="/dco-logo.png"
+            src="/autox-logo.png"
             alt=""
             width={96}
             height={96}
@@ -41,7 +41,7 @@ export default function LoginPage() {
             priority
           />
           <p className="font-display text-3xl font-semibold tracking-tight text-gold">
-            AutoHub Fleet
+            AutoX Fleet
           </p>
           <p className="mt-2 text-sm text-ink-caption">
             Enterprise fleet management — organization members only

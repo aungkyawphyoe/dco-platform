@@ -1,5 +1,5 @@
 name: dco_mobile
-description: DCO owner app — digital garage, offline-first.
+description: AutoX owner app — digital garage, offline-first.
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -50,26 +50,26 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: assets/branding/dco-logo.png
+  image_path: assets/branding/autox-logo.png
   adaptive_icon_background: "#FFFFFF"
-  adaptive_icon_foreground: assets/branding/dco-logo.png
+  adaptive_icon_foreground: assets/branding/autox-logo.png
   remove_alpha_ios: true
 
 flutter_native_splash:
   color: "#FFFFFF"
-  image: assets/branding/dco-logo.png
+  image: assets/branding/autox-logo.png
   android: true
   ios: true
   web: false
   android_12:
     color: "#FFFFFF"
-    image: assets/branding/dco-logo.png
+    image: assets/branding/autox-logo.png
 
 flutter:
   generate: true
   uses-material-design: true
   assets:
-    - assets/branding/dco-logo.png
+    - assets/branding/autox-logo.png
     - assets/license_keys.json
     - assets/onboarding/01-car-home.svg
     - assets/onboarding/02-service-reminders.svg

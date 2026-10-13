@@ -1,6 +1,6 @@
-# DCO MVP — Product Guide (as built)
+# AutoX MVP — Product Guide (as built)
 
-**Product:** Digital Car Ownership (DCO)  
+**Product:** AutoX  
 **Audience:** Stakeholders, product, engineering  
 **Status:** Working implementation, production-ready  
 **As of:** 16 September 2026  
@@ -13,9 +13,9 @@ This guide describes **what the codebase actually does today**. It is not a rest
 
 ---
 
-## 1. What DCO is
+## 1. What AutoX is
 
-DCO is a **digital garage** for a car owner: one place to keep vehicles, service history, spend, refuel/charge logs, and (when finished) documents. The owner product is a Flutter app that works **offline first**. A Fastify REST API is the durable source of truth. A Next.js **admin portal** is for staff only — user support and partner records, not owner workflows.
+AutoX is a **digital garage** for a car owner: one place to keep vehicles, service history, spend, refuel/charge logs, and (when finished) documents. The owner product is a Flutter app that works **offline first**. A Fastify REST API is the durable source of truth. A Next.js **admin portal** is for staff only — user support and partner records, not owner workflows.
 
 It is **not** Autozis. Fuel *efficiency* KPIs, insurance *policies*, trips, OCR, marketplace, and dealer portals are out of MVP.
 
@@ -135,7 +135,7 @@ Owner-defined catalog per vehicle (name, optional brand, part number, notes). At
 ### 4.7 Fuel
 
 - **Logs:** date, type, amount, cost. Petrol and hybrid plugin → Refuel. Electric → Charge.
-- A plug-in hybrid **cannot** log a charge. That split is in [`product/frd/fuel.md`](../product/frd/fuel.md). Autozis’s demo PHEV uses both Charge and Refuel on the same car — DCO does not.
+- A plug-in hybrid **cannot** log a charge. That split is in [`product/frd/fuel.md`](../product/frd/fuel.md). Autozis’s demo PHEV uses both Charge and Refuel on the same car — AutoX does not.
 - **Fuel Types** catalog: name, kind (liquid vs electric), unit. Seeded on API signup (Petrol, Diesel, Electricity).
 - List filters: fuel type, this month / all dates.
 - Volume/kWh live here. A fuel *expense* is money only. No MPG / L/100km / kWh economy (v1.1).
@@ -188,7 +188,7 @@ Staff-only. Owner JWTs are rejected at login.
 
 **Users:** search, filter by status, open profile (email, plan, vehicles, document count). Actions: change plan, deactivate (revokes refresh tokens), reactivate, send password-reset email.
 
-**Partners:** workshops and insurers as CRM rows (`draft` / `pending_verification` / `verified` / `rejected`). Creating a partner does **not** issue a login by itself; DCO Admin can link a sign-in account for a **verified workshop** (Fleet warranty workflows, `dco-workshop` audience). No booking or claims product.
+**Partners:** workshops and insurers as CRM rows (`draft` / `pending_verification` / `verified` / `rejected`). Creating a partner does **not** issue a login by itself; AutoX Admin can link a sign-in account for a **verified workshop** (Fleet warranty workflows, `dco-workshop` audience). No booking or claims product.
 
 Admin never streams owner document bytes in the default profile view.
 

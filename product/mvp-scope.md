@@ -1,6 +1,6 @@
 # MVP Scope
 
-**Product:** Digital Car Ownership Platform (DCO)
+**Product:** AutoX Platform
 
 **Version:** 1.1
 

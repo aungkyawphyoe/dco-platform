@@ -9,7 +9,7 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
-  String get appTitle => 'AutoHub';
+  String get appTitle => 'AutoX';
 
   @override
   String get ok => 'OK';
@@ -2457,7 +2457,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get fleetOrgSettingsReadonly =>
-      'Contact details are managed by AutoHub admin.';
+      'Contact details are managed by AutoX admin.';
 
   @override
   String get fleetInventoryTitle => 'Vehicle inventory';
@@ -3290,7 +3290,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'Codes expire in 7 days. Regenerating invalidates the old one.';
 
   @override
-  String get shareQrHint => 'Scan with the AutoHub app';
+  String get shareQrHint => 'Scan with the AutoX app';
 
   @override
   String get shareRegenerate => 'Regenerate code';
@@ -3618,7 +3618,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authFirstVehicleBody =>
-      'Add your first vehicle, or explore AutoHub and add one later.';
+      'Add your first vehicle, or explore AutoX and add one later.';
 
   @override
   String get authAddVehicle => 'Add your first vehicle';

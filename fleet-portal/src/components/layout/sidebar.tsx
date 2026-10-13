@@ -78,14 +78,14 @@ export function Sidebar() {
     <aside className="flex w-60 shrink-0 flex-col border-r border-line-subtle bg-panel">
       <div className="flex h-16 items-center gap-2.5 px-5">
         <Image
-          src="/dco-logo.png"
+          src="/autox-logo.png"
           alt=""
           width={32}
           height={32}
           className="size-8 shrink-0 rounded-sm bg-white"
         />
         <span className="font-display text-lg font-semibold tracking-tight text-gold">
-          AutoHub Fleet
+          AutoX Fleet
         </span>
       </div>
 

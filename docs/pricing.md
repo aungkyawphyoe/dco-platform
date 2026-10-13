@@ -1,4 +1,4 @@
-# DCO Platform Pricing & Feature Reference
+# AutoX Platform Pricing & Feature Reference
 
 **Version**: 1.0
 **Market**: Myanmar
@@ -245,7 +245,7 @@ the pricing fields live in `details`.
 
 ## Feature Parity Checklist
 
-| Feature | DCO Current | Status |
+| Feature | AutoX Current | Status |
 |---------|-------------|--------|
 | Fuel Tracking | ✅ | Done |
 | EV Charging Tracking | ✅ | Done |

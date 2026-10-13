@@ -32,7 +32,7 @@ New mobile clients use `/auth/email-code` and `/auth/recovery-code`. Legacy link
 
 ## App callback and platform checks
 
-- App callback: `dco-auth://callback?flow_id=...`. No DCO tokens, provider tokens, or exchange secret appear in that URL. The retained random secret prevents another app intercepting the scheme from redeeming the flow.
+- App callback: `dco-auth://callback?flow_id=...`. No AutoX tokens, provider tokens, or exchange secret appear in that URL. The retained random secret prevents another app intercepting the scheme from redeeming the flow.
 - Android registers the flutter_web_auth_2 callback activity, empty task affinity, and Internet permission. iOS uses the plugin's ASWebAuthenticationSession custom-scheme completion; no embedded webview or client secret is used.
 - The plugin's implementation includes an iOS pre-17.4 fallback, preserving the existing iOS 15.6 deployment target.
 - Test Google and Apple login, cancelled login, hidden/missing email, existing-account linking, expired flow, app backgrounding, and relaunch on both devices. A killed app discards its in-memory flow secret and must restart sign-in.

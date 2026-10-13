@@ -69,7 +69,7 @@ Enable users to:
 
 | Persona | Description | Primary Surface |
 |---------|-------------|-----------------|
-| **Primary Owner** | Premium account holder who creates family, owns vehicles, and manages members/roles; plan is DCO-admin-managed for this phase | Mobile + Web (read-only) |
+| **Primary Owner** | Premium account holder who creates family, owns vehicles, and manages members/roles; plan is AutoX-admin-managed for this phase | Mobile + Web (read-only) |
 | **Member (Secondary Owner)** | Full vehicle access except ownership transfer; can manage maintenance, expenses, documents | Mobile |
 | **Driver** | View-only access to assigned vehicles; can log fuel, view documents, see maintenance due | Mobile |
 | **Platform Admin** | Manages users, partners; can view family structures for support | Web Admin |
@@ -280,7 +280,7 @@ Authorization: `POST /v1/families` and Primary Owner management mutations requir
 ## Business Rules
 
 1. **Free users can participate when invited** — an active family membership provides only the role/grant-scoped access granted by the Premium Primary Owner
-2. **Primary Owner Premium entitlement** — only a Premium user can create/manage a family; Premium is DCO-admin-managed for this phase, with no purchase or billing flow
+2. **Primary Owner Premium entitlement** — only a Premium user can create/manage a family; Premium is AutoX-admin-managed for this phase, with no purchase or billing flow
 3. **Invited members do not need Premium** — family membership and vehicle grants govern their scoped access
 4. **Premium revocation archives the family** — archive the family, revoke/delete active vehicle grants, invalidate family-authenticated sessions, and remove member access without deleting accounts, personally owned vehicles, or history
 5. **One family per user** — enforced at membership level

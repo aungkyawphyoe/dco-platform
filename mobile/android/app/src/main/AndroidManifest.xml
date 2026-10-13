@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <application
-        android:label="AutoHub"
+        android:label="AutoX"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
@@ -31,7 +31,7 @@
             </intent-filter>
         </activity>
         <activity android:name="com.linusu.flutter_web_auth_2.CallbackActivity" android:exported="true" android:taskAffinity="">
-            <intent-filter android:label="AutoHub sign-in">
+            <intent-filter android:label="AutoX sign-in">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />

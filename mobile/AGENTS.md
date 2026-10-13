@@ -1,4 +1,4 @@
-# DCO Mobile — Agent Contract
+# AutoX Mobile — Agent Contract
 
 Working contract for the Flutter **owner app**. Do not copy FRDs into this file. Point at them and honor the rules below.
 
@@ -33,7 +33,7 @@ Production scope wins over an FRD. If they disagree, update the FRD. OpenAPI win
 
 ## Project overview
 
-Digital Car Ownership (DCO) is a digital garage: vehicles, maintenance plan + history, documents, expenses. Offline-first. Synced to a versioned REST API (`/v1`, audience `dco-owner`).
+AutoX is a digital garage: vehicles, maintenance plan + history, documents, expenses. Offline-first. Synced to a versioned REST API (`/v1`, audience `dco-owner`).
 
 After a successful owner login, land on **Dashboard** (tldraw screen 3) — the **active vehicle's home**. Bottom nav labels: **Garage / Maintenance / Expenses / Setting**. The Garage tab **is** Dashboard; it is named Garage because the working context is the garage's active vehicle. My Garage (vehicle list) is one tap off the header chip, not a fifth tab.
 

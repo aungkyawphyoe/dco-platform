@@ -1,6 +1,6 @@
 # Feature Requirement Documents (FRDs)
 
-This directory contains the functional specifications for every feature of the Digital Car Ownership Platform.
+This directory contains the functional specifications for every feature of the AutoX Platform.
 
 Each FRD is self-contained and serves as the primary source of truth for:
 

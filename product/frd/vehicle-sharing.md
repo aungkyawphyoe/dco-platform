@@ -83,7 +83,7 @@ Enable users to:
 - Per-share expiry after acceptance (only invitations and codes expire)
 - Sharing with a non-account: every sharee must be a registered account
 - Sharing organization/Fleet vehicles (they are excluded from this path)
-- Billing / in-app purchase — plan is DCO-admin-managed
+- Billing / in-app purchase — plan is AutoX-admin-managed
 - Sharing documents, notifications, or notes independently of a vehicle
 - Per-share read-only "audit" export
 

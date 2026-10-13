@@ -34,7 +34,7 @@ function renderValue(value: boolean | string): React.ReactNode {
 
 export function FeatureTable({ plans, matrix }: FeatureTableProps) {
   return (
-    <div className="overflow-x-auto rounded-xl border border-line-subtle bg-card">
+    <div className="surface overflow-x-auto rounded-xl">
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-line">
@@ -61,7 +61,10 @@ export function FeatureTable({ plans, matrix }: FeatureTableProps) {
                 </th>
               </tr>
               {group.rows.map((row) => (
-                <tr key={`${group.category}-${row.label}`} className="border-b border-line-subtle last:border-0">
+                <tr
+                  key={`${group.category}-${row.label}`}
+                  className="border-b border-line-subtle transition-colors duration-200 ease-out-soft last:border-0 hover:bg-gold/[0.04]"
+                >
                   <th scope="row" className="px-5 py-3 text-left font-normal text-ink">
                     {row.label}
                   </th>

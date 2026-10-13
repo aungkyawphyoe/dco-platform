@@ -1,28 +1,9 @@
 import type { Metadata } from "next";
-import { Barlow, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { cookies } from "next/headers";
 import { THEME_COOKIE, THEME_INIT_SCRIPT, themeClassFromCookie } from "@/lib/theme";
 import { SiteNav } from "@/components/layout/site-nav";
 import { SiteFooter } from "@/components/layout/site-footer";
 import "./globals.css";
-
-const barlow = Barlow({
-  variable: "--font-barlow",
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-});
-
-const plexSans = IBM_Plex_Sans({
-  variable: "--font-plex-sans",
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-});
-
-const plexMono = IBM_Plex_Mono({
-  variable: "--font-plex-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
-});
 
 export const metadata: Metadata = {
   title: {
@@ -42,10 +23,14 @@ export default async function RootLayout({
   const theme = themeClassFromCookie(cookieStore.get(THEME_COOKIE)?.value);
 
   return (
-    <html lang="en" className={theme} suppressHydrationWarning>
+    <html lang="en" className={`${theme} scroll-smooth`} suppressHydrationWarning>
+      <head>
+        <link rel="preload" as="font" type="font/woff2" href="/fonts/IBMPlexSans-var.woff2" crossOrigin="" />
+        <link rel="preload" as="font" type="font/woff2" href="/fonts/Barlow-600.woff2" crossOrigin="" />
+      </head>
       <body
         suppressHydrationWarning
-        className={`${barlow.variable} ${plexSans.variable} ${plexMono.variable} bg-bg font-sans text-ink antialiased flex min-h-screen flex-col`}
+        className="bg-bg font-sans text-ink antialiased flex min-h-screen flex-col"
       >
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <SiteNav />

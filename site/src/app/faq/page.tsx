@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { FAQ_CATEGORIES } from "@/content/faq";
 import { FaqCategorySection } from "@/components/faq/faq-category";
+import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { CtaBanner } from "@/components/marketing/cta-banner";
 
@@ -13,7 +14,8 @@ export const metadata: Metadata = {
 export default function FaqPage() {
   return (
     <>
-      <section className="border-b border-line">
+      <section className="relative isolate overflow-hidden border-b border-line">
+        <AuroraBackdrop dots />
         <div className="mx-auto max-w-4xl px-4 py-14 sm:px-6 sm:py-16">
           <SectionHeading
             eyebrow="Help center"
@@ -25,7 +27,7 @@ export default function FaqPage() {
               <a
                 key={category.id}
                 href={`#${category.id}`}
-                className="rounded-full border border-line-subtle bg-card px-4 py-1.5 text-sm text-ink-muted transition-colors duration-150 hover:border-gold hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+                className="surface card-hover rounded-full px-4 py-1.5 text-sm text-ink-muted hover:border-gold/50 hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 {category.label}
               </a>

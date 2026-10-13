@@ -2,7 +2,7 @@
 
 ## Overview
 
-The web portal is the business-side surface for DCO staff. It is not the owner app. Admins sign in with an admin-only role, see counts of users and vehicles, support a user account, and record workshop and insurer partners. Partners do not get a product portal in MVP: no bookings, no claims, no dealer tools.
+The web portal is the business-side surface for AutoX staff. It is not the owner app. Admins sign in with an admin-only role, see counts of users and vehicles, support a user account, and record workshop and insurer partners. Partners do not get a product portal in MVP: no bookings, no claims, no dealer tools.
 
 This module is online-only. It does not use the mobile offline sync engine.
 
@@ -155,7 +155,7 @@ Behavior
 - Create, edit, list, search
 - Verification is a manual status change by the admin, not an automated KYC product
 - Partners cannot sign in to this portal in MVP
-- For a **verified workshop**, the admin can link a DCO owner account (`POST /admin/partners/:id/workshop-accounts`) so the workshop can sign in on the `dco-workshop` surface for Fleet warranty workflows. Linking an existing account does not send an account invite; a newly created account receives the password-setup email plus a workshop invitation email
+- For a **verified workshop**, the admin can link a AutoX owner account (`POST /admin/partners/:id/workshop-accounts`) so the workshop can sign in on the `dco-workshop` surface for Fleet warranty workflows. Linking an existing account does not send an account invite; a newly created account receives the password-setup email plus a workshop invitation email
 - No booking calendar, no policy objects
 
 ---

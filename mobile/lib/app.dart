@@ -179,7 +179,7 @@ class _DcoAppState extends ConsumerState<DcoApp>
     };
 
     return MaterialApp.router(
-      title: 'AutoHub',
+      title: 'AutoX',
       debugShowCheckedModeBanner: false,
       theme: buildDcoTheme(Brightness.light),
       darkTheme: buildDcoTheme(Brightness.dark),

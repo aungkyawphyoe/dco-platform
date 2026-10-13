@@ -26,14 +26,14 @@ export function PricingCard({ plan, period }: PricingCardProps) {
 
   return (
     <article
-      className={`relative flex flex-col gap-5 rounded-xl border bg-card p-6 ${
-        highlighted ? "border-gold shadow-lg" : "border-line-subtle"
+      className={`relative flex h-full flex-col gap-5 rounded-xl p-6 surface ${
+        highlighted ? "border-gold shadow-glow" : "card-hover"
       }`}
     >
       {badge && (
         <span
           className={`absolute -top-3 left-6 rounded-full px-3 py-1 text-xs font-semibold ${
-            highlighted ? "bg-btn-primary text-on-gold" : "bg-panel text-ink-caption border border-line-subtle"
+            highlighted ? "btn-gloss" : "bg-panel text-ink-caption"
           }`}
         >
           {badge}
@@ -81,17 +81,17 @@ export function PricingCard({ plan, period }: PricingCardProps) {
         {plan.audience === "fleet" ? (
           <Link
             href="/fleet"
-            className="flex h-11 w-full items-center justify-center rounded-md border border-line-strong bg-panel text-sm font-semibold text-ink transition-colors duration-150 hover:bg-skeleton focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className="surface card-hover flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold text-ink"
           >
             Explore fleet plans
           </Link>
         ) : (
           <Link
             href={plan.id === "free" ? "/personal" : "/#download"}
-            className={`flex h-11 w-full items-center justify-center rounded-md text-sm font-semibold transition-colors duration-150 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${
+            className={`flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold ${
               highlighted
-                ? "bg-btn-primary text-on-gold hover:bg-btn-primary-hover"
-                : "border border-line-strong bg-panel text-ink hover:bg-skeleton"
+                ? "btn-gloss"
+                : "surface card-hover text-ink"
             }`}
           >
             {plan.id === "free" ? "Start free" : "Get the app"}

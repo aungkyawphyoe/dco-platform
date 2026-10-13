@@ -1,3 +1,5 @@
+import { Reveal } from "./reveal";
+
 type SectionHeadingProps = {
   eyebrow?: string;
   title: string;
@@ -8,7 +10,7 @@ type SectionHeadingProps = {
 export function SectionHeading({ eyebrow, title, intro, align = "center" }: SectionHeadingProps) {
   const alignment = align === "center" ? "items-center text-center" : "items-start text-left";
   return (
-    <div className={`flex flex-col gap-3 ${alignment}`}>
+    <Reveal className={`flex flex-col gap-3 ${alignment}`}>
       {eyebrow && (
         <span className="text-xs font-medium uppercase tracking-widest text-gold">{eyebrow}</span>
       )}
@@ -16,6 +18,6 @@ export function SectionHeading({ eyebrow, title, intro, align = "center" }: Sect
         {title}
       </h2>
       {intro && <p className="max-w-2xl text-base leading-7 text-ink-muted sm:text-lg">{intro}</p>}
-    </div>
+    </Reveal>
   );
 }

@@ -1,10 +1,10 @@
 openapi: 3.0.3
 info:
-  title: DCO Platform API
+  title: AutoX Platform API
   version: 1.0.0
   description: |
-    Versioned REST API for the Digital Car Ownership MVP.
-    Personal Flutter clients use audience `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified Workshop accounts use `dco-workshop`; DCO Admin uses `dco-admin`.
+    Versioned REST API for the AutoX MVP.
+    Personal Flutter clients use audience `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified Workshop accounts use `dco-workshop`; AutoX Admin uses `dco-admin`.
     Client-generated UUIDs on create are idempotent. Mileage never decreases.
     Azure hostname is environment-specific and is not part of this contract.
 servers:
@@ -231,7 +231,7 @@ paths:
                     create_account: {type: boolean, default: false}
       responses:
         '200':
-          description: DCO session plus is_new, or needs_account_choice true without a session
+          description: AutoX session plus is_new, or needs_account_choice true without a session
           content:
             application/json:
               schema:
@@ -4204,7 +4204,7 @@ components:
             role:
               type: string
               enum: [owner, admin]
-              description: Account role (DCO platform role, not organization role)
+              description: Account role (AutoX platform role, not organization role)
             email_verified:
               type: boolean
             must_change_password:

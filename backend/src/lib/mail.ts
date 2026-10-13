@@ -23,7 +23,7 @@ function link(env: Env, path: string, token: string): string {
 export function createMailer(env: Env): Mailer {
   return {
     async sendCode(to, code, purpose, locale) {
-      const subject = locale === "my" ? "AutoHub အတည်ပြုကုဒ်" : (purpose === "reset" ? "Reset your AutoHub password" : "Verify your AutoHub email");
+      const subject = locale === "my" ? "AutoX အတည်ပြုကုဒ်" : (purpose === "reset" ? "Reset your AutoX password" : "Verify your AutoX email");
       const body = locale === "my"
         ? `သင်၏ ${purpose === "reset" ? "စကားဝှက်ပြန်သတ်မှတ်ရန်" : "အီးမေးလ်အတည်ပြုရန်"} ကုဒ်မှာ ${code} ဖြစ်ပါသည်။ ၁၀ မိနစ်အတွင်း အသုံးပြုပါ။ ဤကုဒ်ကို မျှဝေခြင်းမပြုပါနှင့်။`
         : `Your ${purpose === "reset" ? "password reset" : "email verification"} code is ${code}. It expires in 10 minutes. Do not share it.`;
@@ -40,7 +40,7 @@ export function createMailer(env: Env): Mailer {
         console.log(`[mail] verify ${to}: ${url}`);
         return;
       }
-      await sendAcs(env, to, "Verify your AutoHub email", `Confirm your email: ${url}`);
+      await sendAcs(env, to, "Verify your AutoX email", `Confirm your email: ${url}`);
     },
     async sendPasswordReset(to, token) {
       const url = link(env, "/auth/reset-password", token);
@@ -48,39 +48,39 @@ export function createMailer(env: Env): Mailer {
         console.log(`[mail] reset ${to}: ${url}`);
         return;
       }
-      await sendAcs(env, to, "Reset your AutoHub password", `Reset your password: ${url}`);
+      await sendAcs(env, to, "Reset your AutoX password", `Reset your password: ${url}`);
     },
     async sendOrganizationInvitation(to, organizationName, role) {
-      const body = `You have been added to ${organizationName} as ${role}. Sign in to your AutoHub account to access the organization workspace.`;
+      const body = `You have been added to ${organizationName} as ${role}. Sign in to your AutoX account to access the organization workspace.`;
       if (env.MAIL_PROVIDER === "stdout") {
         console.log(`[mail] organization invite ${to}: ${body}`);
         return;
       }
-      await sendAcs(env, to, `AutoHub Fleet access: ${organizationName}`, body);
+      await sendAcs(env, to, `AutoX Fleet access: ${organizationName}`, body);
     },
     async sendOrganizationActivated(to, organizationName) {
-      const body = `${organizationName} is now active. Sign in to AutoHub; Fleet access is available to organization members.`;
+      const body = `${organizationName} is now active. Sign in to AutoX; Fleet access is available to organization members.`;
       if (env.MAIL_PROVIDER === "stdout") {
         console.log(`[mail] organization activated ${to}: ${body}`);
         return;
       }
-      await sendAcs(env, to, `AutoHub Fleet activated: ${organizationName}`, body);
+      await sendAcs(env, to, `AutoX Fleet activated: ${organizationName}`, body);
     },
     async sendWorkshopInvitation(to, workshopName) {
-      const body = `You have been granted workshop access for ${workshopName}. Set your AutoHub password using the password setup email, then sign in to the workshop workspace.`;
+      const body = `You have been granted workshop access for ${workshopName}. Set your AutoX password using the password setup email, then sign in to the workshop workspace.`;
       if (env.MAIL_PROVIDER === "stdout") {
         console.log(`[mail] workshop invite ${to}: ${body}`);
         return;
       }
-      await sendAcs(env, to, `AutoHub Workshop access: ${workshopName}`, body);
+      await sendAcs(env, to, `AutoX Workshop access: ${workshopName}`, body);
     },
     async sendVehicleShareInvitation(to, vehicleName, inviterName, inviteUrl) {
-      const body = `${inviterName} shared the vehicle "${vehicleName}" with you. Open the AutoHub app and accept the invitation: ${inviteUrl}`;
+      const body = `${inviterName} shared the vehicle "${vehicleName}" with you. Open the AutoX app and accept the invitation: ${inviteUrl}`;
       if (env.MAIL_PROVIDER === "stdout") {
         console.log(`[mail] vehicle share invite ${to}: ${body}`);
         return;
       }
-      await sendAcs(env, to, `AutoHub: ${vehicleName} shared with you`, body);
+      await sendAcs(env, to, `AutoX: ${vehicleName} shared with you`, body);
     },
   };
 }

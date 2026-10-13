@@ -1,6 +1,6 @@
 # Production Scope
 
-**Product:** Digital Car Ownership Platform (DCO)
+**Product:** AutoX Platform
 
 **Version:** 1.0
 
@@ -47,10 +47,10 @@ Behavior: [Auth FRD](frd/auth.md). Delivery phases, setup dependencies, compatib
 ### Account and feature entitlements
 
 - **Free (`users.plan=free`)**: basic personal garage, maintenance, expenses, documents, and fuel features, plus Vehicle Sharing capped at **1 active share** (per vehicle and total) and **1 vehicle** (create enforced server-side: 403 `LIMIT_EXCEEDED`, `architecture/feature-gating.md` §9). Fleet entry points are hidden unless the user has an active membership.
-- **Paid tiers (`users.plan=lite|standard|fleet`)** per `docs/pricing.md`: vehicles 3 / 10 / unlimited, sharing 3 / unlimited / unlimited, storage 150 MB / 500 MB / 5 GB. DCO-admin-managed for now; no in-app purchase or subscription billing flow yet (payment flow is the next slice). Offline local gating design: `architecture/feature-gating.md`.
-- **Enterprise (`organizations.plan=enterprise`)**: organization-level Fleet access for active members of an active organization, with actions restricted by organization role. DCO Admin provisions the organization and explicitly activates it. Enterprise does not change a member's personal `users.plan`.
+- **Paid tiers (`users.plan=lite|standard|fleet`)** per `docs/pricing.md`: vehicles 3 / 10 / unlimited, sharing 3 / unlimited / unlimited, storage 150 MB / 500 MB / 5 GB. AutoX-admin-managed for now; no in-app purchase or subscription billing flow yet (payment flow is the next slice). Offline local gating design: `architecture/feature-gating.md`.
+- **Enterprise (`organizations.plan=enterprise`)**: organization-level Fleet access for active members of an active organization, with actions restricted by organization role. AutoX Admin provisions the organization and explicitly activates it. Enterprise does not change a member's personal `users.plan`.
 - **Fleet account alignment (Oct 2026, pending implementation)** — details in `product/frd/fleet-management.md`:
-  - Fleet Admin (`org_admin`) accounts are created by DCO Admin with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations.
+  - Fleet Admin (`org_admin`) accounts are created by AutoX Admin with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations.
   - Drivers are created/deactivated by the Fleet Admin with **username + password, no email**; login accepts email or username (customer signup stays email-only). Driver deactivation is a soft delete: assignment cascaded, history retained, username reserved.
   - Fleet Portal sidebar is role-gated: full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`. Mobile drawer Fleet entry stays visible to all org members.
   - Driver login forces Driver mode; drivers may edit only their own profile/password and cannot create/edit/delete vehicles or other users (server-enforced).

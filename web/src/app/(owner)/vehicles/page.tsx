@@ -57,7 +57,7 @@ export default function VehiclesPage() {
           <Card>
             <EmptyState
               title="No vehicles yet"
-              description="Vehicles are added from the AutoHub mobile app. Once one is synced it appears here."
+              description="Vehicles are added from the AutoX mobile app. Once one is synced it appears here."
             />
           </Card>
         ) : (

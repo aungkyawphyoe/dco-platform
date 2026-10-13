@@ -9,7 +9,7 @@ class AppLocalizationsMy extends AppLocalizations {
   AppLocalizationsMy([String locale = 'my']) : super(locale);
 
   @override
-  String get appTitle => 'AutoHub';
+  String get appTitle => 'AutoX';
 
   @override
   String get ok => 'လုပ်မည်';
@@ -2484,7 +2484,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get fleetOrgSettingsReadonly =>
-      'ဆက်သွယ်ရန် အချက်အလက်များကို AutoHub စီမံခန့်ခွဲသူက စီမံပါသည်။';
+      'ဆက်သွယ်ရန် အချက်အလက်များကို AutoX စီမံခန့်ခွဲသူက စီမံပါသည်။';
 
   @override
   String get fleetInventoryTitle => 'ယာဉ် စာရင်း';
@@ -3325,7 +3325,7 @@ class AppLocalizationsMy extends AppLocalizations {
       'ကုဒ်များသည် ၇ ရက်အတွင်း သက်တမ်းကုန်သည်။ ပြန်လည်ဖန်တီးပါက ဟောင်းက အသုံးမပြုရတော့ပါ။';
 
   @override
-  String get shareQrHint => 'AutoHub အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
+  String get shareQrHint => 'AutoX အက်ပ်ဖြင့် စကင်ဖတ်ပါ';
 
   @override
   String get shareRegenerate => 'ကုဒ် ပြန်လည်ဖန်တီးမည်';
@@ -3655,7 +3655,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get authFirstVehicleBody =>
-      'သင့်ပထမဆုံးကားကို ထည့်ပါ။ သို့မဟုတ် AutoHub ကို လေ့လာပြီး နောက်မှ ထည့်နိုင်ပါသည်။';
+      'သင့်ပထမဆုံးကားကို ထည့်ပါ။ သို့မဟုတ် AutoX ကို လေ့လာပြီး နောက်မှ ထည့်နိုင်ပါသည်။';
 
   @override
   String get authAddVehicle => 'ပထမဆုံးကား ထည့်မည်';

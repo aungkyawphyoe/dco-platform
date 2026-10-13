@@ -174,7 +174,7 @@ See `docs/adr/azure-hosting.md` and `.azure/deployment-plan.md`.
 
 ## Mapping to Autozis (reference only)
 
-Autozis demo (`https://autozis.com/app/dashboard`) is an **online owner web app**: sidebar (Garage, Assistant, Maintenance Plan, Insurance, Notes, Documents, Refuel, Expenses, Trips, catalogs) plus a bottom module dock. DCO reuses the *idea* (active vehicle home with health, next event, costs, recent activity) and rejects Autozis modules that MVP deferred. Admin is **not** in Autozis; DCO adds it as a staff portal with the same dark-sidebar + KPI-card chrome.
+Autozis demo (`https://autozis.com/app/dashboard`) is an **online owner web app**: sidebar (Garage, Assistant, Maintenance Plan, Insurance, Notes, Documents, Refuel, Expenses, Trips, catalogs) plus a bottom module dock. AutoX reuses the *idea* (active vehicle home with health, next event, costs, recent activity) and rejects Autozis modules that MVP deferred. Admin is **not** in Autozis; AutoX adds it as a staff portal with the same dark-sidebar + KPI-card chrome.
 
 See `architecture/data-model.md` for entity-level compare and `docs/app-shell.md` for nav compare.
 

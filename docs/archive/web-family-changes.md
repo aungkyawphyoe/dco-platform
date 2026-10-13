@@ -103,7 +103,7 @@ export async function middleware(request: NextRequest) {
 ### Layout
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  ☰  DCO Admin          Smith Family          [Copy Code]   │  ← Top Bar (background.secondary)
+│  ☰  AutoX Admin          Smith Family          [Copy Code]   │  ← Top Bar (background.secondary)
 │       A7K9M2QX                                              │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
@@ -183,7 +183,7 @@ export async function middleware(request: NextRequest) {
 │  [Copy Code]                        │
 │                                     │
 │  Expires: 7 days                    │
-│  Scan with DCO mobile app to join.  │
+│  Scan with AutoX mobile app to join.  │
 │                                     │
 │  [Close]                            │
 └─────────────────────────────────────┘
@@ -454,7 +454,7 @@ export interface UserDetail {
 - [ ] QR modal opens, shows correct code
 - [ ] Token refresh works for both audiences
 - [ ] Logout clears correct cookie
-- [ ] Mobile deep link QR opens DCO app join screen
+- [ ] Mobile deep link QR opens AutoX app join screen
 - [ ] Responsive: tables stack on mobile viewport
 - [ ] Dark theme only (no light mode)
 

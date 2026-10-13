@@ -4,9 +4,12 @@ export function FaqCategorySection({ category }: { category: FaqCategory }) {
   return (
     <section id={category.id} className="scroll-mt-24">
       <h2 className="font-display text-2xl font-semibold tracking-tight">{category.label}</h2>
-      <div className="mt-4 divide-y divide-line rounded-xl border border-line-subtle bg-card">
+      <div className="surface mt-4 divide-y divide-line rounded-xl transition-[box-shadow] duration-300 ease-out-soft">
         {category.items.map((item) => (
-          <details key={item.q} className="group px-5 py-4">
+          <details
+            key={item.q}
+            className="group px-5 py-4 transition-colors duration-300 ease-out-soft open:bg-gold/[0.05]"
+          >
             <summary className="flex cursor-pointer list-none items-start justify-between gap-4 text-base font-medium text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus [&::-webkit-details-marker]:hidden">
               {item.q}
               <svg

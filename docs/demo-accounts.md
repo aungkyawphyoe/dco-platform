@@ -4,13 +4,13 @@ Status: active during the **demo period only**. Revisit before production launch
 
 This document covers:
 
-1. The DCO Admin full account-control surface (create / read / update / delete + verification bypass)
+1. The AutoX Admin full account-control surface (create / read / update / delete + verification bypass)
 2. Known demo accounts across all surfaces
 3. How to create, reset, and recover demo accounts
 
 ## 1. Admin full account control
 
-The DCO Admin portal (`web/`, JWT audience `dco-admin`) has complete account CRUD plus demo-period access-control overrides. All actions are audit-logged (`user.*` audit events).
+The AutoX Admin portal (`web/`, JWT audience `dco-admin`) has complete account CRUD plus demo-period access-control overrides. All actions are audit-logged (`user.*` audit events).
 
 ### Capabilities
 
@@ -59,7 +59,7 @@ Credentials below are seeded by code or scripts in this repo. Passwords are demo
 | Fleet Portal (`fleet-portal/`, `dco-fleet`) | `fleet@example.com` | `password123` | Org admin of seeded Enterprise org | `POST /admin/reset-users` seed |
 | Fleet Portal (local dev) | `orgadmin@example.com` | `OrgAdmin123!` | Org admin of "Acme Motors" | `backend`: `npm run seed:org` |
 | Fleet driver (mobile) | `driver@example.com` (or `--email`) | as passed to `seed:org` | `org_driver` | `npm run seed:org -- --role org_driver …` |
-| DCO Admin (this environment) | `dcomotor@gmail.com` | **unknown** — reset via §3 | Org admin of active Enterprise org | Provisioned via Web Admin |
+| AutoX Admin (this environment) | `dcomotor@gmail.com` | **unknown** — reset via §3 | Org admin of active Enterprise org | Provisioned via Web Admin |
 
 ### Known issue: invite-created org admins
 

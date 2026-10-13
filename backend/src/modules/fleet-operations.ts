@@ -645,7 +645,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     }).parse(request.body);
     if (body.sale_date > new Date().toISOString().slice(0, 10)) throw new AppError(422, "invalid_sale_date", "Sale date cannot be in the future");
     const [buyer] = await app.db.select().from(users).where(eq(users.email, body.buyer_email.toLowerCase())).limit(1);
-    if (!buyer || buyer.role !== "owner" || buyer.status !== "active") throw new AppError(404, "buyer_not_found", "Buyer must have an active AutoHub account before transfer");
+    if (!buyer || buyer.role !== "owner" || buyer.status !== "active") throw new AppError(404, "buyer_not_found", "Buyer must have an active AutoX account before transfer");
     const [link] = await app.db.select().from(organizationVehicles).where(and(
       eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId),
     )).limit(1);

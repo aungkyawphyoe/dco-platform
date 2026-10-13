@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getPricing } from "@/lib/pricing";
 import { PricingSection } from "@/components/pricing/pricing-section";
+import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
 import { SectionHeading } from "@/components/marketing/section-heading";
 
 export const metadata: Metadata = {
@@ -14,7 +15,8 @@ export default async function PricingPage() {
 
   return (
     <>
-      <section className="border-b border-line">
+      <section className="relative isolate overflow-hidden border-b border-line">
+        <AuroraBackdrop dots />
         <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
           <SectionHeading
             eyebrow="Pricing"

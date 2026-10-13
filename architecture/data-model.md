@@ -265,7 +265,7 @@ Local-only (mobile, not a server table): **outbox** rows (`entity_type`, `entity
 |-------|------|
 | `email` | Unique, stored lowercase, max 254 |
 | `role` | `owner` (default on signup) or `admin` (granted by an existing admin / seed) |
-| `plan` | `free` \| `lite` \| `standard` \| `fleet` (per `docs/pricing.md`), DCO-admin-managed until billing is added. Sizes Vehicle Sharing caps (free 1, lite 3, standard/fleet unlimited — one cap for per-vehicle and total) and the advisory `vehicle_limit` (1 / 3 / 10 / null). Anyone can share and accept shares; vehicle-count enforcement lands with the server limit checks (`architecture/feature-gating.md` PR3). |
+| `plan` | `free` \| `lite` \| `standard` \| `fleet` (per `docs/pricing.md`), AutoX-admin-managed until billing is added. Sizes Vehicle Sharing caps (free 1, lite 3, standard/fleet unlimited — one cap for per-vehicle and total) and the advisory `vehicle_limit` (1 / 3 / 10 / null). Anyone can share and accept shares; vehicle-count enforcement lands with the server limit checks (`architecture/feature-gating.md` PR3). |
 | `status` | `active` \| `deactivated`. Deactivated cannot sign in |
 | `active_vehicle_id` | Null only when the garage is empty. After the first vehicle, always one active vehicle |
 | `email_verified` | Prompt until true; does not block adding a vehicle |
@@ -352,7 +352,7 @@ Fleet entitlement is **organization-scoped**, not a `users.plan` value or `users
 | `warranty_templates` / `vehicle_warranties` | Organization template terms and per-vehicle time/mileage limits, created on showroom transfer when selected. |
 | `warranty_template_workshops` | Template ↔ approved workshop partner link. Only workshops on this list may log warranty service for vehicles using the template. |
 | `organization_workshops` | Organization ↔ verified workshop partner approval list. Warranty templates may only reference workshops approved here; removal also clears the partner from the org's templates. |
-| `workshop_members` | Workshop partner ↔ user account link, created by DCO Admin for verified workshop partners. One workshop per user. Workshop sign-in uses the `dco-workshop` audience. |
+| `workshop_members` | Workshop partner ↔ user account link, created by AutoX Admin for verified workshop partners. One workshop per user. Workshop sign-in uses the `dco-workshop` audience. |
 | `transferred_vehicles` | Read-only organization audit row linking vehicle, buyer, transfer actor/time, and optional warranty instance. `vehicles.user_id` changes to the buyer. |
 | `vehicle_import_jobs` | Persistent CSV import status/results, limited to 100 rows per job and polled by job ID. |
 
@@ -394,9 +394,9 @@ Authorization checks run against the live database for each request: Fleet requi
 
 Observed in the Autozis demo (Toyota Camry dashboard, multi-vehicle garage, expenses form) and [features](https://autozis.com/features):
 
-| Autozis | DCO MVP | Decision |
+| Autozis | AutoX MVP | Decision |
 |---------|---------|----------|
-| Multi-vehicle garage, photo, make/model, mileage, purchase date | Same core + plate uniqueness, VIN rule, fuel type enum, nickname, archive | **Adopt** (with DCO rules) |
+| Multi-vehicle garage, photo, make/model, mileage, purchase date | Same core + plate uniqueness, VIN rule, fuel type enum, nickname, archive | **Adopt** (with AutoX rules) |
 | Dashboard: vehicle health, mileage, next event, cost KPIs, needs-attention, recent activity | Dashboard for **active vehicle**: identity, ownership summary (spend + counts), 3 maintenance rows, next plan item | **Adopt shape, shrink metrics** — no refuel €, L/100km, insurance expiry module |
 | Maintenance plan + reminders (time and/or mileage) + service history | Same | **Adopt** |
 | Refuel / charge logs (date, type, amount, cost) | `fuel_types` catalog + `fuel_logs` | **Adopt simplified** — no efficiency KPIs at MVP; optional odometer + KPIs later via `stats.md` |
@@ -409,10 +409,10 @@ Observed in the Autozis demo (Toyota Camry dashboard, multi-vehicle garage, expe
 | Vehicle sharing | Per-vehicle shares via 8-char Code/QR or email invitation (`vehicle_shares`), access `view` \| `add_edit_own` | **Adopt simplified** — no household/group entity |
 | Import/export, PDF reports, AI assistant | — | **Defer** |
 | Online web owner app, instant sync | Flutter offline-first + change log | **Different architecture** (intentional) |
-| No staff admin | Users + partners + audit | **DCO-only** |
+| No staff admin | Users + partners + audit | **AutoX-only** |
 | Freemium (advanced features gated) | `plan` field sizes Vehicle Sharing limits; no billing yet; vehicle-count gate remains off | **Adopt plan + share-limit gate** |
 
-Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to this schema. Fuel logs are a DCO slice (`fuel_types`, `fuel_logs`), not Autozis efficiency tracking.
+Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to this schema. Fuel logs are a AutoX slice (`fuel_types`, `fuel_logs`), not Autozis efficiency tracking.
 
 ---
 

@@ -2,20 +2,20 @@
 
 ## Overview
 
-Fleet Management enables **business accounts** (showrooms, dealerships, taxi fleets, rental companies, commercial fleets) to manage multiple vehicles under an organization, track warranty periods with approved workshops, and transfer vehicle ownership to buyers with full maintenance history. Organizations are created exclusively by DCO administrators via the Admin Portal (sales-led onboarding). This module extends the existing single-owner model to support multi-vehicle business operations with role-based access, warranty enforcement, ownership transfer, driver work orders, vehicle inspections, and cost analytics.
+Fleet Management enables **business accounts** (showrooms, dealerships, taxi fleets, rental companies, commercial fleets) to manage multiple vehicles under an organization, track warranty periods with approved workshops, and transfer vehicle ownership to buyers with full maintenance history. Organizations are created exclusively by AutoX administrators via the Admin Portal (sales-led onboarding). This module extends the existing single-owner model to support multi-vehicle business operations with role-based access, warranty enforcement, ownership transfer, driver work orders, vehicle inspections, and cost analytics.
 
 **Status:** Partial — backend, Fleet Portal (`fleet-portal/`, `dco-fleet`), mobile Fleet/Driver modes, and Web Admin organization provisioning implemented; Workshop Portal still planned (Phase 3, Year 2). Web Admin does not import initial vehicles during provisioning — seed inventory via the Fleet Portal CSV import after activation.
-**Requirement alignment (October 2026) — pending implementation:** Enterprise access-model shift confirmed by grilling: (1) Fleet Portal sidebar visibility is role-based — full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`; (2) DCO Admin provisions the Fleet Admin account with email + temporary password (invite-email provisioning retires); (3) drivers are created/deactivated by the Fleet Admin with **username + password and no email** (username replaces email as the driver login identifier); (4) driver login forces Driver mode; (5) driver deactivation is a soft delete that cascades to active assignments and reserves the username. See *Confirmed Access Decisions* 7–14.
+**Requirement alignment (October 2026) — pending implementation:** Enterprise access-model shift confirmed by grilling: (1) Fleet Portal sidebar visibility is role-based — full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`; (2) AutoX Admin provisions the Fleet Admin account with email + temporary password (invite-email provisioning retires); (3) drivers are created/deactivated by the Fleet Admin with **username + password and no email** (username replaces email as the driver login identifier); (4) driver login forces Driver mode; (5) driver deactivation is a soft delete that cascades to active assignments and reserves the username. See *Confirmed Access Decisions* 7–14.
 **Mobile implementation deviations:** CSV report export copies the CSV to the clipboard (no file download on mobile); the analytics time-range filter is omitted because `/analytics/fleet` returns a fixed window; the Workshop mobile screen (`dco-workshop` surface) is not implemented.
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
-**Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — DCO user management, organization provisioning/activation, and read-only fleet support).
+**Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — AutoX user management, organization provisioning/activation, and read-only fleet support).
 
 ### Account Plans and Feature Entitlements
 
 | Account/context | Entitlement source | Available capabilities |
 |-----------------|--------------------|------------------------|
 | Free user (`users.plan=free`) | User account | Basic personal app functionality plus Vehicle Sharing capped at 1 active share (per vehicle and total). No Fleet entry point unless the user has an active organization membership. |
-| Paid tier user (`users.plan=lite|standard|fleet`) | User account | Basic personal app functionality + raised caps per `docs/pricing.md` (sharing 3 / unlimited / unlimited; vehicles 3 / 10 / unlimited). Assigned by DCO Admin for this phase; in-app billing and subscription management are out of scope. |
+| Paid tier user (`users.plan=lite|standard|fleet`) | User account | Basic personal app functionality + raised caps per `docs/pricing.md` (sharing 3 / unlimited / unlimited; vehicles 3 / 10 / unlimited). Assigned by AutoX Admin for this phase; in-app billing and subscription management are out of scope. |
 | Enterprise user | Organization (`organizations.plan=enterprise`) | Basic personal app functionality + Fleet context while the user has an active membership in an `active` Enterprise organization. Organization role limits Fleet actions. Enterprise is not a value of `users.plan`. |
 
 **Entitlement rules:**
@@ -25,9 +25,9 @@ Fleet Management enables **business accounts** (showrooms, dealerships, taxi fle
 - If a Premium owner downgrades, existing shares are NOT revoked — only new share creation is blocked while active shares exceed the free caps. Personal vehicle ownership and records remain with their owners.
 - Hide the Fleet entry point when the user has no active organization membership. A sharee's Shared with Me entry stays visible even when that member is on the free plan.
 - The API is authoritative: it validates share plan caps and vehicle access level for Vehicle Sharing, and organization plan, status, membership, and role for every Fleet operation. UI visibility is not an authorization boundary.
-- Organization provisioning is DCO-admin-only. New Enterprise organizations start `pending`; only DCO Admin activation changes status to `active` and enables Fleet access. Suspension removes Fleet access for all members but does not affect their personal app access.
+- Organization provisioning is AutoX-admin-only. New Enterprise organizations start `pending`; only AutoX Admin activation changes status to `active` and enables Fleet access. Suspension removes Fleet access for all members but does not affect their personal app access.
 
-**Audience boundary:** Mobile owner clients use `dco-owner`. The Fleet Dashboard uses `dco-fleet`. Both can call shared Fleet API routes, which independently validate organization membership and role. DCO support uses `dco-admin` through Web Admin read-only routes.
+**Audience boundary:** Mobile owner clients use `dco-owner`. The Fleet Dashboard uses `dco-fleet`. Both can call shared Fleet API routes, which independently validate organization membership and role. AutoX support uses `dco-admin` through Web Admin read-only routes.
 
 ---
 
@@ -35,10 +35,10 @@ Fleet Management enables **business accounts** (showrooms, dealerships, taxi fle
 
 Enable organizations to:
 
-- Be created by DCO administrators via the Admin Portal (sales-led onboarding)
+- Be created by AutoX administrators via the Admin Portal (sales-led onboarding)
 - Manage vehicle inventory through lifecycle states using predefined templates (showroom, taxi fleet, rental, commercial fleet)
 - Configure warranty templates (duration + mileage + approved workshops)
-- Transfer vehicle ownership to buyers (new or existing DCO users) with full history
+- Transfer vehicle ownership to buyers (new or existing AutoX users) with full history
 - Enforce warranty service at approved workshops only
 - Maintain read-only audit trail of transferred vehicles
 - Import vehicles via CSV or add one-by-one
@@ -54,7 +54,7 @@ Enable organizations to:
 ## In Scope
 
 ### Backend
-- Organization entity (created by DCO admin; Org Admin account created by DCO admin with email + temporary password, or linked when an account already exists)
+- Organization entity (created by AutoX admin; Org Admin account created by AutoX admin with email + temporary password, or linked when an account already exists)
 - Organization roles: `org_admin`, `org_manager`, `org_mechanic`, `org_driver`
 - Driver accounts: username + password, email optional (typically absent); username is the login identifier for drivers
 - Account identifiers: `users.username` (globally unique) added alongside `users.email` (nullable); login accepts email **or** username
@@ -93,12 +93,12 @@ Enable organizations to:
 - **Driver Assignment Screen**: **Hamburger menu** → Fleet → Driver Assignments
 
 ### Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
-- **Authentication**: SSO with DCO credentials; Fleet Dashboard token audience is `dco-fleet`
+- **Authentication**: SSO with AutoX credentials; Fleet Dashboard token audience is `dco-fleet`
 - **Desktop-optimized layout**: Data tables, charts, bulk actions, sidebar navigation
 - **Role-based sidebar visibility**: `org_admin` sees the full sidebar; `org_manager` and `org_mechanic` see a reduced sidebar (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred); `org_driver` cannot log into the Fleet Portal at all
 - **Fleet Admin (`org_admin`)**: Full fleet management (read + write) — vehicles, work orders, inspections, assignments, analytics, reports, warranty templates, and driver account creation/deletion
 - **Driver management**: Fleet Admin creates driver accounts (username, display name, initial password — no email), deactivates/reactivates drivers from the Members page
-- **DCO Admin**: Read-only fleet visibility for support through the Web Admin portal only (`dco-admin`)
+- **AutoX Admin**: Read-only fleet visibility for support through the Web Admin portal only (`dco-admin`)
 - **Vehicle Inventory**: Table view with filters, sorting, bulk status changes
 - **Work Orders**: Table + detail view with approve/assign/resolve actions
 - **Inspections**: Template management, inspection history, failure review
@@ -112,7 +112,7 @@ Enable organizations to:
 - **User Management**: List/search users, view profile, deactivate/reactivate accounts
 - **Organization Management**: Create Enterprise organizations in `pending`, link/invite the Org Admin, import initial vehicles, activate/suspend/archive organizations
 - **Fleet Owner Support**: Re-send invite emails to Org Admin
-- **Read-only Fleet Access**: DCO Admin can view fleet data for support purposes (no write actions)
+- **Read-only Fleet Access**: AutoX Admin can view fleet data for support purposes (no write actions)
 - Route guard: `admin` + `dco-admin` audience → Web Admin routes; Fleet members use the separate Fleet Dashboard
 
 ---
@@ -145,13 +145,13 @@ Enable organizations to:
 
 | Persona | Description | Primary Surface |
 |---------|-------------|-----------------|
-| **Fleet Owner** | Business owner (showroom, taxi fleet, rental). Full access to org, vehicles, members, templates, transfers, cost analytics, work order approval. Org created by DCO admin. | Mobile (Fleet mode) + Web |
+| **Fleet Owner** | Business owner (showroom, taxi fleet, rental). Full access to org, vehicles, members, templates, transfers, cost analytics, work order approval. Org created by AutoX admin. | Mobile (Fleet mode) + Web |
 | **Fleet Manager** | Senior employee. Full operational access: vehicles, work orders, inspections, assignments, cost analytics. Cannot manage org settings or members. | Mobile (Fleet mode) |
 | **Org Mechanic** | Workshop employee. Logs service, views vehicle info. Cannot add vehicles, manage templates, or transfer. | Mobile (Fleet mode) |
 | **Driver** | Taxi/rental driver. Org member with `org_driver` role. Account created by the Fleet Admin with username + password (no email required); must change password on first login. Assigned one vehicle at a time. Logs in to the mobile app and is taken directly to restricted Driver mode. Can log mileage, complete inspections, report issues, log fuel. Restricted view — no costs, no other vehicles. | Mobile (Driver mode) |
 | **Buyer** | Customer who receives a vehicle. Sees vehicle in personal garage with full history. Normal owner after transfer. | Mobile (Personal mode) |
-| **Workshop** | External workshop with DCO account. Logs warranty service on assigned vehicles. Limited visibility. | Mobile (Workshop mode) |
-| **Platform Admin** | DCO staff. Creates orgs, manages org lifecycle, imports vehicles, views fleet stats for support. | Web Admin |
+| **Workshop** | External workshop with AutoX account. Logs warranty service on assigned vehicles. Limited visibility. | Mobile (Workshop mode) |
+| **Platform Admin** | AutoX staff. Creates orgs, manages org lifecycle, imports vehicles, views fleet stats for support. | Web Admin |
 
 ---
 
@@ -164,7 +164,7 @@ Enable organizations to:
 
 ### US-FLT-002: Create Org Admin Account (Admin Portal)
 > As a Platform Admin,  
-> I want to link an existing DCO user to the new org, or create a new Org Admin account with email and a temporary password  
+> I want to link an existing AutoX user to the new org, or create a new Org Admin account with email and a temporary password  
 > So that the Fleet Admin can log in immediately without waiting for an invite email.
 
 ### US-FLT-003: Import Vehicles at Creation
@@ -327,8 +327,8 @@ Enable organizations to:
 > I want to configure the lemon detection threshold (default 2x fleet average, with override)  
 > So that the definition of "lemon" matches my business criteria.
 
-### US-FLT-035: DCO Admin Activates Enterprise Organization
-> As a DCO Admin,
+### US-FLT-035: AutoX Admin Activates Enterprise Organization
+> As a AutoX Admin,
 > I want to activate a provisioned Enterprise organization after reviewing its setup
 > So that Fleet access becomes available to its invited members only when the organization is ready.
 
@@ -368,11 +368,11 @@ Enable organizations to:
 | `id` | UUID, PK |
 | `name` | String, required, max 200 |
 | `type` | `showroom` \| `dealership` \| `taxi_fleet` \| `rental` \| `commercial` (future: `logistics`) |
-| `plan` | `enterprise` (DCO-admin assigned; no billing in this phase) |
+| `plan` | `enterprise` (AutoX-admin assigned; no billing in this phase) |
 | `status` | `pending` \| `active` \| `suspended` \| `archived` |
 | `admin_user_id` | FK → `users.id` (Org Admin — showroom owner) |
-| `created_by` | FK → `users.id` (DCO admin who created it) |
-| `activated_by` | FK → `users.id` (nullable; DCO admin who activated it) |
+| `created_by` | FK → `users.id` (AutoX admin who created it) |
+| `activated_by` | FK → `users.id` (nullable; AutoX admin who activated it) |
 | `activated_at` | Timestamp (nullable until activation) |
 | `contact_email` | String, optional |
 | `contact_phone` | String, optional |
@@ -380,21 +380,21 @@ Enable organizations to:
 | `updated_at` | Timestamp |
 
 **Rules:**
-- Created exclusively by DCO admins via the Admin Portal
-- `admin_user_id` is the Fleet Admin: linked by email match when an account already exists, otherwise created by the DCO admin with email + temporary password (`must_change_password` enforced on first login) — invite-email provisioning is retired
-- `created_by` is the DCO admin who performed the creation
-- Exactly one `org_admin` per organization; the account is created only by DCO Admin — the Fleet Admin cannot invite or promote another admin (admin-role transfer remains open decision #3)
+- Created exclusively by AutoX admins via the Admin Portal
+- `admin_user_id` is the Fleet Admin: linked by email match when an account already exists, otherwise created by the AutoX admin with email + temporary password (`must_change_password` enforced on first login) — invite-email provisioning is retired
+- `created_by` is the AutoX admin who performed the creation
+- Exactly one `org_admin` per organization; the account is created only by AutoX Admin — the Fleet Admin cannot invite or promote another admin (admin-role transfer remains open decision #3)
 - `plan=enterprise` is an organization entitlement; it is distinct from the organization's business `type` and from each member's `users.plan`
 - Organization `type` records the business use case; it does not grant or remove features. Vehicle lifecycle template remains a separate per-vehicle choice.
-- New organizations are created in `pending`; a DCO admin explicitly activates them after provisioning is ready
+- New organizations are created in `pending`; a AutoX admin explicitly activates them after provisioning is ready
 - One organization per `admin_user_id` (enforced by unique `admin_user_id` where `status != archived`)
 - A user can belong to only one organization at a time
-- `pending` status: org exists but has not been activated by DCO; Fleet mode and Fleet API access are unavailable
+- `pending` status: org exists but has not been activated by AutoX; Fleet mode and Fleet API access are unavailable
 - While pending, only the linked Org Admin may be invited/linked; the Org Admin cannot invite other members until the organization is active
-- `active` status: DCO admin has activated the org; active members can enter Fleet mode subject to their org roles
-- `suspended` status: DCO admin has suspended the org; members lose fleet access
+- `active` status: AutoX admin has activated the org; active members can enter Fleet mode subject to their org roles
+- `suspended` status: AutoX admin has suspended the org; members lose fleet access
 - Organization name must be unique per admin (not globally unique)
-- Contact details stored for DCO admin reference
+- Contact details stored for AutoX admin reference
 
 ### 2. Organization Membership
 
@@ -415,7 +415,7 @@ Enable organizations to:
 - `org_driver` (Driver): Log mileage, complete inspections, report issues, log fuel, view assigned vehicle only. Cannot see costs, analytics, or other vehicles
 - A user can only be invited if they don't already belong to an org
 - Any member role grants access to the Fleet context only while the organization is active; the role grants only the operations listed for that role
-- `organization_members.role` is separate from `users.role` and does not grant DCO Admin privileges
+- `organization_members.role` is separate from `users.role` and does not grant AutoX Admin privileges
 - Driver must have `org_driver` role to be eligible for vehicle assignment
 
 **Account and credential rules (added October 2026):**
@@ -531,7 +531,7 @@ Enable organizations to:
 | `assigned_vehicle_ids` | Array of vehicle IDs currently under warranty at this workshop |
 
 **Rules:**
-- Workshop gets a DCO account linked by DCO Admin (verified partner only); sign-in uses the separate `dco-workshop` audience (`JWT_WORKSHOP_AUD`)
+- Workshop gets a AutoX account linked by AutoX Admin (verified partner only); sign-in uses the separate `dco-workshop` audience (`JWT_WORKSHOP_AUD`)
 - Workshop can only see vehicles currently assigned to them under active warranty
 - Workshop can log service on assigned vehicles
 - Workshop cannot see buyer personal info (name, email) — only vehicle info
@@ -834,7 +834,7 @@ Enable organizations to:
 - **Members tab**: List with name, role badge, "Change Role" / "Remove" (Admin only)
 - **Vehicles tab**: List with status badges (template-specific), counts, "Add Vehicle" / "Import CSV"
 - **Workshops tab**: List of approved workshops, "Add Workshop" / "Remove"
-- **Settings tab**: Org name, status badge, contact details (read-only — edit requires DCO admin)
+- **Settings tab**: Org name, status badge, contact details (read-only — edit requires AutoX admin)
 
 #### Vehicle Inventory Screen (New)
 - Entry: Fleet mode → Garage tab (replaces personal Garage in fleet mode)
@@ -944,11 +944,11 @@ Enable organizations to:
 ### 19. Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
 
 #### Auth
-- SSO with DCO credentials; Fleet Dashboard receives the dedicated `dco-fleet` JWT audience
+- SSO with AutoX credentials; Fleet Dashboard receives the dedicated `dco-fleet` JWT audience
 - Route guard: `dco-fleet` + active membership in an active Enterprise organization → organization Fleet routes
 - **Login is restricted by org role**: `org_driver` accounts are rejected at Fleet Portal login (drivers use the mobile app only); `org_admin`, `org_manager`, `org_mechanic` may log in
 - Organization role authorization applies to every page action and API request
-- DCO Admin read-only support access is available only through Web Admin (`dco-admin`), not through Fleet Dashboard routes
+- AutoX Admin read-only support access is available only through Web Admin (`dco-admin`), not through Fleet Dashboard routes
 
 #### Layout
 - Desktop-optimized: sidebar navigation, data tables, charts, bulk actions
@@ -1031,7 +1031,7 @@ Enable organizations to:
 - **Delete**: Confirmation required
 
 #### Org Settings — Route: `/settings`
-- **Org info**: Name, contact details (read-only — edit requires DCO admin)
+- **Org info**: Name, contact details (read-only — edit requires AutoX admin)
 - **Lemon threshold**: Configure multiplier or absolute value
 - **Revenue labels**: View/manage revenue labels per vehicle
 
@@ -1045,7 +1045,7 @@ Enable organizations to:
 
 #### Organization Provisioning — Route: `/organizations/new`
 - Form: org name, type, plan (Enterprise), admin email, optional temporary password, contacts
-- **New admin account path**: if no account exists for `admin_email`, the DCO Admin creates it with the temporary password and `must_change_password=true` — **no invite email is sent**; the DCO Admin communicates credentials out-of-band
+- **New admin account path**: if no account exists for `admin_email`, the AutoX Admin creates it with the temporary password and `must_change_password=true` — **no invite email is sent**; the AutoX Admin communicates credentials out-of-band
 - **Existing account path**: account is linked to the org unchanged (no password reset)
 - Existing pending orgs provisioned before the alignment keep their invite/resend behavior (legacy; `invite-resend` retained for them only)
 
@@ -1062,7 +1062,7 @@ Enable organizations to:
 - **Org lookup**: Search org by name or admin email → link to Fleet Dashboard (read-only)
 
 #### Read-only Fleet Access — Route: `/fleet-view`
-- **DCO Admin** can view fleet data for support purposes
+- **AutoX Admin** can view fleet data for support purposes
 - **Read-only**: No write actions (approve work orders, assign drivers, etc.)
 - **Cross-org view**: See all organizations and their fleet data
 - **Use case**: Support tickets, troubleshooting, auditing
@@ -1071,7 +1071,7 @@ Enable organizations to:
 
 ## Business Rules
 
-1. **Org creation is admin-only** — only DCO admins can create organizations via the Admin Portal
+1. **Org creation is admin-only** — only AutoX admins can create organizations via the Admin Portal
 2. **One organization per user** — enforced at membership level
 3. **Fleet Owner must transfer admin role** before leaving or deleting account
 4. **Vehicle status transitions follow lifecycle template** — cannot skip states or use invalid states for the template
@@ -1084,7 +1084,7 @@ Enable organizations to:
 11. **Workshop visibility is scoped** — only sees assigned vehicles, no buyer info
 12. **Mode switch preserves state** — switching between Personal/Fleet/Driver doesn't lose draft data
 13. **Archive-not-delete** — organizations are soft-archived, vehicles revert to owners
-14. **Invite email is one-time** — if not claimed, DCO admin can re-send from admin portal
+14. **Invite email is one-time** — if not claimed, AutoX admin can re-send from admin portal
 15. **One active vehicle per driver** — driver cannot be assigned multiple vehicles simultaneously
 16. **One active driver per vehicle** — vehicle cannot have multiple active driver assignments
 17. **Work order status transitions** — reported → in_progress → completed (no skipping)
@@ -1097,7 +1097,7 @@ Enable organizations to:
 24. **Revenue label is informational only** — no payment processing or financial calculations
 25. **Enterprise is organization-scoped** — set `organizations.plan=enterprise`; never encode Enterprise as a user plan or user role
 26. **Fleet entitlement requires active org membership** — both organization plan and `status=active` are required; org role determines allowed operations
-27. **DCO Admin activates organizations** — creation starts `pending`; owner login does not activate the org
+27. **AutoX Admin activates organizations** — creation starts `pending`; owner login does not activate the org
 28. **Org suspension revokes Fleet access** — all members lose Fleet context/API access while personal access remains unchanged
 29. **Premium and Enterprise are independent** — an Enterprise member receives Fleet access from membership, not Premium; Premium only raises the Vehicle Sharing caps
 30. **Invited sharees do not need Premium** — the vehicle access level (`view` / `add_edit_own`) governs their access to a share
@@ -1109,7 +1109,7 @@ Enable organizations to:
 36. **Temporary passwords are forced to change** — `must_change_password` blocks fleet/driver API access (except profile/password routes) until changed; backend-enforced, not a UI prompt
 37. **Driver deactivation is a soft delete** — status `deactivated`, login blocked, active assignment cascaded to completed, history retained and attributed, reactivation allowed, username reserved forever
 38. **Driver login forces Driver mode** — `org_driver` accounts never see Personal/Fleet mode toggles or personal garage tabs
-39. **Fleet Admin is provisioned by DCO Admin with email + temporary password** — invite-email provisioning retired for new orgs; exactly one admin per org, created only by DCO Admin (admin transfer remains open decision #3)
+39. **Fleet Admin is provisioned by AutoX Admin with email + temporary password** — invite-email provisioning retired for new orgs; exactly one admin per org, created only by AutoX Admin (admin transfer remains open decision #3)
 40. **Passwordless-driver recovery is admin-only** — drivers without email cannot self-serve password reset; the Fleet Admin resets from the portal
 41. **Drivers cannot write user records** — a driver may edit only their own profile/password; no vehicle, org, or other-user create/edit/delete (server-enforced)
 
@@ -1133,7 +1133,7 @@ Backend (every protected request)
   → Rejects unauthorized actions even if a client presents a stale or forged navigation state
 ```
 
-### DCO Admin Creates and Activates Org → Owner Uses Fleet → Manages Vehicles
+### AutoX Admin Creates and Activates Org → Owner Uses Fleet → Manages Vehicles
 ```
 Platform Admin (Web Admin Portal)
   /organizations → "Create Organization"
@@ -1143,8 +1143,8 @@ Platform Admin (Web Admin Portal)
   → If no account exists for admin email: Fleet Admin account created with temp password (must change on first login) — no invite email sent
   → If account exists: linked to the org unchanged
   → Optionally upload CSV of vehicles
-  → Submit → Org created; DCO admin reviews provisioning
-  → DCO admin activates organization → status: active
+  → Submit → Org created; AutoX admin reviews provisioning
+  → AutoX admin activates organization → status: active
   → System sends activation notice to the linked Org Admin
 
 Fleet Admin (Mobile - receives credentials out-of-band)
@@ -1182,7 +1182,7 @@ Platform Admin (Web Admin Portal)
   → Preview: 15 rows parsed, 14 valid, 1 warning (duplicate VIN)
   → Submit → Org created, 14 vehicles imported; status=pending
   → 1 failed row logged for review
-  → DCO admin reviews setup and activates organization
+  → AutoX admin reviews setup and activates organization
   → Activation email sent to Org Admin; Fleet access becomes available
 ```
 
@@ -1282,10 +1282,10 @@ Platform Admin (Web Admin Portal)
 ### Organization Creation (Admin Portal Only)
 - Name: required, 1-200 chars
 - Type: required, one of `showroom`, `dealership`, `taxi_fleet`, `rental`, `commercial`
-- Plan: required, `enterprise`, assigned by DCO Admin; no billing flow in this phase
+- Plan: required, `enterprise`, assigned by AutoX Admin; no billing flow in this phase
 - Admin email: required, valid email format
 - Temporary password: required when no account exists for the admin email (min 8 chars); applied with `must_change_password=true`; not sent by email
-- Initial status: server sets `pending`; only a DCO Admin can transition it to `active` after provisioning
+- Initial status: server sets `pending`; only a AutoX Admin can transition it to `active` after provisioning
 - Contact email: optional, valid email format
 - Contact phone: optional, max 20 chars
 
@@ -1395,7 +1395,7 @@ Platform Admin (Web Admin Portal)
 | Transfer: buyer email invalid | 400 `invalid_buyer_email` |
 | Transfer: vehicle not in org | 404 `vehicle_not_in_org` |
 | Not org admin (for admin actions) | 403 `not_org_admin` |
-| Not DCO admin (for org creation) | 403 `not_dco_admin` |
+| Not AutoX admin (for org creation) | 403 `not_dco_admin` |
 | Org already exists for this admin | 409 `org_already_exists` |
 | Admin email not found (invite) | 404 `user_not_found` |
 | Workshop: vehicle not assigned | 404 `vehicle_not_assigned` |
@@ -1484,7 +1484,7 @@ Platform Admin (Web Admin Portal)
 
 ## Success Metrics
 
-- Organizations created per week (by DCO admins)
+- Organizations created per week (by AutoX admins)
 - Invite email open rate / claim rate
 - Average time from org creation to first Fleet mode login
 - Average org size (members + vehicles)
@@ -1545,7 +1545,7 @@ Platform Admin (Web Admin Portal)
 - Self-serve org creation (public signup page)
 - Org creation via mobile app
 - Bulk org creation (CSV import of multiple orgs)
-- Org transfer between DCO admins
+- Org transfer between AutoX admins
 - Driver scheduling / shift management
 - Insurance premium tracking per vehicle
 - Depreciation calculations
@@ -1561,17 +1561,17 @@ Platform Admin (Web Admin Portal)
 ## Migration Notes
 
 - **Schema**: Add `organizations`, `organization_members`, `organization_vehicles`, `warranty_templates`, `warranty_template_workshops`, `vehicle_warranties`, `transferred_vehicles`, `work_orders`, `inspections`, `inspection_templates`, `driver_assignments`, `shift_mileage` tables
-- **Organizations table**: `plan=enterprise`, `status` (starts `pending`), `admin_user_id` (FK → users.id, the Fleet Owner), `created_by` and nullable `activated_by` (DCO admin FKs), `activated_at`, `contact_email`, `contact_phone`, `settings` (JSON — lemon threshold config)
+- **Organizations table**: `plan=enterprise`, `status` (starts `pending`), `admin_user_id` (FK → users.id, the Fleet Owner), `created_by` and nullable `activated_by` (AutoX admin FKs), `activated_at`, `contact_email`, `contact_phone`, `settings` (JSON — lemon threshold config)
 - **Organization members**: Add `org_driver` to role enum
 - **Organization vehicles**: Add `lifecycle_template`, `revenue_label` fields; status becomes free-form string
 - **Users table**: Add `org_id` nullable FK (denormalized for quick "my org" lookup)
 - **Vehicles table**: No change (ownership stays on `user_id`); org link via `organization_vehicles`
-- **Partners table**: Add `workshop_account` flag for workshop DCO accounts
+- **Partners table**: Add `workshop_account` flag for workshop AutoX accounts
 - **Users table**: Add `username` (NOT NULL after backfill, globally unique), make `email` nullable (Postgres UNIQUE already permits multiple NULLs), add `must_change_password` boolean; backfill usernames from email local part (collisions suffixed `_2`, `_3`, …); `status=deactivated` reused for driver soft delete with assignment cascade
 - **Sync**: New entity types `organization`, `organization_member`, `organization_vehicle`, `warranty_template`, `vehicle_warranty`, `transferred_vehicle`, `work_order`, `inspection`, `inspection_template`, `driver_assignment`, `shift_mileage`
 - **Mobile Drift**: New tables for offline org/vehicles/work_orders/inspections/assignments
 - **Fleet Dashboard (fleet.yourdomain.com)**: New Next.js app with desktop-optimized layout, sidebar navigation, data tables, charts. SSO uses `dco-fleet`; full fleet management requires active Enterprise membership.
-- **Web Admin (admin.yourdomain.com)**: User management plus DCO-only org provisioning/activation. Routes include `/users`, `/support`, `/organizations`, and `/fleet-view` (read-only fleet support).
+- **Web Admin (admin.yourdomain.com)**: User management plus AutoX-only org provisioning/activation. Routes include `/users`, `/support`, `/organizations`, and `/fleet-view` (read-only fleet support).
 - **Admin API**: User and organization management endpoints (`/v1/admin/users/*`, `/v1/admin/organizations/*`, `/v1/admin/support/*`, `/v1/admin/fleet-view`)
 - **Fleet API**: Shared between Fleet Dashboard (`dco-fleet`) and Mobile (`dco-owner`) for `/v1/organizations/*` and `/v1/drivers/*`; both enforce the same org plan/status/membership/role checks.
 - **Email templates**: Manager/mechanic invite and organization activated notifications to the linked Org Admin; Fleet Admin temp-password provisioning and driver creation send **no** emails (credentials communicated out-of-band)
@@ -1582,18 +1582,18 @@ Platform Admin (Web Admin Portal)
 ## Confirmed Access Decisions
 
 1. Enterprise entitlement belongs to the organization (`organizations.plan=enterprise`); it is not a user plan or user role.
-2. Enterprise and the user plan are independent. Plans are DCO-admin-managed for this phase; no purchase/billing flow is included.
+2. Enterprise and the user plan are independent. Plans are AutoX-admin-managed for this phase; no purchase/billing flow is included.
 3. Vehicle Sharing is open to every plan within caps (free 1, lite 3, standard/fleet unlimited); sharees use granted access without their own paid plan. A downgrade revokes shares above the new caps (oldest kept) and blocks new creation while over the cap.
-4. Fleet access requires active membership in an active Enterprise organization; membership role limits actions. Organization provisioning starts pending and DCO Admin explicitly activates it.
+4. Fleet access requires active membership in an active Enterprise organization; membership role limits actions. Organization provisioning starts pending and AutoX Admin explicitly activates it.
 5. Hide unavailable Vehicle Sharing/Fleet entry points. API authorization is authoritative and re-checks plan caps, vehicle access level, membership, status, and role.
-6. Flutter uses `dco-owner`; Fleet Dashboard uses `dco-fleet`; DCO support uses `dco-admin` through Web Admin. Workshop accounts follow the separate `dco-workshop` audience in `architecture/iam.md`.
+6. Flutter uses `dco-owner`; Fleet Dashboard uses `dco-fleet`; AutoX support uses `dco-admin` through Web Admin. Workshop accounts follow the separate `dco-workshop` audience in `architecture/iam.md`.
 7. **(Oct 2026)** The four organization roles stand; "Fleet Admin" means `org_admin`. Fleet Portal sidebar visibility is role-based: full nav for `org_admin`, reduced nav (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred) for `org_manager`/`org_mechanic`, and no portal login for `org_driver`. The mobile drawer Fleet entry remains visible to all org members.
-8. **(Oct 2026)** DCO Admin provisions the Fleet Admin account with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations. Exactly one `org_admin` per org, created only by DCO Admin — no self-promotion or deputy admins.
+8. **(Oct 2026)** AutoX Admin provisions the Fleet Admin account with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations. Exactly one `org_admin` per org, created only by AutoX Admin — no self-promotion or deputy admins.
 9. **(Oct 2026)** Drivers are created exclusively by the Fleet Admin with username + display name + initial password and **no email**. `users.username` is globally unique and is the driver login identifier; `users.email` becomes nullable; login accepts email or username. Email member invite is limited to `org_manager`/`org_mechanic`.
 10. **(Oct 2026)** Driver deletion is a soft delete: `status=deactivated`, login blocked, active `driver_assignments` cascaded to completed, history retained and attributed, reactivation allowed (manual re-assignment required), username reserved permanently.
 11. **(Oct 2026)** Driver login forces Driver mode — no Personal/Fleet toggle and no personal-garage tabs for `org_driver` accounts. Drivers may edit only their own profile and password; all vehicle/user/org writes remain server-denied.
 12. **(Oct 2026)** Temporary passwords (`must_change_password`) are enforced backend-side: fleet/driver API calls except profile/password routes return 403 `password_change_required` until changed.
-13. **(Oct 2026)** The Fleet Portal Members page (admin-exclusive) is the separate dashboard for user management: driver create/deactivate/reactivate/password-reset plus the existing manager/mechanic invite. DCO Web Admin keeps organization provisioning only and never manages drivers.
+13. **(Oct 2026)** The Fleet Portal Members page (admin-exclusive) is the separate dashboard for user management: driver create/deactivate/reactivate/password-reset plus the existing manager/mechanic invite. AutoX Web Admin keeps organization provisioning only and never manages drivers.
 14. **(Oct 2026)** When a driver logs fuel, they record and see the full cost/amount — resolving former open decision #11 in favor of full driver cost entry.
 
 ## Remaining Open Decisions

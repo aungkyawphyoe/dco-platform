@@ -44,7 +44,7 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
           </p>
           <p className="mt-2 text-sm text-ink-caption">
             Your account is not a member of an active Enterprise organization.
-            Contact your organization administrator or AutoHub support.
+            Contact your organization administrator or AutoX support.
           </p>
         </div>
       </div>
@@ -59,7 +59,7 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
             Drivers do not use the Fleet Portal
           </p>
           <p className="mt-2 text-sm text-ink-caption">
-            Please use the AutoHub mobile app for your driver workflow.
+            Please use the AutoX mobile app for your driver workflow.
           </p>
         </Card>
       </div>

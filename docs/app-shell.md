@@ -170,7 +170,7 @@ From `product/frd/auth.md`:
 
 Autozis web demo uses a **left sidebar** (Manage: Garage, Assistant, Maintenance Plan, Insurance, Notes, Documents; Stats: Insights, Refuel, Maintenance, Expenses, Trips; Catalogs; Account) plus a **bottom module dock** (Dashboard, Refuel, Maintenance, Expenses, Trips, Reminders).
 
-DCO mobile uses **four bottom tabs + hamburger menu**. The hamburger menu provides access to secondary features (Documents, Parts, Maintenance Plan, Insurance, Stats, Sharing, Fleet) while the bottom tabs remain the primary navigation. This is a hybrid approach — bottom tabs for daily use, hamburger for less frequent actions.
+AutoX mobile uses **four bottom tabs + hamburger menu**. The hamburger menu provides access to secondary features (Documents, Parts, Maintenance Plan, Insurance, Stats, Sharing, Fleet) while the bottom tabs remain the primary navigation. This is a hybrid approach — bottom tabs for daily use, hamburger for less frequent actions.
 
 ---
 
@@ -188,7 +188,7 @@ Staff only. Online. Wireframes: tldraw **A1–A6** (cluster "WEB ADMIN (MVP)").
 | A6 Partner create/edit | `/partners/new`, `/partners/:id` | |
 | A7 Owner Shares Dashboard | `/vehicles/shared` | Vehicle owner read-write |
 
-Sidebar (Autozis-like chrome, DCO items only):
+Sidebar (Autozis-like chrome, AutoX items only):
 
 - Overview — Dashboard
 - Directory — Users, Partners, Organizations

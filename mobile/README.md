@@ -1,4 +1,4 @@
-# DCO owner app (Flutter)
+# AutoX owner app (Flutter)
 
 Offline-first digital garage. Agent contract: [AGENTS.md](AGENTS.md).
 

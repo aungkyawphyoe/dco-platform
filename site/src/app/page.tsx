@@ -1,9 +1,11 @@
 import { AUDIENCES, FEATURES, HERO, PATHS, STEPS, VALUE_CHIPS } from "@/content/features";
 import { AudienceGrid } from "@/components/marketing/audience-grid";
+import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
 import { CtaBanner } from "@/components/marketing/cta-banner";
 import { FeatureGrid } from "@/components/marketing/feature-grid";
 import { PathCards } from "@/components/marketing/path-cards";
 import { PhoneFrame } from "@/components/marketing/phone-frame";
+import { Reveal } from "@/components/marketing/reveal";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { StepList } from "@/components/marketing/step-list";
 import { StoreBadges } from "@/components/marketing/store-badges";
@@ -12,29 +14,38 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="border-b border-line">
+      <section className="relative isolate overflow-hidden border-b border-line">
+        <AuroraBackdrop dots orbs />
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div className="flex flex-col items-start gap-6">
-            <span className="rounded-full border border-line-subtle bg-panel px-3 py-1 text-xs font-medium text-ink-caption">
-              {HERO.eyebrow}
-            </span>
-            <h1 className="font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.4rem]">
-              {HERO.title}
-            </h1>
-            <p className="max-w-xl text-base leading-7 text-ink-muted sm:text-lg">{HERO.subtitle}</p>
-            <StoreBadges />
-            <div className="flex flex-wrap gap-x-6 gap-y-2">
+            <Reveal delay={0}>
+              <span className="rounded-full border border-line-subtle bg-panel px-3 py-1 text-xs font-medium text-ink-caption">
+                {HERO.eyebrow}
+              </span>
+            </Reveal>
+            <Reveal delay={80}>
+              <h1 className="font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.4rem]">
+                {HERO.title}
+              </h1>
+            </Reveal>
+            <Reveal delay={160}>
+              <p className="max-w-xl text-base leading-7 text-ink-muted sm:text-lg">{HERO.subtitle}</p>
+            </Reveal>
+            <Reveal delay={240}>
+              <StoreBadges />
+            </Reveal>
+            <Reveal delay={320} className="flex flex-wrap gap-x-6 gap-y-2">
               {VALUE_CHIPS.map((chip) => (
                 <div key={chip.title} className="flex items-baseline gap-2">
                   <span className="text-sm font-semibold text-ink">{chip.title}</span>
                   <span className="text-xs text-ink-caption">{chip.description}</span>
                 </div>
               ))}
-            </div>
+            </Reveal>
           </div>
-          <div className="flex justify-center lg:justify-end">
-            <PhoneFrame label="App preview — screenshot coming soon" />
-          </div>
+          <Reveal delay={220} className="flex justify-center lg:justify-end">
+            <PhoneFrame label="App preview — screenshot coming soon" float />
+          </Reveal>
         </div>
       </section>
 
@@ -97,9 +108,15 @@ export default function HomePage() {
           intro="Final app screenshots are on the way — these frames show where each preview will live."
         />
         <div className="mt-10 flex flex-wrap items-start justify-center gap-8">
-          <PhoneFrame label="Dashboard" />
-          <PhoneFrame label="Fuel log" />
-          <PhoneFrame label="Maintenance plan" />
+          <Reveal delay={0}>
+            <PhoneFrame label="Dashboard" />
+          </Reveal>
+          <Reveal delay={90}>
+            <PhoneFrame label="Fuel log" />
+          </Reveal>
+          <Reveal delay={180}>
+            <PhoneFrame label="Maintenance plan" />
+          </Reveal>
         </div>
       </section>
 

@@ -101,7 +101,7 @@ abstract class AppLocalizations {
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
-  /// **'AutoHub'**
+  /// **'AutoX'**
   String get appTitle;
 
   /// No description provided for @ok.
@@ -4707,7 +4707,7 @@ abstract class AppLocalizations {
   /// No description provided for @fleetOrgSettingsReadonly.
   ///
   /// In en, this message translates to:
-  /// **'Contact details are managed by AutoHub admin.'**
+  /// **'Contact details are managed by AutoX admin.'**
   String get fleetOrgSettingsReadonly;
 
   /// No description provided for @fleetInventoryTitle.
@@ -6243,7 +6243,7 @@ abstract class AppLocalizations {
   /// No description provided for @shareQrHint.
   ///
   /// In en, this message translates to:
-  /// **'Scan with the AutoHub app'**
+  /// **'Scan with the AutoX app'**
   String get shareQrHint;
 
   /// No description provided for @shareRegenerate.
@@ -6831,7 +6831,7 @@ abstract class AppLocalizations {
   /// No description provided for @authFirstVehicleBody.
   ///
   /// In en, this message translates to:
-  /// **'Add your first vehicle, or explore AutoHub and add one later.'**
+  /// **'Add your first vehicle, or explore AutoX and add one later.'**
   String get authFirstVehicleBody;
 
   /// No description provided for @authAddVehicle.

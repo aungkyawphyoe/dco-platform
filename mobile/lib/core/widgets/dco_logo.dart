@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class DcoLogo extends StatelessWidget {
   const DcoLogo({super.key, this.size = 120});
 
-  static const assetPath = 'assets/branding/dco-logo.png';
+  static const assetPath = 'assets/branding/autox-logo.png';
 
   final double size;
 
@@ -14,7 +14,7 @@ class DcoLogo extends StatelessWidget {
       width: size,
       height: size,
       fit: BoxFit.contain,
-      semanticLabel: 'AutoHub',
+      semanticLabel: 'AutoX',
     );
   }
 }

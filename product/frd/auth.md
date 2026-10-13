@@ -46,7 +46,7 @@ Existing email/password login and sessions remain the baseline. Verification tok
 
 ## Google and Apple
 
-- Offer Google and Apple on both Android and iOS, using the existing backend to issue DCO sessions.
+- Offer Google and Apple on both Android and iOS, using the existing backend to issue AutoX sessions.
 - Validate provider authentication on the server. Key identities by provider and stable subject, never by email alone.
 - A provider-confirmed email, validated by the backend, satisfies verification. If absent, collect and verify an address before collaboration; personal access remains available.
 - Before creating an account for an unknown provider identity, offer **Create a new account** and **I already have an account**.

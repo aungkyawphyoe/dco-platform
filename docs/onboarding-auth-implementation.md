@@ -45,9 +45,9 @@ Login, signup, and password recovery share `AuthScaffold` (title-less app bar wi
 - Add external identity records with user ID, provider, stable subject, and timestamps; enforce unique `(provider, subject)` in the database.
 - Permit an absent password credential for social-only accounts without breaking provisioned drivers or existing password users. Never manufacture a known placeholder password.
 - Email uniqueness must remain consistent with existing normalization. Provider email is metadata, not an account key or permission to link.
-- Linking requires recent DCO account authentication plus valid provider proof, with expiry, one-time consumption, and transactional uniqueness checks.
+- Linking requires recent AutoX account authentication plus valid provider proof, with expiry, one-time consumption, and transactional uniqueness checks.
 - Provider proof must validate signature, issuer, audience, expiry, and applicable nonce/state/PKCE protections. Register platform-specific client identifiers and validate against an explicit allowlist. Final SDK and callback implementation must be checked against official provider documentation during implementation.
-- Browser callbacks must not place DCO bearer or refresh tokens in query strings. Exchange a short-lived, single-use continuation bound to the initiating flow.
+- Browser callbacks must not place AutoX bearer or refresh tokens in query strings. Exchange a short-lived, single-use continuation bound to the initiating flow.
 
 ### Challenges
 

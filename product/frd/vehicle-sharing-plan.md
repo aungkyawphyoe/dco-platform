@@ -459,10 +459,10 @@ If critical issues found post-deployment:
 
 ## 15. Appendix: Autozis Reference Mapping
 
-| Autozis Feature | DCO Implementation |
+| Autozis Feature | AutoX Implementation |
 |-----------------|-------------------|
 | Email-based invitation | `POST /v1/vehicles/:id/shares` with email |
-| **Code/QR sharing (DCO enhancement)** | `POST /v1/vehicles/:id/shares` with method=code_qr; `GET /v1/vehicles/:id/shares` returns code/QR |
+| **Code/QR sharing (AutoX enhancement)** | `POST /v1/vehicles/:id/shares` with method=code_qr; `GET /v1/vehicles/:id/shares` returns code/QR |
 | Pending/active share management | `vehicle_share_invitations` + `vehicle_shares.status` |
 | Owner-controlled permissions | `access_level`: `view` | `add_edit_own` |
 | Shared vehicle record access | Sync fan-out + `seedVehicleHistory` |

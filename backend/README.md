@@ -1,6 +1,6 @@
-# DCO API
+# AutoX API
 
-Phase 1 REST API (`/v1`) for the Digital Car Ownership platform.
+Phase 1 REST API (`/v1`) for the AutoX platform.
 
 Contract: [`architecture/openapi.yaml`](../architecture/openapi.yaml). Stack: [`docs/adr/backend-stack.md`](../docs/adr/backend-stack.md).
 

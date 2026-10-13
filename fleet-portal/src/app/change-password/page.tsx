@@ -59,7 +59,7 @@ export default function ChangePasswordPage() {
       <div className="w-full max-w-sm">
         <div className="mb-8 text-center">
           <Image
-            src="/dco-logo.png"
+            src="/autox-logo.png"
             alt=""
             width={96}
             height={96}
@@ -67,7 +67,7 @@ export default function ChangePasswordPage() {
             priority
           />
           <p className="font-display text-3xl font-semibold tracking-tight text-gold">
-            AutoHub Fleet
+            AutoX Fleet
           </p>
           <p className="mt-2 text-sm text-ink-caption">
             You signed in with a temporary password. Set a new password to continue.

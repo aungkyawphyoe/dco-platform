@@ -1,6 +1,6 @@
 # Product Vision
 
-**Product:** Digital Car Ownership Platform
+**Product:** AutoX Platform
 
 **Version:** 1.0
 
@@ -77,7 +77,7 @@ There is no unified platform that acts as a "digital home" for a vehicle.
 
 Every vehicle deserves a digital identity.
 
-The Digital Car Ownership Platform creates a lifelong digital record for every vehicle, allowing owners to manage, protect, and maximize the value of their cars from purchase until resale.
+The AutoX Platform creates a lifelong digital record for every vehicle, allowing owners to manage, protect, and maximize the value of their cars from purchase until resale.
 
 ---
 

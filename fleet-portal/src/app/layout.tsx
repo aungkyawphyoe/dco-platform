@@ -24,8 +24,8 @@ const plexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AutoHub Fleet",
-  description: "AutoHub platform — Fleet management portal",
+  title: "AutoX Fleet",
+  description: "AutoX platform — Fleet management portal",
 };
 
 export default async function RootLayout({
