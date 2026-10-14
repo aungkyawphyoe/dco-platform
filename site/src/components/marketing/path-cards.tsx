@@ -17,7 +17,7 @@ export function PathCards({ items }: { items: readonly PathItem[] }) {
         <Reveal key={item.href} delay={index * 90} className="h-full">
           <Link
             href={item.href}
-            className="surface card-hover group flex h-full flex-col gap-4 rounded-xl p-7 hover:border-gold/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className="surface card-dots card-hover group flex h-full flex-col gap-4 rounded-xl p-7 hover:border-gold/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
             <span className="w-fit rounded-full bg-panel px-3 py-1 text-xs font-medium text-ink-caption">
               {item.badge}

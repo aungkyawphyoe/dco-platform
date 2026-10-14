@@ -10,7 +10,7 @@ export function AudienceGrid({ items }: { items: readonly AudienceItem[] }) {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item, index) => (
         <Reveal key={item.title} delay={index * 70} className="h-full">
-          <article className="surface card-hover h-full rounded-xl p-6">
+          <article className="surface card-dots card-hover h-full rounded-xl p-6">
             <h3 className="font-display text-lg font-semibold tracking-tight">{item.title}</h3>
             <ul className="mt-3 space-y-2">
               {item.bullets.map((bullet) => (

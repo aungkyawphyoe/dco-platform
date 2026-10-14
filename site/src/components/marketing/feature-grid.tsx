@@ -11,7 +11,7 @@ export function FeatureGrid({ items }: { items: readonly FeatureItem[] }) {
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {items.map((item, index) => (
         <Reveal key={item.title} delay={index * 70} className="h-full">
-          <article className="surface card-hover flex h-full flex-col gap-3 rounded-xl p-6">
+          <article className="surface card-dots card-hover flex h-full flex-col gap-3 rounded-xl p-6">
             <h3 className="font-display text-xl font-semibold tracking-tight">{item.title}</h3>
             <p className="text-sm leading-6 text-ink-muted">{item.description}</p>
             {item.chips && (

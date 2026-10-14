@@ -85,7 +85,7 @@ export default function PersonalPage() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           {PERSONAL_PROBLEM.items.map((item, index) => (
             <Reveal key={item.title} delay={index * 70} className="h-full">
-              <article className="surface card-hover h-full rounded-xl p-6">
+              <article className="surface card-dots card-hover h-full rounded-xl p-6">
                 <h3 className="font-display text-lg font-semibold tracking-tight">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-ink-muted">{item.description}</p>
               </article>

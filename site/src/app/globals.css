@@ -179,7 +179,14 @@ html.light {
 
 .bg-dots {
   background-image: radial-gradient(var(--dot-color) 1.1px, transparent 1.4px);
-  background-size: 20px 20px;
+  background-size: 14px 14px;
+}
+
+/* Dot texture for card surfaces (feature/pricing cards, CTA panel) —
+ * same grid as the hero dots, painted under card content. */
+.card-dots {
+  background-image: radial-gradient(var(--dot-color) 1.1px, transparent 1.4px);
+  background-size: 14px 14px;
 }
 
 .mask-fade-b {

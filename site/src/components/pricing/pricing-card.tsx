@@ -26,7 +26,7 @@ export function PricingCard({ plan, period }: PricingCardProps) {
 
   return (
     <article
-      className={`relative flex h-full flex-col gap-5 rounded-xl p-6 surface ${
+      className={`relative flex h-full flex-col gap-5 rounded-xl p-6 surface card-dots ${
         highlighted ? "border-gold shadow-glow" : "card-hover"
       }`}
     >
