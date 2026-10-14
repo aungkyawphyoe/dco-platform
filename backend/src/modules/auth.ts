@@ -367,6 +367,16 @@ export function requireFleetClient(request: { authUser?: AccessClaims & { sub: s
   }
 }
 
+/** Fleet management surface — Fleet Portal only (`dco-fleet` audience).
+ * The mobile app (owner audience) is limited to the personal garage and the
+ * restricted driver surface; org management must not be reachable from it. */
+export function requireFleetPortal(request: { authUser?: AccessClaims & { sub: string } }) {
+  if (!request.authUser) throw new AppError(401, "unauthorized", "Missing access token");
+  if (request.authUser.role !== "owner" || request.authUser.surface !== "fleet") {
+    throw new AppError(403, "forbidden", "Fleet Portal audience required");
+  }
+}
+
 export function requireWorkshopClient(request: { authUser?: AccessClaims & { sub: string } }) {
   if (!request.authUser) throw new AppError(401, "unauthorized", "Missing access token");
   if (request.authUser.role !== "owner" || request.authUser.surface !== "workshop") {

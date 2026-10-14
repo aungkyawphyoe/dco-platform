@@ -56,7 +56,6 @@ class _DriverInspectionScreenState
           ]);
       });
       ref.invalidate(driverInspectionsProvider);
-      ref.invalidate(orgInspectionsProvider(orgId));
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -95,7 +94,6 @@ class _DriverInspectionScreenState
             notes: _notes.text.trim().isEmpty ? null : _notes.text.trim(),
           );
       ref.invalidate(driverInspectionsProvider);
-      ref.invalidate(orgInspectionsProvider(orgId));
       if (!mounted) return;
       final failed = completed.status == 'failed';
       ScaffoldMessenger.of(context).showSnackBar(

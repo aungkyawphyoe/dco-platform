@@ -76,17 +76,6 @@ abstract final class AppRoutes {
   static String vehicleShareManage(String id) => '/vehicle/$id/share';
   static String vehicleShareNew(String id) => '/vehicle/$id/share/new';
 
-  static const fleet = '/fleet';
-  static const fleetOrg = '/fleet/org';
-  static const fleetVehicleNew = '/fleet/vehicles/new';
-  static String fleetVehicleDetail(String id) => '/fleet/vehicles/$id';
-  static String fleetVehicleTransfer(String id) =>
-      '/fleet/vehicles/$id/transfer';
-  static String fleetWorkOrder(String id) => '/fleet/work-orders/$id';
-  static const fleetAssignments = '/fleet/assignments';
-  static const fleetWarrantyTemplates = '/fleet/warranty-templates';
-  static const fleetWarrantyNew = '/fleet/warranty-templates/new';
-
   // Driver flows
   static const driverShift = '/driver/shift';
   static const driverReportIssue = '/driver/report-issue';

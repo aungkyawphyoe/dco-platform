@@ -52,8 +52,8 @@ Behavior: [Auth FRD](frd/auth.md). Delivery phases, setup dependencies, compatib
 - **Fleet account alignment (Oct 2026, pending implementation)** — details in `product/frd/fleet-management.md`:
   - Fleet Admin (`org_admin`) accounts are created by AutoX Admin with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations.
   - Drivers are created/deactivated by the Fleet Admin with **username + password, no email**; login accepts email or username (customer signup stays email-only). Driver deactivation is a soft delete: assignment cascaded, history retained, username reserved.
-  - Fleet Portal sidebar is role-gated: full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`. Mobile drawer Fleet entry stays visible to all org members.
-  - Driver login forces Driver mode; drivers may edit only their own profile/password and cannot create/edit/delete vehicles or other users (server-enforced).
+  - Fleet Portal sidebar is role-gated: full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`. Mobile has no fleet surface: it serves the personal garage plus the Driver surface for `org_driver` only; management routes require the `dco-fleet` audience.
+  - Driver login forces Driver mode (implemented); drivers may edit only their own profile/password and cannot create/edit/delete vehicles or other users (server-enforced).
 - Sharing works on every plan: a sharee never needs a paid plan to hold or use a share. Downgrading the owner revokes shares above the new plan's caps (oldest kept) and blocks new ones while over the cap; vehicles are never revoked or hidden.
 - Backend authorization is authoritative. Hiding unavailable feature entry points in the mobile/web clients is a separate client requirement.
 

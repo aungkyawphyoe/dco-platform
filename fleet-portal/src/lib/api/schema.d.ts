@@ -452,7 +452,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description DCO session plus is_new, or needs_account_choice true without a session */
+                /** @description AutoX session plus is_new, or needs_account_choice true without a session */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -641,6 +641,45 @@ export interface paths {
                     };
                 };
                 503: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/pricing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Public plan tiers and feature matrix (marketing site)
+         * @description Serves the four plan tiers from the `plans` reference table with MMK prices, USD display prices, plan limits, marketing bullets, and the as-built feature matrix. Unauthenticated.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Current pricing catalog */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PricingResponse"];
+                    };
+                };
             };
         };
         put?: never;
@@ -2839,7 +2878,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Support plan change */
+        /** Support plan or account role change */
         patch: {
             parameters: {
                 query?: never;
@@ -2853,6 +2892,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         plan?: components["schemas"]["Plan"];
+                        /** @enum {string} */
+                        role?: "owner" | "admin";
                     };
                 };
             };
@@ -2864,6 +2905,69 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["AdminUserProfile"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/admin/users/{userId}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Demo-period account access control (verify email, clear must-change-password, set password)
+         * @description Directly sets email_verified / must_change_password, or replaces the password (revoking all sessions). Intended for demo and support workflows.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    userId: components["parameters"]["userId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        email_verified?: boolean;
+                        must_change_password?: boolean;
+                        password?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated access flags */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id?: string;
+                            email_verified?: boolean;
+                            must_change_password?: boolean;
+                        };
+                    };
+                };
+                /** @description User not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
                     };
                 };
             };
@@ -6176,6 +6280,56 @@ export interface components {
             /** @enum {string} */
             status: "ok" | "ready";
         };
+        PricingResponse: {
+            billing_periods: ("monthly" | "annual")[];
+            currency: {
+                /** @example MMK */
+                primary: string;
+                /** @example USD */
+                secondary: string;
+            };
+            plans: components["schemas"]["PricingPlan"][];
+            feature_matrix: components["schemas"]["PricingFeatureGroup"][];
+        };
+        PricingPlan: {
+            id: components["schemas"]["Plan"];
+            name: string;
+            tagline: string;
+            /** @enum {string} */
+            audience: "personal" | "fleet";
+            highlighted: boolean;
+            prices: {
+                monthly: components["schemas"]["PricingMoney"];
+                annual: components["schemas"]["PricingMoney"];
+            };
+            limits: {
+                /** @description Max active vehicles; null means unlimited */
+                vehicles: number | null;
+                /** @description Vehicle sharing cap; null means unlimited */
+                sharing: number | null;
+                storage_bytes: number;
+                ai_tier: string;
+            };
+            features: string[];
+        };
+        PricingMoney: {
+            mmk: number;
+            usd: number;
+        };
+        PricingFeatureGroup: {
+            category: string;
+            rows: {
+                label: string;
+                values: {
+                    free: boolean | string;
+                    lite: boolean | string;
+                    standard: boolean | string;
+                    fleet: boolean | string;
+                } & {
+                    [key: string]: boolean | string;
+                };
+            }[];
+        };
         ErrorBody: {
             error: {
                 /** @example mileage_decrease */
@@ -6716,6 +6870,11 @@ export interface components {
         };
         AdminUserProfile: components["schemas"]["AdminUserListItem"] & {
             address?: string | null;
+            /**
+             * @description Account role (AutoX platform role, not organization role)
+             * @enum {string}
+             */
+            role?: "owner" | "admin";
             email_verified?: boolean;
             must_change_password?: boolean;
             vehicles?: {

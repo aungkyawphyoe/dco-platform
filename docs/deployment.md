@@ -116,13 +116,15 @@ npm run license:key
 cd web
 npm run gen:api   # generates types from architecture/openapi.yaml
 npm run build
-az acr build --registry dcoacr24739 --image dco-admin-web:v1.0.0 --image dco-admin-web:latest .
+az acr build --registry dcoacr24739 --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.autoxmm.com/v1 --image dco-admin-web:v1.0.3 --image dco-admin-web:latest .
 ```
 
 **Deploy:**
 ```bash
-az containerapp update --name dco-admin-web --resource-group dco-rg --image dcoacr24739.azurecr.io/dco-admin-web:v1.0.0
+az containerapp update --name dco-admin-web --resource-group dco-rg --image dcoacr24739.azurecr.io/dco-admin-web:v1.0.3
 ```
+
+> **Important:** `NEXT_PUBLIC_*` vars are inlined into the client bundle at **build** time. The `--build-arg` above is mandatory — runtime Container App env vars alone do not reach the browser, and every client API call would silently fall back to the portal's own origin.
 
 **Auth:** BFF via Route Handlers (`/api/auth/*`) → httpOnly cookies (`dco_admin_access`, `dco_admin_refresh`). Proxies to API with `Audience: dco-admin`.
 
@@ -145,13 +147,15 @@ az containerapp update --name dco-admin-web --resource-group dco-rg --image dcoa
 cd fleet-portal
 npm run gen:api
 npm run build
-az acr build --registry dcoacr24739 --image dco-fleet-portal:v1.0.0 --image dco-fleet-portal:latest .
+az acr build --registry dcoacr24739 --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.autoxmm.com/v1 --image dco-fleet-portal:v1.0.2 --image dco-fleet-portal:latest .
 ```
 
 **Deploy:**
 ```bash
-az containerapp update --name dco-fleet-portal --resource-group dco-rg --image dcoacr24739.azurecr.io/dco-fleet-portal:v1.0.0
+az containerapp update --name dco-fleet-portal --resource-group dco-rg --image dcoacr24739.azurecr.io/dco-fleet-portal:v1.0.2
 ```
+
+> **Important:** same as Admin Web — `NEXT_PUBLIC_API_BASE_URL` must be passed via `--build-arg`; it is inlined into the browser bundle at build time, not read from Container App runtime env.
 
 **Auth:** BFF login posts `surface: "fleet"` → API returns `dco-fleet` JWT. Cookies: `dco_fleet_access`, `dco_fleet_refresh`.
 

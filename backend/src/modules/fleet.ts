@@ -24,7 +24,7 @@ import { hashPassword } from "../lib/crypto.js";
 import { dateOnly, iso, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
 import { publicVehicle, publicUser } from "../lib/serialize.js";
-import { requireFleetClient } from "./auth.js";
+import { requireFleetClient, requireFleetPortal } from "./auth.js";
 import { refreshTokens } from "../db/schema.js";
 
 const uuid = z.string().uuid();
@@ -160,7 +160,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/organizations/:id/members", async (request) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
     const rows = await app.db.select({ membership: organizationMembers, user: users })
@@ -171,7 +171,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/organizations/:id/members", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
@@ -207,7 +207,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/organizations/:id/members/:userId", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const { id: rawOrgId, userId: memberId } = request.params as { id: string; userId: string };
     const orgId = uuid.parse(rawOrgId);
     const actorId = uid(request);
@@ -232,7 +232,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/organizations/:id/drivers", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
@@ -270,7 +270,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/organizations/:id/members/:userId/status", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const { id: rawOrgId, userId: memberId } = request.params as { id: string; userId: string };
     const orgId = uuid.parse(rawOrgId);
     const actorId = uid(request);
@@ -303,7 +303,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/organizations/:id/workshops", async (request) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
     const rows = await app.db.select({ organizationWorkshop: organizationWorkshops, partner: partners })
@@ -321,7 +321,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/organizations/:id/workshops", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
@@ -338,7 +338,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.delete("/organizations/:id/workshops/:partnerId", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const { id: rawOrgId, partnerId } = request.params as { id: string; partnerId: string };
     const orgId = uuid.parse(rawOrgId);
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin"]);
@@ -357,7 +357,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/organizations/:id/vehicles", async (request) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const { membership } = await getOrganizationAccess(app.db, uid(request), orgId);
     let rows = await app.db.select({ organizationVehicle: organizationVehicles, vehicle: vehicles })
@@ -384,7 +384,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/organizations/:id/vehicles", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const actorId = uid(request);
     const { organization } = await getOrganizationAccess(app.db, actorId, orgId, ["org_admin", "org_manager"]);
@@ -436,7 +436,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/organizations/:id/vehicles/:vehicleId", async (request) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const { id: rawOrgId, vehicleId } = request.params as { id: string; vehicleId: string };
     const orgId = uuid.parse(rawOrgId);
     const actorId = uid(request);
@@ -459,7 +459,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/organizations/:id/assignments", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin", "org_manager"]);
@@ -483,7 +483,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/organizations/:id/assignments", async (request) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const { membership } = await getOrganizationAccess(app.db, uid(request), orgId);
     const conditions = [eq(driverAssignments.orgId, orgId)];
@@ -493,7 +493,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.delete("/organizations/:id/assignments/:assignmentId", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const { id: rawOrgId, assignmentId } = request.params as { id: string; assignmentId: string };
     const orgId = uuid.parse(rawOrgId);
     const actorId = uid(request);
@@ -508,7 +508,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/organizations/:id/vehicles/:vehicleId/service-records", async (request, reply) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const { id: rawOrgId, vehicleId } = request.params as { id: string; vehicleId: string };
     const orgId = uuid.parse(rawOrgId);
     const actorId = uid(request);
@@ -588,7 +588,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/organizations/:id/work-orders", async (request) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const { membership } = await getOrganizationAccess(app.db, uid(request), orgId);
     const visibility = membership.role === "org_driver"
@@ -615,7 +615,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/organizations/:id/work-orders/:workOrderId", async (request) => {
-    requireFleetClient(request);
+    requireFleetPortal(request);
     const { id: rawOrgId, workOrderId } = request.params as { id: string; workOrderId: string };
     const orgId = uuid.parse(rawOrgId);
     const actorId = uid(request);

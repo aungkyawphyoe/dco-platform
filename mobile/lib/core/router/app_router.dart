@@ -24,15 +24,6 @@ import '../../features/fleet/presentation/screens/driver_fuel_log_screen.dart';
 import '../../features/fleet/presentation/screens/driver_inspection_screen.dart';
 import '../../features/fleet/presentation/screens/driver_report_issue_screen.dart';
 import '../../features/fleet/presentation/screens/driver_shift_screen.dart';
-import '../../features/fleet/presentation/screens/fleet_assignments_screen.dart';
-import '../../features/fleet/presentation/screens/fleet_screen.dart';
-import '../../features/fleet/presentation/screens/fleet_vehicle_detail_screen.dart';
-import '../../features/fleet/presentation/screens/fleet_vehicle_form_screen.dart';
-import '../../features/fleet/presentation/screens/fleet_vehicle_transfer_screen.dart';
-import '../../features/fleet/presentation/screens/fleet_warranty_form_screen.dart';
-import '../../features/fleet/presentation/screens/fleet_warranty_templates_screen.dart';
-import '../../features/fleet/presentation/screens/fleet_work_order_detail_screen.dart';
-import '../../features/fleet/presentation/screens/org_management_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
 import '../../features/fuel/presentation/screens/fuel_log_detail_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
@@ -81,10 +72,10 @@ import 'tab_switchers.dart';
 /// so they cover the tab shell instead of sitting above the bottom bar.
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
-/// Routes that are considered fleet or driver routes (require password change if must_change_password=true).
-bool _isFleetOrDriverRoute(String location) {
-  return location.startsWith(AppRoutes.fleet) ||
-      location.startsWith(AppRoutes.driverShift) ||
+/// Routes that are considered driver routes (require password change if
+/// must_change_password=true).
+bool _isDriverRoute(String location) {
+  return location.startsWith(AppRoutes.driverShift) ||
       location.startsWith(AppRoutes.driverReportIssue) ||
       location.startsWith(AppRoutes.driverFuelLog) ||
       location.startsWith(AppRoutes.driverInspectionNew);
@@ -106,7 +97,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final onAuth = AppRoutes.authPaths.contains(location);
       final onSplash = location == AppRoutes.splash;
       final onChangePassword = location == AppRoutes.changePassword;
-      final onFleetOrDriver = _isFleetOrDriverRoute(location);
+      final onDriver = _isDriverRoute(location);
 
       if (session.isLoading) {
         // Keep entered credentials and validation feedback mounted during login/signup.
@@ -145,8 +136,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return AppRoutes.verifyEmail;
       }
 
-      // Force password change for fleet/driver routes if must_change_password is set.
-      if (mustChange && onFleetOrDriver && !onChangePassword) {
+      // Force password change for driver routes if must_change_password is set.
+      if (mustChange && onDriver && !onChangePassword) {
         return AppRoutes.changePassword;
       }
 
@@ -552,65 +543,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => ShareVehicleScreen(
               vehicleId: state.pathParameters['vehicleId']!,
             ),
-          ),
-        ],
-      ),
-
-      // Fleet
-      GoRoute(
-        path: AppRoutes.fleet,
-        parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const FleetScreen(),
-        routes: [
-          GoRoute(
-            path: 'org',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => const OrgManagementScreen(),
-          ),
-          GoRoute(
-            path: 'vehicles/new',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => const FleetVehicleFormScreen(),
-          ),
-          GoRoute(
-            path: 'vehicles/:vehicleId',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => FleetVehicleDetailScreen(
-              vehicleId: state.pathParameters['vehicleId']!,
-            ),
-            routes: [
-              GoRoute(
-                path: 'transfer',
-                parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) => FleetTransferScreen(
-                  vehicleId: state.pathParameters['vehicleId']!,
-                ),
-              ),
-            ],
-          ),
-          GoRoute(
-            path: 'work-orders/:workOrderId',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => FleetWorkOrderDetailScreen(
-              workOrderId: state.pathParameters['workOrderId']!,
-            ),
-          ),
-          GoRoute(
-            path: 'assignments',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => const FleetAssignmentsScreen(),
-          ),
-          GoRoute(
-            path: 'warranty-templates',
-            parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => const FleetWarrantyTemplatesScreen(),
-            routes: [
-              GoRoute(
-                path: 'new',
-                parentNavigatorKey: rootNavigatorKey,
-                builder: (context, state) => const FleetWarrantyFormScreen(),
-              ),
-            ],
           ),
         ],
       ),

@@ -1,4 +1,3 @@
-import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fleet/presentation/fleet_labels.dart';
@@ -7,7 +6,6 @@ import 'package:dco_mobile/features/fleet/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 
 /// Driver mode Maintenance tab: my work orders and inspections.
 class DriverMyReportsScreen extends ConsumerStatefulWidget {
@@ -100,9 +98,6 @@ class _DriverMyReportsScreenState
                       trailing: StatusChip(
                         label: workOrderStatusLabel(s, workOrder.status),
                         tone: workOrderTone(workOrder.status),
-                      ),
-                      onTap: () => context.push(
-                        AppRoutes.fleetWorkOrder(workOrder.id),
                       ),
                     ),
                   );

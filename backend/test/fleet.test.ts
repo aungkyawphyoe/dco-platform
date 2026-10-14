@@ -269,7 +269,10 @@ describe("Enterprise Fleet access", () => {
     expect(driverLogin.statusCode).toBe(200);
     const driverToken = driverLogin.json().access_token as string;
     const driverVehicles = await app.inject({ method: "GET", url: `/v1/organizations/${org.id}/vehicles`, headers: auth(driverToken) });
-    expect(driverVehicles.json().items).toHaveLength(1);
+    expect(driverVehicles.statusCode).toBe(403);
+    expect(driverVehicles.json().error.code).toBe("forbidden");
+    const driverVehicle = await app.inject({ method: "GET", url: "/v1/drivers/my-vehicle", headers: auth(driverToken) });
+    expect(driverVehicle.statusCode).toBe(200);
     const workOrder = await app.inject({
       method: "POST",
       url: `/v1/organizations/${org.id}/work-orders`,
@@ -300,6 +303,21 @@ describe("Enterprise Fleet access", () => {
       payload: { status: "in_progress", assigned_to: mechanic.id },
     });
     expect(resolved.statusCode).toBe(200);
+
+    // Owner-audience tokens (the mobile app) may read shared fleet context but
+    // must not reach management routes — those are Fleet Portal (dco-fleet) only.
+    const mobileSurfaceLogin = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: fleetOwner.email, password: "password1" },
+    });
+    expect(mobileSurfaceLogin.statusCode).toBe(200);
+    const mobileStyleToken = mobileSurfaceLogin.json().access_token as string;
+    const membersViaOwnerAudience = await app.inject({ method: "GET", url: `/v1/organizations/${org.id}/members`, headers: auth(mobileStyleToken) });
+    expect(membersViaOwnerAudience.statusCode).toBe(403);
+    expect(membersViaOwnerAudience.json().error.code).toBe("forbidden");
+    const orgContextViaOwnerAudience = await app.inject({ method: "GET", url: "/v1/organizations/me", headers: auth(mobileStyleToken) });
+    expect(orgContextViaOwnerAudience.statusCode).toBe(200);
 
     const suspended = await app.inject({
       method: "PATCH",

@@ -3,20 +3,19 @@ import 'package:dco_mobile/features/fleet/domain/entities/driver_context.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/fleet_mode.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/org_vehicle.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/organization_member.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/shift_mileage.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/vehicle_cost.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/warranty_template.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/work_order.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   group('FleetMode', () {
-    test('parses known values and falls back to personal', () {
-      expect(FleetMode.fromStorage('fleet'), FleetMode.fleet);
+    test('parses driver and falls back to personal', () {
       expect(FleetMode.fromStorage('driver'), FleetMode.driver);
       expect(FleetMode.fromStorage(null), FleetMode.personal);
       expect(FleetMode.fromStorage('bogus'), FleetMode.personal);
+      // Legacy stored fleet-management mode degrades to personal — fleet
+      // management lives on the Fleet Portal.
+      expect(FleetMode.fromStorage('fleet'), FleetMode.personal);
     });
   });
 
@@ -202,110 +201,6 @@ void main() {
       expect(assigned.vehicle?.id, 'veh-1');
       expect(unassigned.hasAssignedVehicle, isFalse);
       expect(unassigned.organization, isNull);
-    });
-  });
-
-  group('Organization members and workshops', () {
-    test('member label prefers display name and admin flag', () {
-      final named = OrgMember.fromJson(const {
-        'user_id': 'u1',
-        'email': 'a@b.test',
-        'display_name': 'Aye',
-        'role': 'org_admin',
-      });
-      final anonymous = OrgMember.fromJson(const {'user_id': 'u2', 'email': 'b@c.test'});
-
-      expect(named.label, 'Aye');
-      expect(named.isAdmin, isTrue);
-      expect(anonymous.label, 'b@c.test');
-      expect(anonymous.role, 'org_driver');
-      expect(anonymous.isAdmin, isFalse);
-    });
-
-    test('workshop defaults to pending', () {
-      final workshop = OrgWorkshop.fromJson(const {'id': 'ws-1', 'name': 'Bay Auto'});
-
-      expect(workshop.status, 'pending');
-      expect(workshop.contactEmail, isNull);
-    });
-  });
-
-  group('VehicleCost and analytics', () {
-    test('parses analytics with nested vehicle costs', () {
-      final analytics = FleetAnalytics.fromJson(const {
-        'vehicle_count': 3,
-        'total_fleet_spend': 1234.5,
-        'average_cost_per_km': 0.42,
-        'lemon_count': 1,
-        'open_work_orders': 2,
-        'active_assignments': 3,
-        'upcoming_maintenance_count': 4,
-        'vehicles': [
-          {
-            'vehicle_id': 'veh-1',
-            'tco': 900.0,
-            'cost_per_km': 0.5,
-            'total_km_driven': 1800,
-            'utilization_rate': 80,
-            'name': 'Van 1',
-            'license_plate': 'AB-1234',
-          },
-        ],
-      });
-
-      expect(analytics.vehicleCount, 3);
-      expect(analytics.totalFleetSpend, 1234.5);
-      expect(analytics.lemonCount, 1);
-      expect(analytics.vehicles.single.utilizationRate, 80);
-      expect(analytics.vehicles.single.licensePlate, 'AB-1234');
-    });
-
-    test('sparse analytics payload gets zeroes', () {
-      final analytics = FleetAnalytics.fromJson(const {});
-
-      expect(analytics.vehicleCount, 0);
-      expect(analytics.averageCostPerKm, 0);
-      expect(analytics.vehicles, isEmpty);
-    });
-
-    test('lemon report carries threshold and items', () {
-      final report = LemonReport.fromJson(const {
-        'threshold_cost_per_km': 0.6,
-        'items': [
-          {'vehicle_id': 'veh-9', 'cost_per_km': 0.9},
-        ],
-      });
-
-      expect(report.thresholdCostPerKm, 0.6);
-      expect(report.items.single.vehicleId, 'veh-9');
-    });
-  });
-
-  group('WarrantyTemplate.fromJson', () {
-    test('parses template with coverage lists', () {
-      final template = WarrantyTemplate.fromJson(const {
-        'id': 'wt-1',
-        'org_id': 'org-1',
-        'name': '2y/40k',
-        'duration_years': 2,
-        'mileage_limit_km': 40000,
-        'coverage_categories': ['engine', 'gearbox'],
-        'exclusions': 'Wear items',
-        'approved_workshop_ids': ['ws-1'],
-      });
-
-      expect(template.durationYears, 2);
-      expect(template.mileageLimitKm, 40000);
-      expect(template.coverageCategories, ['engine', 'gearbox']);
-      expect(template.approvedWorkshopIds, ['ws-1']);
-    });
-
-    test('defaults duration and empty lists', () {
-      final template = WarrantyTemplate.fromJson(const {'id': 'wt-2'});
-
-      expect(template.durationYears, 1);
-      expect(template.coverageCategories, isEmpty);
-      expect(template.approvedWorkshopIds, isEmpty);
     });
   });
 }

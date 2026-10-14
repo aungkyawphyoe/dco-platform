@@ -1,8 +1,9 @@
-/// App navigation mode. Persisted per user; validated against live
-/// entitlements on every read (server-side checks remain authoritative).
+/// App navigation mode, derived from live entitlements. `org_driver`
+/// accounts are forced into Driver mode; everyone else stays in the personal
+/// garage — fleet management lives on the Fleet Portal. (A legacy stored
+/// `fleet` value degrades to `personal`.)
 enum FleetMode {
   personal('personal'),
-  fleet('fleet'),
   driver('driver');
 
   const FleetMode(this.storage);

@@ -59,7 +59,6 @@ class _DriverReportIssueScreenState
             urgency: _urgency,
           );
       ref.invalidate(driverWorkOrdersProvider);
-      ref.invalidate(orgWorkOrdersProvider(orgId));
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,

@@ -134,24 +134,15 @@ Back from a nested screen returns to the tab or hamburger that opened it. Switch
 
 ## Fleet mode and Driver mode
 
-The drawer's **Fleet** entry (visible only to members of an `active` Enterprise organization; role limits actions) opens the **Fleet hub** (`/fleet`): organization card, mode switch, and manage entries (Org Management, Assignments, Warranty Templates — gated by role). The selected mode is stored per user in `AppMeta` and re-validated against live entitlements on every read; losing access degrades back to personal mode. Personal data keeps the offline-first Drift + outbox path; fleet and driver data is **online-first** — lists read the API (HTTP 403 → access-denied empty state), and only the mode string is cached locally.
+Mobile has **no Fleet hub, no mode switch, and no drawer Fleet entry** (removed October 2026 — fleet management lives on the Fleet Portal). The app has two effective modes, derived from live entitlements (`GET /me/entitlements`) with no stored preference:
 
-**Oct 2026 alignment (specified, pending implementation):** `org_driver` accounts get **no mode choice** — login lands directly in Driver mode (no personal/fleet toggle, no personal-garage tabs). Login accepts **email or username** (customer signup stays email-only); driver accounts are username-only with a forced password change on first login (`password_change_required` blocks fleet/driver routes until changed). The drawer Fleet entry stays visible to all org members — the *Fleet Portal* sidebar (not the mobile drawer) is the surface restricted by role (admin full / manager+mechanic reduced / driver no portal login).
+- **Driver mode** — `org_driver` accounts are forced into it on login: a three-item nav (My Vehicle / My Reports / Settings); no personal-garage tabs. Personal data keeps the offline-first Drift + outbox path outside driver mode; driver lists are **online-first** (HTTP 403 → access-denied empty state).
+- **Personal mode** — everyone else, including non-driver org members (`org_admin`/`org_manager`/`org_mechanic`), who keep mobile login for their personal garage only.
 
-Mode changes swap the *contents* of the existing tab branches — the shell does not change shape in personal or fleet mode:
+Backend enforcement is authoritative: management API routes require the `dco-fleet` (Fleet Portal) audience and reject mobile's `dco-owner` token.
 
-| Tab slot | Personal | Fleet | Driver |
-|----------|----------|-------|--------|
-| 1 | Garage (Dashboard) | Vehicle Inventory | My Vehicle |
-| 2 | Maintenance | Work Orders | My Reports |
-| 3 | Expenses | Reports (analytics + CSV export) | *hidden* |
-| 4 | Setting | Setting | Setting |
+Driver screens push on the **root** navigator (not a tab stack):
 
-Driver mode shows a **three-item** bottom nav (My Vehicle / My Reports / Setting). Entering driver mode while the Expenses tab is active jumps to the first tab.
-
-Fleet and driver detail screens push on the **root** navigator (not a tab stack):
-
-- Fleet: Fleet hub, Org Management (Members / Vehicles / Workshops / Settings), Add/Edit vehicle, Vehicle detail (status transition, Transfer to buyer), Work order detail (start/resolve), Driver assignments, Warranty templates → New.
 - Driver: Start/end shift, Report issue, Log fuel, Start inspection (checklist built from the org's inspection template).
 
 ---

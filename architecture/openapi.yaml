@@ -5,6 +5,7 @@ info:
   description: |
     Versioned REST API for the AutoX MVP.
     Personal Flutter clients use audience `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified Workshop accounts use `dco-workshop`; AutoX Admin uses `dco-admin`.
+    Fleet audience split: fleet **management** routes (organization members, inventory writes, assignments, work-order status changes, inspections lists, analytics, reports, warranty templates, transfers, CSV import) require the `dco-fleet` audience (Fleet Portal). The mobile app (`dco-owner`) reaches only the personal garage, shared fleet **context** (`/me/entitlements`, `/organizations/me`), and the restricted **driver surface** (`/drivers/*`, driver work-order/fuel-log/shift/inspection routes).
     Client-generated UUIDs on create are idempotent. Mileage never decreases.
     Azure hostname is environment-specific and is not part of this contract.
 servers:

@@ -4,7 +4,7 @@ Working contract for the Flutter **owner app**. Do not copy FRDs into this file.
 
 This is the primary product surface. The web admin portal is a separate app and is **not** implemented here.
 
-**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), four-tab shell, local Drift persistence (vehicles + outbox), register/edit vehicle, maintenance plan + history, parts, fuel logs, expenses, local OS maintenance reminders, sync status/auto-sync, maintenance success flow, and local-only Notes are implemented. Fleet/Driver modes are implemented online-first (`features/fleet/`): drawer → Fleet hub, org management, vehicle inventory + transfer, work orders, reports, assignments, warranty templates, and the restricted driver view (shift, issue reports, fuel log, inspections).
+**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), four-tab shell, local Drift persistence (vehicles + outbox), register/edit vehicle, maintenance plan + history, parts, fuel logs, expenses, local OS maintenance reminders, sync status/auto-sync, maintenance success flow, and local-only Notes are implemented. The restricted **Driver surface** is implemented online-first (`features/fleet/`): forced Driver mode for `org_driver` (My Vehicle / My Reports / Settings), shift start/end, issue reports, fuel log, template inspections. Fleet **management** lives on the Fleet Portal — not in this app.
 
 ---
 
@@ -39,7 +39,7 @@ After a successful owner login, land on **Dashboard** (tldraw screen 3) — the 
 
 Documents is reached from Expenses (header) and from vehicle flows — not a tab. Sync status is a compact indicator in the top bar or Settings — never a fifth tab.
 
-**In production scope:** everything that shipped in MVP — auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, **vehicle sharing** (replaces Family Sharing) — plus **Notes** (local-only personal notebook; see `product/production-scope.md`) and **Fleet/Driver modes** (online-first org fleet operations; see `product/frd/fleet-management.md` §18).
+**In production scope:** everything that shipped in MVP — auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, **vehicle sharing** (replaces Family Sharing) — plus **Notes** (local-only personal notebook; see `product/production-scope.md`) and the **Driver surface** (online-first org driver operations; see `product/frd/fleet-management.md` §18). Fleet management (org members, inventory, assignments, analytics, warranty) is Fleet Portal only.
 
 **Still out of scope (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; note sync / server-side notes.
 
@@ -118,7 +118,7 @@ flowchart TB
 
 ### Data flow (non-negotiable)
 
-1. Widgets read **local Drift only** via a repository / use case. The network is never the UI source of truth. **Exception:** Fleet/Driver mode screens read the network (online-first); the mode string itself is the only locally cached fleet value (`AppMeta`).
+1. Widgets read **local Drift only** via a repository / use case. The network is never the UI source of truth. **Exception:** Driver-surface screens read the network (online-first); entitlements are the only fleet value cached locally (`AppMeta`).
 2. Write: local row → outbox row → UI updates from local. **Exception:** local-only entities (Notes) write the Drift row alone — no outbox, no sync nudge.
 3. Sync engine (cold start after auth, reconnect, debounce ~1s after local write, manual retry): **push then pull**.
 4. Auth (signup / login / reset) is **online-only**. After a session exists, Garage / Maintenance / Documents / Expenses work offline.
@@ -267,7 +267,7 @@ Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle, Service Hist
 
 Empty garage: Dashboard is still the default route. Maintenance, Expenses, and Documents show their "no active vehicle" empty states until a vehicle exists.
 
-**Fleet and Driver modes** (see `docs/app-shell.md`): drawer → Fleet hub (`/fleet`) swaps tab contents (Inventory / Work Orders / Reports) in Fleet mode, or collapses to a three-item nav (My Vehicle / My Reports / Setting) in Driver mode. Fleet/driver screens push on the root navigator. These lists are **online-first** (Dio through `features/fleet/`); HTTP 403 renders the access-denied empty state. Only the mode string persists locally (`AppMeta` key `fleet:<userId>.mode`), validated against live entitlements on every read.
+**Driver mode** (see `docs/app-shell.md`): `org_driver` accounts are forced into a three-item nav (My Vehicle / My Reports / Settings) — no personal garage, no mode toggle, no Fleet hub. The effective mode is derived from live entitlements; there is no stored mode preference. Driver screens push on the root navigator. These lists are **online-first** (Dio through `features/fleet/`); HTTP 403 renders the access-denied empty state. Entitlements JSON is cached in `AppMeta` as an offline fallback. Fleet management routes require the `dco-fleet` audience (portal) and are not called from this app.
 
 ---
 
@@ -301,9 +301,9 @@ Tertiary text is for icons and placeholders, not small body copy on cards (use `
 1. Honor [`product/production-scope.md`](../product/production-scope.md) over an FRD if they disagree; then update the FRD. [`product/mvp-scope.md`](../product/mvp-scope.md) is closed — do not add new work there.
 2. Implement HTTP against [`architecture/openapi.yaml`](../architecture/openapi.yaml).
 3. Client UUIDs for creates. Archive vehicles; do not hard-delete them.
-4. UI reads Drift. Writes go local + outbox (except local-only entities like Notes, which stay Drift-only). Do not bind lists to Dio responses. Exception: Fleet/Driver mode lists are online-first by design (`features/fleet/` — Dio through the repository, AppMeta cache for the mode string only); do not move them onto Drift/outbox.
+4. UI reads Drift. Writes go local + outbox (except local-only entities like Notes, which stay Drift-only). Do not bind lists to Dio responses. Exception: Driver-surface lists are online-first by design (`features/fleet/` — Dio through the repository, AppMeta cache for entitlements only); do not move them onto Drift/outbox.
 5. Do not add Autozis modules (trips, insurance policies, OCR, assistant/PDF reports, fuel *efficiency* KPIs) or server-side notes sync. Refuel/charge logs, Fuel Types, and Notes are in scope.
-6. Do not implement admin portal URLs, admin JWT audience, or partner onboarding in this app.
+6. Do not implement admin portal URLs, admin JWT audience, or partner onboarding in this app. Do not implement fleet **management** (members, inventory writes, assignments, work-order resolution, analytics/reports, warranty templates, transfers, CSV import) — those routes require the `dco-fleet` audience and belong to the Fleet Portal.
 7. Do not commit secrets. Use `--dart-define` / flavors for `API_BASE_URL` and `JWT_OWNER_AUD`.
 8. Keep workflows consistent: same empty / error / loading language across features; design-system tokens only.
 9. Domain rules (mileage, VIN, plate, fuel type, archive, note title length) get automated tests. Test use cases without Flutter.

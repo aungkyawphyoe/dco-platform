@@ -4,11 +4,12 @@
 
 Fleet Management enables **business accounts** (showrooms, dealerships, taxi fleets, rental companies, commercial fleets) to manage multiple vehicles under an organization, track warranty periods with approved workshops, and transfer vehicle ownership to buyers with full maintenance history. Organizations are created exclusively by AutoX administrators via the Admin Portal (sales-led onboarding). This module extends the existing single-owner model to support multi-vehicle business operations with role-based access, warranty enforcement, ownership transfer, driver work orders, vehicle inspections, and cost analytics.
 
-**Status:** Partial — backend, Fleet Portal (`fleet-portal/`, `dco-fleet`), mobile Fleet/Driver modes, and Web Admin organization provisioning implemented; Workshop Portal still planned (Phase 3, Year 2). Web Admin does not import initial vehicles during provisioning — seed inventory via the Fleet Portal CSV import after activation.
+**Status:** Partial — backend, Fleet Portal (`fleet-portal/`, `dco-fleet`), mobile Driver mode, and Web Admin organization provisioning implemented; Workshop Portal still planned (Phase 3, Year 2). Web Admin does not import initial vehicles during provisioning — seed inventory via the Fleet Portal CSV import after activation.
 **Requirement alignment (October 2026) — pending implementation:** Enterprise access-model shift confirmed by grilling: (1) Fleet Portal sidebar visibility is role-based — full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`; (2) AutoX Admin provisions the Fleet Admin account with email + temporary password (invite-email provisioning retires); (3) drivers are created/deactivated by the Fleet Admin with **username + password and no email** (username replaces email as the driver login identifier); (4) driver login forces Driver mode; (5) driver deactivation is a soft delete that cascades to active assignments and reserves the username. See *Confirmed Access Decisions* 7–14.
-**Mobile implementation deviations:** CSV report export copies the CSV to the clipboard (no file download on mobile); the analytics time-range filter is omitted because `/analytics/fleet` returns a fixed window; the Workshop mobile screen (`dco-workshop` surface) is not implemented.
+**Mobile surface (October 2026 — implemented):** the mobile app serves personal owners and the restricted **Driver** surface only. Fleet management (members, inventory, assignments, work-order resolution, analytics/reports, warranty templates, transfers) lives exclusively on the Fleet Portal; management API routes require the `dco-fleet` audience and are unreachable from mobile's `dco-owner` token. Non-driver org members (`org_admin`/`org_manager`/`org_mechanic`) keep mobile login for their personal garage but have no fleet surface on mobile.
+**Mobile implementation deviations:** the Workshop mobile screen (`dco-workshop` surface) is not implemented.
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
-**Surfaces:** Mobile (Flutter — org members, drivers, buyers, workshops), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — AutoX user management, organization provisioning/activation, and read-only fleet support).
+**Surfaces:** Mobile (Flutter — personal owners + fleet drivers), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — AutoX user management, organization provisioning/activation, and read-only fleet support).
 
 ### Account Plans and Feature Entitlements
 
@@ -77,20 +78,12 @@ Enable organizations to:
 - API endpoints for org management, membership, vehicles, warranties, transfers, workshops, work orders, inspections, assignments, analytics
 
 ### Mobile (Flutter)
-- **Mode Switch**: **Hamburger menu** → Fleet toggle between Personal and Fleet mode
-- **Fleet Mode**: Same 4-tab structure (Garage/Maintenance/Expenses/Settings) scoped to org vehicles
-- **Org Management Screen**: **Hamburger menu** → Fleet → Manage members, vehicles, workshops
-- **Vehicle Inventory Screen**: Fleet mode → Garage tab (replaces personal Garage)
-- **Add Vehicle Screen**: One-by-one vehicle add (reuse existing flow) + CSV import
-- **Warranty Template Screen**: Create/edit warranty templates
-- **Transfer Vehicle Screen**: Vehicle Detail → "Transfer to Buyer" (Admin only)
+- **Personal garage**: unchanged for personal owners; non-driver org members keep login for their personal garage only (no fleet surface)
+- **Driver Mode**: Restricted 3-tab view (My Vehicle / My Reports / Settings) for `org_driver` — forced on login, no mode toggle
+- **Driver actions**: log mileage (shift start/end), template inspections, fuel logs, report issues
 - **Buyer Claim Flow**: Auto-assigned vehicle appears in buyer's personal garage with full history
 - **Workshop Account**: Limited view — current vehicle only, warranty scope only
-- **Driver Mode**: Restricted 3-tab view for assigned vehicles — log mileage, inspections, fuel, report issues
-- **Work Order Screen**: Driver creates reports, owner/manager reviews and resolves
-- **Inspection Screen**: Template-based checklist completion (pre-trip/post-trip)
-- **Reports Screen**: Fleet mode → Expenses tab → "Analytics" → Per-vehicle and fleet-wide cost analytics
-- **Driver Assignment Screen**: **Hamburger menu** → Fleet → Driver Assignments
+- Fleet management (mode switch, org management, inventory, transfers, assignments, warranty templates, reports/analytics) is **Fleet Portal only** — removed from mobile; management API routes require the `dco-fleet` audience
 
 ### Fleet Dashboard (Next.js — `fleet.yourdomain.com`)
 - **Authentication**: SSO with AutoX credentials; Fleet Dashboard token audience is `dco-fleet`
@@ -137,7 +130,7 @@ Enable organizations to:
 - Real-time vehicle tracking / GPS
 - Driver scheduling / shift management
 - Mobile-responsive Fleet Dashboard (desktop-optimized only for MVP)
-- Fleet Dashboard mobile app (mobile app handles fleet ops for now)
+- Fleet management on the mobile app (management is Fleet Portal only; mobile serves personal garage + Driver mode)
 
 ---
 
@@ -145,9 +138,9 @@ Enable organizations to:
 
 | Persona | Description | Primary Surface |
 |---------|-------------|-----------------|
-| **Fleet Owner** | Business owner (showroom, taxi fleet, rental). Full access to org, vehicles, members, templates, transfers, cost analytics, work order approval. Org created by AutoX admin. | Mobile (Fleet mode) + Web |
-| **Fleet Manager** | Senior employee. Full operational access: vehicles, work orders, inspections, assignments, cost analytics. Cannot manage org settings or members. | Mobile (Fleet mode) |
-| **Org Mechanic** | Workshop employee. Logs service, views vehicle info. Cannot add vehicles, manage templates, or transfer. | Mobile (Fleet mode) |
+| **Fleet Owner** | Business owner (showroom, taxi fleet, rental). Full access to org, vehicles, members, templates, transfers, cost analytics, work order approval. Org created by AutoX admin. | Web (Fleet Portal) |
+| **Fleet Manager** | Senior employee. Full operational access: vehicles, work orders, inspections, assignments, cost analytics. Cannot manage org settings or members. | Web (Fleet Portal) |
+| **Org Mechanic** | Workshop employee. Logs service, views vehicle info. Cannot add vehicles, manage templates, or transfer. | Web (Fleet Portal) |
 | **Driver** | Taxi/rental driver. Org member with `org_driver` role. Account created by the Fleet Admin with username + password (no email required); must change password on first login. Assigned one vehicle at a time. Logs in to the mobile app and is taken directly to restricted Driver mode. Can log mileage, complete inspections, report issues, log fuel. Restricted view — no costs, no other vehicles. | Mobile (Driver mode) |
 | **Buyer** | Customer who receives a vehicle. Sees vehicle in personal garage with full history. Normal owner after transfer. | Mobile (Personal mode) |
 | **Workshop** | External workshop with AutoX account. Logs warranty service on assigned vehicles. Limited visibility. | Mobile (Workshop mode) |
@@ -389,9 +382,9 @@ Enable organizations to:
 - New organizations are created in `pending`; a AutoX admin explicitly activates them after provisioning is ready
 - One organization per `admin_user_id` (enforced by unique `admin_user_id` where `status != archived`)
 - A user can belong to only one organization at a time
-- `pending` status: org exists but has not been activated by AutoX; Fleet mode and Fleet API access are unavailable
+- `pending` status: org exists but has not been activated by AutoX; Fleet API access is unavailable
 - While pending, only the linked Org Admin may be invited/linked; the Org Admin cannot invite other members until the organization is active
-- `active` status: AutoX admin has activated the org; active members can enter Fleet mode subject to their org roles
+- `active` status: AutoX admin has activated the org; active members get fleet access on the Fleet Portal subject to their org roles; `org_driver` members get the Driver surface on mobile
 - `suspended` status: AutoX admin has suspended the org; members lose fleet access
 - Organization name must be unique per admin (not globally unique)
 - Contact details stored for AutoX admin reference
@@ -817,39 +810,36 @@ Enable organizations to:
 
 ### 18. Mobile Screens
 
-#### Mode Switch (Hamburger Menu)
-- Entry: **Hamburger menu** → Fleet → "Switch to Fleet" toggle
-- Fleet entry is visible only when the user has an active membership in an `active` Enterprise organization
-- Entry is hidden for non-members and for members of `pending` or `suspended` organizations; no self-serve upgrade CTA is shown for Fleet
-- Switching reloads the 4-tab structure with org-scoped content
-- Personal mode: same as current (personal vehicles)
-- Fleet mode: same tabs (Garage/Maintenance/Expenses/Settings) but filtered to org vehicles
-- Driver mode: restricted view (see Driver Mode below)
-- `org_driver` accounts get **no mode choice**: login lands directly in Driver mode; the personal/fleet toggle is not offered
-- API checks organization plan, status, membership, and role on every Fleet request; hiding the entry point is presentation only
+Mobile serves personal owners and the restricted **Driver** surface. Fleet management is **Fleet Portal only** (October 2026): the mobile Fleet hub, mode switch, and management screens were removed, and management API routes require the `dco-fleet` audience. The management screen specs below (Org Management through Transfer) describe the Fleet Portal surface.
 
-#### Org Management Screen (New)
-- Entry: **Hamburger menu** → Fleet → Org Management (after org exists and is active)
+#### Mode Switch — retired
+- There is **no mobile Fleet entry or mode switch**. The drawer's Fleet tile, the Fleet hub (`/fleet`), and the stored per-user mode preference were removed.
+- `org_driver` accounts are forced into Driver mode: login lands directly in the 3-tab Driver view (My Vehicle / My Reports / Settings); no personal garage, no toggle.
+- `org_admin` / `org_manager` / `org_mechanic` members keep mobile login for their **personal garage only** — no fleet surface is offered on mobile.
+- The effective mode is derived from live entitlements (`GET /me/entitlements`); a legacy stored `fleet` mode value degrades to personal. API checks organization plan, status, membership, and role on every request.
+
+#### Org Management Screen (Fleet Portal)
+- Entry: Fleet Portal sidebar → Members / Vehicles / Workshops / Settings
 - Tabs: Members / Vehicles / Workshops / Settings
 - **Members tab**: List with name, role badge, "Change Role" / "Remove" (Admin only)
 - **Vehicles tab**: List with status badges (template-specific), counts, "Add Vehicle" / "Import CSV"
 - **Workshops tab**: List of approved workshops, "Add Workshop" / "Remove"
 - **Settings tab**: Org name, status badge, contact details (read-only — edit requires AutoX admin)
 
-#### Vehicle Inventory Screen (New)
-- Entry: Fleet mode → Garage tab (replaces personal Garage in fleet mode)
+#### Vehicle Inventory Screen (Fleet Portal)
+- Entry: Fleet Portal → Vehicles
 - Header: Vehicle counts by status (template-specific states)
 - Vehicle list: Card with photo, name, plate, make/model, status badge, mileage, assigned driver
 - Tap → Vehicle Detail (fleet version)
 - "Add Vehicle" FAB → Add Vehicle form
 - "Import CSV" button → CSV upload flow
 
-#### Add Vehicle Screen (Fleet Version)
-- Reuses existing Add Vehicle form from Garage
+#### Add Vehicle Screen (Fleet Portal)
+- Reuses the vehicle form fields
 - Additional fields: Lifecycle Template (dropdown, required), Status (default from template), Warranty Template (optional), Revenue Label (optional text)
 - If warranty template selected, warranty instance created on transfer
 
-#### Transfer Vehicle Screen (New)
+#### Transfer Vehicle Screen (Fleet Portal)
 - Entry: Vehicle Detail → "Transfer to Buyer" (Admin only)
 - Steps:
   1. Enter buyer email (autocomplete from existing users)
@@ -909,8 +899,8 @@ Enable organizations to:
 - Submit → Inspection completed (or failed if any item is not_ok)
 - Failed inspection auto-generates work order
 
-#### Fleet Owner/Manager - Work Orders Screen (New)
-- Entry: Fleet mode → Maintenance tab → "Work Orders" section
+#### Fleet Owner/Manager - Work Orders Screen (Fleet Portal)
+- Entry: Fleet Portal sidebar → Work Orders
 - List of all work orders with status badges, vehicle name, driver name, urgency, date
 - Filter by: status, urgency, vehicle, driver
 - Tap → Work Order Detail:
@@ -925,8 +915,8 @@ Enable organizations to:
 - "Unassign" → Confirmation → Assignment completed
 - Shows assignment history
 
-#### Fleet Owner/Manager - Reports Screen (New)
-- Entry: Fleet mode → Expenses tab → "Analytics" section (or dedicated tab)
+#### Fleet Owner/Manager - Reports Screen (Fleet Portal)
+- Entry: Fleet Portal sidebar → Reports
 - Tabs: Per Vehicle / Fleet Summary / Lemon Flags
 - **Per Vehicle tab**: Select vehicle → TCO, cost-per-mile, utilization, maintenance/fuel/wear breakdown
 - **Fleet Summary tab**: Total spend, average cost-per-mile, lemon count, upcoming maintenance
@@ -1080,9 +1070,9 @@ Enable organizations to:
 7. **Transferred vehicles retain full history** — buyer sees everything
 8. **Free plan exempt** — transferred vehicles don't count against 1-vehicle limit
 9. **CSV import max 100 rows** — batch limit for performance
-10. **Org must be `active`** for Fleet mode to appear on mobile
+10. **Org must be `active`** for fleet access (Fleet Portal login; Driver surface on mobile)
 11. **Workshop visibility is scoped** — only sees assigned vehicles, no buyer info
-12. **Mode switch preserves state** — switching between Personal/Fleet/Driver doesn't lose draft data
+12. **Driver mode is derived** — effective mode comes from live entitlements; no stored mode preference
 13. **Archive-not-delete** — organizations are soft-archived, vehicles revert to owners
 14. **Invite email is one-time** — if not claimed, AutoX admin can re-send from admin portal
 15. **One active vehicle per driver** — driver cannot be assigned multiple vehicles simultaneously
@@ -1587,11 +1577,11 @@ Platform Admin (Web Admin Portal)
 4. Fleet access requires active membership in an active Enterprise organization; membership role limits actions. Organization provisioning starts pending and AutoX Admin explicitly activates it.
 5. Hide unavailable Vehicle Sharing/Fleet entry points. API authorization is authoritative and re-checks plan caps, vehicle access level, membership, status, and role.
 6. Flutter uses `dco-owner`; Fleet Dashboard uses `dco-fleet`; AutoX support uses `dco-admin` through Web Admin. Workshop accounts follow the separate `dco-workshop` audience in `architecture/iam.md`.
-7. **(Oct 2026)** The four organization roles stand; "Fleet Admin" means `org_admin`. Fleet Portal sidebar visibility is role-based: full nav for `org_admin`, reduced nav (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred) for `org_manager`/`org_mechanic`, and no portal login for `org_driver`. The mobile drawer Fleet entry remains visible to all org members.
+7. **(Oct 2026)** The four organization roles stand; "Fleet Admin" means `org_admin`. Fleet Portal sidebar visibility is role-based: full nav for `org_admin`, reduced nav (Dashboard, Vehicles, Work Orders, Inspections, Driver Assignments, Reports, Transferred) for `org_manager`/`org_mechanic`, and no portal login for `org_driver`. The mobile Fleet entry is retired: mobile serves the personal garage plus the Driver surface for `org_driver` only, and management routes require the `dco-fleet` audience.
 8. **(Oct 2026)** AutoX Admin provisions the Fleet Admin account with email + temporary password (forced change on first login); invite-email provisioning retires for new organizations. Exactly one `org_admin` per org, created only by AutoX Admin — no self-promotion or deputy admins.
 9. **(Oct 2026)** Drivers are created exclusively by the Fleet Admin with username + display name + initial password and **no email**. `users.username` is globally unique and is the driver login identifier; `users.email` becomes nullable; login accepts email or username. Email member invite is limited to `org_manager`/`org_mechanic`.
 10. **(Oct 2026)** Driver deletion is a soft delete: `status=deactivated`, login blocked, active `driver_assignments` cascaded to completed, history retained and attributed, reactivation allowed (manual re-assignment required), username reserved permanently.
-11. **(Oct 2026)** Driver login forces Driver mode — no Personal/Fleet toggle and no personal-garage tabs for `org_driver` accounts. Drivers may edit only their own profile and password; all vehicle/user/org writes remain server-denied.
+11. **(Oct 2026)** Driver login forces Driver mode — no Personal/Fleet toggle and no personal-garage tabs for `org_driver` accounts (implemented). Drivers may edit only their own profile and password; all vehicle/user/org writes remain server-denied.
 12. **(Oct 2026)** Temporary passwords (`must_change_password`) are enforced backend-side: fleet/driver API calls except profile/password routes return 403 `password_change_required` until changed.
 13. **(Oct 2026)** The Fleet Portal Members page (admin-exclusive) is the separate dashboard for user management: driver create/deactivate/reactivate/password-reset plus the existing manager/mechanic invite. AutoX Web Admin keeps organization provisioning only and never manages drivers.
 14. **(Oct 2026)** When a driver logs fuel, they record and see the full cost/amount — resolving former open decision #11 in favor of full driver cost entry.
