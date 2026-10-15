@@ -61,9 +61,9 @@ Credentials below are seeded by code or scripts in this repo. Passwords are demo
 | Fleet driver (mobile) | `driver@example.com` (or `--email`) | as passed to `seed:org` | `org_driver` | `npm run seed:org -- --role org_driver …` |
 | AutoX Admin (this environment) | `dcomotor@gmail.com` | **unknown** — reset via §3 | Org admin of active Enterprise org | Provisioned via Web Admin |
 
-### Known issue: invite-created org admins
+### Provisioned accounts use temporary passwords
 
-Org admins created through organization provisioning (`POST /admin/organizations`) are created via `createInvitedOwnerAccount` with a **random password** plus a mailed reset link (`backend/src/lib/account-invites.ts`). If mail delivery is not configured (e.g. `MAIL_PROVIDER=stdout`), the password is unusable. Recover such accounts with **Set password** in the admin UI (or the `PATCH /admin/users/:id/access` endpoint).
+Org admins, Fleet members, workshop accounts, and Web Admin-created users are provisioned with a **temporary password** (`backend/src/lib/account-provisioning.ts`): supplied in the request or generated once and shown in the creating UI, stored with `must_change_password=true` and `email_verified=true`. No account-setup email is sent, so nothing depends on mail delivery. Recover locked accounts with **Set password** in the admin UI (or the `PATCH /admin/users/:id/access` endpoint).
 
 ## 3. Creating and resetting demo accounts
 
@@ -72,7 +72,7 @@ Org admins created through organization provisioning (`POST /admin/organizations
 1. Sign in to Web Admin as the bootstrap admin.
 2. **Create**: Users → New user (email + temporary password + role/plan).
 3. **Fix access**: open the user → Account access → Mark email verified / Clear requirement / Set password.
-4. **Org + fleet access**: Organizations → New organization (provisions an Enterprise org with an Org Admin), activate it, then sign in on the Fleet Portal with that admin account (use Set password first if the invite email never arrived).
+4. **Org + fleet access**: Organizations → New organization (provisions an Enterprise org; set a temporary password if the Org Admin has no account yet — no invite email is sent), activate it, then sign in on the Fleet Portal with that admin account and the temporary password.
 
 ### Nuclear: reset-users endpoint (demo only)
 
@@ -100,5 +100,5 @@ npm run seed:org -- --email driver@example.com --role org_driver
 - [ ] Remove `POST /admin/reset-users` from `backend/src/modules/admin.ts` (and `backend/reset_users.js`).
 - [ ] Decide policy for the `PATCH /admin/users/:id/access` overrides (keep as restricted support tooling vs. remove).
 - [ ] Rotate all demo passwords; do not carry `password123` accounts into production.
-- [ ] Enable Azure Communication Services mail (`MAIL_PROVIDER=acs` — see `docs/deployment.md` §Email) so invite/reset emails work without the Set-password bypass. Current env is `MAIL_PROVIDER=stdout` (emails only print to container logs).
+- [ ] Enable Azure Communication Services mail (`MAIL_PROVIDER=acs` — see `docs/deployment.md` §Email) so verification/reset/activation emails actually deliver. Account provisioning already works without email (temporary passwords). Current env is `MAIL_PROVIDER=stdout` (emails only print to container logs).
 - [ ] Set strong `BOOTSTRAP_ADMIN_EMAIL` / `BOOTSTRAP_ADMIN_PASSWORD` and complete first-login hardening.

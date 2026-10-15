@@ -155,7 +155,7 @@ Behavior
 - Create, edit, list, search
 - Verification is a manual status change by the admin, not an automated KYC product
 - Partners cannot sign in to this portal in MVP
-- For a **verified workshop**, the admin can link a AutoX owner account (`POST /admin/partners/:id/workshop-accounts`) so the workshop can sign in on the `dco-workshop` surface for Fleet warranty workflows. Linking an existing account does not send an account invite; a newly created account receives the password-setup email plus a workshop invitation email
+- For a **verified workshop**, the admin can link a AutoX owner account (`POST /admin/partners/:id/workshop-accounts`) so the workshop can sign in on the `dco-workshop` surface for Fleet warranty workflows. Linking an existing account sends nothing; a newly created account receives a temporary password (returned once to the admin — no account email) plus a best-effort workshop invitation email
 - No booking calendar, no policy objects
 
 ---

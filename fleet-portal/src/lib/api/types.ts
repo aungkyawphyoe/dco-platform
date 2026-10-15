@@ -19,6 +19,11 @@ export type OrgMember = {
   role: string;
 };
 
+export type InviteMemberResult = OrgMember & {
+  account_created: boolean;
+  temporary_password: string | null;
+};
+
 export type FleetVehicle = {
   id: string;
   name: string;

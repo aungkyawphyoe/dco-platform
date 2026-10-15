@@ -7,6 +7,7 @@ Fleet Management enables **business accounts** (showrooms, dealerships, taxi fle
 **Status:** Partial — backend, Fleet Portal (`fleet-portal/`, `dco-fleet`), mobile Driver mode, and Web Admin organization provisioning implemented; Workshop Portal still planned (Phase 3, Year 2). Web Admin does not import initial vehicles during provisioning — seed inventory via the Fleet Portal CSV import after activation.
 **Requirement alignment (October 2026) — pending implementation:** Enterprise access-model shift confirmed by grilling: (1) Fleet Portal sidebar visibility is role-based — full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`; (2) AutoX Admin provisions the Fleet Admin account with email + temporary password (invite-email provisioning retires); (3) drivers are created/deactivated by the Fleet Admin with **username + password and no email** (username replaces email as the driver login identifier); (4) driver login forces Driver mode; (5) driver deactivation is a soft delete that cascades to active assignments and reserves the username. See *Confirmed Access Decisions* 7–14.
 **Mobile surface (October 2026 — implemented):** the mobile app serves personal owners and the restricted **Driver** surface only. Fleet management (members, inventory, assignments, work-order resolution, analytics/reports, warranty templates, transfers) lives exclusively on the Fleet Portal; management API routes require the `dco-fleet` audience and are unreachable from mobile's `dco-owner` token. Non-driver org members (`org_admin`/`org_manager`/`org_mechanic`) keep mobile login for their personal garage but have no fleet surface on mobile.
+**Maintenance templates (October 2026 — implemented):** vehicle-class maintenance templates (car/motorcycle/truck/van/bus) — platform-seeded globals plus org-scoped copies managed on the Fleet Portal **Maintenance Templates** page; per-vehicle assignment; one-time plan snapshot generation on assignment. Drivers view the generated plan and add items from the template set's suggested list in Driver mode. Contract: [`fleet-maintenance-templates.md`](fleet-maintenance-templates.md).
 **Mobile implementation deviations:** the Workshop mobile screen (`dco-workshop` surface) is not implemented.
 **Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
 **Surfaces:** Mobile (Flutter — personal owners + fleet drivers), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — AutoX user management, organization provisioning/activation, and read-only fleet support).
@@ -80,7 +81,7 @@ Enable organizations to:
 ### Mobile (Flutter)
 - **Personal garage**: unchanged for personal owners; non-driver org members keep login for their personal garage only (no fleet surface)
 - **Driver Mode**: Restricted 3-tab view (My Vehicle / My Reports / Settings) for `org_driver` — forced on login, no mode toggle
-- **Driver actions**: log mileage (shift start/end), template inspections, fuel logs, report issues
+- **Driver actions**: log mileage (shift start/end), template inspections, fuel logs, report issues, view the assigned vehicle's maintenance plan and add items from the template's suggested list
 - **Buyer Claim Flow**: Auto-assigned vehicle appears in buyer's personal garage with full history
 - **Workshop Account**: Limited view — current vehicle only, warranty scope only
 - Fleet management (mode switch, org management, inventory, transfers, assignments, warranty templates, reports/analytics) is **Fleet Portal only** — removed from mobile; management API routes require the `dco-fleet` audience
@@ -165,9 +166,9 @@ Enable organizations to:
 > I want to upload a CSV of vehicles during org creation  
 > So that the showroom's inventory is ready on day one.
 
-### US-FLT-004: Invite Members
+### US-FLT-004: Add Members
 > As an Org Admin,  
-> I want to invite employees to my organization with the Manager or Mechanic role by email  
+> I want to add employees to my organization with the Manager or Mechanic role by email, handing new accounts a temporary password  
 > So that they can help manage vehicles and log maintenance.
 
 ### US-FLT-005: Add Vehicle to Inventory
@@ -749,7 +750,7 @@ Enable organizations to:
 | GET | `/v1/me/entitlements` | `dco-owner` | Return plan, Vehicle Sharing caps/usage, and active organization context for conditional navigation; a UI hint only |
 | GET | `/v1/organizations/me` | `dco-owner` | Get my organization and membership; returns `organization: null` when not a member |
 | GET | `/v1/organizations/:id/members` | `dco-owner` | List members with roles |
-| POST | `/v1/organizations/:id/members` | `dco-owner` | Invite member by email — Admin only; roles `org_manager` / `org_mechanic` only (drivers use driver creation) |
+| POST | `/v1/organizations/:id/members` | `dco-owner` | Add member by email — Admin only; roles `org_manager` / `org_mechanic` only (drivers use driver creation); new accounts are created with a temporary password returned once — no invite email |
 | PATCH | `/v1/organizations/:id/members/:userId` | `dco-owner` | Update member role / remove — Admin only |
 | POST | `/v1/organizations/:id/drivers` | `dco-owner` | Create driver account (username, display name, initial password, no email) — Admin only |
 | POST | `/v1/organizations/:id/members/:userId/status` | `dco-owner` | Deactivate/reactivate driver (soft delete; cascades active assignment) — Admin only |
@@ -1001,7 +1002,7 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 
 #### Members — Route: `/members` (Admin only — hidden from manager/mechanic sidebar)
 - **Member list**: name/email or username, role badge, status, joined date
-- **Invite member**: email + role (`org_manager` / `org_mechanic`) — existing email invite flow
+- **Add member**: email + role (`org_manager` / `org_mechanic`) + optional temporary password — new accounts get the password shown once after adding (**no invite email**); existing accounts are linked unchanged
 - **Create driver**: form with username (globally unique), display name, initial password (min 8 chars) — **no email field**; server sets `must_change_password=true`
 - **Deactivate driver**: confirmation → soft delete (login blocked, active assignment cascaded to completed, history retained, username reserved)
 - **Reactivate driver**: restores login; vehicle must be re-assigned manually
@@ -1074,7 +1075,7 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 11. **Workshop visibility is scoped** — only sees assigned vehicles, no buyer info
 12. **Driver mode is derived** — effective mode comes from live entitlements; no stored mode preference
 13. **Archive-not-delete** — organizations are soft-archived, vehicles revert to owners
-14. **Invite email is one-time** — if not claimed, AutoX admin can re-send from admin portal
+14. **Invite email is one-time (legacy pending orgs only)** — pre-alignment pending org admins can be re-sent from the admin portal; new provisioning uses temporary passwords and sends no invite email
 15. **One active vehicle per driver** — driver cannot be assigned multiple vehicles simultaneously
 16. **One active driver per vehicle** — vehicle cannot have multiple active driver assignments
 17. **Work order status transitions** — reported → in_progress → completed (no skipping)
@@ -1418,7 +1419,7 @@ Platform Admin (Web Admin Portal)
 - **CSV import**: Process in background, return job ID, poll for results
 - **Mode switch**: Instant UI swap, no data reload needed (data already synced)
 - **Admin portal**: Org creation form submission < 3s (excluding CSV import)
-- **Provisioning**: Fleet Admin credentials are produced synchronously at org creation (no invite-email wait); manager/mechanic invite emails delivered within 60 seconds; activation notice sent on activation
+- **Provisioning**: Fleet Admin credentials are produced synchronously at org creation (no invite-email wait); member adds return the temporary password synchronously (no invite email); activation notice sent on activation
 - **Driver mode**: Lightweight UI, optimized for quick actions (log mileage, report issue)
 - **Inspection completion**: < 30 seconds for standard 10-item checklist
 - **Cost analytics**: Computed on demand for fleets < 50 vehicles; cached hourly for larger fleets
@@ -1506,7 +1507,7 @@ Platform Admin (Web Admin Portal)
 - Partners API (workshop accounts, approved list)
 - Media storage (vehicle photos, inspection photos, work order photos)
 - Notifications (warranty expiry reminders, org created email, work order updates)
-- Email service (manager/mechanic invite emails, org activation notices, email verification and password resets for email-bearing accounts — drivers without email are excluded by design)
+- Email service (org activation notices, email verification and password resets for email-bearing accounts — provisioning and driver creation send no emails; drivers without email are excluded by design)
 - Sync (org, membership, vehicle, template, warranty, work order, inspection, assignment entities)
 - Admin API (user management plus organization provisioning/activation and read-only support lookup)
 - Fleet Dashboard API (org operations, vehicles, work orders, inspections, assignments, analytics — shared with mobile)
@@ -1564,7 +1565,7 @@ Platform Admin (Web Admin Portal)
 - **Web Admin (admin.yourdomain.com)**: User management plus AutoX-only org provisioning/activation. Routes include `/users`, `/support`, `/organizations`, and `/fleet-view` (read-only fleet support).
 - **Admin API**: User and organization management endpoints (`/v1/admin/users/*`, `/v1/admin/organizations/*`, `/v1/admin/support/*`, `/v1/admin/fleet-view`)
 - **Fleet API**: Shared between Fleet Dashboard (`dco-fleet`) and Mobile (`dco-owner`) for `/v1/organizations/*` and `/v1/drivers/*`; both enforce the same org plan/status/membership/role checks.
-- **Email templates**: Manager/mechanic invite and organization activated notifications to the linked Org Admin; Fleet Admin temp-password provisioning and driver creation send **no** emails (credentials communicated out-of-band)
+- **Email templates**: Organization activated notifications to the linked Org Admin; Fleet Admin temp-password provisioning, member adds, and driver creation send **no** emails (credentials communicated out-of-band as temporary passwords)
 - **Cost analytics**: Computed on demand initially; consider caching layer for large fleets (100+ vehicles)
 
 ---
@@ -1595,7 +1596,7 @@ Platform Admin (Web Admin Portal)
 5. **Workshop service on non-warranty vehicles**: Should workshops be able to log service on vehicles not under warranty (general service)?
 6. **CSV template download**: Should we provide a CSV template file for import?
 7. **Transferred vehicle reversal**: If the buyer returns the vehicle within X days, can the org reclaim it?
-8. **Invite expiry**: How long is the invite email valid? Should it expire? Can it be re-sent?
+8. ~~**Invite expiry**~~ **Resolved (Oct 2026)** — member adds and new org provisioning no longer send invite emails; credentials are handed over as a temporary password at creation time. Re-send remains only for legacy pending orgs.
 9. **Inspection template sharing**: Can inspection templates be shared across orgs, or are they always org-scoped?
 10. **Work order assignment**: Can a work order be assigned to a specific mechanic, or just to the org generally?
 11. ~~**Driver fuel cost tracking**~~ **Resolved (Oct 2026)** — drivers enter and see the full fuel cost/amount; cost flows into org cost analytics. See Confirmed Access Decision 14.

@@ -2835,7 +2835,44 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
+        /** Create a user with a temporary password (email verified; no email sent) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: email */
+                        email: string;
+                        /** @description Share with the user out of band; they must change it on first sign-in */
+                        temporary_password: string;
+                        display_name?: string;
+                        /**
+                         * @default owner
+                         * @enum {string}
+                         */
+                        role?: "owner" | "admin";
+                        plan?: components["schemas"]["Plan"];
+                    };
+                };
+            };
+            responses: {
+                /** @description Account created active with email_verified=true and must_change_password=true */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["User"];
+                    };
+                };
+                409: components["responses"]["Error"];
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -4304,7 +4341,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Invite a member by email (manager/mechanic only — drivers use driver creation) */
+        /** Add a member by email; new accounts get a temporary password instead of an invite email */
         post: {
             parameters: {
                 query?: never;
@@ -4321,17 +4358,23 @@ export interface paths {
                         email: string;
                         /** @enum {string} */
                         role: "org_manager" | "org_mechanic";
+                        /** @description Applied only when no account exists for email: the account is created active with must_change_password=true and the password is returned once in the response (no email is sent). 400 when supplied and the account already exists. */
+                        temporary_password?: string;
                     };
                 };
             };
             responses: {
-                /** @description Member added; new accounts receive a password setup email */
+                /** @description Member added. When a new account was created, temporary_password is returned once for the admin to hand over — no account-setup or invitation email is sent. */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["OrgMemberCreated"];
+                    };
                 };
+                400: components["responses"]["Error"];
+                403: components["responses"]["Error"];
                 409: components["responses"]["Error"];
             };
         };
@@ -6616,7 +6659,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Link or invite an account for a verified Workshop partner */
+        /** Link or create a temp-password account for a verified Workshop partner (no account email) */
         post: {
             parameters: {
                 query?: never;
@@ -6635,12 +6678,24 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description Workshop account linked */
+                /** @description Workshop account linked; temporary_password is returned once when a new account was created */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            user_id: string;
+                            email?: string | null;
+                            /** Format: uuid */
+                            partner_id: string;
+                            /** @description True when a new temp-password account was created for email */
+                            account_created: boolean;
+                            /** @description Returned once when a new account was created; null otherwise */
+                            temporary_password?: string | null;
+                        };
+                    };
                 };
                 409: components["responses"]["Error"];
             };
@@ -7385,6 +7440,22 @@ export interface components {
         };
         AdminOrganizationStatus: components["schemas"]["AdminOrganization"] & {
             activation_email_sent?: boolean | null;
+        };
+        OrgMemberCreated: {
+            /** Format: uuid */
+            user_id: string;
+            email?: string | null;
+            display_name?: string | null;
+            /** @enum {string} */
+            role: "org_admin" | "org_manager" | "org_mechanic" | "org_driver";
+            /** Format: date-time */
+            joined_at: string;
+            /** Format: uuid */
+            invited_by?: string | null;
+            /** @description True when a new temp-password account was created for email */
+            account_created: boolean;
+            /** @description Returned once when a new account was created (the password to hand over); null when an existing account was linked. No email is sent either way. */
+            temporary_password: string | null;
         };
         Partner: {
             /** Format: uuid */

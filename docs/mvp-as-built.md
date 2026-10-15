@@ -122,7 +122,7 @@ With an active vehicle:
 
 ### 4.5 Maintenance
 
-- **Plan:** custom items (name + time and/or distance interval) and **suggested** items filtered by fuel type (oil change is petrol/hybrid only, etc.)
+- **Plan:** custom items (name + time and/or distance interval) and **suggested** items filtered by fuel type (oil change is petrol/hybrid only, etc.) — production later added vehicle-class/lifecycle tagging to the catalog and a Fleet-Portal template layer (`product/frd/fleet-maintenance-templates.md`)
 - Due states: Overdue / Due soon / Scheduled (word + color; overdue is not gold)
 - **Register service:** date, odometer, items, total cost, workshop, notes, optional receipt photo, optional parts
 - Completing a plan item rolls the next due date/mileage

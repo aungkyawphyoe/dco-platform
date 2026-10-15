@@ -228,8 +228,10 @@ describe("Enterprise Fleet access", () => {
       payload: { email: `new-staff-${uuid()}@test.local`, role: "org_manager" },
     });
     expect(newStaffInvite.statusCode).toBe(201);
-    expect(newStaffInvite.json().account_invitation_sent).toBe(true);
-    expect(newStaffInvite.json().organization_invitation_sent).toBe(true);
+    expect(newStaffInvite.json().account_created).toBe(true);
+    expect(typeof newStaffInvite.json().temporary_password).toBe("string");
+    expect(newStaffInvite.json().account_invitation_sent).toBeUndefined();
+    expect(newStaffInvite.json().organization_invitation_sent).toBeUndefined();
 
     const vehicleId = uuid();
     const addedVehicle = await app.inject({
@@ -540,7 +542,8 @@ describe("Approved workshop warranty access", () => {
       method: "POST", url: `/v1/admin/partners/${partnerId}/workshop-accounts`, headers: auth(platformAdmin), payload: { email: workshopUser.email },
     });
     expect(linked.statusCode).toBe(201);
-    expect(linked.json().account_invitation_sent).toBe(false);
+    expect(linked.json().account_created).toBe(false);
+    expect(linked.json().temporary_password).toBeNull();
 
     const workshopLogin = await app.inject({
       method: "POST", url: "/v1/auth/login", payload: { email: workshopUser.email, password: "password1", surface: "workshop" },
@@ -1191,6 +1194,124 @@ describe("Fleet maintenance templates", () => {
       headers: auth(fleetToken),
     });
     expect(deleteCopy.statusCode).toBe(204);
+
+    await app.close();
+  });
+});
+
+describe("Admin-driven account provisioning (no invite emails)", () => {
+  it("provisions Org Admin and members with temporary passwords instead of sending emails", async () => {
+    const { app } = await createTestApp();
+    const platformAdmin = await adminToken(app);
+
+    // Org creation: a temp password is required for a new admin account.
+    const newAdminEmail = `provision-admin-${uuid()}@test.local`;
+    const missingPassword = await app.inject({
+      method: "POST", url: "/v1/admin/organizations", headers: auth(platformAdmin),
+      payload: { name: "Provision Fleet", type: "taxi_fleet", admin_email: newAdminEmail },
+    });
+    expect(missingPassword.statusCode).toBe(400);
+    expect(missingPassword.json().error.code).toBe("admin_password_required");
+
+    const created = await app.inject({
+      method: "POST", url: "/v1/admin/organizations", headers: auth(platformAdmin),
+      payload: { name: "Provision Fleet", type: "taxi_fleet", admin_email: newAdminEmail, admin_password: "TempAdmin123!" },
+    });
+    expect(created.statusCode).toBe(201);
+    expect(created.json().admin_account_created).toBe(true);
+    expect(created.json().account_invitation_sent).toBe(false);
+    expect(created.json().organization_invitation_sent).toBe(false);
+    const org = created.json();
+
+    // Link path: an existing account rejects a supplied password.
+    const existingOwner = await signup(app, "provision-owner");
+    const linkedWithPassword = await app.inject({
+      method: "POST", url: "/v1/admin/organizations", headers: auth(platformAdmin),
+      payload: { name: "Second Fleet", type: "taxi_fleet", admin_email: existingOwner.email, admin_password: "TempAdmin123!" },
+    });
+    expect(linkedWithPassword.statusCode).toBe(400);
+    expect(linkedWithPassword.json().error.code).toBe("admin_password_not_allowed");
+
+    await app.inject({
+      method: "PATCH", url: `/v1/admin/organizations/${org.id}/status`, headers: auth(platformAdmin),
+      payload: { status: "active" },
+    });
+
+    // The new Org Admin signs in with the temporary password.
+    const adminLogin = await app.inject({
+      method: "POST", url: "/v1/auth/login",
+      payload: { email: newAdminEmail, password: "TempAdmin123!", surface: "fleet" },
+    });
+    expect(adminLogin.statusCode).toBe(200);
+    expect(adminLogin.json().user.email_verified).toBe(true);
+    expect(adminLogin.json().user.must_change_password).toBe(true);
+    const adminTokenValue = adminLogin.json().access_token as string;
+
+    // Fleet routes are blocked until the temporary password is changed.
+    const beforeChange = await app.inject({
+      method: "POST", url: `/v1/organizations/${org.id}/members`, headers: auth(adminTokenValue),
+      payload: { email: `blocked-${uuid()}@test.local`, role: "org_mechanic" },
+    });
+    expect(beforeChange.statusCode).toBe(403);
+    expect(beforeChange.json().error.code).toBe("password_change_required");
+
+    const changePassword = await app.inject({
+      method: "POST", url: "/v1/auth/change-password", headers: auth(adminTokenValue),
+      payload: { current_password: "TempAdmin123!", new_password: "ChangedAdmin456!" },
+    });
+    expect(changePassword.statusCode).toBe(204);
+
+    // New member without an explicit password: one is generated and returned once.
+    const staffEmail = `provision-staff-${uuid()}@test.local`;
+    const invite = await app.inject({
+      method: "POST", url: `/v1/organizations/${org.id}/members`, headers: auth(adminTokenValue),
+      payload: { email: staffEmail, role: "org_manager" },
+    });
+    expect(invite.statusCode).toBe(201);
+    expect(invite.json().account_created).toBe(true);
+    const generatedPassword = invite.json().temporary_password as string;
+    expect(generatedPassword).toBeTruthy();
+    const staffLogin = await app.inject({
+      method: "POST", url: "/v1/auth/login",
+      payload: { email: staffEmail, password: generatedPassword, surface: "fleet" },
+    });
+    expect(staffLogin.statusCode).toBe(200);
+    expect(staffLogin.json().user.email_verified).toBe(true);
+    expect(staffLogin.json().user.must_change_password).toBe(true);
+
+    // New member with an explicit password: the supplied password is used.
+    const explicitEmail = `provision-explicit-${uuid()}@test.local`;
+    const explicitInvite = await app.inject({
+      method: "POST", url: `/v1/organizations/${org.id}/members`, headers: auth(adminTokenValue),
+      payload: { email: explicitEmail, role: "org_mechanic", temporary_password: "MemberPass123!" },
+    });
+    expect(explicitInvite.statusCode).toBe(201);
+    expect(explicitInvite.json().account_created).toBe(true);
+    expect(explicitInvite.json().temporary_password).toBe("MemberPass123!");
+    const explicitLogin = await app.inject({
+      method: "POST", url: "/v1/auth/login",
+      payload: { email: explicitEmail, password: "MemberPass123!", surface: "fleet" },
+    });
+    expect(explicitLogin.statusCode).toBe(200);
+
+    // Existing account: linked without a password...
+    const existingMember = await signup(app, "provision-existing");
+    const link = await app.inject({
+      method: "POST", url: `/v1/organizations/${org.id}/members`, headers: auth(adminTokenValue),
+      payload: { email: existingMember.email, role: "org_mechanic" },
+    });
+    expect(link.statusCode).toBe(201);
+    expect(link.json().account_created).toBe(false);
+    expect(link.json().temporary_password).toBeNull();
+
+    // ...but a supplied password for an existing account is rejected.
+    const secondExisting = await signup(app, "provision-existing-2");
+    const rejected = await app.inject({
+      method: "POST", url: `/v1/organizations/${org.id}/members`, headers: auth(adminTokenValue),
+      payload: { email: secondExisting.email, role: "org_mechanic", temporary_password: "MemberPass123!" },
+    });
+    expect(rejected.statusCode).toBe(400);
+    expect(rejected.json().error.code).toBe("temporary_password_existing_account");
 
     await app.close();
   });

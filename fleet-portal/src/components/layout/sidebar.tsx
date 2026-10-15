@@ -123,6 +123,10 @@ export function Sidebar() {
       </nav>
 
       <div className="shrink-0 border-t border-line-subtle p-4">
+        <p className="pb-1.5 text-xs text-ink-caption">Appearance</p>
+        <div className="pb-3">
+          <ThemeToggle />
+        </div>
         <p className="truncate text-sm text-ink" title={org?.organization?.name ?? ""}>
           {org?.organization?.name ?? "…"}
         </p>
@@ -132,10 +136,6 @@ export function Sidebar() {
         <p className="pb-3 text-xs text-ink-caption">
           {orgRoleLabel[org?.organization?.role ?? ""] ?? org?.organization?.role ?? ""}
         </p>
-        <p className="pb-1.5 text-xs text-ink-caption">Appearance</p>
-        <div className="pb-3">
-          <ThemeToggle />
-        </div>
         <Button variant="destructive" size="sm" className="w-full" onClick={onSignOut}>
           Sign out
         </Button>

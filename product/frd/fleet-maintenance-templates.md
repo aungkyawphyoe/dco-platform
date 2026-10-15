@@ -244,7 +244,7 @@ Scope: **view plan + add from suggested. No completion logging, no edits of port
 | 4 | Fleet Portal UI (templates page, assignment, generate, vehicle_class) | lint / tsc / build + local render | **Done** (`/maintenance-templates` page with filters/copy/edit/delete; vehicle detail template card with assign/clear + generate confirm; vehicle_class in create modal; sidebar now h-screen with sticky top/bottom and scrollable middle nav per user request; `maintenance_template_id` added to org vehicle serializer) |
 | 5 | Admin catalog page fields | lint / tsc / build | **Done** (`web/` catalog page: Class + Lifecycle columns, vehicle-class filter wired to `?vehicle_class=`, create/edit form selects for `vehicle_class` + optional `lifecycle_template`; number-input spinners/steppers removed globally in `web/` + `fleet-portal/` per user request) |
 | 6 | **Mobile driver** (after deploy) | `flutter analyze`, `flutter test` | **Done** (`features/fleet/`: `DriverPlanItem`/`DriverSuggestedPlanItem` entities, 3 repo methods on `/drivers/vehicles/{id}/*`, plan screen with overdue chips + suggested multi-select add via client UUID, My Vehicle entry tile, en+l10n strings, 302/302 tests) |
-| 7 | Docs / FRD updates | — | — |
+| 7 | Docs / FRD updates | — | **Done** (amended `frd/maintenance.md`, `frd/fleet-management.md`, `architecture/data-model.md`, `docs/mvp-as-built.md` per Contracts & docs; plus `docs/app-shell.md` driver screens, `mobile/AGENTS.md` driver surface, `CLAUDE.md` FRD list + portal pages, `architecture/api.md` audiences) |
 
 ## Risks
 

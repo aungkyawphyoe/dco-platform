@@ -41,26 +41,36 @@ export default function MembersPage() {
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState("");
   const [memberRole, setMemberRole] = useState("org_driver");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [inviteResult, setInviteResult] = useState<string | null>(null);
+  const [provisioned, setProvisioned] = useState<{ email: string; password: string } | null>(null);
 
   async function onInvite() {
     setError(null);
     setInviteResult(null);
+    setProvisioned(null);
+    const trimmedPassword = password.trim();
+    if (trimmedPassword && trimmedPassword.length < 8) {
+      setError("Temporary password must be at least 8 characters.");
+      return;
+    }
     try {
-      const created = await invite.mutateAsync({ email: email.trim(), role: memberRole });
-      const accountSent =
-        (created as unknown as { account_invitation_sent?: boolean })
-          .account_invitation_sent;
-      setInviteResult(
-        accountSent
-          ? "Member added. Account setup email sent."
-          : "Member added. Organization invitation sent.",
-      );
+      const created = await invite.mutateAsync({
+        email: email.trim(),
+        role: memberRole,
+        ...(trimmedPassword ? { temporary_password: trimmedPassword } : {}),
+      });
       setShowInvite(false);
       setEmail("");
+      setPassword("");
+      if (created.account_created && created.temporary_password) {
+        setProvisioned({ email: created.email, password: created.temporary_password });
+      } else {
+        setInviteResult("Member added. Existing account linked to the organization.");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invite failed");
+      setError(err instanceof Error ? err.message : "Add member failed");
     }
   }
 
@@ -86,9 +96,9 @@ export default function MembersPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Members"
-        description="Invite managers, mechanics, and drivers; manage roles"
+        description="Add managers, mechanics, and drivers; manage roles"
         actions={
-          isAdmin ? <Button onClick={() => setShowInvite(true)}>Invite member</Button> : null
+          isAdmin ? <Button onClick={() => setShowInvite(true)}>Add member</Button> : null
         }
       />
 
@@ -164,9 +174,13 @@ export default function MembersPage() {
 
       <Modal
         open={showInvite}
-        onClose={() => setShowInvite(false)}
-        title="Invite member"
-        confirmLabel="Send invite"
+        onClose={() => {
+          setShowInvite(false);
+          setError(null);
+          setPassword("");
+        }}
+        title="Add member"
+        confirmLabel="Add member"
         loading={invite.isPending}
         onSubmit={() => void onInvite()}
       >
@@ -183,11 +197,45 @@ export default function MembersPage() {
             value={memberRole}
             onChange={setMemberRole}
           />
+          <Input
+            label="Temporary password (optional)"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Leave blank to auto-generate"
+            minLength={8}
+            maxLength={128}
+            hint="Used only when this email has no account yet. The password is shown once after adding — no email is sent."
+          />
           {error ? (
             <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">
               {error}
             </p>
           ) : null}
+        </div>
+      </Modal>
+
+      <Modal
+        open={provisioned !== null}
+        onClose={() => setProvisioned(null)}
+        title="Member added"
+        confirmLabel="Done"
+        onConfirm={() => setProvisioned(null)}
+      >
+        <div className="flex flex-col gap-3">
+          <p>
+            Account created for <strong>{provisioned?.email}</strong>.
+          </p>
+          <p>
+            Share this temporary password with the member. No email is sent —
+            they must change it on first sign-in.
+          </p>
+          <div className="break-all rounded-md bg-field p-3 font-mono text-sm text-ink">
+            {provisioned?.password}
+          </div>
+          <p className="text-xs text-ink-caption">
+            Copy this password now. It will not be shown again.
+          </p>
         </div>
       </Modal>
     </div>

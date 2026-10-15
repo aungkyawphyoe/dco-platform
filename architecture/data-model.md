@@ -355,6 +355,9 @@ Fleet entitlement is **organization-scoped**, not a `users.plan` value or `users
 | `workshop_members` | Workshop partner ↔ user account link, created by AutoX Admin for verified workshop partners. One workshop per user. Workshop sign-in uses the `dco-workshop` audience. |
 | `transferred_vehicles` | Read-only organization audit row linking vehicle, buyer, transfer actor/time, and optional warranty instance. `vehicles.user_id` changes to the buyer. |
 | `vehicle_import_jobs` | Persistent CSV import status/results, limited to 100 rows per job and polled by job ID. |
+| `vehicles.vehicle_class` | `car` \| `motorcycle` \| `truck` \| `van` \| `bus`, default `car` (`backend/drizzle/0013_maintenance_catalog_fleet.sql`). Primary dimension for maintenance-template matching; synced through the normal vehicle outbox path. |
+| `maintenance_catalog` (fleet extension) | Same table gains `vehicle_class` (default `car`), optional `lifecycle_template` narrowing, and nullable `org_id` (NULL = platform-seeded global row; non-NULL = org copy created in the Fleet Portal). Indexes on `vehicle_class` and `org_id`. 47 global rows seeded (11 car + 10 motorcycle + 14 truck + 12 van). |
+| `organization_vehicles.maintenance_template_id` | Anchor FK to one `maintenance_catalog` row (`ON DELETE set null`). The effective template set is computed, not stored: enabled rows (global + org copies) matching the vehicle's class + lifecycle + fuel, deduped case-insensitively by name with the **org copy winning**. Fleet Portal generates a one-time plan snapshot from the set into `plan_items`; drivers can additionally add items from the set's suggested list (`product/frd/fleet-maintenance-templates.md`). |
 
 **Identity extension (Oct 2026 alignment — specified, pending migration):**
 

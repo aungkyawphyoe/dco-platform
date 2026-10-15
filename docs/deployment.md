@@ -85,7 +85,7 @@ az containerapp update --name dco-api-24739 --resource-group dco-rg --image dcoa
 DATABASE_URL="<prod-url>" npm run db:migrate
 ```
 
-**Email (ACS):** The API mailer supports `stdout` (dev/demo — prints to container logs, never delivers) and `acs` (Azure Communication Services — delivers for real). Current demo env uses `MAIL_PROVIDER=stdout`, so invite/reset emails never reach inboxes; recover accounts via Web Admin → user → **Set password** instead. To enable real delivery:
+**Email (ACS):** The API mailer supports `stdout` (dev/demo — prints to container logs, never delivers) and `acs` (Azure Communication Services — delivers for real). Current demo env uses `MAIL_PROVIDER=stdout`. Account provisioning never depends on email: organization creation (`admin_password`), Fleet member add (`temporary_password`), workshop account link, and Web Admin user create all provision accounts with a **temporary password** shown once in the creating UI — no invite or account-setup emails exist for these flows. Email is still used for signup verification, password reset, organization activation, workshop invitation, and invite resend; under `stdout` those only print to container logs, so recover accounts via Web Admin → user → **Set password**. To enable real delivery:
 
 1. Create an ACS resource and a verified sending domain (or use the ACS default domain for testing).
 2. Set on the container app:

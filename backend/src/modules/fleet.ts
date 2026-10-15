@@ -20,7 +20,7 @@ import {
 } from "../db/schema.js";
 import type { Db } from "../db/client.js";
 import { newId } from "../lib/crypto.js";
-import { createInvitedOwnerAccount } from "../lib/account-invites.js";
+import { provisionOwnerAccount } from "../lib/account-provisioning.js";
 import { generateUniqueUsername } from "../lib/username.js";
 import { hashPassword } from "../lib/crypto.js";
 import { dueFrom, templateSetRows } from "../lib/catalog.js";
@@ -183,13 +183,23 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const orgId = uuid.parse((request.params as { id: string }).id);
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
-    const body = z.object({ email: z.string().email().max(254), role: z.enum(["org_manager", "org_mechanic", "org_driver"]) }).parse(request.body);
+    const body = z.object({
+      email: z.string().email().max(254),
+      role: z.enum(["org_manager", "org_mechanic", "org_driver"]),
+      temporary_password: z.string().min(8).max(128).optional(),
+    }).parse(request.body);
     let [member] = await app.db.select().from(users).where(eq(users.email, body.email.toLowerCase())).limit(1);
-    let accountInvitationSent = false;
-    if (!member) {
-      const invited = await createInvitedOwnerAccount(app.db, app.mailer, body.email);
-      member = invited.user;
-      accountInvitationSent = invited.created;
+    let accountCreated = false;
+    let temporaryPassword: string | null = null;
+    if (member) {
+      if (body.temporary_password !== undefined) {
+        throw new AppError(400, "temporary_password_existing_account", "An account already exists for this email; remove the temporary password");
+      }
+    } else {
+      const provisioned = await provisionOwnerAccount(app.db, body.email, body.temporary_password);
+      member = provisioned.user;
+      accountCreated = provisioned.created;
+      temporaryPassword = provisioned.temporaryPassword;
     }
     if (member.role !== "owner" || member.status !== "active") {
       throw new AppError(409, "invalid_member_account", "Organization members must use an active owner account");
@@ -199,18 +209,10 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const [created] = await app.db.insert(organizationMembers).values({
       id: newId(), orgId, userId: member.id, role: body.role, invitedBy: actorId,
     }).returning();
-    let organizationInvitationSent = true;
-    try {
-      const [organization] = await app.db.select().from(organizations).where(eq(organizations.id, orgId)).limit(1);
-      await app.mailer.sendOrganizationInvitation(body.email.toLowerCase(), organization!.name, body.role);
-    } catch (error) {
-      organizationInvitationSent = false;
-      app.log.error(error);
-    }
     return reply.code(201).send({
       ...serializeMember(created, member),
-      account_invitation_sent: accountInvitationSent,
-      organization_invitation_sent: organizationInvitationSent,
+      account_created: accountCreated,
+      temporary_password: temporaryPassword,
     });
   });
 

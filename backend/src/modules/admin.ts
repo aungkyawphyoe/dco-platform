@@ -8,7 +8,7 @@ import { emailTokens } from "../db/schema.js";
 import { publicUser } from "../lib/serialize.js";
 import { changeUserPlan } from "../lib/entitlements.js";
 import { PLAN_IDS } from "../lib/plans.js";
-import { createInvitedOwnerAccount } from "../lib/account-invites.js";
+import { provisionOwnerAccount } from "../lib/account-provisioning.js";
 import { generateUniqueUsername } from "../lib/username.js";
 import { slugify } from "../lib/slug.js";
 import { requireAdmin } from "./auth.js";
@@ -151,16 +151,26 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
       name: z.string().trim().min(1).max(200),
       type: z.enum(["showroom", "dealership", "taxi_fleet", "rental", "commercial", "logistics"]),
       admin_email: z.string().email().max(254),
+      admin_password: z.string().min(8).max(128).optional(),
       contact_email: z.string().email().optional().nullable(),
       contact_phone: z.string().max(20).optional().nullable(),
     }).parse(request.body);
     const adminEmail = body.admin_email.toLowerCase();
-    let [orgAdmin] = await app.db.select().from(users).where(eq(users.email, adminEmail)).limit(1);
-    let accountInvitationSent = false;
-    if (!orgAdmin) {
-      const invited = await createInvitedOwnerAccount(app.db, app.mailer, adminEmail);
-      orgAdmin = invited.user;
-      accountInvitationSent = invited.created;
+    const [existingAdmin] = await app.db.select().from(users).where(eq(users.email, adminEmail)).limit(1);
+    let orgAdmin: typeof users.$inferSelect;
+    let adminAccountCreated = false;
+    if (existingAdmin) {
+      if (body.admin_password !== undefined) {
+        throw new AppError(400, "admin_password_not_allowed", "An account already exists for admin_email; remove the temporary password");
+      }
+      orgAdmin = existingAdmin;
+    } else {
+      if (body.admin_password === undefined) {
+        throw new AppError(400, "admin_password_required", "A temporary password is required when no account exists for admin_email");
+      }
+      const provisioned = await provisionOwnerAccount(app.db, adminEmail, body.admin_password);
+      orgAdmin = provisioned.user;
+      adminAccountCreated = provisioned.created;
     }
     if (orgAdmin.role !== "owner" || orgAdmin.status !== "active") {
       throw new AppError(409, "invalid_org_admin_account", "Org Admin must be an active owner account");
@@ -196,18 +206,12 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
       return created;
     });
     await audit(app, actorId, "organization.create", { organizationId, adminUserId: orgAdmin.id, plan: "enterprise" });
-    let organizationInvitationSent = true;
-    try {
-      await app.mailer.sendOrganizationInvitation(adminEmail, organization.name, "org_admin");
-    } catch (error) {
-      organizationInvitationSent = false;
-      app.log.error(error);
-    }
     return reply.code(201).send({
       ...publicOrganization(organization),
       admin_email: orgAdmin.email,
-      account_invitation_sent: accountInvitationSent,
-      organization_invitation_sent: organizationInvitationSent,
+      admin_account_created: adminAccountCreated,
+      account_invitation_sent: false,
+      organization_invitation_sent: false,
     });
   });
 
@@ -318,11 +322,13 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     if (!partner || partner.type !== "workshop") throw new AppError(404, "workshop_not_found", "Workshop partner not found");
     if (partner.status !== "verified") throw new AppError(409, "workshop_not_verified", "Workshop must be verified before sign-in is enabled");
     let [user] = await app.db.select().from(users).where(eq(users.email, body.email.toLowerCase())).limit(1);
-    let accountInvitationSent = false;
+    let accountCreated = false;
+    let temporaryPassword: string | null = null;
     if (!user) {
-      const invited = await createInvitedOwnerAccount(app.db, app.mailer, body.email);
-      user = invited.user;
-      accountInvitationSent = invited.created;
+      const provisioned = await provisionOwnerAccount(app.db, body.email);
+      user = provisioned.user;
+      accountCreated = provisioned.created;
+      temporaryPassword = provisioned.temporaryPassword;
     }
     if (user.role !== "owner" || user.status !== "active") throw new AppError(409, "invalid_workshop_account", "Workshop users must use an active owner account");
     const [existing] = await app.db.select().from(workshopMembers).where(eq(workshopMembers.userId, user.id)).limit(1);
@@ -332,7 +338,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     });
     await app.mailer.sendWorkshopInvitation(body.email.toLowerCase(), partner.name);
     await audit(app, request.authUser!.sub, "workshop.account_link", { partnerId, userId: user.id });
-    return reply.code(201).send({ user_id: user.id, email: user.email, partner_id: partnerId, account_invitation_sent: accountInvitationSent });
+    return reply.code(201).send({ user_id: user.id, email: user.email, partner_id: partnerId, account_created: accountCreated, temporary_password: temporaryPassword });
   });
 
   app.get("/admin/users", async (request) => {
@@ -551,7 +557,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
         role: body.role,
         plan: body.plan,
         status: "active",
-        emailVerified: false,
+        emailVerified: true,
         mustChangePassword: true,
       })
       .returning();

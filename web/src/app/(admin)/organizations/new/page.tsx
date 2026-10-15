@@ -79,7 +79,7 @@ export default function NewOrganizationPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="New organization"
-        description="Provision an Enterprise organization and invite its Org Admin"
+        description="Provision an Enterprise organization and create its Org Admin account"
       />
 
       <Card className="max-w-xl p-6">
@@ -117,8 +117,8 @@ export default function NewOrganizationPage() {
           />
           <p className="text-xs text-ink-caption">
             The organization starts as <strong>pending</strong>. This email is
-            linked as Org Admin — an owner account is invited if none exists.
-            Activate the organization to grant Fleet access.
+            linked as Org Admin — a new account is created if none exists. Activate
+            the organization to grant Fleet access.
           </p>
 
           <Input
@@ -127,13 +127,14 @@ export default function NewOrganizationPage() {
             value={adminPassword}
             onChange={(e) => setAdminPassword(e.target.value)}
             error={errors.adminPassword}
-            placeholder="Leave blank to send invitation email"
+            placeholder="Required when no account exists"
             minLength={8}
           />
           <p className="text-xs text-ink-caption">
-            If an account already exists for this email, the password is ignored
-            and an invitation is sent. If no account exists, a new account is
-            created with this temporary password (must be changed on first login).
+            If no account exists for this email, an Org Admin account is created
+            with this temporary password (must be changed on first login) — no
+            invitation email is sent. If an account already exists, leave this
+            blank to link it; a supplied password is rejected.
           </p>
 
           <Input

@@ -149,7 +149,7 @@ Fields
 Behavior
 
 - Next due date and/or next due mileage are computed from the last completed service of that item, or from the vehicle's current mileage and an optional tracking-start override
-- Suggested catalog is filtered by the active vehicle's fuel type (see Suggested items below)
+- Suggested catalog is filtered by the active vehicle's fuel type and vehicle class (production: catalog rows are vehicle-class-aware with optional lifecycle narrowing — see [`fleet-maintenance-templates.md`](fleet-maintenance-templates.md))
 - Disable hides the item from Upcoming/Scheduled without deleting history
 - Completing a reminder offers to open Register Service with the item pre-selected
 
@@ -197,6 +197,8 @@ Behavior
 
 Copied from the Garage catalog so this FRD stays implementable without opening another file.
 Suggested items are templates with the same shape as a custom plan item (name, recurring, time interval and/or distance interval). Once added they are user-owned copies.
+
+Production note: catalog rows are tagged with a `vehicle_class` (car/motorcycle/truck/van/bus) and an optional `lifecycle_template`; the owner's suggested list filters by the active vehicle's class and fuel type (org copies are Fleet-Portal-only — see [`fleet-maintenance-templates.md`](fleet-maintenance-templates.md)).
 
 A new maintenance plan also seeds two defaults: **Mileage Update** (every 30 days) and **Routine** (every 1 year or 10,000 mi).
 

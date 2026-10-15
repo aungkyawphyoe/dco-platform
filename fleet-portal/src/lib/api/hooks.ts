@@ -13,6 +13,7 @@ import type {
   ImportJob,
   Inspection,
   InspectionTemplate,
+  InviteMemberResult,
   LemonReport,
   MaintenanceTemplate,
   MaintenanceTemplateWrite,
@@ -200,8 +201,8 @@ export function useMembers(orgId: string | null) {
 export function useInviteMember(orgId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { email: string; role: string }) =>
-      apiPost<OrgMember>(orgPath(orgId, "/members"), body),
+    mutationFn: (body: { email: string; role: string; temporary_password?: string }) =>
+      apiPost<InviteMemberResult>(orgPath(orgId, "/members"), body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["fleet", "members", orgId] });
     },

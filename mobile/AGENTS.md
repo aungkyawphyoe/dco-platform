@@ -4,7 +4,7 @@ Working contract for the Flutter **owner app**. Do not copy FRDs into this file.
 
 This is the primary product surface. The web admin portal is a separate app and is **not** implemented here.
 
-**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), four-tab shell, local Drift persistence (vehicles + outbox), register/edit vehicle, maintenance plan + history, parts, fuel logs, expenses, local OS maintenance reminders, sync status/auto-sync, maintenance success flow, and local-only Notes are implemented. The restricted **Driver surface** is implemented online-first (`features/fleet/`): forced Driver mode for `org_driver` (My Vehicle / My Reports / Settings), shift start/end, issue reports, fuel log, template inspections. Fleet **management** lives on the Fleet Portal — not in this app.
+**Scaffold status:** Flutter project is in place (`dco_mobile`, iOS + Android). Theme, auth (mock in debug), four-tab shell, local Drift persistence (vehicles + outbox), register/edit vehicle, maintenance plan + history, parts, fuel logs, expenses, local OS maintenance reminders, sync status/auto-sync, maintenance success flow, and local-only Notes are implemented. The restricted **Driver surface** is implemented online-first (`features/fleet/`): forced Driver mode for `org_driver` (My Vehicle / My Reports / Settings), shift start/end, issue reports, fuel log, template inspections, maintenance plan + suggested items. Fleet **management** lives on the Fleet Portal — not in this app.
 
 ---
 

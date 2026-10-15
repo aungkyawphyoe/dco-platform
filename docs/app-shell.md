@@ -143,7 +143,7 @@ Backend enforcement is authoritative: management API routes require the `dco-fle
 
 Driver screens push on the **root** navigator (not a tab stack):
 
-- Driver: Start/end shift, Report issue, Log fuel, Start inspection (checklist built from the org's inspection template).
+- Driver: Start/end shift, Report issue, Log fuel, Start inspection (checklist built from the org's inspection template), Maintenance plan (generated template snapshot + add from the template's suggested list).
 
 ---
 

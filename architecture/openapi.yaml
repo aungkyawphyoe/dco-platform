@@ -1388,6 +1388,40 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/AdminUserListItem'
+    post:
+      tags: [Admin]
+      summary: Create a user with a temporary password (email verified; no email sent)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, temporary_password]
+              properties:
+                email: {type: string, format: email}
+                temporary_password:
+                  type: string
+                  minLength: 8
+                  maxLength: 128
+                  description: Share with the user out of band; they must change it on first sign-in
+                display_name:
+                  type: string
+                  maxLength: 50
+                role:
+                  type: string
+                  enum: [owner, admin]
+                  default: owner
+                plan:
+                  $ref: '#/components/schemas/Plan'
+      responses:
+        '201':
+          description: Account created active with email_verified=true and must_change_password=true
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '409': {$ref: '#/components/responses/Error'}
   /admin/users/{userId}:
     parameters:
       - $ref: '#/components/parameters/userId'
@@ -2174,7 +2208,7 @@ paths:
         '403': {$ref: '#/components/responses/Error'}
     post:
       tags: [Fleet]
-      summary: Invite a member by email (manager/mechanic only — drivers use driver creation)
+      summary: Add a member by email; new accounts get a temporary password instead of an invite email
       requestBody:
         required: true
         content:
@@ -2185,8 +2219,25 @@ paths:
               properties:
                 email: {type: string, format: email}
                 role: {type: string, enum: [org_manager, org_mechanic]}
+                temporary_password:
+                  type: string
+                  minLength: 8
+                  maxLength: 128
+                  description: >-
+                    Applied only when no account exists for email: the account is created active
+                    with must_change_password=true and the password is returned once in the
+                    response (no email is sent). 400 when supplied and the account already exists.
       responses:
-        '201': {description: Member added; new accounts receive a password setup email}
+        '201':
+          description: >-
+            Member added. When a new account was created, temporary_password is returned once
+            for the admin to hand over — no account-setup or invitation email is sent.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrgMemberCreated'
+        '400': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
         '409': {$ref: '#/components/responses/Error'}
   /organizations/{id}/members/{userId}:
     patch:
@@ -3235,7 +3286,7 @@ paths:
   /admin/partners/{partnerId}/workshop-accounts:
     post:
       tags: [Admin]
-      summary: Link or invite an account for a verified Workshop partner
+      summary: Link or create a temp-password account for a verified Workshop partner (no account email)
       parameters:
         - $ref: '#/components/parameters/partnerId'
       requestBody:
@@ -3248,7 +3299,24 @@ paths:
               properties:
                 email: {type: string, format: email}
       responses:
-        '201': {description: Workshop account linked}
+        '201':
+          description: Workshop account linked; temporary_password is returned once when a new account was created
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [user_id, partner_id, account_created]
+                properties:
+                  user_id: {type: string, format: uuid}
+                  email: {type: string, nullable: true}
+                  partner_id: {type: string, format: uuid}
+                  account_created:
+                    type: boolean
+                    description: True when a new temp-password account was created for email
+                  temporary_password:
+                    type: string
+                    nullable: true
+                    description: Returned once when a new account was created; null otherwise
         '409': {$ref: '#/components/responses/Error'}
   /admin/fleet-view:
     get:
@@ -4641,6 +4709,38 @@ components:
             activation_email_sent:
               type: boolean
               nullable: true
+    OrgMemberCreated:
+      type: object
+      required: [user_id, role, joined_at, account_created, temporary_password]
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        email:
+          type: string
+          nullable: true
+        display_name:
+          type: string
+          nullable: true
+        role:
+          type: string
+          enum: [org_admin, org_manager, org_mechanic, org_driver]
+        joined_at:
+          type: string
+          format: date-time
+        invited_by:
+          type: string
+          format: uuid
+          nullable: true
+        account_created:
+          type: boolean
+          description: True when a new temp-password account was created for email
+        temporary_password:
+          type: string
+          nullable: true
+          description: >-
+            Returned once when a new account was created (the password to hand over);
+            null when an existing account was linked. No email is sent either way.
     Partner:
       type: object
       required: [id, name, type, status]
