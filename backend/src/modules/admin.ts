@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import { auditEvents, documents, maintenanceCatalog, organizationMembers, organizationVehicles, organizations, partners, refreshTokens, users, vehicles, vehicleShares, vehicleShareInvitations, workshopMembers, driverAssignments } from "../db/schema.js";
@@ -10,6 +10,7 @@ import { changeUserPlan } from "../lib/entitlements.js";
 import { PLAN_IDS } from "../lib/plans.js";
 import { createInvitedOwnerAccount } from "../lib/account-invites.js";
 import { generateUniqueUsername } from "../lib/username.js";
+import { slugify } from "../lib/slug.js";
 import { requireAdmin } from "./auth.js";
 
 const uuid = z.string().uuid();
@@ -710,15 +711,16 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     return publicPartner(updated);
   });
 
-  // ── Maintenance Catalog ──
+  // ── Maintenance Catalog (platform-global rows only; org copies live under /v1/organizations/:id) ──
 
-  function slugify(input: string): string {
-    return input
-      .toLowerCase()
-      .trim()
-      .replace(/[^a-z0-9]+/g, "_")
-      .replace(/^_+|_+$/g, "")
-      .slice(0, 50);
+  function loadGlobalCatalogItem(itemId: string) {
+    return app.db.select().from(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId)).limit(1)
+      .then((rows) => {
+        const [row] = rows;
+        if (!row) throw new AppError(404, "not_found", "Catalog item not found");
+        if (row.orgId != null) throw new AppError(403, "org_copy_readonly", "Organization-owned templates are managed by that organization");
+        return row;
+      });
   }
 
   const publicCatalogItem = (row: typeof maintenanceCatalog.$inferSelect) => ({
@@ -728,14 +730,24 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     interval_days: row.intervalDays,
     interval_distance: row.intervalDistance != null ? Number(row.intervalDistance) : null,
     fuel_types: row.fuelTypes,
+    vehicle_class: row.vehicleClass,
+    lifecycle_template: row.lifecycleTemplate,
     sort_order: row.sortOrder,
     enabled: row.enabled,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
   });
 
-  app.get("/admin/maintenance-catalog", async () => {
-    const rows = await app.db.select().from(maintenanceCatalog).orderBy(maintenanceCatalog.sortOrder);
+  app.get("/admin/maintenance-catalog", async (request) => {
+    const query = z.object({
+      vehicle_class: z.enum(["car", "motorcycle", "truck", "van", "bus"]).optional(),
+    }).parse(request.query ?? {});
+    const rows = await app.db.select().from(maintenanceCatalog)
+      .where(and(
+        isNull(maintenanceCatalog.orgId),
+        ...(query.vehicle_class ? [eq(maintenanceCatalog.vehicleClass, query.vehicle_class)] : []),
+      ))
+      .orderBy(maintenanceCatalog.sortOrder);
     return { items: rows.map(publicCatalogItem) };
   });
 
@@ -746,6 +758,8 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
         interval_days: z.number().int().positive().optional().nullable(),
         interval_distance: z.number().positive().optional().nullable(),
         fuel_types: z.array(z.enum(["petrol", "electric", "hybrid_plugin"])).min(1),
+        vehicle_class: z.enum(["car", "motorcycle", "truck", "van", "bus"]).optional(),
+        lifecycle_template: z.enum(["showroom", "taxi_fleet", "rental", "commercial"]).optional().nullable(),
         sort_order: z.number().int().optional(),
         enabled: z.boolean().optional(),
       })
@@ -768,6 +782,8 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
         intervalDays: body.interval_days ?? null,
         intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null,
         fuelTypes: body.fuel_types,
+        vehicleClass: body.vehicle_class ?? "car",
+        lifecycleTemplate: body.lifecycle_template ?? null,
         sortOrder: body.sort_order ?? 0,
         enabled: body.enabled ?? true,
       })
@@ -778,14 +794,15 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
 
   app.patch("/admin/maintenance-catalog/:itemId", async (request) => {
     const { itemId } = request.params as { itemId: string };
-    const [row] = await app.db.select().from(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId)).limit(1);
-    if (!row) throw new AppError(404, "not_found", "Catalog item not found");
+    await loadGlobalCatalogItem(itemId);
     const body = z
       .object({
         name: z.string().min(1).max(80).optional(),
         interval_days: z.number().int().positive().optional().nullable(),
         interval_distance: z.number().positive().optional().nullable(),
         fuel_types: z.array(z.enum(["petrol", "electric", "hybrid_plugin"])).min(1).optional(),
+        vehicle_class: z.enum(["car", "motorcycle", "truck", "van", "bus"]).optional(),
+        lifecycle_template: z.enum(["showroom", "taxi_fleet", "rental", "commercial"]).optional().nullable(),
         sort_order: z.number().int().optional(),
         enabled: z.boolean().optional(),
       })
@@ -799,6 +816,8 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
           ? { intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null }
           : {}),
         ...(body.fuel_types !== undefined ? { fuelTypes: body.fuel_types } : {}),
+        ...(body.vehicle_class !== undefined ? { vehicleClass: body.vehicle_class } : {}),
+        ...(body.lifecycle_template !== undefined ? { lifecycleTemplate: body.lifecycle_template } : {}),
         ...(body.sort_order !== undefined ? { sortOrder: body.sort_order } : {}),
         ...(body.enabled !== undefined ? { enabled: body.enabled } : {}),
         updatedAt: new Date(),
@@ -811,8 +830,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
 
   app.delete("/admin/maintenance-catalog/:itemId", async (request, reply) => {
     const { itemId } = request.params as { itemId: string };
-    const [row] = await app.db.select().from(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId)).limit(1);
-    if (!row) throw new AppError(404, "not_found", "Catalog item not found");
+    const row = await loadGlobalCatalogItem(itemId);
     await app.db.delete(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId));
     await audit(app, request.authUser!.sub, "catalog.delete", { catalogKey: row.catalogKey });
     return reply.code(204).send();

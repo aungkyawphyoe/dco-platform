@@ -1,4 +1,4 @@
-import { asc, desc, eq, sql } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
@@ -18,6 +18,7 @@ import {
   vehicles,
 } from "../db/schema.js";
 import { newId } from "../lib/crypto.js";
+import { dueFrom } from "../lib/catalog.js";
 import { dateOnly, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
 import {
@@ -33,16 +34,6 @@ import { getVehicleAccessLevel, getVehicleChangeAudience, fanOutVehicleChange } 
 import { getAccessibleVehicle, getOwnedVehicle } from "./vehicles.js";
 
 const uuid = z.string().uuid();
-
-function dueFrom(intervalDays: number | null | undefined, intervalDistance: number | null | undefined, mileage: number) {
-  const nextDueOn =
-    intervalDays && intervalDays > 0
-      ? new Date(Date.now() + intervalDays * 86400000).toISOString().slice(0, 10)
-      : null;
-  const nextDueMileage =
-    intervalDistance && intervalDistance > 0 ? mileage + intervalDistance : null;
-  return { nextDueOn, nextDueMileage };
-}
 
 /**
  * Fuel logs are vehicle-scoped and may be created by any user holding access to
@@ -264,7 +255,12 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const rows = await db()
       .select()
       .from(maintenanceCatalog)
-      .where(sql`${vehicle.fuelType} = ANY(${maintenanceCatalog.fuelTypes}) AND ${maintenanceCatalog.enabled} = true`)
+      .where(and(
+        sql`${vehicle.fuelType} = ANY(${maintenanceCatalog.fuelTypes})`,
+        eq(maintenanceCatalog.enabled, true),
+        eq(maintenanceCatalog.vehicleClass, vehicle.vehicleClass),
+        isNull(maintenanceCatalog.orgId),
+      ))
       .orderBy(maintenanceCatalog.sortOrder);
     return {
       items: rows.map((row) => ({
@@ -272,6 +268,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         name: row.name,
         interval_days: row.intervalDays,
         interval_distance: row.intervalDistance != null ? Number(row.intervalDistance) : null,
+        vehicle_class: row.vehicleClass,
         fuel_type: vehicle.fuelType,
       })),
     };

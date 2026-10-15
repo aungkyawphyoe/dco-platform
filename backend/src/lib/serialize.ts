@@ -38,6 +38,7 @@ export function publicVehicle(row: VehicleRow, nextMaintenance: unknown = null) 
     vin: row.vin,
     color: row.color,
     fuel_type: row.fuelType,
+    vehicle_class: row.vehicleClass,
     mileage: reqNum(row.mileage),
     mileage_unit: row.mileageUnit,
     purchase_date: dateOnly(row.purchaseDate),

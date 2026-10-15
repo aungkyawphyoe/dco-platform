@@ -1021,6 +1021,7 @@ async function processVehicleImport(
         year: z.coerce.number().int().min(1900).max(new Date().getFullYear() + 1),
         plate: z.string().min(1).max(20), vin: z.string().length(17),
         fuel_type: z.enum(["petrol", "electric", "hybrid_plugin"]),
+        vehicle_class: z.enum(["car", "motorcycle", "truck", "van", "bus"]).optional(),
         mileage: z.coerce.number().min(0).default(0), lifecycle_template: z.enum(["showroom", "taxi_fleet", "rental", "commercial"]).optional(),
       }).parse(record);
       const template = data.lifecycle_template ?? templateForOrganization(orgType);
@@ -1035,7 +1036,8 @@ async function processVehicleImport(
       await db.transaction(async (tx) => {
         await tx.insert(vehicles).values({
           id: vehicleId, userId: ownerId, name: data.name, make: data.make, model: data.model, year: data.year,
-          licensePlate: data.plate, vin: data.vin, fuelType: data.fuel_type, mileage: String(data.mileage), mileageUnit: "km",
+          licensePlate: data.plate, vin: data.vin, fuelType: data.fuel_type, vehicleClass: data.vehicle_class ?? "car",
+          mileage: String(data.mileage), mileageUnit: "km",
         });
         await tx.insert(organizationVehicles).values({
           id: newId(), orgId, vehicleId, lifecycleTemplate: template, status: defaultStatus(template), addedBy: actorId,
