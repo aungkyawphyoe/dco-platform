@@ -76,3 +76,14 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Remove number-input spinners (steppers); values are typed directly. */
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

@@ -23,6 +23,10 @@ import {
   useCreateCatalogItem,
   useUpdateCatalogItem,
   useDeleteCatalogItem,
+  VEHICLE_CLASS_LABELS,
+  LIFECYCLE_TEMPLATE_LABELS,
+  type CatalogVehicleClass,
+  type CatalogLifecycleTemplate,
 } from "@/lib/api/hooks";
 
 type FuelType = "petrol" | "electric" | "hybrid_plugin";
@@ -33,6 +37,14 @@ const FUEL_LABELS: Record<FuelType, string> = {
   electric: "Electric",
   hybrid_plugin: "Hybrid",
 };
+
+const VEHICLE_CLASS_OPTIONS: { value: CatalogVehicleClass; label: string }[] = (
+  Object.keys(VEHICLE_CLASS_LABELS) as CatalogVehicleClass[]
+).map((value) => ({ value, label: VEHICLE_CLASS_LABELS[value] }));
+
+const LIFECYCLE_OPTIONS: { value: CatalogLifecycleTemplate; label: string }[] = (
+  Object.keys(LIFECYCLE_TEMPLATE_LABELS) as CatalogLifecycleTemplate[]
+).map((value) => ({ value, label: LIFECYCLE_TEMPLATE_LABELS[value] }));
 
 const INTERVAL_UNIT_OPTIONS: { value: IntervalUnit; label: string; days: number }[] = [
   { value: "day", label: "Day(s)", days: 1 },
@@ -66,6 +78,7 @@ function slugify(input: string): string {
 
 export default function CatalogPage() {
   const [showCreate, setShowCreate] = useState(false);
+  const [classFilter, setClassFilter] = useState("");
   const [editItem, setEditItem] = useState<{
     id: string;
     catalog_key: string;
@@ -73,11 +86,13 @@ export default function CatalogPage() {
     interval_days: number | null;
     interval_distance: number | null;
     fuel_types: FuelType[];
+    vehicle_class: CatalogVehicleClass;
+    lifecycle_template: CatalogLifecycleTemplate | null;
     sort_order: number;
     enabled: boolean;
   } | null>(null);
 
-  const { data, isLoading, error } = useCatalogItems();
+  const { data, isLoading, error } = useCatalogItems(classFilter || undefined);
   const items = data?.items ?? [];
 
   return (
@@ -92,19 +107,34 @@ export default function CatalogPage() {
         }
       />
 
+      <div className="flex flex-wrap items-end gap-3">
+        <Select
+          label="Vehicle class"
+          placeholder="All classes"
+          className="w-44"
+          value={classFilter}
+          onChange={setClassFilter}
+          options={VEHICLE_CLASS_OPTIONS}
+        />
+      </div>
+
       {error ? (
         <Card className="p-6">
           <p className="text-sm text-danger">Failed to load catalog. Please try again.</p>
         </Card>
       ) : isLoading ? (
         <Card className="p-5">
-          <SkeletonTable rows={5} cols={6} />
+          <SkeletonTable rows={5} cols={8} />
         </Card>
       ) : items.length === 0 ? (
         <Card>
           <EmptyState
             title="No catalog items"
-            description="Add your first maintenance catalog item."
+            description={
+              classFilter
+                ? "No items match this vehicle class."
+                : "Add your first maintenance catalog item."
+            }
             action={
               <Button size="sm" onClick={() => setShowCreate(true)}>
                 Add item
@@ -119,6 +149,8 @@ export default function CatalogPage() {
               <TableRow>
                 <TableHeadCell>Name</TableHeadCell>
                 <TableHeadCell>Key</TableHeadCell>
+                <TableHeadCell>Class</TableHeadCell>
+                <TableHeadCell>Lifecycle</TableHeadCell>
                 <TableHeadCell>Time</TableHeadCell>
                 <TableHeadCell>Distance</TableHeadCell>
                 <TableHeadCell>Fuel Types</TableHeadCell>
@@ -135,6 +167,15 @@ export default function CatalogPage() {
                   </TableCell>
                   <TableCell className="font-mono text-xs text-ink-muted">
                     {item.catalog_key}
+                  </TableCell>
+                  <TableCell className="text-ink-muted">
+                    {VEHICLE_CLASS_LABELS[item.vehicle_class] ?? item.vehicle_class}
+                  </TableCell>
+                  <TableCell className="text-ink-muted">
+                    {item.lifecycle_template
+                      ? LIFECYCLE_TEMPLATE_LABELS[item.lifecycle_template] ??
+                        item.lifecycle_template
+                      : "Any"}
                   </TableCell>
                   <TableCell className="text-ink-muted">
                     {item.interval_days != null ? `${item.interval_days}d` : "—"}
@@ -173,6 +214,8 @@ export default function CatalogPage() {
                           interval_days: item.interval_days ?? null,
                           interval_distance: item.interval_distance ?? null,
                           fuel_types: item.fuel_types,
+                          vehicle_class: item.vehicle_class,
+                          lifecycle_template: item.lifecycle_template ?? null,
                           sort_order: item.sort_order,
                           enabled: item.enabled,
                         })
@@ -206,6 +249,8 @@ const CatalogForm = forwardRef<CatalogFormRef, {
   initialIntervalDays: number | null;
   initialIntervalDistance: number | null;
   initialFuelTypes: FuelType[];
+  initialVehicleClass: CatalogVehicleClass;
+  initialLifecycleTemplate: CatalogLifecycleTemplate | null;
   initialSortOrder: number;
   initialEnabled: boolean;
   onSubmit: (data: {
@@ -213,6 +258,8 @@ const CatalogForm = forwardRef<CatalogFormRef, {
     interval_days: number | null;
     interval_distance: number | null;
     fuel_types: FuelType[];
+    vehicle_class: CatalogVehicleClass;
+    lifecycle_template: CatalogLifecycleTemplate | null;
     sort_order: number;
     enabled: boolean;
   }) => void;
@@ -223,6 +270,8 @@ const CatalogForm = forwardRef<CatalogFormRef, {
     initialIntervalDays,
     initialIntervalDistance,
     initialFuelTypes,
+    initialVehicleClass,
+    initialLifecycleTemplate,
     initialSortOrder,
     initialEnabled,
     onSubmit,
@@ -236,6 +285,10 @@ const CatalogForm = forwardRef<CatalogFormRef, {
     initialIntervalDistance?.toString() ?? "",
   );
   const [fuelTypes, setFuelTypes] = useState<FuelType[]>(initialFuelTypes);
+  const [vehicleClass, setVehicleClass] = useState<CatalogVehicleClass>(initialVehicleClass);
+  const [lifecycleTemplate, setLifecycleTemplate] = useState<CatalogLifecycleTemplate | "">(
+    initialLifecycleTemplate ?? "",
+  );
   const [sortOrder, setSortOrder] = useState(initialSortOrder.toString());
   const [enabled, setEnabled] = useState(initialEnabled);
   const [errors, setErrors] = useState<{
@@ -261,6 +314,8 @@ const CatalogForm = forwardRef<CatalogFormRef, {
           interval_days: days,
           interval_distance: intervalDistance ? parseFloat(intervalDistance) : null,
           fuel_types: fuelTypes,
+          vehicle_class: vehicleClass,
+          lifecycle_template: lifecycleTemplate || null,
           sort_order: parseInt(sortOrder, 10) || 0,
           enabled,
         });
@@ -299,6 +354,8 @@ const CatalogForm = forwardRef<CatalogFormRef, {
       interval_days: days,
       interval_distance: intervalDistance ? parseFloat(intervalDistance) : null,
       fuel_types: fuelTypes,
+      vehicle_class: vehicleClass,
+      lifecycle_template: lifecycleTemplate || null,
       sort_order: parseInt(sortOrder, 10) || 0,
       enabled,
     });
@@ -320,6 +377,21 @@ const CatalogForm = forwardRef<CatalogFormRef, {
         placeholder="e.g. Oil Change"
         maxLength={80}
       />
+      <div className="grid grid-cols-2 gap-4">
+        <Select
+          label="Vehicle class"
+          value={vehicleClass}
+          onChange={(v) => setVehicleClass(v as CatalogVehicleClass)}
+          options={VEHICLE_CLASS_OPTIONS}
+        />
+        <Select
+          label="Lifecycle"
+          placeholder="Any lifecycle"
+          value={lifecycleTemplate}
+          onChange={(v) => setLifecycleTemplate(v as CatalogLifecycleTemplate | "")}
+          options={LIFECYCLE_OPTIONS}
+        />
+      </div>
       <div>
         <div className="flex gap-2">
           <Input
@@ -422,6 +494,8 @@ function CreateCatalogDialog({
         initialIntervalDays={null}
         initialIntervalDistance={null}
         initialFuelTypes={["petrol", "electric", "hybrid_plugin"]}
+        initialVehicleClass="car"
+        initialLifecycleTemplate={null}
         initialSortOrder={0}
         initialEnabled={true}
         onSubmit={(data) => {
@@ -446,6 +520,8 @@ function EditCatalogDialog({
     interval_days: number | null;
     interval_distance: number | null;
     fuel_types: FuelType[];
+    vehicle_class: CatalogVehicleClass;
+    lifecycle_template: CatalogLifecycleTemplate | null;
     sort_order: number;
     enabled: boolean;
   };
@@ -496,6 +572,8 @@ function EditCatalogDialog({
         initialIntervalDays={item.interval_days}
         initialIntervalDistance={item.interval_distance}
         initialFuelTypes={item.fuel_types}
+        initialVehicleClass={item.vehicle_class}
+        initialLifecycleTemplate={item.lifecycle_template}
         initialSortOrder={item.sort_order}
         initialEnabled={item.enabled}
         onSubmit={(data) => {

@@ -28,7 +28,7 @@ import {
   useUpdateVehicleStatus,
   useVehicles,
 } from "@/lib/api/hooks";
-import { lifecycleTransitions, type VehicleCreateInput } from "@/lib/api/types";
+import { lifecycleTransitions, vehicleClassOptions, type VehicleCreateInput } from "@/lib/api/types";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
 
 const lifecycleOptions = [
@@ -53,6 +53,7 @@ const emptyForm: VehicleCreateInput = {
   license_plate: "",
   vin: "",
   fuel_type: "petrol",
+  vehicle_class: "car",
   mileage: 0,
   lifecycle_template: "taxi_fleet",
 };
@@ -406,17 +407,25 @@ export default function VehiclesPage() {
               }
             />
             <Select
-              label="Lifecycle"
-              options={lifecycleOptions}
-              value={form.lifecycle_template}
+              label="Vehicle class"
+              options={vehicleClassOptions}
+              value={form.vehicle_class ?? "car"}
               onChange={(value) =>
-                setForm({
-                  ...form,
-                  lifecycle_template: value as VehicleCreateInput["lifecycle_template"],
-                })
+                setForm({ ...form, vehicle_class: value as VehicleCreateInput["vehicle_class"] })
               }
             />
           </div>
+          <Select
+            label="Lifecycle"
+            options={lifecycleOptions}
+            value={form.lifecycle_template}
+            onChange={(value) =>
+              setForm({
+                ...form,
+                lifecycle_template: value as VehicleCreateInput["lifecycle_template"],
+              })
+            }
+          />
           <Input
             label="Odometer (km)"
             type="number"

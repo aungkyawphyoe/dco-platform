@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/features/fleet/data/repositories/fleet_repository_impl.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/driver_context.dart';
+import 'package:dco_mobile/features/fleet/domain/entities/driver_plan_item.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/entitlements.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/fleet_mode.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
@@ -68,6 +69,24 @@ final driverInspectionsProvider = FutureProvider<List<Inspection>>((ref) {
   if (userId == null) throw StateError('No signed-in user');
   return ref.watch(fleetRepositoryProvider).getDriverInspections();
 });
+
+/// Assigned vehicle's maintenance plan (online-first; active assignment
+/// required).
+final driverPlanItemsProvider =
+    FutureProvider.family<List<DriverPlanItem>, String>((ref, vehicleId) {
+  return ref.watch(fleetRepositoryProvider).getDriverPlanItems(vehicleId);
+});
+
+/// Suggested items from the vehicle's assigned maintenance template set
+/// (empty when no template is assigned).
+final driverSuggestedPlanItemsProvider =
+    FutureProvider.family<List<DriverSuggestedPlanItem>, String>(
+  (ref, vehicleId) {
+    return ref
+        .watch(fleetRepositoryProvider)
+        .getDriverSuggestedPlanItems(vehicleId);
+  },
+);
 
 /// The signed-in user's local fuel-type catalog (drivers log org fuel with
 /// their own fuel types; seeds defaults on first read).

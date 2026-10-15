@@ -2979,6 +2979,41 @@ class AppLocalizationsEn extends AppLocalizations {
       'Report an issue and track its status here.';
 
   @override
+  String get driverMaintenancePlanTitle => 'Maintenance plan';
+
+  @override
+  String get driverMaintenancePlanEmpty => 'No maintenance items';
+
+  @override
+  String get driverMaintenancePlanEmptyBody =>
+      'Items generated for this vehicle will show up here.';
+
+  @override
+  String get driverMaintenancePlanAddSuggested => 'Add suggested';
+
+  @override
+  String get driverPlanDue => 'Due';
+
+  @override
+  String get driverPlanItemAdded => 'Added to plan';
+
+  @override
+  String get driverSuggestedTitle => 'Suggested items';
+
+  @override
+  String get driverSuggestedEmpty => 'No suggested items';
+
+  @override
+  String get driverSuggestedEmptyBody =>
+      'Suggestions come from the maintenance template assigned to this vehicle.';
+
+  @override
+  String get driverSuggestedNoInterval => 'No interval';
+
+  @override
+  String get driverSuggestedAdd => 'Add to plan';
+
+  @override
   String get fleetActionFailed => 'Action failed. Please try again.';
 
   @override

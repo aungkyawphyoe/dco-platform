@@ -1,4 +1,5 @@
 import 'package:dco_mobile/features/fleet/domain/entities/driver_context.dart';
+import 'package:dco_mobile/features/fleet/domain/entities/driver_plan_item.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/entitlements.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/shift_mileage.dart';
@@ -79,4 +80,24 @@ abstract class FleetRepository {
   Future<DriverMyVehicle> getDriverMyVehicle();
   Future<List<WorkOrder>> getDriverWorkOrders();
   Future<List<Inspection>> getDriverInspections();
+
+  /// Assigned vehicle's maintenance plan — active assignment required.
+  Future<List<DriverPlanItem>> getDriverPlanItems(String vehicleId);
+
+  /// Driver adds a plan item (e.g. from the suggested list); idempotent by
+  /// [id] (client UUID).
+  Future<DriverPlanItem> addDriverPlanItem(
+    String vehicleId, {
+    required String id,
+    required String name,
+    int? intervalDays,
+    double? intervalDistance,
+    String? notes,
+  });
+
+  /// Suggested items from the vehicle's assigned template set (empty when
+  /// no template is assigned).
+  Future<List<DriverSuggestedPlanItem>> getDriverSuggestedPlanItems(
+    String vehicleId,
+  );
 }

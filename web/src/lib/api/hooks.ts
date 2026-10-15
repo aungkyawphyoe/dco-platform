@@ -321,10 +321,37 @@ export function useResendOrganizationInvite() {
 type CatalogItem = components["schemas"]["MaintenanceCatalogItem"];
 type CatalogItemWrite = components["schemas"]["MaintenanceCatalogItemWrite"];
 
-export function useCatalogItems() {
+export type CatalogVehicleClass = components["schemas"]["VehicleClass"];
+export type CatalogLifecycleTemplate =
+  components["schemas"]["LifecycleTemplate"];
+
+export const VEHICLE_CLASS_LABELS: Record<CatalogVehicleClass, string> = {
+  car: "Car",
+  motorcycle: "Motorcycle",
+  truck: "Truck",
+  van: "Van",
+  bus: "Bus",
+};
+
+export const LIFECYCLE_TEMPLATE_LABELS: Record<
+  CatalogLifecycleTemplate,
+  string
+> = {
+  showroom: "Showroom",
+  taxi_fleet: "Taxi fleet",
+  rental: "Rental",
+  commercial: "Commercial",
+};
+
+export function useCatalogItems(vehicleClass?: string) {
   return useQuery({
-    queryKey: ["admin", "catalog"],
-    queryFn: () => apiGet<{ items?: CatalogItem[] }>("/admin/maintenance-catalog"),
+    queryKey: ["admin", "catalog", vehicleClass ?? "all"],
+    queryFn: () => {
+      const path = vehicleClass
+        ? `/admin/maintenance-catalog?vehicle_class=${encodeURIComponent(vehicleClass)}`
+        : "/admin/maintenance-catalog";
+      return apiGet<{ items?: CatalogItem[] }>(path);
+    },
   });
 }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiDelete, apiGet, apiPatch, apiPost } from "./client";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "./client";
 import { ensureFreshToken } from "@/lib/auth/token-store";
 import { apiBaseUrl } from "@/lib/api/config";
 import { parseApiError } from "@/lib/api/errors";
@@ -9,13 +9,17 @@ import type {
   Assignment,
   FleetAnalytics,
   FleetVehicle,
+  GeneratePlanResult,
   ImportJob,
   Inspection,
   InspectionTemplate,
   LemonReport,
+  MaintenanceTemplate,
+  MaintenanceTemplateWrite,
   OrgContext,
   OrgMember,
   OrgWorkshop,
+  TemplateAssignment,
   TransferredVehicle,
   VehicleCreateInput,
   WarrantyTemplate,
@@ -444,6 +448,98 @@ export function useUpdateLemonThreshold(orgId: string | null) {
       qc.invalidateQueries({ queryKey: ["fleet", "organization"] });
       qc.invalidateQueries({ queryKey: ["fleet", "analytics", orgId] });
       qc.invalidateQueries({ queryKey: ["fleet", "lemons", orgId] });
+    },
+  });
+}
+
+// ── Maintenance templates ──
+
+export type TemplateFilters = {
+  vehicle_class?: string;
+  lifecycle_template?: string;
+  fuel_type?: string;
+};
+
+export function useMaintenanceTemplates(orgId: string | null, filters?: TemplateFilters) {
+  const params = new URLSearchParams();
+  if (filters?.vehicle_class) params.set("vehicle_class", filters.vehicle_class);
+  if (filters?.lifecycle_template) params.set("lifecycle_template", filters.lifecycle_template);
+  if (filters?.fuel_type) params.set("fuel_type", filters.fuel_type);
+  const qs = params.toString();
+  const queryKey: (string | null)[] = [
+    "fleet",
+    "maintenance-templates",
+    orgId,
+    filters?.vehicle_class ?? "",
+    filters?.lifecycle_template ?? "",
+    filters?.fuel_type ?? "",
+  ];
+  return useQuery({
+    queryKey,
+    queryFn: () =>
+      apiGet<{ items: MaintenanceTemplate[] }>(
+        orgPath(orgId, `/maintenance-templates${qs ? `?${qs}` : ""}`),
+      ),
+    enabled: Boolean(orgId),
+  });
+}
+
+export function useCreateMaintenanceTemplate(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: MaintenanceTemplateWrite) =>
+      apiPost<MaintenanceTemplate>(orgPath(orgId, "/maintenance-templates"), body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fleet", "maintenance-templates", orgId] });
+    },
+  });
+}
+
+export function useUpdateMaintenanceTemplate(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: MaintenanceTemplateWrite }) =>
+      apiPatch<MaintenanceTemplate>(orgPath(orgId, `/maintenance-templates/${id}`), body),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fleet", "maintenance-templates", orgId] });
+    },
+  });
+}
+
+export function useDeleteMaintenanceTemplate(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => apiDelete(orgPath(orgId, `/maintenance-templates/${id}`)),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fleet", "maintenance-templates", orgId] });
+      qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
+    },
+  });
+}
+
+export function useAssignVehicleTemplate(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ vehicleId, templateId }: { vehicleId: string; templateId: string | null }) =>
+      apiPut<TemplateAssignment>(
+        orgPath(orgId, `/vehicles/${vehicleId}/maintenance-template`),
+        { template_id: templateId },
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
+    },
+  });
+}
+
+export function useGenerateMaintenancePlan(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (vehicleId: string) =>
+      apiPost<GeneratePlanResult>(
+        orgPath(orgId, `/vehicles/${vehicleId}/maintenance-template/generate`),
+      ),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
     },
   });
 }

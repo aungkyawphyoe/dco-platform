@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart' as drift;
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/driver_context.dart';
+import 'package:dco_mobile/features/fleet/domain/entities/driver_plan_item.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/entitlements.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/shift_mileage.dart';
@@ -197,6 +198,47 @@ class FleetRepositoryImpl implements FleetRepository {
       '/drivers/my-inspections',
     );
     return _items(response.data, Inspection.fromJson);
+  });
+
+  @override
+  Future<List<DriverPlanItem>> getDriverPlanItems(String vehicleId) =>
+      _call(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/drivers/vehicles/$vehicleId/plan-items',
+        );
+        return _items(response.data, DriverPlanItem.fromJson);
+      });
+
+  @override
+  Future<DriverPlanItem> addDriverPlanItem(
+    String vehicleId, {
+    required String id,
+    required String name,
+    int? intervalDays,
+    double? intervalDistance,
+    String? notes,
+  }) => _call(() async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/drivers/vehicles/$vehicleId/plan-items',
+      data: {
+        'id': id,
+        'name': name,
+        'interval_days': ?intervalDays,
+        'interval_distance': ?intervalDistance,
+        'notes': ?notes,
+      },
+    );
+    return DriverPlanItem.fromJson(response.data!);
+  });
+
+  @override
+  Future<List<DriverSuggestedPlanItem>> getDriverSuggestedPlanItems(
+    String vehicleId,
+  ) => _call(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/drivers/vehicles/$vehicleId/suggested-plan-items',
+    );
+    return _items(response.data, DriverSuggestedPlanItem.fromJson);
   });
 
   // ── Helpers ────────────────────────────────────────────────────────

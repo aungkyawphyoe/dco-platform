@@ -3008,6 +3008,41 @@ class AppLocalizationsMy extends AppLocalizations {
       'ပြဿနာ တင်ပြပြီး ၎င်း၏ အခြေအနေကို ဤနေရာတွင် ကြည့်ပါ။';
 
   @override
+  String get driverMaintenancePlanTitle => 'ထိန်းသိမ်းမှု အစီအစဉ်';
+
+  @override
+  String get driverMaintenancePlanEmpty => 'ထိန်းသိမ်းမှု ပစ္စည်း မရှိသေးပါ';
+
+  @override
+  String get driverMaintenancePlanEmptyBody =>
+      'ဤယာဉ်အတွက် ဖန်တီးထားသော ပစ္စည်းများ ဤနေရာတွင် ပေါ်လာပါမည်။';
+
+  @override
+  String get driverMaintenancePlanAddSuggested => 'အကြံပြုချက်များ ထည့်ရန်';
+
+  @override
+  String get driverPlanDue => 'ရောက်ရန်';
+
+  @override
+  String get driverPlanItemAdded => 'အစီအစဉ်သို့ ထည့်ပြီးပါပြီ';
+
+  @override
+  String get driverSuggestedTitle => 'အကြံပြုချက်များ';
+
+  @override
+  String get driverSuggestedEmpty => 'အကြံပြုချက် မရှိပါ';
+
+  @override
+  String get driverSuggestedEmptyBody =>
+      'ဤယာဉ်တွင် သတ်မှတ်ထားသော ထိန်းသိမ်းမှု ပုံစံမှ အကြံပြုချက်များ ရရှိပါသည်။';
+
+  @override
+  String get driverSuggestedNoInterval => 'အချိန်/အကွာအဝေး မသတ်မှတ်ထားပါ';
+
+  @override
+  String get driverSuggestedAdd => 'အစီအစဉ်သို့ ထည့်ရန်';
+
+  @override
   String get fleetActionFailed => 'လုပ်ဆောင်ချက် မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။';
 
   @override

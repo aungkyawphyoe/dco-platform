@@ -111,6 +111,7 @@ function serializeOrganizationVehicle(row: typeof organizationVehicles.$inferSel
     status: row.status,
     revenue_label: row.revenueLabel,
     assigned_driver_id: assignedDriver ?? null,
+    maintenance_template_id: row.maintenanceTemplateId,
     added_at: iso(row.addedAt),
   };
 }

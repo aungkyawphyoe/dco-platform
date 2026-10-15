@@ -240,10 +240,10 @@ Scope: **view plan + add from suggested. No completion logging, no edits of port
 |-------|------|--------|--------|
 | 1 | Migration 0013 + schema + seeds | migrate runs clean | **Done** (61/61 tests, tsc clean, double-migrate idempotent) |
 | 2 | Backend endpoints + modified routes + tests | `npm test`, `tsc` | **Done** (61/61 tests, tsc clean) |
-| 3 | OpenAPI + `gen:api` (fleet-portal, web) | generated types diff reviewed | — |
-| 4 | Fleet Portal UI (templates page, assignment, generate, vehicle_class) | lint / tsc / build + local render | — |
-| 5 | Admin catalog page fields | lint / tsc / build | — |
-| 6 | **Mobile driver** (after deploy) | `flutter analyze`, `flutter test` | — |
+| 3 | OpenAPI + `gen:api` (fleet-portal, web) | generated types diff reviewed | **Done** (new paths + VehicleClass/LifecycleTemplate/MaintenanceTemplate schemas; tsc clean, lint 0 errors in both apps) |
+| 4 | Fleet Portal UI (templates page, assignment, generate, vehicle_class) | lint / tsc / build + local render | **Done** (`/maintenance-templates` page with filters/copy/edit/delete; vehicle detail template card with assign/clear + generate confirm; vehicle_class in create modal; sidebar now h-screen with sticky top/bottom and scrollable middle nav per user request; `maintenance_template_id` added to org vehicle serializer) |
+| 5 | Admin catalog page fields | lint / tsc / build | **Done** (`web/` catalog page: Class + Lifecycle columns, vehicle-class filter wired to `?vehicle_class=`, create/edit form selects for `vehicle_class` + optional `lifecycle_template`; number-input spinners/steppers removed globally in `web/` + `fleet-portal/` per user request) |
+| 6 | **Mobile driver** (after deploy) | `flutter analyze`, `flutter test` | **Done** (`features/fleet/`: `DriverPlanItem`/`DriverSuggestedPlanItem` entities, 3 repo methods on `/drivers/vehicles/{id}/*`, plan screen with overdue chips + suggested multi-select add via client UUID, My Vehicle entry tile, en+l10n strings, 302/302 tests) |
 | 7 | Docs / FRD updates | — | — |
 
 ## Risks

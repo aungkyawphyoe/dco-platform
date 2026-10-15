@@ -22,8 +22,10 @@ import '../../features/expenses/presentation/screens/expense_detail_screen.dart'
 import '../../features/expenses/presentation/screens/expense_form_screen.dart';
 import '../../features/fleet/presentation/screens/driver_fuel_log_screen.dart';
 import '../../features/fleet/presentation/screens/driver_inspection_screen.dart';
+import '../../features/fleet/presentation/screens/driver_maintenance_plan_screen.dart';
 import '../../features/fleet/presentation/screens/driver_report_issue_screen.dart';
 import '../../features/fleet/presentation/screens/driver_shift_screen.dart';
+import '../../features/fleet/presentation/screens/driver_suggested_plan_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
 import '../../features/fuel/presentation/screens/fuel_log_detail_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
@@ -78,7 +80,8 @@ bool _isDriverRoute(String location) {
   return location.startsWith(AppRoutes.driverShift) ||
       location.startsWith(AppRoutes.driverReportIssue) ||
       location.startsWith(AppRoutes.driverFuelLog) ||
-      location.startsWith(AppRoutes.driverInspectionNew);
+      location.startsWith(AppRoutes.driverInspectionNew) ||
+      location.startsWith(AppRoutes.driverMaintenancePlan);
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -567,6 +570,16 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.driverInspectionNew,
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const DriverInspectionScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.driverMaintenancePlan,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const DriverMaintenancePlanScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.driverMaintenanceSuggested,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const DriverSuggestedPlanScreen(),
       ),
 
       // Detail screens

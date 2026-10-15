@@ -117,6 +117,11 @@ class DriverMyVehicleScreen extends ConsumerWidget {
                 icon: Icons.checklist_outlined,
                 onTap: () => context.push(AppRoutes.driverInspectionNew),
               ),
+              FleetTile(
+                title: s.driverMaintenancePlanTitle,
+                icon: Icons.calendar_month_outlined,
+                onTap: () => context.push(AppRoutes.driverMaintenancePlan),
+              ),
             ],
           );
         },

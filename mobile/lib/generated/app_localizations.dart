@@ -5694,6 +5694,72 @@ abstract class AppLocalizations {
   /// **'Report an issue and track its status here.'**
   String get driverMyWorkOrdersEmptyBody;
 
+  /// No description provided for @driverMaintenancePlanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance plan'**
+  String get driverMaintenancePlanTitle;
+
+  /// No description provided for @driverMaintenancePlanEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No maintenance items'**
+  String get driverMaintenancePlanEmpty;
+
+  /// No description provided for @driverMaintenancePlanEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Items generated for this vehicle will show up here.'**
+  String get driverMaintenancePlanEmptyBody;
+
+  /// No description provided for @driverMaintenancePlanAddSuggested.
+  ///
+  /// In en, this message translates to:
+  /// **'Add suggested'**
+  String get driverMaintenancePlanAddSuggested;
+
+  /// No description provided for @driverPlanDue.
+  ///
+  /// In en, this message translates to:
+  /// **'Due'**
+  String get driverPlanDue;
+
+  /// No description provided for @driverPlanItemAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Added to plan'**
+  String get driverPlanItemAdded;
+
+  /// No description provided for @driverSuggestedTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggested items'**
+  String get driverSuggestedTitle;
+
+  /// No description provided for @driverSuggestedEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggested items'**
+  String get driverSuggestedEmpty;
+
+  /// No description provided for @driverSuggestedEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions come from the maintenance template assigned to this vehicle.'**
+  String get driverSuggestedEmptyBody;
+
+  /// No description provided for @driverSuggestedNoInterval.
+  ///
+  /// In en, this message translates to:
+  /// **'No interval'**
+  String get driverSuggestedNoInterval;
+
+  /// No description provided for @driverSuggestedAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to plan'**
+  String get driverSuggestedAdd;
+
   /// No description provided for @fleetActionFailed.
   ///
   /// In en, this message translates to:

@@ -40,6 +40,10 @@ export function apiPatch<T>(path: string, body: Json): Promise<T> {
   return execute<T>(path, { method: "PATCH", body: JSON.stringify(body) });
 }
 
+export function apiPut<T>(path: string, body: Json): Promise<T> {
+  return execute<T>(path, { method: "PUT", body: JSON.stringify(body) });
+}
+
 export function apiDelete(path: string): Promise<void> {
   return execute<void>(path, { method: "DELETE" });
 }

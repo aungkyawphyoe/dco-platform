@@ -81,6 +81,9 @@ abstract final class AppRoutes {
   static const driverReportIssue = '/driver/report-issue';
   static const driverFuelLog = '/driver/fuel-log';
   static const driverInspectionNew = '/driver/inspections/new';
+  static const driverMaintenancePlan = '/driver/maintenance-plan';
+  static const driverMaintenanceSuggested =
+      '/driver/maintenance-plan/suggested';
 
   // Detail screens (top-level, accessible from any tab)
   static String vehicleDetail(String id) => '/vehicle/$id';

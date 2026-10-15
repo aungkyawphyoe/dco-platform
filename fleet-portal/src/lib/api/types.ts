@@ -28,14 +28,72 @@ export type FleetVehicle = {
   license_plate: string;
   vin: string;
   fuel_type: string;
+  vehicle_class?: string;
   mileage: number;
   mileage_unit?: string;
   lifecycle_template: string;
   status: string;
   revenue_label: string | null;
   assigned_driver_id: string | null;
+  maintenance_template_id?: string | null;
   added_at: string | null;
 };
+
+export type VehicleClass = "car" | "motorcycle" | "truck" | "van" | "bus";
+export type LifecycleTemplate = "showroom" | "taxi_fleet" | "rental" | "commercial";
+export type FuelType = "petrol" | "electric" | "hybrid_plugin";
+
+export const vehicleClassOptions: { value: VehicleClass; label: string }[] = [
+  { value: "car", label: "Car" },
+  { value: "motorcycle", label: "Motorcycle" },
+  { value: "truck", label: "Truck" },
+  { value: "van", label: "Van" },
+  { value: "bus", label: "Bus" },
+];
+
+export const lifecycleTemplateOptions: { value: LifecycleTemplate; label: string }[] = [
+  { value: "showroom", label: "Showroom" },
+  { value: "taxi_fleet", label: "Taxi fleet" },
+  { value: "rental", label: "Rental" },
+  { value: "commercial", label: "Commercial" },
+];
+
+export const fuelTypeOptions: { value: FuelType; label: string }[] = [
+  { value: "petrol", label: "Petrol" },
+  { value: "electric", label: "Electric" },
+  { value: "hybrid_plugin", label: "Hybrid plugin" },
+];
+
+export type MaintenanceTemplate = {
+  id: string;
+  catalog_key: string;
+  name: string;
+  interval_days: number | null;
+  interval_distance: number | null;
+  fuel_types: FuelType[];
+  vehicle_class: VehicleClass;
+  lifecycle_template: LifecycleTemplate | null;
+  sort_order: number;
+  enabled: boolean;
+  source: "global" | "org";
+  created_at: string;
+  updated_at: string;
+};
+
+export type MaintenanceTemplateWrite = {
+  name?: string;
+  interval_days?: number | null;
+  interval_distance?: number | null;
+  fuel_types?: FuelType[];
+  vehicle_class?: VehicleClass;
+  lifecycle_template?: LifecycleTemplate | null;
+  sort_order?: number;
+  enabled?: boolean;
+  source_template_id?: string;
+};
+
+export type TemplateAssignment = { maintenance_template_id: string | null };
+export type GeneratePlanResult = { created: number; skipped: number };
 
 export type WorkOrder = {
   id: string;
@@ -183,9 +241,10 @@ export type VehicleCreateInput = {
   year: number;
   license_plate: string;
   vin: string;
-  fuel_type: "petrol" | "electric" | "hybrid_plugin";
+  fuel_type: FuelType;
+  vehicle_class?: VehicleClass;
   mileage: number;
-  lifecycle_template: "showroom" | "taxi_fleet" | "rental" | "commercial";
+  lifecycle_template: LifecycleTemplate;
   revenue_label?: string | null;
 };
 
