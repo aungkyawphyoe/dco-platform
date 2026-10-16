@@ -160,7 +160,7 @@ describe("Enterprise Fleet access", () => {
     const { app } = await createTestApp();
     const platformAdmin = await adminToken(app);
     const fleetOwner = await signup(app, "fleet-owner");
-    const driver = await signup(app, "driver");
+    const driverEmail = `driver-${uuid()}@test.local`;
     const mechanic = await signup(app, "mechanic");
 
     const created = await app.inject({
@@ -211,9 +211,10 @@ describe("Enterprise Fleet access", () => {
       method: "POST",
       url: `/v1/organizations/${org.id}/members`,
       headers: auth(fleetToken),
-      payload: { email: driver.email, role: "org_driver" },
+      payload: { email: driverEmail, role: "org_driver", temporary_password: "TempPass123" },
     });
     expect(addDriver.statusCode).toBe(201);
+    const driverId = addDriver.json().user_id as string;
     const addMechanic = await app.inject({
       method: "POST",
       url: `/v1/organizations/${org.id}/members`,
@@ -251,14 +252,14 @@ describe("Enterprise Fleet access", () => {
       method: "POST",
       url: `/v1/organizations/${org.id}/assignments`,
       headers: auth(fleetToken),
-      payload: { vehicle_id: vehicleId, driver_id: driver.id },
+      payload: { vehicle_id: vehicleId, driver_id: driverId },
     });
     expect(assignment.statusCode).toBe(201);
 
     const driverFleetLogin = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: driver.email, password: "password1", surface: "fleet" },
+      payload: { email: driverEmail, password: "TempPass123", surface: "fleet" },
     });
     expect(driverFleetLogin.statusCode).toBe(403);
     expect(driverFleetLogin.json().error.code).toBe("portal_access_restricted");
@@ -266,10 +267,24 @@ describe("Enterprise Fleet access", () => {
     const driverLogin = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: driver.email, password: "password1" },
+      payload: { email: driverEmail, password: "TempPass123" },
     });
     expect(driverLogin.statusCode).toBe(200);
-    const driverToken = driverLogin.json().access_token as string;
+    const tempDriverToken = driverLogin.json().access_token as string;
+    const changePw = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: auth(tempDriverToken),
+      payload: { current_password: "TempPass123", new_password: "password1" },
+    });
+    expect(changePw.statusCode).toBe(204);
+    const driverRelogin = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: driverEmail, password: "password1" },
+    });
+    expect(driverRelogin.statusCode).toBe(200);
+    const driverToken = driverRelogin.json().access_token as string;
     const driverVehicles = await app.inject({ method: "GET", url: `/v1/organizations/${org.id}/vehicles`, headers: auth(driverToken) });
     expect(driverVehicles.statusCode).toBe(403);
     expect(driverVehicles.json().error.code).toBe("forbidden");
@@ -333,11 +348,11 @@ describe("Enterprise Fleet access", () => {
     await app.close();
   });
 
-  it("supports CSV inventory, shift mileage, inspections, and analytics", async () => {
+  it("supports CSV inventory, inspections, and analytics", async () => {
     const { app } = await createTestApp();
     const platformAdmin = await adminToken(app);
     const fleetOwner = await signup(app, "ops-owner");
-    const driver = await signup(app, "ops-driver");
+    const driverEmail = `ops-driver-${uuid()}@test.local`;
     const created = await app.inject({
       method: "POST", url: "/v1/admin/organizations", headers: auth(platformAdmin),
       payload: { name: "Ops Fleet", type: "taxi_fleet", admin_email: fleetOwner.email },
@@ -346,7 +361,9 @@ describe("Enterprise Fleet access", () => {
     await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${orgId}/status`, headers: auth(platformAdmin), payload: { status: "active" } });
     const ownerFleetLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: fleetOwner.email, password: "password1", surface: "fleet" } });
     const ownerToken = ownerFleetLogin.json().access_token as string;
-    await app.inject({ method: "POST", url: `/v1/organizations/${orgId}/members`, headers: auth(ownerToken), payload: { email: driver.email, role: "org_driver" } });
+    const addOpsDriver = await app.inject({ method: "POST", url: `/v1/organizations/${orgId}/members`, headers: auth(ownerToken), payload: { email: driverEmail, role: "org_driver", temporary_password: "TempPass123" } });
+    expect(addOpsDriver.statusCode).toBe(201);
+    const driverId = addOpsDriver.json().user_id as string;
 
     const boundary = "dco-fleet-csv-boundary";
     const vin = uuid().replaceAll("-", "").slice(0, 17);
@@ -375,13 +392,26 @@ describe("Enterprise Fleet access", () => {
 
     const assignment = await app.inject({
       method: "POST", url: `/v1/organizations/${orgId}/assignments`, headers: auth(ownerToken),
-      payload: { vehicle_id: vehicleId, driver_id: driver.id },
+      payload: { vehicle_id: vehicleId, driver_id: driverId },
     });
     expect(assignment.statusCode).toBe(201);
+    const opsTempLogin = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: driverEmail, password: "TempPass123" },
+    });
+    expect(opsTempLogin.statusCode).toBe(200);
+    const changePw2 = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: auth(opsTempLogin.json().access_token as string),
+      payload: { current_password: "TempPass123", new_password: "password1" },
+    });
+    expect(changePw2.statusCode).toBe(204);
     const driverLogin = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: driver.email, password: "password1" },
+      payload: { email: driverEmail, password: "password1" },
     });
     expect(driverLogin.statusCode).toBe(200);
     const driverToken = driverLogin.json().access_token as string;
@@ -413,16 +443,6 @@ describe("Enterprise Fleet access", () => {
     const driverInspections = await app.inject({ method: "GET", url: "/v1/drivers/my-inspections", headers: auth(driverToken) });
     expect(driverInspections.json().items).toHaveLength(1);
 
-    const shift = await app.inject({
-      method: "POST", url: `/v1/organizations/${orgId}/shift-mileage`, headers: auth(driverToken),
-      payload: { vehicle_id: vehicleId, start_odometer_km: 100 },
-    });
-    expect(shift.statusCode).toBe(201);
-    const endedShift = await app.inject({
-      method: "PATCH", url: `/v1/organizations/${orgId}/shift-mileage/${shift.json().id}`, headers: auth(driverToken),
-      payload: { end_odometer_km: 150 },
-    });
-    expect(endedShift.json().km_driven).toBe(50);
     const fleetAnalytics = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/analytics/fleet`, headers: auth(ownerToken) });
     expect(fleetAnalytics.statusCode).toBe(200);
     expect(fleetAnalytics.json().active_assignments).toBe(1);
@@ -638,8 +658,8 @@ describe("Approved workshop warranty access", () => {
 });
 
 describe("Driver provisioning", () => {
-  it("creates driver accounts, deactivates, and reactivates them", async () => {
-    const { app, db } = await createTestApp();
+  it("provisions drivers via Members with temporary passwords, rejects personal-email reuse", async () => {
+    const { app } = await createTestApp();
     const platformAdmin = await adminToken(app);
     const fleetOwner = await signup(app, "fleet-owner");
 
@@ -667,23 +687,45 @@ describe("Driver provisioning", () => {
     expect(fleetLogin.statusCode).toBe(200);
     const fleetToken = fleetLogin.json().access_token as string;
 
+    // Driver creation now happens via Members provisioning (email + temp password).
+    const driverEmail = "driver-john@example.com";
     const createDriver = await app.inject({
+      method: "POST",
+      url: `/v1/organizations/${org.id}/members`,
+      headers: auth(fleetToken),
+      payload: { email: driverEmail, role: "org_driver", temporary_password: "TempPass123" },
+    });
+    expect(createDriver.statusCode).toBe(201);
+    const driver = createDriver.json();
+    expect(driver.account_created).toBe(true);
+    expect(driver.temporary_password).toBe("TempPass123");
+    expect(driver.role).toBe("org_driver");
+    const driverId = driver.user_id;
+
+    // The old username-based driver creation route is gone.
+    const oldRoute = await app.inject({
       method: "POST",
       url: `/v1/organizations/${org.id}/drivers`,
       headers: auth(fleetToken),
       payload: { username: "driver_john", display_name: "John Doe", password: "InitialPass123" },
     });
-    expect(createDriver.statusCode).toBe(201);
-    const driver = createDriver.json();
-    expect(driver.username).toBe("driver_john");
-    expect(driver.must_change_password).toBe(true);
-    expect(driver.membership.role).toBe("org_driver");
-    const driverId = driver.id;
+    expect(oldRoute.statusCode).toBe(404);
+
+    // Reusing a personal account email for a driver invite is rejected.
+    const personal = await signup(app, "existing-personal");
+    const reuse = await app.inject({
+      method: "POST",
+      url: `/v1/organizations/${org.id}/members`,
+      headers: auth(fleetToken),
+      payload: { email: personal.email, role: "org_driver" },
+    });
+    expect(reuse.statusCode).toBe(409);
+    expect(reuse.json().error.code).toBe("personal_account_exists");
 
     const loginDriver = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: "driver_john", password: "InitialPass123" },
+      payload: { email: driverEmail, password: "TempPass123" },
     });
     expect(loginDriver.statusCode).toBe(200);
     const driverToken = loginDriver.json().access_token as string;
@@ -691,7 +733,7 @@ describe("Driver provisioning", () => {
     const fleetReject = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: "driver_john", password: "InitialPass123", surface: "fleet" },
+      payload: { email: driverEmail, password: "TempPass123", surface: "fleet" },
     });
     expect(fleetReject.statusCode).toBe(403);
     expect(fleetReject.json().error.code).toBe("portal_access_restricted");
@@ -704,7 +746,7 @@ describe("Driver provisioning", () => {
       method: "POST",
       url: "/v1/auth/change-password",
       headers: auth(driverToken),
-      payload: { current_password: "InitialPass123", new_password: "NewPass456" },
+      payload: { current_password: "TempPass123", new_password: "NewPass456" },
     });
     expect(changePw.statusCode).toBe(204);
 
@@ -724,7 +766,7 @@ describe("Driver provisioning", () => {
     const loginDeactivated = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: "driver_john", password: "NewPass456" },
+      payload: { email: driverEmail, password: "NewPass456" },
     });
     expect(loginDeactivated.statusCode).toBe(401);
     expect(loginDeactivated.json().error.code).toBe("deactivated");
@@ -741,19 +783,145 @@ describe("Driver provisioning", () => {
     const loginReactivated = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: "driver_john", password: "NewPass456" },
+      payload: { email: driverEmail, password: "NewPass456" },
     });
     expect(loginReactivated.statusCode).toBe(200);
 
-    const duplicate = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/drivers`,
-      headers: auth(fleetToken),
-      payload: { username: "driver_john", display_name: "Jane", password: "password1" },
-    });
-    expect(duplicate.statusCode).toBe(409);
-    expect(duplicate.json().error.code).toBe("username_taken");
+    await app.close();
+  });
+});
 
+describe("Driver surface realignment (WP1)", () => {
+  async function setupFleet(label: string) {
+    const { app, db } = await createTestApp();
+    const platformAdmin = await adminToken(app);
+    const fleetOwner = await signup(app, `${label}-owner`);
+    const created = await app.inject({
+      method: "POST", url: "/v1/admin/organizations", headers: auth(platformAdmin),
+      payload: { name: `${label} Fleet`, type: "taxi_fleet", admin_email: fleetOwner.email },
+    });
+    const orgId = created.json().id as string;
+    await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${orgId}/status`, headers: auth(platformAdmin), payload: { status: "active" } });
+    const ownerFleetLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: fleetOwner.email, password: "password1", surface: "fleet" } });
+    const fleetToken = ownerFleetLogin.json().access_token as string;
+    return { app, db, orgId, fleetOwner, fleetToken };
+  }
+
+  async function provisionDriver(app: Awaited<ReturnType<typeof createTestApp>>["app"], orgId: string, fleetToken: string, label: string) {
+    const email = `${label}-${uuid()}@test.local`;
+    const invite = await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/members`, headers: auth(fleetToken),
+      payload: { email, role: "org_driver", temporary_password: "TempPass123" },
+    });
+    expect(invite.statusCode).toBe(201);
+    const driverId = invite.json().user_id as string;
+    const login = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email, password: "TempPass123" } });
+    expect(login.statusCode).toBe(200);
+    const token = login.json().access_token as string;
+    const changePw = await app.inject({
+      method: "POST", url: "/v1/auth/change-password", headers: auth(token),
+      payload: { current_password: "TempPass123", new_password: "NewPass456" },
+    });
+    expect(changePw.statusCode).toBe(204);
+    return { email, driverId, token };
+  }
+
+  it("blocks a driver's personal garage with 403 personal_garage_forbidden", async () => {
+    const { app, orgId, fleetToken } = await setupFleet("garage-gate");
+    const { token } = await provisionDriver(app, orgId, fleetToken, "gate-driver");
+    const personalVehicles = await app.inject({ method: "GET", url: "/v1/vehicles", headers: auth(token) });
+    expect(personalVehicles.statusCode).toBe(403);
+    expect(personalVehicles.json().error.code).toBe("personal_garage_forbidden");
+    await app.close();
+  });
+
+  it("requires completion_cost on WO completion and auto-creates a service record", async () => {
+    const { app, orgId, fleetOwner, fleetToken } = await setupFleet("wo-complete");
+    const { driverId, token: driverToken } = await provisionDriver(app, orgId, fleetToken, "wo-driver");
+    const vehicleId = uuid();
+    await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/vehicles`, headers: auth(fleetToken),
+      payload: {
+        id: vehicleId, name: "WO Taxi", make: "Toyota", model: "Camry", year: 2022,
+        license_plate: `WOC${vehicleId.slice(0, 4)}`, vin: vehicleId.replaceAll("-", "").slice(0, 17),
+        fuel_type: "petrol", mileage: 500, lifecycle_template: "taxi_fleet",
+      },
+    });
+    await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/assignments`, headers: auth(fleetToken),
+      payload: { vehicle_id: vehicleId, driver_id: driverId },
+    });
+    const workOrder = await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/work-orders`, headers: auth(driverToken),
+      payload: { vehicle_id: vehicleId, odometer_km: 520, issue_type: "wear_tear", description: "Brakes are grinding badly", urgency: "high" },
+    });
+    expect(workOrder.statusCode).toBe(201);
+    const woId = workOrder.json().id as string;
+    await app.inject({
+      method: "PATCH", url: `/v1/organizations/${orgId}/work-orders/${woId}`, headers: auth(fleetToken),
+      payload: { status: "in_progress" },
+    });
+    const missingCost = await app.inject({
+      method: "PATCH", url: `/v1/organizations/${orgId}/work-orders/${woId}`, headers: auth(fleetToken),
+      payload: { status: "completed" },
+    });
+    expect(missingCost.statusCode).toBe(400);
+    expect(missingCost.json().error.code).toBe("completion_cost_required");
+    const completed = await app.inject({
+      method: "PATCH", url: `/v1/organizations/${orgId}/work-orders/${woId}`, headers: auth(fleetToken),
+      payload: { status: "completed", completion_cost: 120.5, parts: [{ name: "Brake pads (free-text)" }], resolution_notes: "Replaced pads" },
+    });
+    expect(completed.statusCode).toBe(200);
+    expect(completed.json().completion_cost).toBe(120.5);
+    const serviceRecord = completed.json().service_record;
+    expect(serviceRecord.odometer).toBe(520);
+    expect(serviceRecord.total_cost).toBe(120.5);
+    expect(serviceRecord.parts[0].name).toBe("Brake pads (free-text)");
+    expect(serviceRecord.parts[0].part_id).toBeNull();
+    // Auto record is portal-only; it must not show up in the driver's history.
+    const driverHistory = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/vehicles/${vehicleId}/service-records`, headers: auth(driverToken) });
+    expect(driverHistory.statusCode).toBe(403);
+    await app.close();
+  });
+
+  it("lets a driver log a do-myself service record and advance a plan item", async () => {
+    const { app, orgId, fleetToken } = await setupFleet("driver-sr");
+    const { driverId, token: driverToken } = await provisionDriver(app, orgId, fleetToken, "sr-driver");
+    const vehicleId = uuid();
+    await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/vehicles`, headers: auth(fleetToken),
+      payload: {
+        id: vehicleId, name: "SR Taxi", make: "Honda", model: "Civic", year: 2021,
+        license_plate: `SRS${vehicleId.slice(0, 4)}`, vin: vehicleId.replaceAll("-", "").slice(0, 17),
+        fuel_type: "petrol", mileage: 800, lifecycle_template: "taxi_fleet",
+      },
+    });
+    await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/assignments`, headers: auth(fleetToken),
+      payload: { vehicle_id: vehicleId, driver_id: driverId },
+    });
+    const planItem = await app.inject({
+      method: "POST", url: `/v1/drivers/vehicles/${vehicleId}/plan-items`, headers: auth(driverToken),
+      payload: { id: uuid(), name: "Oil change", interval_days: 90, interval_distance: 10000 },
+    });
+    expect(planItem.statusCode).toBe(201);
+    const planItemId = planItem.json().id as string;
+    const regression = await app.inject({
+      method: "POST", url: `/v1/drivers/vehicles/${vehicleId}/service-records`, headers: auth(driverToken),
+      payload: { serviced_on: "2026-10-01", odometer_km: 100, total_cost: 50, plan_item_id: planItemId },
+    });
+    expect(regression.statusCode).toBe(400);
+    expect(regression.json().error.code).toBe("odometer_regression");
+    const logged = await app.inject({
+      method: "POST", url: `/v1/drivers/vehicles/${vehicleId}/service-records`, headers: auth(driverToken),
+      payload: { serviced_on: "2026-10-01", odometer_km: 950, total_cost: 75, plan_item_id: planItemId },
+    });
+    expect(logged.statusCode).toBe(201);
+    expect(logged.json().items[0].name).toBe("Oil change");
+    expect(logged.json().items[0].plan_item_id).toBe(planItemId);
+    const planAfter = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/vehicles/${vehicleId}/plan-items`, headers: auth(fleetToken) });
+    const advanced = planAfter.json().items.find((item: { id: string }) => item.id === planItemId);
+    expect(advanced.next_due_mileage).toBe(950 + 10000);
     await app.close();
   });
 });
@@ -763,8 +931,8 @@ describe("Fleet maintenance templates", () => {
     const { app } = await createTestApp();
     const platformAdmin = await adminToken(app);
     const fleetOwner = await signup(app, "tpl-owner");
-    const driverA = await signup(app, "tpl-driver-a");
-    const driverB = await signup(app, "tpl-driver-b");
+    const driverAEmail = `tpl-driver-a-${uuid()}@test.local`;
+    const driverBEmail = `tpl-driver-b-${uuid()}@test.local`;
     const personalOwner = await signup(app, "tpl-personal");
 
     const created = await app.inject({
@@ -838,14 +1006,15 @@ describe("Fleet maintenance templates", () => {
       method: "POST",
       url: `/v1/organizations/${org.id}/members`,
       headers: auth(fleetToken),
-      payload: { email: driverA.email, role: "org_driver" },
+      payload: { email: driverAEmail, role: "org_driver", temporary_password: "TempPass123" },
     });
     expect(addDriverA.statusCode).toBe(201);
+    const driverAId = addDriverA.json().user_id as string;
     const assignA = await app.inject({
       method: "POST",
       url: `/v1/organizations/${org.id}/assignments`,
       headers: auth(fleetToken),
-      payload: { vehicle_id: vehicleId, driver_id: driverA.id },
+      payload: { vehicle_id: vehicleId, driver_id: driverAId },
     });
     expect(assignA.statusCode).toBe(201);
 
@@ -976,13 +1145,27 @@ describe("Fleet maintenance templates", () => {
     expect(regenerate.json()).toEqual({ created: 0, skipped: 11 });
 
     // Driver A (owner-audience token) reads the snapshot plan and may extend it.
-    const driverLogin = await app.inject({
+    const driverALogin = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: driverA.email, password: "password1" },
+      payload: { email: driverAEmail, password: "TempPass123" },
     });
-    expect(driverLogin.statusCode).toBe(200);
-    const driverToken = driverLogin.json().access_token as string;
+    expect(driverALogin.statusCode).toBe(200);
+    const tempDriverAToken = driverALogin.json().access_token as string;
+    const changePwA = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: auth(tempDriverAToken),
+      payload: { current_password: "TempPass123", new_password: "password1" },
+    });
+    expect(changePwA.statusCode).toBe(204);
+    const driverARelogin = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: driverAEmail, password: "password1" },
+    });
+    expect(driverARelogin.statusCode).toBe(200);
+    const driverToken = driverARelogin.json().access_token as string;
 
     const driverPlan = await app.inject({
       method: "GET",
@@ -1063,21 +1246,36 @@ describe("Fleet maintenance templates", () => {
       method: "POST",
       url: `/v1/organizations/${org.id}/members`,
       headers: auth(fleetToken),
-      payload: { email: driverB.email, role: "org_driver" },
+      payload: { email: driverBEmail, role: "org_driver", temporary_password: "TempPass123" },
     });
     expect(addDriverB.statusCode).toBe(201);
+    const driverBId = addDriverB.json().user_id as string;
     const assignB = await app.inject({
       method: "POST",
       url: `/v1/organizations/${org.id}/assignments`,
       headers: auth(fleetToken),
-      payload: { vehicle_id: noTemplateVehicleId, driver_id: driverB.id },
+      payload: { vehicle_id: noTemplateVehicleId, driver_id: driverBId },
     });
     expect(assignB.statusCode).toBe(201);
+    const driverBTempLogin = await app.inject({
+      method: "POST",
+      url: "/v1/auth/login",
+      payload: { email: driverBEmail, password: "TempPass123" },
+    });
+    expect(driverBTempLogin.statusCode).toBe(200);
+    const changePwB = await app.inject({
+      method: "POST",
+      url: "/v1/auth/change-password",
+      headers: auth(driverBTempLogin.json().access_token as string),
+      payload: { current_password: "TempPass123", new_password: "password1" },
+    });
+    expect(changePwB.statusCode).toBe(204);
     const driverBLogin = await app.inject({
       method: "POST",
       url: "/v1/auth/login",
-      payload: { email: driverB.email, password: "password1" },
+      payload: { email: driverBEmail, password: "password1" },
     });
+    expect(driverBLogin.statusCode).toBe(200);
     const driverBToken = driverBLogin.json().access_token as string;
     const emptySuggested = await app.inject({
       method: "GET",

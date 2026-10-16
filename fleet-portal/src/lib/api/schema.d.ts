@@ -4341,7 +4341,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Add a member by email; new accounts get a temporary password instead of an invite email */
+        /** Add a member by email; role org_driver creates a driver account (new accounts get a temporary password instead of an invite email) */
         post: {
             parameters: {
                 query?: never;
@@ -4357,7 +4357,7 @@ export interface paths {
                         /** Format: email */
                         email: string;
                         /** @enum {string} */
-                        role: "org_manager" | "org_mechanic";
+                        role: "org_manager" | "org_mechanic" | "org_driver";
                         /** @description Applied only when no account exists for email: the account is created active with must_change_password=true and the password is returned once in the response (no email is sent). 400 when supplied and the account already exists. */
                         temporary_password?: string;
                     };
@@ -4375,7 +4375,15 @@ export interface paths {
                 };
                 400: components["responses"]["Error"];
                 403: components["responses"]["Error"];
-                409: components["responses"]["Error"];
+                /** @description Conflict — for role org_driver: the email already belongs to an existing personal account (personal_account_exists); drivers are always new identities. Otherwise: already_in_org. */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
+                    };
+                };
             };
         };
         delete?: never;
@@ -4435,58 +4443,6 @@ export interface paths {
                 403: components["responses"]["Error"];
             };
         };
-        trace?: never;
-    };
-    "/organizations/{id}/drivers": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Create a driver account (username + password, no email) — org_admin only */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** @description Globally unique; stays reserved even after driver deactivation */
-                        username: string;
-                        display_name: string;
-                        /** @description Initial password; server sets must_change_password=true */
-                        password: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Driver account created with org_driver membership; no email sent */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["User"];
-                    };
-                };
-                403: components["responses"]["Error"];
-                409: components["responses"]["Error"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
         trace?: never;
     };
     "/organizations/{id}/members/{userId}/status": {
@@ -5038,6 +4994,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{id}/vehicles/{vehicleId}/plan-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Maintenance plan for an org vehicle (portal Maintenance-plan card; admin/manager/mechanic) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Enabled plan items for the vehicle */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["PlanItem"][];
+                        };
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{id}/vehicles/{vehicleId}/service-records": {
         parameters: {
             query?: never;
@@ -5045,7 +5044,34 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Service history for an org vehicle (portal Service-history card; admin/manager/mechanic) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service records newest-first (driver do-myself logs, portal completions, workshop entries, WO-completion records) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: Record<string, never>[];
+                        };
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+            };
+        };
         put?: never;
         /** Record maintenance performed by owner, manager, or mechanic */
         post: {
@@ -5267,7 +5293,10 @@ export interface paths {
             };
         };
         put?: never;
-        /** Report an issue from an assigned driver */
+        /**
+         * Report an issue from an assigned driver (standalone Report Issue, or maintenance Report branch)
+         * @description Odometer auto-filled from vehicles.mileage by clients. plan_item_id is set when the maintenance Report branch was used from a plan item — completion then advances that plan item. Maintenance-Report WOs show in the driver's Maintenance history; Report-Issue WOs show in the pushed Reports screen.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -5279,7 +5308,10 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** Format: uuid */
+                        plan_item_id?: string | null;
+                    };
                 };
             };
             responses: {
@@ -5312,7 +5344,10 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
-        /** Advance work order to in-progress or completed */
+        /**
+         * Advance work order to in-progress or completed (completion requires cost → auto service record)
+         * @description Status must advance reported → in_progress → completed without skipping. transition to completed accepts/requires completion_cost (>= 0) plus optional resolution notes and parts (free-text names allowed). Completion is Admin/Manager only, stamps the report-time odometer on the auto-created service record, and advances the linked plan item when work_orders.plan_item_id is set. The auto service record is portal-side only (driver history shows the WO row status).
+         */
         patch: {
             parameters: {
                 query?: never;
@@ -5325,11 +5360,23 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @enum {string} */
+                        status: "in_progress" | "completed";
+                        /** @description Required when status=completed (else 400 completion_cost_required) */
+                        completion_cost?: number;
+                        resolution_notes?: string;
+                        /** @description Optional parts used; free-text names (part_id nullable) */
+                        parts?: {
+                            /** Format: uuid */
+                            part_id?: string | null;
+                            name: string;
+                        }[];
+                    };
                 };
             };
             responses: {
-                /** @description Updated work order */
+                /** @description Updated work order (completion also creates the service record) */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -5337,6 +5384,7 @@ export interface paths {
                     content?: never;
                 };
                 400: components["responses"]["Error"];
+                403: components["responses"]["Error"];
             };
         };
         trace?: never;
@@ -5567,66 +5615,6 @@ export interface paths {
         };
         trace?: never;
     };
-    "/organizations/{id}/shift-mileage": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /** List shift mileage records */
-        get: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Shift mileage records */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        put?: never;
-        /** Start a driver shift with odometer reading */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-            responses: {
-                /** @description Shift started */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/organizations/{id}/fuel-logs": {
         parameters: {
             query?: never;
@@ -5666,47 +5654,6 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
-        trace?: never;
-    };
-    "/organizations/{id}/shift-mileage/{shiftId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        /** End a driver shift */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    shiftId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": Record<string, never>;
-                };
-            };
-            responses: {
-                /** @description Shift ended with computed distance */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
         trace?: never;
     };
     "/organizations/{id}/warranty-templates": {
@@ -6491,6 +6438,72 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/drivers/vehicles/{vehicleId}/service-records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Driver "Do myself" maintenance log (active assignment required)
+         * @description Writes a service record directly (status is implicit Completed — service_records carry no status column). plan_item_id links the log and advances the plan item's next due dates; free-text items create an orphan record that never touches a plan. total_cost is required (contact fleet admin when unknown). Odometer auto-filled from vehicles.mileage by clients and must not decrease it.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description Client UUID (idempotent create)
+                         */
+                        id?: string;
+                        /** Format: date */
+                        serviced_on: string;
+                        odometer_km: number;
+                        total_cost: number;
+                        /** Format: uuid */
+                        plan_item_id?: string | null;
+                        /** @description Item name (required when plan_item_id is absent — free-text orphan log) */
+                        name?: string;
+                        notes?: string;
+                        /** Format: uuid */
+                        receipt_media_id?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Maintenance recorded as Completed; plan item advanced when linked */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": Record<string, never>;
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+                409: components["responses"]["Error"];
+                422: components["responses"]["Error"];
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;

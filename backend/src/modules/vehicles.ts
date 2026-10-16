@@ -5,6 +5,7 @@ import type { Db } from "../db/client.js";
 import { documents, expenses, organizationVehicles, planItems, serviceRecords, users, vehicleWarranties, vehicles } from "../db/schema.js";
 import { AppError } from "../lib/errors.js";
 import { assertVehicleLimit } from "../lib/limits.js";
+import { assertPersonalGarageAllowed } from "../lib/personal-garage.js";
 import { dateOnly, getUser, num, recordChange, reqNum } from "../lib/dbx.js";
 import { publicUser, publicVehicle } from "../lib/serialize.js";
 import { requireOwner } from "./auth.js";
@@ -107,6 +108,13 @@ async function assertPlateVin(db: Db, userId: string, plate: string, vin: string
 }
 
 export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
+  // Confirmed Access Decision 22: a driver identity never has personal data.
+  // Gate the whole personal-garage vehicles surface for org_driver/active-driver
+  // users; the client Garage tab reads through org/driver endpoints instead.
+  app.addHook("preHandler", async (request) => {
+    if (request.authUser?.sub) await assertPersonalGarageAllowed(app.db, request.authUser.sub);
+  });
+
   app.get("/vehicles", async (request) => {
     requireOwner(request);
     const includeArchived = (request.query as { include_archived?: string }).include_archived === "true";

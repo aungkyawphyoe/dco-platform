@@ -31,6 +31,7 @@ import {
   publicPlan,
 } from "../lib/serialize-records.js";
 import { AppError } from "../lib/errors.js";
+import { assertPersonalGarageAllowed } from "../lib/personal-garage.js";
 import type { Mailer } from "../lib/mail.js";
 import { requireOwner } from "./auth.js";
 import { shareLimits } from "../lib/plans.js";
@@ -374,6 +375,13 @@ export async function getUserDetail(db: Db, userId: string, requestingUserId: st
 export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
   const db = () => app.db;
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
+
+  // Confirmed Access Decision 22: personal vehicle-sharing is part of the
+  // personal-garage surface, so a driver identity (org_driver or active driver
+  // assignment) is denied here. Drivers use org/driver assignment endpoints.
+  app.addHook("preHandler", async (request) => {
+    if (request.authUser?.sub) await assertPersonalGarageAllowed(app.db, request.authUser.sub);
+  });
 
   // ─── Create Share (email invite or code/QR) ─────────────────────
 

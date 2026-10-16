@@ -8,7 +8,7 @@ Default after a successful owner login: **Dashboard** (frame `3. Dashboard (Defa
 
 ## Owner app — bottom navigation + hamburger menu
 
-Four bottom tabs (consistent for normal users and fleet owners) plus a hamburger menu (drawer) for additional features.
+Four bottom tabs (consistent for normal users, fleet owners, **and drivers** — drivers get the same tabs with read-only Garage and fuel-only Expenses) plus a hamburger menu (drawer) for additional features.
 
 ### Bottom tabs
 
@@ -136,14 +136,21 @@ Back from a nested screen returns to the tab or hamburger that opened it. Switch
 
 Mobile has **no Fleet hub, no mode switch, and no drawer Fleet entry** (removed October 2026 — fleet management lives on the Fleet Portal). The app has two effective modes, derived from live entitlements (`GET /me/entitlements`) with no stored preference:
 
-- **Driver mode** — `org_driver` accounts are forced into it on login: a three-item nav (My Vehicle / My Reports / Settings); no personal-garage tabs. Personal data keeps the offline-first Drift + outbox path outside driver mode; driver lists are **online-first** (HTTP 403 → access-denied empty state).
+- **Driver mode** — `org_driver` accounts are forced into it on login: **the same four tabs as personal mode** (Garage / Maintenance / Expenses / Settings), same screens, with driver-mode repositories mapping to org endpoints. Personal data keeps the offline-first Drift + outbox path outside driver mode; driver data is **online-first** (HTTP 403 → access-denied empty state).
+  - **Garage tab**: personal Dashboard with the assigned org vehicle as the active vehicle; Quick Actions = **Report Issue · Start Inspection · Refuel · Notes** (personal set: Log Service · History · Refuel · Notes); spend cards hidden. My Garage = single read-only row ("+" hidden, tap → read-only detail); no add/edit/archive/share.
+  - **Maintenance tab**: plan (read-only + suggested add) · **Register service** with a **Report | Do myself** branch · merged history (service records = Completed; maintenance-Report work orders = Reported → Completed on refresh).
+  - **Expenses tab**: fuel logs only — no generic expense CRUD.
+  - **Settings tab**: profile/password/sign-out; sharing entries removed.
+  - Pushed **Reports** screen (Dashboard quick action): own inspections + Report-Issue work orders with status chips.
+  - Personal-garage routes are hidden **and server-denied** (403) for driver identities.
+  - Odometer fields auto-fill from `vehicles.mileage` — **shift start/end screens are removed** (mileage is log-driven only).
 - **Personal mode** — everyone else, including non-driver org members (`org_admin`/`org_manager`/`org_mechanic`), who keep mobile login for their personal garage only.
 
-Backend enforcement is authoritative: management API routes require the `dco-fleet` (Fleet Portal) audience and reject mobile's `dco-owner` token.
+Backend enforcement is authoritative: management API routes require the `dco-fleet` (Fleet Portal) audience and reject mobile's `dco-owner` token; personal-garage routes reject driver identities with 403 `personal_garage_forbidden`.
 
-Driver screens push on the **root** navigator (not a tab stack):
+Driver-specific screens push on the active **tab** stacks (parity with personal mode):
 
-- Driver: Start/end shift, Report issue, Log fuel, Start inspection (checklist built from the org's inspection template), Maintenance plan (generated template snapshot + add from the template's suggested list).
+- Driver: Register service (Report | Do myself), Report Issue, Start inspection (checklist built from the org's inspection template), Refuel, Reports (pushed history), read-only vehicle detail (Garage).
 
 ---
 

@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import {
@@ -9,8 +9,10 @@ import {
   organizationWorkshops,
   organizations,
   partners,
+  parts as partsTable,
   planItems,
   serviceRecordItems,
+  serviceRecordParts,
   serviceRecords,
   users,
   vehicles,
@@ -21,8 +23,6 @@ import {
 import type { Db } from "../db/client.js";
 import { newId } from "../lib/crypto.js";
 import { provisionOwnerAccount } from "../lib/account-provisioning.js";
-import { generateUniqueUsername } from "../lib/username.js";
-import { hashPassword } from "../lib/crypto.js";
 import { dueFrom, templateSetRows } from "../lib/catalog.js";
 import { slugify } from "../lib/slug.js";
 import { dateOnly, iso, num, recordChange, reqNum } from "../lib/dbx.js";
@@ -192,6 +192,11 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     let accountCreated = false;
     let temporaryPassword: string | null = null;
     if (member) {
+      // Confirmed Access Decision 15: a driver identity is always new. Reject an
+      // org_driver invite whose email already belongs to any existing account.
+      if (body.role === "org_driver") {
+        throw new AppError(409, "personal_account_exists", "This email already has a personal account. Try again with a different email address.");
+      }
       if (body.temporary_password !== undefined) {
         throw new AppError(400, "temporary_password_existing_account", "An account already exists for this email; remove the temporary password");
       }
@@ -239,44 +244,6 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const [updated] = await app.db.update(organizationMembers).set({ role: body.role! }).where(eq(organizationMembers.id, membership.id)).returning();
     const [member] = await app.db.select().from(users).where(eq(users.id, memberId)).limit(1);
     return serializeMember(updated, member!);
-  });
-
-  app.post("/organizations/:id/drivers", async (request, reply) => {
-    requireFleetPortal(request);
-    const orgId = uuid.parse((request.params as { id: string }).id);
-    const actorId = uid(request);
-    await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
-    const body = z
-      .object({
-        username: z.string().min(3).max(30).regex(/^[a-z0-9._]+$/),
-        display_name: z.string().min(1).max(100),
-        password: z.string().min(8),
-      })
-      .parse(request.body);
-    const [existingUser] = await app.db.select().from(users).where(eq(users.username, body.username)).limit(1);
-    if (existingUser) throw new AppError(409, "username_taken", "Username is already taken");
-    const id = newId();
-    const passwordHash = await hashPassword(body.password);
-    const [user] = await app.db
-      .insert(users)
-      .values({
-        id,
-        username: body.username,
-        passwordHash,
-        displayName: body.display_name,
-        role: "owner",
-        plan: "free",
-        emailVerified: true,
-        mustChangePassword: true,
-      })
-      .returning();
-    const [membership] = await app.db
-      .insert(organizationMembers)
-      .values({ id: newId(), orgId, userId: id, role: "org_driver", invitedBy: actorId })
-      .returning();
-    await recordChange(app.db, { userId: id, entityType: "user", entityId: id, op: "upsert", payload: publicUser(user) });
-    await recordChange(app.db, { userId: actorId, entityType: "organization_member", entityId: membership.id, op: "upsert", payload: serializeMember(membership, user) });
-    return reply.code(201).send({ ...publicUser(user), membership: serializeMember(membership, user) });
   });
 
   app.post("/organizations/:id/members/:userId/status", async (request, reply) => {
@@ -580,6 +547,52 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     return reply.code(201).send(payload);
   });
 
+  app.get("/organizations/:id/vehicles/:vehicleId/service-records", async (request) => {
+    requireFleetPortal(request);
+    const { id: rawOrgId, vehicleId } = request.params as { id: string; vehicleId: string };
+    const orgId = uuid.parse(rawOrgId);
+    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager", "org_mechanic"]);
+    const [orgVehicle] = await app.db.select().from(organizationVehicles).where(and(
+      eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId),
+    )).limit(1);
+    if (!orgVehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
+    const rows = await app.db.select().from(serviceRecords)
+      .where(eq(serviceRecords.vehicleId, vehicleId))
+      .orderBy(desc(serviceRecords.servicedOn));
+    const items = [];
+    for (const row of rows) {
+      const recordItems = await app.db.select().from(serviceRecordItems)
+        .where(eq(serviceRecordItems.serviceRecordId, row.id));
+      items.push({
+        id: row.id,
+        vehicle_id: row.vehicleId,
+        serviced_on: dateOnly(row.servicedOn),
+        odometer: reqNum(row.odometer),
+        total_cost: reqNum(row.totalCost),
+        workshop_name: row.workshopName,
+        notes: row.notes,
+        created_by: row.createdBy,
+        items: recordItems.map((item) => ({
+          id: item.id, name: item.name, line_cost: num(item.lineCost), plan_item_id: item.planItemId,
+        })),
+      });
+    }
+    return { items };
+  });
+
+  app.get("/organizations/:id/vehicles/:vehicleId/plan-items", async (request) => {
+    requireFleetPortal(request);
+    const { id: rawOrgId, vehicleId } = request.params as { id: string; vehicleId: string };
+    const orgId = uuid.parse(rawOrgId);
+    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager", "org_mechanic"]);
+    const [orgVehicle] = await app.db.select().from(organizationVehicles).where(and(
+      eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId),
+    )).limit(1);
+    if (!orgVehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
+    const rows = await app.db.select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
+    return { items: rows.map(publicPlan) };
+  });
+
   app.post("/organizations/:id/work-orders", async (request, reply) => {
     requireFleetClient(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
@@ -592,15 +605,23 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       description: z.string().min(10).max(2000),
       urgency,
       photos: z.array(uuid).max(5).optional().default([]),
+      plan_item_id: uuid.nullable().optional(),
     }).parse(request.body);
     const [assignment] = await app.db.select().from(driverAssignments).where(and(
       eq(driverAssignments.orgId, orgId), eq(driverAssignments.vehicleId, body.vehicle_id),
       eq(driverAssignments.driverId, actorId), eq(driverAssignments.status, "active"),
     )).limit(1);
     if (!assignment) throw new AppError(403, "not_assigned_to_vehicle", "Driver is not assigned to this vehicle");
+    if (body.plan_item_id) {
+      const [planItem] = await app.db.select().from(planItems).where(and(
+        eq(planItems.id, body.plan_item_id), eq(planItems.vehicleId, body.vehicle_id),
+      )).limit(1);
+      if (!planItem) throw new AppError(422, "invalid_plan_item", "Plan item must belong to the assigned vehicle");
+    }
     const [workOrder] = await app.db.insert(workOrders).values({
       id: newId(), orgId, vehicleId: body.vehicle_id, reportedBy: actorId, odometerKm: body.odometer_km,
       issueType: body.issue_type, description: body.description, urgency: body.urgency, photos: body.photos,
+      planItemId: body.plan_item_id ?? null,
     }).returning();
     return reply.code(201).send(serializeWorkOrder(workOrder));
   });
@@ -638,7 +659,16 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const orgId = uuid.parse(rawOrgId);
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin", "org_manager"]);
-    const body = z.object({ status: z.enum(["in_progress", "completed"]), assigned_to: uuid.optional().nullable(), resolution_notes: z.string().max(2000).optional().nullable() }).parse(request.body);
+    const body = z.object({
+      status: z.enum(["in_progress", "completed"]),
+      assigned_to: uuid.optional().nullable(),
+      resolution_notes: z.string().max(2000).optional().nullable(),
+      completion_cost: z.number().min(0).optional(),
+      parts: z.array(z.object({
+        part_id: uuid.nullable().optional(),
+        name: z.string().min(1).max(200),
+      })).max(50).optional(),
+    }).parse(request.body);
     const [current] = await app.db.select().from(workOrders).where(and(eq(workOrders.id, workOrderId), eq(workOrders.orgId, orgId))).limit(1);
     if (!current) throw new AppError(404, "work_order_not_found", "Work order not found");
     const allowed = current.status === "reported" ? body.status === "in_progress" : current.status === "in_progress" && body.status === "completed";
@@ -649,13 +679,159 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       )).limit(1);
       if (!assignee) throw new AppError(422, "invalid_assignee", "Work order assignee must be a mechanic or manager in this organization");
     }
-    const [updated] = await app.db.update(workOrders).set({
-      status: body.status,
-      ...(body.assigned_to !== undefined ? { assignedTo: body.assigned_to } : {}),
-      ...(body.status === "completed" ? { resolvedBy: actorId, resolvedAt: new Date(), resolutionNotes: body.resolution_notes ?? null } : {}),
-      updatedAt: new Date(),
-    }).where(eq(workOrders.id, current.id)).returning();
-    return serializeWorkOrder(updated);
+    // Confirmed Access Decision 19: completion requires cost and auto-creates a
+    // service record at the report-time odometer (stale by design — chosen over
+    // a fresh entry). Parts may be free-text names (part_id nullable).
+    if (body.status === "completed" && body.completion_cost === undefined) {
+      throw new AppError(400, "completion_cost_required", "Work order completion requires a completion cost");
+    }
+    if (body.status !== "completed") {
+      const [updated] = await app.db.update(workOrders).set({
+        status: body.status,
+        ...(body.assigned_to !== undefined ? { assignedTo: body.assigned_to } : {}),
+        updatedAt: new Date(),
+      }).where(eq(workOrders.id, current.id)).returning();
+      return serializeWorkOrder(updated);
+    }
+    const parts = body.parts ?? [];
+    for (const part of parts) {
+      if (!part.part_id) continue;
+      const [partRow] = await app.db.select().from(partsTable).where(and(
+        eq(partsTable.id, part.part_id), eq(partsTable.vehicleId, current.vehicleId),
+      )).limit(1);
+      if (!partRow) throw new AppError(422, "invalid_part", "Part must belong to the work order's vehicle");
+    }
+    const completionCost = body.completion_cost!;
+    const serviceId = newId();
+    const servicedOn = new Date().toISOString().slice(0, 10);
+    const result = await app.db.transaction(async (tx) => {
+      const [createdService] = await tx.insert(serviceRecords).values({
+        id: serviceId,
+        vehicleId: current.vehicleId,
+        servicedOn,
+        odometer: String(current.odometerKm),
+        totalCost: String(completionCost),
+        notes: body.resolution_notes ?? null,
+        createdBy: actorId,
+      }).returning();
+      const createdParts = [];
+      for (const part of parts) {
+        const [createdPart] = await tx.insert(serviceRecordParts).values({
+          id: newId(),
+          serviceRecordId: serviceId,
+          partId: part.part_id ?? null,
+          name: part.name,
+        }).returning();
+        createdParts.push(createdPart);
+      }
+      const [updatedWo] = await tx.update(workOrders).set({
+        status: "completed",
+        ...(body.assigned_to !== undefined ? { assignedTo: body.assigned_to } : {}),
+        resolvedBy: actorId,
+        resolvedAt: new Date(),
+        resolutionNotes: body.resolution_notes ?? null,
+        completionCost: String(completionCost),
+        updatedAt: new Date(),
+      }).where(eq(workOrders.id, current.id)).returning();
+      if (current.planItemId) {
+        await advancePlanItemForLog(tx, current.vehicleId, current.planItemId, current.odometerKm);
+      }
+      return { service: createdService, parts: createdParts, workOrder: updatedWo };
+    });
+    return {
+      ...serializeWorkOrder(result.workOrder),
+      service_record: {
+        id: result.service.id,
+        vehicle_id: result.service.vehicleId,
+        serviced_on: dateOnly(result.service.servicedOn),
+        odometer: reqNum(result.service.odometer),
+        total_cost: reqNum(result.service.totalCost),
+        notes: result.service.notes,
+        parts: result.parts.map((part) => ({ id: part.id, name: part.name, part_id: part.partId })),
+      },
+    };
+  });
+
+  app.post("/drivers/vehicles/:vehicleId/service-records", async (request, reply) => {
+    requireFleetClient(request);
+    const { vehicleId } = request.params as { vehicleId: string };
+    const actorId = uid(request);
+    const [assignment] = await app.db.select().from(driverAssignments).where(and(
+      eq(driverAssignments.vehicleId, vehicleId), eq(driverAssignments.driverId, actorId), eq(driverAssignments.status, "active"),
+    )).limit(1);
+    if (!assignment) throw new AppError(403, "not_assigned_to_vehicle", "Driver is not assigned to this vehicle");
+    const orgId = assignment.orgId;
+    await getOrganizationAccess(app.db, actorId, orgId, ["org_driver"]);
+    const body = z.object({
+      id: uuid.optional(),
+      serviced_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      odometer_km: z.number().min(0),
+      total_cost: z.number().min(0),
+      plan_item_id: uuid.nullable().optional(),
+      name: z.string().min(1).max(100).optional(),
+      notes: z.string().max(2000).optional().nullable(),
+      receipt_media_id: uuid.nullable().optional(),
+    }).parse(request.body);
+    const [orgVehicle] = await app.db.select().from(organizationVehicles).where(and(
+      eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId),
+    )).limit(1);
+    if (!orgVehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
+    const [fleetVehicle] = await app.db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
+    if (!fleetVehicle || body.odometer_km < reqNum(fleetVehicle.mileage)) {
+      throw new AppError(400, "odometer_regression", "Odometer cannot be lower than the last recorded vehicle mileage");
+    }
+    let itemName: string;
+    if (body.plan_item_id) {
+      const [planItem] = await app.db.select().from(planItems).where(and(
+        eq(planItems.id, body.plan_item_id), eq(planItems.vehicleId, vehicleId),
+      )).limit(1);
+      if (!planItem) throw new AppError(422, "invalid_plan_item", "Plan item must belong to the assigned vehicle");
+      itemName = planItem.name;
+    } else if (body.name) {
+      itemName = body.name;
+    } else {
+      throw new AppError(422, "service_item_required", "Provide a plan item or a free-text item name");
+    }
+    const serviceId = body.id ?? newId();
+    const [existing] = await app.db.select().from(serviceRecords).where(eq(serviceRecords.id, serviceId)).limit(1);
+    if (existing) return reply.code(201).send({ id: existing.id, duplicate: true });
+    const record = await app.db.transaction(async (tx) => {
+      const [created] = await tx.insert(serviceRecords).values({
+        id: serviceId,
+        vehicleId,
+        servicedOn: body.serviced_on,
+        odometer: String(body.odometer_km),
+        totalCost: String(body.total_cost),
+        notes: body.notes ?? null,
+        receiptMediaId: body.receipt_media_id ?? null,
+        createdBy: actorId,
+      }).returning();
+      const [item] = await tx.insert(serviceRecordItems).values({
+        id: newId(),
+        serviceRecordId: serviceId,
+        planItemId: body.plan_item_id ?? null,
+        name: itemName,
+        lineCost: String(body.total_cost),
+      }).returning();
+      await tx.update(vehicles).set({ mileage: String(body.odometer_km), updatedAt: new Date() }).where(eq(vehicles.id, vehicleId));
+      if (body.plan_item_id) {
+        await advancePlanItemForLog(tx, vehicleId, body.plan_item_id, body.odometer_km);
+      }
+      return { created, items: [item] };
+    });
+    const payload = {
+      id: record.created.id,
+      vehicle_id: vehicleId,
+      serviced_on: dateOnly(record.created.servicedOn),
+      odometer: reqNum(record.created.odometer),
+      total_cost: reqNum(record.created.totalCost),
+      notes: record.created.notes,
+      items: record.items.map((item) => ({
+        id: item.id, name: item.name, line_cost: num(item.lineCost), plan_item_id: item.planItemId,
+      })),
+    };
+    await recordChange(app.db, { userId: actorId, entityType: "service_record", entityId: serviceId, op: "upsert", payload });
+    return reply.code(201).send(payload);
   });
 
   // ── Maintenance templates (vehicle-class, org copies of platform globals) ──
@@ -1005,6 +1181,24 @@ function serializeAssignment(row: typeof driverAssignments.$inferSelect) {
   };
 }
 
+async function advancePlanItemForLog(
+  tx: Parameters<Parameters<Db["transaction"]>[0]>[0],
+  vehicleId: string,
+  planItemId: string,
+  odometerKm: number,
+) {
+  const [planItem] = await tx.select().from(planItems).where(and(
+    eq(planItems.id, planItemId), eq(planItems.vehicleId, vehicleId),
+  )).limit(1);
+  if (!planItem) return null;
+  const due = dueFrom(planItem.intervalDays, num(planItem.intervalDistance), odometerKm);
+  const [updated] = await tx.update(planItems).set({
+    ...(due.nextDueOn !== null ? { nextDueOn: due.nextDueOn } : {}),
+    ...(due.nextDueMileage !== null ? { nextDueMileage: String(due.nextDueMileage) } : {}),
+  }).where(eq(planItems.id, planItemId)).returning();
+  return updated ?? null;
+}
+
 function serializeWorkOrder(row: typeof workOrders.$inferSelect) {
   return {
     id: row.id,
@@ -1018,6 +1212,8 @@ function serializeWorkOrder(row: typeof workOrders.$inferSelect) {
     urgency: row.urgency,
     photos: row.photos,
     status: row.status,
+    plan_item_id: row.planItemId,
+    completion_cost: num(row.completionCost),
     assigned_to: row.assignedTo,
     resolved_by: row.resolvedBy,
     resolved_at: iso(row.resolvedAt),

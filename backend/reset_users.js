@@ -22,7 +22,6 @@ async function main() {
   await db.execute(sql`DELETE FROM inspections`);
   await db.execute(sql`DELETE FROM warranty_templates`);
   await db.execute(sql`DELETE FROM fuel_logs`);
-  await db.execute(sql`DELETE FROM shift_mileage`);
   await db.execute(sql`DELETE FROM vehicle_assignments`);
   await db.execute(sql`DELETE FROM organization_members`);
   await db.execute(sql`DELETE FROM organizations`);

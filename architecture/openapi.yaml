@@ -5,7 +5,7 @@ info:
   description: |
     Versioned REST API for the AutoX MVP.
     Personal Flutter clients use audience `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified Workshop accounts use `dco-workshop`; AutoX Admin uses `dco-admin`.
-    Fleet audience split: fleet **management** routes (organization members, inventory writes, assignments, work-order status changes, inspections lists, analytics, reports, warranty templates, transfers, CSV import) require the `dco-fleet` audience (Fleet Portal). The mobile app (`dco-owner`) reaches only the personal garage, shared fleet **context** (`/me/entitlements`, `/organizations/me`), and the restricted **driver surface** (`/drivers/*`, driver work-order/fuel-log/shift/inspection routes).
+    Fleet audience split: fleet **management** routes (organization members, inventory writes, assignments, work-order status changes, inspections lists, analytics, reports, warranty templates, transfers, CSV import) require the `dco-fleet` audience (Fleet Portal). The mobile app (`dco-owner`) reaches only the personal garage, shared fleet **context** (`/me/entitlements`, `/organizations/me`), and the restricted **driver surface** (`/drivers/*`, driver work-order/fuel-log/inspection/driver-service-record routes). Driver identities are rejected on personal-garage routes with 403 `personal_garage_forbidden` (Oct 2026 second grilling).
     Client-generated UUIDs on create are idempotent. Mileage never decreases.
     Azure hostname is environment-specific and is not part of this contract.
 servers:
@@ -2208,7 +2208,7 @@ paths:
         '403': {$ref: '#/components/responses/Error'}
     post:
       tags: [Fleet]
-      summary: Add a member by email; new accounts get a temporary password instead of an invite email
+      summary: Add a member by email; role org_driver creates a driver account (new accounts get a temporary password instead of an invite email)
       requestBody:
         required: true
         content:
@@ -2218,7 +2218,7 @@ paths:
               required: [email, role]
               properties:
                 email: {type: string, format: email}
-                role: {type: string, enum: [org_manager, org_mechanic]}
+                role: {type: string, enum: [org_manager, org_mechanic, org_driver]}
                 temporary_password:
                   type: string
                   minLength: 8
@@ -2238,7 +2238,15 @@ paths:
                 $ref: '#/components/schemas/OrgMemberCreated'
         '400': {$ref: '#/components/responses/Error'}
         '403': {$ref: '#/components/responses/Error'}
-        '409': {$ref: '#/components/responses/Error'}
+        '409':
+          description: >-
+            Conflict — for role org_driver: the email already belongs to an existing
+            personal account (personal_account_exists); drivers are always new identities.
+            Otherwise: already_in_org.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorBody'
   /organizations/{id}/members/{userId}:
     patch:
       tags: [Fleet]
@@ -2261,46 +2269,6 @@ paths:
         '200': {description: Updated membership}
         '204': {description: Member removed}
         '403': {$ref: '#/components/responses/Error'}
-  /organizations/{id}/drivers:
-    parameters:
-      - in: path
-        name: id
-        required: true
-        schema: {type: string, format: uuid}
-    post:
-      tags: [Fleet]
-      summary: Create a driver account (username + password, no email) — org_admin only
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [username, display_name, password]
-              properties:
-                username:
-                  type: string
-                  minLength: 3
-                  maxLength: 30
-                  pattern: '^[a-z0-9._]+$'
-                  description: Globally unique; stays reserved even after driver deactivation
-                display_name:
-                  type: string
-                  minLength: 1
-                  maxLength: 100
-                password:
-                  type: string
-                  minLength: 8
-                  description: Initial password; server sets must_change_password=true
-      responses:
-        '201':
-          description: Driver account created with org_driver membership; no email sent
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '403': {$ref: '#/components/responses/Error'}
-        '409': {$ref: '#/components/responses/Error'}
   /organizations/{id}/members/{userId}/status:
     parameters:
       - in: path
@@ -2629,7 +2597,54 @@ paths:
         '400': {$ref: '#/components/responses/Error'}
         '403': {$ref: '#/components/responses/Error'}
         '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicles/{vehicleId}/plan-items:
+    get:
+      tags: [Fleet, Maintenance]
+      summary: Maintenance plan for an org vehicle (portal Maintenance-plan card; admin/manager/mechanic)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Enabled plan items for the vehicle
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/PlanItem'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
   /organizations/{id}/vehicles/{vehicleId}/service-records:
+    get:
+      tags: [Fleet, Maintenance]
+      summary: Service history for an org vehicle (portal Service-history card; admin/manager/mechanic)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Service records newest-first (driver do-myself logs, portal completions, workshop entries, WO-completion records)
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {type: object}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
     post:
       tags: [Fleet, Maintenance]
       summary: Record maintenance performed by owner, manager, or mechanic
@@ -2728,19 +2743,34 @@ paths:
         '200': {description: Work orders}
     post:
       tags: [Fleet]
-      summary: Report an issue from an assigned driver
+      summary: Report an issue from an assigned driver (standalone Report Issue, or maintenance Report branch)
+      description: >
+        Odometer auto-filled from vehicles.mileage by clients. plan_item_id is set when
+        the maintenance Report branch was used from a plan item — completion then advances
+        that plan item. Maintenance-Report WOs show in the driver's Maintenance history;
+        Report-Issue WOs show in the pushed Reports screen.
       requestBody:
         required: true
         content:
           application/json:
-            schema: {type: object}
+            schema:
+              type: object
+              properties:
+                plan_item_id: {type: string, format: uuid, nullable: true}
       responses:
         '201': {description: Work order reported}
         '403': {$ref: '#/components/responses/Error'}
   /organizations/{id}/work-orders/{workOrderId}:
     patch:
       tags: [Fleet]
-      summary: Advance work order to in-progress or completed
+      summary: Advance work order to in-progress or completed (completion requires cost → auto service record)
+      description: >
+        Status must advance reported → in_progress → completed without skipping.
+        transition to completed accepts/requires completion_cost (>= 0) plus optional
+        resolution notes and parts (free-text names allowed). Completion is Admin/Manager
+        only, stamps the report-time odometer on the auto-created service record, and
+        advances the linked plan item when work_orders.plan_item_id is set. The auto
+        service record is portal-side only (driver history shows the WO row status).
       parameters:
         - in: path
           name: id
@@ -2754,10 +2784,29 @@ paths:
         required: true
         content:
           application/json:
-            schema: {type: object, required: [status]}
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: {type: string, enum: [in_progress, completed]}
+                completion_cost:
+                  type: number
+                  minimum: 0
+                  description: Required when status=completed (else 400 completion_cost_required)
+                resolution_notes: {type: string, maxLength: 2000}
+                parts:
+                  type: array
+                  description: Optional parts used; free-text names (part_id nullable)
+                  items:
+                    type: object
+                    required: [name]
+                    properties:
+                      part_id: {type: string, format: uuid, nullable: true}
+                      name: {type: string, maxLength: 200}
       responses:
-        '200': {description: Updated work order}
+        '200': {description: Updated work order (completion also creates the service record)}
         '400': {$ref: '#/components/responses/Error'}
+        '403': {$ref: '#/components/responses/Error'}
   /organizations/{id}/inspection-templates:
     get:
       tags: [Fleet]
@@ -2866,32 +2915,6 @@ paths:
       responses:
         '200': {description: Completed or failed inspection}
         '400': {$ref: '#/components/responses/Error'}
-  /organizations/{id}/shift-mileage:
-    get:
-      tags: [Fleet]
-      summary: List shift mileage records
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: {type: string, format: uuid}
-      responses:
-        '200': {description: Shift mileage records}
-    post:
-      tags: [Fleet]
-      summary: Start a driver shift with odometer reading
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: {type: string, format: uuid}
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: {type: object, required: [vehicle_id, start_odometer_km]}
-      responses:
-        '201': {description: Shift started}
   /organizations/{id}/fuel-logs:
     post:
       tags: [Fleet, Fuel]
@@ -2909,26 +2932,6 @@ paths:
       responses:
         '201': {description: Fuel entry recorded}
         '403': {$ref: '#/components/responses/Error'}
-  /organizations/{id}/shift-mileage/{shiftId}:
-    patch:
-      tags: [Fleet]
-      summary: End a driver shift
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema: {type: string, format: uuid}
-        - in: path
-          name: shiftId
-          required: true
-          schema: {type: string, format: uuid}
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: {type: object, required: [end_odometer_km]}
-      responses:
-        '200': {description: Shift ended with computed distance}
   /organizations/{id}/warranty-templates:
     get:
       tags: [Fleet]
@@ -3236,6 +3239,47 @@ paths:
                     items:
                       $ref: '#/components/schemas/SuggestedPlanItem'
         '403': {$ref: '#/components/responses/Error'}
+  /drivers/vehicles/{vehicleId}/service-records:
+    post:
+      tags: [Fleet, Maintenance]
+      summary: Driver "Do myself" maintenance log (active assignment required)
+      description: >
+        Writes a service record directly (status is implicit Completed — service_records
+        carry no status column). plan_item_id links the log and advances the plan item's
+        next due dates; free-text items create an orphan record that never touches a plan.
+        total_cost is required (contact fleet admin when unknown). Odometer auto-filled
+        from vehicles.mileage by clients and must not decrease it.
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [serviced_on, odometer_km, total_cost]
+              properties:
+                id: {type: string, format: uuid, description: Client UUID (idempotent create)}
+                serviced_on: {type: string, format: date}
+                odometer_km: {type: number, minimum: 0}
+                total_cost: {type: number, minimum: 0}
+                plan_item_id: {type: string, format: uuid, nullable: true}
+                name:
+                  type: string
+                  maxLength: 80
+                  description: Item name (required when plan_item_id is absent — free-text orphan log)
+                notes: {type: string, maxLength: 2000}
+                receipt_media_id: {type: string, format: uuid, nullable: true}
+      responses:
+        '201':
+          description: Maintenance recorded as Completed; plan item advanced when linked
+          content:
+            application/json:
+              schema: {type: object}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
   /workshops/my-vehicles:
     get:
       tags: [Fleet]

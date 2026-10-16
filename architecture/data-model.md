@@ -292,6 +292,8 @@ Suggested maintenance catalog is **not** a table of user data. It is seed/config
 - Service odometer ≥ vehicle mileage; if greater, bump `vehicles.mileage`.
 - Completing a service may clear matching plan dues and set the next due from intervals.
 - Line items optional `plan_item_id`. Total cost ≥ 0; may override the sum of lines.
+- `service_record_parts.part_id` is **nullable** (Oct 2026): parts may be free-text names without a `parts` catalog row (fleet work-order completion, driver logs).
+- **Fleet (Oct 2026, second grilling):** drivers write service records through `POST /drivers/vehicles/:id/service-records` (do-myself) — same table, plan-linked or free-text; work-order completion auto-creates a service record at the **report-time odometer** (`work_orders.plan_item_id` links the WO and advances the plan item on completion). Personal-garage service-record routes stay owner-only and 403 driver identities.
 
 ### documents / expenses
 
@@ -346,9 +348,9 @@ Fleet entitlement is **organization-scoped**, not a `users.plan` value or `users
 | `organization_members` | `org_id`, `user_id`, role (`org_admin`/`org_manager`/`org_mechanic`/`org_driver`), inviter and join time. One organization per user; one Org Admin per org. |
 | `organization_vehicles` | Organization ↔ existing `vehicles` link, lifecycle template/state, revenue label. One organization per vehicle. Fleet vehicles are excluded from personal-owner vehicle routes while linked. |
 | `driver_assignments` | Organization, vehicle, driver, assigning user, active/completed timestamps. At most one active vehicle per driver and one active driver per vehicle. |
-| `work_orders` | Organization/vehicle, reporting driver, odometer, issue, urgency, photos, status, assignee and resolution fields. Driver visibility is own-only; managers can review fleet-wide. |
+| `work_orders` | Organization/vehicle, reporting driver, odometer, issue, urgency, photos, status, assignee and resolution fields, optional **`plan_item_id`** and **`completion_cost`** (Oct 2026). Completion (admin/manager) auto-creates a service record at the report-time odometer and advances the linked plan item. Driver visibility is own-only; managers can review fleet-wide. |
 | `inspections` / `inspection_templates` | Organization-scoped checklist definitions and submitted results. Required items must be answered; a `not_ok` result creates a work order. |
-| `shift_mileage` | Organization, assigned vehicle/driver, start/end odometers and timestamps, computed km. One open shift per driver and vehicle. |
+| ~~`shift_mileage`~~ | **Removed (Oct 2026, second grilling)** — shift start/end capture retired; vehicle mileage is log-driven only (service records + fuel logs). Table and routes dropped. |
 | `warranty_templates` / `vehicle_warranties` | Organization template terms and per-vehicle time/mileage limits, created on showroom transfer when selected. |
 | `warranty_template_workshops` | Template ↔ approved workshop partner link. Only workshops on this list may log warranty service for vehicles using the template. |
 | `organization_workshops` | Organization ↔ verified workshop partner approval list. Warranty templates may only reference workshops approved here; removal also clears the partner from the org's templates. |
@@ -364,7 +366,7 @@ Fleet entitlement is **organization-scoped**, not a `users.plan` value or `users
 | Change | Rule |
 |--------|------|
 | `users.username` | New column, globally unique, NOT NULL after backfill (email local part; collisions suffixed `_2`, `_3`, …). Login accepts email or username. |
-| `users.email` | Becomes nullable (driver accounts are username-only). Existing UNIQUE constraint is kept — Postgres treats NULLs as distinct, so multiple email-less accounts coexist. Customer signup still requires email at the API layer. |
+| `users.email` | Nullable (identity flexibility for backfill; **driver accounts are email-bearing** — created on the Fleet Portal Members page by email, and creation rejects emails already held by existing accounts, so a driver identity is always new; second grilling Oct 2026). Existing UNIQUE constraint is kept — Postgres treats NULLs as distinct. Customer signup still requires email at the API layer. |
 | `users.must_change_password` | Boolean, default false. Set on temp-password accounts (Fleet Admin provisioning, driver creation, admin password reset). Enforced server-side: fleet/driver routes except profile/password return 403 `password_change_required`. |
 | `users.status` | `deactivated` reused for driver soft delete by the Fleet Admin: login blocked, active `driver_assignments` cascaded to `completed` + `unassigned_at`, history rows retained, reactivation allowed, username never freed. |
 
