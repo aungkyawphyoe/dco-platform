@@ -51,7 +51,6 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     await app.db.execute(sql`DELETE FROM inspections`);
     await app.db.execute(sql`DELETE FROM warranty_templates`);
     await app.db.execute(sql`DELETE FROM fuel_logs`);
-    await app.db.execute(sql`DELETE FROM shift_mileage`);
     await app.db.execute(sql`DELETE FROM vehicle_assignments`);
     await app.db.execute(sql`DELETE FROM organization_members`);
     await app.db.execute(sql`DELETE FROM organizations`);
@@ -840,100 +839,6 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     await app.db.delete(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId));
     await audit(app, request.authUser!.sub, "catalog.delete", { catalogKey: row.catalogKey });
     return reply.code(204).send();
-  });
-
-  // ── Driver management (admin cross-org) ──────────────────────────────
-  app.get("/admin/organizations/:id/drivers", async (request) => {
-    requireAdmin(request, app.env.JWT_ADMIN_AUD);
-    const { id: rawOrgId } = request.params as { id: string };
-    const orgId = uuid.parse(rawOrgId);
-    const [org] = await app.db.select().from(organizations).where(eq(organizations.id, orgId)).limit(1);
-    if (!org) throw new AppError(404, "organization_not_found", "Organization not found");
-    const rows = await app.db
-      .select({ membership: organizationMembers, user: users })
-      .from(organizationMembers)
-      .innerJoin(users, eq(organizationMembers.userId, users.id))
-      .where(and(eq(organizationMembers.orgId, orgId), eq(organizationMembers.role, "org_driver")));
-    return {
-      items: rows.map((row) => ({
-        user_id: row.user.id,
-        username: row.user.username,
-        display_name: row.user.displayName,
-        email: row.user.email,
-        status: row.user.status,
-        must_change_password: row.user.mustChangePassword,
-        joined_at: row.membership.joinedAt.toISOString(),
-      })),
-    };
-  });
-
-  app.post("/admin/organizations/:id/drivers", async (request, reply) => {
-    requireAdmin(request, app.env.JWT_ADMIN_AUD);
-    const { id: rawOrgId } = request.params as { id: string };
-    const orgId = uuid.parse(rawOrgId);
-    const [org] = await app.db.select().from(organizations).where(eq(organizations.id, orgId)).limit(1);
-    if (!org) throw new AppError(404, "organization_not_found", "Organization not found");
-    const body = z
-      .object({
-        username: z.string().min(3).max(30).regex(/^[a-z0-9._]+$/),
-        display_name: z.string().min(1).max(100),
-        password: z.string().min(8),
-      })
-      .parse(request.body);
-    const [existingUser] = await app.db.select().from(users).where(eq(users.username, body.username)).limit(1);
-    if (existingUser) throw new AppError(409, "username_taken", "Username is already taken");
-    const id = newId();
-    const passwordHash = await hashPassword(body.password);
-    const [user] = await app.db
-      .insert(users)
-      .values({
-        id,
-        username: body.username,
-        passwordHash,
-        displayName: body.display_name,
-        role: "owner",
-        plan: "free",
-        emailVerified: true,
-        mustChangePassword: true,
-      })
-      .returning();
-    const [membership] = await app.db
-      .insert(organizationMembers)
-      .values({ id: newId(), orgId, userId: id, role: "org_driver", invitedBy: request.authUser!.sub })
-      .returning();
-    await audit(app, request.authUser!.sub, "driver.create", { driverId: id, orgId });
-    return reply.code(201).send({ ...publicUser(user), membership: { role: membership.role, joined_at: membership.joinedAt.toISOString() } });
-  });
-
-  app.patch("/admin/organizations/:id/drivers/:userId/status", async (request) => {
-    requireAdmin(request, app.env.JWT_ADMIN_AUD);
-    const { id: rawOrgId, userId: memberId } = request.params as { id: string; userId: string };
-    const orgId = uuid.parse(rawOrgId);
-    const body = z.object({ status: z.enum(["active", "deactivated"]) }).parse(request.body);
-    const [membership] = await app.db.select().from(organizationMembers).where(and(eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, memberId))).limit(1);
-    if (!membership) throw new AppError(404, "member_not_found", "Organization member not found");
-    if (membership.role !== "org_driver") throw new AppError(409, "not_a_driver", "Member is not a driver");
-    const [targetUser] = await app.db.select().from(users).where(eq(users.id, memberId)).limit(1);
-    if (!targetUser) throw new AppError(404, "user_not_found", "User not found");
-    if (body.status === "deactivated") {
-      if (targetUser.status === "deactivated") throw new AppError(409, "already_deactivated", "User is already deactivated");
-      const [orgAdminOf] = await app.db.select().from(organizations).where(
-        and(eq(organizations.adminUserId, memberId), sql`${organizations.status} IN ('pending', 'active', 'suspended')`)
-      ).limit(1);
-      if (orgAdminOf) {
-        throw new AppError(409, "org_admin_active", `Cannot deactivate user who is admin of active organization "${orgAdminOf.name}". Suspend or archive that organization first.`);
-      }
-      await app.db.update(driverAssignments).set({ status: "completed", unassignedAt: new Date() }).where(and(
-        eq(driverAssignments.orgId, orgId), eq(driverAssignments.driverId, memberId), eq(driverAssignments.status, "active"),
-      ));
-      await app.db.update(users).set({ status: "deactivated" }).where(eq(users.id, memberId));
-      await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, memberId));
-    } else {
-      if (targetUser.status === "active") throw new AppError(409, "already_active", "User is already active");
-      await app.db.update(users).set({ status: "active" }).where(eq(users.id, memberId));
-    }
-    await audit(app, request.authUser!.sub, `driver.${body.status}`, { driverId: memberId, orgId });
-    return { status: body.status, user_id: memberId };
   });
 };
 

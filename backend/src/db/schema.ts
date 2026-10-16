@@ -255,9 +255,7 @@ export const serviceRecordParts = pgTable("service_record_parts", {
   serviceRecordId: uuid("service_record_id")
     .notNull()
     .references(() => serviceRecords.id),
-  partId: uuid("part_id")
-    .notNull()
-    .references(() => parts.id),
+  partId: uuid("part_id").references(() => parts.id),
   name: text("name").notNull(),
 });
 
@@ -496,15 +494,18 @@ export const workOrders = pgTable("work_orders", {
   urgency: workOrderUrgencyEnum("urgency").notNull(),
   photos: jsonb("photos").notNull().default(sql`'[]'::jsonb`),
   status: workOrderStatusEnum("status").notNull().default("reported"),
+  planItemId: uuid("plan_item_id").references(() => planItems.id, { onDelete: "set null" }),
   assignedTo: uuid("assigned_to").references(() => users.id),
   resolvedBy: uuid("resolved_by").references(() => users.id),
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
   resolutionNotes: text("resolution_notes"),
+  completionCost: numeric("completion_cost", { precision: 12, scale: 2 }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
   orgIndex: index("work_orders_org_idx").on(table.orgId),
   vehicleIndex: index("work_orders_vehicle_idx").on(table.vehicleId),
+  planItemIndex: index("work_orders_plan_item_idx").on(table.planItemId),
 }));
 
 export const maintenanceCatalog = pgTable("maintenance_catalog", {
@@ -592,27 +593,6 @@ export const inspections = pgTable("inspections", {
 }, (table) => ({
   orgIndex: index("inspections_org_idx").on(table.orgId),
   vehicleIndex: index("inspections_vehicle_idx").on(table.vehicleId),
-}));
-
-export const shiftMileage = pgTable("shift_mileage", {
-  id: uuid("id").primaryKey(),
-  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
-  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
-  driverId: uuid("driver_id").notNull().references(() => users.id),
-  startOdometerKm: integer("start_odometer_km").notNull(),
-  endOdometerKm: integer("end_odometer_km"),
-  startAt: timestamp("start_at", { withTimezone: true }).notNull().defaultNow(),
-  endAt: timestamp("end_at", { withTimezone: true }),
-  kmDriven: integer("km_driven"),
-  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (table) => ({
-  orgIndex: index("shift_mileage_org_idx").on(table.orgId),
-  activeDriverUnique: uniqueIndex("shift_mileage_active_driver_unique")
-    .on(table.driverId)
-    .where(sql`${table.endAt} IS NULL`),
-  activeVehicleUnique: uniqueIndex("shift_mileage_active_vehicle_unique")
-    .on(table.vehicleId)
-    .where(sql`${table.endAt} IS NULL`),
 }));
 
 export const vehicleImportJobs = pgTable("vehicle_import_jobs", {

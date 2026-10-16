@@ -21,6 +21,7 @@ import { newId } from "../lib/crypto.js";
 import { dueFrom } from "../lib/catalog.js";
 import { dateOnly, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
+import { assertPersonalGarageAllowed } from "../lib/personal-garage.js";
 import {
   loadService,
   publicDoc,
@@ -193,8 +194,16 @@ async function recordVehicleScopedChange(
 export const ownerPlugin: FastifyPluginAsync = async (app) => {
   const db = () => app.db;
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
+  // Confirmed Access Decision 22: gate personal-garage data handlers for a
+  // driver identity (org_driver or active driver assignment). Fuel-types,
+  // notifications, and media stay ungated (drivers still need their own fuel
+  // types for org refuel; notifications and media are shared surfaces).
+  const guard = async (request: { authUser?: { sub: string } }) => {
+    if (request.authUser?.sub) await assertPersonalGarageAllowed(db(), request.authUser.sub);
+  };
 
   app.get("/vehicles/:vehicleId/plan-items", async (request) => {
+    await guard(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const items = await db().select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
@@ -202,6 +211,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/vehicles/:vehicleId/plan-items", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     const vehicle = await getOwnedVehicle(db(), uid(request), vehicleId);
@@ -250,6 +260,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/vehicles/:vehicleId/suggested-plan-items", async (request) => {
+    await guard(request);
     const { vehicleId } = request.params as { vehicleId: string };
     const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only");
     const rows = await db()
@@ -275,6 +286,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/plan-items/:planItemId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { planItemId } = request.params as { planItemId: string };
     await loadPlanItemFor(db(), uid(request), planItemId, "write");
@@ -312,6 +324,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.delete("/plan-items/:planItemId", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { planItemId } = request.params as { planItemId: string };
     const [row] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
@@ -340,6 +353,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/vehicles/:vehicleId/service-records", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
@@ -350,6 +364,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/vehicles/:vehicleId/service-records", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
@@ -410,6 +425,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/service-records/:serviceRecordId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { serviceRecordId } = request.params as { serviceRecordId: string };
     const payload = await loadService(db(), serviceRecordId);
@@ -419,6 +435,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/service-records/:serviceRecordId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { serviceRecordId } = request.params as { serviceRecordId: string };
     const existing = await loadService(db(), serviceRecordId);
@@ -472,6 +489,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/vehicles/:vehicleId/parts", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
@@ -489,6 +507,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/vehicles/:vehicleId/parts", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
@@ -521,6 +540,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/parts/:partId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { partId } = request.params as { partId: string };
     await loadPartFor(db(), uid(request), partId, "write");
@@ -607,6 +627,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/vehicles/:vehicleId/fuel-logs", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
@@ -621,6 +642,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/vehicles/:vehicleId/fuel-logs", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
@@ -675,6 +697,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/fuel-logs/:fuelLogId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { fuelLogId } = request.params as { fuelLogId: string };
     const row = await loadFuelLogFor(db(), uid(request), fuelLogId, "read");
@@ -682,6 +705,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/fuel-logs/:fuelLogId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { fuelLogId } = request.params as { fuelLogId: string };
     const row = await loadFuelLogFor(db(), uid(request), fuelLogId, "write");
@@ -728,6 +752,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/vehicles/:vehicleId/documents", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
@@ -738,6 +763,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/vehicles/:vehicleId/documents", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
@@ -770,6 +796,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/documents/:documentId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { documentId } = request.params as { documentId: string };
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
@@ -779,6 +806,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/documents/:documentId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { documentId } = request.params as { documentId: string };
     await loadDocumentFor(db(), uid(request), documentId, "write");
@@ -808,6 +836,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.delete("/documents/:documentId", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { documentId } = request.params as { documentId: string };
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
@@ -830,6 +859,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/vehicles/:vehicleId/expenses", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
@@ -842,6 +872,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/vehicles/:vehicleId/expenses", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
@@ -872,6 +903,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get("/vehicles/:vehicleId/expenses/summary", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
@@ -893,6 +925,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.patch("/expenses/:expenseId", async (request) => {
+    await guard(request);
     requireOwner(request);
     const { expenseId } = request.params as { expenseId: string };
     await loadExpenseFor(db(), uid(request), expenseId, "write");
@@ -926,6 +959,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.delete("/expenses/:expenseId", async (request, reply) => {
+    await guard(request);
     requireOwner(request);
     const { expenseId } = request.params as { expenseId: string };
     const current = await publicExpense(db(), expenseId);

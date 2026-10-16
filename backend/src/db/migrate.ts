@@ -64,6 +64,10 @@ export function maintenanceCatalogFleetSql(): string {
   return readSql("0013_maintenance_catalog_fleet.sql");
 }
 
+export function driverSurfaceRealignmentSql(): string {
+  return readSql("0014_driver_surface_realignment.sql");
+}
+
 export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Promise<void> {
   await exec(initSql());
   await exec(maintenanceCatalogSql());
@@ -79,4 +83,5 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(planTiersSql());
   await exec(authOnboardingSql());
   await exec(maintenanceCatalogFleetSql());
+  await exec(driverSurfaceRealignmentSql());
 }

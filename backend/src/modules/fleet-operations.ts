@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
@@ -17,7 +17,6 @@ import {
   planItems,
   serviceRecordItems,
   serviceRecords,
-  shiftMileage,
   transferredVehicles,
   users,
   vehicleWarranties,
@@ -54,21 +53,6 @@ function serializeInspection(row: typeof inspections.$inferSelect) {
     status: row.status,
     items: row.items,
     notes: row.notes,
-    created_at: iso(row.createdAt),
-  };
-}
-
-function serializeShift(row: typeof shiftMileage.$inferSelect) {
-  return {
-    id: row.id,
-    org_id: row.orgId,
-    vehicle_id: row.vehicleId,
-    driver_id: row.driverId,
-    start_odometer_km: row.startOdometerKm,
-    end_odometer_km: row.endOdometerKm,
-    start_at: iso(row.startAt),
-    end_at: iso(row.endAt),
-    km_driven: row.kmDriven,
     created_at: iso(row.createdAt),
   };
 }
@@ -393,61 +377,6 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       });
     }
     return serializeInspection(updated);
-  });
-
-  // ── Shift mileage ──────────────────────────────────────────────────
-  app.post("/organizations/:id/shift-mileage", async (request, reply) => {
-    requireFleetClient(request);
-    const orgId = uuid.parse((request.params as { id: string }).id);
-    const actorId = uid(request);
-    await getOrganizationAccess(app.db, actorId, orgId, ["org_driver"]);
-    const body = z.object({ vehicle_id: uuid, start_odometer_km: z.number().int().min(0) }).parse(request.body);
-    await activeAssignedVehicle(app.db, orgId, actorId, body.vehicle_id);
-    const [vehicle] = await app.db.select().from(vehicles).where(eq(vehicles.id, body.vehicle_id)).limit(1);
-    if (!vehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found");
-    const previous = await app.db.select().from(shiftMileage).where(and(
-      eq(shiftMileage.orgId, orgId), eq(shiftMileage.vehicleId, body.vehicle_id),
-    )).orderBy(desc(shiftMileage.startAt));
-    const previousEnd = previous.find((row) => row.endOdometerKm !== null)?.endOdometerKm ?? null;
-    const minimum = Math.max(previousEnd ?? 0, Math.floor(reqNum(vehicle.mileage)));
-    if (body.start_odometer_km < minimum) throw new AppError(400, "odometer_regression", "Start odometer is below the latest vehicle reading");
-    const [row] = await app.db.insert(shiftMileage).values({
-      id: newId(), orgId, vehicleId: body.vehicle_id, driverId: actorId, startOdometerKm: body.start_odometer_km,
-    }).returning();
-    return reply.code(201).send(serializeShift(row));
-  });
-
-  app.patch("/organizations/:id/shift-mileage/:shiftId", async (request) => {
-    requireFleetClient(request);
-    const { id: rawOrgId, shiftId } = request.params as { id: string; shiftId: string };
-    const orgId = uuid.parse(rawOrgId);
-    const actorId = uid(request);
-    await getOrganizationAccess(app.db, actorId, orgId, ["org_driver"]);
-    const body = z.object({ end_odometer_km: z.number().int().min(0) }).parse(request.body);
-    const [row] = await app.db.select().from(shiftMileage).where(and(
-      eq(shiftMileage.id, shiftId), eq(shiftMileage.orgId, orgId), eq(shiftMileage.driverId, actorId), sql`${shiftMileage.endAt} IS NULL`,
-    )).limit(1);
-    if (!row) throw new AppError(404, "active_shift_not_found", "Active shift not found");
-    await activeAssignedVehicle(app.db, orgId, actorId, row.vehicleId);
-    if (body.end_odometer_km < row.startOdometerKm) throw new AppError(400, "invalid_odometer_range", "End odometer must be at least the start odometer");
-    const endedAt = new Date();
-    const [updated] = await app.db.update(shiftMileage).set({
-      endOdometerKm: body.end_odometer_km,
-      endAt: endedAt,
-      kmDriven: body.end_odometer_km - row.startOdometerKm,
-    }).where(eq(shiftMileage.id, row.id)).returning();
-    await app.db.update(vehicles).set({ mileage: String(body.end_odometer_km), updatedAt: endedAt }).where(eq(vehicles.id, row.vehicleId));
-    return serializeShift(updated);
-  });
-
-  app.get("/organizations/:id/shift-mileage", async (request) => {
-    requireFleetClient(request);
-    const orgId = uuid.parse((request.params as { id: string }).id);
-    const { membership } = await getOrganizationAccess(app.db, uid(request), orgId);
-    const rows = await app.db.select().from(shiftMileage).where(and(
-      eq(shiftMileage.orgId, orgId), ...(membership.role === "org_driver" ? [eq(shiftMileage.driverId, uid(request))] : []),
-    )).orderBy(desc(shiftMileage.startAt));
-    return { items: rows.map(serializeShift) };
   });
 
   app.post("/organizations/:id/fuel-logs", async (request, reply) => {
@@ -1056,11 +985,18 @@ async function calculateVehicleCost(db: Db, vehicleId: string) {
   const serviceRows = await db.select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId));
   const fuelRows = await db.select().from(fuelLogs).where(eq(fuelLogs.vehicleId, vehicleId));
   const expenseRows = await db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
-  const shifts = await db.select().from(shiftMileage).where(and(eq(shiftMileage.vehicleId, vehicleId), sql`${shiftMileage.kmDriven} IS NOT NULL`));
+  const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
   const maintenanceCost = serviceRows.reduce((sum, row) => sum + reqNum(row.totalCost), 0);
   const fuelCost = fuelRows.reduce((sum, row) => sum + reqNum(row.cost), 0);
   const wearCost = expenseRows.filter((row) => row.category === "parts").reduce((sum, row) => sum + reqNum(row.amount), 0);
-  const km = shifts.reduce((sum, row) => sum + (row.kmDriven ?? 0), 0);
+  // Shift mileage is retired; distance is derived from logged odometer readings
+  // (service records + fuel logs) plus the vehicle's current mileage.
+  const odometers = [
+    ...serviceRows.map((row) => reqNum(row.odometer)),
+    ...fuelRows.map((row) => num(row.odometer)),
+    vehicle ? reqNum(vehicle.mileage) : null,
+  ].filter((value): value is number => value != null);
+  const km = odometers.length > 1 ? Math.max(0, Math.max(...odometers) - Math.min(...odometers)) : 0;
   const tco = maintenanceCost + fuelCost + wearCost;
   const assignments = await db.select().from(driverAssignments).where(eq(driverAssignments.vehicleId, vehicleId));
   const now = Date.now();

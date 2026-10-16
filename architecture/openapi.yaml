@@ -2597,6 +2597,30 @@ paths:
         '400': {$ref: '#/components/responses/Error'}
         '403': {$ref: '#/components/responses/Error'}
         '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/vehicles/{vehicleId}/plan-items:
+    get:
+      tags: [Fleet, Maintenance]
+      summary: Maintenance plan for an org vehicle (portal Maintenance-plan card; admin/manager/mechanic)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Enabled plan items for the vehicle
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items]
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/PlanItem'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
   /organizations/{id}/vehicles/{vehicleId}/service-records:
     get:
       tags: [Fleet, Maintenance]
