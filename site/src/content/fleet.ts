@@ -53,7 +53,7 @@ export const FLEET_STEPS = [
 export const FLEET_MODULES = [
   {
     title: "Work Orders",
-    description: "Drivers report issues in three steps; managers track them from reported to completed.",
+    description: "Drivers report issues straight from the dashboard quick actions; managers track them from reported to completed.",
   },
   {
     title: "Inspections",
@@ -61,7 +61,7 @@ export const FLEET_MODULES = [
   },
   {
     title: "Driver Assignments",
-    description: "Assign vehicles to drivers with shift mileage tracked per assignment.",
+    description: "Assign vehicles to drivers; maintenance and fuel logged by the driver track against each assignment.",
   },
   {
     title: "Warranty Templates",

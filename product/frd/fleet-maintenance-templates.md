@@ -1,6 +1,6 @@
 # Fleet Maintenance Templates
 
-Plan doc locked via grilling session (14 Oct 2026). Status: **Planned — not implemented.**
+Plan doc locked via grilling session (14 Oct 2026). Status: **Implemented** (phases 1–7 Done — see Sequencing table). **Amended 16 Oct 2026 (second grilling):** driver-side plan completion logging is now in scope — see locked decision 11.
 
 ## Overview
 
@@ -24,6 +24,7 @@ Supersedes nothing; extends `maintenance.md` (owner catalog) and `fleet-manageme
 | 8 | Assignment FK: `organization_vehicles.maintenance_template_id` |
 | 9 | Admin portal = global templates; Fleet Portal = org copies + assignment |
 | 10 | Priority: **backend + fleet portal first**, mobile driver second |
+| 11 | **(16 Oct 2026, second grilling)** Driver plan completion logging is **in scope**: Maintenance tab → Register service with **Report \| Do myself** — plan-linked logs (service record or work-order completion) advance `nextDueMileage`/`nextDueOn`; free-text do-myself logs are orphans and never touch a plan. Contract lives in `fleet-management.md` (Driver Surface Decisions 18–20). |
 
 **Template → vehicle match rule:** `vehicle_class` matches AND (`lifecycle_template IS NULL` OR equals vehicle's lifecycle) AND vehicle `fuel_type ∈ fuel_types`.
 
@@ -117,7 +118,7 @@ Fuel: `petrol`, `hybrid_plugin`, `electric` as appropriate per item.
 - **bus** vehicle class templates
 - **Lifecycle-specific variants** (e.g. taxi oil change @ 8,000 km via `lifecycle_template='taxi_fleet'`)
 - **`diesel` fuel type** (current enum: petrol / electric / hybrid_plugin; Myanmar trucks/buses often need diesel — separate decision)
-- Driver-side plan-item completion logging (completion today is portal-side / owner-side only)
+- ~~Driver-side plan-item completion logging~~ **moved into scope 16 Oct 2026** (locked decision 11 — driver service records + plan-linked work-order completion)
 - Template change propagation to already-generated plans
 
 ---
@@ -213,9 +214,9 @@ Fleet template management uses `requireFleetPortal` (strict `dco-fleet`); genera
 
 ---
 
-## Mobile driver plan (phase 2 — after backend + portal ship)
+## Mobile driver plan (phase 2 — shipped; completion logging added 16 Oct 2026)
 
-Scope: **view plan + add from suggested. No completion logging, no edits of portal-generated items** (completion via work orders / service records is future work).
+Scope **as shipped**: view plan + add from suggested, no edits of portal-generated items. **Amended (second grilling):** completion logging is now in scope — the driver Maintenance tab gains a **Register service** form with **Report | Do myself** branches (locked decision 11); plan-linked logs advance due dates, free-text logs never touch a plan. Driver mode itself was realigned to personal-mode parity (four tabs, quick actions) — see `fleet-management.md` Driver Surface Decisions 16–24. The screens below remain the plan-view/suggested-add foundation.
 
 - `DriverMyVehicleScreen` (`driver_my_vehicle_screen.dart:100`): add FleetTile **"Maintenance plan"** → push new `DriverMaintenancePlanScreen`.
 - New screens in `features/fleet/presentation/screens/` (online-first, Dio — per AGENTS.md rules 4/6, NOT Drift/outbox, not management features):
@@ -245,6 +246,7 @@ Scope: **view plan + add from suggested. No completion logging, no edits of port
 | 5 | Admin catalog page fields | lint / tsc / build | **Done** (`web/` catalog page: Class + Lifecycle columns, vehicle-class filter wired to `?vehicle_class=`, create/edit form selects for `vehicle_class` + optional `lifecycle_template`; number-input spinners/steppers removed globally in `web/` + `fleet-portal/` per user request) |
 | 6 | **Mobile driver** (after deploy) | `flutter analyze`, `flutter test` | **Done** (`features/fleet/`: `DriverPlanItem`/`DriverSuggestedPlanItem` entities, 3 repo methods on `/drivers/vehicles/{id}/*`, plan screen with overdue chips + suggested multi-select add via client UUID, My Vehicle entry tile, en+l10n strings, 302/302 tests) |
 | 7 | Docs / FRD updates | — | **Done** (amended `frd/maintenance.md`, `frd/fleet-management.md`, `architecture/data-model.md`, `docs/mvp-as-built.md` per Contracts & docs; plus `docs/app-shell.md` driver screens, `mobile/AGENTS.md` driver surface, `CLAUDE.md` FRD list + portal pages, `architecture/api.md` audiences) |
+| 8 | **Driver maintenance logging + portal loop** (second grilling: driver service records, WO completion cost/auto-SR/plan advance, org service-record GET, portal Service-history + Plan cards, personal-garage ban, shift retirement) | `npm test`, `tsc`, `flutter analyze`, `flutter test`, portal lint/build | **Planned** (`fleet-management.md` Driver Surface Decisions 15–24; work packages WP1–WP4) |
 
 ## Risks
 
