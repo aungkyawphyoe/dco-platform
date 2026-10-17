@@ -432,6 +432,70 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     return reply.code(201).send(payload);
   });
 
+  // Driver's own fuel-type catalog (same ownership rule as the org fuel-logs
+  // write: fuel_types.user_id = driver). The personal /v1/fuel-types route is
+  // owner-surface only, so fleet drivers need their own.
+  app.get("/drivers/fuel-types", async (request) => {
+    requireFleetClient(request);
+    const actorId = uid(request);
+    const items = await app.db.select().from(fuelTypes).where(eq(fuelTypes.userId, actorId));
+    return { items: items.map((row) => ({ id: row.id, user_id: row.userId, name: row.name, kind: row.kind, unit: row.unit })) };
+  });
+
+  app.post("/drivers/fuel-types", async (request, reply) => {
+    requireFleetClient(request);
+    const actorId = uid(request);
+    const body = z.object({
+      id: uuid.optional(),
+      name: z.string().min(1),
+      kind: z.enum(["liquid", "electric"]),
+      unit: z.string().min(1),
+    }).parse(request.body);
+    const existing = body.id
+      ? (await app.db.select().from(fuelTypes).where(eq(fuelTypes.id, body.id)).limit(1))[0]
+      : null;
+    if (existing) return reply.code(201).send({ id: existing.id, duplicate: true });
+    const mine = await app.db.select().from(fuelTypes).where(eq(fuelTypes.userId, actorId));
+    if (mine.some((t) => t.name.toLowerCase() === body.name.toLowerCase())) {
+      throw new AppError(409, "name_taken", "Fuel type name already exists");
+    }
+    const [row] = await app.db.insert(fuelTypes).values({
+      id: body.id ?? newId(), userId: actorId, name: body.name, kind: body.kind, unit: body.unit,
+    }).returning();
+    return reply.code(201).send({ id: row.id, user_id: row.userId, name: row.name, kind: row.kind, unit: row.unit });
+  });
+
+  // Driver's own fuel logs for their assigned vehicle (fuel-only Expenses).
+  app.get("/drivers/vehicles/:vehicleId/fuel-logs", async (request) => {
+    requireFleetClient(request);
+    const vehicleId = uuid.parse((request.params as { vehicleId: string }).vehicleId);
+    const actorId = uid(request);
+    const [assignment] = await app.db.select().from(driverAssignments).where(and(
+      eq(driverAssignments.vehicleId, vehicleId),
+      eq(driverAssignments.driverId, actorId),
+      eq(driverAssignments.status, "active"),
+    )).limit(1);
+    if (!assignment) throw new AppError(403, "not_assigned_to_vehicle", "Driver is not assigned to this vehicle");
+    const rows = await app.db.select().from(fuelLogs).where(and(
+      eq(fuelLogs.vehicleId, vehicleId),
+      eq(fuelLogs.userId, actorId),
+    )).orderBy(desc(fuelLogs.loggedOn), desc(fuelLogs.id));
+    return {
+      items: rows.map((row) => ({
+        id: row.id,
+        user_id: row.userId,
+        vehicle_id: row.vehicleId,
+        kind: row.kind,
+        fuel_type_id: row.fuelTypeId,
+        fuel_type_name: row.fuelTypeName,
+        unit: row.unit,
+        logged_on: dateOnly(row.loggedOn),
+        amount: reqNum(row.amount),
+        cost: reqNum(row.cost),
+      })),
+    };
+  });
+
   // ── Warranty templates and vehicle warranties ──────────────────────
   app.get("/organizations/:id/warranty-templates", async (request) => {
     requireFleetPortal(request);

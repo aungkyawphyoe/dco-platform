@@ -1143,6 +1143,34 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     return reply.code(201).send(publicPlan(row));
   });
 
+  app.get("/drivers/vehicles/:vehicleId/service-records", async (request) => {
+    requireFleetClient(request);
+    const { vehicleId } = request.params as { vehicleId: string };
+    await requireDriverAssignment(vehicleId, uid(request));
+    const rows = await app.db.select().from(serviceRecords)
+      .where(eq(serviceRecords.vehicleId, vehicleId))
+      .orderBy(desc(serviceRecords.servicedOn));
+    const items = [];
+    for (const row of rows) {
+      const recordItems = await app.db.select().from(serviceRecordItems)
+        .where(eq(serviceRecordItems.serviceRecordId, row.id));
+      items.push({
+        id: row.id,
+        vehicle_id: row.vehicleId,
+        serviced_on: dateOnly(row.servicedOn),
+        odometer: reqNum(row.odometer),
+        total_cost: reqNum(row.totalCost),
+        workshop_name: row.workshopName,
+        notes: row.notes,
+        created_by: row.createdBy,
+        items: recordItems.map((item) => ({
+          id: item.id, name: item.name, line_cost: num(item.lineCost), plan_item_id: item.planItemId,
+        })),
+      });
+    }
+    return { items };
+  });
+
   app.get("/drivers/vehicles/:vehicleId/suggested-plan-items", async (request) => {
     requireFleetClient(request);
     const { vehicleId } = request.params as { vehicleId: string };

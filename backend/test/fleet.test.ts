@@ -924,6 +924,68 @@ describe("Driver surface realignment (WP1)", () => {
     expect(advanced.next_due_mileage).toBe(950 + 10000);
     await app.close();
   });
+
+  it("returns a driver's own service records and fuel logs for the assigned vehicle", async () => {
+    const { app, orgId, fleetToken } = await setupFleet("driver-history");
+    const { driverId, token: driverToken } = await provisionDriver(app, orgId, fleetToken, "hist-driver");
+    const otherDriver = await provisionDriver(app, orgId, fleetToken, "hist-other");
+    const vehicleId = uuid();
+    await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/vehicles`, headers: auth(fleetToken),
+      payload: {
+        id: vehicleId, name: "History Van", make: "Ford", model: "Transit", year: 2022,
+        license_plate: `HST${vehicleId.slice(0, 4)}`, vin: vehicleId.replaceAll("-", "").slice(0, 17),
+        fuel_type: "petrol", mileage: 400, lifecycle_template: "commercial",
+      },
+    });
+    await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/assignments`, headers: auth(fleetToken),
+      payload: { vehicle_id: vehicleId, driver_id: driverId },
+    });
+    const logged = await app.inject({
+      method: "POST", url: `/v1/drivers/vehicles/${vehicleId}/service-records`, headers: auth(driverToken),
+      payload: { serviced_on: "2026-10-05", odometer_km: 600, total_cost: 40, name: "Tire rotation" },
+    });
+    expect(logged.statusCode).toBe(201);
+
+    const history = await app.inject({ method: "GET", url: `/v1/drivers/vehicles/${vehicleId}/service-records`, headers: auth(driverToken) });
+    expect(history.statusCode).toBe(200);
+    expect(history.json().items).toHaveLength(1);
+    expect(history.json().items[0].items[0].name).toBe("Tire rotation");
+    expect(history.json().items[0].serviced_on).toBe("2026-10-05");
+
+    const fuelTypes = await app.inject({ method: "GET", url: "/v1/drivers/fuel-types", headers: auth(driverToken) });
+    expect(fuelTypes.statusCode).toBe(200);
+    expect(fuelTypes.json().items).toHaveLength(0);
+    const fuelType = await app.inject({
+      method: "POST", url: "/v1/drivers/fuel-types", headers: auth(driverToken),
+      payload: { name: "Diesel", kind: "liquid", unit: "L" },
+    });
+    expect(fuelType.statusCode).toBe(201);
+    const fuelTypeId = fuelType.json().id as string;
+    const fuel = await app.inject({
+      method: "POST", url: `/v1/organizations/${orgId}/fuel-logs`, headers: auth(driverToken),
+      payload: { vehicle_id: vehicleId, fuel_type_id: fuelTypeId, logged_on: "2026-10-06", amount: 40, cost: 60, odometer_km: 620 },
+    });
+    expect(fuel.statusCode).toBe(201);
+
+    const logs = await app.inject({ method: "GET", url: `/v1/drivers/vehicles/${vehicleId}/fuel-logs`, headers: auth(driverToken) });
+    expect(logs.statusCode).toBe(200);
+    expect(logs.json().items).toHaveLength(1);
+    expect(logs.json().items[0].cost).toBe(60);
+
+    const otherLogs = await app.inject({ method: "GET", url: `/v1/drivers/vehicles/${vehicleId}/fuel-logs`, headers: auth(otherDriver.token) });
+    expect(otherLogs.statusCode).toBe(403);
+    const otherHistory = await app.inject({ method: "GET", url: `/v1/drivers/vehicles/${vehicleId}/service-records`, headers: auth(otherDriver.token) });
+    expect(otherHistory.statusCode).toBe(403);
+
+    const stranger = await signup(app, "hist-stranger");
+    const unassignedLogs = await app.inject({ method: "GET", url: `/v1/drivers/vehicles/${vehicleId}/fuel-logs`, headers: auth(stranger.token) });
+    expect(unassignedLogs.statusCode).toBe(403);
+    const unassignedHistory = await app.inject({ method: "GET", url: `/v1/drivers/vehicles/${vehicleId}/service-records`, headers: auth(stranger.token) });
+    expect(unassignedHistory.statusCode).toBe(403);
+    await app.close();
+  });
 });
 
 describe("Fleet maintenance templates", () => {
