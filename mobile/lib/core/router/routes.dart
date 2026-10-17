@@ -77,13 +77,13 @@ abstract final class AppRoutes {
   static String vehicleShareNew(String id) => '/vehicle/$id/share/new';
 
   // Driver flows
-  static const driverShift = '/driver/shift';
   static const driverReportIssue = '/driver/report-issue';
   static const driverFuelLog = '/driver/fuel-log';
   static const driverInspectionNew = '/driver/inspections/new';
   static const driverMaintenancePlan = '/driver/maintenance-plan';
   static const driverMaintenanceSuggested =
       '/driver/maintenance-plan/suggested';
+  static const driverRegisterService = '/driver/register-service';
 
   // Detail screens (top-level, accessible from any tab)
   static String vehicleDetail(String id) => '/vehicle/$id';

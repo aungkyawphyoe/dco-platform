@@ -6,10 +6,11 @@ import 'package:dco_mobile/features/fleet/domain/entities/driver_plan_item.dart'
 import 'package:dco_mobile/features/fleet/domain/entities/entitlements.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/fleet_mode.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/shift_mileage.dart';
+import 'package:dco_mobile/features/fleet/domain/entities/driver_service_record.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/work_order.dart';
 import 'package:dco_mobile/features/fleet/domain/repositories/fleet_repository.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
+import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 
 final fleetRepositoryProvider = Provider<FleetRepository>((ref) {
   final dio = ref.watch(dioProvider);
@@ -47,11 +48,6 @@ final inspectionTemplatesProvider =
   return ref.watch(fleetRepositoryProvider).getInspectionTemplates(orgId);
 });
 
-final shiftMileageProvider =
-    FutureProvider.family<List<ShiftMileage>, String>((ref, orgId) {
-  return ref.watch(fleetRepositoryProvider).getShiftMileage(orgId);
-});
-
 final driverMyVehicleProvider = FutureProvider<DriverMyVehicle>((ref) {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) throw StateError('No signed-in user');
@@ -87,6 +83,33 @@ final driverSuggestedPlanItemsProvider =
         .getDriverSuggestedPlanItems(vehicleId);
   },
 );
+
+/// Merged maintenance history: service records + maintenance-branch work
+/// orders (`scheduled_service`), newest first.
+final driverMaintenanceHistoryProvider =
+    FutureProvider.family<List<DriverHistoryEntry>, String>((ref, vehicleId) {
+  return ref.watch(fleetRepositoryProvider).getDriverMaintenanceHistory(
+        vehicleId,
+      );
+});
+
+/// Assigned vehicle's service records, newest first (fuel-only Expenses
+/// history counterpart).
+final driverServiceRecordsProvider =
+    FutureProvider.family<List<DriverServiceRecord>, String>(
+  (ref, vehicleId) {
+    return ref.watch(fleetRepositoryProvider).getDriverServiceRecords(
+        vehicleId,
+      );
+  },
+);
+
+/// The signed-in driver's own fuel logs on the assigned vehicle, newest
+/// first (fuel-only Expenses tab).
+final driverFuelLogsProvider =
+    FutureProvider.family<List<FuelLog>, String>((ref, vehicleId) {
+  return ref.watch(fleetRepositoryProvider).getDriverFuelLogs(vehicleId);
+});
 
 /// The signed-in user's local fuel-type catalog (drivers log org fuel with
 /// their own fuel types; seeds defaults on first read).

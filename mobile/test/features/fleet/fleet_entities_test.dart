@@ -3,7 +3,7 @@ import 'package:dco_mobile/features/fleet/domain/entities/driver_context.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/fleet_mode.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/org_vehicle.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/shift_mileage.dart';
+import 'package:dco_mobile/features/fleet/domain/entities/driver_service_record.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/work_order.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -138,30 +138,48 @@ void main() {
     });
   });
 
-  group('ShiftMileage.fromJson', () {
-    test('active shift has no end and no km driven', () {
-      final shift = ShiftMileage.fromJson(const {
-        'id': 'shift-1',
-        'start_odometer_km': 1000,
-        'start_at': '2026-03-01T07:00:00Z',
+  group('DriverServiceRecord.fromJson', () {
+    test('parses a do-myself log with plan-linked item lines', () {
+      final record = DriverServiceRecord.fromJson(const {
+        'id': 'sr-1',
+        'vehicle_id': 'veh-1',
+        'serviced_on': '2026-10-01',
+        'odometer': 950,
+        'total_cost': 75,
+        'items': [
+          {'id': 'li-1', 'name': 'Oil change', 'line_cost': 75, 'plan_item_id': 'plan-1'},
+        ],
       });
 
-      expect(shift.isActive, isTrue);
-      expect(shift.endOdometerKm, isNull);
-      expect(shift.kmDriven, isNull);
+      expect(record.servicedOn, DateTime(2026, 10, 1));
+      expect(record.odometer, 950);
+      expect(record.totalCost, 75);
+      expect(record.items.single.name, 'Oil change');
+      expect(record.items.single.planItemId, 'plan-1');
     });
 
-    test('ended shift exposes driven kilometres', () {
-      final shift = ShiftMileage.fromJson(const {
-        'id': 'shift-2',
-        'start_odometer_km': 1000,
-        'end_odometer_km': 1085,
-        'km_driven': 85,
-        'end_at': '2026-03-01T17:00:00Z',
-      });
+    test('history merges service records and maintenance work orders', () {
+      final record = DriverHistoryEntry.serviceRecord(
+        id: 'sr-1',
+        servicedOn: DateTime(2026, 10, 1),
+        odometer: 950,
+        totalCost: 75,
+        title: 'Oil change',
+      );
+      final workOrder = DriverHistoryEntry.workOrder(
+        id: 'wo-1',
+        servicedOn: DateTime(2026, 10, 5),
+        odometer: 1000,
+        title: 'Brake wear',
+        workOrderStatus: 'reported',
+      );
 
-      expect(shift.isActive, isFalse);
-      expect(shift.kmDriven, 85);
+      expect(record.isWorkOrder, isFalse);
+      expect(workOrder.isWorkOrder, isTrue);
+      expect(workOrder.workOrderStatus, 'reported');
+      final sorted = [record, workOrder]
+        ..sort((a, b) => b.servicedOn.compareTo(a.servicedOn));
+      expect(sorted.first.id, 'wo-1');
     });
   });
 

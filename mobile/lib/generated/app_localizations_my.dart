@@ -2866,19 +2866,10 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get driverMyVehicleTab => 'ကျွန်ုပ်၏ ယာဉ်';
-
-  @override
-  String get driverMyReportsTab => 'ကျွန်ုပ်၏ အစီရင်ခံစာများ';
-
-  @override
   String get driverNoVehicleTitle => 'အပ်နှင်းထားသော ယာဉ် မရှိပါ';
 
   @override
   String get driverNoVehicleBody => 'ဖလီးစီမံသူထံ ယာဉ် တောင်းဆိုပါ။';
-
-  @override
-  String get driverLogMileage => 'မိုင်အတိုင်းစက် မှတ်ရန်';
 
   @override
   String get driverLogFuel => 'လောင်စာ မှတ်ရန်';
@@ -2893,41 +2884,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get driverPlate => 'မှတ်ပုံတင်';
 
   @override
-  String get driverShiftTitle => 'မိုင်အတိုင်းစက် မှတ်ရန်';
-
-  @override
-  String get driverShiftStartTitle => 'အလုပ်ဆင်း စတင်ရန်';
-
-  @override
-  String get driverShiftEndTitle => 'အလုပ်ဆင်း ပြီးဆုံးရန်';
-
-  @override
-  String get driverShiftStartOdo => 'စတင် မိုင်အတိုင်းစက် (ကီမိုမီတာ)';
-
-  @override
-  String get driverShiftEndOdo => 'ပြီးဆုံး မိုင်အတိုင်းစက် (ကီမိုမီတာ)';
-
-  @override
-  String get driverShiftActive => 'အလုပ်ဆင်း လုပ်ဆောင်နေဆဲ';
-
-  @override
-  String driverShiftKmDriven(Object km) {
-    return '$km ကီမိုမီတာ မောင်းနှင်ပြီး';
-  }
-
-  @override
-  String get driverShiftHistory => 'မကြာသေးမီက အလုပ်ဆင်းများ';
-
-  @override
-  String get driverShiftEmpty => 'အလုပ်ဆင်း မှတ်တမ်း မရှိသေးပါ';
-
-  @override
-  String get driverShiftStarted => 'အလုပ်ဆင်း စတင်ပြီးပါပြီ';
-
-  @override
-  String driverShiftEnded(Object km) {
-    return 'အလုပ်ဆင်း ပြီးဆုံးပါပြီ · $km ကီမိုမီတာ';
-  }
+  String get driverGarageReadonlyHint => 'အပ်နှင်းထားသော ယာဉ် · ဖတ်ရုံသာ';
 
   @override
   String get driverInspectionStart => 'စစ်ဆေးမှု စတင်ရန်';
@@ -3041,6 +2998,94 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get driverSuggestedAdd => 'အစီအစဉ်သို့ ထည့်ရန်';
+
+  @override
+  String get driverQuickReportIssue => 'ပြဿနာ တင်ပြရန်';
+
+  @override
+  String get driverQuickStartInspection => 'စစ်ဆေးမှု စတင်ရန်';
+
+  @override
+  String get driverQuickRefuel => 'လောင်စာ ထည့်ရန်';
+
+  @override
+  String get driverQuickNotes => 'မှတ်စုများ';
+
+  @override
+  String get driverRegisterServiceTitle => 'ထိန်းသိမ်းမှု မှတ်တမ်းတင်ရန်';
+
+  @override
+  String get driverRegisterLogAction => 'မှတ်ရန်';
+
+  @override
+  String get driverRegisterBranchLabel => 'မည်သို့ မှတ်တမ်းတင်လိုပါသလဲ?';
+
+  @override
+  String get driverRegisterBranchReport => 'အစီရင်ခံရန်';
+
+  @override
+  String get driverRegisterBranchReportHint => 'ဖလီးစီမံအဖွဲ့ထံ ပို့ရန်';
+
+  @override
+  String get driverRegisterBranchDoMyself => 'ကိုယ်တိုင် ဆောင်ရွက်ပြီး';
+
+  @override
+  String get driverRegisterBranchDoMyselfHint =>
+      'ပြီးစီးကြောင်း မှတ်တမ်းတင်ရန်';
+
+  @override
+  String get driverRegisterItemLabel => 'ထိန်းသိမ်းမှု ပစ္စည်း';
+
+  @override
+  String get driverRegisterItemHint => 'ဥပမာ - ဆီလဲရန်';
+
+  @override
+  String get driverRegisterPlanLinked => 'ထိန်းသိမ်းမှု အစီအစဉ်မှ';
+
+  @override
+  String get driverRegisterFreeText => 'အခြားတစ်ခု';
+
+  @override
+  String get driverRegisterCostLabel => 'စုစုပေါင်း ကုန်ကျငွေ';
+
+  @override
+  String get driverRegisterDateLabel => 'ရက်စွဲ';
+
+  @override
+  String get driverRegisterOdometerLabel => 'မိုင်အတိုင်းစက် (ကီမိုမီတာ)';
+
+  @override
+  String get driverRegisterNotesLabel => 'မှတ်စုများ';
+
+  @override
+  String get driverRegisterSubmitted => 'ထိန်းသိမ်းမှု မှတ်တမ်းတင်ပြီးပါပြီ';
+
+  @override
+  String get driverRegisterReportSubmitted =>
+      'ထိန်းသိမ်းမှုကို ဖလီးစီမံအဖွဲ့ထံ အစီရင်ခံပြီးပါပြီ';
+
+  @override
+  String get driverHistoryTitle => 'ထိန်းသိမ်းမှု မှတ်တမ်းများ';
+
+  @override
+  String get driverFuelTotalLabel => 'လောင်စာ စုစုပေါင်း';
+
+  @override
+  String get driverFuelLogsLabel => 'လောင်စာ မှတ်တမ်းများ';
+
+  @override
+  String get driverFuelNoLogsTitle => 'လောင်စာ မှတ်တမ်း မရှိသေးပါ';
+
+  @override
+  String get driverFuelNoLogsBody =>
+      'ဤယာဉ်အတွက် သင် မှတ်တမ်းတင်သော လောင်စာ ထည့်သွင်းမှုများ ဤနေရာတွင် ပေါ်လာပါမည်။';
+
+  @override
+  String get driverHistoryEmpty => 'ထိန်းသိမ်းမှု မှတ်တမ်း မရှိသေးပါ';
+
+  @override
+  String get driverHistoryEmptyBody =>
+      'သင် မှတ်တမ်းတင်ထားသော ထိန်းသိမ်းမှုများ ဤနေရာတွင် ပေါ်လာပါမည်။';
 
   @override
   String get fleetActionFailed => 'လုပ်ဆောင်ချက် မအောင်မြင်ပါ။ ထပ်စမ်းကြည့်ပါ။';

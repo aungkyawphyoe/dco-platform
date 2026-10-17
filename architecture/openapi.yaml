@@ -3240,6 +3240,27 @@ paths:
                       $ref: '#/components/schemas/SuggestedPlanItem'
         '403': {$ref: '#/components/responses/Error'}
   /drivers/vehicles/{vehicleId}/service-records:
+    get:
+      tags: [Fleet, Maintenance]
+      summary: Service records for the driver's assigned vehicle (history)
+      description: >
+        Read-only maintenance history for the vehicle the driver is currently
+        assigned to. Newest first. Used by the driver Garage "Maintenance
+        history" surface (Do myself logs + any records fleet created).
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Service records, newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: {type: object}
+        '403': {$ref: '#/components/responses/Error'}
     post:
       tags: [Fleet, Maintenance]
       summary: Driver "Do myself" maintenance log (active assignment required)
@@ -3280,6 +3301,59 @@ paths:
         '404': {$ref: '#/components/responses/Error'}
         '409': {$ref: '#/components/responses/Error'}
         '422': {$ref: '#/components/responses/Error'}
+  /drivers/fuel-types:
+    get:
+      tags: [Fleet, Expenses]
+      summary: The driver's own fuel-type catalog
+      description: >
+        Per-user fuel types (fuel_types.user_id = driver). Same ownership rule
+        as the personal /v1/fuel-types route, but that route is owner-surface
+        only — fleet drivers need their own.
+      responses:
+        '200': {description: Fuel types owned by the driver}
+        '403': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Fleet, Expenses]
+      summary: Create a fuel type for the driver
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, kind, unit]
+              properties:
+                id: {type: string, format: uuid, description: Optional client UUID (idempotent create)}
+                name: {type: string, maxLength: 100}
+                kind: {type: string, enum: [liquid, electric]}
+                unit: {type: string, maxLength: 20, examples: [L, kWh]}
+      responses:
+        '201': {description: Fuel type created}
+        '403': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
+  /drivers/vehicles/{vehicleId}/fuel-logs:
+    get:
+      tags: [Fleet, Expenses]
+      summary: The driver's own fuel logs for their assigned vehicle
+      description: >
+        Fuel-only Expenses history. Scoped to the authenticated driver
+        (fuel_logs.user_id) and the vehicle they are assigned to — a driver
+        never sees another driver's fuel. Newest first. No odometer returned
+        (the write payload owns it).
+      parameters:
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Fuel logs, newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items: {$ref: '#/components/schemas/FuelLog'}
+        '403': {$ref: '#/components/responses/Error'}
   /workshops/my-vehicles:
     get:
       tags: [Fleet]

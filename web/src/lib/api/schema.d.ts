@@ -6451,7 +6451,35 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * Service records for the driver's assigned vehicle (history)
+         * @description Read-only maintenance history for the vehicle the driver is currently assigned to. Newest first. Used by the driver Garage "Maintenance history" surface (Do myself logs + any records fleet created).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Service records, newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: Record<string, never>[];
+                        };
+                    };
+                };
+                403: components["responses"]["Error"];
+            };
+        };
         put?: never;
         /**
          * Driver "Do myself" maintenance log (active assignment required)
@@ -6504,6 +6532,126 @@ export interface paths {
                 422: components["responses"]["Error"];
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/drivers/fuel-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The driver's own fuel-type catalog
+         * @description Per-user fuel types (fuel_types.user_id = driver). Same ownership rule as the personal /v1/fuel-types route, but that route is owner-surface only — fleet drivers need their own.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Fuel types owned by the driver */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                403: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        /** Create a fuel type for the driver */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: uuid
+                         * @description Optional client UUID (idempotent create)
+                         */
+                        id?: string;
+                        name: string;
+                        /** @enum {string} */
+                        kind: "liquid" | "electric";
+                        /**
+                         * @example L
+                         * @example kWh
+                         */
+                        unit: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Fuel type created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                403: components["responses"]["Error"];
+                409: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/drivers/vehicles/{vehicleId}/fuel-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * The driver's own fuel logs for their assigned vehicle
+         * @description Fuel-only Expenses history. Scoped to the authenticated driver (fuel_logs.user_id) and the vehicle they are assigned to — a driver never sees another driver's fuel. Newest first. No odometer returned (the write payload owns it).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Fuel logs, newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["FuelLog"][];
+                        };
+                    };
+                };
+                403: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;

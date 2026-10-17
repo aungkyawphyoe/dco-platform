@@ -5424,18 +5424,6 @@ abstract class AppLocalizations {
   /// **'{years} yr · {km} km'**
   String fleetWarrantyYearsKm(Object km, Object years);
 
-  /// No description provided for @driverMyVehicleTab.
-  ///
-  /// In en, this message translates to:
-  /// **'My vehicle'**
-  String get driverMyVehicleTab;
-
-  /// No description provided for @driverMyReportsTab.
-  ///
-  /// In en, this message translates to:
-  /// **'My reports'**
-  String get driverMyReportsTab;
-
   /// No description provided for @driverNoVehicleTitle.
   ///
   /// In en, this message translates to:
@@ -5447,12 +5435,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Ask your fleet manager to assign you a vehicle.'**
   String get driverNoVehicleBody;
-
-  /// No description provided for @driverLogMileage.
-  ///
-  /// In en, this message translates to:
-  /// **'Log mileage'**
-  String get driverLogMileage;
 
   /// No description provided for @driverLogFuel.
   ///
@@ -5478,71 +5460,11 @@ abstract class AppLocalizations {
   /// **'Plate'**
   String get driverPlate;
 
-  /// No description provided for @driverShiftTitle.
+  /// No description provided for @driverGarageReadonlyHint.
   ///
   /// In en, this message translates to:
-  /// **'Log mileage'**
-  String get driverShiftTitle;
-
-  /// No description provided for @driverShiftStartTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'Start shift'**
-  String get driverShiftStartTitle;
-
-  /// No description provided for @driverShiftEndTitle.
-  ///
-  /// In en, this message translates to:
-  /// **'End shift'**
-  String get driverShiftEndTitle;
-
-  /// No description provided for @driverShiftStartOdo.
-  ///
-  /// In en, this message translates to:
-  /// **'Start odometer (km)'**
-  String get driverShiftStartOdo;
-
-  /// No description provided for @driverShiftEndOdo.
-  ///
-  /// In en, this message translates to:
-  /// **'End odometer (km)'**
-  String get driverShiftEndOdo;
-
-  /// No description provided for @driverShiftActive.
-  ///
-  /// In en, this message translates to:
-  /// **'Shift in progress'**
-  String get driverShiftActive;
-
-  /// No description provided for @driverShiftKmDriven.
-  ///
-  /// In en, this message translates to:
-  /// **'{km} km driven'**
-  String driverShiftKmDriven(Object km);
-
-  /// No description provided for @driverShiftHistory.
-  ///
-  /// In en, this message translates to:
-  /// **'Recent shifts'**
-  String get driverShiftHistory;
-
-  /// No description provided for @driverShiftEmpty.
-  ///
-  /// In en, this message translates to:
-  /// **'No shifts logged yet'**
-  String get driverShiftEmpty;
-
-  /// No description provided for @driverShiftStarted.
-  ///
-  /// In en, this message translates to:
-  /// **'Shift started'**
-  String get driverShiftStarted;
-
-  /// No description provided for @driverShiftEnded.
-  ///
-  /// In en, this message translates to:
-  /// **'Shift ended · {km} km'**
-  String driverShiftEnded(Object km);
+  /// **'Assigned vehicle · read-only'**
+  String get driverGarageReadonlyHint;
 
   /// No description provided for @driverInspectionStart.
   ///
@@ -5759,6 +5681,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add to plan'**
   String get driverSuggestedAdd;
+
+  /// No description provided for @driverQuickReportIssue.
+  ///
+  /// In en, this message translates to:
+  /// **'Report Issue'**
+  String get driverQuickReportIssue;
+
+  /// No description provided for @driverQuickStartInspection.
+  ///
+  /// In en, this message translates to:
+  /// **'Start Inspection'**
+  String get driverQuickStartInspection;
+
+  /// No description provided for @driverQuickRefuel.
+  ///
+  /// In en, this message translates to:
+  /// **'Refuel'**
+  String get driverQuickRefuel;
+
+  /// No description provided for @driverQuickNotes.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get driverQuickNotes;
+
+  /// No description provided for @driverRegisterServiceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Register service'**
+  String get driverRegisterServiceTitle;
+
+  /// No description provided for @driverRegisterLogAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Log'**
+  String get driverRegisterLogAction;
+
+  /// No description provided for @driverRegisterBranchLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'How do you want to log it?'**
+  String get driverRegisterBranchLabel;
+
+  /// No description provided for @driverRegisterBranchReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Report'**
+  String get driverRegisterBranchReport;
+
+  /// No description provided for @driverRegisterBranchReportHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Send to your fleet for review'**
+  String get driverRegisterBranchReportHint;
+
+  /// No description provided for @driverRegisterBranchDoMyself.
+  ///
+  /// In en, this message translates to:
+  /// **'Do myself'**
+  String get driverRegisterBranchDoMyself;
+
+  /// No description provided for @driverRegisterBranchDoMyselfHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Log it as completed yourself'**
+  String get driverRegisterBranchDoMyselfHint;
+
+  /// No description provided for @driverRegisterItemLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Service item'**
+  String get driverRegisterItemLabel;
+
+  /// No description provided for @driverRegisterItemHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Oil change'**
+  String get driverRegisterItemHint;
+
+  /// No description provided for @driverRegisterPlanLinked.
+  ///
+  /// In en, this message translates to:
+  /// **'From maintenance plan'**
+  String get driverRegisterPlanLinked;
+
+  /// No description provided for @driverRegisterFreeText.
+  ///
+  /// In en, this message translates to:
+  /// **'Something else'**
+  String get driverRegisterFreeText;
+
+  /// No description provided for @driverRegisterCostLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total cost'**
+  String get driverRegisterCostLabel;
+
+  /// No description provided for @driverRegisterDateLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Date'**
+  String get driverRegisterDateLabel;
+
+  /// No description provided for @driverRegisterOdometerLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer (km)'**
+  String get driverRegisterOdometerLabel;
+
+  /// No description provided for @driverRegisterNotesLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get driverRegisterNotesLabel;
+
+  /// No description provided for @driverRegisterSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Service logged'**
+  String get driverRegisterSubmitted;
+
+  /// No description provided for @driverRegisterReportSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance reported to your fleet'**
+  String get driverRegisterReportSubmitted;
+
+  /// No description provided for @driverHistoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance history'**
+  String get driverHistoryTitle;
+
+  /// No description provided for @driverFuelTotalLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Total fuel spend'**
+  String get driverFuelTotalLabel;
+
+  /// No description provided for @driverFuelLogsLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel logs'**
+  String get driverFuelLogsLabel;
+
+  /// No description provided for @driverFuelNoLogsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No fuel logged yet'**
+  String get driverFuelNoLogsTitle;
+
+  /// No description provided for @driverFuelNoLogsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Refuels and charges you log for this vehicle will show up here.'**
+  String get driverFuelNoLogsBody;
+
+  /// No description provided for @driverHistoryEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No maintenance logged yet'**
+  String get driverHistoryEmpty;
+
+  /// No description provided for @driverHistoryEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Services you log or report will show up here.'**
+  String get driverHistoryEmptyBody;
 
   /// No description provided for @fleetActionFailed.
   ///
