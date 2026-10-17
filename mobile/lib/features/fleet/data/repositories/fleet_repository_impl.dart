@@ -5,11 +5,12 @@ import 'package:drift/drift.dart' as drift;
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/driver_context.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/driver_plan_item.dart';
+import 'package:dco_mobile/features/fleet/domain/entities/driver_service_record.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/entitlements.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/shift_mileage.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/work_order.dart';
 import 'package:dco_mobile/features/fleet/domain/repositories/fleet_repository.dart';
+import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 
 /// Driver-surface Fleet API over Dio with an `AppMeta` JSON cache as offline
 /// fallback for navigation snapshots (entitlements only). List endpoints are
@@ -53,6 +54,7 @@ class FleetRepositoryImpl implements FleetRepository {
     required String issueType,
     required String description,
     required String urgency,
+    String? planItemId,
   }) => _call(() async {
     final response = await _dio.post<Map<String, dynamic>>(
       '/organizations/$orgId/work-orders',
@@ -62,6 +64,7 @@ class FleetRepositoryImpl implements FleetRepository {
         'issue_type': issueType,
         'description': description,
         'urgency': urgency,
+        'plan_item_id': ?planItemId,
       },
     );
     return WorkOrder.fromJson(response.data!);
@@ -111,42 +114,6 @@ class FleetRepositoryImpl implements FleetRepository {
       },
     );
     return Inspection.fromJson(response.data!);
-  });
-
-  // ── Shift mileage (driver) ─────────────────────────────────────────
-
-  @override
-  Future<List<ShiftMileage>> getShiftMileage(String orgId) => _call(() async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/organizations/$orgId/shift-mileage',
-    );
-    return _items(response.data, ShiftMileage.fromJson);
-  });
-
-  @override
-  Future<ShiftMileage> startShift(
-    String orgId, {
-    required String vehicleId,
-    required int startOdometerKm,
-  }) => _call(() async {
-    final response = await _dio.post<Map<String, dynamic>>(
-      '/organizations/$orgId/shift-mileage',
-      data: {'vehicle_id': vehicleId, 'start_odometer_km': startOdometerKm},
-    );
-    return ShiftMileage.fromJson(response.data!);
-  });
-
-  @override
-  Future<ShiftMileage> endShift(
-    String orgId,
-    String shiftId, {
-    required int endOdometerKm,
-  }) => _call(() async {
-    final response = await _dio.patch<Map<String, dynamic>>(
-      '/organizations/$orgId/shift-mileage/$shiftId',
-      data: {'end_odometer_km': endOdometerKm},
-    );
-    return ShiftMileage.fromJson(response.data!);
   });
 
   // ── Org fuel logs (driver) ─────────────────────────────────────────
@@ -241,7 +208,117 @@ class FleetRepositoryImpl implements FleetRepository {
     return _items(response.data, DriverSuggestedPlanItem.fromJson);
   });
 
+  // ── Driver "Do myself" maintenance + history ───────────────────────
+
+  @override
+  Future<DriverServiceRecord> logDriverServiceRecord(
+    String vehicleId, {
+    required String id,
+    required String servicedOn,
+    required int odometerKm,
+    required double totalCost,
+    String? planItemId,
+    String? name,
+    String? notes,
+  }) => _call(() async {
+    final response = await _dio.post<Map<String, dynamic>>(
+      '/drivers/vehicles/$vehicleId/service-records',
+      data: {
+        'id': id,
+        'serviced_on': servicedOn,
+        'odometer_km': odometerKm,
+        'total_cost': totalCost,
+        'plan_item_id': ?planItemId,
+        'name': ?name,
+        'notes': ?notes,
+      },
+    );
+    return DriverServiceRecord.fromJson(response.data!);
+  });
+
+  @override
+  Future<List<DriverHistoryEntry>> getDriverMaintenanceHistory(
+    String vehicleId,
+  ) => _call(() async {
+    // Service records (Do myself + portal completions) — driver-scoped read
+    // of their assigned vehicle.
+    final recordsResponse = await _dio.get<Map<String, dynamic>>(
+      '/drivers/vehicles/$vehicleId/service-records',
+    );
+    final records = _items(
+      recordsResponse.data,
+      (json) => DriverHistoryEntry.serviceRecord(
+        id: json['id'] as String,
+        servicedOn: DateTime.parse(json['serviced_on'] as String),
+        odometer: (json['odometer'] as num).toDouble(),
+        totalCost: (json['total_cost'] as num).toDouble(),
+        title: ((json['items'] as List?) ?? const [])
+            .map((e) => e['name'] as String? ?? '')
+            .where((name) => name.isNotEmpty)
+            .join(', '),
+        notes: json['notes'] as String?,
+      ),
+    );
+
+    // Maintenance-branch work orders (Report route) — already driver-scoped.
+    final workOrdersResponse = await _dio.get<Map<String, dynamic>>(
+      '/drivers/my-work-orders',
+    );
+    final workOrders = _items(
+      workOrdersResponse.data,
+      WorkOrder.fromJson,
+    ).where((wo) => wo.issueType == 'scheduled_service');
+
+    return [...records, ...workOrders.map(
+      (wo) => DriverHistoryEntry.workOrder(
+        id: wo.id,
+        servicedOn: DateTime.tryParse(wo.reportedAt ?? '') ?? DateTime.now(),
+        odometer: wo.odometerKm.toDouble(),
+        title: wo.description,
+        workOrderStatus: wo.status,
+      ),
+    )]..sort((a, b) => b.servicedOn.compareTo(a.servicedOn));
+  });
+
+  @override
+  Future<List<DriverServiceRecord>> getDriverServiceRecords(
+    String vehicleId,
+  ) => _call(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/drivers/vehicles/$vehicleId/service-records',
+    );
+    return _items(response.data, DriverServiceRecord.fromJson);
+  });
+
+  @override
+  Future<List<FuelLog>> getDriverFuelLogs(String vehicleId) => _call(() async {
+    final response = await _dio.get<Map<String, dynamic>>(
+      '/drivers/vehicles/$vehicleId/fuel-logs',
+    );
+    return _items(response.data, _orgFuelLogFromJson);
+  });
+
   // ── Helpers ────────────────────────────────────────────────────────
+
+  /// Org fuel-log payload → [FuelLog]. Mirrors `fuelLogFromDrift` but the API
+  /// sends dates as `yyyy-MM-dd` and omits the audit timestamps.
+  static FuelLog _orgFuelLogFromJson(Map<String, dynamic> json) {
+    return FuelLog(
+      id: json['id'] as String,
+      userId: json['user_id'] as String? ?? '',
+      vehicleId: json['vehicle_id'] as String? ?? '',
+      kind: FuelLogKind.parse(json['kind'] as String? ?? 'refuel'),
+      fuelTypeId: json['fuel_type_id'] as String? ?? '',
+      fuelTypeName: json['fuel_type_name'] as String? ?? '',
+      unit: json['unit'] as String? ?? '',
+      loggedOn: DateTime.parse(json['logged_on'] as String),
+      amount: (json['amount'] as num).toDouble(),
+      cost: (json['cost'] as num).toDouble(),
+      odometer: (json['odometer_km'] as num?)?.toDouble(),
+      updatedAt: DateTime.now(),
+      createdAt: DateTime.now(),
+    );
+  }
 
   /// Maps HTTP 403 (org role rejected) to the domain-level
   /// [FleetAccessDenied] so presentation never touches Dio.

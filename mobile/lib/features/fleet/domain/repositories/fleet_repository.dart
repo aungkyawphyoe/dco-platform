@@ -1,9 +1,10 @@
 import 'package:dco_mobile/features/fleet/domain/entities/driver_context.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/driver_plan_item.dart';
+import 'package:dco_mobile/features/fleet/domain/entities/driver_service_record.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/entitlements.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/shift_mileage.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/work_order.dart';
+import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 
 /// Server rejected the caller's organization role (HTTP 403). Presentation
 /// maps this to the "no access" empty state — it must not inspect Dio.
@@ -24,6 +25,9 @@ abstract class FleetRepository {
   // ── Work orders (driver) ──
 
   /// Create work order — `org_driver` only (assigned vehicle).
+  /// [issueType] `scheduled_service` = maintenance Report branch (then it
+  /// shows in Maintenance history); other types are the standalone Report
+  /// Issue flow (then it shows in the pushed Reports screen).
   Future<WorkOrder> createWorkOrder(
     String orgId, {
     required String vehicleId,
@@ -31,6 +35,7 @@ abstract class FleetRepository {
     required String issueType,
     required String description,
     required String urgency,
+    String? planItemId,
   });
 
   // ── Inspections (driver) ──
@@ -52,19 +57,6 @@ abstract class FleetRepository {
     String? notes,
   });
 
-  // ── Shift mileage (driver) ──
-  Future<List<ShiftMileage>> getShiftMileage(String orgId);
-  Future<ShiftMileage> startShift(
-    String orgId, {
-    required String vehicleId,
-    required int startOdometerKm,
-  });
-  Future<ShiftMileage> endShift(
-    String orgId,
-    String shiftId, {
-    required int endOdometerKm,
-  });
-
   // ── Org fuel logs (driver) ──
   Future<void> logOrgFuel(
     String orgId, {
@@ -75,6 +67,14 @@ abstract class FleetRepository {
     required double cost,
     required int odometerKm,
   });
+
+  /// Assigned vehicle's service records (history), newest first —
+  /// `GET /v1/drivers/vehicles/{vehicleId}/service-records`.
+  Future<List<DriverServiceRecord>> getDriverServiceRecords(String vehicleId);
+
+  /// Assigned vehicle's own fuel logs (fuel-only Expenses), newest first —
+  /// `GET /v1/drivers/vehicles/{vehicleId}/fuel-logs`.
+  Future<List<FuelLog>> getDriverFuelLogs(String vehicleId);
 
   // ── Driver surface ──
   Future<DriverMyVehicle> getDriverMyVehicle();
@@ -98,6 +98,29 @@ abstract class FleetRepository {
   /// Suggested items from the vehicle's assigned template set (empty when
   /// no template is assigned).
   Future<List<DriverSuggestedPlanItem>> getDriverSuggestedPlanItems(
+    String vehicleId,
+  );
+
+  /// Driver "Do myself" maintenance log — `POST /v1/drivers/vehicles/
+  /// {vehicleId}/service-records`. Writes a service record directly
+  /// (status is implicit Completed). [planItemId] links the log and advances
+  /// the plan item's next due dates; when absent, [name] creates a free-text
+  /// orphan record. Odometer must not decrease (server-enforced).
+  Future<DriverServiceRecord> logDriverServiceRecord(
+    String vehicleId, {
+    required String id,
+    required String servicedOn,
+    required int odometerKm,
+    required double totalCost,
+    String? planItemId,
+    String? name,
+    String? notes,
+  });
+
+  /// Merged maintenance history: service records + work orders the driver
+  /// reported as maintenance (`issueType == 'scheduled_service'`), newest
+  /// first.
+  Future<List<DriverHistoryEntry>> getDriverMaintenanceHistory(
     String vehicleId,
   );
 }

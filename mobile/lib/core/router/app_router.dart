@@ -23,8 +23,8 @@ import '../../features/expenses/presentation/screens/expense_form_screen.dart';
 import '../../features/fleet/presentation/screens/driver_fuel_log_screen.dart';
 import '../../features/fleet/presentation/screens/driver_inspection_screen.dart';
 import '../../features/fleet/presentation/screens/driver_maintenance_plan_screen.dart';
+import '../../features/fleet/presentation/screens/driver_register_service_screen.dart';
 import '../../features/fleet/presentation/screens/driver_report_issue_screen.dart';
-import '../../features/fleet/presentation/screens/driver_shift_screen.dart';
 import '../../features/fleet/presentation/screens/driver_suggested_plan_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
 import '../../features/fuel/presentation/screens/fuel_log_detail_screen.dart';
@@ -77,11 +77,11 @@ final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 /// Routes that are considered driver routes (require password change if
 /// must_change_password=true).
 bool _isDriverRoute(String location) {
-  return location.startsWith(AppRoutes.driverShift) ||
-      location.startsWith(AppRoutes.driverReportIssue) ||
+  return location.startsWith(AppRoutes.driverReportIssue) ||
       location.startsWith(AppRoutes.driverFuelLog) ||
       location.startsWith(AppRoutes.driverInspectionNew) ||
-      location.startsWith(AppRoutes.driverMaintenancePlan);
+      location.startsWith(AppRoutes.driverMaintenancePlan) ||
+      location.startsWith(AppRoutes.driverRegisterService);
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -552,11 +552,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
 
       // Driver flows
       GoRoute(
-        path: AppRoutes.driverShift,
-        parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const DriverShiftScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.driverReportIssue,
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const DriverReportIssueScreen(),
@@ -580,6 +575,13 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.driverMaintenanceSuggested,
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const DriverSuggestedPlanScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.driverRegisterService,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => DriverRegisterServiceScreen(
+          initialPlanItemId: state.uri.queryParameters['plan'],
+        ),
       ),
 
       // Detail screens

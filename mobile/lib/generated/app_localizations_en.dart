@@ -2836,20 +2836,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get driverMyVehicleTab => 'My vehicle';
-
-  @override
-  String get driverMyReportsTab => 'My reports';
-
-  @override
   String get driverNoVehicleTitle => 'No assigned vehicle';
 
   @override
   String get driverNoVehicleBody =>
       'Ask your fleet manager to assign you a vehicle.';
-
-  @override
-  String get driverLogMileage => 'Log mileage';
 
   @override
   String get driverLogFuel => 'Log fuel';
@@ -2864,41 +2855,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get driverPlate => 'Plate';
 
   @override
-  String get driverShiftTitle => 'Log mileage';
-
-  @override
-  String get driverShiftStartTitle => 'Start shift';
-
-  @override
-  String get driverShiftEndTitle => 'End shift';
-
-  @override
-  String get driverShiftStartOdo => 'Start odometer (km)';
-
-  @override
-  String get driverShiftEndOdo => 'End odometer (km)';
-
-  @override
-  String get driverShiftActive => 'Shift in progress';
-
-  @override
-  String driverShiftKmDriven(Object km) {
-    return '$km km driven';
-  }
-
-  @override
-  String get driverShiftHistory => 'Recent shifts';
-
-  @override
-  String get driverShiftEmpty => 'No shifts logged yet';
-
-  @override
-  String get driverShiftStarted => 'Shift started';
-
-  @override
-  String driverShiftEnded(Object km) {
-    return 'Shift ended · $km km';
-  }
+  String get driverGarageReadonlyHint => 'Assigned vehicle · read-only';
 
   @override
   String get driverInspectionStart => 'Start inspection';
@@ -3012,6 +2969,93 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get driverSuggestedAdd => 'Add to plan';
+
+  @override
+  String get driverQuickReportIssue => 'Report Issue';
+
+  @override
+  String get driverQuickStartInspection => 'Start Inspection';
+
+  @override
+  String get driverQuickRefuel => 'Refuel';
+
+  @override
+  String get driverQuickNotes => 'Notes';
+
+  @override
+  String get driverRegisterServiceTitle => 'Register service';
+
+  @override
+  String get driverRegisterLogAction => 'Log';
+
+  @override
+  String get driverRegisterBranchLabel => 'How do you want to log it?';
+
+  @override
+  String get driverRegisterBranchReport => 'Report';
+
+  @override
+  String get driverRegisterBranchReportHint => 'Send to your fleet for review';
+
+  @override
+  String get driverRegisterBranchDoMyself => 'Do myself';
+
+  @override
+  String get driverRegisterBranchDoMyselfHint => 'Log it as completed yourself';
+
+  @override
+  String get driverRegisterItemLabel => 'Service item';
+
+  @override
+  String get driverRegisterItemHint => 'e.g. Oil change';
+
+  @override
+  String get driverRegisterPlanLinked => 'From maintenance plan';
+
+  @override
+  String get driverRegisterFreeText => 'Something else';
+
+  @override
+  String get driverRegisterCostLabel => 'Total cost';
+
+  @override
+  String get driverRegisterDateLabel => 'Date';
+
+  @override
+  String get driverRegisterOdometerLabel => 'Odometer (km)';
+
+  @override
+  String get driverRegisterNotesLabel => 'Notes';
+
+  @override
+  String get driverRegisterSubmitted => 'Service logged';
+
+  @override
+  String get driverRegisterReportSubmitted =>
+      'Maintenance reported to your fleet';
+
+  @override
+  String get driverHistoryTitle => 'Maintenance history';
+
+  @override
+  String get driverFuelTotalLabel => 'Total fuel spend';
+
+  @override
+  String get driverFuelLogsLabel => 'Fuel logs';
+
+  @override
+  String get driverFuelNoLogsTitle => 'No fuel logged yet';
+
+  @override
+  String get driverFuelNoLogsBody =>
+      'Refuels and charges you log for this vehicle will show up here.';
+
+  @override
+  String get driverHistoryEmpty => 'No maintenance logged yet';
+
+  @override
+  String get driverHistoryEmptyBody =>
+      'Services you log or report will show up here.';
 
   @override
   String get fleetActionFailed => 'Action failed. Please try again.';
