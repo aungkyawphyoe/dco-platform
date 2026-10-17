@@ -23,6 +23,8 @@ import type {
   TemplateAssignment,
   TransferredVehicle,
   VehicleCreateInput,
+  VehiclePlanItem,
+  VehicleServiceRecord,
   WarrantyTemplate,
   WorkOrder,
 } from "@/lib/api/types";
@@ -539,8 +541,33 @@ export function useGenerateMaintenancePlan(orgId: string | null) {
       apiPost<GeneratePlanResult>(
         orgPath(orgId, `/vehicles/${vehicleId}/maintenance-template/generate`),
       ),
-    onSuccess: () => {
+    onSuccess: (_result, vehicleId) => {
       qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
+      qc.invalidateQueries({ queryKey: ["fleet", "vehicle-plan", orgId, vehicleId] });
     },
+  });
+}
+
+// ── Vehicle detail: service history + maintenance plan (read-only) ──
+
+export function useVehicleServiceRecords(orgId: string | null, vehicleId: string | null) {
+  return useQuery({
+    queryKey: ["fleet", "vehicle-service-records", orgId, vehicleId],
+    queryFn: () =>
+      apiGet<{ items: VehicleServiceRecord[] }>(
+        orgPath(orgId, `/vehicles/${vehicleId}/service-records`),
+      ),
+    enabled: Boolean(orgId && vehicleId),
+  });
+}
+
+export function useVehiclePlanItems(orgId: string | null, vehicleId: string | null) {
+  return useQuery({
+    queryKey: ["fleet", "vehicle-plan", orgId, vehicleId],
+    queryFn: () =>
+      apiGet<{ items: VehiclePlanItem[] }>(
+        orgPath(orgId, `/vehicles/${vehicleId}/plan-items`),
+      ),
+    enabled: Boolean(orgId && vehicleId),
   });
 }

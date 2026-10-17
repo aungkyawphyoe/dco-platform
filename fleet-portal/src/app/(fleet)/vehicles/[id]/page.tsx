@@ -14,9 +14,11 @@ import {
   useGenerateMaintenancePlan,
   useMaintenanceTemplates,
   useVehicleAnalytics,
+  useVehiclePlanItems,
+  useVehicleServiceRecords,
   useVehicles,
 } from "@/lib/api/hooks";
-import type { FleetVehicle, MaintenanceTemplate } from "@/lib/api/types";
+import type { FleetVehicle, MaintenanceTemplate, VehiclePlanItem } from "@/lib/api/types";
 import { vehicleClassOptions } from "@/lib/api/types";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
 
@@ -207,6 +209,149 @@ function VehicleTemplateCard({ orgId, vehicle }: { orgId: string | null; vehicle
   );
 }
 
+/// Read-only service history for the vehicle (Decision 24): every driver
+/// log — do-myself records and fleet-logged services — checkable here.
+function ServiceHistoryCard({ orgId, vehicleId }: { orgId: string | null; vehicleId: string }) {
+  const { data, isLoading } = useVehicleServiceRecords(orgId, vehicleId);
+  const records = data?.items ?? [];
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-base font-semibold text-ink">Service history</h2>
+        <Badge tone="neutral">{records.length}</Badge>
+      </div>
+
+      {isLoading ? (
+        <Skeleton className="mt-4 h-24 w-full" />
+      ) : records.length === 0 ? (
+        <p className="mt-4 text-sm text-ink-caption">
+          No services logged yet. Driver &ldquo;Do myself&rdquo; logs and fleet entries appear here.
+        </p>
+      ) : (
+        <ul className="mt-4 divide-y divide-line-subtle">
+          {records.map((record) => (
+            <li key={record.id} className="flex items-start justify-between gap-4 py-3">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-ink">
+                  {record.items.length
+                    ? record.items.map((item) => item.name).join(", ")
+                    : "Service"}
+                </p>
+                <p className="mt-0.5 text-xs text-ink-caption">
+                  {new Date(record.serviced_on).toLocaleDateString()} ·{" "}
+                  {record.odometer.toLocaleString()} km
+                  {record.workshop_name ? ` · ${record.workshop_name}` : ""}
+                </p>
+                {record.notes ? (
+                  <p className="mt-1 truncate text-xs text-ink-muted">{record.notes}</p>
+                ) : null}
+              </div>
+              <span className="font-mono text-sm text-ink">
+                €{record.total_cost.toLocaleString(undefined, { maximumFractionDigits: 3 })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
+function planDueTone(
+  item: VehiclePlanItem,
+  mileage: number,
+): "danger" | "warning" | "success" | "neutral" {
+  if (!item.enabled) return "neutral";
+  const dueOn = item.next_due_on ? new Date(item.next_due_on) : null;
+  const overdue =
+    (dueOn !== null && dueOn.getTime() < Date.now()) ||
+    (item.next_due_mileage !== null &&
+      item.next_due_mileage !== undefined &&
+      mileage >= item.next_due_mileage);
+  if (overdue) return "danger";
+  const soon =
+    (dueOn !== null && dueOn.getTime() - Date.now() < 14 * 24 * 60 * 60 * 1000) ||
+    (item.next_due_mileage !== null &&
+      item.next_due_mileage !== undefined &&
+      mileage >= item.next_due_mileage - 500);
+  return soon ? "warning" : "success";
+}
+
+function planDueLabel(
+  item: VehiclePlanItem,
+  mileage: number,
+): { label: string; tone: "danger" | "warning" | "success" | "neutral" } {
+  const tone = planDueTone(item, mileage);
+  const label = tone === "danger" ? "Overdue" : tone === "warning" ? "Due soon" : tone === "neutral" ? "Disabled" : "Scheduled";
+  return { label, tone };
+}
+
+/// Read-only maintenance plan for the vehicle (Decision 24): what the driver
+/// sees on their Maintenance tab, mirrored for the fleet.
+function MaintenancePlanCard({
+  orgId,
+  vehicleId,
+  mileage,
+}: {
+  orgId: string | null;
+  vehicleId: string;
+  mileage: number;
+}) {
+  const { data, isLoading } = useVehiclePlanItems(orgId, vehicleId);
+  const items = data?.items ?? [];
+
+  const sorted = [...items].sort((a, b) => {
+    const aOverdue = planDueTone(a, mileage) === "danger" ? 0 : 1;
+    const bOverdue = planDueTone(b, mileage) === "danger" ? 0 : 1;
+    if (aOverdue !== bOverdue) return aOverdue - bOverdue;
+    return a.name.localeCompare(b.name);
+  });
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="font-display text-base font-semibold text-ink">Maintenance plan</h2>
+        <Badge tone="neutral">{items.length}</Badge>
+      </div>
+
+      {isLoading ? (
+        <Skeleton className="mt-4 h-24 w-full" />
+      ) : items.length === 0 ? (
+        <p className="mt-4 text-sm text-ink-caption">
+          No plan items yet. Assign a maintenance template and generate the plan above.
+        </p>
+      ) : (
+        <ul className="mt-4 divide-y divide-line-subtle">
+          {sorted.map((item) => {
+            const intervals = [
+              item.interval_days ? `${item.interval_days} d` : null,
+              item.interval_distance ? `${item.interval_distance.toLocaleString()} km` : null,
+            ].filter(Boolean);
+            const due = planDueLabel(item, mileage);
+            const dueParts = [
+              item.next_due_on ? new Date(item.next_due_on).toLocaleDateString() : null,
+              item.next_due_mileage ? `${item.next_due_mileage.toLocaleString()} km` : null,
+            ].filter(Boolean);
+            return (
+              <li key={item.id} className="flex items-center justify-between gap-4 py-3">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-ink">{item.name}</p>
+                  <p className="mt-0.5 text-xs text-ink-caption">
+                    {intervals.length ? intervals.join(" · ") : "No interval"}
+                    {dueParts.length ? ` · Due ${dueParts.join(" · ")}` : ""}
+                  </p>
+                </div>
+                <Badge tone={due.tone}>{due.label}</Badge>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </Card>
+  );
+}
+
 export default function VehicleDetailPage() {
   const params = useParams<{ id: string }>();
   const vehicleId = params.id;
@@ -302,6 +447,11 @@ export default function VehicleDetailPage() {
             </p>
           )}
         </Card>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <ServiceHistoryCard orgId={orgId} vehicleId={vehicle.id} />
+        <MaintenancePlanCard orgId={orgId} vehicleId={vehicle.id} mileage={vehicle.mileage} />
       </div>
 
       <VehicleTemplateCard orgId={orgId} vehicle={vehicle} />

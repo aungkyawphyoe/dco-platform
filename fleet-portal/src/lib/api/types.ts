@@ -100,6 +100,39 @@ export type MaintenanceTemplateWrite = {
 export type TemplateAssignment = { maintenance_template_id: string | null };
 export type GeneratePlanResult = { created: number; skipped: number };
 
+export type VehiclePlanItem = {
+  id: string;
+  vehicle_id: string;
+  name: string;
+  interval_days?: number | null;
+  interval_distance?: number | null;
+  next_due_mileage?: number | null;
+  next_due_on?: string | null;
+  enabled: boolean;
+  notes?: string | null;
+  catalog_key?: string | null;
+  created_by?: string | null;
+};
+
+export type ServiceRecordLine = {
+  id?: string;
+  plan_item_id?: string | null;
+  name: string;
+  line_cost?: number | null;
+};
+
+export type VehicleServiceRecord = {
+  id: string;
+  vehicle_id: string;
+  serviced_on: string;
+  odometer: number;
+  total_cost: number;
+  workshop_name?: string | null;
+  notes?: string | null;
+  created_by?: string | null;
+  items: ServiceRecordLine[];
+};
+
 export type WorkOrder = {
   id: string;
   org_id: string;
