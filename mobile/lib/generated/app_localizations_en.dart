@@ -1587,9 +1587,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsTitle => 'Settings';
 
   @override
-  String get settingsFreePlan => 'Free Plan';
-
-  @override
   String get settingsManageVehicles => 'Manage vehicles';
 
   @override
@@ -1623,13 +1620,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get settingsSyncSection => 'Sync';
-
-  @override
   String get settingsSignOut => 'Sign out';
-
-  @override
-  String get settingsSyncNow => 'Sync now';
 
   @override
   String get settingsSyncStatusFailed => 'Sync failed';

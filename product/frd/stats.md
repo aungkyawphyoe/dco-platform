@@ -14,7 +14,7 @@ Aggregation runs **locally** (Drift/SQLite). There are no `/v1/stats` endpoints.
 
 **The odometer dependency:** distance and efficiency KPIs need an odometer reading on fuel logs, which MVP deliberately excluded. This FRD therefore **carries the contract amendment**: an optional `odometer` field is added to refuel/charge logs, and the "no odometer / no efficiency KPIs" prohibitions in `product/frd/fuel.md`, `architecture/data-model.md`, `product/production-scope.md`, and `product/frd/README.md` are updated to match. Stats itself owns the efficiency KPIs; the Fuel module only captures the field.
 
-**Status (30 Sep 2026): Placeholder.** Routes, drawer entries, and three placeholder screens exist (`refuel_stats_screen.dart`, `maintenance_stats_screen.dart`, `expense_stats_screen.dart`). No KPIs, charts, filters, or odometer field are built. Status index: `product/frd/README.md`.
+**Status (17 Oct 2026): Done.** KPIs, charts, period filters, and the optional fuel-log odometer are built (implementation landed 30 Sep 2026 — `stats_charts.dart` + Drift calculators; no stats API). Status index: `product/frd/README.md`.
 
 ---
 

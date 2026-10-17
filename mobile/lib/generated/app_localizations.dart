@@ -3056,12 +3056,6 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
-  /// No description provided for @settingsFreePlan.
-  ///
-  /// In en, this message translates to:
-  /// **'Free Plan'**
-  String get settingsFreePlan;
-
   /// No description provided for @settingsManageVehicles.
   ///
   /// In en, this message translates to:
@@ -3122,23 +3116,11 @@ abstract class AppLocalizations {
   /// **'{days} days · {distance}'**
   String settingsRemindersSummary(Object days, Object distance);
 
-  /// No description provided for @settingsSyncSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync'**
-  String get settingsSyncSection;
-
   /// No description provided for @settingsSignOut.
   ///
   /// In en, this message translates to:
   /// **'Sign out'**
   String get settingsSignOut;
-
-  /// No description provided for @settingsSyncNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync now'**
-  String get settingsSyncNow;
 
   /// No description provided for @settingsSyncStatusFailed.
   ///

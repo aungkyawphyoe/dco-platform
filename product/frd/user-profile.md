@@ -6,6 +6,7 @@ This module extends the existing Auth and Admin modules to support post-signup p
 
 **No email server or domain exists.** Email verification is skipped. Admin-created accounts use temporary passwords communicated out-of-band.
 
+**Status (17 Oct 2026): Done (single gap).** Profile fields + photo, Dashboard completion banner, Settings edit screen, account deletion with cascade, admin create (temp password), admin deactivate/reactivate, and admin user detail all implemented (18 Sep 2026). Gap: admin create accepts only display name — contact phone/address are edited on user detail. Status index: `product/frd/README.md`.
 **Source of truth:** `product/mvp-scope.md`.
 **Extends:** `product/frd/auth.md`, `product/frd/admin.md`, `product/frd/vehicle-sharing.md`.
 
