@@ -3056,12 +3056,6 @@ abstract class AppLocalizations {
   /// **'Settings'**
   String get settingsTitle;
 
-  /// No description provided for @settingsFreePlan.
-  ///
-  /// In en, this message translates to:
-  /// **'Free Plan'**
-  String get settingsFreePlan;
-
   /// No description provided for @settingsManageVehicles.
   ///
   /// In en, this message translates to:
@@ -3122,23 +3116,11 @@ abstract class AppLocalizations {
   /// **'{days} days · {distance}'**
   String settingsRemindersSummary(Object days, Object distance);
 
-  /// No description provided for @settingsSyncSection.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync'**
-  String get settingsSyncSection;
-
   /// No description provided for @settingsSignOut.
   ///
   /// In en, this message translates to:
   /// **'Sign out'**
   String get settingsSignOut;
-
-  /// No description provided for @settingsSyncNow.
-  ///
-  /// In en, this message translates to:
-  /// **'Sync now'**
-  String get settingsSyncNow;
 
   /// No description provided for @settingsSyncStatusFailed.
   ///
@@ -5592,6 +5574,12 @@ abstract class AppLocalizations {
   /// **'Fuel logged'**
   String get driverFuelLogged;
 
+  /// No description provided for @driverReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get driverReportsTitle;
+
   /// No description provided for @driverReportsWorkOrders.
   ///
   /// In en, this message translates to:
@@ -5603,6 +5591,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inspections'**
   String get driverReportsInspections;
+
+  /// No description provided for @driverReportsInspectionPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'Passed'**
+  String get driverReportsInspectionPassed;
+
+  /// No description provided for @driverReportsInspectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get driverReportsInspectionFailed;
 
   /// No description provided for @driverMyWorkOrdersEmpty.
   ///

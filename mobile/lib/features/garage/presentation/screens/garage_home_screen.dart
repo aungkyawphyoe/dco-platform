@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
+import 'package:dco_mobile/core/gating/gate_messages.dart';
+import 'package:dco_mobile/core/gating/providers.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -19,6 +21,26 @@ import 'package:go_router/go_router.dart';
 class GarageHomeScreen extends ConsumerWidget {
   const GarageHomeScreen({super.key});
 
+  /// Entry-point gate (§8.3 / §2): over-cap users never reach the form —
+  /// the "+" is hidden and the add card degrades to the upsell caption.
+  /// A null gate (hydrating) still navigates: the form's save re-checks
+  /// and denies (deny-by-default lives at the create itself).
+  void _openAddVehicle(BuildContext context, WidgetRef ref) {
+    final gate = ref.read(featureGateProvider);
+    if (gate != null && !gate.canCreateVehicle) {
+      final s = AppLocalizations.of(context)!;
+      unawaited(
+        showDcoErrorDialog(
+          context,
+          title: s.planLimitTitle,
+          message: gate.vehicleBlockMessage(s),
+        ),
+      );
+      return;
+    }
+    context.push(AppRoutes.vehicleNew);
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final s = AppLocalizations.of(context)!;
@@ -27,16 +49,19 @@ class GarageHomeScreen extends ConsumerWidget {
     final active = ref.watch(activeVehicleProvider).valueOrNull;
     final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
     final lengthUnit = ref.watch(lengthUnitProvider);
+    final gate = ref.watch(featureGateProvider);
+    final canAddVehicle = gate?.canCreateVehicle ?? true;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(s.garageMyGarage),
         actions: [
-          IconButton(
-            tooltip: s.garageRegisterTooltip,
-            onPressed: () => context.push(AppRoutes.vehicleNew),
-            icon: Icon(Icons.add, color: tokens.icon.active),
-          ),
+          if (canAddVehicle)
+            IconButton(
+              tooltip: s.garageRegisterTooltip,
+              onPressed: () => _openAddVehicle(context, ref),
+              icon: Icon(Icons.add, color: tokens.icon.active),
+            ),
         ],
       ),
       body: vehicles.when(
@@ -48,7 +73,7 @@ class GarageHomeScreen extends ConsumerWidget {
               title: s.garageEmptyTitle,
               body: s.garageEmptyBody,
               actionLabel: s.garageRegisterTooltip,
-              onAction: () => context.push(AppRoutes.vehicleNew),
+              onAction: () => _openAddVehicle(context, ref),
             );
           }
           return ListView(
@@ -148,7 +173,9 @@ class GarageHomeScreen extends ConsumerWidget {
                 color: tokens.background.card,
                 borderRadius: BorderRadius.circular(tokens.radius.md),
                 child: InkWell(
-                  onTap: () => context.push(AppRoutes.vehicleNew),
+                  onTap: canAddVehicle
+                      ? () => _openAddVehicle(context, ref)
+                      : null,
                   borderRadius: BorderRadius.circular(tokens.radius.md),
                   child: Padding(
                     padding: EdgeInsets.all(tokens.space.s4),
@@ -160,7 +187,9 @@ class GarageHomeScreen extends ConsumerWidget {
                         ),
                         SizedBox(height: tokens.space.s2),
                         Text(
-                          s.garageAddCardSubtitle,
+                          canAddVehicle
+                              ? s.garageAddCardSubtitle
+                              : gate!.vehicleBlockMessage(s),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],

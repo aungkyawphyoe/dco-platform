@@ -65,9 +65,12 @@ String urgencyTone(String urgency) => switch (urgency) {
 };
 
 class SectionHeader extends StatelessWidget {
-  const SectionHeader(this.title, {super.key});
+  const SectionHeader(this.title, {super.key, this.action});
 
   final String title;
+
+  /// Optional trailing widget — e.g. the driver Dashboard's "Reports" entry.
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -77,12 +80,19 @@ class SectionHeader extends StatelessWidget {
         top: tokens.space.s4,
         bottom: tokens.space.s2,
       ),
-      child: Text(
-        title,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-          color: tokens.text.secondary,
-          fontWeight: FontWeight.w600,
-        ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: tokens.text.secondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+          ?action,
+        ],
       ),
     );
   }

@@ -114,9 +114,9 @@ class AppDrawer extends ConsumerWidget {
                       onTap: () =>
                           _navigate(context, AppRoutes.vehicleShareJoin),
                     ),
-                    // Fleet management lives on the Fleet Portal. Drivers'
-                    // restricted surface (My Vehicle / My Reports) replaces the
-                    // tab shell — there is no mobile Fleet entry.
+                    // Fleet management lives on the Fleet Portal. Driver mode
+                    // uses the personal four-tab shell — there is no mobile
+                    // Fleet entry.
                   ],
                 ),
               ),

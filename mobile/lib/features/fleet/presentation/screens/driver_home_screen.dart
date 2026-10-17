@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fleet/presentation/widgets/driver_quick_actions.dart';
@@ -6,6 +7,7 @@ import 'package:dco_mobile/features/fleet/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Driver Garage tab: the assigned vehicle + Quick Actions (read-only).
 ///
@@ -69,7 +71,13 @@ class DriverHomeScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                SectionHeader(s.dashboardQuickActions),
+                SectionHeader(
+                  s.dashboardQuickActions,
+                  action: TextButton(
+                    onPressed: () => context.push(AppRoutes.driverReports),
+                    child: Text(s.driverReportsTitle),
+                  ),
+                ),
                 const DriverQuickActions(),
               ],
             );

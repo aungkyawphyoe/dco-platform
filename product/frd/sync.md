@@ -8,7 +8,7 @@ Sync is not "cloud backup" as a user-facing product. There is no separate backup
 
 Source of truth for scope: `product/mvp-scope.md`.
 
-**As built (17 Sep 2026): Done (core).** Outbox → push → media → pull. Documents sync outbox wired. Settings still shows a hardcoded idle line. Status index: `product/frd/README.md`.
+**As built (17 Sep 2026; sync screen refreshed 17 Oct 2026): Done (core).** Outbox → push → media → pull. Documents sync outbox wired. Live status lives in drawer → Sync status (bound to `SyncEngine`); there is no Settings sync row. Status index: `product/frd/README.md`.
 
 ---
 

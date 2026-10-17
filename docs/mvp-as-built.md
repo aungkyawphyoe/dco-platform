@@ -3,13 +3,13 @@
 **Product:** AutoX  
 **Audience:** Stakeholders, product, engineering  
 **Status:** Working implementation, production-ready  
-**As of:** 16 September 2026  
+**As of:** 17 October 2026  
 **Scope contract:** [`product/mvp-scope.md`](../product/mvp-scope.md)  
 **FRD as-built index:** [`product/frd/README.md`](../product/frd/README.md)
 
 This guide describes **what the codebase actually does today**. It is not a restatement of the FRDs. Where the running software is thinner than the Phase 1 contract, that gap is called out explicitly.
 
-**Next to implement:** mobile documents vault (API already exists). Do not add Autozis modules (trips, insurance policies, OCR, assistant, PDF, fuel *efficiency*) to close MVP.
+**Next to implement:** billing/payment slice (`product/production-scope.md`), auth live provider rollout (`docs/auth-provider-setup.md`), and the Workshop Portal (Phase 3). Do not add Autozis modules (trips, insurance policies, OCR, assistant, PDF, fuel *efficiency*) to close MVP.
 
 ---
 
@@ -52,20 +52,20 @@ Honest snapshot against the Phase 1 contract.
 | Fuel logs | **Done** | Refuel vs charge by vehicle fuel type; owner-defined fuel types. Hybrid plugin is **Refuel only** (no charge log). |
 | Expenses | **Done** | Categories, summaries, receipts (local photo), assign parts |
 | Documents (API) | **Done** | CRUD + media attach on the server |
-| Documents (mobile) | **Placeholder** | Empty screen only — no Drift table, no upload UI. **Next owner-app slice.** |
+| Documents (mobile) | **Done** | Full vault: Drift table, CRUD, upload/viewer, sync outbox. |
 | Insurance screen | **Placeholder** | Explicitly deferred; copy points to Documents |
 | Sync engine | **Done (core)** | Outbox → push → media upload → pull. Mileage max-wins; archive wins |
 | In-app notification feed | **Done** (local) | Local rows + status (done/dismiss). OS local reminders via `flutter_local_notifications` |
-| Settings | **Partial** | Units work. Language preference stored; UI still English. Plan label hardcoded. Sync line hardcoded `idle`. No Settings FRD. |
-| Family Sharing | **Done** | Family create/join, member management (primary_owner/member/driver), vehicle grants, driving licenses, share codes, QR invites. Mobile + API + Web (read-only dashboard). |
-| Web admin | **Done** | Login BFF, dashboard, users, partners, organizations (create Enterprise org in `pending` + link/invite Org Admin, list/filter, edit details, activate/suspend/archive, resend invite), family dashboard (Primary Owner read-only). `sync_errors_24h` always `0`. |
+| Settings | **Partial** | Units work. Language switches the UI between English and Myanmar (a few strings untranslated). Non-free plans show a star badge on the avatar — there is no plan label. No Settings FRD; sync status lives in drawer → Sync status. |
+| Family Sharing | **Superseded** | Replaced by **Vehicle Sharing** (per-vehicle shares via Code/QR or email, `view` / `add_edit_own`, plan caps) — `product/frd/vehicle-sharing.md`; no family-sharing code remains in `mobile/`. |
+| Web admin | **Done** | Login BFF, dashboard, users, partners, organizations (create Enterprise org in `pending` + provision Org Admin with a temporary password — invite email retired for new orgs, resend is legacy-pending only — list/filter, edit details, activate/suspend/archive), family dashboard (Primary Owner read-only). `sync_errors_24h` always `0`. |
 | Fleet portal | **Done** | Separate Next.js app (`fleet-portal/`): `surface: "fleet"` BFF login (`dco-fleet`), dashboard analytics + lemon flags, vehicle inventory + CSV import, work orders, inspection templates/history, driver assignments, members, workshops, warranty templates, transferred audit, CSV reports, org settings (lemon threshold). Workshop Portal remains out of this surface. |
-| Fleet mobile modes | **Partial → Driver-only (Oct 2026)** | Mobile fleet surface reduced to the restricted **Driver mode** (as built: my vehicle, my reports, shift start/end, issue reporting, fuel log, template inspections; forced on `org_driver` login — no mode toggle, no personal garage). **Pending realignment (Oct 2026, second grilling — `product/frd/fleet-management.md` Driver Surface Decisions 15–24):** personal-parity four tabs, Dashboard quick actions (Report Issue · Start Inspection · Refuel · Notes), Register service with Report \| Do myself, pushed Reports screen, read-only Garage, fuel-only Expenses, shift screens **removed** (log-driven mileage), personal-garage routes server-denied. Fleet hub, Personal/Fleet mode switch, org management, inventory + CSV import + transfers, work-order resolve, reports/analytics, assignments, and warranty templates were **removed from mobile** — fleet management is Fleet Portal only, and management API routes require the `dco-fleet` audience. Non-driver org members keep mobile login for the personal garage. Online-first (no Drift tables). Workshop mobile screen not implemented. |
+| Fleet mobile modes | **Done (Oct 2026 realignment)** | Mobile fleet surface is the restricted **Driver mode**, forced on `org_driver` login (no mode toggle, no personal garage) — implemented per `product/frd/fleet-management.md` Driver Surface Decisions 15–24: personal-parity four tabs, Dashboard quick actions (Report Issue · Start Inspection · Refuel · Notes), Register service with Report \| Do myself, pushed Reports screen, read-only Garage, fuel-only Expenses, shift screens **removed** (log-driven mileage), personal-garage routes server-denied. Fleet hub, Personal/Fleet mode switch, org management, inventory + CSV import + transfers, work-order resolve, reports/analytics, assignments, and warranty templates were **removed from mobile** — fleet management is Fleet Portal only, and management API routes require the `dco-fleet` audience. Non-driver org members keep mobile login for the personal garage. Online-first (no Drift tables). Workshop mobile screen not implemented. |
 | Azure | **Deployable, not deployed** | `azure.yaml` + Bicep for the **API** only. Web is not wired. |
 | Monetization | **Tier field migrated** | `plan` is `free`/`lite`/`standard`/`fleet` (4-tier, `docs/pricing.md`); share and vehicle-count caps enforced server-side (`403 LIMIT_EXCEEDED`, `architecture/feature-gating.md` §9); offline license issued at `GET /v1/me/license` with local mobile gating |
-| Analytics | **Debug only** | `debugPrint` in debug builds. Extra events exist; `document_uploaded`, `sync_completed`, `sync_failed` are **not** tracked |
+| Analytics | **Debug only** | `debugPrint` in debug builds. Event set exceeds the MVP list (incl. `document_uploaded`); `sync_completed` and `sync_failed` are **not defined** — an MVP analytics contract gap |
 
-**Pending Fleet alignment (Oct 2026 — specified in `product/frd/fleet-management.md`, not yet in the code above):** username-based driver accounts (email optional on `users`, login accepts email or username), Fleet Admin driver create/deactivate (soft delete with assignment cascade, reserved usernames), temp-password Fleet Admin provisioning (no invite email for new orgs), role-gated Fleet Portal sidebar (admin full / manager+mechanic reduced / driver no portal login), forced Driver mode + forced first-login password change (`must_change_password`). Rows above still describe today's as-built behavior until these land.
+**Fleet alignment (Oct 2026 — implemented):** driver accounts are created on the Fleet Portal Members page by email (409 `personal_account_exists` for held emails), login accepts email **or** username (`users.username` NOT NULL backfilled, `users.email` nullable), Fleet Admin driver create/deactivate (soft delete: assignments cascaded, tokens revoked, username retained), temp-password Fleet Admin provisioning (no invite email for new orgs; resend is legacy-pending only), role-gated Fleet Portal sidebar (admin full / manager+mechanic reduced / driver rejected at portal login with 403 `portal_access_restricted`), forced Driver mode + forced first-login password change (`must_change_password` → 403 `password_change_required`).
 
 ---
 
@@ -81,7 +81,7 @@ Unauthenticated routes: Welcome, Login, Signup, Forgot password.
 - Release builds never mock. Tokens live in Keychain/Keystore.
 - Unverified email shows a banner on Dashboard with **Resend**.
 
-Auth itself is **online-only**. After a session exists, garage/maintenance/expenses/fuel work without a network. Documents cannot yet, because there is no local documents table.
+Auth itself is **online-only**. After a session exists, garage/maintenance/expenses/fuel work without a network. Documents work offline too (Drift table + sync outbox).
 
 ### 4.2 Navigation
 
@@ -151,16 +151,16 @@ Owner-defined catalog per vehicle (name, optional brand, part number, notes). At
 
 **Documents:** empty state only (“No documents yet”). Upload, categories, and viewer are not implemented on mobile even though the API supports them. This is the largest hole against the Phase 1 contract (Goal 1: digitize vehicle documents).
 
-**Insurance:** placeholder (“Insurance coming later”). Store papers in Documents when that vault ships. No policy module in MVP by design.
+**Insurance:** placeholder (“Insurance coming later”). Store papers in Documents (vault is live). No policy module in MVP by design.
 
 ### 4.10 Settings and notifications
 
-- Email, hardcoded **Free Plan** label (does not read `users.plan`), mock vs live hint
-- Localization: English / Myanmar (preference stored locally; UI strings are still English)
+- Email, star badge on the avatar for non-free plans (no plan label — `settingsFreePlan` was a dead key), mock vs live hint
+- Localization: English / Myanmar (preference stored locally; the UI renders in the chosen language — a few strings untranslated)
 - Units: USD/MMK and mi/km — these **do** affect displayed mileage and money
 - Sign out discards tokens; outbox stays bound to `user_id`
-- When not mocking, Settings still shows **Sync status: idle** as static copy, not the sync engine phase
-- Notification feed: list, mark done, dismiss, restore. Local OS reminders fire when a plan item is within 7 days or 100 km / 60 mi (`flutter_local_notifications`). No server-side push.
+- Sync status lives in drawer → Sync status, bound to `SyncEngine`; Settings has no sync row
+- Notification feed: list, mark done, dismiss, restore. Local OS reminders fire when a plan item enters the configurable soon window (default 30 days / 500 km, Settings → Reminders; `flutter_local_notifications`). No server-side push.
 
 ### 4.11 Offline and sync (owner)
 
@@ -169,9 +169,9 @@ Owner-defined catalog per vehicle (name, optional brand, part number, notes). At
 3. Sync: cold start after auth, reconnect, ~1s debounce after write, manual retry from a sync-error dialog.
 4. Push operations, then pending media bytes, then pull the change log.
 5. Mileage conflict: `max(local, remote)`; never decrease. Archive wins over a later edit.
-6. Sync status is informational and must not block navigation. The Settings row does not yet bind to `SyncEngine` state.
+6. Sync status is informational and must not block navigation. Live status lives in drawer → Sync status, bound to `SyncEngine` (there is no Settings sync row).
 7. Client UUIDs make creates idempotent.
-8. Document entities are on the server change log but have no mobile outbox path until the vault exists.
+8. Document entities are on the server change log and have a mobile outbox path (documents vault).
 
 ---
 

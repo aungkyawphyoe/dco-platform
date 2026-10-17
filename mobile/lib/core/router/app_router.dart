@@ -25,6 +25,7 @@ import '../../features/fleet/presentation/screens/driver_inspection_screen.dart'
 import '../../features/fleet/presentation/screens/driver_maintenance_plan_screen.dart';
 import '../../features/fleet/presentation/screens/driver_register_service_screen.dart';
 import '../../features/fleet/presentation/screens/driver_report_issue_screen.dart';
+import '../../features/fleet/presentation/screens/driver_reports_screen.dart';
 import '../../features/fleet/presentation/screens/driver_suggested_plan_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
 import '../../features/fuel/presentation/screens/fuel_log_detail_screen.dart';
@@ -81,7 +82,8 @@ bool _isDriverRoute(String location) {
       location.startsWith(AppRoutes.driverFuelLog) ||
       location.startsWith(AppRoutes.driverInspectionNew) ||
       location.startsWith(AppRoutes.driverMaintenancePlan) ||
-      location.startsWith(AppRoutes.driverRegisterService);
+      location.startsWith(AppRoutes.driverRegisterService) ||
+      location.startsWith(AppRoutes.driverReports);
 }
 
 final goRouterProvider = Provider<GoRouter>((ref) {
@@ -582,6 +584,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => DriverRegisterServiceScreen(
           initialPlanItemId: state.uri.queryParameters['plan'],
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.driverReports,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const DriverReportsScreen(),
       ),
 
       // Detail screens

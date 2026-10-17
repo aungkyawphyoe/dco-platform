@@ -36,7 +36,7 @@ These personas exist in `docs/vision.md` and `docs/personas.md`. They are **not*
 
 | Persona | Tenant | JWT `aud` | App | Status |
 |---------|---------------|------------------|-----|--------|
-| Fleet operator | org (`taxi_fleet`, `rental`, `commercial`) | `dco-fleet` on portal (management); `dco-owner` in Flutter (drivers only) | Fleet Portal (management) + Flutter (Driver surface) | Backend foundation implemented. Roles: `org_admin`, `org_manager`, `org_mechanic`, `org_driver`. Management routes require `dco-fleet`; mobile serves personal garage + Driver surface (personal-parity four tabs, Oct 2026 second grilling). Oct 2026 alignment (email-based Members driver creation with personal-account rejection, role-gated portal sidebar, temp-password admin provisioning) specified, pending implementation. |
+| Fleet operator | org (`taxi_fleet`, `rental`, `commercial`) | `dco-fleet` on portal (management); `dco-owner` in Flutter (drivers only) | Fleet Portal (management) + Flutter (Driver surface) | Backend foundation implemented. Roles: `org_admin`, `org_manager`, `org_mechanic`, `org_driver`. Management routes require `dco-fleet`; mobile serves personal garage + Driver surface (personal-parity four tabs, Oct 2026 second grilling). Oct 2026 alignment (email-based Members driver creation with personal-account rejection, role-gated portal sidebar, temp-password admin provisioning) implemented Oct 2026 (Members driver creation by email with personal-account rejection, role-gated portal sidebar, temp-password admin provisioning). |
 | Dealership | org `type=dealership` or `showroom` | Same audiences as Fleet | Fleet-shaped portal + Flutter | Same access model as fleet, not a separate product. |
 | Workshop staff | verified workshop partner | `dco-workshop` | Web Workshop Portal | Backend account link and active-warranty service logging implemented; portal and booking remain pending. |
 | Insurance agent | partner tenant | `dco-insurer` | Web Insurance Portal | Not implemented. Policy/claims modules still out. |
@@ -51,7 +51,7 @@ Fleet and verified-workshop REST/auth/schema foundations are implemented. Fleet/
 4. Change-log cursor stays per acting `user_id`; full offline Fleet sync remains to be completed.
 5. Entra External ID remains an option for B2B tenants; current backend uses the existing password JWT flow (email **or username** identifier after the Oct 2026 alignment).
 
-### Identity alignment (Oct 2026 — specified, pending implementation)
+### Identity alignment (Oct 2026 — implemented)
 
 - `users.username`: globally unique, NOT NULL after backfill (derived from email local part; collisions suffixed). `users.email` becomes nullable — Postgres UNIQUE already permits multiple NULLs, so customer signup (email required at the API) and email login are unchanged.
 - Login accepts **email or username** in a single identifier field; forgot-password remains email-only — driver accounts are email-bearing (created via Members), so standard email recovery applies to them.

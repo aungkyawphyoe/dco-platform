@@ -1611,9 +1611,6 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsTitle => 'ပြင်ဆင်ချက်များ';
 
   @override
-  String get settingsFreePlan => 'အခမဲ့ အစီအစဉ်';
-
-  @override
   String get settingsManageVehicles => 'ယာဉ်များကို စီမံခန့်ခွဲမည်';
 
   @override
@@ -1647,13 +1644,7 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get settingsSyncSection => 'ဒေတာ ချိတ်ဆက်မှု';
-
-  @override
   String get settingsSignOut => 'အကောင့်မှ ထွက်မည်';
-
-  @override
-  String get settingsSyncNow => 'ယခု ဒေတာ ချိတ်ဆက်မည်';
 
   @override
   String get settingsSyncStatusFailed => 'ဒေတာ ချိတ်ဆက်မှု မအောင်မြင်ပါ';
@@ -2952,10 +2943,19 @@ class AppLocalizationsMy extends AppLocalizations {
   String get driverFuelLogged => 'လောင်စာ မှတ်ပြီးပါပြီ';
 
   @override
+  String get driverReportsTitle => 'အစီရင်ခံစာများ';
+
+  @override
   String get driverReportsWorkOrders => 'အလုပ်အမှာစာများ';
 
   @override
   String get driverReportsInspections => 'စစ်ဆေးမှုများ';
+
+  @override
+  String get driverReportsInspectionPassed => 'အောင်မြင်သည်';
+
+  @override
+  String get driverReportsInspectionFailed => 'မအောင်မြင်ပါ';
 
   @override
   String get driverMyWorkOrdersEmpty => 'တင်ပြချက် မရှိသေးပါ';

@@ -16,7 +16,7 @@ Superseded FRDs move to [`archive/`](archive/).
 
 **As-built** (what the code does today) lives in [`docs/mvp-as-built.md`](../../docs/mvp-as-built.md). The status column below is that snapshot against each FRD. Do not re-implement a **Done** module. Do not treat Autozis sidebar items as backlog.
 
-**As of:** 17 September 2026.
+**As of:** 17 October 2026.
 
 ---
 
@@ -35,23 +35,23 @@ Superseded FRDs move to [`archive/`](archive/).
 
 | Module | File | Surface | As built | Notes |
 |--------|------|---------|----------|-------|
-| Dashboard | [dashboard.md](dashboard.md) | Mobile (default after login) | **Done** | Spend is expenses-only. Insurance quick action is a placeholder. Documents quick action opens an empty screen. |
-| Garage | [garage.md](garage.md) | Mobile + API | **Done** | Un-archive is not in the UI. Freemium one-vehicle cap is not enforced. |
+| Dashboard | [dashboard.md](dashboard.md) | Mobile (default after login) | **Done** | Spend is expenses-only. No Insurance/Documents quick actions — Insurance is deferred Autozis; Documents is reached from Expenses and vehicle flows. |
+| Garage | [garage.md](garage.md) | Mobile + API | **Done** | Un-archive is not in the UI. One-vehicle free cap enforced server-side (403 `LIMIT_EXCEEDED`) and locally: the license gate hides the Garage "+" / add-card at cap (upsell copy) and denies create at the form save. |
 | Auth | [auth.md](auth.md) | Mobile + API | **Partial** | Email/password baseline exists. October code implemented: onboarding, Google/Apple on both platforms, code verification, linking, and recovery. Live setup/device acceptance pending. See [implementation plan](../../docs/onboarding-auth-implementation.md). |
 | Maintenance | [maintenance.md](maintenance.md) | Mobile + API | **Done** | Plan, suggested catalog, register service, history. OS local reminders are owned by [notifications.md](notifications.md). |
 | Documents | [documents.md](documents.md) | Mobile + API | **Done** | Full vault: Drift table, CRUD, upload/viewer, sync outbox. |
 | Expenses | [expenses.md](expenses.md) | Mobile + API | **Done** | Categories, summaries, receipt photo, assign parts. |
-| Sync | [sync.md](sync.md) | Mobile + API | **Done** (core) | Outbox → push → media → pull. Documents sync outbox wired. Settings still shows a hardcoded idle line. |
-| Notifications | [notifications.md](notifications.md) | Mobile + API | **Done** (local) | OS local reminders (`flutter_local_notifications`) at 7 days / 100 km / 60 mi. In-app feed. No remote FCM/APNs. Device-token register exists on the API. |
+| Sync | [sync.md](sync.md) | Mobile + API | **Done** (core) | Outbox → push → media → pull. Documents sync outbox wired. Live status in drawer → Sync status (bound to `SyncEngine`); no Settings sync row. |
+| Notifications | [notifications.md](notifications.md) | Mobile + API | **Done** (local) | OS local reminders (`flutter_local_notifications`), user-configurable thresholds (default 30 days / 500 km). In-app feed. No remote FCM/APNs. Device-token register exists on the API. |
 | Parts | [parts.md](parts.md) | Mobile + API | **Done** | Per-vehicle catalog; assign on service and expense. |
 | Fuel | [fuel.md](fuel.md) | Mobile + API | **Done** | Logs + Fuel Types. `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. Optional odometer + economy KPIs live in [stats.md](stats.md). |
-| Stats | [stats.md](stats.md) | Mobile | **Placeholder** | Routes + drawer entries exist; KPIs, charts, filters, and the optional fuel-log odometer are unbuilt. Local Drift aggregation, no stats API. |
+| Stats | [stats.md](stats.md) | Mobile | **Done** | KPIs, charts, period filters (local Drift aggregation, no stats API); optional fuel-log odometer feeds distance/consumption KPIs. |
 | Admin | [admin.md](admin.md) | Web portal + API | **Done** | Login BFF, users, partners. `sync_errors_24h` is always `0`. No web test suite. |
 | Vehicle Sharing | [vehicle-sharing.md](vehicle-sharing.md) | Mobile + API + Web | **Done** | Per-vehicle shares via Code/QR or email, `view` \| `add_edit_own`, plan limits, share management screen, Shared with Me, owner shares page. Replaces Family Sharing (archived in [archive/family-sharing.md](archive/family-sharing.md)). Billing out of scope. |
-| User Profile & Account Management | [user-profile.md](user-profile.md) | Mobile + API + Web Admin | **Planned** | Post-signup profile completion (photo, name, phone, address), user-initiated account deletion, admin user creation with temp passwords, admin user deletion. |
-| Fleet Management | [fleet-management.md](fleet-management.md) | Mobile + Fleet Dashboard + Web Admin + API | **Partial** | Backend implemented: org provisioning/activation, roles, inventory + CSV, driver assignments, work orders, inspections, analytics, warranty templates, transfer, approved workshops, workshop accounts (`dco-workshop`), workshop warranty service. Fleet Dashboard implemented as separate Next.js app in `fleet-portal/` (`dco-fleet` BFF session). Surfaces still missing: Workshop Portal. Mobile Fleet/Driver modes are implemented in `mobile/`. Web Admin (`admin.yourdomain.com`) handles user management, org provisioning, partner records, and read-only fleet support. **Oct 2026 alignment (username driver accounts, role-gated portal sidebar, temp-password Fleet Admin provisioning, forced Driver mode) is specified in the FRD but not yet implemented — see its "Requirement alignment" note.** |
+| User Profile & Account Management | [user-profile.md](user-profile.md) | Mobile + API + Web Admin | **Done** | Profile fields + photo, Dashboard completion banner, Settings profile edit, account deletion (vehicles archived, shares revoked), admin create with temp password, admin deactivate/reactivate, admin user detail with phone/address. Gap: admin create accepts only display name — phone/address are edited on user detail. |
+| Fleet Management | [fleet-management.md](fleet-management.md) | Mobile + Fleet Dashboard + Web Admin + API | **Partial** | Backend implemented: org provisioning/activation, roles, inventory + CSV, driver assignments, work orders, inspections, analytics, warranty templates, transfer, approved workshops, workshop accounts (`dco-workshop`), workshop warranty service. Fleet Dashboard implemented as separate Next.js app in `fleet-portal/` (`dco-fleet` BFF session). Surfaces still missing: Workshop Portal. Mobile Fleet/Driver modes are implemented in `mobile/`. Web Admin (`admin.yourdomain.com`) handles user management, org provisioning, partner records, and read-only fleet support. **Oct 2026 alignment (email-based driver accounts via Members, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) is implemented — see its "Requirement alignment" note.** |
 
-There is **no Settings FRD**. Localization (English/Myanmar preference, UI still English) and units (USD/MMK, mi/km) live in the owner app Settings tab. See [`docs/mvp-as-built.md`](../../docs/mvp-as-built.md) §4.10.
+There is **no Settings FRD**. Localization (English/Myanmar — the UI renders in either, a few strings untranslated) and units (USD/MMK, mi/km) live in the owner app Settings tab. See [`docs/mvp-as-built.md`](../../docs/mvp-as-built.md) §4.10.
 
 Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `docs/app-shell.md`. API: `architecture/openapi.yaml`.
 
@@ -59,11 +59,11 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 
 ## Next implementation
 
-MVP core functionality is shipped. Current follow-ups include User Profile & Account Management. Fleet backend (organizations, inventory, warranty, transfer, approved workshops, workshop accounts), the Fleet Portal (`fleet-portal/`), and mobile Fleet/Driver modes are implemented; the Workshop Portal remains a planned surface. The **Oct 2026 Fleet alignment** (username-based driver accounts, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) is pending implementation — tracked in `fleet-management.md` § Requirement alignment.
+MVP core functionality is shipped. Fleet backend (organizations, inventory, warranty, transfer, approved workshops, workshop accounts), the Fleet Portal (`fleet-portal/`), mobile Fleet/Driver modes, User Profile & Account Management, and the Stats module are implemented; the Workshop Portal remains a planned surface. The **Oct 2026 Fleet alignment** (email-based driver accounts via Members, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) is implemented — see `fleet-management.md` § Requirement alignment.
 
-**Next:** User Profile & Account Management (`user-profile.md`) — Post-signup profile completion, account deletion, admin user creation.
+**Next:** billing/payment slice (`product/production-scope.md` — plans are admin-managed today, no in-app purchase) and the auth live rollout (real Google/Apple providers, email delivery, device acceptance — `docs/auth-provider-setup.md`).
 
-**Phase 3 (Year 2):** Fleet Management (`fleet-management.md`) — Organizations, vehicle inventory, warranty, ownership transfer, workshops.
+**Phase 3 (Year 2):** Workshop Portal (`fleet-management.md`) — the last missing Fleet surface; workshop accounts and the `dco-workshop` audience already exist on the API.
 
 Do not pull Autozis modules (trips, insurance policies, OCR, assistant, PDF) into these FRDs. Fuel *efficiency* KPIs belong only in [stats.md](stats.md) — never on Dashboard, Garage, or the Fuel module itself.
 
