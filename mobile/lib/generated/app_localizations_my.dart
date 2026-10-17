@@ -2952,10 +2952,19 @@ class AppLocalizationsMy extends AppLocalizations {
   String get driverFuelLogged => 'လောင်စာ မှတ်ပြီးပါပြီ';
 
   @override
+  String get driverReportsTitle => 'အစီရင်ခံစာများ';
+
+  @override
   String get driverReportsWorkOrders => 'အလုပ်အမှာစာများ';
 
   @override
   String get driverReportsInspections => 'စစ်ဆေးမှုများ';
+
+  @override
+  String get driverReportsInspectionPassed => 'အောင်မြင်သည်';
+
+  @override
+  String get driverReportsInspectionFailed => 'မအောင်မြင်ပါ';
 
   @override
   String get driverMyWorkOrdersEmpty => 'တင်ပြချက် မရှိသေးပါ';

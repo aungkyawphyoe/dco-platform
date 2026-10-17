@@ -2923,10 +2923,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get driverFuelLogged => 'Fuel logged';
 
   @override
+  String get driverReportsTitle => 'Reports';
+
+  @override
   String get driverReportsWorkOrders => 'Work orders';
 
   @override
   String get driverReportsInspections => 'Inspections';
+
+  @override
+  String get driverReportsInspectionPassed => 'Passed';
+
+  @override
+  String get driverReportsInspectionFailed => 'Failed';
 
   @override
   String get driverMyWorkOrdersEmpty => 'No reports yet';

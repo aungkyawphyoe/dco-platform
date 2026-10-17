@@ -5592,6 +5592,12 @@ abstract class AppLocalizations {
   /// **'Fuel logged'**
   String get driverFuelLogged;
 
+  /// No description provided for @driverReportsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Reports'**
+  String get driverReportsTitle;
+
   /// No description provided for @driverReportsWorkOrders.
   ///
   /// In en, this message translates to:
@@ -5603,6 +5609,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Inspections'**
   String get driverReportsInspections;
+
+  /// No description provided for @driverReportsInspectionPassed.
+  ///
+  /// In en, this message translates to:
+  /// **'Passed'**
+  String get driverReportsInspectionPassed;
+
+  /// No description provided for @driverReportsInspectionFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get driverReportsInspectionFailed;
 
   /// No description provided for @driverMyWorkOrdersEmpty.
   ///
