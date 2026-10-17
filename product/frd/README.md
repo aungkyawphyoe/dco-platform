@@ -59,7 +59,7 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 
 ## Next implementation
 
-MVP core functionality is shipped. Current follow-ups include User Profile & Account Management. Fleet backend (organizations, inventory, warranty, transfer, approved workshops, workshop accounts), the Fleet Portal (`fleet-portal/`), and mobile Fleet/Driver modes are implemented; the Workshop Portal remains a planned surface. The **Oct 2026 Fleet alignment** (username-based driver accounts, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) is pending implementation — tracked in `fleet-management.md` § Requirement alignment.
+MVP core functionality is shipped. Current follow-ups include User Profile & Account Management. Fleet backend (organizations, inventory, warranty, transfer, approved workshops, workshop accounts), the Fleet Portal (`fleet-portal/`), and mobile Fleet/Driver modes are implemented; the Workshop Portal remains a planned surface. The **Oct 2026 Fleet alignment** (username-based driver accounts, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) is implemented (members by email with personal-account rejection, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) — see `fleet-management.md` § Requirement alignment.
 
 **Next:** User Profile & Account Management (`user-profile.md`) — Post-signup profile completion, account deletion, admin user creation.
 

@@ -7040,7 +7040,7 @@ export interface components {
             id: string;
             /** @description Globally unique login identifier (backfilled from email local part for pre-existing accounts) */
             username: string;
-            /** @description Nullable — driver accounts created by a Fleet Admin are username-only */
+            /** @description Nullable at the schema level (Postgres UNIQUE permits multiple NULLs). Every current creation path requires an email — customer signup, AutoX-admin provisioning, and Fleet Members driver creation (drivers are email-bearing; login accepts email or username). */
             email?: string | null;
             display_name?: string | null;
             role: components["schemas"]["Role"];
