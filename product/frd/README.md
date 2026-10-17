@@ -36,7 +36,7 @@ Superseded FRDs move to [`archive/`](archive/).
 | Module | File | Surface | As built | Notes |
 |--------|------|---------|----------|-------|
 | Dashboard | [dashboard.md](dashboard.md) | Mobile (default after login) | **Done** | Spend is expenses-only. No Insurance/Documents quick actions — Insurance is deferred Autozis; Documents is reached from Expenses and vehicle flows. |
-| Garage | [garage.md](garage.md) | Mobile + API | **Done** | Un-archive is not in the UI. One-vehicle free cap enforced server-side (403 `LIMIT_EXCEEDED`); the local license gate parses the claim but no feature yet hides entry points from it. |
+| Garage | [garage.md](garage.md) | Mobile + API | **Done** | Un-archive is not in the UI. One-vehicle free cap enforced server-side (403 `LIMIT_EXCEEDED`) and locally: the license gate hides the Garage "+" / add-card at cap (upsell copy) and denies create at the form save. |
 | Auth | [auth.md](auth.md) | Mobile + API | **Partial** | Email/password baseline exists. October code implemented: onboarding, Google/Apple on both platforms, code verification, linking, and recovery. Live setup/device acceptance pending. See [implementation plan](../../docs/onboarding-auth-implementation.md). |
 | Maintenance | [maintenance.md](maintenance.md) | Mobile + API | **Done** | Plan, suggested catalog, register service, history. OS local reminders are owned by [notifications.md](notifications.md). |
 | Documents | [documents.md](documents.md) | Mobile + API | **Done** | Full vault: Drift table, CRUD, upload/viewer, sync outbox. |
