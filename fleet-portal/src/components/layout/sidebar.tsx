@@ -15,7 +15,7 @@ function getNavForRole(role: string | null) {
       section: "Fleet",
       items: [
         { href: "/vehicles", label: "Vehicles", exact: false },
-        { href: "/maintenance-templates", label: "Maintenance Templates", exact: false },
+        { href: "/maintenance-templates", label: "Maintenance Catalog", exact: false },
         { href: "/work-orders", label: "Work Orders", exact: false },
         { href: "/inspections", label: "Inspections", exact: false },
         { href: "/assignments", label: "Driver Assignments", exact: false },

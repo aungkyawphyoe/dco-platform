@@ -1609,11 +1609,16 @@ paths:
     get:
       tags: [Admin]
       summary: List platform-global maintenance catalog items (org copies excluded)
+      description: Items are sorted by vehicle class, then lifecycle, then sort order, then name.
       parameters:
         - in: query
           name: vehicle_class
           schema:
             $ref: '#/components/schemas/VehicleClass'
+        - in: query
+          name: fuel_type
+          schema:
+            $ref: '#/components/schemas/FuelType'
       responses:
         '200':
           description: Catalog items

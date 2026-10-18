@@ -38,9 +38,12 @@ import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
 
 type EditorMode = "new" | "copy" | "edit";
 
+type IntervalUnit = "day" | "month" | "year";
+
 type TemplateForm = {
   name: string;
-  interval_days: string;
+  interval_time: string;
+  interval_unit: IntervalUnit;
   interval_distance: string;
   fuel_types: FuelType[];
   vehicle_class: VehicleClass;
@@ -48,20 +51,44 @@ type TemplateForm = {
   enabled: boolean;
 };
 
+const INTERVAL_UNIT_OPTIONS: { value: IntervalUnit; label: string; days: number }[] = [
+  { value: "day", label: "Day(s)", days: 1 },
+  { value: "month", label: "Month(s)", days: 30 },
+  { value: "year", label: "Year(s)", days: 365 },
+];
+
+function daysToUnit(days: number | null): { value: number; unit: IntervalUnit } | null {
+  if (days == null) return null;
+  for (const opt of [...INTERVAL_UNIT_OPTIONS].reverse()) {
+    if (days % opt.days === 0) {
+      return { value: days / opt.days, unit: opt.value };
+    }
+  }
+  return { value: days, unit: "day" };
+}
+
+function unitToDays(value: number, unit: IntervalUnit): number {
+  const opt = INTERVAL_UNIT_OPTIONS.find((o) => o.value === unit);
+  return value * (opt?.days ?? 1);
+}
+
 const emptyForm: TemplateForm = {
   name: "",
-  interval_days: "",
+  interval_time: "",
+  interval_unit: "day",
   interval_distance: "",
-  fuel_types: ["petrol"],
+  fuel_types: ["petrol", "electric", "hybrid_plugin"],
   vehicle_class: "car",
   lifecycle_template: "",
   enabled: true,
 };
 
 function formFromTemplate(template: MaintenanceTemplate): TemplateForm {
+  const converted = daysToUnit(template.interval_days);
   return {
     name: template.name,
-    interval_days: template.interval_days != null ? String(template.interval_days) : "",
+    interval_time: converted ? String(converted.value) : "",
+    interval_unit: converted?.unit ?? "day",
     interval_distance:
       template.interval_distance != null ? String(template.interval_distance) : "",
     fuel_types: [...template.fuel_types],
@@ -84,12 +111,10 @@ export default function MaintenanceTemplatesPage() {
   const canManage = role === "org_admin" || role === "org_manager";
 
   const [classFilter, setClassFilter] = useState("");
-  const [lifecycleFilter, setLifecycleFilter] = useState("");
   const [fuelFilter, setFuelFilter] = useState("");
 
   const { data, isLoading } = useMaintenanceTemplates(orgId, {
     vehicle_class: classFilter || undefined,
-    lifecycle_template: lifecycleFilter || undefined,
     fuel_type: fuelFilter || undefined,
   });
 
@@ -123,6 +148,18 @@ export default function MaintenanceTemplatesPage() {
     setEditor({ mode: "edit", template: template });
   }
 
+  function findOrgCopy(source: MaintenanceTemplate) {
+    return templates.find(
+      (t) => t.source === "org" && t.name.trim().toLowerCase() === source.name.trim().toLowerCase(),
+    );
+  }
+
+  function openGlobalRowEdit(source: MaintenanceTemplate) {
+    const orgCopy = findOrgCopy(source);
+    if (orgCopy) openEdit(orgCopy);
+    else openCopy(source);
+  }
+
   function toggleFuel(fuel: FuelType) {
     setForm((prev) => {
       const next = prev.fuel_types.includes(fuel)
@@ -133,9 +170,10 @@ export default function MaintenanceTemplatesPage() {
   }
 
   function buildBody(): MaintenanceTemplateWrite {
+    const days = form.interval_time ? unitToDays(Number(form.interval_time), form.interval_unit) : null;
     return {
-      name: form.name.trim() || undefined,
-      interval_days: form.interval_days ? Number(form.interval_days) : null,
+      name: form.name.trim(),
+      interval_days: days,
       interval_distance: form.interval_distance ? Number(form.interval_distance) : null,
       fuel_types: form.fuel_types.length ? form.fuel_types : undefined,
       vehicle_class: form.vehicle_class,
@@ -147,12 +185,20 @@ export default function MaintenanceTemplatesPage() {
   async function onSubmitEditor() {
     if (!editor) return;
     setFormError(null);
-    if (!form.name.trim() && editor.mode !== "edit") {
-      setFormError("Name is required");
+    if (!form.name.trim()) {
+      setFormError("Name is required.");
+      return;
+    }
+    if (form.interval_time && parseInt(form.interval_time, 10) < 1) {
+      setFormError("Interval must be at least 1.");
+      return;
+    }
+    if (form.interval_distance && Number(form.interval_distance) < 1) {
+      setFormError("Distance must be at least 1.");
       return;
     }
     if (!form.fuel_types.length) {
-      setFormError("Select at least one fuel type");
+      setFormError("Select at least one fuel type.");
       return;
     }
     try {
@@ -184,14 +230,14 @@ export default function MaintenanceTemplatesPage() {
   }
 
   const editorTitle =
-    editor?.mode === "edit" ? "Edit org template" : editor?.mode === "copy" ? "Copy template" : "New template";
+    editor?.mode === "edit" ? "Edit catalog item" : "Add catalog item";
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Maintenance Templates"
-        description="Vehicle-class maintenance templates — platform defaults plus your organization's copies"
-        actions={canManage ? <Button onClick={openNew}>New template</Button> : null}
+        title="Maintenance Catalog"
+        description="Vehicle-class maintenance catalog — platform defaults plus your organization's copies"
+        actions={canManage ? <Button onClick={openNew}>Add item</Button> : null}
       />
 
       <div className="flex flex-wrap items-end gap-3">
@@ -204,17 +250,9 @@ export default function MaintenanceTemplatesPage() {
           className="w-44"
         />
         <Select
-          label="Lifecycle"
-          options={lifecycleTemplateOptions}
-          placeholder="All lifecycles"
-          value={lifecycleFilter}
-          onChange={setLifecycleFilter}
-          className="w-44"
-        />
-        <Select
-          label="Fuel"
+          label="Fuel type"
           options={fuelTypeOptions}
-          placeholder="All fuels"
+          placeholder="All fuel types"
           value={fuelFilter}
           onChange={setFuelFilter}
           className="w-44"
@@ -224,12 +262,12 @@ export default function MaintenanceTemplatesPage() {
       <Card>
         {isLoading ? (
           <div className="p-5">
-            <SkeletonTable rows={8} cols={7} />
+            <SkeletonTable rows={8} cols={canManage ? 8 : 7} />
           </div>
         ) : templates.length === 0 ? (
           <EmptyState
-            title="No templates"
-            description="No global or organization templates match these filters."
+            title="No catalog items"
+            description="No global or organization catalog items match these filters."
           />
         ) : (
           <Table>
@@ -257,10 +295,17 @@ export default function MaintenanceTemplatesPage() {
                       template.vehicle_class}
                   </TableCell>
                   <TableCell className="text-xs text-ink-muted">
-                    {template.lifecycle_template ?? "Any"}
+                    {lifecycleTemplateOptions.find((o) => o.value === template.lifecycle_template)
+                      ?.label ?? "Any"}
                   </TableCell>
-                  <TableCell className="text-xs text-ink-muted">
-                    {template.fuel_types.join(", ")}
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      {template.fuel_types.map((ft) => (
+                        <Badge key={ft} tone="neutral">
+                          {fuelTypeOptions.find((o) => o.value === ft)?.label ?? ft}
+                        </Badge>
+                      ))}
+                    </div>
                   </TableCell>
                   <TableCell className="text-xs text-ink-muted">{intervalLabel(template)}</TableCell>
                   <TableCell>
@@ -269,27 +314,29 @@ export default function MaintenanceTemplatesPage() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Badge tone={template.enabled ? "success" : "neutral"}>
-                      {template.enabled ? "Enabled" : "Disabled"}
+                    <Badge tone={template.enabled ? "success" : "danger"}>
+                      {template.enabled ? "Active" : "Disabled"}
                     </Badge>
                   </TableCell>
                   {canManage ? (
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
-                        {template.source === "global" ? (
-                          <Button size="sm" variant="secondary" onClick={() => openCopy(template)}>
-                            Copy
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() =>
+                            template.source === "global"
+                              ? openGlobalRowEdit(template)
+                              : openEdit(template)
+                          }
+                        >
+                          Edit
+                        </Button>
+                        {template.source === "org" ? (
+                          <Button size="sm" variant="destructive" onClick={() => setDeleteTarget(template)}>
+                            Delete
                           </Button>
-                        ) : (
-                          <>
-                            <Button size="sm" variant="secondary" onClick={() => openEdit(template)}>
-                              Edit
-                            </Button>
-                            <Button size="sm" variant="destructive" onClick={() => setDeleteTarget(template)}>
-                              Delete
-                            </Button>
-                          </>
-                        )}
+                        ) : null}
                       </div>
                     </TableCell>
                   ) : null}
@@ -313,23 +360,9 @@ export default function MaintenanceTemplatesPage() {
             label="Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
+            placeholder="e.g. Oil Change"
+            maxLength={80}
           />
-          <div className="grid grid-cols-2 gap-3">
-            <Input
-              label="Every (days)"
-              type="number"
-              placeholder="e.g. 365"
-              value={form.interval_days}
-              onChange={(e) => setForm({ ...form, interval_days: e.target.value })}
-            />
-            <Input
-              label="Every (km)"
-              type="number"
-              placeholder="e.g. 15000"
-              value={form.interval_distance}
-              onChange={(e) => setForm({ ...form, interval_distance: e.target.value })}
-            />
-          </div>
           <div className="grid grid-cols-2 gap-3">
             <Select
               label="Vehicle class"
@@ -340,7 +373,7 @@ export default function MaintenanceTemplatesPage() {
               }
             />
             <Select
-              label="Lifecycle (optional)"
+              label="Lifecycle"
               options={lifecycleTemplateOptions}
               placeholder="Any lifecycle"
               value={form.lifecycle_template}
@@ -350,7 +383,37 @@ export default function MaintenanceTemplatesPage() {
             />
           </div>
           <div>
-            <p className="pb-1.5 text-xs font-medium text-ink-caption">Fuel types</p>
+            <div className="flex gap-2">
+              <Input
+                label="Interval (time)"
+                type="number"
+                placeholder="e.g. 6"
+                min={1}
+                value={form.interval_time}
+                onChange={(e) => setForm({ ...form, interval_time: e.target.value })}
+              />
+              <Select
+                label="Unit"
+                options={INTERVAL_UNIT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                value={form.interval_unit}
+                onChange={(value) =>
+                  setForm({ ...form, interval_unit: value as IntervalUnit })
+                }
+                className="flex-1 min-w-[120px]"
+              />
+            </div>
+          </div>
+          <Input
+            label="Interval (km)"
+            type="number"
+            placeholder="optional"
+            min={1}
+            step="0.1"
+            value={form.interval_distance}
+            onChange={(e) => setForm({ ...form, interval_distance: e.target.value })}
+          />
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-ink">Fuel Types</label>
             <div className="flex flex-wrap gap-4">
               {fuelTypeOptions.map((fuel) => (
                 <label key={fuel.value} className="inline-flex items-center gap-2 text-sm text-ink">
@@ -386,7 +449,7 @@ export default function MaintenanceTemplatesPage() {
           setDeleteTarget(null);
           setDeleteError(null);
         }}
-        title="Delete org template"
+        title="Delete catalog item"
         confirmLabel="Delete"
         destructive
         loading={deleteTemplate.isPending}

@@ -3264,11 +3264,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List platform-global maintenance catalog items (org copies excluded) */
+        /**
+         * List platform-global maintenance catalog items (org copies excluded)
+         * @description Items are sorted by vehicle class, then lifecycle, then sort order, then name.
+         */
         get: {
             parameters: {
                 query?: {
                     vehicle_class?: components["schemas"]["VehicleClass"];
+                    fuel_type?: components["schemas"]["FuelType"];
                 };
                 header?: never;
                 path?: never;

@@ -1397,6 +1397,19 @@ describe("Fleet maintenance templates", () => {
       headers: auth(platformAdmin),
     });
     expect(adminMotorcycles.json().items).toHaveLength(11);
+    const adminElectric = await app.inject({
+      method: "GET",
+      url: "/v1/admin/maintenance-catalog?fuel_type=electric",
+      headers: auth(platformAdmin),
+    });
+    expect(adminElectric.json().items.length).toBeGreaterThan(0);
+    for (const item of adminElectric.json().items) {
+      expect(item.fuel_types).toContain("electric");
+    }
+    const adminClasses = adminList.json().items.map(
+      (item: { vehicle_class: string }) => item.vehicle_class,
+    );
+    expect(adminClasses).toEqual([...adminClasses].sort());
     const adminPatchCopy = await app.inject({
       method: "PATCH",
       url: `/v1/admin/maintenance-catalog/${copy.id}`,

@@ -746,14 +746,20 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
   app.get("/admin/maintenance-catalog", async (request) => {
     const query = z.object({
       vehicle_class: z.enum(["car", "motorcycle", "truck", "van", "bus"]).optional(),
+      fuel_type: z.enum(["petrol", "electric", "hybrid_plugin"]).optional(),
     }).parse(request.query ?? {});
-    const rows = await app.db.select().from(maintenanceCatalog)
-      .where(and(
-        isNull(maintenanceCatalog.orgId),
-        ...(query.vehicle_class ? [eq(maintenanceCatalog.vehicleClass, query.vehicle_class)] : []),
-      ))
-      .orderBy(maintenanceCatalog.sortOrder);
-    return { items: rows.map(publicCatalogItem) };
+    const rows = await app.db.select().from(maintenanceCatalog).where(isNull(maintenanceCatalog.orgId));
+    const filtered = rows.filter((row) =>
+      (!query.vehicle_class || row.vehicleClass === query.vehicle_class)
+      && (!query.fuel_type || row.fuelTypes.includes(query.fuel_type)),
+    );
+    filtered.sort((a, b) =>
+      a.vehicleClass.localeCompare(b.vehicleClass)
+      || (a.lifecycleTemplate ?? "").localeCompare(b.lifecycleTemplate ?? "")
+      || a.sortOrder - b.sortOrder
+      || a.name.localeCompare(b.name),
+    );
+    return { items: filtered.map(publicCatalogItem) };
   });
 
   app.post("/admin/maintenance-catalog", async (request, reply) => {

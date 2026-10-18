@@ -1,6 +1,6 @@
 # Fleet Maintenance Templates
 
-Plan doc locked via grilling session (14 Oct 2026). Status: **Implemented** (phases 1–7 Done — see Sequencing table). **Amended 16 Oct 2026 (second grilling):** driver-side plan completion logging is now in scope — see locked decision 11.
+Plan doc locked via grilling session (14 Oct 2026). Status: **Implemented** (phases 1–7 Done — see Sequencing table). **Amended 16 Oct 2026 (second grilling):** driver-side plan completion logging is now in scope — see locked decision 11. **Amended 18 Oct 2026 (third grilling):** admin catalog and fleet templates pages standardized to one "Maintenance Catalog" contract — see locked decision 12.
 
 ## Overview
 
@@ -25,6 +25,7 @@ Supersedes nothing; extends `maintenance.md` (owner catalog) and `fleet-manageme
 | 9 | Admin portal = global templates; Fleet Portal = org copies + assignment |
 | 10 | Priority: **backend + fleet portal first**, mobile driver second |
 | 11 | **(16 Oct 2026, second grilling)** Driver plan completion logging is **in scope**: Maintenance tab → Register service with **Report \| Do myself** — plan-linked logs (service record or work-order completion) advance `nextDueMileage`/`nextDueOn`; free-text do-myself logs are orphans and never touch a plan. Contract lives in `fleet-management.md` (Driver Surface Decisions 18–20). |
+| 12 | **(18 Oct 2026, third grilling) Cross-portal standardization:** both portals show **"Maintenance Catalog"** (fleet route stays `/maintenance-templates`); one column set/order — Name (key stacked), Class, Lifecycle, Fuel, Interval (merged `d · km`), [Source (fleet only)], Status; filters = class + fuel on both (fleet's lifecycle filter removed; admin gains `?fuel_type=`); `sort_order` removed from admin UI only (kept in API/DB/owner-app ordering; both lists sort class → lifecycle → sort_order → name); fleet row action on a **global** row is **Edit = copy-on-write** (opens the org copy if one exists — matched by case-insensitive name, same rule as `templateSetRows()` — else a prefilled create that clones via `source_template_id`); Copy button removed; canonical labels admin-wide (Petrol/Electric/Hybrid, friendly lifecycle labels, Status `Active`/`Disabled`); fleet new/edit form mirrors admin (name max 80, class, lifecycle, interval time + Day/Month/Year unit select, interval km, fuel types, enabled — no sort order). |
 
 **Template → vehicle match rule:** `vehicle_class` matches AND (`lifecycle_template IS NULL` OR equals vehicle's lifecycle) AND vehicle `fuel_type ∈ fuel_types`.
 
@@ -173,7 +174,7 @@ Owner routes live behind `getAccessibleVehicle`, which 404s any org-linked vehic
 - `POST /vehicles/:vehicleId/plan-items` (`owner.ts`) — **unchanged** (owner-only); driver writes go through `POST /drivers/vehicles/:vehicleId/plan-items`.
 - `POST/PATCH /organizations/:id/vehicles` (`fleet.ts`) — accept `vehicle_class` (default `'car'`); PATCH may correct a vehicle's class.
 - CSV import — `vehicle_class` optional column, default `'car'`.
-- Admin CRUD (`admin.ts`) — accept/return `vehicle_class`, `lifecycle_template`; list scoped to `org_id IS NULL`; PATCH/DELETE of an org copy → 403 `org_copy_readonly` (admin never manages org copies); list accepts `?vehicle_class=` filter.
+- Admin CRUD (`admin.ts`) — accept/return `vehicle_class`, `lifecycle_template`; list scoped to `org_id IS NULL`; PATCH/DELETE of an org copy → 403 `org_copy_readonly` (admin never manages org copies); list accepts `?vehicle_class=` and `?fuel_type=` filters and sorts class → lifecycle → sort_order → name (mirrors the fleet list).
 - `publicVehicle` (`lib/serialize.ts`) — gains `vehicle_class`.
 
 ### Audience
@@ -196,10 +197,11 @@ Fleet template management uses `requireFleetPortal` (strict `dco-fleet`); genera
 
 ## Fleet Portal implementation plan
 
-1. **New page `/maintenance-templates`** (sidebar; `org_admin` / `org_manager`):
-   - Table: name, class, lifecycle, fuel types, intervals, source badge (`Global` / `Org copy`), enabled.
-   - Filters: class, lifecycle, fuel, source.
-   - Actions: **Copy →** (clone global → editable org copy), Edit / Delete (org copies only), Create new.
+1. **Page `/maintenance-templates`** (sidebar label **"Maintenance Catalog"**, `org_admin` / `org_manager`):
+   - Table: name (catalog_key stacked beneath), class, lifecycle (friendly labels), fuel (badges), interval (merged `365 d · 15,000 km`), source badge (`Global` / `Org copy`), status (`Active` / `Disabled`).
+   - Filters: class, fuel (lifecycle filter removed — third grilling).
+   - Actions: **Edit** on every row — global rows use **copy-on-write** (org copy exists → edit it; else prefilled create cloning via `source_template_id`), org rows edit + standalone Delete. Header action **"Add item"**; modal titles "Add catalog item" / "Edit catalog item". Copy button removed.
+   - Form mirrors the admin form: Name (max 80), Vehicle class, Lifecycle, Interval (time) + Day/Month/Year unit, Interval (km), Fuel Types (min 1), Enabled — no sort order.
 2. **Vehicle detail `/vehicles/[id]`:**
    - Template select (options pre-filtered by vehicle class + lifecycle + fuel; shows name + intervals) → PUT assign / clear.
    - **"Generate maintenance plan"** button (confirm modal showing item count) → POST generate → toast `{created, skipped}`; button remains (endpoint is skip-based idempotent).
@@ -210,7 +212,7 @@ Fleet template management uses `requireFleetPortal` (strict `dco-fleet`); genera
 
 ## Admin Portal (web/) — small
 
-`src/app/(admin)/catalog/page.tsx` + hooks: add columns/inputs `vehicle_class` (select), `lifecycle_template` (select, optional); filter by class. Global-only (backend enforces `org_id = NULL`).
+`src/app/(admin)/catalog/page.tsx` + hooks: columns/inputs `vehicle_class` (select), `lifecycle_template` (select, optional). Standardized per locked decision 12: Name cell stacks `catalog_key` beneath the name (no separate Key column), Time + Distance merged into one **Interval** column, **Sort Order column and form field removed** (hidden — `sort_order` stays in API/DB), filters = class + `?fuel_type=`, list sorted class → lifecycle → sort_order → name. Global-only (backend enforces `org_id = NULL`).
 
 ---
 
@@ -247,6 +249,7 @@ Scope **as shipped**: view plan + add from suggested, no edits of portal-generat
 | 6 | **Mobile driver** (after deploy) | `flutter analyze`, `flutter test` | **Done** (`features/fleet/`: `DriverPlanItem`/`DriverSuggestedPlanItem` entities, 3 repo methods on `/drivers/vehicles/{id}/*`, plan screen with overdue chips + suggested multi-select add via client UUID, My Vehicle entry tile, en+l10n strings, 302/302 tests) |
 | 7 | Docs / FRD updates | — | **Done** (amended `frd/maintenance.md`, `frd/fleet-management.md`, `architecture/data-model.md`, `docs/mvp-as-built.md` per Contracts & docs; plus `docs/app-shell.md` driver screens, `mobile/AGENTS.md` driver surface, `CLAUDE.md` FRD list + portal pages, `architecture/api.md` audiences) |
 | 8 | **Driver maintenance logging + portal loop** (second grilling: driver service records, WO completion cost/auto-SR/plan advance, org service-record GET, portal Service-history + Plan cards, personal-garage ban, shift retirement) | `npm test`, `tsc`, `flutter analyze`, `flutter test`, portal lint/build | **Planned** (`fleet-management.md` Driver Surface Decisions 15–24; work packages WP1–WP4) |
+| 9 | **Cross-portal standardization** (third grilling — locked decision 12: shared naming/columns/filters/labels, admin `?fuel_type=` + class-first sort, sort-order UI removal, fleet copy-on-write Edit, fleet form mirrors admin) | `npm test` (backend), lint + build (web, fleet-portal) | **Done** (67/67 backend tests incl. fuel filter + class-order assertions; both portals lint clean and build) |
 
 ## Risks
 

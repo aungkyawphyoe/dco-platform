@@ -343,14 +343,17 @@ export const LIFECYCLE_TEMPLATE_LABELS: Record<
   commercial: "Commercial",
 };
 
-export function useCatalogItems(vehicleClass?: string) {
+export function useCatalogItems(vehicleClass?: string, fuelType?: string) {
   return useQuery({
-    queryKey: ["admin", "catalog", vehicleClass ?? "all"],
+    queryKey: ["admin", "catalog", vehicleClass ?? "all", fuelType ?? "all"],
     queryFn: () => {
-      const path = vehicleClass
-        ? `/admin/maintenance-catalog?vehicle_class=${encodeURIComponent(vehicleClass)}`
-        : "/admin/maintenance-catalog";
-      return apiGet<{ items?: CatalogItem[] }>(path);
+      const params = new URLSearchParams();
+      if (vehicleClass) params.set("vehicle_class", vehicleClass);
+      if (fuelType) params.set("fuel_type", fuelType);
+      const qs = params.toString();
+      return apiGet<{ items?: CatalogItem[] }>(
+        `/admin/maintenance-catalog${qs ? `?${qs}` : ""}`,
+      );
     },
   });
 }

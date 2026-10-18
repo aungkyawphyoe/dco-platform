@@ -66,7 +66,7 @@ export const lifecycleTemplateOptions: { value: LifecycleTemplate; label: string
 export const fuelTypeOptions: { value: FuelType; label: string }[] = [
   { value: "petrol", label: "Petrol" },
   { value: "electric", label: "Electric" },
-  { value: "hybrid_plugin", label: "Hybrid plugin" },
+  { value: "hybrid_plugin", label: "Hybrid" },
 ];
 
 export type MaintenanceTemplate = {
