@@ -6,6 +6,7 @@ class AppConfig {
     required this.apiBaseUrl,
     required this.jwtOwnerAud,
     required this.mockAuth,
+    required this.analyticsEnabled,
   });
 
   factory AppConfig.fromEnvironment() {
@@ -18,10 +19,15 @@ class AppConfig {
       defaultValue: 'dco-owner',
     );
     const mockFlag = bool.fromEnvironment('DCO_MOCK_AUTH', defaultValue: true);
+    const analyticsFlag = bool.fromEnvironment(
+      'DCO_ANALYTICS',
+      defaultValue: true,
+    );
     return AppConfig(
       apiBaseUrl: apiBaseUrl,
       jwtOwnerAud: jwtOwnerAud,
       mockAuth: kReleaseMode ? false : mockFlag,
+      analyticsEnabled: analyticsFlag,
     );
   }
 
@@ -30,4 +36,7 @@ class AppConfig {
 
   /// Debug-only stand-in until the API exists. Forced off in release.
   final bool mockAuth;
+
+  /// Google Analytics opt-out (`--dart-define=DCO_ANALYTICS=false`).
+  final bool analyticsEnabled;
 }
