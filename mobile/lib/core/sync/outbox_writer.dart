@@ -9,6 +9,8 @@ class OutboxWriter {
 
   final AppDatabase _db;
 
+  bool get derivesExpenses => false;
+
   Future<void> enqueue({
     required String userId,
     required String entityType,

@@ -28,8 +28,15 @@ class PartsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: s.partsAddTooltip,
-            onPressed: !access.canCreate ? null : () => context.push(AppRoutes.partNew),
-            icon: Icon(Icons.add, color: !access.canCreate ? tokens.icon.inactive : tokens.icon.active),
+            onPressed: !access.canCreate
+                ? null
+                : () => context.push(AppRoutes.partNew),
+            icon: Icon(
+              Icons.add,
+              color: !access.canCreate
+                  ? tokens.icon.inactive
+                  : tokens.icon.active,
+            ),
           ),
         ],
       ),
@@ -39,8 +46,11 @@ class PartsScreen extends ConsumerWidget {
               body: s.partsNoActiveVehicleBody,
             )
           : parts.when(
-              loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-              error: (error, _) => DcoEmptyState(title: s.partsLoadError, body: '$error'),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: tokens.text.accent),
+              ),
+              error: (error, _) =>
+                  DcoEmptyState(title: s.partsLoadError, body: '$error'),
               data: (items) {
                 if (items.isEmpty) {
                   return DcoEmptyState(
@@ -66,7 +76,17 @@ class PartsScreen extends ConsumerWidget {
                       padding: EdgeInsets.only(bottom: tokens.space.s3),
                       child: _PartTile(
                         part: part,
-                        onTap: access.canEditRecord(part.createdBy)
+                        onTap:
+                            access.canEditRecord(part.createdBy) &&
+                                !(ref
+                                        .watch(
+                                          recordAdminLockProvider(
+                                            'part:${part.id}',
+                                          ),
+                                        )
+                                        .valueOrNull ??
+                                    (ref.watch(driverOrganizationIdProvider) !=
+                                        null))
                             ? () => context.push(AppRoutes.partEdit(part.id))
                             : null,
                       ),
@@ -107,19 +127,28 @@ class _PartTile extends StatelessWidget {
                   color: tokens.chart.parts.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(tokens.radius.sm),
                 ),
-                child: Icon(Icons.settings_outlined, color: tokens.chart.parts, size: 22),
+                child: Icon(
+                  Icons.settings_outlined,
+                  color: tokens.chart.parts,
+                  size: 22,
+                ),
               ),
               SizedBox(width: tokens.space.s3),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(part.name, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      part.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     if (detail != null) ...[
                       SizedBox(height: tokens.space.s1),
                       Text(
                         detail,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: tokens.text.caption,
+                        ),
                       ),
                     ],
                   ],

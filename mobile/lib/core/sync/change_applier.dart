@@ -11,7 +11,9 @@ import 'sync_api.dart';
 /// - Archive wins over any later edit of the same entity.
 /// - Otherwise last-write-wins by remote timestamp vs local updatedAt.
 class ChangeApplier {
-  ChangeApplier(this._db);
+  ChangeApplier(this._db, {this.authoritative = false});
+
+  final bool authoritative;
 
   final AppDatabase _db;
 
@@ -38,7 +40,7 @@ class ChangeApplier {
       case OutboxEntityType.vehicleShare:
         await _applyVehicleShare(change, userId);
       default:
-      // media / user have no local tables yet; nothing to apply.
+        // media / user have no local tables yet; nothing to apply.
         break;
     }
   }
@@ -50,18 +52,18 @@ class ChangeApplier {
       _db.vehicleRecords,
     )..where((row) => row.id.equals(id))).getSingleOrNull();
     final remoteMileage = _dbl(payload['mileage']) ?? existing?.mileage ?? 0;
-    final effectiveMileage = existing == null
+    final effectiveMileage = authoritative || existing == null
         ? remoteMileage
         : (existing.mileage > remoteMileage ? existing.mileage : remoteMileage);
 
     if (change.op == SyncChangeOp.archive) {
       if (existing == null) return;
-      await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(id))).write(
+      await (_db.update(
+        _db.vehicleRecords,
+      )..where((row) => row.id.equals(id))).write(
         VehicleRecordsCompanion(
           archived: const Value(true),
-          archivedAt: Value(
-            _dt(payload['archived_at']) ?? change.serverTs,
-          ),
+          archivedAt: Value(_dt(payload['archived_at']) ?? change.serverTs),
           mileage: Value(effectiveMileage),
           updatedAt: Value(change.serverTs),
         ),
@@ -72,9 +74,13 @@ class ChangeApplier {
 
     if (existing != null && existing.archived) return;
     final remoteUpdatedAt = _dt(payload['updated_at']) ?? change.serverTs;
-    if (existing != null && !remoteUpdatedAt.isAfter(existing.updatedAt)) {
+    if (!authoritative &&
+        existing != null &&
+        !remoteUpdatedAt.isAfter(existing.updatedAt)) {
       if (remoteMileage > existing.mileage) {
-        await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(id))).write(
+        await (_db.update(
+          _db.vehicleRecords,
+        )..where((row) => row.id.equals(id))).write(
           VehicleRecordsCompanion(
             mileage: Value(remoteMileage),
             updatedAt: Value(remoteUpdatedAt),
@@ -115,7 +121,9 @@ class ChangeApplier {
     // Merge: overlay only the keys the payload actually carries. Mileage
     // fan-out payloads are partial ({id, name, mileage}) and must not wipe
     // identity fields or reassign ownership on the pulling device.
-    await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(id))).write(
+    await (_db.update(
+      _db.vehicleRecords,
+    )..where((row) => row.id.equals(id))).write(
       VehicleRecordsCompanion(
         userId: payload.containsKey('user_id')
             ? Value(_str(payload['user_id'], fallback: existing.userId))
@@ -136,7 +144,9 @@ class ChangeApplier {
             ? Value(_int(payload['year']) ?? existing.year)
             : const Value.absent(),
         licensePlate: payload.containsKey('license_plate')
-            ? Value(_str(payload['license_plate'], fallback: existing.licensePlate))
+            ? Value(
+                _str(payload['license_plate'], fallback: existing.licensePlate),
+              )
             : const Value.absent(),
         vin: payload.containsKey('vin')
             ? Value(_strN(payload['vin']))
@@ -148,7 +158,9 @@ class ChangeApplier {
             ? Value(_str(payload['fuel_type'], fallback: existing.fuelType))
             : const Value.absent(),
         mileageUnit: payload.containsKey('mileage_unit')
-            ? Value(_str(payload['mileage_unit'], fallback: existing.mileageUnit))
+            ? Value(
+                _str(payload['mileage_unit'], fallback: existing.mileageUnit),
+              )
             : const Value.absent(),
         purchaseDate: payload.containsKey('purchase_date')
             ? Value(_dateN(payload['purchase_date']))
@@ -169,7 +181,9 @@ class ChangeApplier {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.planItemRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.planItemRecords,
+      )..where((row) => row.id.equals(id))).go();
       return;
     }
     final existing = await (_db.select(
@@ -177,36 +191,47 @@ class ChangeApplier {
     )..where((row) => row.id.equals(id))).getSingleOrNull();
     if (!_isWritable(change, existing?.updatedAt)) return;
 
-    await _db.into(_db.planItemRecords).insertOnConflictUpdate(
-      PlanItemRecordsCompanion.insert(
-        id: id,
-        vehicleId: _str(payload['vehicle_id'], fallback: existing?.vehicleId ?? ''),
-        name: _str(payload['name']),
-        intervalDays: Value(_int(payload['interval_days'])),
-        intervalDistance: Value(_dbl(payload['interval_distance'])),
-        nextDueMileage: Value(_dbl(payload['next_due_mileage'])),
-        nextDueOn: Value(_dateN(payload['next_due_on'])),
-        enabled: Value(payload['enabled'] as bool? ?? existing?.enabled ?? true),
-        notes: Value(_strN(payload['notes'])),
-        catalogKey: Value(_strN(payload['catalog_key'])),
-        createdBy: Value(_strN(payload['created_by']) ?? existing?.createdBy),
-        updatedAt: change.serverTs,
-        createdAt: existing?.createdAt ?? change.serverTs,
-      ),
-    );
+    await _db
+        .into(_db.planItemRecords)
+        .insertOnConflictUpdate(
+          PlanItemRecordsCompanion.insert(
+            id: id,
+            vehicleId: _str(
+              payload['vehicle_id'],
+              fallback: existing?.vehicleId ?? '',
+            ),
+            name: _str(payload['name']),
+            intervalDays: Value(_int(payload['interval_days'])),
+            intervalDistance: Value(_dbl(payload['interval_distance'])),
+            nextDueMileage: Value(_dbl(payload['next_due_mileage'])),
+            nextDueOn: Value(_dateN(payload['next_due_on'])),
+            enabled: Value(
+              payload['enabled'] as bool? ?? existing?.enabled ?? true,
+            ),
+            notes: Value(_strN(payload['notes'])),
+            catalogKey: Value(_strN(payload['catalog_key'])),
+            createdBy: Value(
+              _strN(payload['created_by']) ?? existing?.createdBy,
+            ),
+            updatedAt: change.serverTs,
+            createdAt: existing?.createdAt ?? change.serverTs,
+          ),
+        );
   }
 
   Future<void> _applyServiceRecord(SyncChange change) async {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.serviceLineRecords)
-            ..where((row) => row.serviceRecordId.equals(id)))
-          .go();
-      await (_db.delete(_db.servicePartRecords)
-            ..where((row) => row.serviceRecordId.equals(id)))
-          .go();
-      await (_db.delete(_db.serviceRecordRows)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.serviceLineRecords,
+      )..where((row) => row.serviceRecordId.equals(id))).go();
+      await (_db.delete(
+        _db.servicePartRecords,
+      )..where((row) => row.serviceRecordId.equals(id))).go();
+      await (_db.delete(
+        _db.serviceRecordRows,
+      )..where((row) => row.id.equals(id))).go();
       return;
     }
     final existing = await (_db.select(
@@ -218,50 +243,69 @@ class ChangeApplier {
     final parts = _list(payload['parts']);
     final derivedTitle = items.map((item) => _str(item['name'])).join(', ');
 
-    await _db.into(_db.serviceRecordRows).insertOnConflictUpdate(
-      ServiceRecordRowsCompanion.insert(
-        id: id,
-        vehicleId: _str(payload['vehicle_id'], fallback: existing?.vehicleId ?? ''),
-        title: _str(payload['title'], fallback: derivedTitle),
-        servicedOn: _date(payload['serviced_on']),
-        odometer: _dbl(payload['odometer']) ?? 0,
-        totalCost: _dbl(payload['total_cost']) ?? 0,
-        workshopName: Value(_strN(payload['workshop_name'])),
-        notes: Value(_strN(payload['notes'])),
-        receiptLocalPath: Value(existing?.receiptLocalPath),
-        receiptMediaId: Value(_strN(payload['receipt_media_id']) ?? existing?.receiptMediaId),
-        createdBy: Value(_strN(payload['created_by']) ?? existing?.createdBy),
-        updatedAt: change.serverTs,
-        createdAt: existing?.createdAt ?? change.serverTs,
-      ),
-    );
+    await _db
+        .into(_db.serviceRecordRows)
+        .insertOnConflictUpdate(
+          ServiceRecordRowsCompanion.insert(
+            id: id,
+            vehicleId: _str(
+              payload['vehicle_id'],
+              fallback: existing?.vehicleId ?? '',
+            ),
+            title: _str(payload['title'], fallback: derivedTitle),
+            servicedOn: _date(payload['serviced_on']),
+            odometer: _dbl(payload['odometer']) ?? 0,
+            totalCost: _dbl(payload['total_cost']) ?? 0,
+            workshopName: Value(_strN(payload['workshop_name'])),
+            notes: Value(_strN(payload['notes'])),
+            receiptLocalPath: Value(existing?.receiptLocalPath),
+            receiptMediaId: Value(
+              _strN(payload['receipt_media_id']) ?? existing?.receiptMediaId,
+            ),
+            createdBy: Value(
+              _strN(payload['created_by']) ?? existing?.createdBy,
+            ),
+            updatedAt: change.serverTs,
+            createdAt: existing?.createdAt ?? change.serverTs,
+          ),
+        );
 
-    await (_db.delete(_db.serviceLineRecords)
-          ..where((row) => row.serviceRecordId.equals(id)))
-        .go();
-    await (_db.delete(_db.servicePartRecords)
-          ..where((row) => row.serviceRecordId.equals(id)))
-        .go();
+    await (_db.delete(
+      _db.serviceLineRecords,
+    )..where((row) => row.serviceRecordId.equals(id))).go();
+    await (_db.delete(
+      _db.servicePartRecords,
+    )..where((row) => row.serviceRecordId.equals(id))).go();
     for (final item in items) {
-      await _db.into(_db.serviceLineRecords).insertOnConflictUpdate(
-        ServiceLineRecordsCompanion.insert(
-          id: _str(item['id'], fallback: _uuidLike(id, items.indexOf(item))),
-          serviceRecordId: id,
-          planItemId: Value(_strN(item['plan_item_id'])),
-          name: _str(item['name']),
-          lineCost: Value(_dbl(item['line_cost'])),
-        ),
-      );
+      await _db
+          .into(_db.serviceLineRecords)
+          .insertOnConflictUpdate(
+            ServiceLineRecordsCompanion.insert(
+              id: _str(
+                item['id'],
+                fallback: _uuidLike(id, items.indexOf(item)),
+              ),
+              serviceRecordId: id,
+              planItemId: Value(_strN(item['plan_item_id'])),
+              name: _str(item['name']),
+              lineCost: Value(_dbl(item['line_cost'])),
+            ),
+          );
     }
     for (final part in parts) {
-      await _db.into(_db.servicePartRecords).insertOnConflictUpdate(
-        ServicePartRecordsCompanion.insert(
-          id: _str(part['id'], fallback: _uuidLike('$id-parts', parts.indexOf(part))),
-          serviceRecordId: id,
-          partId: _str(part['part_id']),
-          name: _str(part['name']),
-        ),
-      );
+      await _db
+          .into(_db.servicePartRecords)
+          .insertOnConflictUpdate(
+            ServicePartRecordsCompanion.insert(
+              id: _str(
+                part['id'],
+                fallback: _uuidLike('$id-parts', parts.indexOf(part)),
+              ),
+              serviceRecordId: id,
+              partId: _str(part['part_id']),
+              name: _str(part['name']),
+            ),
+          );
     }
   }
 
@@ -269,7 +313,9 @@ class ChangeApplier {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.partRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.partRecords,
+      )..where((row) => row.id.equals(id))).go();
       return;
     }
     final existing = await (_db.select(
@@ -277,27 +323,39 @@ class ChangeApplier {
     )..where((row) => row.id.equals(id))).getSingleOrNull();
     if (!_isWritable(change, existing?.updatedAt)) return;
 
-    await _db.into(_db.partRecords).insertOnConflictUpdate(
-      PartRecordsCompanion.insert(
-        id: id,
-        userId: _str(payload['user_id'], fallback: existing?.userId ?? userId),
-        vehicleId: _str(payload['vehicle_id'], fallback: existing?.vehicleId ?? ''),
-        name: _str(payload['name']),
-        brand: Value(_strN(payload['brand'])),
-        partNumber: Value(_strN(payload['part_number'])),
-        notes: Value(_strN(payload['notes'])),
-        createdBy: Value(_strN(payload['created_by']) ?? existing?.createdBy),
-        updatedAt: change.serverTs,
-        createdAt: existing?.createdAt ?? change.serverTs,
-      ),
-    );
+    await _db
+        .into(_db.partRecords)
+        .insertOnConflictUpdate(
+          PartRecordsCompanion.insert(
+            id: id,
+            userId: _str(
+              payload['user_id'],
+              fallback: existing?.userId ?? userId,
+            ),
+            vehicleId: _str(
+              payload['vehicle_id'],
+              fallback: existing?.vehicleId ?? '',
+            ),
+            name: _str(payload['name']),
+            brand: Value(_strN(payload['brand'])),
+            partNumber: Value(_strN(payload['part_number'])),
+            notes: Value(_strN(payload['notes'])),
+            createdBy: Value(
+              _strN(payload['created_by']) ?? existing?.createdBy,
+            ),
+            updatedAt: change.serverTs,
+            createdAt: existing?.createdAt ?? change.serverTs,
+          ),
+        );
   }
 
   Future<void> _applyFuelType(SyncChange change, String userId) async {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.fuelTypeRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.fuelTypeRecords,
+      )..where((row) => row.id.equals(id))).go();
       return;
     }
     final existing = await (_db.select(
@@ -305,24 +363,31 @@ class ChangeApplier {
     )..where((row) => row.id.equals(id))).getSingleOrNull();
     if (!_isWritable(change, existing?.updatedAt)) return;
 
-    await _db.into(_db.fuelTypeRecords).insertOnConflictUpdate(
-      FuelTypeRecordsCompanion.insert(
-        id: id,
-        userId: _str(payload['user_id'], fallback: existing?.userId ?? userId),
-        name: _str(payload['name']),
-        kind: _str(payload['kind'], fallback: 'liquid'),
-        unit: _str(payload['unit'], fallback: 'L'),
-        updatedAt: change.serverTs,
-        createdAt: existing?.createdAt ?? change.serverTs,
-      ),
-    );
+    await _db
+        .into(_db.fuelTypeRecords)
+        .insertOnConflictUpdate(
+          FuelTypeRecordsCompanion.insert(
+            id: id,
+            userId: _str(
+              payload['user_id'],
+              fallback: existing?.userId ?? userId,
+            ),
+            name: _str(payload['name']),
+            kind: _str(payload['kind'], fallback: 'liquid'),
+            unit: _str(payload['unit'], fallback: 'L'),
+            updatedAt: change.serverTs,
+            createdAt: existing?.createdAt ?? change.serverTs,
+          ),
+        );
   }
 
   Future<void> _applyFuelLog(SyncChange change, String userId) async {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.fuelLogRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.fuelLogRecords,
+      )..where((row) => row.id.equals(id))).go();
       return;
     }
     final existing = await (_db.select(
@@ -330,35 +395,47 @@ class ChangeApplier {
     )..where((row) => row.id.equals(id))).getSingleOrNull();
     if (!_isWritable(change, existing?.updatedAt)) return;
 
-    await _db.into(_db.fuelLogRecords).insertOnConflictUpdate(
-      FuelLogRecordsCompanion.insert(
-        id: id,
-        userId: _str(payload['user_id'], fallback: existing?.userId ?? userId),
-        vehicleId: _str(payload['vehicle_id'], fallback: existing?.vehicleId ?? ''),
-        kind: _str(payload['kind'], fallback: 'refuel'),
-        fuelTypeId: _str(payload['fuel_type_id'], fallback: ''),
-        fuelTypeName: _str(payload['fuel_type_name']),
-        unit: _str(payload['unit'], fallback: 'L'),
-        loggedOn: _date(payload['logged_on']),
-        amount: _dbl(payload['amount']) ?? 0,
-        cost: _dbl(payload['cost']) ?? 0,
-        odometer: Value(
-          payload.containsKey('odometer') ? _dbl(payload['odometer']) : existing?.odometer,
-        ),
-        updatedAt: change.serverTs,
-        createdAt: existing?.createdAt ?? change.serverTs,
-      ),
-    );
+    await _db
+        .into(_db.fuelLogRecords)
+        .insertOnConflictUpdate(
+          FuelLogRecordsCompanion.insert(
+            id: id,
+            userId: _str(
+              payload['user_id'],
+              fallback: existing?.userId ?? userId,
+            ),
+            vehicleId: _str(
+              payload['vehicle_id'],
+              fallback: existing?.vehicleId ?? '',
+            ),
+            kind: _str(payload['kind'], fallback: 'refuel'),
+            fuelTypeId: _str(payload['fuel_type_id'], fallback: ''),
+            fuelTypeName: _str(payload['fuel_type_name']),
+            unit: _str(payload['unit'], fallback: 'L'),
+            loggedOn: _date(payload['logged_on']),
+            amount: _dbl(payload['amount']) ?? 0,
+            cost: _dbl(payload['cost']) ?? 0,
+            odometer: Value(
+              payload.containsKey('odometer')
+                  ? _dbl(payload['odometer'])
+                  : existing?.odometer,
+            ),
+            updatedAt: change.serverTs,
+            createdAt: existing?.createdAt ?? change.serverTs,
+          ),
+        );
   }
 
   Future<void> _applyExpense(SyncChange change) async {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.expensePartRecords)
-            ..where((row) => row.expenseId.equals(id)))
-          .go();
-      await (_db.delete(_db.expenseRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.expensePartRecords,
+      )..where((row) => row.expenseId.equals(id))).go();
+      await (_db.delete(
+        _db.expenseRecords,
+      )..where((row) => row.id.equals(id))).go();
       return;
     }
     final existing = await (_db.select(
@@ -366,34 +443,49 @@ class ChangeApplier {
     )..where((row) => row.id.equals(id))).getSingleOrNull();
     if (!_isWritable(change, existing?.updatedAt)) return;
 
-    await _db.into(_db.expenseRecords).insertOnConflictUpdate(
-      ExpenseRecordsCompanion.insert(
-        id: id,
-        vehicleId: _str(payload['vehicle_id'], fallback: existing?.vehicleId ?? ''),
-        category: _str(payload['category'], fallback: 'other'),
-        amount: _dbl(payload['amount']) ?? 0,
-        incurredOn: _date(payload['incurred_on']),
-        notes: Value(_strN(payload['notes'])),
-        receiptLocalPath: Value(existing?.receiptLocalPath),
-        receiptMediaId: Value(_strN(payload['receipt_media_id']) ?? existing?.receiptMediaId),
-        createdBy: Value(_strN(payload['created_by']) ?? existing?.createdBy),
-        updatedAt: change.serverTs,
-        createdAt: existing?.createdAt ?? change.serverTs,
-      ),
-    );
+    await _db
+        .into(_db.expenseRecords)
+        .insertOnConflictUpdate(
+          ExpenseRecordsCompanion.insert(
+            id: id,
+            vehicleId: _str(
+              payload['vehicle_id'],
+              fallback: existing?.vehicleId ?? '',
+            ),
+            category: _str(payload['category'], fallback: 'other'),
+            amount: _dbl(payload['amount']) ?? 0,
+            incurredOn: _date(payload['incurred_on']),
+            notes: Value(_strN(payload['notes'])),
+            receiptLocalPath: Value(existing?.receiptLocalPath),
+            receiptMediaId: Value(
+              _strN(payload['receipt_media_id']) ?? existing?.receiptMediaId,
+            ),
+            createdBy: Value(
+              _strN(payload['created_by']) ?? existing?.createdBy,
+            ),
+            updatedAt: change.serverTs,
+            createdAt: existing?.createdAt ?? change.serverTs,
+          ),
+        );
 
-    await (_db.delete(_db.expensePartRecords)..where((row) => row.expenseId.equals(id)))
-        .go();
+    await (_db.delete(
+      _db.expensePartRecords,
+    )..where((row) => row.expenseId.equals(id))).go();
     final parts = _list(payload['parts']);
     for (final part in parts) {
-      await _db.into(_db.expensePartRecords).insertOnConflictUpdate(
-        ExpensePartRecordsCompanion.insert(
-          id: _str(part['id'], fallback: _uuidLike(id, parts.indexOf(part))),
-          expenseId: id,
-          partId: _str(part['part_id']),
-          name: _str(part['name']),
-        ),
-      );
+      await _db
+          .into(_db.expensePartRecords)
+          .insertOnConflictUpdate(
+            ExpensePartRecordsCompanion.insert(
+              id: _str(
+                part['id'],
+                fallback: _uuidLike(id, parts.indexOf(part)),
+              ),
+              expenseId: id,
+              partId: _str(part['part_id']),
+              name: _str(part['name']),
+            ),
+          );
     }
   }
 
@@ -401,7 +493,9 @@ class ChangeApplier {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.notificationRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.notificationRecords,
+      )..where((row) => row.id.equals(id))).go();
       return;
     }
     final existing = await (_db.select(
@@ -409,21 +503,26 @@ class ChangeApplier {
     )..where((row) => row.id.equals(id))).getSingleOrNull();
     if (!_isWritable(change, existing?.updatedAt)) return;
 
-    await _db.into(_db.notificationRecords).insertOnConflictUpdate(
-      NotificationRecordsCompanion.insert(
-        id: id,
-        userId: _str(payload['user_id'], fallback: existing?.userId ?? userId),
-        vehicleId: Value(_strN(payload['vehicle_id'])),
-        planItemId: Value(_strN(payload['plan_item_id'])),
-        title: _str(payload['title']),
-        body: _str(payload['body']),
-        status: Value(_str(payload['status'], fallback: 'unread')),
-        dueReason: Value(_strN(payload['due_reason'])),
-        cycleKey: Value(_strN(payload['cycle_key']) ?? existing?.cycleKey),
-        createdAt: _dt(payload['created_at']) ?? change.serverTs,
-        updatedAt: change.serverTs,
-      ),
-    );
+    await _db
+        .into(_db.notificationRecords)
+        .insertOnConflictUpdate(
+          NotificationRecordsCompanion.insert(
+            id: id,
+            userId: _str(
+              payload['user_id'],
+              fallback: existing?.userId ?? userId,
+            ),
+            vehicleId: Value(_strN(payload['vehicle_id'])),
+            planItemId: Value(_strN(payload['plan_item_id'])),
+            title: _str(payload['title']),
+            body: _str(payload['body']),
+            status: Value(_str(payload['status'], fallback: 'unread')),
+            dueReason: Value(_strN(payload['due_reason'])),
+            cycleKey: Value(_strN(payload['cycle_key']) ?? existing?.cycleKey),
+            createdAt: _dt(payload['created_at']) ?? change.serverTs,
+            updatedAt: change.serverTs,
+          ),
+        );
   }
 
   /// Applies one `vehicle_share` change.
@@ -439,7 +538,9 @@ class ChangeApplier {
     final isMine = shareUserId != null && shareUserId == userId;
 
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.vehicleShareRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.vehicleShareRecords,
+      )..where((row) => row.id.equals(id))).go();
       if (isMine && vehicleId != null) {
         await _unshareVehicle(vehicleId, userId);
       }
@@ -448,23 +549,25 @@ class ChangeApplier {
 
     if (vehicleId == null || shareUserId == null) return;
 
-    await _db.into(_db.vehicleShareRecords).insertOnConflictUpdate(
-      VehicleShareRecordsCompanion.insert(
-        id: id,
-        vehicleId: vehicleId,
-        userId: shareUserId,
-        grantedBy: Value(_strN(payload['granted_by'])),
-        accessLevel: _str(payload['access_level'], fallback: 'view'),
-        status: Value(_str(payload['status'], fallback: 'pending')),
-        invitedEmail: Value(_strN(payload['invited_email'])),
-        shareCode: Value(_strN(payload['share_code'])),
-        displayName: Value(_strN(payload['display_name'])),
-        email: Value(_strN(payload['email'])),
-        acceptedAt: Value(_dt(payload['accepted_at'])),
-        createdAt: _dt(payload['created_at']) ?? change.serverTs,
-        syncedAt: Value(change.serverTs.toIso8601String()),
-      ),
-    );
+    await _db
+        .into(_db.vehicleShareRecords)
+        .insertOnConflictUpdate(
+          VehicleShareRecordsCompanion.insert(
+            id: id,
+            vehicleId: vehicleId,
+            userId: shareUserId,
+            grantedBy: Value(_strN(payload['granted_by'])),
+            accessLevel: _str(payload['access_level'], fallback: 'view'),
+            status: Value(_str(payload['status'], fallback: 'pending')),
+            invitedEmail: Value(_strN(payload['invited_email'])),
+            shareCode: Value(_strN(payload['share_code'])),
+            displayName: Value(_strN(payload['display_name'])),
+            email: Value(_strN(payload['email'])),
+            acceptedAt: Value(_dt(payload['accepted_at'])),
+            createdAt: _dt(payload['created_at']) ?? change.serverTs,
+            syncedAt: Value(change.serverTs.toIso8601String()),
+          ),
+        );
 
     final active = _str(payload['status'], fallback: 'pending') == 'active';
     if (isMine && active) {
@@ -492,14 +595,14 @@ class ChangeApplier {
   /// partial history), so the vehicle insert must pick the level up from the
   /// local share mirror instead of leaving it null forever.
   Future<void> _stampVehicleFromShare(String vehicleId, String userId) async {
-    final share = await (_db.select(_db.vehicleShareRecords)
-          ..where(
-            (row) =>
-                row.vehicleId.equals(vehicleId) &
-                row.userId.equals(userId) &
-                row.status.equals('active'),
-          ))
-        .getSingleOrNull();
+    final share =
+        await (_db.select(_db.vehicleShareRecords)..where(
+              (row) =>
+                  row.vehicleId.equals(vehicleId) &
+                  row.userId.equals(userId) &
+                  row.status.equals('active'),
+            ))
+            .getSingleOrNull();
     if (share == null) return;
     await (_db.update(
       _db.vehicleRecords,
@@ -519,7 +622,9 @@ class ChangeApplier {
       _db.vehicleRecords,
     )..where((row) => row.id.equals(vehicleId))).getSingleOrNull();
     if (vehicle == null || vehicle.userId == userId) return;
-    await (_db.delete(_db.vehicleRecords)..where((row) => row.id.equals(vehicleId))).go();
+    await (_db.delete(
+      _db.vehicleRecords,
+    )..where((row) => row.id.equals(vehicleId))).go();
   }
 
   Future<void> _applyDocument(SyncChange change) async {
@@ -527,7 +632,9 @@ class ChangeApplier {
     final id = _idOf(payload, change);
 
     if (change.op == SyncChangeOp.delete) {
-      await (_db.delete(_db.documentRecords)..where((row) => row.id.equals(id))).go();
+      await (_db.delete(
+        _db.documentRecords,
+      )..where((row) => row.id.equals(id))).go();
       return;
     }
 
@@ -540,10 +647,14 @@ class ChangeApplier {
     final remoteUpdatedAt = _dt(payload['updated_at']) ?? change.serverTs;
 
     if (existing != null) {
-      await (_db.update(_db.documentRecords)..where((row) => row.id.equals(id))).write(
+      await (_db.update(
+        _db.documentRecords,
+      )..where((row) => row.id.equals(id))).write(
         DocumentRecordsCompanion(
           name: Value(_str(payload['name'], fallback: existing.name)),
-          category: Value(_str(payload['category'], fallback: existing.category)),
+          category: Value(
+            _str(payload['category'], fallback: existing.category),
+          ),
           notes: Value(_strN(payload['notes']) ?? existing.notes),
           expiresOn: Value(
             payload.containsKey('expires_on')
@@ -556,26 +667,30 @@ class ChangeApplier {
         ),
       );
     } else {
-      await _db.into(_db.documentRecords).insert(
-        DocumentRecordsCompanion.insert(
-          id: id,
-          vehicleId: _str(payload['vehicle_id']),
-          name: _str(payload['name']),
-          category: _str(payload['category'], fallback: 'other'),
-          notes: Value(_strN(payload['notes'])),
-          expiresOn: Value(_dt(payload['expires_on'])),
-          mediaId: Value(_strN(payload['media_id'])),
-          createdBy: Value(_strN(payload['created_by'])),
-          updatedAt: remoteUpdatedAt,
-          createdAt: _dt(payload['created_at']) ?? remoteUpdatedAt,
-        ),
-      );
+      await _db
+          .into(_db.documentRecords)
+          .insert(
+            DocumentRecordsCompanion.insert(
+              id: id,
+              vehicleId: _str(payload['vehicle_id']),
+              name: _str(payload['name']),
+              category: _str(payload['category'], fallback: 'other'),
+              notes: Value(_strN(payload['notes'])),
+              expiresOn: Value(_dt(payload['expires_on'])),
+              mediaId: Value(_strN(payload['media_id'])),
+              createdBy: Value(_strN(payload['created_by'])),
+              updatedAt: remoteUpdatedAt,
+              createdAt: _dt(payload['created_at']) ?? remoteUpdatedAt,
+            ),
+          );
     }
   }
 
   bool _isWritable(SyncChange change, DateTime? localUpdatedAt) {
     if (change.op == SyncChangeOp.archive) return true;
-    return localUpdatedAt == null || change.serverTs.isAfter(localUpdatedAt);
+    return authoritative ||
+        localUpdatedAt == null ||
+        change.serverTs.isAfter(localUpdatedAt);
   }
 
   String _idOf(Map<String, dynamic> payload, SyncChange change) {
@@ -595,7 +710,8 @@ String? _strN(Object? value) {
 
 double? _dbl(Object? value) => value is num ? value.toDouble() : null;
 
-int? _int(Object? value) => value is int ? value : (value is num ? value.round() : null);
+int? _int(Object? value) =>
+    value is int ? value : (value is num ? value.round() : null);
 
 DateTime? _dt(Object? value) {
   if (value is String && value.isNotEmpty) {

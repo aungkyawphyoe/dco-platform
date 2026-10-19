@@ -69,4 +69,8 @@ abstract class MaintenanceRepository {
     required String serviceRecordId,
     required ServiceRecordDraft draft,
   });
+  Future<void> deleteService({
+    required String userId,
+    required String serviceRecordId,
+  });
 }

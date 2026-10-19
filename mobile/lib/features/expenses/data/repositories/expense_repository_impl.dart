@@ -52,9 +52,13 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
   @override
   Future<Expense?> getById(String id) async {
-    final row = await (_db.select(_db.expenseRecords)..where((r) => r.id.equals(id))).getSingleOrNull();
+    final row = await (_db.select(
+      _db.expenseRecords,
+    )..where((r) => r.id.equals(id))).getSingleOrNull();
     if (row == null) return null;
-    final parts = await (_db.select(_db.expensePartRecords)..where((r) => r.expenseId.equals(id))).get();
+    final parts = await (_db.select(
+      _db.expensePartRecords,
+    )..where((r) => r.expenseId.equals(id))).get();
     return expenseFromDrift(row, parts);
   }
 
@@ -110,10 +114,12 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     );
 
     await _db.transaction(() async {
-      await (_db.update(_db.expenseRecords)..where((row) => row.id.equals(expenseId))).write(
-        expenseToCompanion(updated),
-      );
-      await (_db.delete(_db.expensePartRecords)..where((row) => row.expenseId.equals(expenseId))).go();
+      await (_db.update(_db.expenseRecords)
+            ..where((row) => row.id.equals(expenseId)))
+          .write(expenseToCompanion(updated));
+      await (_db.delete(
+        _db.expensePartRecords,
+      )..where((row) => row.expenseId.equals(expenseId))).go();
       await _insertParts(updated);
       await _outbox.enqueue(
         userId: userId,
@@ -123,7 +129,8 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         payload: updated.toWriteJson(),
       );
     });
-    if (existing.receiptLocalPath != null && existing.receiptLocalPath != updated.receiptLocalPath) {
+    if (existing.receiptLocalPath != null &&
+        existing.receiptLocalPath != updated.receiptLocalPath) {
       await _deleteLocalFile(existing.receiptLocalPath);
     }
     _sync?.requestSync();
@@ -139,14 +146,18 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     if (existing == null) throw const ExpenseNotFoundFailure();
 
     await _db.transaction(() async {
-      await (_db.delete(_db.expensePartRecords)..where((row) => row.expenseId.equals(expenseId))).go();
-      await (_db.delete(_db.expenseRecords)..where((row) => row.id.equals(expenseId))).go();
+      await (_db.delete(
+        _db.expensePartRecords,
+      )..where((row) => row.expenseId.equals(expenseId))).go();
+      await (_db.delete(
+        _db.expenseRecords,
+      )..where((row) => row.id.equals(expenseId))).go();
       await _outbox.enqueue(
         userId: userId,
         entityType: OutboxEntityType.expense,
         entityId: expenseId,
         op: OutboxOp.delete,
-        payload: {'id': expenseId},
+        payload: {'id': expenseId, 'vehicle_id': existing.vehicleId},
       );
     });
     await _deleteLocalFile(existing.receiptLocalPath);
@@ -165,7 +176,9 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     final parts = <ExpenseAssignedPart>[];
     for (final part in draft.parts) {
       if (!seen.add(part.partId)) {
-        throw const ExpenseValidationFailure('The same part cannot be assigned twice');
+        throw const ExpenseValidationFailure(
+          'The same part cannot be assigned twice',
+        );
       }
       parts.add(
         ExpenseAssignedPart(
@@ -181,7 +194,11 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       vehicleId: vehicleId,
       category: draft.category,
       amount: ExpenseValidators.money(draft.amount),
-      incurredOn: DateTime(draft.incurredOn.year, draft.incurredOn.month, draft.incurredOn.day),
+      incurredOn: DateTime(
+        draft.incurredOn.year,
+        draft.incurredOn.month,
+        draft.incurredOn.day,
+      ),
       notes: _emptyToNull(draft.notes),
       receiptLocalPath: _emptyToNull(draft.receiptLocalPath),
       receiptMediaId: _emptyToNull(draft.receiptMediaId),
@@ -217,7 +234,9 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     for (final part in parts) {
       partsByExpense.putIfAbsent(part.expenseId, () => []).add(part);
     }
-    return rows.map((row) => expenseFromDrift(row, partsByExpense[row.id] ?? const [])).toList();
+    return rows
+        .map((row) => expenseFromDrift(row, partsByExpense[row.id] ?? const []))
+        .toList();
   }
 
   void _assertDraft(ExpenseDraft draft) {
@@ -226,7 +245,10 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     if (draft.amount <= 0 || draft.amount > ExpenseValidators.maxAmount) {
       throw const ExpenseValidationFailure('Enter an amount greater than 0');
     }
-    final dateError = ExpenseValidators.date(draft.incurredOn, now: DateTime.now());
+    final dateError = ExpenseValidators.date(
+      draft.incurredOn,
+      now: DateTime.now(),
+    );
     if (dateError != null) throw ExpenseValidationFailure(dateError);
     final notesError = ExpenseValidators.notes(draft.notes);
     if (notesError != null) throw ExpenseValidationFailure(notesError);

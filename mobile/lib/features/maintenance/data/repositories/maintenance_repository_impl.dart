@@ -29,10 +29,10 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     Uuid uuid = const Uuid(),
     required ExpenseRepository expenseRepository,
   }) : _db = db,
-        _outbox = outbox,
-        _sync = syncEngine,
-        _uuid = uuid,
-        _expenseRepository = expenseRepository;
+       _outbox = outbox,
+       _sync = syncEngine,
+       _uuid = uuid,
+       _expenseRepository = expenseRepository;
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
@@ -41,12 +41,43 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
   final ExpenseRepository _expenseRepository;
 
   @override
+  Future<void> deleteService({
+    required String userId,
+    required String serviceRecordId,
+  }) async {
+    if (!_outbox.derivesExpenses) {
+      throw StateError(
+        'Record deletion is not available in this account context.',
+      );
+    }
+    final record = await getServiceRecord(serviceRecordId);
+    if (record == null) return;
+    await _db.transaction(() async {
+      await _outbox.enqueue(
+        userId: userId,
+        entityType: 'service_record',
+        entityId: serviceRecordId,
+        op: OutboxOp.delete,
+        payload: {'id': serviceRecordId, 'vehicle_id': record.vehicleId},
+      );
+      await (_db.delete(
+        _db.serviceLineRecords,
+      )..where((r) => r.serviceRecordId.equals(serviceRecordId))).go();
+      await (_db.delete(
+        _db.servicePartRecords,
+      )..where((r) => r.serviceRecordId.equals(serviceRecordId))).go();
+      await (_db.delete(
+        _db.serviceRecordRows,
+      )..where((r) => r.id.equals(serviceRecordId))).go();
+    });
+    _sync?.requestSync();
+  }
+
+  @override
   Stream<List<PlanItem>> watchPlan(String vehicleId) {
     final query = _db.select(_db.planItemRecords)
       ..where((row) => row.vehicleId.equals(vehicleId))
-      ..orderBy([
-        (row) => OrderingTerm.asc(row.name),
-      ]);
+      ..orderBy([(row) => OrderingTerm.asc(row.name)]);
     return query.watch().map((rows) => rows.map(planItemFromDrift).toList());
   }
 
@@ -59,7 +90,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       ),
     ])..where(_db.vehicleRecords.userId.equals(userId));
     return query.watch().map(
-      (rows) => rows.map((row) => planItemFromDrift(row.readTable(_db.planItemRecords))).toList(),
+      (rows) => rows
+          .map((row) => planItemFromDrift(row.readTable(_db.planItemRecords)))
+          .toList(),
     );
   }
 
@@ -192,9 +225,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       createdAt: existing.createdAt,
     );
     await _db.transaction(() async {
-      await (_db.update(
-        _db.planItemRecords,
-      )..where((row) => row.id.equals(planItemId))).write(planItemToCompanion(updated));
+      await (_db.update(_db.planItemRecords)
+            ..where((row) => row.id.equals(planItemId)))
+          .write(planItemToCompanion(updated));
       await _outbox.enqueue(
         userId: userId,
         entityType: OutboxEntityType.planItem,
@@ -222,11 +255,13 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     // Check which items already exist to avoid duplicates
     final existingKeys = <String>{};
     for (final suggestion in suggestions) {
-      final existing = await (_db.select(_db.planItemRecords)..where(
-        (row) =>
-            row.vehicleId.equals(vehicle.id) &
-            row.catalogKey.equals(suggestion.catalogKey),
-      )).get();
+      final existing =
+          await (_db.select(_db.planItemRecords)..where(
+                (row) =>
+                    row.vehicleId.equals(vehicle.id) &
+                    row.catalogKey.equals(suggestion.catalogKey),
+              ))
+              .get();
       if (existing.isNotEmpty) {
         existingKeys.add(suggestion.catalogKey);
       }
@@ -248,7 +283,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           intervalDistance = suggestion.intervalDistance;
 
           // Apply condition fraction if provided (e.g., 0.5 = half interval for used cars)
-          if (conditionFraction != null && conditionFraction > 0 && conditionFraction < 1) {
+          if (conditionFraction != null &&
+              conditionFraction > 0 &&
+              conditionFraction < 1) {
             if (intervalDays != null) {
               intervalDays = intervalDays * conditionFraction;
             }
@@ -259,8 +296,12 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         }
 
         final due = NextDue(
-          on: intervalDays != null ? DueCalculator.addDays(dateOnlyStart, intervalDays.round()) : null,
-          mileage: intervalDistance != null ? trackingStartMileage + intervalDistance! : null,
+          on: intervalDays != null
+              ? DueCalculator.addDays(dateOnlyStart, intervalDays.round())
+              : null,
+          mileage: intervalDistance != null
+              ? trackingStartMileage + intervalDistance!
+              : null,
         );
 
         final item = PlanItem(
@@ -297,11 +338,13 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     required Vehicle vehicle,
     required SuggestedPlanItem suggestion,
   }) async {
-    final existing = await (_db.select(_db.planItemRecords)..where(
-      (row) =>
-          row.vehicleId.equals(vehicle.id) &
-          row.catalogKey.equals(suggestion.catalogKey),
-    )).get();
+    final existing =
+        await (_db.select(_db.planItemRecords)..where(
+              (row) =>
+                  row.vehicleId.equals(vehicle.id) &
+                  row.catalogKey.equals(suggestion.catalogKey),
+            ))
+            .get();
     if (existing.isNotEmpty) return;
     await addPlanItem(
       userId: userId,
@@ -328,7 +371,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     if (draft.odometer < 0) {
       throw const MaintenanceValidationFailure('Enter a valid mileage');
     }
-    if (draft.odometer < vehicle.mileage) {
+    if (!_outbox.derivesExpenses && draft.odometer < vehicle.mileage) {
       throw const MileageDecreaseFailure();
     }
     if (draft.totalCost < 0) {
@@ -355,7 +398,8 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           ),
         )
         .toList();
-    final title = _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
+    final title =
+        _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
     final record = ServiceRecord(
       id: _uuid.v4(),
       vehicleId: vehicle.id,
@@ -417,7 +461,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       }
 
       if (draft.odometer > vehicle.mileage) {
-        await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(vehicle.id))).write(
+        await (_db.update(
+          _db.vehicleRecords,
+        )..where((row) => row.id.equals(vehicle.id))).write(
           VehicleRecordsCompanion(
             mileage: Value(draft.odometer),
             updatedAt: Value(now),
@@ -432,7 +478,10 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         );
       }
 
-      final completedIds = lines.map((line) => line.planItemId).whereType<String>().toSet();
+      final completedIds = lines
+          .map((line) => line.planItemId)
+          .whereType<String>()
+          .toSet();
       for (final planItemId in completedIds) {
         final item = await getPlanItem(planItemId);
         if (item == null || item.vehicleId != vehicle.id) continue;
@@ -456,9 +505,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           updatedAt: now,
           createdAt: item.createdAt,
         );
-        await (_db.update(
-          _db.planItemRecords,
-        )..where((row) => row.id.equals(item.id))).write(planItemToCompanion(updated));
+        await (_db.update(_db.planItemRecords)
+              ..where((row) => row.id.equals(item.id)))
+            .write(planItemToCompanion(updated));
         await _outbox.enqueue(
           userId: userId,
           entityType: OutboxEntityType.planItem,
@@ -477,7 +526,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       );
     });
     // Auto-create expense for maintenance cost (skip if zero — e.g. mileage-only updates)
-    if (draft.totalCost > 0) {
+    if (draft.totalCost > 0 && !_outbox.derivesExpenses) {
       await _expenseRepository.add(
         userId: userId,
         vehicleId: vehicle.id,
@@ -534,7 +583,8 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           ),
         )
         .toList();
-    final title = _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
+    final title =
+        _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
     final record = ServiceRecord(
       id: existing.id,
       vehicleId: existing.vehicleId,
@@ -600,7 +650,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       }
 
       if (draft.odometer > vehicle.mileage) {
-        await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(vehicle.id))).write(
+        await (_db.update(
+          _db.vehicleRecords,
+        )..where((row) => row.id.equals(vehicle.id))).write(
           VehicleRecordsCompanion(
             mileage: Value(draft.odometer),
             updatedAt: Value(now),
@@ -627,7 +679,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     return record;
   }
 
-  Future<List<ServiceRecord>> _attachChildren(List<ServiceRecordRow> rows) async {
+  Future<List<ServiceRecord>> _attachChildren(
+    List<ServiceRecordRow> rows,
+  ) async {
     if (rows.isEmpty) return const [];
     final ids = rows.map((row) => row.id).toList();
     final lines = await (_db.select(
@@ -665,7 +719,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       date: draft.date,
       mileage: draft.mileage,
     );
-    if (scheduleError != null) throw MaintenanceValidationFailure(scheduleError);
+    if (scheduleError != null) {
+      throw MaintenanceValidationFailure(scheduleError);
+    }
   }
 
   String? _emptyToNull(String? value) {

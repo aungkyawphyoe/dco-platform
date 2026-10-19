@@ -31,7 +31,8 @@ enum SyncPushStatus {
   applied,
   idempotent,
   conflict,
-  rejected;
+  rejected,
+  review;
 
   static SyncPushStatus parse(String value) {
     return SyncPushStatus.values.firstWhere(
@@ -52,7 +53,10 @@ class SyncPushResult {
   final SyncPushStatus status;
   final ApiError? error;
 
-  bool get acked => status == SyncPushStatus.applied || status == SyncPushStatus.idempotent;
+  bool get acked =>
+      status == SyncPushStatus.applied ||
+      status == SyncPushStatus.idempotent ||
+      status == SyncPushStatus.review;
 
   factory SyncPushResult.fromJson(Map<String, dynamic> json) {
     return SyncPushResult(
@@ -127,7 +131,9 @@ class DioSyncApi implements SyncApi {
       final response = await _dio.post<Map<String, dynamic>>(
         '/sync/push',
         data: {
-          'operations': operations.map((operation) => operation.toJson()).toList(),
+          'operations': operations
+              .map((operation) => operation.toJson())
+              .toList(),
         },
       );
       final results = response.data?['results'];

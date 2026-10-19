@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/widgets/delete_record_action.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -33,29 +34,63 @@ class ServiceDetailScreen extends ConsumerWidget {
     final record = recordAsync.valueOrNull;
 
     final canEdit =
+        !(ref
+                .watch(recordAdminLockProvider('service_record:$serviceId'))
+                .valueOrNull ??
+            (ref.watch(driverOrganizationIdProvider) != null)) &&
         record != null &&
         vehicle != null &&
-        VehicleAccess.of(vehicle, currentUserId).canEditRecord(record.createdBy);
+        VehicleAccess.of(
+          vehicle,
+          currentUserId,
+        ).canEditRecord(record.createdBy);
 
     return Scaffold(
       appBar: AppBar(
+        bottom:
+            ref
+                    .watch(
+                      adminCorrectedRecordProvider('service_record:$serviceId'),
+                    )
+                    .valueOrNull ==
+                true
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(32),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(s.recordUpdatedByAdmin),
+                ),
+              )
+            : null,
         title: Text(s.serviceDetailTitle),
         actions: [
+          if (canEdit &&
+              currentUserId != null &&
+              ref.watch(driverOrganizationIdProvider) != null)
+            DeleteRecordAction(
+              onDelete: () => ref
+                  .read(maintenanceRepositoryProvider)
+                  .deleteService(
+                    userId: currentUserId,
+                    serviceRecordId: serviceId,
+                  ),
+            ),
           if (canEdit)
             IconButton(
               tooltip: s.edit,
               icon: Icon(Icons.edit_outlined, color: tokens.icon.inactive),
               onPressed: () async {
                 await context.push(AppRoutes.serviceEdit(serviceId));
-                if (context.mounted) ref.invalidate(serviceDetailProvider(serviceId));
+                if (context.mounted) {
+                  ref.invalidate(serviceDetailProvider(serviceId));
+                }
               },
             ),
         ],
       ),
       body: recordAsync.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: tokens.text.accent),
-        ),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
         error: (error, stackTrace) => DcoEmptyState(
           title: s.serviceDetailNotFound,
           body: s.serviceDetailNotFoundBody,
@@ -79,19 +114,23 @@ class ServiceDetailScreen extends ConsumerWidget {
               SizedBox(height: tokens.space.s2),
               Text(
                 DateFormat.yMMMd().format(record.servicedOn),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: tokens.text.secondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               SizedBox(height: tokens.space.s5),
               _kv(context, s.serviceDetailMileage, odometer),
               _kv(context, s.serviceDetailTotal, money),
               if (record.workshopName != null)
                 _kv(context, s.serviceDetailWorkshop, record.workshopName!),
-              if (record.notes != null) _kv(context, s.serviceDetailNotes, record.notes!),
+              if (record.notes != null)
+                _kv(context, s.serviceDetailNotes, record.notes!),
               _kv(context, s.loggedBy, nameAsync?.valueOrNull ?? '—'),
               SizedBox(height: tokens.space.s5),
-              Text(s.serviceDetailServices, style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                s.serviceDetailServices,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               SizedBox(height: tokens.space.s3),
               ...record.items.map((item) {
                 final cost = item.lineCost == null
@@ -115,7 +154,10 @@ class ServiceDetailScreen extends ConsumerWidget {
               }),
               if (record.parts.isNotEmpty) ...[
                 SizedBox(height: tokens.space.s5),
-                Text(s.serviceDetailParts, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  s.serviceDetailParts,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 SizedBox(height: tokens.space.s3),
                 ...record.parts.map(
                   (part) => Padding(

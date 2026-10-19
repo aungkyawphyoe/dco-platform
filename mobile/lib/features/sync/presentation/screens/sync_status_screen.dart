@@ -19,6 +19,8 @@ class SyncStatusScreen extends ConsumerWidget {
     final autoSyncEnabled = ref.watch(autoSyncProvider);
     final pendingCount = ref.watch(pendingOutboxCountProvider);
     final parkedCount = ref.watch(parkedOutboxCountProvider);
+    final reviews =
+        ref.watch(organizationReviewsProvider).valueOrNull ?? const [];
     final connectivity = ref.watch(connectivityProvider);
     final isOnline =
         connectivity.valueOrNull?.any((r) => r != ConnectivityResult.none) ??
@@ -38,6 +40,35 @@ class SyncStatusScreen extends ConsumerWidget {
             s: s,
           ),
           SizedBox(height: tokens.space.s4),
+
+          if (reviews.isNotEmpty) ...[
+            Text(
+              s.syncReviewTitle,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            for (final review in reviews)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(
+                  review['status'] == 'accepted'
+                      ? Icons.check_circle_outline
+                      : Icons.rate_review_outlined,
+                ),
+                title: Text(s.syncReviewSubmission),
+                subtitle: Text(switch (review['status']) {
+                  'accepted' => s.syncReviewAccepted,
+                  'rejected' => s.syncReviewRejected,
+                  _ => s.syncReviewPending,
+                }),
+                trailing: review['reviewer_note'] is String
+                    ? Tooltip(
+                        message: review['reviewer_note'] as String,
+                        child: const Icon(Icons.info_outline),
+                      )
+                    : null,
+              ),
+            SizedBox(height: tokens.space.s3),
+          ],
 
           // -- Auto-sync toggle
           _InfoCard(
@@ -323,11 +354,7 @@ class _ParkedCard extends StatelessWidget {
               color: tokens.status.dangerFg.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              Icons.block,
-              color: tokens.status.dangerFg,
-              size: 22,
-            ),
+            child: Icon(Icons.block, color: tokens.status.dangerFg, size: 22),
           ),
           SizedBox(width: tokens.space.s3),
           Expanded(

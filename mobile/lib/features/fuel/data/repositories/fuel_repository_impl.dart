@@ -25,10 +25,10 @@ class FuelRepositoryImpl implements FuelRepository {
     Uuid uuid = const Uuid(),
     required ExpenseRepository expenseRepository,
   }) : _db = db,
-        _outbox = outbox,
-        _sync = syncEngine,
-        _uuid = uuid,
-        _expenseRepository = expenseRepository;
+       _outbox = outbox,
+       _sync = syncEngine,
+       _uuid = uuid,
+       _expenseRepository = expenseRepository;
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
@@ -43,26 +43,67 @@ class FuelRepositoryImpl implements FuelRepository {
   static const _defaultElectric = [(name: 'Electricity', unit: 'kWh')];
 
   @override
-  Stream<List<FuelCatalogType>> watchFuelTypes(String userId, {FuelCatalogKind? kind}) {
-    final query = _db.select(_db.fuelTypeRecords)..where((row) => row.userId.equals(userId));
+  Future<void> deleteLog({
+    required String userId,
+    required String logId,
+  }) async {
+    if (!_outbox.derivesExpenses) {
+      throw StateError(
+        'Record deletion is not available in this account context.',
+      );
+    }
+    final record = await getLog(logId);
+    if (record == null) return;
+    await _db.transaction(() async {
+      await _outbox.enqueue(
+        userId: userId,
+        entityType: 'fuel_log',
+        entityId: logId,
+        op: OutboxOp.delete,
+        payload: {'id': logId, 'vehicle_id': record.vehicleId},
+      );
+      await (_db.delete(
+        _db.fuelLogRecords,
+      )..where((r) => r.id.equals(logId))).go();
+    });
+    _sync?.requestSync();
+  }
+
+  @override
+  Stream<List<FuelCatalogType>> watchFuelTypes(
+    String userId, {
+    FuelCatalogKind? kind,
+  }) {
+    final query = _db.select(_db.fuelTypeRecords)
+      ..where((row) => row.userId.equals(userId));
     if (kind != null) {
       query.where((row) => row.kind.equals(kind.storage));
     }
     query.orderBy([(row) => OrderingTerm.asc(row.name)]);
-    return query.watch().map((rows) => rows.map(fuelCatalogTypeFromDrift).toList());
+    return query.watch().map(
+      (rows) => rows.map(fuelCatalogTypeFromDrift).toList(),
+    );
   }
 
   @override
   Future<FuelCatalogType?> getFuelType(String id) async {
-    final row = await (_db.select(_db.fuelTypeRecords)..where((r) => r.id.equals(id))).getSingleOrNull();
+    final row = await (_db.select(
+      _db.fuelTypeRecords,
+    )..where((r) => r.id.equals(id))).getSingleOrNull();
     return row == null ? null : fuelCatalogTypeFromDrift(row);
   }
 
   @override
   Future<void> ensureDefaultFuelTypes(String userId) async {
-    final existing = await (_db.select(_db.fuelTypeRecords)..where((row) => row.userId.equals(userId))).get();
-    final hasLiquid = existing.any((row) => row.kind == FuelCatalogKind.liquid.storage);
-    final hasElectric = existing.any((row) => row.kind == FuelCatalogKind.electric.storage);
+    final existing = await (_db.select(
+      _db.fuelTypeRecords,
+    )..where((row) => row.userId.equals(userId))).get();
+    final hasLiquid = existing.any(
+      (row) => row.kind == FuelCatalogKind.liquid.storage,
+    );
+    final hasElectric = existing.any(
+      (row) => row.kind == FuelCatalogKind.electric.storage,
+    );
     if (hasLiquid && hasElectric) return;
 
     if (!hasLiquid) {
@@ -111,7 +152,9 @@ class FuelRepositoryImpl implements FuelRepository {
     );
 
     await _db.transaction(() async {
-      await _db.into(_db.fuelTypeRecords).insert(fuelCatalogTypeToCompanion(type));
+      await _db
+          .into(_db.fuelTypeRecords)
+          .insert(fuelCatalogTypeToCompanion(type));
       await _outbox.enqueue(
         userId: userId,
         entityType: OutboxEntityType.fuelType,
@@ -135,7 +178,11 @@ class FuelRepositoryImpl implements FuelRepository {
     if (existing == null || existing.userId != userId) {
       throw const FuelTypeNotFoundFailure();
     }
-    await _assertUniqueTypeName(userId: userId, name: draft.name, excludingId: fuelTypeId);
+    await _assertUniqueTypeName(
+      userId: userId,
+      name: draft.name,
+      excludingId: fuelTypeId,
+    );
 
     final updated = FuelCatalogType(
       id: existing.id,
@@ -148,9 +195,9 @@ class FuelRepositoryImpl implements FuelRepository {
     );
 
     await _db.transaction(() async {
-      await (_db.update(_db.fuelTypeRecords)..where((row) => row.id.equals(fuelTypeId))).write(
-        fuelCatalogTypeToCompanion(updated),
-      );
+      await (_db.update(_db.fuelTypeRecords)
+            ..where((row) => row.id.equals(fuelTypeId)))
+          .write(fuelCatalogTypeToCompanion(updated));
       await _outbox.enqueue(
         userId: userId,
         entityType: OutboxEntityType.fuelType,
@@ -169,14 +216,22 @@ class FuelRepositoryImpl implements FuelRepository {
     required FuelLogKind kind,
   }) {
     final query = _db.select(_db.fuelLogRecords)
-      ..where((row) => row.vehicleId.equals(vehicleId) & row.kind.equals(kind.storage))
-      ..orderBy([(row) => OrderingTerm.desc(row.loggedOn), (row) => OrderingTerm.desc(row.createdAt)]);
+      ..where(
+        (row) =>
+            row.vehicleId.equals(vehicleId) & row.kind.equals(kind.storage),
+      )
+      ..orderBy([
+        (row) => OrderingTerm.desc(row.loggedOn),
+        (row) => OrderingTerm.desc(row.createdAt),
+      ]);
     return query.watch().map((rows) => rows.map(fuelLogFromDrift).toList());
   }
 
   @override
   Future<FuelLog?> getLog(String id) async {
-    final row = await (_db.select(_db.fuelLogRecords)..where((r) => r.id.equals(id))).getSingleOrNull();
+    final row = await (_db.select(
+      _db.fuelLogRecords,
+    )..where((r) => r.id.equals(id))).getSingleOrNull();
     return row == null ? null : fuelLogFromDrift(row);
   }
 
@@ -222,17 +277,24 @@ class FuelRepositoryImpl implements FuelRepository {
         op: OutboxOp.upsert,
         payload: log.toWriteJson(),
       );
-      await _bumpVehicleMileageIfNeeded(userId: userId, vehicle: vehicle, odometer: draft.odometer, now: now);
-      // Auto-create expense for fuel cost
-      await _expenseRepository.add(
+      await _bumpVehicleMileageIfNeeded(
         userId: userId,
-        vehicleId: vehicleId,
-        draft: ExpenseDraft(
-          category: ExpenseCategory.fuel,
-          amount: draft.cost,
-          incurredOn: draft.loggedOn,
-        ),
+        vehicle: vehicle,
+        odometer: draft.odometer,
+        now: now,
       );
+      // Auto-create expense for fuel cost
+      if (!_outbox.derivesExpenses) {
+        await _expenseRepository.add(
+          userId: userId,
+          vehicleId: vehicleId,
+          draft: ExpenseDraft(
+            category: ExpenseCategory.fuel,
+            amount: draft.cost,
+            incurredOn: draft.loggedOn,
+          ),
+        );
+      }
     });
     _sync?.requestSync();
     return log;
@@ -278,9 +340,9 @@ class FuelRepositoryImpl implements FuelRepository {
     );
 
     await _db.transaction(() async {
-      await (_db.update(_db.fuelLogRecords)..where((row) => row.id.equals(logId))).write(
-        fuelLogToCompanion(updated),
-      );
+      await (_db.update(_db.fuelLogRecords)
+            ..where((row) => row.id.equals(logId)))
+          .write(fuelLogToCompanion(updated));
       await _outbox.enqueue(
         userId: userId,
         entityType: OutboxEntityType.fuelLog,
@@ -295,15 +357,17 @@ class FuelRepositoryImpl implements FuelRepository {
         now: updated.updatedAt,
       );
       // Auto-create/update expense for fuel cost
-      await _expenseRepository.add(
-        userId: userId,
-        vehicleId: existing.vehicleId,
-        draft: ExpenseDraft(
-          category: ExpenseCategory.fuel,
-          amount: draft.cost,
-          incurredOn: draft.loggedOn,
-        ),
-      );
+      if (!_outbox.derivesExpenses) {
+        await _expenseRepository.add(
+          userId: userId,
+          vehicleId: existing.vehicleId,
+          draft: ExpenseDraft(
+            category: ExpenseCategory.fuel,
+            amount: draft.cost,
+            incurredOn: draft.loggedOn,
+          ),
+        );
+      }
     });
     _sync?.requestSync();
     return updated;
@@ -317,7 +381,10 @@ class FuelRepositoryImpl implements FuelRepository {
   }
 
   void _assertLogDraft(FuelLogDraft draft) {
-    final dateError = FuelLogValidators.date(draft.loggedOn, now: DateTime.now());
+    final dateError = FuelLogValidators.date(
+      draft.loggedOn,
+      now: DateTime.now(),
+    );
     if (dateError != null) throw FuelValidationFailure(dateError);
     if (draft.amount <= 0 || draft.amount > FuelLogValidators.maxAmount) {
       throw const FuelValidationFailure('Enter an amount greater than 0');
@@ -326,22 +393,27 @@ class FuelRepositoryImpl implements FuelRepository {
       throw const FuelValidationFailure('Enter a valid cost');
     }
     if (draft.odometer != null) {
-      if (draft.odometer! < 0 || draft.odometer! > FuelLogValidators.maxOdometer) {
+      if (draft.odometer! < 0 ||
+          draft.odometer! > FuelLogValidators.maxOdometer) {
         throw const FuelValidationFailure('Enter a valid odometer');
       }
     }
   }
 
   Future<VehicleRecord> _requireVehicle(String vehicleId) async {
-    final vehicle = await (_db.select(_db.vehicleRecords)..where((row) => row.id.equals(vehicleId))).getSingleOrNull();
+    final vehicle = await (_db.select(
+      _db.vehicleRecords,
+    )..where((row) => row.id.equals(vehicleId))).getSingleOrNull();
     if (vehicle == null) throw const FuelLogNotFoundFailure();
     return vehicle;
   }
 
   void _assertOdometer(VehicleRecord vehicle, FuelLogDraft draft) {
     if (draft.odometer == null) return;
-    if (draft.odometer! < vehicle.mileage) {
-      throw const FuelValidationFailure('Odometer cannot be below vehicle mileage');
+    if (!_outbox.derivesExpenses && draft.odometer! < vehicle.mileage) {
+      throw const FuelValidationFailure(
+        'Odometer cannot be below vehicle mileage',
+      );
     }
   }
 
@@ -352,11 +424,10 @@ class FuelRepositoryImpl implements FuelRepository {
     required DateTime now,
   }) async {
     if (odometer == null || odometer <= vehicle.mileage) return;
-    await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(vehicle.id))).write(
-      VehicleRecordsCompanion(
-        mileage: Value(odometer),
-        updatedAt: Value(now),
-      ),
+    await (_db.update(
+      _db.vehicleRecords,
+    )..where((row) => row.id.equals(vehicle.id))).write(
+      VehicleRecordsCompanion(mileage: Value(odometer), updatedAt: Value(now)),
     );
     await _outbox.enqueue(
       userId: userId,
@@ -373,9 +444,12 @@ class FuelRepositoryImpl implements FuelRepository {
     String? excludingId,
   }) async {
     final normalized = name.trim().toLowerCase();
-    final rows = await (_db.select(_db.fuelTypeRecords)..where((row) => row.userId.equals(userId))).get();
+    final rows = await (_db.select(
+      _db.fuelTypeRecords,
+    )..where((row) => row.userId.equals(userId))).get();
     final clash = rows.any(
-      (row) => row.name.trim().toLowerCase() == normalized && row.id != excludingId,
+      (row) =>
+          row.name.trim().toLowerCase() == normalized && row.id != excludingId,
     );
     if (clash) throw const DuplicateFuelTypeNameFailure();
   }
@@ -395,5 +469,6 @@ class FuelRepositoryImpl implements FuelRepository {
     return type;
   }
 
-  DateTime _dateOnly(DateTime value) => DateTime(value.year, value.month, value.day);
+  DateTime _dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
 }

@@ -14,6 +14,7 @@ import 'core/theme/dco_tokens.dart';
 import 'core/widgets/dco_error_dialog.dart';
 import 'features/auth/presentation/session_controller.dart';
 import 'features/garage/providers.dart';
+import 'features/fleet/providers.dart';
 import 'features/notifications/presentation/reminder_sync_controller.dart';
 import 'features/settings/domain/entities/user_preferences.dart';
 import 'features/settings/providers.dart';
@@ -68,8 +69,7 @@ class DcoApp extends ConsumerStatefulWidget {
   ConsumerState<DcoApp> createState() => _DcoAppState();
 }
 
-class _DcoAppState extends ConsumerState<DcoApp>
-    with WidgetsBindingObserver {
+class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
   ({String message, DateTime at})? _lastSyncDialog;
 
   @override
@@ -113,7 +113,9 @@ class _DcoAppState extends ConsumerState<DcoApp>
     final last = _lastSyncDialog;
     final cooldown = const Duration(minutes: 1);
     final alreadyShown =
-        last != null && last.message == message && DateTime.now().difference(last.at) < cooldown;
+        last != null &&
+        last.message == message &&
+        DateTime.now().difference(last.at) < cooldown;
     if (alreadyShown) return;
     _lastSyncDialog = (message: message, at: DateTime.now());
 
@@ -139,16 +141,27 @@ class _DcoAppState extends ConsumerState<DcoApp>
     // hydration (§8.1).
     ref.watch(featureGateProvider);
 
+    ref.listen(entitlementsProvider, (previous, next) {
+      if (next.hasValue) ref.read(syncEngineProvider).requestSync();
+    });
     ref.listen(sessionControllerProvider, (previous, next) {
       final userId = next.valueOrNull?.user.id;
       final previousUserId = previous?.valueOrNull?.user.id;
       if (userId != null && userId != previousUserId) {
         ref.read(syncEngineProvider).syncNow();
-        ref.read(profileRepositoryProvider).flushPendingActiveVehicle(userId);
+        final personal =
+            ref.read(appConfigProvider).mockAuth ||
+            (ref.read(entitlementsProvider).hasValue &&
+                ref.read(driverOrganizationIdProvider) == null);
+        if (personal) {
+          ref.read(profileRepositoryProvider).flushPendingActiveVehicle(userId);
+        }
         // Fetch maintenance catalog after login
         final activeVehicleId = next.valueOrNull?.user.activeVehicleId;
-        if (activeVehicleId != null) {
-          ref.read(maintenanceCatalogRepositoryProvider).fetchAndCache(activeVehicleId);
+        if (personal && activeVehicleId != null) {
+          ref
+              .read(maintenanceCatalogRepositoryProvider)
+              .fetchAndCache(activeVehicleId);
         }
       }
     });
@@ -157,13 +170,18 @@ class _DcoAppState extends ConsumerState<DcoApp>
     ref.listen(activeVehicleProvider, (previous, next) {
       final vehicle = next.valueOrNull;
       final previousVehicle = previous?.valueOrNull;
-      if (vehicle != null && vehicle.id != previousVehicle?.id) {
-        ref.read(maintenanceCatalogRepositoryProvider).fetchAndCache(vehicle.id);
+      if (ref.read(driverOrganizationIdProvider) == null &&
+          vehicle != null &&
+          vehicle.id != previousVehicle?.id) {
+        ref
+            .read(maintenanceCatalogRepositoryProvider)
+            .fetchAndCache(vehicle.id);
       }
     });
 
     ref.listen(connectivityProvider, (previous, next) {
-      final regained = !_isOnline(previous?.valueOrNull) && _isOnline(next.valueOrNull);
+      final regained =
+          !_isOnline(previous?.valueOrNull) && _isOnline(next.valueOrNull);
       if (regained && ref.read(autoSyncProvider)) {
         ref.read(syncEngineProvider).requestSync();
       }

@@ -8,6 +8,7 @@ import 'package:dco_mobile/core/sync/outbox_models.dart';
 import 'package:dco_mobile/core/sync/outbox_writer.dart';
 import 'package:dco_mobile/core/sync/sync_api.dart';
 import 'package:dco_mobile/core/sync/sync_engine.dart';
+import 'package:dco_mobile/core/sync/sync_account_coordinator.dart';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -322,6 +323,23 @@ void main() {
       await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v2');
       await engine.syncNow(force: true);
       expect(api.recordedOps.map((op) => op.entityId), ['v1']);
+    },
+  );
+
+  test(
+    'replacement engine stays paused until account transition completes',
+    () async {
+      final coordinator = SyncAccountCoordinator();
+      await coordinator.pause();
+      coordinator.register(engine);
+      await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v1');
+      await engine.syncNow(force: true);
+      expect(api.recordedOps, isEmpty);
+      coordinator.resume();
+      await api.enteredPush.future;
+      await coordinator.pause();
+      expect(api.recordedOps.map((op) => op.entityId), ['v1']);
+      coordinator.unregister(engine);
     },
   );
 

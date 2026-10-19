@@ -7151,6 +7151,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy Policy'**
   String get privacyPolicy;
+
+  /// No description provided for @syncReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Submission review'**
+  String get syncReviewTitle;
+
+  /// No description provided for @syncReviewSubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle record submission'**
+  String get syncReviewSubmission;
+
+  /// No description provided for @syncReviewAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted by Fleet Admin'**
+  String get syncReviewAccepted;
+
+  /// No description provided for @syncReviewRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined by Fleet Admin'**
+  String get syncReviewRejected;
+
+  /// No description provided for @syncReviewPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for Fleet Admin'**
+  String get syncReviewPending;
+
+  /// No description provided for @recordUpdatedByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated by Fleet Admin · Read-only'**
+  String get recordUpdatedByAdmin;
+
+  /// No description provided for @recordDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this record and its linked expense? Totals and any linked maintenance schedule will update after synchronization.'**
+  String get recordDeleteBody;
 }
 
 class _AppLocalizationsDelegate

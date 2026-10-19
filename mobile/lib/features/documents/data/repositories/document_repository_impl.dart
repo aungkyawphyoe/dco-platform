@@ -18,10 +18,10 @@ class DocumentRepositoryImpl implements DocumentRepository {
     required OutboxWriter outbox,
     SyncEngine? syncEngine,
     Uuid uuid = const Uuid(),
-  })  : _db = db,
-        _outbox = outbox,
-        _sync = syncEngine,
-        _uuid = uuid;
+  }) : _db = db,
+       _outbox = outbox,
+       _sync = syncEngine,
+       _uuid = uuid;
 
   final AppDatabase _db;
   final OutboxWriter _outbox;
@@ -32,17 +32,15 @@ class DocumentRepositoryImpl implements DocumentRepository {
   Stream<List<Document>> watchForVehicle(String vehicleId) {
     final query = _db.select(_db.documentRecords)
       ..where((row) => row.vehicleId.equals(vehicleId))
-      ..orderBy([
-        (row) => OrderingTerm.desc(row.createdAt),
-      ]);
+      ..orderBy([(row) => OrderingTerm.desc(row.createdAt)]);
     return query.watch().map((rows) => rows.map(documentFromDrift).toList());
   }
 
   @override
   Future<Document?> getById(String id) async {
-    final row = await (_db.select(_db.documentRecords)
-          ..where((r) => r.id.equals(id)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.documentRecords,
+    )..where((r) => r.id.equals(id))).getSingleOrNull();
     if (row == null) return null;
     return documentFromDrift(row);
   }
@@ -68,14 +66,17 @@ class DocumentRepositoryImpl implements DocumentRepository {
       createdAt: now,
     );
 
-    await _db.into(_db.documentRecords).insert(documentToCompanion(doc));
-    await _outbox.enqueue(
-      userId: userId,
-      entityType: OutboxEntityType.document,
-      entityId: doc.id,
-      op: OutboxOp.upsert,
-      payload: doc.toWriteJson(),
-    );
+    await _db.transaction(() async {
+      await _db.into(_db.documentRecords).insert(documentToCompanion(doc));
+      await _outbox.enqueue(
+        userId: userId,
+        entityType: OutboxEntityType.document,
+        entityId: doc.id,
+        op: OutboxOp.upsert,
+        payload: doc.toWriteJson(),
+      );
+    });
+
     _sync?.requestSync();
     return doc;
   }
@@ -99,18 +100,21 @@ class DocumentRepositoryImpl implements DocumentRepository {
       updatedAt: DateTime.now().toUtc(),
     );
 
-    await (_db.update(_db.documentRecords)
-          ..where((row) => row.id.equals(documentId)))
-        .write(documentToCompanion(updated));
-    await _outbox.enqueue(
-      userId: userId,
-      entityType: OutboxEntityType.document,
-      entityId: documentId,
-      op: OutboxOp.upsert,
-      payload: updated.toWriteJson(),
-    );
+    await _db.transaction(() async {
+      await (_db.update(_db.documentRecords)
+            ..where((row) => row.id.equals(documentId)))
+          .write(documentToCompanion(updated));
+      await _outbox.enqueue(
+        userId: userId,
+        entityType: OutboxEntityType.document,
+        entityId: documentId,
+        op: OutboxOp.upsert,
+        payload: updated.toWriteJson(),
+      );
+    });
 
-    if (existing.localFilePath != null && existing.localFilePath != updated.localFilePath) {
+    if (existing.localFilePath != null &&
+        existing.localFilePath != updated.localFilePath) {
       await _deleteLocalFile(existing.localFilePath);
     }
 
@@ -126,16 +130,18 @@ class DocumentRepositoryImpl implements DocumentRepository {
     final existing = await getById(documentId);
     if (existing == null) throw const DocumentNotFoundFailure();
 
-    await (_db.delete(_db.documentRecords)
-          ..where((row) => row.id.equals(documentId)))
-        .go();
-    await _outbox.enqueue(
-      userId: userId,
-      entityType: OutboxEntityType.document,
-      entityId: documentId,
-      op: OutboxOp.delete,
-      payload: {'id': documentId},
-    );
+    await _db.transaction(() async {
+      await (_db.delete(
+        _db.documentRecords,
+      )..where((row) => row.id.equals(documentId))).go();
+      await _outbox.enqueue(
+        userId: userId,
+        entityType: OutboxEntityType.document,
+        entityId: documentId,
+        op: OutboxOp.delete,
+        payload: {'id': documentId, 'vehicle_id': existing.vehicleId},
+      );
+    });
 
     await _deleteLocalFile(existing.localFilePath);
     _sync?.requestSync();
@@ -146,7 +152,9 @@ class DocumentRepositoryImpl implements DocumentRepository {
       throw const DocumentValidationFailure('Name is required');
     }
     if (draft.name.trim().length > 120) {
-      throw const DocumentValidationFailure('Name must be 120 characters or less');
+      throw const DocumentValidationFailure(
+        'Name must be 120 characters or less',
+      );
     }
   }
 

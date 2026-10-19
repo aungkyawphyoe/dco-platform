@@ -31,7 +31,9 @@ part 'app_database.g.dart';
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase([QueryExecutor? executor])
-      : super(executor ?? driftDatabase(name: 'dco_owner'));
+    : super(executor ?? driftDatabase(name: 'dco_owner'));
+
+  AppDatabase.scoped(String name) : super(driftDatabase(name: name));
 
   @override
   int get schemaVersion => 22;
@@ -71,7 +73,10 @@ class AppDatabase extends _$AppDatabase {
         await migrator.createTable(notificationRecords);
       }
       if (from < 9) {
-        await migrator.addColumn(notificationRecords, notificationRecords.cycleKey);
+        await migrator.addColumn(
+          notificationRecords,
+          notificationRecords.cycleKey,
+        );
       }
       if (from < 10) {
         await migrator.createTable(drivingLicenseRecords);
@@ -116,7 +121,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 20) {
         // Audit trail: add created_by to maintenance, expenses, parts, plan items
         await migrator.addColumn(planItemRecords, planItemRecords.createdBy);
-        await migrator.addColumn(serviceRecordRows, serviceRecordRows.createdBy);
+        await migrator.addColumn(
+          serviceRecordRows,
+          serviceRecordRows.createdBy,
+        );
         await migrator.addColumn(partRecords, partRecords.createdBy);
         await migrator.addColumn(expenseRecords, expenseRecords.createdBy);
       }

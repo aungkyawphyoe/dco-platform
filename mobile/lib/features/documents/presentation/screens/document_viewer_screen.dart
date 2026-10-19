@@ -62,7 +62,9 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
     if (_loading) {
       return Scaffold(
         appBar: AppBar(title: Text(s.documentViewerTitle)),
-        body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        body: Center(
+          child: CircularProgressIndicator(color: tokens.text.accent),
+        ),
       );
     }
 
@@ -81,8 +83,14 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
       ref.watch(activeVehicleProvider).valueOrNull,
       ref.watch(currentUserIdProvider),
     );
-    final canEdit = access.canEditRecord(doc.createdBy);
-    final isImage = doc.localFilePath != null &&
+    final canEdit =
+        access.canEditRecord(doc.createdBy) &&
+        !(ref
+                .watch(recordAdminLockProvider('document:${doc.id}'))
+                .valueOrNull ??
+            (ref.watch(driverOrganizationIdProvider) != null));
+    final isImage =
+        doc.localFilePath != null &&
         (doc.localFilePath!.endsWith('.jpg') ||
             doc.localFilePath!.endsWith('.jpeg') ||
             doc.localFilePath!.endsWith('.png'));
@@ -104,23 +112,23 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
           Expanded(
             child: doc.hasLocalFile
                 ? isImage
-                    ? InteractiveViewer(
-                        minScale: 0.5,
-                        maxScale: 4.0,
-                        child: Center(
-                          child: Image.file(
-                            File(doc.localFilePath!),
-                            fit: BoxFit.contain,
+                      ? InteractiveViewer(
+                          minScale: 0.5,
+                          maxScale: 4.0,
+                          child: Center(
+                            child: Image.file(
+                              File(doc.localFilePath!),
+                              fit: BoxFit.contain,
+                            ),
                           ),
-                        ),
-                      )
-                    : _PdfViewer(path: doc.localFilePath!)
+                        )
+                      : _PdfViewer(path: doc.localFilePath!)
                 : doc.mediaId != null
-                    ? _RemoteDocument(doc: doc)
-                    : DcoEmptyState(
-                        title: s.documentViewerNoFile,
-                        body: s.documentViewerNoFileBody,
-                      ),
+                ? _RemoteDocument(doc: doc)
+                : DcoEmptyState(
+                    title: s.documentViewerNoFile,
+                    body: s.documentViewerNoFileBody,
+                  ),
           ),
           _DocumentInfoBar(document: doc),
         ],
@@ -141,8 +149,11 @@ class _PdfViewer extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.picture_as_pdf_outlined,
-              size: 64, color: tokens.status.dangerFg),
+          Icon(
+            Icons.picture_as_pdf_outlined,
+            size: 64,
+            color: tokens.status.dangerFg,
+          ),
           SizedBox(height: tokens.space.s4),
           Text(
             path.split('/').last,
@@ -164,35 +175,36 @@ class _PdfViewer extends StatelessWidget {
 
 class _RemoteDocument extends ConsumerWidget {
   const _RemoteDocument({required this.doc});
-
   final Document doc;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.cloud_download_outlined,
-              size: 64, color: tokens.icon.inactive),
-          SizedBox(height: tokens.space.s4),
-          Text(
-            s.documentViewerRemote,
-            style: Theme.of(context).textTheme.titleMedium,
+    return ref
+        .watch(documentFileProvider(doc.id))
+        .when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => DcoEmptyState(
+            title: s.documentViewerRemote,
+            body: s.documentViewerRemoteBody,
+            actionLabel: s.retry,
+            onAction: () => ref.invalidate(documentFileProvider(doc.id)),
           ),
-          SizedBox(height: tokens.space.s2),
-          Text(
-            s.documentViewerRemoteBody,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: tokens.text.caption),
-          ),
-        ],
-      ),
-    );
+          data: (path) => path == null
+              ? DcoEmptyState(
+                  title: s.documentViewerNoFile,
+                  body: s.documentViewerNoFileBody,
+                )
+              : path.endsWith('.pdf')
+              ? _PdfViewer(path: path)
+              : InteractiveViewer(
+                  minScale: 0.5,
+                  maxScale: 4,
+                  child: Center(
+                    child: Image.file(File(path), fit: BoxFit.contain),
+                  ),
+                ),
+        );
   }
 }
 
@@ -209,9 +221,7 @@ class _DocumentInfoBar extends StatelessWidget {
       padding: EdgeInsets.all(tokens.space.s4),
       decoration: BoxDecoration(
         color: tokens.background.card,
-        border: Border(
-          top: BorderSide(color: tokens.border.divider),
-        ),
+        border: Border(top: BorderSide(color: tokens.border.divider)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,10 +238,7 @@ class _DocumentInfoBar extends StatelessWidget {
           ),
           if (document.notes != null && document.notes!.isNotEmpty) ...[
             SizedBox(height: tokens.space.s2),
-            _InfoRow(
-              label: s.documentInfoNotes,
-              value: document.notes!,
-            ),
+            _InfoRow(label: s.documentInfoNotes, value: document.notes!),
           ],
           SizedBox(height: tokens.space.s2),
           _InfoRow(
@@ -264,11 +271,7 @@ class _DocumentInfoBar extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.label,
-    required this.value,
-    this.valueColor,
-  });
+  const _InfoRow({required this.label, required this.value, this.valueColor});
 
   final String label;
   final String value;
@@ -282,17 +285,16 @@ class _InfoRow extends StatelessWidget {
       children: [
         Text(
           '$label: ',
-          style: Theme.of(context)
-              .textTheme
-              .bodySmall
-              ?.copyWith(color: tokens.text.caption),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
         ),
         Expanded(
           child: Text(
             value,
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: valueColor ?? tokens.text.primary,
-                ),
+              color: valueColor ?? tokens.text.primary,
+            ),
           ),
         ),
       ],

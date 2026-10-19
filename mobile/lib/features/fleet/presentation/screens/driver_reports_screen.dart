@@ -10,16 +10,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-/// Driver pushed Reports screen (Confirmed Access Decisions 16/20/44).
-///
-/// Two sections, both driver-scoped and online-first:
-///
-/// * **Work orders** — the driver's own Report-Issue work orders with
-///   status chips (reported → in_progress → completed). Maintenance-Report
-///   work orders are deliberately excluded — they live in Maintenance
-///   history (Decision 44: no duplicates across feeds).
-/// * **Inspections** — the driver's own inspections (pre/post-trip) with
-///   passed / failed / in-progress chips.
+/// Supplemental work-order and inspection status. Ordinary completed service
+/// records appear in the shared maintenance history.
 class DriverReportsScreen extends ConsumerWidget {
   const DriverReportsScreen({super.key});
 
@@ -30,15 +22,14 @@ class DriverReportsScreen extends ConsumerWidget {
     final workOrdersAsync = ref.watch(driverWorkOrdersProvider);
     final inspectionsAsync = ref.watch(driverInspectionsProvider);
 
-    final issueWorkOrders = (workOrdersAsync.valueOrNull ?? const [])
-        .where((wo) => wo.issueType != 'scheduled_service')
-        .toList()
+    final issueWorkOrders = (workOrdersAsync.valueOrNull ?? const []).toList()
       ..sort((a, b) => _timestamp(b).compareTo(_timestamp(a)));
     final inspections = [...(inspectionsAsync.valueOrNull ?? const [])]
-      ..sort((a, b) => _inspectionTimestamp(b).compareTo(_inspectionTimestamp(a)));
+      ..sort(
+        (a, b) => _inspectionTimestamp(b).compareTo(_inspectionTimestamp(a)),
+      );
 
-    final isLoading =
-        workOrdersAsync.isLoading && inspectionsAsync.isLoading;
+    final isLoading = workOrdersAsync.isLoading && inspectionsAsync.isLoading;
     final hasError = workOrdersAsync.hasError && inspectionsAsync.hasError;
     final isEmpty =
         issueWorkOrders.isEmpty && inspections.isEmpty && !isLoading;
@@ -56,128 +47,122 @@ class DriverReportsScreen extends ConsumerWidget {
               },
             )
           : isEmpty
-              ? DcoEmptyState(
-                  title: s.driverMyWorkOrdersEmpty,
-                  body: s.driverMyWorkOrdersEmptyBody,
-                )
-              : RefreshIndicator(
-                  color: tokens.text.accent,
-                  onRefresh: () async {
-                    ref.invalidate(driverWorkOrdersProvider);
-                    ref.invalidate(driverInspectionsProvider);
-                    await Future.wait([
-                      ref.read(driverWorkOrdersProvider.future),
-                      ref.read(driverInspectionsProvider.future),
-                    ]);
-                  },
-                  child: ListView(
-                    padding: EdgeInsets.all(tokens.space.s4),
-                    children: [
-                      if (issueWorkOrders.isNotEmpty) ...[
-                        SectionHeader(s.driverReportsWorkOrders),
-                        if (workOrdersAsync.isLoading && issueWorkOrders.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        else
-                          ...issueWorkOrders.map(
-                            (wo) => Card(
-                              margin:
-                                  EdgeInsets.only(bottom: tokens.space.s2),
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.report_problem_outlined,
-                                  color: tokens.icon.inactive,
+          ? DcoEmptyState(
+              title: s.driverMyWorkOrdersEmpty,
+              body: s.driverMyWorkOrdersEmptyBody,
+            )
+          : RefreshIndicator(
+              color: tokens.text.accent,
+              onRefresh: () async {
+                ref.invalidate(driverWorkOrdersProvider);
+                ref.invalidate(driverInspectionsProvider);
+                await Future.wait([
+                  ref.read(driverWorkOrdersProvider.future),
+                  ref.read(driverInspectionsProvider.future),
+                ]);
+              },
+              child: ListView(
+                padding: EdgeInsets.all(tokens.space.s4),
+                children: [
+                  if (issueWorkOrders.isNotEmpty) ...[
+                    SectionHeader(s.driverReportsWorkOrders),
+                    if (workOrdersAsync.isLoading && issueWorkOrders.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else
+                      ...issueWorkOrders.map(
+                        (wo) => Card(
+                          margin: EdgeInsets.only(bottom: tokens.space.s2),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.report_problem_outlined,
+                              color: tokens.icon.inactive,
+                            ),
+                            title: Text(issueTypeLabel(s, wo.issueType)),
+                            subtitle: Text(
+                              [
+                                wo.description,
+                                DateFormat.yMMMd().format(
+                                  DateTime.tryParse(wo.reportedAt ?? '') ??
+                                      DateTime.now(),
                                 ),
-                                title: Text(issueTypeLabel(s, wo.issueType)),
-                                subtitle: Text(
-                                  [
-                                    wo.description,
-                                    DateFormat.yMMMd().format(
-                                      DateTime.tryParse(wo.reportedAt ?? '') ??
-                                          DateTime.now(),
-                                    ),
-                                    '${wo.odometerKm} km',
-                                  ].where((part) => part.isNotEmpty).join(' · '),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(color: tokens.text.caption),
-                                ),
-                                trailing: StatusChip(
-                                  label: _workOrderStatusLabel(s, wo.status),
-                                  tone: workOrderTone(wo.status),
-                                ),
-                              ),
+                                '${wo.odometerKm} km',
+                              ].where((part) => part.isNotEmpty).join(' · '),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: tokens.text.caption),
+                            ),
+                            trailing: StatusChip(
+                              label: _workOrderStatusLabel(s, wo.status),
+                              tone: workOrderTone(wo.status),
                             ),
                           ),
-                      ],
-                      if (inspections.isNotEmpty) ...[
-                        SectionHeader(s.driverReportsInspections),
-                        if (inspectionsAsync.isLoading && inspections.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.symmetric(vertical: 16),
-                            child: Center(child: CircularProgressIndicator()),
-                          )
-                        else
-                          ...inspections.map(
-                            (inspection) => Card(
-                              margin:
-                                  EdgeInsets.only(bottom: tokens.space.s2),
-                              child: ListTile(
-                                leading: Icon(
-                                  Icons.checklist_outlined,
-                                  color: tokens.icon.inactive,
+                        ),
+                      ),
+                  ],
+                  if (inspections.isNotEmpty) ...[
+                    SectionHeader(s.driverReportsInspections),
+                    if (inspectionsAsync.isLoading && inspections.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    else
+                      ...inspections.map(
+                        (inspection) => Card(
+                          margin: EdgeInsets.only(bottom: tokens.space.s2),
+                          child: ListTile(
+                            leading: Icon(
+                              Icons.checklist_outlined,
+                              color: tokens.icon.inactive,
+                            ),
+                            title: Text(
+                              inspection.inspectionType == 'post_trip'
+                                  ? s.driverInspectionTypePost
+                                  : s.driverInspectionTypePre,
+                            ),
+                            subtitle: Text(
+                              [
+                                DateFormat.yMMMd().format(
+                                  DateTime.tryParse(
+                                        inspection.completedAt ??
+                                            inspection.startedAt ??
+                                            '',
+                                      ) ??
+                                      DateTime.now(),
                                 ),
-                                title: Text(
-                                  inspection.inspectionType == 'post_trip'
-                                      ? s.driverInspectionTypePost
-                                      : s.driverInspectionTypePre,
-                                ),
-                                subtitle: Text(
-                                  [
-                                    DateFormat.yMMMd().format(
-                                      DateTime.tryParse(
-                                            inspection.completedAt ??
-                                                inspection.startedAt ??
-                                                '',
-                                          ) ??
-                                          DateTime.now(),
-                                    ),
-                                    if (inspection.notes != null &&
-                                        inspection.notes!.isNotEmpty)
-                                      inspection.notes!,
-                                  ].join(' · '),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodySmall
-                                      ?.copyWith(color: tokens.text.caption),
-                                ),
-                                trailing: StatusChip(
-                                  label: inspection.status == 'completed'
-                                      ? s.driverReportsInspectionPassed
-                                      : inspection.status == 'failed'
-                                          ? s.driverReportsInspectionFailed
-                                          : s.fleetWoStatusInProgress,
-                                  tone: inspection.status == 'completed'
-                                      ? 'success'
-                                      : inspection.status == 'failed'
-                                          ? 'danger'
-                                          : 'info',
-                                ),
-                              ),
+                                if (inspection.notes != null &&
+                                    inspection.notes!.isNotEmpty)
+                                  inspection.notes!,
+                              ].join(' · '),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: tokens.text.caption),
+                            ),
+                            trailing: StatusChip(
+                              label: inspection.status == 'completed'
+                                  ? s.driverReportsInspectionPassed
+                                  : inspection.status == 'failed'
+                                  ? s.driverReportsInspectionFailed
+                                  : s.fleetWoStatusInProgress,
+                              tone: inspection.status == 'completed'
+                                  ? 'success'
+                                  : inspection.status == 'failed'
+                                  ? 'danger'
+                                  : 'info',
                             ),
                           ),
-                      ],
-                      SizedBox(height: tokens.space.s6),
-                    ],
-                  ),
-                ),
+                        ),
+                      ),
+                  ],
+                  SizedBox(height: tokens.space.s6),
+                ],
+              ),
+            ),
     );
   }
 

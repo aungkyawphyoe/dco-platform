@@ -64,12 +64,17 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
   Future<void> _hydrate() async {
     if (widget.expenseId != null) {
-      final expense = await ref.read(expenseRepositoryProvider).getById(widget.expenseId!);
+      final expense = await ref
+          .read(expenseRepositoryProvider)
+          .getById(widget.expenseId!);
       if (expense != null && mounted) {
         _createdBy = expense.createdBy;
         _category = expense.category;
         _categoryLabel.text = expense.category.label;
-        _amount.text = MoneyFormat.input(expense.amount, ref.read(currencyProvider).code);
+        _amount.text = MoneyFormat.input(
+          expense.amount,
+          ref.read(currencyProvider).code,
+        );
         _incurredOn = expense.incurredOn;
         _date.text = DateFormat.yMMMd().format(expense.incurredOn);
         _notes.text = expense.notes ?? '';
@@ -79,7 +84,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
           ..clear()
           ..addAll(
             expense.parts.map(
-              (part) => ExpenseAssignedPartDraft(partId: part.partId, name: part.name),
+              (part) => ExpenseAssignedPartDraft(
+                partId: part.partId,
+                name: part.name,
+              ),
             ),
           );
       } else if (mounted) {
@@ -124,7 +132,11 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
-    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    final currentUserId = ref
+        .read(sessionControllerProvider)
+        .valueOrNull
+        ?.user
+        .id;
     if (currentUserId == null) return;
     setState(() => _saving = true);
     try {
@@ -154,8 +166,14 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
   Future<void> _delete() async {
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
-    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
-    if (vehicle == null || currentUserId == null || widget.expenseId == null) return;
+    final currentUserId = ref
+        .read(sessionControllerProvider)
+        .valueOrNull
+        ?.user
+        .id;
+    if (vehicle == null || currentUserId == null || widget.expenseId == null) {
+      return;
+    }
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) {
@@ -164,8 +182,14 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
           title: Text(s.expenseFormDeleteTitle),
           content: Text(s.expenseFormDeleteBody),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context, false), child: Text(s.cancel)),
-            TextButton(onPressed: () => Navigator.pop(context, true), child: const Text('Delete')),
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(s.cancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
           ],
         );
       },
@@ -173,10 +197,9 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     if (confirmed != true) return;
     setState(() => _saving = true);
     try {
-      await ref.read(expenseRepositoryProvider).delete(
-        userId: currentUserId,
-        expenseId: widget.expenseId!,
-      );
+      await ref
+          .read(expenseRepositoryProvider)
+          .delete(userId: currentUserId, expenseId: widget.expenseId!);
       ref.read(analyticsProvider).track(AnalyticsEvent.expenseDeleted);
       if (mounted) context.pop();
     } on ExpenseFailure catch (failure) {
@@ -188,7 +211,11 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
   Future<void> _pickDate() async {
     final now = DateTime.now();
-    final lastDate = DateTime(now.year, now.month, now.day).add(const Duration(days: 1));
+    final lastDate = DateTime(
+      now.year,
+      now.month,
+      now.day,
+    ).add(const Duration(days: 1));
     final initial = _incurredOn.isAfter(lastDate) ? lastDate : _incurredOn;
     final picked = await showDatePicker(
       context: context,
@@ -216,13 +243,23 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s4, tokens.space.s4, tokens.space.s2),
-                child: Text(s.expenseFormCategorySheetTitle, style: Theme.of(context).textTheme.titleMedium),
+                padding: EdgeInsets.fromLTRB(
+                  tokens.space.s4,
+                  tokens.space.s4,
+                  tokens.space.s4,
+                  tokens.space.s2,
+                ),
+                child: Text(
+                  s.expenseFormCategorySheetTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
               for (final category in ExpenseCategory.values)
                 ListTile(
                   title: Text(category.label),
-                  trailing: category == _category ? Icon(Icons.check, color: tokens.text.accent) : null,
+                  trailing: category == _category
+                      ? Icon(Icons.check, color: tokens.text.accent)
+                      : null,
                   onTap: () => Navigator.pop(context, category),
                 ),
             ],
@@ -240,7 +277,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
   Future<void> _pickReceipt(ImageSource source) async {
     try {
-      final picked = await ImagePicker().pickImage(source: source, imageQuality: 85);
+      final picked = await ImagePicker().pickImage(
+        source: source,
+        imageQuality: 85,
+      );
       if (picked == null) return;
       final directory = await getApplicationDocumentsDirectory();
       final dest = File('${directory.path}/expenses/${const Uuid().v4()}.jpg');
@@ -273,7 +313,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.photo_camera_outlined, color: tokens.icon.active),
+                leading: Icon(
+                  Icons.photo_camera_outlined,
+                  color: tokens.icon.active,
+                ),
                 title: Text(s.expenseFormCameraOption),
                 onTap: () {
                   Navigator.pop(context);
@@ -281,7 +324,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.photo_library_outlined, color: tokens.icon.active),
+                leading: Icon(
+                  Icons.photo_library_outlined,
+                  color: tokens.icon.active,
+                ),
                 title: Text(s.expenseFormPhotoLibraryOption),
                 onTap: () {
                   Navigator.pop(context);
@@ -296,9 +342,12 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
   }
 
   Future<void> _openAssignPart() async {
-    final catalog = ref.read(vehiclePartsProvider).valueOrNull ?? const <Part>[];
+    final catalog =
+        ref.read(vehiclePartsProvider).valueOrNull ?? const <Part>[];
     final assigned = _parts.map((part) => part.partId).toSet();
-    final available = catalog.where((part) => !assigned.contains(part.id)).toList();
+    final available = catalog
+        .where((part) => !assigned.contains(part.id))
+        .toList();
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -317,7 +366,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(s.expenseFormAssignPartTitle, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                s.expenseFormAssignPartTitle,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               SizedBox(height: tokens.space.s3),
               if (catalog.isEmpty)
                 Text(
@@ -334,10 +386,17 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   (part) => ListTile(
                     contentPadding: EdgeInsets.zero,
                     title: Text(part.name),
-                    subtitle: part.detailLine == null ? null : Text(part.detailLine!),
+                    subtitle: part.detailLine == null
+                        ? null
+                        : Text(part.detailLine!),
                     onTap: () {
                       setState(() {
-                        _parts.add(ExpenseAssignedPartDraft(partId: part.id, name: part.name));
+                        _parts.add(
+                          ExpenseAssignedPartDraft(
+                            partId: part.id,
+                            name: part.name,
+                          ),
+                        );
                       });
                       Navigator.pop(context);
                     },
@@ -361,26 +420,45 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.expenseId != null) {
+      ref.watch(recordAdminLockProvider('expense:${widget.expenseId}'));
+    }
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
     final canWrite = widget.isEditing
-        ? access.canEditRecord(_createdBy)
+        ? (access.canEditRecord(_createdBy) &&
+              !(ref
+                      .read(
+                        recordAdminLockProvider('expense:${widget.expenseId}'),
+                      )
+                      .valueOrNull ??
+                  (ref.read(driverOrganizationIdProvider) != null)))
         : access.canCreate;
     final currency = ref.watch(currencyProvider).code;
     ref.watch(vehiclePartsProvider);
 
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle)),
-        body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        appBar: AppBar(
+          title: Text(
+            widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle,
+          ),
+        ),
+        body: Center(
+          child: CircularProgressIndicator(color: tokens.text.accent),
+        ),
       );
     }
 
     if (vehicle == null) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle)),
+        appBar: AppBar(
+          title: Text(
+            widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle,
+          ),
+        ),
         body: DcoEmptyState(
           title: s.expensesNoActiveVehicle,
           body: s.expenseFormNoActiveVehicleBody,
@@ -399,7 +477,11 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle)),
+      appBar: AppBar(
+        title: Text(
+          widget.isEditing ? s.expenseFormEditTitle : s.expenseFormAddTitle,
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -408,7 +490,9 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
               children: [
                 Text(
                   vehicle.displayName,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
@@ -428,10 +512,15 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   controller: _amount,
                   hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
                   errorText: _errors['amount'],
-                  keyboardType: TextInputType.numberWithOptions(decimal: !MoneyFormat.isMmk(currency)),
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: !MoneyFormat.isMmk(currency),
+                  ),
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(currency, style: TextStyle(color: tokens.text.caption)),
+                    child: Text(
+                      currency,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
                   ),
                   onChanged: (_) => setState(() => _errors['amount'] = null),
                 ),
@@ -443,7 +532,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   readOnly: true,
                   onTap: _pickDate,
                   errorText: _errors['date'],
-                  suffix: Icon(Icons.calendar_today_outlined, color: tokens.icon.inactive),
+                  suffix: Icon(
+                    Icons.calendar_today_outlined,
+                    color: tokens.icon.inactive,
+                  ),
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
@@ -458,7 +550,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   onChanged: (_) => setState(() => _errors['notes'] = null),
                 ),
                 SizedBox(height: tokens.space.s5),
-                Text(s.expenseFormReceiptSection, style: Theme.of(context).textTheme.labelLarge),
+                Text(
+                  s.expenseFormReceiptSection,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
                 SizedBox(height: tokens.space.s3),
                 _ReceiptPicker(
                   path: _receiptPath,
@@ -469,7 +564,10 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   }),
                 ),
                 SizedBox(height: tokens.space.s5),
-                Text(s.expenseFormPartsSection, style: Theme.of(context).textTheme.labelLarge),
+                Text(
+                  s.expenseFormPartsSection,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
                 SizedBox(height: tokens.space.s3),
                 ..._parts.map(
                   (part) => Padding(
@@ -482,12 +580,19 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                         child: Row(
                           children: [
                             Expanded(
-                              child: Text(part.name, style: Theme.of(context).textTheme.titleMedium),
+                              child: Text(
+                                part.name,
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
                             ),
                             IconButton(
                               tooltip: s.remove,
-                              onPressed: () => setState(() => _parts.remove(part)),
-                              icon: Icon(Icons.close, color: tokens.icon.inactive),
+                              onPressed: () =>
+                                  setState(() => _parts.remove(part)),
+                              icon: Icon(
+                                Icons.close,
+                                color: tokens.icon.inactive,
+                              ),
                             ),
                           ],
                         ),
@@ -498,11 +603,17 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                 OutlinedButton.icon(
                   onPressed: _openAssignPart,
                   icon: Icon(Icons.add, color: tokens.icon.active),
-                  label: Text(s.expenseFormAssignPart, style: TextStyle(color: tokens.text.link)),
+                  label: Text(
+                    s.expenseFormAssignPart,
+                    style: TextStyle(color: tokens.text.link),
+                  ),
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+                  Text(
+                    _formError!,
+                    style: TextStyle(color: tokens.status.dangerFg),
+                  ),
                 ],
                 if (widget.isEditing && canWrite) ...[
                   SizedBox(height: tokens.space.s5),
@@ -569,7 +680,10 @@ class _ReceiptPicker extends StatelessWidget {
       return OutlinedButton.icon(
         onPressed: onAdd,
         icon: Icon(Icons.photo_outlined, color: tokens.icon.active),
-        label: Text(s.expenseFormAddReceipt, style: TextStyle(color: tokens.text.link)),
+        label: Text(
+          s.expenseFormAddReceipt,
+          style: TextStyle(color: tokens.text.link),
+        ),
       );
     }
     return Column(
@@ -589,11 +703,17 @@ class _ReceiptPicker extends StatelessWidget {
           children: [
             TextButton(
               onPressed: onAdd,
-              child: Text(s.expenseFormReplace, style: TextStyle(color: tokens.text.link)),
+              child: Text(
+                s.expenseFormReplace,
+                style: TextStyle(color: tokens.text.link),
+              ),
             ),
             TextButton(
               onPressed: onRemove,
-              child: Text(s.remove, style: TextStyle(color: tokens.status.dangerFg)),
+              child: Text(
+                s.remove,
+                style: TextStyle(color: tokens.status.dangerFg),
+              ),
             ),
           ],
         ),

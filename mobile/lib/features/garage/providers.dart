@@ -19,10 +19,15 @@ final activeVehicleProvider = StreamProvider<Vehicle?>((ref) {
 /// Live lookup for a single vehicle by id, independent of which vehicle
 /// is currently active. Drives the vehicle detail screen and any flow
 /// that must reference a non-active vehicle.
-final vehicleByIdProvider = StreamProvider.family<Vehicle?, String>((ref, vehicleId) {
+final vehicleByIdProvider = StreamProvider.family<Vehicle?, String>((
+  ref,
+  vehicleId,
+) {
   if (vehicleId.isEmpty) return Stream.value(null);
   final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
-  return ref.watch(vehicleRepositoryProvider).watchById(vehicleId, userId: userId);
+  return ref
+      .watch(vehicleRepositoryProvider)
+      .watchById(vehicleId, userId: userId);
 });
 
 typedef SetActiveVehicle = Future<void> Function(String vehicleId);
@@ -32,14 +37,19 @@ typedef SetActiveVehicle = Future<void> Function(String vehicleId);
 final setActiveVehicleProvider = Provider<SetActiveVehicle>((ref) {
   return (vehicleId) async {
     final userId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
-    final displayName = ref.read(sessionControllerProvider).valueOrNull?.user.displayName ?? '';
+    final displayName =
+        ref.read(sessionControllerProvider).valueOrNull?.user.displayName ?? '';
     if (userId == null) return;
     final profile = ref.read(profileRepositoryProvider);
     await ref
         .read(vehicleRepositoryProvider)
         .setActive(userId: userId, vehicleId: vehicleId);
+    if (ref.read(driverOrganizationIdProvider) != null) return;
     try {
-      await profile.update(displayName: displayName, activeVehicleId: vehicleId);
+      await profile.update(
+        displayName: displayName,
+        activeVehicleId: vehicleId,
+      );
     } on ApiError catch (error) {
       if (error.code == 'network') {
         await profile.markPendingActiveVehicle(

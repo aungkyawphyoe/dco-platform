@@ -54,10 +54,8 @@ class DocumentsScreen extends ConsumerWidget {
               loading: () => Center(
                 child: CircularProgressIndicator(color: tokens.text.accent),
               ),
-              error: (error, _) => DcoEmptyState(
-                title: s.documentsLoadError,
-                body: '$error',
-              ),
+              error: (error, _) =>
+                  DcoEmptyState(title: s.documentsLoadError, body: '$error'),
               data: (items) => items.isEmpty
                   ? Center(
                       child: DcoEmptyState(
@@ -81,24 +79,26 @@ class DocumentsScreen extends ConsumerWidget {
                       itemCount: items.length,
                       itemBuilder: (context, index) {
                         final doc = items[index];
+                        final locked =
+                            ref
+                                .watch(
+                                  recordAdminLockProvider('document:${doc.id}'),
+                                )
+                                .valueOrNull ??
+                            (ref.watch(driverOrganizationIdProvider) != null);
                         return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: tokens.space.s3,
-                          ),
+                          padding: EdgeInsets.only(bottom: tokens.space.s3),
                           child: _DocumentTile(
                             document: doc,
                             onTap: () {
                               final hasFile =
                                   doc.hasLocalFile || doc.mediaId != null;
                               if (!hasFile &&
-                                  access.canEditRecord(doc.createdBy)) {
-                                context.push(
-                                  AppRoutes.documentEdit(doc.id),
-                                );
+                                  access.canEditRecord(doc.createdBy) &&
+                                  !locked) {
+                                context.push(AppRoutes.documentEdit(doc.id));
                               } else {
-                                context.push(
-                                  AppRoutes.documentView(doc.id),
-                                );
+                                context.push(AppRoutes.documentView(doc.id));
                               }
                             },
                           ),
@@ -111,10 +111,7 @@ class DocumentsScreen extends ConsumerWidget {
 }
 
 class _DocumentTile extends StatelessWidget {
-  const _DocumentTile({
-    required this.document,
-    required this.onTap,
-  });
+  const _DocumentTile({required this.document, required this.onTap});
 
   final Document document;
   final VoidCallback onTap;
@@ -123,7 +120,8 @@ class _DocumentTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
-    final isImage = document.localFilePath != null &&
+    final isImage =
+        document.localFilePath != null &&
         (document.localFilePath!.endsWith('.jpg') ||
             document.localFilePath!.endsWith('.jpeg') ||
             document.localFilePath!.endsWith('.png'));
@@ -143,14 +141,15 @@ class _DocumentTile extends StatelessWidget {
                 height: 48,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: _categoryColor(document.category, tokens)
-                      .withValues(alpha: 0.16),
+                  color: _categoryColor(
+                    document.category,
+                    tokens,
+                  ).withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(tokens.radius.sm),
                 ),
                 child: isImage && document.localFilePath != null
                     ? ClipRRect(
-                        borderRadius:
-                            BorderRadius.circular(tokens.radius.sm),
+                        borderRadius: BorderRadius.circular(tokens.radius.sm),
                         child: Image.file(
                           File(document.localFilePath!),
                           width: 48,
@@ -180,24 +179,16 @@ class _DocumentTile extends StatelessWidget {
                       children: [
                         Text(
                           _categoryLabel(document.category, s),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: tokens.text.caption,
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: tokens.text.caption),
                         ),
                         SizedBox(width: tokens.space.s2),
-                        Text(
-                          '·',
-                          style: TextStyle(color: tokens.text.caption),
-                        ),
+                        Text('·', style: TextStyle(color: tokens.text.caption)),
                         SizedBox(width: tokens.space.s2),
                         Text(
-                          DateFormat.yMMMd()
-                              .format(document.createdAt),
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: tokens.text.caption,
-                                  ),
+                          DateFormat.yMMMd().format(document.createdAt),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: tokens.text.caption),
                         ),
                       ],
                     ),
@@ -213,10 +204,7 @@ class _DocumentTile extends StatelessWidget {
                 ),
               ],
               SizedBox(width: tokens.space.s2),
-              Icon(
-                Icons.chevron_right,
-                color: tokens.icon.inactive,
-              ),
+              Icon(Icons.chevron_right, color: tokens.icon.inactive),
             ],
           ),
         ),
@@ -235,13 +223,13 @@ class _DocumentTile extends StatelessWidget {
       };
 
   IconData _categoryIcon(DocumentCategory category) => switch (category) {
-        DocumentCategory.insurance => Icons.shield_outlined,
-        DocumentCategory.registration => Icons.description_outlined,
-        DocumentCategory.invoice => Icons.receipt_long_outlined,
-        DocumentCategory.warranty => Icons.verified_outlined,
-        DocumentCategory.receipt => Icons.confirmation_number_outlined,
-        DocumentCategory.other => Icons.insert_drive_file_outlined,
-      };
+    DocumentCategory.insurance => Icons.shield_outlined,
+    DocumentCategory.registration => Icons.description_outlined,
+    DocumentCategory.invoice => Icons.receipt_long_outlined,
+    DocumentCategory.warranty => Icons.verified_outlined,
+    DocumentCategory.receipt => Icons.confirmation_number_outlined,
+    DocumentCategory.other => Icons.insert_drive_file_outlined,
+  };
 
   String _categoryLabel(DocumentCategory category, AppLocalizations s) =>
       switch (category) {
