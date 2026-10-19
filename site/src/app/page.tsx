@@ -14,14 +14,12 @@ export default function HomePage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate overflow-hidden border-b border-line">
+      <section className="relative isolate flex min-h-svh flex-col items-center justify-center overflow-hidden border-b border-line pt-20 sm:pt-24">
         <AuroraBackdrop dots orbs />
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div className="flex flex-col items-start gap-6">
             <Reveal delay={0}>
-              <span className="rounded-full border border-line-subtle bg-panel px-3 py-1 text-xs font-medium text-ink-caption">
-                {HERO.eyebrow}
-              </span>
+              <span className="pill pill-gold">{HERO.eyebrow}</span>
             </Reveal>
             <Reveal delay={80}>
               <h1 className="font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl lg:text-[3.4rem]">
