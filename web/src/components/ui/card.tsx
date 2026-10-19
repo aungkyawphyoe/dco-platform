@@ -1,12 +1,13 @@
 export function Card({
   className = "",
   children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
+  ...props
+}: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={`rounded-lg border border-line-subtle bg-card ${className}`}>
+    <div
+      className={`rounded-lg border border-line-subtle bg-card ${className}`}
+      {...props}
+    >
       {children}
     </div>
   );

@@ -2,7 +2,7 @@
 
 **18 October realignment:** Driver suggested-plan creation and the separate Driver plan screens below are superseded by [the approved shared-mobile plan](mobile-personal-driver-realignment-plan.md). Fleet Admin manages all plan items. Drivers read those plans and log completed services through the shared Personal form; they cannot create plans through legacy endpoints. Historical sequencing below records the previous implementation.
 
-Plan doc locked via grilling session (14 Oct 2026). Status: **Implemented** (phases 1–7 Done — see Sequencing table). **Amended 16 Oct 2026 (second grilling):** driver-side plan completion logging is now in scope — see locked decision 11. **Amended 18 Oct 2026 (third grilling):** admin catalog and fleet templates pages standardized to one "Maintenance Catalog" contract — see locked decision 12.
+Plan doc locked via grilling session (14 Oct 2026). Status: **Implemented** (phases 1–7 Done — see Sequencing table; phase 9 Done). **Amended 16 Oct 2026 (second grilling):** driver-side plan completion logging is now in scope — see locked decision 11. **Amended 18 Oct 2026 (third grilling):** admin catalog and fleet templates pages standardized to one "Maintenance Catalog" contract — see locked decision 12. **Amended 18 Oct 2026 (fourth grilling):** assignment is now **class-level** (`maintenance_template_class`) and generation takes an explicit item selection — see locked decision 13.
 
 ## Overview
 
@@ -23,11 +23,12 @@ Supersedes nothing; extends `maintenance.md` (owner catalog) and `fleet-manageme
 | 5 | No cost/price fields on templates — market prices change too often, seeding them would create stale inconsistent data (was `estimated_cost`, cut 14 Oct 2026) |
 | 6 | Driver: sees pre-populated plan + can add from assigned-template suggested list |
 | 7 | `vehicle_class` lives on `vehicles.vehicle_class` (default `'car'`) |
-| 8 | Assignment FK: `organization_vehicles.maintenance_template_id` |
+| 8 | Assignment: `organization_vehicles.maintenance_template_class` (superseded the anchor FK `maintenance_template_id` on 18 Oct 2026 — migration 0021) |
 | 9 | Admin portal = global templates; Fleet Portal = org copies + assignment |
 | 10 | Priority: **backend + fleet portal first**, mobile driver second |
 | 11 | **(16 Oct 2026, second grilling)** Driver plan completion logging is **in scope**: Maintenance tab → Register service with **Report \| Do myself** — plan-linked logs (service record or work-order completion) advance `nextDueMileage`/`nextDueOn`; free-text do-myself logs are orphans and never touch a plan. Contract lives in `fleet-management.md` (Driver Surface Decisions 18–20). |
 | 12 | **(18 Oct 2026, third grilling) Cross-portal standardization:** both portals show **"Maintenance Catalog"** (fleet route stays `/maintenance-templates`); one column set/order — Name (key stacked), Class, Lifecycle, Fuel, Interval (merged `d · km`), [Source (fleet only)], Status; filters = class + fuel on both (fleet's lifecycle filter removed; admin gains `?fuel_type=`); `sort_order` removed from admin UI only (kept in API/DB/owner-app ordering; both lists sort class → lifecycle → sort_order → name); fleet row action on a **global** row is **Edit = copy-on-write** (opens the org copy if one exists — matched by case-insensitive name, same rule as `templateSetRows()` — else a prefilled create that clones via `source_template_id`); Copy button removed; canonical labels admin-wide (Petrol/Electric/Hybrid, friendly lifecycle labels, Status `Active`/`Disabled`); fleet new/edit form mirrors admin (name max 80, class, lifecycle, interval time + Day/Month/Year unit select, interval km, fuel types, enabled — no sort order). |
+| 13 | **(18 Oct 2026, fourth grilling) Class-level assignment + item selection.** The vehicle card's "Template set" dropdown lists **classes** (only the vehicle's own class is selectable; others disabled). "Assign" persists the **class** on `organization_vehicles.maintenance_template_class` (replaces the old anchor-row FK `maintenance_template_id`, dropped in migration 0021; existing assignments backfilled from the row's class). After assignment the set's items appear as a **checkbox list** (all checked; items already in the plan marked and locked); **Generate maintenance plan** snapshots only the **checked** items (`POST …/generate {item_ids}` — each id must belong to the assigned set, else 422 `invalid_selection`), skipping names already present. Selection is snapshot-only — the driver suggested list still exposes the full set. Deleting an org copy is no longer blocked (class assignment is not a row reference). |
 
 **Template → vehicle match rule:** `vehicle_class` matches AND (`lifecycle_template IS NULL` OR equals vehicle's lifecycle) AND vehicle `fuel_type ∈ fuel_types`.
 
@@ -37,7 +38,7 @@ Supersedes nothing; extends `maintenance.md` (owner catalog) and `fleet-manageme
 
 ## Template → vehicle matching
 
-Assignment stores the FK directly on `organization_vehicles.maintenance_template_id` (manual choice, not auto-derived). The match rule is validated at assignment time: assigning a template whose class/lifecycle/fuel does not match the vehicle is rejected (HTTP 400).
+Assignment stores the **vehicle class** directly on `organization_vehicles.maintenance_template_class` (manual choice from the class dropdown, not auto-derived). The set is validated at assignment time: selecting a class other than the vehicle's own class is rejected (HTTP 400 `template_mismatch`). The set itself is computed live (class + lifecycle + fuel) — see `templateSetRows()`.
 
 ---
 
@@ -142,8 +143,16 @@ ALTER TABLE organization_vehicles ADD COLUMN maintenance_template_id uuid REFERE
 -- + INSERT seed rows for motorcycle/truck/van (org_id NULL, lifecycle_template NULL)
 ```
 
+**Superseding migration 0021 (18 Oct 2026, fourth grilling)** — replaces the anchor FK with a class:
+
+```sql
+ALTER TABLE organization_vehicles ADD COLUMN IF NOT EXISTS maintenance_template_class text;
+-- + backfill from the old anchor row's vehicle_class (join maintenance_catalog)
+ALTER TABLE organization_vehicles DROP COLUMN IF EXISTS maintenance_template_id;
+```
+
 - `catalog_key` stays globally UNIQUE — org copies get suffixed keys (`oil_change__a1b2c`: slug via existing `slugify()` + 5-char random).
-- `src/db/schema.ts`: add `vehicleClass`, `lifecycleTemplate`, `orgId` to `maintenanceCatalog`; `vehicleClass` to `vehicles`; `maintenanceTemplateId` to `organizationVehicles`.
+- `src/db/schema.ts`: add `vehicleClass`, `lifecycleTemplate`, `orgId` to `maintenanceCatalog`; `vehicleClass` to `vehicles`; `maintenanceTemplateClass` to `organizationVehicles` (replaces `maintenanceTemplateId`).
 
 ### New endpoints (`fleet.ts` / `fleet-operations.ts`, all `requireFleetPortal`)
 
@@ -152,9 +161,9 @@ ALTER TABLE organization_vehicles ADD COLUMN maintenance_template_id uuid REFERE
 | GET | `/organizations/:id/maintenance-templates` | Returns **global (org_id NULL) + this org's copies**; query filters `vehicle_class`, `lifecycle_template`, `fuel_type`; response marks `source: "global" \| "org"` |
 | POST | `/organizations/:id/maintenance-templates` | Creates org copy; optional `source_template_id` clones a global row (new suffixed key) |
 | PATCH | `/organizations/:id/maintenance-templates/:itemId` | Org copies only — 403 on global rows |
-| DELETE | `/organizations/:id/maintenance-templates/:itemId` | Org copies only; **409 if assigned** to any `organization_vehicles.maintenance_template_id` |
-| PUT | `/organizations/:id/vehicles/:vehicleId/maintenance-template` | `{template_id}` or `null` to clear; validates match rule (class + lifecycle + fuel) |
-| POST | `/organizations/:id/vehicles/:vehicleId/maintenance-template/generate` | **Snapshot:** copies template rows → `plan_items` (client-uuid via `newId()`), computes `nextDueOn`/`nextDueMileage` with existing `dueFrom()`, **skips names already present (case-insensitive)** → `{created, skipped}` |
+| DELETE | `/organizations/:id/maintenance-templates/:itemId` | Org copies only (no assignment guard — class assignment is not a row reference) |
+| PUT | `/organizations/:id/vehicles/:vehicleId/maintenance-template` | `{vehicle_class}` or `null` to clear; the class must equal the vehicle's class (else 400 `template_mismatch`) |
+| POST | `/organizations/:id/vehicles/:vehicleId/maintenance-template/generate` | **Snapshot the selected items:** body `{item_ids}` (each must belong to the assigned set, else 422 `invalid_selection`); copies the chosen rows → `plan_items` (client-uuid via `newId()`), computes `nextDueOn`/`nextDueMileage` with existing `dueFrom()`, **skips names already present (case-insensitive)** → `{created, skipped}` |
 
 ### New driver endpoints (`fleet.ts`, dual-audience `requireFleetClient` — owner or fleet surface)
 
@@ -168,7 +177,7 @@ Owner routes live behind `getAccessibleVehicle`, which 404s any org-linked vehic
 
 ### Template = a set, not a single row
 
-`maintenance_template_id` stores an **anchor row**, but what it represents is the derived set: all enabled rows (global + this org's copies) whose `vehicle_class` matches the vehicle, whose optional `lifecycle_template` is NULL or equals the link's, and whose `fuel_types` include the vehicle's fuel — deduplicated by case-insensitive name with the **org copy winning** over the global row it was cloned from (`lib/catalog.ts` → `templateSetRows()`). Both generate and the driver suggested list use this same derivation; the anchor only stores lifecycle narrowing (rows are class/fuel filtered live).
+`maintenance_template_class` stores the assigned **class**, but what it represents is the derived set: all enabled rows (global + this org's copies) whose `vehicle_class` matches, whose optional `lifecycle_template` is NULL or equals the link's, and whose `fuel_types` include the vehicle's fuel — deduplicated by case-insensitive name with the **org copy winning** over the global row it was cloned from (`lib/catalog.ts` → `templateSetRows()`). Generate (on the admin-selected subset of ids) and the driver suggested list (full set) use this same derivation.
 
 ### Modified endpoints
 
@@ -252,10 +261,11 @@ Scope **as shipped**: view plan + add from suggested, no edits of portal-generat
 | 7 | Docs / FRD updates | — | **Done** (amended `frd/maintenance.md`, `frd/fleet-management.md`, `architecture/data-model.md`, `docs/mvp-as-built.md` per Contracts & docs; plus `docs/app-shell.md` driver screens, `mobile/AGENTS.md` driver surface, `CLAUDE.md` FRD list + portal pages, `architecture/api.md` audiences) |
 | 8 | **Driver maintenance logging + portal loop** (second grilling: driver service records, WO completion cost/auto-SR/plan advance, org service-record GET, portal Service-history + Plan cards, personal-garage ban, shift retirement) | `npm test`, `tsc`, `flutter analyze`, `flutter test`, portal lint/build | **Planned** (`fleet-management.md` Driver Surface Decisions 15–24; work packages WP1–WP4) |
 | 9 | **Cross-portal standardization** (third grilling — locked decision 12: shared naming/columns/filters/labels, admin `?fuel_type=` + class-first sort, sort-order UI removal, fleet copy-on-write Edit, fleet form mirrors admin) | `npm test` (backend), lint + build (web, fleet-portal) | **Done** (67/67 backend tests incl. fuel filter + class-order assertions; both portals lint clean and build) |
+| 10 | **Class-level assignment + item selection** (fourth grilling — locked decision 13: migration 0021 `maintenance_template_class`, PUT by class, generate `{item_ids}` + 422 `invalid_selection`, vehicle-card checklist, delete-guard removal) | `npm test` (backend), lint + build (fleet-portal, web), `gen:api` both apps | **Done** (15/15 fleet tests incl. partial-subset generate + invalid_selection; backend tsc clean) |
 
 ## Risks
 
 1. No `diesel` fuel type — trucks/buses may need it later (separate decision).
 2. No cost fields on templates — deliberately cut: market prices change too often and seeded costs would go stale and inconsistent (decided 14 Oct 2026).
 3. Depends on uncommitted workstream-3 state being committed first to keep diffs reviewable.
-4. `organization_vehicles.maintenance_template_id` is `ON DELETE set null` — deleting a template (when allowed) clears assignment but never touches generated plans (snapshot semantics).
+4. ~~`organization_vehicles.maintenance_template_id` is `ON DELETE set null`~~ — superseded 18 Oct 2026 (migration 0021): assignment is the class string `maintenance_template_class`, so deleting a template row never affects an assignment; generated plans are still snapshots.

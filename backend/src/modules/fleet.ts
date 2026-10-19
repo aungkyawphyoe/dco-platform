@@ -111,7 +111,7 @@ function serializeOrganizationVehicle(row: typeof organizationVehicles.$inferSel
     status: row.status,
     revenue_label: row.revenueLabel,
     assigned_driver_id: assignedDriver ?? null,
-    maintenance_template_id: row.maintenanceTemplateId,
+    maintenance_template_class: row.maintenanceTemplateClass,
     added_at: iso(row.addedAt),
   };
 }
@@ -1002,9 +1002,6 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const orgId = uuid.parse(rawOrgId);
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
     await loadOrgTemplate(orgId, itemId);
-    const [assigned] = await app.db.select({ id: organizationVehicles.id }).from(organizationVehicles)
-      .where(eq(organizationVehicles.maintenanceTemplateId, itemId)).limit(1);
-    if (assigned) throw new AppError(409, "template_assigned", "Template is assigned to a vehicle; clear the assignment first");
     await app.db.delete(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId));
     return reply.code(204).send();
   });
@@ -1015,27 +1012,20 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const orgId = uuid.parse(rawOrgId);
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
     const { link, vehicle } = await loadOrgVehicle(orgId, vehicleId);
-    const body = z.object({ template_id: uuid.nullable() }).parse(request.body);
-    if (body.template_id === null) {
+    const body = z.object({ vehicle_class: vehicleClass.nullable() }).parse(request.body);
+    if (body.vehicle_class === null) {
       const [updated] = await app.db.update(organizationVehicles)
-        .set({ maintenanceTemplateId: null, updatedAt: new Date() })
+        .set({ maintenanceTemplateClass: null, updatedAt: new Date() })
         .where(eq(organizationVehicles.id, link.id)).returning();
-      return { maintenance_template_id: updated.maintenanceTemplateId };
+      return { maintenance_template_class: updated.maintenanceTemplateClass };
     }
-    const [template] = await app.db.select().from(maintenanceCatalog)
-      .where(eq(maintenanceCatalog.id, body.template_id)).limit(1);
-    if (!template || (template.orgId != null && template.orgId !== orgId)) {
-      throw new AppError(404, "template_not_found", "Template not found");
-    }
-    if (!template.enabled) throw new AppError(400, "template_disabled", "Template is disabled");
-    const lifecycleOk = template.lifecycleTemplate == null || template.lifecycleTemplate === link.lifecycleTemplate;
-    if (template.vehicleClass !== vehicle.vehicleClass || !lifecycleOk || !template.fuelTypes.includes(vehicle.fuelType)) {
-      throw new AppError(400, "template_mismatch", "Template does not match this vehicle's class, lifecycle, and fuel type");
+    if (body.vehicle_class !== vehicle.vehicleClass) {
+      throw new AppError(400, "template_mismatch", "Template set class must match this vehicle's class");
     }
     const [updated] = await app.db.update(organizationVehicles)
-      .set({ maintenanceTemplateId: template.id, updatedAt: new Date() })
+      .set({ maintenanceTemplateClass: body.vehicle_class, updatedAt: new Date() })
       .where(eq(organizationVehicles.id, link.id)).returning();
-    return { maintenance_template_id: updated.maintenanceTemplateId };
+    return { maintenance_template_class: updated.maintenanceTemplateClass };
   });
 
   app.post("/organizations/:id/vehicles/:vehicleId/maintenance-template/generate", async (request) => {
@@ -1045,22 +1035,31 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin", "org_manager", "org_mechanic"]);
     const { link, vehicle } = await loadOrgVehicle(orgId, vehicleId);
-    if (!link.maintenanceTemplateId) {
-      throw new AppError(400, "template_not_assigned", "Assign a maintenance template before generating a plan");
+    if (!link.maintenanceTemplateClass) {
+      throw new AppError(400, "template_not_assigned", "Assign a maintenance set before generating a plan");
     }
+    const body = z.object({ item_ids: z.array(uuid).min(1) }).parse(request.body ?? {});
     const rows = await orgTemplateRows(orgId);
     const set = templateSetRows(rows, {
-      vehicleClass: vehicle.vehicleClass,
+      vehicleClass: link.maintenanceTemplateClass,
       lifecycleTemplate: link.lifecycleTemplate,
       fuelType: vehicle.fuelType,
       orgId,
+    });
+    const setById = new Map(set.map((row) => [row.id, row]));
+    const selected = body.item_ids.map((id) => {
+      const row = setById.get(id);
+      if (!row) {
+        throw new AppError(422, "invalid_selection", "Selected item is not part of the assigned maintenance set");
+      }
+      return row;
     });
     const existing = await app.db.select({ name: planItems.name }).from(planItems)
       .where(eq(planItems.vehicleId, vehicleId));
     const existingNames = new Set(existing.map((row) => row.name.trim().toLowerCase()));
     let created = 0;
     let skipped = 0;
-    for (const item of set) {
+    for (const item of selected) {
       if (existingNames.has(item.name.trim().toLowerCase())) {
         skipped += 1;
         continue;
@@ -1145,10 +1144,10 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const { vehicleId } = request.params as { vehicleId: string };
     const assignment = await requireDriverAssignment(vehicleId, uid(request));
     const { link, vehicle } = await loadOrgVehicle(assignment.orgId, vehicleId);
-    if (!link.maintenanceTemplateId) return { items: [] };
+    if (!link.maintenanceTemplateClass) return { items: [] };
     const rows = await orgTemplateRows(assignment.orgId);
     const set = templateSetRows(rows, {
-      vehicleClass: vehicle.vehicleClass,
+      vehicleClass: link.maintenanceTemplateClass,
       lifecycleTemplate: link.lifecycleTemplate,
       fuelType: vehicle.fuelType,
       orgId: assignment.orgId,

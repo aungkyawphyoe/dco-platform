@@ -40,7 +40,7 @@ export type FleetVehicle = {
   status: string;
   revenue_label: string | null;
   assigned_driver_id: string | null;
-  maintenance_template_id?: string | null;
+  maintenance_template_class?: VehicleClass | null;
   added_at: string | null;
 };
 
@@ -97,7 +97,7 @@ export type MaintenanceTemplateWrite = {
   source_template_id?: string;
 };
 
-export type TemplateAssignment = { maintenance_template_id: string | null };
+export type TemplateAssignment = { maintenance_template_class: VehicleClass | null };
 export type GeneratePlanResult = { created: number; skipped: number };
 
 export type VehiclePlanItem = {
@@ -245,6 +245,17 @@ export type VehicleCostMetric = {
   total_km_driven: number;
   cost_per_km: number;
   [key: string]: unknown;
+};
+
+export type VehicleCostMetrics = {
+  vehicle_id: string;
+  tco: number;
+  cost_per_km: number;
+  total_km_driven: number;
+  maintenance_cost: number;
+  fuel_cost: number;
+  wear_cost: number;
+  utilization_rate: number;
 };
 
 export type FleetAnalytics = {

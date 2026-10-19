@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SkeletonTable } from "@/components/ui/skeleton";
+import { SectionHeading } from "@/components/ui/section-heading";
 import {
   Table,
   TableBody,
@@ -23,6 +24,7 @@ import {
   useWorkshops,
 } from "@/lib/api/hooks";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
+import { formatDate } from "@/lib/format";
 
 export default function WorkshopsPage() {
   const orgId = useOrgId();
@@ -54,23 +56,24 @@ export default function WorkshopsPage() {
   }
 
   const workshops = data?.items ?? [];
+  const verified = workshops.filter((w) => w.status === "verified").length;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Workshops"
+        meta={workshops.length ? `${workshops.length} approved, ${verified} verified` : undefined}
         description="Approved workshop partners for warranty coverage and service"
         actions={
-          isAdmin ? (
-            <Button onClick={() => setShowAdd(true)}>Approve workshop</Button>
-          ) : null
+          isAdmin ? <Button onClick={() => setShowAdd(true)}>Approve workshop</Button> : null
         }
       />
 
       <Card>
+        <SectionHeading title="Approved workshops" count={workshops.length} />
         {isLoading ? (
           <div className="p-5">
-            <SkeletonTable rows={3} cols={4} />
+            <SkeletonTable rows={3} cols={5} />
           </div>
         ) : workshops.length === 0 ? (
           <EmptyState
@@ -91,24 +94,18 @@ export default function WorkshopsPage() {
             <TableBody>
               {workshops.map((workshop) => (
                 <TableRow key={workshop.id}>
-                  <TableCell className="font-medium text-ink">
-                    {workshop.name}
-                  </TableCell>
+                  <TableCell className="font-medium text-ink">{workshop.name}</TableCell>
                   <TableCell>
                     <p className="text-xs text-ink">{workshop.contact_email ?? "—"}</p>
-                    <p className="text-xs text-ink-caption">
-                      {workshop.contact_phone ?? ""}
-                    </p>
+                    <p className="text-xs text-ink-caption">{workshop.contact_phone ?? ""}</p>
                   </TableCell>
                   <TableCell>
                     <Badge tone={workshop.status === "verified" ? "success" : "warning"}>
                       {workshop.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-xs text-ink-caption">
-                    {workshop.added_at
-                      ? new Date(workshop.added_at).toLocaleDateString()
-                      : "—"}
+                  <TableCell className="font-mono text-xs text-ink-caption">
+                    {workshop.added_at ? formatDate(workshop.added_at) : "—"}
                   </TableCell>
                   <TableCell className="text-right">
                     {isAdmin ? (
@@ -145,9 +142,7 @@ export default function WorkshopsPage() {
             hint="Must be a verified workshop partner provisioned by AutoX Admin."
           />
           {error ? (
-            <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">
-              {error}
-            </p>
+            <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">{error}</p>
           ) : null}
         </div>
       </Modal>

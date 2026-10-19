@@ -4893,8 +4893,8 @@ export interface paths {
         };
         get?: never;
         /**
-         * Assign or clear a maintenance template on a vehicle
-         * @description template_id may reference a global row or an org copy; it must match the vehicle's class, lifecycle, and fuel. The id anchors the matching template set used for plan generation and driver suggestions.
+         * Assign or clear a maintenance template set (by class) on a vehicle
+         * @description The assigned set is identified by its vehicle class and must equal the vehicle's class; it anchors the matching template set used for plan generation and driver suggestions. null clears the assignment.
          */
         put: {
             parameters: {
@@ -4909,8 +4909,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** Format: uuid */
-                        template_id: string | null;
+                        vehicle_class: components["schemas"]["VehicleClass"] | null;
                     };
                 };
             };
@@ -4922,12 +4921,11 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** Format: uuid */
-                            maintenance_template_id: string | null;
+                            maintenance_template_class: components["schemas"]["VehicleClass"] | null;
                         };
                     };
                 };
-                /** @description template_disabled or template_mismatch */
+                /** @description template_mismatch */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -4960,8 +4958,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * One-time snapshot of the assigned template into plan items
-         * @description Copies the assigned template's matching rows into plan_items with due dates from the vehicle's current mileage; names already present (case-insensitive) are skipped. Idempotent by design.
+         * Snapshot selected template items into plan items
+         * @description Creates plan_items for the given catalog item ids, which must belong to the vehicle's assigned template set (class + lifecycle + fuel), with due dates from the vehicle's current mileage; names already present (case-insensitive) are skipped. Idempotent by design.
          */
         post: {
             parameters: {
@@ -4973,7 +4971,13 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": {
+                        item_ids: string[];
+                    };
+                };
+            };
             responses: {
                 /** @description Snapshot counts */
                 200: {
@@ -4990,6 +4994,7 @@ export interface paths {
                 400: components["responses"]["Error"];
                 403: components["responses"]["Error"];
                 404: components["responses"]["Error"];
+                422: components["responses"]["Error"];
             };
         };
         delete?: never;

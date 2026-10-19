@@ -55,7 +55,7 @@ export function TableHeadCell({
 }: HTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={`px-4 py-3 text-xs font-medium uppercase tracking-wider text-ink-caption ${className}`}
+      className={`px-4 py-3 text-xs font-medium text-ink-caption ${className}`}
       {...props}
     />
   );

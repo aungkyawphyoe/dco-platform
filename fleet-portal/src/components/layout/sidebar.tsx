@@ -94,7 +94,7 @@ export function Sidebar() {
       <nav className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
         {nav.map((group) => (
           <div key={group.section}>
-            <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wider text-ink-caption">
+            <p className="px-2 pb-2 text-xs font-medium text-ink-faint">
               {group.section}
             </p>
             <ul className="flex flex-col gap-1">

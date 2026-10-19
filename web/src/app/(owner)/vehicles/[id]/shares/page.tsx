@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
@@ -128,17 +127,17 @@ export default function VehicleSharesPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={`Share — ${vehicleName}`}
-        description={
-          data ? `License plate ${data.vehicle.license_plate}` : "Loading vehicle…"
+        backHref="/vehicles"
+        backLabel="Back to vehicles"
+        title={vehicleName}
+        status={
+          data ? (
+            <span className="font-mono text-sm text-ink-caption">
+              {data.vehicle.license_plate}
+            </span>
+          ) : undefined
         }
-        actions={
-          <Link href="/vehicles">
-            <Button variant="secondary" size="sm">
-              Back to vehicles
-            </Button>
-          </Link>
-        }
+        meta="Sharing and access"
       />
 
       {detail.error ? (
@@ -393,7 +392,7 @@ export default function VehicleSharesPage() {
               {shareCode ? (
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-label uppercase tracking-wide text-ink-caption">
+                    <p className="text-xs font-medium text-ink-caption">
                       Share code
                     </p>
                     <p className="font-mono text-2xl tracking-[0.3em] text-gold">

@@ -62,6 +62,8 @@ export default function NewUserPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        backHref="/users"
+        backLabel="Back to users"
         title="Create user"
         description="Create a new user account with a temporary password"
       />

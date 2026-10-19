@@ -2,7 +2,7 @@
 
 import { useId } from "react";
 
-type Option = { value: string; label: string };
+type Option = { value: string; label: string; disabled?: boolean };
 
 export function Select({
   label,
@@ -24,7 +24,7 @@ export function Select({
     <div className={`flex flex-col gap-1.5 ${className}`}>
       <label
         htmlFor={id}
-        className="text-label uppercase tracking-wide text-ink-caption"
+        className="text-xs font-medium text-ink-caption"
       >
         {label}
       </label>
@@ -39,7 +39,7 @@ export function Select({
             <option value="">{placeholder}</option>
           )}
           {options.map((opt) => (
-            <option key={opt.value} value={opt.value}>
+            <option key={opt.value} value={opt.value} disabled={opt.disabled}>
               {opt.label}
             </option>
           ))}

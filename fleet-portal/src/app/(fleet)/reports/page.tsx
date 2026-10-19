@@ -16,7 +16,7 @@ const reports = [
   {
     type: "fleet" as const,
     title: "Fleet cost report",
-    description: "Per-vehicle TCO, distance driven, and cost-per-kilometre.",
+    description: "Per-vehicle TCO, distance driven, and cost per kilometre.",
   },
   {
     type: "lemons" as const,
@@ -49,12 +49,11 @@ export default function ReportsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Reports"
+        meta={canExport ? `${reports.length} exports available` : undefined}
         description="CSV exports for inventory, cost analysis, and lemon flags"
       />
 
-      {error ? (
-        <Card className="p-4 text-sm text-danger">{error}</Card>
-      ) : null}
+      {error ? <Card className="p-4 text-sm text-danger">{error}</Card> : null}
 
       {!canExport ? (
         <Card className="p-4 text-sm text-ink-caption">
@@ -65,20 +64,18 @@ export default function ReportsPage() {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         {reports.map((report) => (
           <Card key={report.type} className="flex flex-col p-5">
-            <h2 className="font-display text-base font-semibold text-ink">
-              {report.title}
-            </h2>
-            <p className="mt-2 flex-1 text-sm text-ink-caption">
-              {report.description}
-            </p>
-            <Button
-              className="mt-4 self-start"
-              size="sm"
-              disabled={!canExport || pending !== null}
-              onClick={() => void onExport(report.type)}
-            >
-              {pending === report.type ? "Exporting…" : "Download CSV"}
-            </Button>
+            <h2 className="font-display text-base font-semibold text-ink">{report.title}</h2>
+            <p className="mt-2 flex-1 text-sm text-ink-muted">{report.description}</p>
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-xs text-ink-caption">CSV</span>
+              <Button
+                size="sm"
+                disabled={!canExport || pending !== null}
+                onClick={() => void onExport(report.type)}
+              >
+                {pending === report.type ? "Exporting…" : "Download"}
+              </Button>
+            </div>
           </Card>
         ))}
       </div>

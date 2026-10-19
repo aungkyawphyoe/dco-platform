@@ -3,19 +3,13 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-} from "@/components/ui/table";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Stat } from "@/components/ui/stat";
 import {
   useCreateWarrantyTemplate,
   useDeleteWarrantyTemplate,
@@ -23,6 +17,15 @@ import {
 } from "@/lib/api/hooks";
 import type { WarrantyTemplate } from "@/lib/api/types";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
+
+const blankForm = {
+  name: "",
+  duration_years: 2,
+  mileage_limit_km: 60000,
+  coverage_categories: "",
+  exclusions: "",
+  approved_workshop_ids: "",
+};
 
 export default function WarrantyTemplatesPage() {
   const orgId = useOrgId();
@@ -34,14 +37,7 @@ export default function WarrantyTemplatesPage() {
   const deleteTemplate = useDeleteWarrantyTemplate(orgId);
 
   const [showCreate, setShowCreate] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    duration_years: 2,
-    mileage_limit_km: 60000,
-    coverage_categories: "",
-    exclusions: "",
-    approved_workshop_ids: "",
-  });
+  const [form, setForm] = useState(blankForm);
   const [error, setError] = useState<string | null>(null);
 
   async function onCreate() {
@@ -66,14 +62,7 @@ export default function WarrantyTemplatesPage() {
           .filter(Boolean),
       });
       setShowCreate(false);
-      setForm({
-        name: "",
-        duration_years: 2,
-        mileage_limit_km: 60000,
-        coverage_categories: "",
-        exclusions: "",
-        approved_workshop_ids: "",
-      });
+      setForm(blankForm);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create template");
     }
@@ -84,76 +73,83 @@ export default function WarrantyTemplatesPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Warranty Templates"
+        title="Warranty templates"
+        meta={templates.length ? `${templates.length} templates` : undefined}
         description="Duration, mileage limits, coverage, and approved workshops"
         actions={
-          isAdmin ? (
-            <Button onClick={() => setShowCreate(true)}>New template</Button>
-          ) : null
+          isAdmin ? <Button onClick={() => setShowCreate(true)}>New template</Button> : null
         }
       />
 
-      <Card>
-        {isLoading ? (
-          <div className="p-5">
-            <SkeletonTable rows={3} cols={5} />
-          </div>
-        ) : templates.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          <Skeleton className="h-44 w-full" />
+          <Skeleton className="h-44 w-full" />
+        </div>
+      ) : templates.length === 0 ? (
+        <Card>
           <EmptyState
             title="No warranty templates"
             description="Create templates to apply warranties on vehicle transfer."
+            action={
+              isAdmin ? <Button onClick={() => setShowCreate(true)}>New template</Button> : null
+            }
           />
-        ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Name</TableHeadCell>
-                <TableHeadCell>Duration</TableHeadCell>
-                <TableHeadCell>Mileage limit</TableHeadCell>
-                <TableHeadCell>Coverage</TableHeadCell>
-                <TableHeadCell>Workshops</TableHeadCell>
-                <TableHeadCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {templates.map((template: WarrantyTemplate) => (
-                <TableRow key={template.id}>
-                  <TableCell className="font-medium text-ink">
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+          {templates.map((template: WarrantyTemplate) => {
+            const workshops = template.approved_workshop_ids?.length ?? 0;
+            return (
+              <Card key={template.id} className="flex flex-col p-5">
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="font-display text-base font-semibold text-ink">
                     {template.name}
-                  </TableCell>
-                  <TableCell>{template.duration_years} yr</TableCell>
-                  <TableCell>{template.mileage_limit_km.toLocaleString()} km</TableCell>
-                  <TableCell className="text-xs text-ink-caption">
-                    {template.coverage_categories?.join(", ") || "—"}
-                    {template.exclusions ? (
-                      <p className="mt-0.5 text-danger">
-                        excl: {template.exclusions}
-                      </p>
-                    ) : null}
-                  </TableCell>
-                  <TableCell className="text-xs text-ink-caption">
-                    {template.approved_workshop_ids?.length
-                      ? `${template.approved_workshop_ids.length} approved`
-                      : "—"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {isAdmin ? (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => void deleteTemplate.mutateAsync(template.id)}
-                        disabled={deleteTemplate.isPending}
-                      >
-                        Delete
-                      </Button>
-                    ) : null}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+                  </h2>
+                  {isAdmin ? (
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => void deleteTemplate.mutateAsync(template.id)}
+                      disabled={deleteTemplate.isPending}
+                    >
+                      Delete
+                    </Button>
+                  ) : null}
+                </div>
+
+                <div className="mt-4 flex flex-wrap gap-x-10 gap-y-4">
+                  <Stat label="Duration" value={`${template.duration_years} yr`} />
+                  <Stat
+                    label="Mileage limit"
+                    value={`${template.mileage_limit_km.toLocaleString()} km`}
+                  />
+                  <Stat
+                    label="Approved workshops"
+                    value={workshops ? workshops.toLocaleString() : "None"}
+                  />
+                </div>
+
+                <div className="mt-4 flex flex-1 flex-wrap items-start gap-1">
+                  {template.coverage_categories?.length ? (
+                    template.coverage_categories.map((category) => (
+                      <Badge key={category} tone="neutral">
+                        {category}
+                      </Badge>
+                    ))
+                  ) : (
+                    <span className="text-xs text-ink-caption">No coverage categories listed</span>
+                  )}
+                </div>
+
+                {template.exclusions ? (
+                  <p className="mt-4 text-xs text-danger">Excludes {template.exclusions}</p>
+                ) : null}
+              </Card>
+            );
+          })}
+        </div>
+      )}
 
       <Modal
         open={showCreate}
@@ -176,26 +172,20 @@ export default function WarrantyTemplatesPage() {
               min={1}
               max={10}
               value={form.duration_years}
-              onChange={(e) =>
-                setForm({ ...form, duration_years: Number(e.target.value) })
-              }
+              onChange={(e) => setForm({ ...form, duration_years: Number(e.target.value) })}
             />
             <Input
               label="Mileage limit (km)"
               type="number"
               min={1000}
               value={form.mileage_limit_km}
-              onChange={(e) =>
-                setForm({ ...form, mileage_limit_km: Number(e.target.value) })
-              }
+              onChange={(e) => setForm({ ...form, mileage_limit_km: Number(e.target.value) })}
             />
           </div>
           <Input
             label="Coverage categories (comma-separated)"
             value={form.coverage_categories}
-            onChange={(e) =>
-              setForm({ ...form, coverage_categories: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, coverage_categories: e.target.value })}
           />
           <Input
             label="Exclusions"
@@ -205,15 +195,11 @@ export default function WarrantyTemplatesPage() {
           <Input
             label="Approved workshop IDs (comma-separated UUIDs)"
             value={form.approved_workshop_ids}
-            onChange={(e) =>
-              setForm({ ...form, approved_workshop_ids: e.target.value })
-            }
+            onChange={(e) => setForm({ ...form, approved_workshop_ids: e.target.value })}
             hint="Workshops must already be approved for this organization."
           />
           {error ? (
-            <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">
-              {error}
-            </p>
+            <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">{error}</p>
           ) : null}
         </div>
       </Modal>

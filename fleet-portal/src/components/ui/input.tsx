@@ -15,7 +15,7 @@ export function Input({
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-label uppercase tracking-wide text-ink-caption">
+      <label htmlFor={id} className="text-xs font-medium text-ink-caption">
         {label}
       </label>
       <input

@@ -52,6 +52,8 @@ export default function NewPartnerPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        backHref="/partners"
+        backLabel="Back to partners"
         title="New partner"
         description="Register a workshop or insurer"
       />

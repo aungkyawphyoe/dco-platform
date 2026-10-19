@@ -1,40 +1,60 @@
 "use client";
 
+import Link from "next/link";
 import { PageHeader } from "@/components/ui/page-header";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "@/components/ui/table";
+import { InstrumentBand } from "@/components/ui/instrument-band";
+import { DataPlate } from "@/components/ui/data-plate";
+import { SectionHeading } from "@/components/ui/section-heading";
 import {
-  useFleetAnalytics,
-  useLemons,
-} from "@/lib/api/hooks";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeadCell,
+  TableRow,
+} from "@/components/ui/table";
+import { useFleetAnalytics, useLemons } from "@/lib/api/hooks";
 import { useOrgId, useSession } from "@/lib/auth/session-context";
+import { money } from "@/lib/format";
 
-function KpiCard({
+function AttentionTile({
+  href,
+  count,
   label,
-  value,
-  format = "number",
+  tone,
 }: {
+  href: string;
+  count?: number;
   label: string;
-  value?: number;
-  format?: "number" | "currency" | "decimal";
+  tone: "danger" | "warning" | "info";
 }) {
+  const numberTone =
+    count && count > 0
+      ? tone === "danger"
+        ? "text-danger"
+        : tone === "warning"
+          ? "text-warning"
+          : "text-info"
+      : "text-ink";
   return (
-    <Card className="p-5">
-      <p className="text-sm text-ink-caption">{label}</p>
-      {value === undefined ? (
-        <Skeleton className="mt-2 h-8 w-20" />
+    <Link
+      href={href}
+      className="group rounded-md border border-line-subtle bg-card p-4 transition-colors hover:border-line-strong"
+    >
+      {count === undefined ? (
+        <Skeleton className="h-9 w-12" />
       ) : (
-        <p className="mt-1 font-display text-3xl font-semibold text-ink">
-          {format === "currency"
-            ? `€${value.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-            : format === "decimal"
-              ? value.toFixed(3)
-              : value.toLocaleString()}
+        <p className={`font-mono text-3xl font-medium tracking-tight ${numberTone}`}>
+          {count}
         </p>
       )}
-    </Card>
+      <p className="mt-1 text-sm text-ink-muted transition-colors group-hover:text-ink">
+        {label}
+      </p>
+    </Link>
   );
 }
 
@@ -44,57 +64,87 @@ export default function DashboardPage() {
   const { data: analytics, isLoading, error } = useFleetAnalytics(orgId);
   const { data: lemons } = useLemons(orgId);
 
+  const orgName = org?.organization?.name ?? "Your fleet";
+  const meta = analytics ? `${orgName}, ${analytics.vehicle_count} vehicles` : orgName;
+
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Dashboard"
-        description={`${org?.organization?.name ?? "Fleet"} — cost analytics, work orders, and lemon flags`}
-      />
+      <PageHeader title="Dashboard" meta={meta} />
 
       {error ? (
-        <Card className="p-6">
-          <p className="text-sm text-danger">
-            Failed to load fleet analytics. Please try again.
+        <Card className="p-5">
+          <p className="max-w-xl text-sm text-ink-caption">
+            Fleet analytics are visible to Org Admins and Managers. Ask an admin to review fleet
+            costs and upcoming maintenance.
           </p>
         </Card>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <KpiCard label="Vehicles" value={analytics?.vehicle_count} />
-            <KpiCard
-              label="Total fleet spend"
-              value={analytics?.total_fleet_spend}
-              format="currency"
-            />
-            <KpiCard
-              label="Avg cost / km"
-              value={analytics?.average_cost_per_km}
-              format="decimal"
-            />
-            <KpiCard label="Lemon flags" value={analytics?.lemon_count} />
-            <KpiCard label="Open work orders" value={analytics?.open_work_orders} />
-            <KpiCard
-              label="Active assignments"
-              value={analytics?.active_assignments}
-            />
-            <KpiCard
-              label="Upcoming maintenance (30d)"
-              value={analytics?.upcoming_maintenance_count}
-            />
-          </div>
+          <InstrumentBand>
+            <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] lg:divide-x lg:divide-line">
+              <div className="p-5">
+                <h2 className="font-display text-base font-semibold text-ink">Needs attention</h2>
+                <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <AttentionTile
+                    href="/vehicles"
+                    count={analytics?.upcoming_maintenance_count}
+                    label="vehicles due for maintenance in 30 days"
+                    tone="warning"
+                  />
+                  <AttentionTile
+                    href="/work-orders"
+                    count={analytics?.open_work_orders}
+                    label="work orders still open"
+                    tone="info"
+                  />
+                  <AttentionTile
+                    href="#lemons"
+                    count={analytics?.lemon_count}
+                    label="vehicles above the lemon threshold"
+                    tone="danger"
+                  />
+                </div>
+              </div>
 
-          <Card>
-            <div className="border-b border-line-subtle px-5 py-4">
-              <h2 className="font-display text-base font-semibold text-ink">
-                Lemon flags
-              </h2>
-              <p className="mt-0.5 text-xs text-ink-caption">
-                Vehicles above threshold{" "}
-                {lemons
-                  ? `(${lemons.threshold_cost_per_km.toFixed(3)} €/km)`
-                  : ""}
-              </p>
+              <div className="border-t border-line-subtle p-5 lg:border-t-0">
+                <h2 className="font-display text-base font-semibold text-ink">Fleet at a glance</h2>
+                <DataPlate
+                  className="mt-4"
+                  fields={[
+                    {
+                      label: "Vehicles",
+                      value: analytics ? analytics.vehicle_count.toLocaleString() : "—",
+                      mono: true,
+                    },
+                    {
+                      label: "Total spend",
+                      value: analytics ? money(analytics.total_fleet_spend, 0) : "—",
+                      mono: true,
+                    },
+                    {
+                      label: "Average cost",
+                      value: analytics ? `${money(analytics.average_cost_per_km, 3)} / km` : "—",
+                      mono: true,
+                    },
+                    {
+                      label: "Active assignments",
+                      value: analytics ? analytics.active_assignments.toLocaleString() : "—",
+                      mono: true,
+                    },
+                  ]}
+                />
+              </div>
             </div>
+          </InstrumentBand>
+
+          <Card id="lemons">
+            <SectionHeading title="Lemon flags" count={lemons?.items.length ?? 0}>
+              {lemons ? (
+                <span className="text-xs text-ink-caption">
+                  Above {money(lemons.threshold_cost_per_km, 3)} per km
+                </span>
+              ) : null}
+            </SectionHeading>
             {isLoading ? (
               <div className="space-y-3 p-5">
                 <Skeleton className="h-5 w-full" />
@@ -111,25 +161,25 @@ export default function DashboardPage() {
                     <TableHeadCell>Vehicle</TableHeadCell>
                     <TableHeadCell>Plate</TableHeadCell>
                     <TableHeadCell>TCO</TableHeadCell>
-                    <TableHeadCell>km driven</TableHeadCell>
+                    <TableHeadCell>Distance</TableHeadCell>
                     <TableHeadCell>Cost / km</TableHeadCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {lemons.items.map((item, i) => (
                     <TableRow key={i}>
-                      <TableCell>{item.name ?? "—"}</TableCell>
+                      <TableCell className="font-medium">{item.name ?? "—"}</TableCell>
                       <TableCell className="font-mono text-xs">
                         {item.license_plate ?? "—"}
                       </TableCell>
-                      <TableCell>
-                        €{Number(item.tco ?? 0).toLocaleString()}
+                      <TableCell className="font-mono">
+                        {money(Number(item.tco ?? 0), 0)}
                       </TableCell>
-                      <TableCell>{Number(item.total_km_driven ?? 0).toLocaleString()}</TableCell>
+                      <TableCell className="font-mono">
+                        {Number(item.total_km_driven ?? 0).toLocaleString()} km
+                      </TableCell>
                       <TableCell>
-                        <Badge tone="danger">
-                          {Number(item.cost_per_km ?? 0).toFixed(3)}
-                        </Badge>
+                        <Badge tone="danger">{Number(item.cost_per_km ?? 0).toFixed(3)}</Badge>
                       </TableCell>
                     </TableRow>
                   ))}

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { SearchInput } from "@/components/ui/search-input";
 import { Select } from "@/components/ui/select";
+import { SectionHeading } from "@/components/ui/section-heading";
 import {
   Table,
   TableHead,
@@ -19,6 +20,7 @@ import {
 import { SkeletonTable } from "@/components/ui/skeleton";
 import { UserStatusBadge, PlanBadge } from "@/components/ui/status-badge";
 import { useAdminUsers } from "@/lib/api/hooks";
+import { formatDate } from "@/lib/format";
 
 export default function UsersPage() {
   const [q, setQ] = useState("");
@@ -33,40 +35,48 @@ export default function UsersPage() {
   });
 
   const users = data?.items ?? [];
+  const filtered = Boolean(debouncedQ || status);
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Users"
+        meta={
+          users.length
+            ? filtered
+              ? `${users.length} matching accounts`
+              : `${users.length} accounts`
+            : undefined
+        }
         description="Search, view, and support owner accounts"
+        actions={
+          <Link href="/users/new">
+            <Button size="sm">Create user</Button>
+          </Link>
+        }
       />
 
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div className="flex flex-wrap items-end gap-3">
-          <SearchInput
-            value={q}
-            onChange={(val) => {
-              setQ(val);
-              handleSearch(val);
-            }}
-            placeholder="Search by email, name, or phone..."
-            className="w-72"
-          />
-          <Select
-            label="Status"
-            placeholder="All statuses"
-            options={[
-              { value: "active", label: "Active" },
-              { value: "deactivated", label: "Deactivated" },
-            ]}
-            value={status}
-            onChange={setStatus}
-            className="w-44"
-          />
-        </div>
-        <Link href="/users/new">
-          <Button size="sm">Create user</Button>
-        </Link>
+      <div className="flex flex-wrap items-end gap-3">
+        <SearchInput
+          value={q}
+          onChange={(val) => {
+            setQ(val);
+            handleSearch(val);
+          }}
+          placeholder="Search by email, name, or phone..."
+          className="w-72"
+        />
+        <Select
+          label="Status"
+          placeholder="All statuses"
+          options={[
+            { value: "active", label: "Active" },
+            { value: "deactivated", label: "Deactivated" },
+          ]}
+          value={status}
+          onChange={setStatus}
+          className="w-44"
+        />
       </div>
 
       {error ? (
@@ -84,14 +94,22 @@ export default function UsersPage() {
           <EmptyState
             title="No users found"
             description={
-              debouncedQ || status
+              filtered
                 ? "Try adjusting your search or filter."
                 : "No user accounts yet."
+            }
+            action={
+              !filtered ? (
+                <Link href="/users/new">
+                  <Button size="sm">Create user</Button>
+                </Link>
+              ) : null
             }
           />
         </Card>
       ) : (
         <Card>
+          <SectionHeading title="Accounts" count={users.length} />
           <Table>
             <TableHead>
               <TableRow>
@@ -110,7 +128,7 @@ export default function UsersPage() {
                   <TableCell>
                     <Link
                       href={`/users/${user.id}`}
-                      className="text-gold hover:underline"
+                      className="font-medium text-ink transition-colors hover:text-gold"
                     >
                       {user.email}
                     </Link>
@@ -118,7 +136,7 @@ export default function UsersPage() {
                   <TableCell className="text-ink-muted">
                     {user.display_name ?? "—"}
                   </TableCell>
-                  <TableCell className="text-ink-muted">
+                  <TableCell className="font-mono text-xs text-ink-muted">
                     {user.contact_phone ?? "—"}
                   </TableCell>
                   <TableCell>
@@ -127,15 +145,11 @@ export default function UsersPage() {
                   <TableCell>
                     <UserStatusBadge status={user.status} />
                   </TableCell>
-                  <TableCell>{user.vehicle_count ?? 0}</TableCell>
-                  <TableCell className="text-ink-caption">
-                    {user.created_at
-                      ? new Intl.DateTimeFormat("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }).format(new Date(user.created_at))
-                      : "—"}
+                  <TableCell className="font-mono text-xs">
+                    {user.vehicle_count ?? 0}
+                  </TableCell>
+                  <TableCell className="font-mono text-xs text-ink-caption">
+                    {user.created_at ? formatDate(user.created_at) : "—"}
                   </TableCell>
                 </TableRow>
               ))}

@@ -10,6 +10,10 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { Skeleton } from "@/components/ui/skeleton";
+import { SectionHeading } from "@/components/ui/section-heading";
+import { DataPlate } from "@/components/ui/data-plate";
+import { formatDateTime } from "@/lib/format";
 
 interface Review {
   id: string;
@@ -30,9 +34,14 @@ const labels: Record<string, string> = {
 };
 function Fields({ record }: { record: Record<string, unknown> }) {
   return <dl className="grid grid-cols-2 gap-3 text-sm">{Object.entries(record).filter(([key]) => labels[key]).map(([key, value]) =>
-    <div key={key}><dt className="text-ink-caption">{labels[key]}</dt><dd>{Array.isArray(value)
+    <div key={key}><dt className="text-xs text-ink-caption">{labels[key]}</dt><dd className="mt-0.5">{Array.isArray(value)
       ? value.map((item, index) => <div key={index}>{item && typeof item === "object" ? <Fields record={item as Record<string, unknown>} /> : String(item)}</div>)
       : value == null ? "—" : String(value)}</dd></div>)}</dl>;
+}
+
+function titleize(value: string) {
+  const words = value.replaceAll("_", " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }
 
 export default function ReviewsPage() {
@@ -67,24 +76,134 @@ export default function ReviewsPage() {
     finally { setBusy(null); }
   }
 
-  if (role !== "org_admin") return <EmptyState title="Fleet Admin access required" description="Only the Fleet Admin can decide pending submissions." />;
-  return <div className="flex flex-col gap-6">
-    <PageHeader title="Submission review" description="Review offline logs received after access changed, or corrections that conflict with newer records." />
-    {error || reviews.error ? <p role="alert" className="text-danger">{error ?? reviews.error?.message}</p> : null}
-    {reviews.isLoading ? <p>Loading submissions…</p> : null}
-    {reviews.data?.items.length === 0 ? <EmptyState title="No submissions to review" description="Submissions needing a decision will appear here." /> : null}
-    {reviews.data?.items.map(review => <Card key={review.id}>
-      <div className="flex flex-col gap-4 p-5">
-        <div className="flex items-center justify-between"><h2 className="font-display text-lg">{review.operation.entity_type.replaceAll("_", " ")}</h2><Badge tone={review.status === "pending" ? "warning" : "neutral"}>{review.status}</Badge></div>
-        <p className="text-sm text-ink-caption">{review.reason.replaceAll("_", " ")} · {new Date(review.created_at).toLocaleString()}</p>
-        <p className="text-sm">Vehicle: {vehicles?.items.find(v => v.id === review.vehicle_id)?.name ?? "Former fleet vehicle"} · Submitted by: {members?.items.find(m => m.user_id === review.submitted_by)?.display_name ?? "Former fleet member"}</p>
-        <Fields record={review.operation.payload} />
-        {comparison?.id === review.id ? <div className="rounded border border-line-subtle p-3"><h3 className="font-semibold">Current record</h3>{comparison.record ? <Fields record={comparison.record} /> : <p>This is a new record.</p>}</div> : null}
-        {review.status === "pending" ? <div className="flex gap-3">
-          {comparison?.id === review.id ? <Button disabled={busy !== null} onClick={() => void decide(review, "accept")}>Accept {review.operation.op === "delete" ? "deletion" : "submission"}</Button> : <Button disabled={busy !== null} onClick={() => void inspect(review)}>Compare before accepting</Button>}
-          <Button variant="destructive" disabled={busy !== null} onClick={() => void decide(review, "reject")}>Reject</Button>
-        </div> : null}
-      </div>
-    </Card>)}
-  </div>;
+  if (role !== "org_admin") {
+    return (
+      <EmptyState
+        title="Fleet Admin access required"
+        description="Only the Fleet Admin can decide pending submissions."
+      />
+    );
+  }
+
+  const items = reviews.data?.items ?? [];
+  const pending = items.filter((r) => r.status === "pending").length;
+
+  return (
+    <div className="flex flex-col gap-6">
+      <PageHeader
+        title="Submission review"
+        meta={
+          items.length
+            ? `${pending} waiting for a decision`
+            : "Offline logs and conflicting corrections arrive here"
+        }
+      />
+
+      {error || reviews.error ? (
+        <Card className="p-4 text-sm text-danger">
+          {error ?? reviews.error?.message}
+        </Card>
+      ) : null}
+
+      {reviews.isLoading ? (
+        <>
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </>
+      ) : items.length === 0 ? (
+        <Card>
+          <EmptyState
+            title="Nothing to review"
+            description="Logs recorded offline, or corrections that conflict with newer records, appear here for a decision."
+          />
+        </Card>
+      ) : (
+        items.map((review) => {
+          const vehicleName =
+            vehicles?.items.find((v) => v.id === review.vehicle_id)?.name ?? "Former fleet vehicle";
+          const submitter =
+            members?.items.find((m) => m.user_id === review.submitted_by)?.display_name ??
+            "Former fleet member";
+          return (
+            <Card key={review.id}>
+              <SectionHeading title={titleize(review.operation.entity_type)}>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-ink-caption">
+                    {titleize(review.operation.op)}
+                  </span>
+                  <Badge tone={review.status === "pending" ? "warning" : "neutral"}>
+                    {review.status}
+                  </Badge>
+                </div>
+              </SectionHeading>
+
+              <div className="flex flex-col gap-5 p-5">
+                <DataPlate
+                  className=""
+                  fields={[
+                    { label: "Vehicle", value: vehicleName },
+                    { label: "Submitted by", value: submitter },
+                    {
+                      label: "Received",
+                      value: formatDateTime(review.created_at),
+                      mono: true,
+                    },
+                  ]}
+                />
+
+                <p className="max-w-2xl text-sm text-ink-muted">
+                  {titleize(review.reason)}.
+                </p>
+
+                <div>
+                  <p className="text-xs font-medium text-ink">Proposed change</p>
+                  <div className="mt-2 rounded-lg border border-line-subtle bg-panel p-4">
+                    <Fields record={review.operation.payload} />
+                  </div>
+                </div>
+
+                {comparison?.id === review.id ? (
+                  <div>
+                    <p className="text-xs font-medium text-ink">Current record</p>
+                    <div className="mt-2 rounded-lg border border-line-subtle bg-panel p-4">
+                      {comparison.record ? (
+                        <Fields record={comparison.record} />
+                      ) : (
+                        <p className="text-sm text-ink-caption">This is a new record.</p>
+                      )}
+                    </div>
+                  </div>
+                ) : null}
+
+                {review.status === "pending" ? (
+                  <div className="flex flex-wrap gap-3">
+                    {comparison?.id === review.id ? (
+                      <Button disabled={busy !== null} onClick={() => void decide(review, "accept")}>
+                        Accept {review.operation.op === "delete" ? "deletion" : "submission"}
+                      </Button>
+                    ) : (
+                      <Button
+                        variant="secondary"
+                        disabled={busy !== null}
+                        onClick={() => void inspect(review)}
+                      >
+                        Compare with current record
+                      </Button>
+                    )}
+                    <Button
+                      variant="destructive"
+                      disabled={busy !== null}
+                      onClick={() => void decide(review, "reject")}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            </Card>
+          );
+        })
+      )}
+    </div>
+  );
 }

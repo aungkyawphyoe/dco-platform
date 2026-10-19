@@ -35,6 +35,11 @@ export default function VehiclesPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Vehicles"
+        meta={
+          ownedItems.length || sharedItems.length
+            ? `${ownedItems.length} owned, ${sharedItems.length} shared with you`
+            : undefined
+        }
         description="Share your vehicles and see what others have shared with you"
       />
 
@@ -85,7 +90,7 @@ export default function VehiclesPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <Link href={`/vehicles/${vehicle.id}/shares`}>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="secondary" size="sm">
                           Manage shares
                         </Button>
                       </Link>

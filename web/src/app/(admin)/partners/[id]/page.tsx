@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PartnerStatusBadge } from "@/components/ui/status-badge";
 import { useAdminPartner, useUpdatePartner } from "@/lib/api/hooks";
 
 export default function EditPartnerPage({
@@ -101,8 +102,11 @@ export default function EditPartnerPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        backHref="/partners"
+        backLabel="Back to partners"
         title={partner.name}
-        description="Update record and verification status"
+        status={<PartnerStatusBadge status={partner.status} />}
+        meta="Update record and verification status"
       />
 
       {saved && (

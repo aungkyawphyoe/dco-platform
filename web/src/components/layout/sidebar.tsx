@@ -36,7 +36,7 @@ export function Sidebar() {
   }
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-line-subtle bg-panel">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-line-subtle bg-panel">
       <div className="flex h-16 items-center gap-2.5 px-5">
         <Image
           src="/autox-logo.png"
@@ -50,10 +50,10 @@ export function Sidebar() {
         </span>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
+      <nav className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto px-3 py-4">
         {nav.map((group) => (
           <div key={group.section}>
-            <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wider text-ink-caption">
+            <p className="px-2 pb-2 text-xs font-medium text-ink-faint">
               {group.section}
             </p>
             <ul className="flex flex-col gap-1">
@@ -82,7 +82,7 @@ export function Sidebar() {
         ))}
       </nav>
 
-      <div className="border-t border-line-subtle p-4">
+      <div className="shrink-0 border-t border-line-subtle p-4">
         <p className="pb-1.5 text-xs text-ink-caption">Appearance</p>
         <div className="pb-3">
           <ThemeToggle />

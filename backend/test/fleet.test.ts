@@ -1256,29 +1256,26 @@ describe("Fleet maintenance templates", () => {
     });
     expect(assignA.statusCode).toBe(201);
 
-    // A truck template must not attach to a car.
-    const truckTemplateId = list.json().items.find(
-      (item: { catalog_key: string }) => item.catalog_key === "truck_engine_oil_filter",
-    ).id;
+    // A truck set must not attach to a car (class-level match rule).
     const mismatched = await app.inject({
       method: "PUT",
       url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
       headers: auth(fleetToken),
-      payload: { template_id: truckTemplateId },
+      payload: { vehicle_class: "truck" },
     });
     expect(mismatched.statusCode).toBe(400);
     expect(mismatched.json().error.code).toBe("template_mismatch");
 
-    // Global rows are read-only for organizations.
+    // Assign the vehicle's own class set (the only selectable option).
     const oilId = list.json().items.find((item: { catalog_key: string }) => item.catalog_key === "oil_change").id;
-    const assignedOil = await app.inject({
+    const assignedCar = await app.inject({
       method: "PUT",
       url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
       headers: auth(fleetToken),
-      payload: { template_id: oilId },
+      payload: { vehicle_class: "car" },
     });
-    expect(assignedOil.statusCode).toBe(200);
-    expect(assignedOil.json().maintenance_template_id).toBe(oilId);
+    expect(assignedCar.statusCode).toBe(200);
+    expect(assignedCar.json().maintenance_template_class).toBe("car");
 
     const patchGlobal = await app.inject({
       method: "PATCH",
@@ -1327,22 +1324,23 @@ describe("Fleet maintenance templates", () => {
     const copyInList = listWithCopy.json().items.find((item: { id: string }) => item.id === copy.id);
     expect(copyInList.source).toBe("org");
 
-    // Assign the org copy, then deletion is blocked while referenced.
-    const assignedCopy = await app.inject({
-      method: "PUT",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
-      headers: auth(fleetToken),
-      payload: { template_id: copy.id },
-    });
-    expect(assignedCopy.statusCode).toBe(200);
-    expect(assignedCopy.json().maintenance_template_id).toBe(copy.id);
-    const deleteAssigned = await app.inject({
-      method: "DELETE",
-      url: `/v1/organizations/${org.id}/maintenance-templates/${copy.id}`,
-      headers: auth(fleetToken),
-    });
-    expect(deleteAssigned.statusCode).toBe(409);
-    expect(deleteAssigned.json().error.code).toBe("template_assigned");
+    // The car/petrol taxi set: dedupe by name with the org copy winning → 11 items.
+    const carSet = (() => {
+      const byName = new Map<string, { id: string; source: string }>();
+      for (const item of listWithCopy.json().items as {
+        id: string; source: string; enabled: boolean; vehicle_class: string;
+        fuel_types: string[]; lifecycle_template: string | null; name: string;
+      }[]) {
+        if (!item.enabled || item.vehicle_class !== "car" || !item.fuel_types.includes("petrol")) continue;
+        if (item.lifecycle_template != null && item.lifecycle_template !== "taxi_fleet") continue;
+        const key = item.name.trim().toLowerCase();
+        const current = byName.get(key);
+        if (!current || (current.source === "global" && item.source === "org")) byName.set(key, item);
+      }
+      return [...byName.values()];
+    })();
+    expect(carSet).toHaveLength(11);
+    const setIds = carSet.map((item) => item.id);
 
     // Generation without an assignment is rejected.
     const noTemplateVehicleId = uuid();
@@ -1365,19 +1363,40 @@ describe("Fleet maintenance templates", () => {
     expect(generateUnassigned.statusCode).toBe(400);
     expect(generateUnassigned.json().error.code).toBe("template_not_assigned");
 
-    // One-time snapshot: 11 items (org copy overrides the global Oil Change row).
+    // Selection must belong to the assigned set.
+    const invalidSelection = await app.inject({
+      method: "POST",
+      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template/generate`,
+      headers: auth(fleetToken),
+      payload: { item_ids: [uuid()] },
+    });
+    expect(invalidSelection.statusCode).toBe(422);
+    expect(invalidSelection.json().error.code).toBe("invalid_selection");
+
+    // Snapshot only the selected items, then the rest (skip existing names).
     const generated = await app.inject({
       method: "POST",
       url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template/generate`,
       headers: auth(fleetToken),
+      payload: { item_ids: setIds.slice(0, 3) },
     });
     expect(generated.statusCode).toBe(200);
-    expect(generated.json()).toEqual({ created: 11, skipped: 0 });
+    expect(generated.json()).toEqual({ created: 3, skipped: 0 });
+
+    const generatedRest = await app.inject({
+      method: "POST",
+      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template/generate`,
+      headers: auth(fleetToken),
+      payload: { item_ids: setIds },
+    });
+    expect(generatedRest.statusCode).toBe(200);
+    expect(generatedRest.json()).toEqual({ created: 8, skipped: 3 });
 
     const regenerate = await app.inject({
       method: "POST",
       url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template/generate`,
       headers: auth(fleetToken),
+      payload: { item_ids: setIds },
     });
     expect(regenerate.statusCode).toBe(200);
     expect(regenerate.json()).toEqual({ created: 0, skipped: 11 });
@@ -1620,23 +1639,24 @@ describe("Fleet maintenance templates", () => {
       personalSuggested.json().items.every((item: { vehicle_class: string }) => item.vehicle_class === "car"),
     ).toBe(true);
 
-    // Cleanup: clear the assignment, then the org copy can be deleted.
+    // Cleanup: clear the assignment, re-assign, then the org copy can be deleted
+    // (class-level assignment no longer blocks deleting a copy).
     const cleared = await app.inject({
       method: "PUT",
       url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
       headers: auth(fleetToken),
-      payload: { template_id: null },
+      payload: { vehicle_class: null },
     });
     expect(cleared.statusCode).toBe(200);
-    expect(cleared.json().maintenance_template_id).toBeNull();
+    expect(cleared.json().maintenance_template_class).toBeNull();
     const reassignGlobal = await app.inject({
       method: "PUT",
       url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
       headers: auth(fleetToken),
-      payload: { template_id: oilId },
+      payload: { vehicle_class: "car" },
     });
     expect(reassignGlobal.statusCode).toBe(200);
-    expect(reassignGlobal.json().maintenance_template_id).toBe(oilId);
+    expect(reassignGlobal.json().maintenance_template_class).toBe("car");
     const deleteCopy = await app.inject({
       method: "DELETE",
       url: `/v1/organizations/${org.id}/maintenance-templates/${copy.id}`,

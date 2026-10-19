@@ -465,7 +465,7 @@ export const organizationVehicles = pgTable("organization_vehicles", {
   orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
   lifecycleTemplate: lifecycleTemplateEnum("lifecycle_template").notNull(),
-  maintenanceTemplateId: uuid("maintenance_template_id").references(() => maintenanceCatalog.id, { onDelete: "set null" }),
+  maintenanceTemplateClass: text("maintenance_template_class"),
   status: text("status").notNull(),
   revenueLabel: text("revenue_label"),
   addedBy: uuid("added_by").notNull().references(() => users.id),

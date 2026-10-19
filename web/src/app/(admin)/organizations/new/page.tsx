@@ -78,6 +78,8 @@ export default function NewOrganizationPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        backHref="/organizations"
+        backLabel="Back to organizations"
         title="New organization"
         description="Provision an Enterprise organization and create its Org Admin account"
       />
