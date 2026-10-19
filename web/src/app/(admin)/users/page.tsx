@@ -2,13 +2,13 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SearchInput } from "@/components/ui/search-input";
-import { Select } from "@/components/ui/select";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SearchInput } from "@dco/ui/components/search-input";
+import { Select } from "@dco/ui/components/select";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
   Table,
   TableHead,
@@ -16,11 +16,11 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
-import { SkeletonTable } from "@/components/ui/skeleton";
+} from "@dco/ui/components/table";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
 import { UserStatusBadge, PlanBadge } from "@/components/ui/status-badge";
 import { useAdminUsers } from "@/lib/api/hooks";
-import { formatDate } from "@/lib/format";
+import { formatDate } from "@dco/ui/lib/format";
 
 export default function UsersPage() {
   const [q, setQ] = useState("");

@@ -1,0 +1,15 @@
+.git
+.azure
+infra
+backend
+mobile
+site
+marketing-display
+wireframes
+assets
+tools
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+npm-debug.log*

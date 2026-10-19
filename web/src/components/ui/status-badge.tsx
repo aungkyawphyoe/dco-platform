@@ -1,4 +1,4 @@
-import { Badge, type BadgeTone } from "./badge";
+import { Badge, type BadgeTone } from "@dco/ui/components/badge";
 
 type UserStatus = "active" | "deactivated";
 type PartnerStatus = "draft" | "pending_verification" | "verified" | "rejected";

@@ -2,17 +2,17 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Modal } from "@/components/ui/modal";
-import { Select } from "@/components/ui/select";
-import { DataPlate } from "@/components/ui/data-plate";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { Stat } from "@/components/ui/stat";
-import { formatDate } from "@/lib/format";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { Badge } from "@dco/ui/components/badge";
+import { Skeleton } from "@dco/ui/components/skeleton";
+import { Modal } from "@dco/ui/components/modal";
+import { Select } from "@dco/ui/components/select";
+import { DataPlate } from "@dco/ui/components/data-plate";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { Stat } from "@dco/ui/components/stat";
+import { formatDate } from "@dco/ui/lib/format";
 import {
   Table,
   TableHead,
@@ -20,12 +20,12 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import {
   UserStatusBadge,
   PlanBadge,
 } from "@/components/ui/status-badge";
-import { Input } from "@/components/ui/input";
+import { Input } from "@dco/ui/components/input";
 import {
   useAdminUser,
   useUpdateUserPlan,

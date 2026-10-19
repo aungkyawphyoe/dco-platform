@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Barlow, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
 import { cookies } from "next/headers";
-import { THEME_COOKIE, THEME_INIT_SCRIPT, themeClassFromCookie } from "@/lib/theme";
+import { THEME_COOKIE, THEME_INIT_SCRIPT, themeClassFromCookie } from "@dco/ui/lib/theme";
 import { Providers } from "./providers";
 import "./globals.css";
 

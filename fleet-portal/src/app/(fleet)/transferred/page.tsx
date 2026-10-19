@@ -1,10 +1,10 @@
 "use client";
 
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
   Table,
   TableBody,
@@ -12,10 +12,10 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import { useTransferred } from "@/lib/api/hooks";
 import { useOrgId } from "@/lib/auth/session-context";
-import { formatDateTime } from "@/lib/format";
+import { formatDateTime } from "@dco/ui/lib/format";
 
 export default function TransferredPage() {
   const orgId = useOrgId();

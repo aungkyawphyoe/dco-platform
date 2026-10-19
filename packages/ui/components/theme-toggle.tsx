@@ -1,7 +1,7 @@
 "use client";
 
-import { useTheme } from "@/lib/theme-context";
-import type { ThemeMode } from "@/lib/theme";
+import { useTheme } from "../lib/theme-context";
+import type { ThemeMode } from "../lib/theme";
 
 function SunIcon() {
   return (
@@ -63,5 +63,29 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
         );
       })}
     </div>
+  );
+}
+
+const cycleOrder: ThemeMode[] = ["light", "dark", "system"];
+
+export function ThemeCycleButton({ className = "" }: { className?: string }) {
+  const { mode, setMode } = useTheme();
+  const current = options.find((option) => option.value === mode) ?? options[2];
+
+  function cycle() {
+    const next = cycleOrder[(cycleOrder.indexOf(mode) + 1) % cycleOrder.length];
+    setMode(next);
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={cycle}
+      title={`${current.label} theme, click to change`}
+      className={`inline-flex size-9 items-center justify-center rounded-md text-ink-caption transition-colors duration-150 hover:bg-card hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus ${className}`}
+    >
+      {current.icon}
+      <span className="sr-only">Switch theme</span>
+    </button>
   );
 }

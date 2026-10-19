@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Modal } from "@/components/ui/modal";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { Modal } from "@dco/ui/components/modal";
 import {
   Table,
   TableHead,
@@ -15,12 +15,12 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
-import { SkeletonTable } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { InstrumentBand } from "@/components/ui/instrument-band";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { Stat } from "@/components/ui/stat";
+} from "@dco/ui/components/table";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
+import { Badge } from "@dco/ui/components/badge";
+import { InstrumentBand } from "@dco/ui/components/instrument-band";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { Stat } from "@dco/ui/components/stat";
 import {
   useCatalogItems,
   useCreateCatalogItem,

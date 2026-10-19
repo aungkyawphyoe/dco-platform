@@ -2,16 +2,16 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Modal } from "@/components/ui/modal";
-import { SearchInput } from "@/components/ui/search-input";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { Modal } from "@dco/ui/components/modal";
+import { SearchInput } from "@dco/ui/components/search-input";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import {
   useBulkVehicleStatus,
   useCreateVehicle,

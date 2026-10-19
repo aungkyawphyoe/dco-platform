@@ -1,15 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Modal } from "@/components/ui/modal";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Stat } from "@/components/ui/stat";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Modal } from "@dco/ui/components/modal";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { Skeleton } from "@dco/ui/components/skeleton";
+import { Stat } from "@dco/ui/components/stat";
 import {
   useCreateWarrantyTemplate,
   useDeleteWarrantyTemplate,

@@ -1,16 +1,16 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { Button } from "@dco/ui/components/button";
+import { Modal } from "@dco/ui/components/modal";
+import { Skeleton } from "@dco/ui/components/skeleton";
 import { OrganizationStatusBadge, OrganizationTypeBadge } from "@/components/ui/status-badge";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { DataPlate } from "@/components/ui/data-plate";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { DataPlate } from "@dco/ui/components/data-plate";
 import {
   useAdminOrganization,
   useResendOrganizationInvite,

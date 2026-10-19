@@ -5,15 +5,15 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMembers, useVehicles } from "@/lib/api/hooks";
 import { apiGet, apiPost } from "@/lib/api/client";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Skeleton } from "@/components/ui/skeleton";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { DataPlate } from "@/components/ui/data-plate";
-import { formatDateTime } from "@/lib/format";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { Badge } from "@dco/ui/components/badge";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { Skeleton } from "@dco/ui/components/skeleton";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { DataPlate } from "@dco/ui/components/data-plate";
+import { formatDateTime } from "@dco/ui/lib/format";
 
 interface Review {
   id: string;

@@ -3,15 +3,15 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
-import { Modal } from "@/components/ui/modal";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/ui/empty-state";
-import { DataPlate } from "@/components/ui/data-plate";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Select } from "@dco/ui/components/select";
+import { Modal } from "@dco/ui/components/modal";
+import { Skeleton } from "@dco/ui/components/skeleton";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { DataPlate } from "@dco/ui/components/data-plate";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
   useAssignVehicleTemplate,
   useGenerateMaintenancePlan,
@@ -34,7 +34,7 @@ import {
   vehicleClassOptions,
 } from "@/lib/api/types";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
-import { formatDate, money } from "@/lib/format";
+import { formatDate, money } from "@dco/ui/lib/format";
 
 // ── Formatting ──────────────────────────────────────────────────────────────
 

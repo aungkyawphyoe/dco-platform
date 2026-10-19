@@ -1,11 +1,11 @@
 "use client";
 
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { InstrumentBand } from "@/components/ui/instrument-band";
-import { SectionHeading } from "@/components/ui/section-heading";
-import { Stat } from "@/components/ui/stat";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Skeleton } from "@dco/ui/components/skeleton";
+import { InstrumentBand } from "@dco/ui/components/instrument-band";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { Stat } from "@dco/ui/components/stat";
 import { useAdminDashboard } from "@/lib/api/hooks";
 
 const activityKindConfig: Record<string, { color: string; label: string }> = {

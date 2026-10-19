@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { InstrumentBand } from "@/components/ui/instrument-band";
-import { DataPlate } from "@/components/ui/data-plate";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Skeleton } from "@dco/ui/components/skeleton";
+import { InstrumentBand } from "@dco/ui/components/instrument-band";
+import { DataPlate } from "@dco/ui/components/data-plate";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
   Table,
   TableBody,
@@ -15,10 +15,10 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import { useFleetAnalytics, useLemons } from "@/lib/api/hooks";
 import { useOrgId, useSession } from "@/lib/auth/session-context";
-import { money } from "@/lib/format";
+import { money } from "@dco/ui/lib/format";
 
 function AttentionTile({
   href,

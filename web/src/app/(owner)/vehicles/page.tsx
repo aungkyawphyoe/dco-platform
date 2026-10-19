@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { Badge } from "@dco/ui/components/badge";
 import {
   Table,
   TableHead,
@@ -13,8 +13,8 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
-import { SkeletonTable } from "@/components/ui/skeleton";
+} from "@dco/ui/components/table";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
 import { useOwnedVehicles, useSharedVehicles } from "@/lib/api/hooks";
 
 function displayName(vehicle: {

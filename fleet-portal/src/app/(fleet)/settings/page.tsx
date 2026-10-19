@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { DataPlate } from "@/components/ui/data-plate";
-import { SectionHeading } from "@/components/ui/section-heading";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { DataPlate } from "@dco/ui/components/data-plate";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import { useLemons, useUpdateLemonThreshold } from "@/lib/api/hooks";
 import { orgRoleLabel } from "@/lib/api/types";
 import { useOrgId, useOrgRole, useSession } from "@/lib/auth/session-context";

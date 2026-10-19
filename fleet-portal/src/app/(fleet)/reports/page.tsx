@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
 import { downloadReport } from "@/lib/api/hooks";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
 
