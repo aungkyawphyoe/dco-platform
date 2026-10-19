@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "296919929024",
+    "project_id": "autox-fd4c0",
+    "storage_bucket": "autox-fd4c0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296919929024:android:6ea574d4380ffc1c59dd25",
+        "android_client_info": {
+          "package_name": "com.dco.dco_mobile"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAZqrjJpd6nV_Kq-4I6v_VBDH-3g79VxJM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

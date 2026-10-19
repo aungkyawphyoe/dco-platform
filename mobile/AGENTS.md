@@ -65,12 +65,14 @@ Debug builds default `DCO_MOCK_AUTH=true` so auth screens work before the API ex
 | Connectivity / paths | `connectivity_plus`, `path_provider` |
 | Media | `image_picker` + client-side compression (15 MB cap after compression; PDF as-is under the same cap) |
 | Reminders | `flutter_local_notifications` |
+| Analytics | Google Analytics for Firebase (GA4): `firebase_core` + `firebase_analytics` |
 | Codegen | `build_runner` |
 
 Config via `--dart-define` or flavors — never committed secrets. Per-env JSON files live in `config/` and are passed with `--dart-define-from-file`:
 
 - `API_BASE_URL` (per environment) — `config/prod.json` is checked in; local dev uses the `localhost` default
 - `JWT_OWNER_AUD` (must match server; draft `dco-owner`)
+- `DCO_ANALYTICS` (defaults on; `--dart-define=DCO_ANALYTICS=false` opts out)
 
 Do not put JWT signing keys in the app.
 
@@ -322,3 +324,5 @@ From [`docs/implementation-readiness.md`](../docs/implementation-readiness.md):
 ### Analytics (MVP)
 
 Instrument the critical path only: `auth_signed_up`, `auth_signed_in`, `garage_opened`, `vehicle_added`, `vehicle_deleted`, `vehicle_switched`, `vehicle_updated`, `maintenance_record_added`, `maintenance_reminder_completed`, `document_uploaded`, `expense_added`, `sync_completed`, `sync_failed`, `note_added`, `note_updated`, `note_deleted`.
+
+Backend is Google Analytics for Firebase (GA4), isolated behind `core/analytics` (`Analytics` facade → `AnalyticsSink`; Firebase appears only in `FirebaseAnalyticsSink`). The facade defaults to a no-op sink, so features and tests never depend on Firebase. `bootstrap()` calls `Firebase.initializeApp()` best-effort — a missing native config starts the app with analytics disabled instead of crashing. Native config (`google-services.json`, `GoogleService-Info.plist`) is generated with `flutterfire configure`, is not a secret, and is committed. Firebase user id is set on sign-in/up/session-restore and cleared on sign-out.
