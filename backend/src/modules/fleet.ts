@@ -457,13 +457,10 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, body.vehicle_id),
     )).limit(1);
     if (!vehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
-    const [driverCurrent] = await app.db.select().from(driverAssignments).where(and(eq(driverAssignments.driverId, body.driver_id), eq(driverAssignments.status, "active"))).limit(1);
-    if (driverCurrent) throw new AppError(409, "driver_already_assigned", "Driver already has an active vehicle assignment");
-    const [vehicleCurrent] = await app.db.select().from(driverAssignments).where(and(eq(driverAssignments.vehicleId, body.vehicle_id), eq(driverAssignments.status, "active"))).limit(1);
-    if (vehicleCurrent) throw new AppError(409, "vehicle_already_assigned", "Vehicle already has an active driver assignment");
     const [assignment] = await app.db.insert(driverAssignments).values({
       id: newId(), orgId, vehicleId: body.vehicle_id, driverId: body.driver_id, assignedBy: actorId,
-    }).returning();
+    }).onConflictDoNothing().returning();
+    if (!assignment) throw new AppError(409, "assignment_already_active", "This driver already has access to this vehicle");
     return reply.code(201).send(serializeAssignment(assignment));
   });
 
@@ -1108,39 +1105,11 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     return { items: items.map(publicPlan) };
   });
 
-  app.post("/drivers/vehicles/:vehicleId/plan-items", async (request, reply) => {
+  app.post("/drivers/vehicles/:vehicleId/plan-items", async (request) => {
     requireFleetClient(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await requireDriverAssignment(vehicleId, uid(request));
-    const body = z.object({
-      id: uuid,
-      name: z.string().min(1).max(80),
-      interval_days: z.number().int().optional().nullable(),
-      interval_distance: z.number().optional().nullable(),
-      notes: z.string().max(2000).optional().nullable(),
-    }).parse(request.body);
-    if (!body.interval_days && !body.interval_distance) {
-      throw new AppError(422, "invalid_interval", "Provide a time interval, a distance interval, or both");
-    }
-    const [existing] = await app.db.select().from(planItems).where(eq(planItems.id, body.id)).limit(1);
-    if (existing) return reply.code(201).send(publicPlan(existing));
-    const [vehicle] = await app.db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
-    if (!vehicle) throw new AppError(404, "vehicle_not_found", "Vehicle not found");
-    const due = dueFrom(body.interval_days ?? null, body.interval_distance ?? null, reqNum(vehicle.mileage));
-    const [row] = await app.db.insert(planItems).values({
-      id: body.id,
-      vehicleId,
-      name: body.name,
-      intervalDays: body.interval_days ?? null,
-      intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null,
-      nextDueOn: due.nextDueOn,
-      nextDueMileage: due.nextDueMileage != null ? String(due.nextDueMileage) : null,
-      notes: body.notes ?? null,
-      catalogKey: null,
-      enabled: true,
-      createdBy: uid(request),
-    }).returning();
-    return reply.code(201).send(publicPlan(row));
+    throw new AppError(403, "plan_managed_by_admin", "Maintenance plans are managed by Fleet Admin");
   });
 
   app.get("/drivers/vehicles/:vehicleId/service-records", async (request) => {

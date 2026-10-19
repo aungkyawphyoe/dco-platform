@@ -1,5 +1,6 @@
 import {
   bigint,
+  bigserial,
   boolean,
   date,
   integer,
@@ -215,6 +216,8 @@ export const planItems = pgTable("plan_items", {
 });
 
 export const serviceRecords = pgTable("service_records", {
+  revision: integer("revision").notNull().default(1),
+  adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
   vehicleId: uuid("vehicle_id")
     .notNull()
@@ -239,6 +242,8 @@ export const serviceRecordItems = pgTable("service_record_items", {
 });
 
 export const parts = pgTable("parts", {
+  revision: integer("revision").notNull().default(1),
+  adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
   vehicleId: uuid("vehicle_id")
     .notNull()
@@ -270,6 +275,8 @@ export const fuelTypes = pgTable("fuel_types", {
 });
 
 export const fuelLogs = pgTable("fuel_logs", {
+  revision: integer("revision").notNull().default(1),
+  adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
@@ -288,6 +295,8 @@ export const fuelLogs = pgTable("fuel_logs", {
 });
 
 export const documents = pgTable("documents", {
+  revision: integer("revision").notNull().default(1),
+  adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
   vehicleId: uuid("vehicle_id")
     .notNull()
@@ -302,6 +311,10 @@ export const documents = pgTable("documents", {
 });
 
 export const expenses = pgTable("expenses", {
+  sourceKind: text("source_kind"),
+  sourceId: uuid("source_id"),
+  revision: integer("revision").notNull().default(1),
+  adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
   vehicleId: uuid("vehicle_id")
     .notNull()
@@ -474,11 +487,8 @@ export const driverAssignments = pgTable("driver_assignments", {
   status: assignmentStatusEnum("status").notNull().default("active"),
 }, (table) => ({
   orgIndex: index("driver_assignments_org_idx").on(table.orgId),
-  activeDriverUnique: uniqueIndex("driver_assignments_active_driver_unique")
-    .on(table.driverId)
-    .where(sql`${table.status} = 'active'`),
-  activeVehicleUnique: uniqueIndex("driver_assignments_active_vehicle_unique")
-    .on(table.vehicleId)
+  activePairUnique: uniqueIndex("driver_assignments_active_pair_unique")
+    .on(table.orgId, table.driverId, table.vehicleId)
     .where(sql`${table.status} = 'active'`),
 }));
 
@@ -650,4 +660,36 @@ export const authFlows = pgTable("auth_flows", {
   claims: jsonb("claims").$type<{ subject: string; email?: string; verified: boolean; error?: string }>(),
   claimedAt: timestamp("claimed_at", { withTimezone: true }), consumedAt: timestamp("consumed_at", { withTimezone: true }),
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+});
+
+// Organization transport state; isolated from Personal user change feeds.
+export const organizationChanges = pgTable("organization_changes", {
+  seq: bigserial("seq", { mode: "number" }).primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id),
+  vehicleId: uuid("vehicle_id").notNull(),
+  entityType: text("entity_type").notNull(),
+  entityId: uuid("entity_id").notNull(),
+  op: text("op").notNull(),
+});
+
+export const organizationOperations = pgTable("organization_operations", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  fingerprint: text("fingerprint").notNull(),
+  statusCode: integer("status_code"),
+  result: jsonb("result"),
+});
+
+export const organizationReviews = pgTable("organization_reviews", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  vehicleId: uuid("vehicle_id").notNull(),
+  operation: jsonb("operation").notNull(),
+  reason: text("reason").notNull(),
+  status: text("status").notNull().default("pending"),
+  reviewedBy: uuid("reviewed_by").references(() => users.id),
+  reviewerNote: text("reviewer_note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

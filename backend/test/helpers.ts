@@ -48,7 +48,7 @@ export async function createTestApp() {
     media: createMediaStore(testEnv),
   });
   await app.ready();
-  return { app, db };
+  return { app, db, client };
 }
 
 export function uuid(): string {

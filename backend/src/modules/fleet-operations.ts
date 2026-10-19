@@ -1050,8 +1050,8 @@ async function calculateVehicleCost(db: Db, vehicleId: string) {
   const fuelRows = await db.select().from(fuelLogs).where(eq(fuelLogs.vehicleId, vehicleId));
   const expenseRows = await db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
   const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
-  const maintenanceCost = serviceRows.reduce((sum, row) => sum + reqNum(row.totalCost), 0);
-  const fuelCost = fuelRows.reduce((sum, row) => sum + reqNum(row.cost), 0);
+  const maintenanceCost = expenseRows.filter((row) => row.category === "maintenance").reduce((sum, row) => sum + reqNum(row.amount), 0);
+  const fuelCost = expenseRows.filter((row) => row.category === "fuel").reduce((sum, row) => sum + reqNum(row.amount), 0);
   const wearCost = expenseRows.filter((row) => row.category === "parts").reduce((sum, row) => sum + reqNum(row.amount), 0);
   // Shift mileage is retired; distance is derived from logged odometer readings
   // (service records + fuel logs) plus the vehicle's current mileage.
@@ -1061,7 +1061,8 @@ async function calculateVehicleCost(db: Db, vehicleId: string) {
     vehicle ? reqNum(vehicle.mileage) : null,
   ].filter((value): value is number => value != null);
   const km = odometers.length > 1 ? Math.max(0, Math.max(...odometers) - Math.min(...odometers)) : 0;
-  const tco = maintenanceCost + fuelCost + wearCost;
+  // Expenses are the single accounting source, matching mobile totals.
+  const tco = expenseRows.reduce((sum, row) => sum + reqNum(row.amount), 0);
   const assignments = await db.select().from(driverAssignments).where(eq(driverAssignments.vehicleId, vehicleId));
   const now = Date.now();
   const assignmentStart = assignments.reduce((minimum, row) => Math.min(minimum, row.assignedAt.getTime()), now);

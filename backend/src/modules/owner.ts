@@ -1,14 +1,21 @@
+import { createHash } from "node:crypto";
+import { AsyncLocalStorage } from "node:async_hooks";
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
-import type { FastifyPluginAsync } from "fastify";
+import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
 import {
   documents,
+  driverAssignments,
+  organizationVehicles,
+  organizationOperations,
+  organizationReviews,
   expenseParts,
   expenses,
   fuelLogs,
   fuelTypes,
   maintenanceCatalog,
+  mediaObjects,
   notificationFeed,
   parts,
   planItems,
@@ -30,11 +37,57 @@ import {
   publicPart,
   publicPlan,
 } from "../lib/serialize-records.js";
-import { requireOwner } from "./auth.js";
-import { getVehicleAccessLevel, getVehicleChangeAudience, fanOutVehicleChange } from "./vehicle-shares.js";
-import { getAccessibleVehicle, getOwnedVehicle } from "./vehicles.js";
+import { requireOwner as requirePersonalOwner, requireFleetClient, requireFleetPortal } from "./auth.js";
+import { getOrganizationAccess, assertPasswordChangeClear } from "./fleet.js";
+import { getVehicleAccessLevel as personalAccessLevel, getVehicleChangeAudience, fanOutVehicleChange } from "./vehicle-shares.js";
+import { getAccessibleVehicle as personalAccessibleVehicle, getOwnedVehicle as personalOwnedVehicle } from "./vehicles.js";
 
 const uuid = z.string().uuid();
+
+function canonical(value: unknown): string {
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value && typeof value === "object") return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, child]) => `${JSON.stringify(key)}:${canonical(child)}`).join(",")}}`;
+  return JSON.stringify(value) ?? "null";
+}
+
+export const ownerPlugin = createRecordPlugin(false);
+export const organizationRecordsPlugin = createRecordPlugin(true);
+
+/** Same record schemas and operations, with explicit organization access policy. */
+function createRecordPlugin(organizationScoped: boolean): FastifyPluginAsync {
+return async (app) => {
+  const transaction = new AsyncLocalStorage<Db>();
+  const reviewAuthor = new AsyncLocalStorage<string>();
+  const requestedOrganization = new AsyncLocalStorage<string>();
+  const requireOwner = organizationScoped ? requireFleetClient : requirePersonalOwner;
+
+  async function getVehicleAccessLevel(db: Db, userId: string, vehicleId: string): Promise<"owner" | "view" | "add_edit_own" | null> {
+    if (!organizationScoped) return personalAccessLevel(db, userId, vehicleId);
+    const [link] = await db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId));
+    if (!link || (requestedOrganization.getStore() && link.orgId !== requestedOrganization.getStore())) return null;
+    const { membership } = await getOrganizationAccess(db, userId, link.orgId, ["org_admin", "org_driver"]);
+    if (membership.role === "org_admin") return "owner";
+    const [assignment] = await db.select().from(driverAssignments).where(and(
+      eq(driverAssignments.orgId, link.orgId), eq(driverAssignments.vehicleId, vehicleId),
+      eq(driverAssignments.driverId, userId), eq(driverAssignments.status, "active"),
+    ));
+    return assignment ? "add_edit_own" : null;
+  }
+
+  async function getAccessibleVehicle(db: Db, userId: string, vehicleId: string, permission: "full" | "drive_only", includeArchived = false) {
+    if (!organizationScoped) return personalAccessibleVehicle(db, userId, vehicleId, permission, includeArchived);
+    const access = await getVehicleAccessLevel(db, userId, vehicleId);
+    if (!access || (permission === "full" && access === "view")) throw new AppError(403, "not_assigned_to_vehicle", "Vehicle access is required");
+    const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId));
+    if (!vehicle || (!includeArchived && vehicle.archived)) throw new AppError(404, "not_found", "Vehicle not found");
+    return vehicle;
+  }
+
+  async function getOwnedVehicle(db: Db, userId: string, vehicleId: string) {
+    if (!organizationScoped) return personalOwnedVehicle(db, userId, vehicleId);
+    if (await getVehicleAccessLevel(db, userId, vehicleId) !== "owner") throw new AppError(403, "plan_managed_by_admin", "Fleet Admin manages maintenance plans");
+    return getAccessibleVehicle(db, userId, vehicleId, "full");
+  }
 
 /**
  * Fuel logs are vehicle-scoped and may be created by any user holding access to
@@ -55,6 +108,9 @@ async function loadFuelLogFor(db: Db, callerId: string, fuelLogId: string, mode:
   }
   if (mode === "write" && access === "add_edit_own" && row.userId !== callerId) {
     throw new AppError(403, "insufficient_permission", "Can only edit own fuel logs");
+  }
+  if (organizationScoped && mode === "write" && access !== "owner" && row.adminCorrectedBy) {
+    throw new AppError(409, "admin_corrected", "Updated by Fleet Admin; submit a correction for review");
   }
   return row;
 }
@@ -91,6 +147,9 @@ async function loadServiceRecordFor(db: Db, callerId: string, serviceRecordId: s
   if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
     throw new AppError(403, "insufficient_permission", "Can only edit own service records");
   }
+  if (organizationScoped && mode === "write" && access !== "owner" && row.adminCorrectedBy) {
+    throw new AppError(409, "admin_corrected", "Updated by Fleet Admin; submit a correction for review");
+  }
   return row;
 }
 
@@ -109,6 +168,9 @@ async function loadExpenseFor(db: Db, callerId: string, expenseId: string, mode:
   }
   if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
     throw new AppError(403, "insufficient_permission", "Can only edit own expenses");
+  }
+  if (organizationScoped && mode === "write" && access !== "owner" && row.adminCorrectedBy) {
+    throw new AppError(409, "admin_corrected", "Updated by Fleet Admin; submit a correction for review");
   }
   return row;
 }
@@ -129,6 +191,9 @@ async function loadDocumentFor(db: Db, callerId: string, documentId: string, mod
   if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
     throw new AppError(403, "insufficient_permission", "Can only edit own documents");
   }
+  if (organizationScoped && mode === "write" && access !== "owner" && row.adminCorrectedBy) {
+    throw new AppError(409, "admin_corrected", "Updated by Fleet Admin; submit a correction for review");
+  }
   return row;
 }
 
@@ -147,6 +212,9 @@ async function loadPartFor(db: Db, callerId: string, partId: string, mode: "read
   }
   if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
     throw new AppError(403, "insufficient_permission", "Can only edit own parts");
+  }
+  if (organizationScoped && mode === "write" && access !== "owner" && row.adminCorrectedBy) {
+    throw new AppError(409, "admin_corrected", "Updated by Fleet Admin; submit a correction for review");
   }
   return row;
 }
@@ -191,16 +259,168 @@ async function recordVehicleScopedChange(
   }
 }
 
-export const ownerPlugin: FastifyPluginAsync = async (app) => {
-  const db = () => app.db;
+
+  const db = () => transaction.getStore() ?? app.db;
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
-  // Confirmed Access Decision 22: gate personal-garage data handlers for a
-  // driver identity (org_driver or active driver assignment). Fuel-types,
-  // notifications, and media stay ungated (drivers still need their own fuel
-  // types for org refuel; notifications and media are shared surfaces).
+  async function checkRevision(request: FastifyRequest) {
+    if (request.method !== "PATCH" && request.method !== "DELETE") return;
+    const params = request.params as Record<string, string>;
+    const tables = { serviceRecordId: serviceRecords, expenseId: expenses, documentId: documents, fuelLogId: fuelLogs, partId: parts };
+    for (const [key, table] of Object.entries(tables)) {
+      if (!params[key]) continue;
+      const [row] = await db().select().from(table).where(eq(table.id, uuid.parse(params[key]))).for("update");
+      if (!row) return;
+      await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full");
+      const access = await getVehicleAccessLevel(db(), uid(request), row.vehicleId);
+      const author = "createdBy" in row ? row.createdBy : "userId" in row ? row.userId : null;
+      if (access !== "owner" && author !== uid(request)) throw new AppError(403, "insufficient_permission", "Can only edit own records");
+      if (access !== "owner" && row.adminCorrectedBy) throw new AppError(409, "admin_corrected", "Updated by Fleet Admin; submit a correction for review");
+      if ("sourceId" in row && row.sourceId) throw new AppError(409, "derived_expense", "Change the linked service or fuel log to correct this expense");
+      const expected = request.headers["if-match"];
+      if (expected === undefined) throw new AppError(428, "revision_required", "Send the record revision in If-Match");
+      if (String(row.revision) !== expected) throw new AppError(409, "revision_conflict", "Record changed; submit a correction for review");
+    }
+  }
+
   const guard = async (request: { authUser?: { sub: string } }) => {
-    if (request.authUser?.sub) await assertPersonalGarageAllowed(db(), request.authUser.sub);
+    if (!organizationScoped && request.authUser?.sub) await assertPersonalGarageAllowed(db(), request.authUser.sub);
   };
+  if (organizationScoped) {
+    app.addHook("onRoute", (route) => {
+      const handler = route.handler;
+      route.handler = async function(request, reply) {
+        return app.db.transaction(async (tx) => transaction.run(tx as Db, () => requestedOrganization.run(uuid.parse((request.params as { organizationId: string }).organizationId), async () => {
+          requireFleetClient(request);
+          const orgId = uuid.parse((request.params as { organizationId: string }).organizationId);
+          const { membership } = await getOrganizationAccess(db(), uid(request), orgId, ["org_admin", "org_driver"]);
+          if (membership.role === "org_admin") {
+            requireFleetPortal(request);
+            await db().execute(sql`select set_config('autox.record_admin', ${uid(request)}, true)`);
+          }
+          await assertPasswordChangeClear(db(), uid(request));
+          const operationId = request.headers["idempotency-key"];
+          const fingerprint = createHash("sha256").update(canonical([request.method, request.url, request.headers["if-match"], request.body])).digest("hex");
+          if (operationId) {
+            const id = uuid.parse(operationId);
+            const inserted = await db().insert(organizationOperations).values({ id, orgId, userId: uid(request), fingerprint }).onConflictDoNothing().returning();
+            if (!inserted.length) {
+              const [previous] = await db().select().from(organizationOperations).where(eq(organizationOperations.id, id));
+              if (previous.userId !== uid(request) || previous.orgId !== orgId || previous.fingerprint !== fingerprint) throw new AppError(409, "operation_id_conflict", "Operation ID already used");
+              reply.code(previous.statusCode ?? 200);
+              return previous.result;
+            }
+          }
+          const reviewId = request.headers["x-review-id"];
+          let approvedReview;
+          if (reviewId) {
+            requireFleetPortal(request);
+            const [review] = await db().select().from(organizationReviews).where(and(eq(organizationReviews.id, uuid.parse(reviewId)), eq(organizationReviews.orgId, orgId))).for("update");
+            if (!review || review.status !== "pending" || membership.role !== "org_admin") throw new AppError(409, "review_changed", "Review is no longer pending");
+            const operation = review.operation as { entity_id: string; vehicle_id: string };
+            const params = request.params as Record<string, string>;
+            if (!Object.values(params).includes(operation.entity_id) && (request.body as { id?: string })?.id !== operation.entity_id) throw new AppError(422, "review_mismatch", "Review does not match this record");
+            const [link] = await db().select().from(organizationVehicles).where(and(eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, operation.vehicle_id)));
+            if (!link) throw new AppError(409, "vehicle_no_longer_in_org", "Cannot accept records for a transferred vehicle");
+            approvedReview = review;
+          }
+          await checkRevision(request);
+          let scheduleVehicle: string | undefined;
+          if (["POST", "PATCH", "DELETE"].includes(request.method) && request.routeOptions.url?.includes("service-records")) {
+            const params = request.params as Record<string, string>;
+            scheduleVehicle = params.vehicleId;
+            if (params.serviceRecordId) {
+              const [service] = await db().select().from(serviceRecords).where(eq(serviceRecords.id, params.serviceRecordId));
+              scheduleVehicle = service?.vehicleId;
+            }
+            if (scheduleVehicle) await db().execute(sql`insert into plan_schedule_baselines (plan_item_id, next_due_on, next_due_mileage)
+              select id, next_due_on, next_due_mileage from plan_items where vehicle_id = ${scheduleVehicle}
+              on conflict do nothing`);
+          }
+          const runHandler = async () => {
+            await validateOrganizationRequest(request);
+            return handler.call(this, request, reply);
+          };
+          const result = approvedReview
+            ? await reviewAuthor.run(approvedReview.userId, runHandler)
+            : await runHandler();
+          if (scheduleVehicle) {
+            const plans = await db().select().from(planItems).where(eq(planItems.vehicleId, scheduleVehicle));
+            for (const plan of plans) {
+              const [last] = await db().select({ servicedOn: serviceRecords.servicedOn, odometer: serviceRecords.odometer })
+                .from(serviceRecordItems).innerJoin(serviceRecords, eq(serviceRecords.id, serviceRecordItems.serviceRecordId))
+                .where(and(eq(serviceRecordItems.planItemId, plan.id), eq(serviceRecords.vehicleId, scheduleVehicle)))
+                .orderBy(desc(serviceRecords.servicedOn), desc(serviceRecords.odometer), desc(serviceRecords.id)).limit(1);
+              if (last) {
+                await db().update(planItems).set({
+                  nextDueOn: plan.intervalDays ? new Date(Date.parse(last.servicedOn) + plan.intervalDays * 86400000).toISOString().slice(0, 10) : null,
+                  nextDueMileage: plan.intervalDistance ? String(Number(last.odometer) + Number(plan.intervalDistance)) : null,
+                }).where(eq(planItems.id, plan.id));
+              } else {
+                await db().execute(sql`update plan_items p set next_due_on = b.next_due_on, next_due_mileage = b.next_due_mileage
+                  from plan_schedule_baselines b where p.id = b.plan_item_id and p.id = ${plan.id}`);
+              }
+            }
+          }
+          if (approvedReview) await db().update(organizationReviews).set({ status: "accepted", reviewedBy: uid(request) }).where(eq(organizationReviews.id, approvedReview.id));
+          if (operationId) await db().update(organizationOperations).set({ statusCode: reply.statusCode, result: result ?? null }).where(eq(organizationOperations.id, String(operationId)));
+          return result;
+        })));
+      };
+    });
+    async function validateOrganizationRequest(request: FastifyRequest) {
+      requireFleetClient(request);
+      const userId = uid(request);
+      const orgId = uuid.parse((request.params as { organizationId: string }).organizationId);
+      const { membership } = await getOrganizationAccess(db(), userId, orgId, ["org_admin", "org_driver"]);
+      await assertPasswordChangeClear(db(), userId);
+      // Mobile org data is a Driver surface. Admin record changes use the portal.
+      if (membership.role === "org_admin") requireFleetPortal(request);
+      const params = request.params as Record<string, string>;
+      const body = (request.body ?? {}) as Record<string, unknown>;
+      // Existing UUIDs must never turn idempotent creates into cross-vehicle reads.
+      const recordTables = { "plan-items": planItems, "service-records": serviceRecords,
+        "parts": parts, "fuel-logs": fuelLogs, "documents": documents, "expenses": expenses };
+      const resource = request.routeOptions.url?.split("/").reverse().find((segment) => segment in recordTables);
+      if (request.method === "POST" && resource && typeof body.id === "string") {
+        const table = recordTables[resource as keyof typeof recordTables];
+        const [existing] = await db().select().from(table).where(eq(table.id, uuid.parse(body.id)));
+        if (existing && existing.vehicleId !== params.vehicleId) throw new AppError(409, "id_conflict", "Record ID already exists");
+        if (existing && membership.role === "org_driver") {
+          const author = "createdBy" in existing ? existing.createdBy : "userId" in existing ? existing.userId : null;
+          if (author !== userId) throw new AppError(409, "id_conflict", "Record ID already exists");
+        }
+      }
+      let vehicleId = params.vehicleId;
+      let currentMedia: string | null = null;
+      for (const [key, table] of Object.entries({ serviceRecordId: serviceRecords, expenseId: expenses, documentId: documents })) {
+        if (!params[key]) continue;
+        const [record] = await db().select().from(table).where(eq(table.id, uuid.parse(params[key])));
+        vehicleId = record?.vehicleId;
+        if (record) currentMedia = "mediaId" in record ? record.mediaId : record.receiptMediaId;
+      }
+      for (const mediaId of [body.media_id, body.receipt_media_id]) {
+        if (typeof mediaId !== "string" || mediaId === currentMedia) continue;
+        const [media] = await db().select().from(mediaObjects).where(eq(mediaObjects.id, uuid.parse(mediaId)));
+        if (!media || media.userId !== (reviewAuthor.getStore() ?? userId)) throw new AppError(422, "invalid_media", "Attachment must belong to the submitter");
+      }
+      if (Array.isArray(body.parts)) {
+        for (const ref of body.parts as { part_id?: string }[]) {
+          if (!ref.part_id) continue;
+          const [part] = await db().select().from(parts).where(eq(parts.id, uuid.parse(ref.part_id)));
+          if (!part || part.vehicleId !== vehicleId) throw new AppError(422, "invalid_part", "Part must belong to this vehicle");
+        }
+      }
+      if (Array.isArray(body.items)) {
+        for (const item of body.items as { plan_item_id?: string }[]) {
+          if (!item.plan_item_id) continue;
+          const [plan] = await db().select().from(planItems).where(eq(planItems.id, uuid.parse(item.plan_item_id)));
+          if (!plan || (!vehicleId || plan.vehicleId !== vehicleId)) throw new AppError(422, "invalid_plan_item", "Plan item must belong to this vehicle");
+          await getAccessibleVehicle(db(), userId, plan.vehicleId, "full");
+        }
+      }
+
+    }
+  }
 
   app.get("/vehicles/:vehicleId/plan-items", async (request) => {
     await guard(request);
@@ -232,7 +452,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       throw new AppError(422, "invalid_interval", "Provide a time interval, a distance interval, or both");
     }
     const [existing] = await db().select().from(planItems).where(eq(planItems.id, body.id)).limit(1);
-    if (existing) return reply.code(201).send(publicPlan(existing));
+    if (existing) { reply.code(201); return publicPlan(existing); }
     const computed = dueFrom(body.interval_days, body.interval_distance, reqNum(vehicle.mileage));
     const due = {
       nextDueOn: body.next_due_on ?? computed.nextDueOn,
@@ -251,12 +471,12 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         notes: body.notes ?? null,
         catalogKey: body.catalog_key ?? null,
         enabled: body.enabled ?? true,
-        createdBy: uid(request),
+        createdBy: reviewAuthor.getStore() ?? uid(request),
       })
       .returning();
     const payload = publicPlan(row);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "plan_item", entityId: row.id, op: "upsert", payload });
-    return reply.code(201).send(payload);
+    reply.code(201); return payload;
   });
 
   app.get("/vehicles/:vehicleId/suggested-plan-items", async (request) => {
@@ -328,12 +548,29 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     requireOwner(request);
     const { planItemId } = request.params as { planItemId: string };
     const [row] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
-    if (!row) return reply.code(204).send();
+    if (!row) { reply.code(204); return null; }
     await loadPlanItemFor(db(), uid(request), planItemId, "write");
     await db().delete(planItems).where(eq(planItems.id, planItemId));
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "plan_item", entityId: planItemId, op: "delete", payload: { id: planItemId } });
-    return reply.code(204).send();
+    reply.code(204); return null;
   });
+
+  if (organizationScoped) {
+    app.delete("/service-records/:serviceRecordId", async (request, reply) => {
+      const { serviceRecordId } = request.params as { serviceRecordId: string };
+      await loadServiceRecordFor(db(), uid(request), serviceRecordId, "write");
+      await db().delete(serviceRecordItems).where(eq(serviceRecordItems.serviceRecordId, serviceRecordId));
+      await db().delete(serviceRecordParts).where(eq(serviceRecordParts.serviceRecordId, serviceRecordId));
+      await db().delete(serviceRecords).where(eq(serviceRecords.id, serviceRecordId));
+      reply.code(204); return null;
+    });
+    app.delete("/fuel-logs/:fuelLogId", async (request, reply) => {
+      const { fuelLogId } = request.params as { fuelLogId: string };
+      await loadFuelLogFor(db(), uid(request), fuelLogId, "write");
+      await db().delete(fuelLogs).where(eq(fuelLogs.id, fuelLogId));
+      reply.code(204); return null;
+    });
+  }
 
   const serviceBody = z.object({
     id: uuid,
@@ -370,8 +607,8 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = serviceBody.parse(request.body);
     const [existing] = await db().select().from(serviceRecords).where(eq(serviceRecords.id, body.id)).limit(1);
-    if (existing) return reply.code(201).send(await loadService(db(), existing.id));
-    if (body.odometer < reqNum(vehicle.mileage)) {
+    if (existing) { reply.code(201); return await loadService(db(), existing.id); }
+    if (!organizationScoped && body.odometer < reqNum(vehicle.mileage)) {
       throw new AppError(422, "mileage_decrease", "Service odometer cannot be below vehicle mileage");
     }
     await db().insert(serviceRecords).values({
@@ -383,7 +620,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       workshopName: body.workshop_name ?? null,
       notes: body.notes ?? null,
       receiptMediaId: body.receipt_media_id ?? null,
-      createdBy: uid(request),
+      createdBy: reviewAuthor.getStore() ?? uid(request),
     });
     for (const item of body.items) {
       await db().insert(serviceRecordItems).values({
@@ -421,7 +658,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     }
     const payload = await loadService(db(), body.id);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "service_record", entityId: body.id, op: "upsert", payload });
-    return reply.code(201).send(payload);
+    reply.code(201); return payload;
   });
 
   app.get("/service-records/:serviceRecordId", async (request) => {
@@ -520,7 +757,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     }).parse(request.body);
     const [existing] = await db().select().from(parts).where(eq(parts.id, body.id)).limit(1);
     if (existing) {
-      return reply.code(201).send(publicPart(existing));
+      reply.code(201); return publicPart(existing);
     }
     const [row] = await db()
       .insert(parts)
@@ -531,12 +768,12 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         brand: body.brand ?? null,
         partNumber: body.part_number ?? null,
         notes: body.notes ?? null,
-        createdBy: uid(request),
+        createdBy: reviewAuthor.getStore() ?? uid(request),
       })
       .returning();
     const payload = publicPart(row);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "part", entityId: row.id, op: "upsert", payload });
-    return reply.code(201).send(payload);
+    reply.code(201); return payload;
   });
 
   app.patch("/parts/:partId", async (request) => {
@@ -588,7 +825,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       unit: z.string().min(1),
     }).parse(request.body);
     const [existing] = await db().select().from(fuelTypes).where(eq(fuelTypes.id, body.id)).limit(1);
-    if (existing) return reply.code(201).send(publicFuelType(existing));
+    if (existing) { reply.code(201); return publicFuelType(existing); }
     const clash = await db().select().from(fuelTypes).where(eq(fuelTypes.userId, uid(request)));
     if (clash.some((t) => t.name.toLowerCase() === body.name.toLowerCase())) {
       throw new AppError(409, "name_taken", "Fuel type name already exists");
@@ -599,7 +836,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       .returning();
     const payload = publicFuelType(row);
     await recordChange(db(), { userId: uid(request), entityType: "fuel_type", entityId: row.id, op: "upsert", payload });
-    return reply.code(201).send(payload);
+    reply.code(201); return payload;
   });
 
   app.patch("/fuel-types/:fuelTypeId", async (request) => {
@@ -658,9 +895,9 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       throw new AppError(422, "invalid_date", "Date cannot be in the future");
     }
     const [existing] = await db().select().from(fuelLogs).where(eq(fuelLogs.id, body.id)).limit(1);
-    if (existing) return reply.code(201).send(publicFuelLog(existing));
+    if (existing) { reply.code(201); return publicFuelLog(existing); }
     const [ft] = await db().select().from(fuelTypes).where(eq(fuelTypes.id, body.fuel_type_id)).limit(1);
-    if (!ft || ft.userId !== uid(request)) throw new AppError(422, "invalid_fuel_type", "Unknown fuel type");
+    if (!ft || ft.userId !== (reviewAuthor.getStore() ?? uid(request))) throw new AppError(422, "invalid_fuel_type", "Unknown fuel type");
     const kind = vehicle.fuelType === "electric" ? "charge" : "refuel";
     if (kind === "charge" && ft.kind !== "electric") {
       throw new AppError(422, "invalid_fuel_type", "Electric vehicles log charge types");
@@ -668,14 +905,14 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     if (kind === "refuel" && ft.kind !== "liquid") {
       throw new AppError(422, "invalid_fuel_type", "Petrol and hybrid vehicles log liquid types");
     }
-    if (body.odometer != null && body.odometer < reqNum(vehicle.mileage)) {
+    if (!organizationScoped && body.odometer != null && body.odometer < reqNum(vehicle.mileage)) {
       throw new AppError(422, "mileage_decrease", "Fuel odometer cannot be below vehicle mileage");
     }
     const [row] = await db()
       .insert(fuelLogs)
       .values({
         id: body.id,
-        userId: uid(request),
+        userId: reviewAuthor.getStore() ?? uid(request),
         vehicleId,
         kind,
         fuelTypeId: ft.id,
@@ -693,7 +930,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     }
     const payload = publicFuelLog(row);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "fuel_log", entityId: row.id, op: "upsert", payload });
-    return reply.code(201).send(payload);
+    reply.code(201); return payload;
   });
 
   app.get("/fuel-logs/:fuelLogId", async (request) => {
@@ -721,7 +958,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     let fuelTypeId = row.fuelTypeId;
     if (body.fuel_type_id) {
       const [ft] = await db().select().from(fuelTypes).where(eq(fuelTypes.id, body.fuel_type_id)).limit(1);
-      if (!ft || ft.userId !== uid(request)) throw new AppError(422, "invalid_fuel_type", "Unknown fuel type");
+      if (!ft || (ft.userId !== (reviewAuthor.getStore() ?? uid(request)) && ft.id !== row.fuelTypeId)) throw new AppError(422, "invalid_fuel_type", "Unknown fuel type");
       fuelTypeName = ft.name;
       unit = ft.unit;
       fuelTypeId = ft.id;
@@ -776,7 +1013,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       media_id: uuid.optional().nullable(),
     }).parse(request.body);
     const [existing] = await db().select().from(documents).where(eq(documents.id, body.id)).limit(1);
-    if (existing) return reply.code(201).send(publicDoc(existing));
+    if (existing) { reply.code(201); return publicDoc(existing); }
     const [row] = await db()
       .insert(documents)
       .values({
@@ -787,12 +1024,12 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
         notes: body.notes ?? null,
         expiresOn: body.expires_on ?? null,
         mediaId: body.media_id ?? null,
-        createdBy: uid(request),
+        createdBy: reviewAuthor.getStore() ?? uid(request),
       })
       .returning();
     const payload = publicDoc(row);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "document", entityId: row.id, op: "upsert", payload });
-    return reply.code(201).send(payload);
+    reply.code(201); return payload;
   });
 
   app.get("/documents/:documentId", async (request) => {
@@ -845,7 +1082,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       await db().delete(documents).where(eq(documents.id, documentId));
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "document", entityId: documentId, op: "delete", payload: { id: documentId } });
     }
-    return reply.code(204).send();
+    reply.code(204); return null;
   });
 
   const expenseBody = z.object({
@@ -878,7 +1115,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = expenseBody.parse(request.body);
     const [existing] = await db().select().from(expenses).where(eq(expenses.id, body.id)).limit(1);
-    if (existing) return reply.code(201).send(await publicExpense(db(), existing.id));
+    if (existing) { reply.code(201); return await publicExpense(db(), existing.id); }
     await db().insert(expenses).values({
       id: body.id,
       vehicleId,
@@ -887,7 +1124,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       incurredOn: body.incurred_on,
       notes: body.notes ?? null,
       receiptMediaId: body.receipt_media_id ?? null,
-      createdBy: uid(request),
+      createdBy: reviewAuthor.getStore() ?? uid(request),
     });
     for (const part of body.parts ?? []) {
       await db().insert(expenseParts).values({
@@ -899,7 +1136,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     }
     const payload = await publicExpense(db(), body.id);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "expense", entityId: body.id, op: "upsert", payload });
-    return reply.code(201).send(payload);
+    reply.code(201); return payload;
   });
 
   app.get("/vehicles/:vehicleId/expenses/summary", async (request) => {
@@ -969,7 +1206,7 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
       await db().delete(expenses).where(eq(expenses.id, expenseId));
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: current.vehicle_id, entityType: "expense", entityId: expenseId, op: "delete", payload: { id: expenseId } });
     }
-    return reply.code(204).send();
+    reply.code(204); return null;
   });
 
   app.get("/notifications", async (request) => {
@@ -1018,3 +1255,4 @@ export const ownerPlugin: FastifyPluginAsync = async (app) => {
     return payload;
   });
 };
+}

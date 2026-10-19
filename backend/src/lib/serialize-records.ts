@@ -36,6 +36,8 @@ export async function loadService(appDb: Db, id: string) {
   const assigned = await appDb.select().from(serviceRecordParts).where(eq(serviceRecordParts.serviceRecordId, id));
   return {
     id: row.id,
+    revision: row.revision,
+    admin_corrected_by: row.adminCorrectedBy,
     vehicle_id: row.vehicleId,
     serviced_on: dateOnly(row.servicedOn),
     odometer: reqNum(row.odometer),
@@ -57,6 +59,8 @@ export async function loadService(appDb: Db, id: string) {
 export function publicPart(row: typeof parts.$inferSelect) {
   return {
     id: row.id,
+    revision: row.revision,
+    admin_corrected_by: row.adminCorrectedBy,
     vehicle_id: row.vehicleId,
     name: row.name,
     brand: row.brand,
@@ -69,6 +73,8 @@ export function publicPart(row: typeof parts.$inferSelect) {
 export function publicFuelLog(row: typeof fuelLogs.$inferSelect) {
   return {
     id: row.id,
+    revision: row.revision,
+    admin_corrected_by: row.adminCorrectedBy,
     user_id: row.userId,
     vehicle_id: row.vehicleId,
     kind: row.kind,
@@ -85,6 +91,8 @@ export function publicFuelLog(row: typeof fuelLogs.$inferSelect) {
 export function publicDoc(row: typeof documents.$inferSelect) {
   return {
     id: row.id,
+    revision: row.revision,
+    admin_corrected_by: row.adminCorrectedBy,
     vehicle_id: row.vehicleId,
     name: row.name,
     category: row.category,
@@ -102,6 +110,10 @@ export async function publicExpense(appDb: Db, id: string) {
   const assigned = await appDb.select().from(expenseParts).where(eq(expenseParts.expenseId, id));
   return {
     id: row.id,
+    source_kind: row.sourceKind,
+    source_id: row.sourceId,
+    revision: row.revision,
+    admin_corrected_by: row.adminCorrectedBy,
     vehicle_id: row.vehicleId,
     category: row.category,
     amount: reqNum(row.amount),
