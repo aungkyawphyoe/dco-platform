@@ -10,6 +10,12 @@
 
 MVP is closed. [`product/mvp-scope.md`](mvp-scope.md) is the historical Phase 1 contract (what shipped); it no longer gates new work. This file is the source of truth for the production app. `docs/product-roadmap.md` and `product/frd/` must not contradict it.
 
+## Approved mobile realignment — 18 October 2026
+
+The approved target is [Personal / Driver mobile realignment](frd/mobile-personal-driver-realignment-plan.md). It supersedes the earlier restricted Driver definition: shared mobile screens, full assigned-vehicle history and costs, all existing expense categories, account-isolated offline synchronization, admin-owned plans, and author-owned record corrections with admin locks/review. Separate accounts and logical organization isolation remain. This is an implementation target, not a claim that all capabilities have shipped.
+
+Assignment foundations now permit multiple vehicles per Driver and multiple Drivers per vehicle, with one active link per pair. The remaining delivery phases are tracked in the approved plan.
+
 ---
 
 ## Relationship to MVP

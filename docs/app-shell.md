@@ -8,7 +8,7 @@ Default after a successful owner login: **Dashboard** (frame `3. Dashboard (Defa
 
 ## Owner app — bottom navigation + hamburger menu
 
-Four bottom tabs (consistent for normal users, fleet owners, **and drivers** — drivers get the same tabs with read-only Garage and fuel-only Expenses) plus a hamburger menu (drawer) for additional features.
+Four bottom tabs (consistent for normal users, fleet owners, **and drivers** — drivers select assigned vehicles, with read-only vehicle master data and full Expenses) plus a hamburger menu (drawer) for additional features.
 
 ### Bottom tabs
 
@@ -136,21 +136,21 @@ Back from a nested screen returns to the tab or hamburger that opened it. Switch
 
 Mobile has **no Fleet hub, no mode switch, and no drawer Fleet entry** (removed October 2026 — fleet management lives on the Fleet Portal). The app has two effective modes, derived from live entitlements (`GET /me/entitlements`) with no stored preference:
 
-- **Driver mode** — `org_driver` accounts are forced into it on login: **the same four tabs as personal mode** (Garage / Maintenance / Expenses / Settings), same screens, with driver-mode repositories mapping to org endpoints. Personal data keeps the offline-first Drift + outbox path outside driver mode; driver data is **online-first** (HTTP 403 → access-denied empty state).
-  - **Garage tab**: personal Dashboard with the assigned org vehicle as the active vehicle; Quick Actions = **Report Issue · Start Inspection · Refuel · Notes** (personal set: Log Service · History · Refuel · Notes); spend cards hidden. My Garage = single read-only row ("+" hidden, tap → read-only detail); no add/edit/archive/share.
-  - **Maintenance tab**: plan (read-only + suggested add) · **Register service** with a **Report | Do myself** branch · merged history (service records = Completed; maintenance-Report work orders = Reported → Completed on refresh).
-  - **Expenses tab**: fuel logs only — no generic expense CRUD.
-  - **Settings tab**: profile/password/sign-out; sharing entries removed.
-  - Pushed **Reports** screen (Dashboard quick action): own inspections + Report-Issue work orders with status chips.
-  - Personal-garage routes are hidden **and server-denied** (403) for driver identities.
-  - Odometer fields auto-fill from `vehicles.mileage` — **shift start/end screens are removed** (mileage is log-driven only).
+- **Driver mode** — separate admin-created accounts, forced organization scope, no toggle. The same four tabs and core screen implementations use organization-scoped local data and sync.
+  - Garage lists all assigned vehicles and provides the shared active-vehicle selector. Vehicle master data and assignment management belong to Fleet Admin.
+  - Maintenance uses the shared completed-service form and full vehicle history. Planned logs link admin-defined items; unplanned logs do not create plans.
+  - Expenses uses all existing categories and full assigned-vehicle totals. Documents follow the same assigned-vehicle scope.
+  - Shared quick actions remain; Report Issue, Start Inspection and Reports are supplemental fleet actions.
+  - Drivers edit their own ordinary records only. Admin corrections lock records. Sync status shows pending, accepted and declined submissions.
+  - Notes remain private and local to the account. Sharing/join/create-vehicle/plan-management entry points are hidden.
+
 - **Personal mode** — everyone else, including non-driver org members (`org_admin`/`org_manager`/`org_mechanic`), who keep mobile login for their personal garage only.
 
 Backend enforcement is authoritative: management API routes require the `dco-fleet` (Fleet Portal) audience and reject mobile's `dco-owner` token; personal-garage routes reject driver identities with 403 `personal_garage_forbidden`.
 
 Driver-specific screens push on the active **tab** stacks (parity with personal mode):
 
-- Driver: Register service (Report | Do myself), Report Issue, Start inspection (checklist built from the org's inspection template), Refuel, Reports (pushed history), read-only vehicle detail (Garage).
+- Driver: shared Register service and Refuel forms, Report Issue, Start inspection, Reports, and read-only vehicle detail.
 
 ---
 

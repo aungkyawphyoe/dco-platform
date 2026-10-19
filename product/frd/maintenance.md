@@ -1,5 +1,11 @@
 # Maintenance Module
 
+## Driver maintenance parity — approved 18 October 2026
+
+Drivers use the shared completed-service form, with planned and unplanned logging. Only Fleet Admin manages plans. Planned-service corrections/deletions recalculate due dates from the remaining history and restore the admin baseline when none remains. Ordinary logging needs no approval. Report Issue is a separate workflow.
+
+See [the approved realignment plan](mobile-personal-driver-realignment-plan.md) for the role matrix and acceptance criteria. This section supersedes earlier Driver-specific restrictions; the remaining baseline applies to Personal unless stated otherwise.
+
 ## Overview
 
 Maintenance is how the owner keeps the active vehicle on schedule and keeps a history of work done. It has two records: a **plan** (what should happen next) and a **service record** (what already happened). Reminders fire from the plan using time and/or distance. Receipt photos can be attached; they are not OCR'd in MVP.

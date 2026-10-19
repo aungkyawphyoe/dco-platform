@@ -1,5 +1,7 @@
 # Fleet Maintenance Templates
 
+**18 October realignment:** Driver suggested-plan creation and the separate Driver plan screens below are superseded by [the approved shared-mobile plan](mobile-personal-driver-realignment-plan.md). Fleet Admin manages all plan items. Drivers read those plans and log completed services through the shared Personal form; they cannot create plans through legacy endpoints. Historical sequencing below records the previous implementation.
+
 Plan doc locked via grilling session (14 Oct 2026). Status: **Implemented** (phases 1–7 Done — see Sequencing table). **Amended 16 Oct 2026 (second grilling):** driver-side plan completion logging is now in scope — see locked decision 11. **Amended 18 Oct 2026 (third grilling):** admin catalog and fleet templates pages standardized to one "Maintenance Catalog" contract — see locked decision 12.
 
 ## Overview

@@ -1,5 +1,11 @@
 # Sync Module
 
+## Organization Driver synchronization — approved 18 October 2026
+
+Driver core records use a separate local database per account and organization, revision-aware operations, complete assignment manifests, and a review queue for revoked/stale/admin-corrected submissions. Reviewed operations do not affect live totals before acceptance. Personal sync remains separate; Driver identities cannot pull the Personal change feed. Fleet-only issue and inspection workflows remain online.
+
+See [the approved realignment plan](mobile-personal-driver-realignment-plan.md) for the role matrix and acceptance criteria. This section supersedes earlier Driver-specific restrictions; the remaining baseline applies to Personal unless stated otherwise.
+
 ## Overview
 
 Sync is the offline-first engine. The owner can create and edit Garage, Maintenance, Documents, and Expenses data with no network. Changes queue locally and replicate to the REST API when a connection exists. The server holds the durable copy; the device holds a full working copy.

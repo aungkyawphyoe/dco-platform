@@ -1,5 +1,11 @@
 # System architecture (MVP)
 
+## Organization mobile data scope — approved 18 October 2026
+
+Personal and Driver accounts share the presentation layer. Driver records use organization-scoped APIs and an account/organization-specific local database. PostgreSQL separation is logical. Server assignment, author, revision and admin-lock checks are authoritative; rejected stale/revoked writes enter a separate review queue. Acceptance and its accounting effects are transactional.
+
+See [the approved realignment plan](../product/frd/mobile-personal-driver-realignment-plan.md) for the role matrix and acceptance criteria. This section supersedes earlier Driver-specific restrictions; the remaining baseline applies to Personal unless stated otherwise.
+
 **Status:** Accepted.  
 **Contract:** `product/mvp-scope.md` and `product/frd/`.  
 **Hosting:** REST API runs on Azure Container Apps (`docs/adr/azure-hosting.md`). Local loop is Docker Compose. See `docs/environment-secrets.md` for the env map. IAM taxonomy: `architecture/iam.md`.
