@@ -13,6 +13,26 @@ import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/core/config/app_config.dart';
+import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
+import 'package:dco_mobile/features/auth/domain/entities/session.dart';
+
+class SignedInSession extends SessionController {
+  @override
+  Future<Session?> build() async => Session.fromJson({
+    'access_token': 'test',
+    'refresh_token': 'test',
+    'user': {
+      'id': 'u1',
+      'role': 'owner',
+      'plan': 'free',
+      'status': 'active',
+      'email_verified': true,
+    },
+  });
+}
 
 class FakeSyncApi implements SyncApi {
   FakeSyncApi();
@@ -122,6 +142,53 @@ void main() {
     expect(engine.state.phase, SyncPhase.idle);
     expect(engine.state.lastSyncedAt, isNotNull);
   });
+
+  test('late status subscribers receive the current engine state', () async {
+    expect((await engine.stream.first).phase, SyncPhase.idle);
+    await engine.syncNow();
+    final completed = await engine.stream.first;
+    expect(completed.phase, SyncPhase.idle);
+    expect(completed.lastSyncedAt, isNotNull);
+  });
+
+  test(
+    'replacement scoped engines automatically pull without an app event',
+    () async {
+      var pulls = 0;
+      api.pullHandler = (_) {
+        pulls++;
+        return const SyncPullPage(cursor: '', changes: []);
+      };
+      final container = ProviderContainer(
+        overrides: [
+          appConfigProvider.overrideWithValue(
+            const AppConfig(
+              apiBaseUrl: 'http://localhost',
+              jwtOwnerAud: 'owner',
+              mockAuth: true,
+            ),
+          ),
+          sessionControllerProvider.overrideWith(SignedInSession.new),
+          appDatabaseProvider.overrideWithValue(db),
+          syncApiProvider.overrideWithValue(api),
+          mediaApiProvider.overrideWithValue(mediaApi),
+        ],
+      );
+      try {
+        await container.read(sessionControllerProvider.future);
+        for (var scope = 0; scope < 2; scope++) {
+          final scoped = container.read(syncEngineProvider);
+          await scoped.stream
+              .firstWhere((state) => state.lastSyncedAt != null)
+              .timeout(const Duration(seconds: 5));
+          expect(pulls, scope + 1);
+          container.invalidate(syncEngineProvider);
+        }
+      } finally {
+        container.dispose();
+      }
+    },
+  );
 
   test('rejected op is kept with attempt count and error', () async {
     await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v1');

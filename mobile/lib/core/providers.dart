@@ -315,6 +315,10 @@ final syncEngineProvider = Provider<SyncEngine>((ref) {
   );
   final coordinator = ref.read(syncAccountCoordinatorProvider);
   coordinator.register(engine);
+  // Every account/organization scope gets a fresh engine. Start that instance
+  // directly; an entitlement listener can otherwise schedule the old engine
+  // just before its dependencies replace and dispose it.
+  engine.requestSync();
   ref.onDispose(() {
     coordinator.unregister(engine);
     engine.dispose();

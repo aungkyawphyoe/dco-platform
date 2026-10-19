@@ -141,9 +141,6 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
     // hydration (§8.1).
     ref.watch(featureGateProvider);
 
-    ref.listen(entitlementsProvider, (previous, next) {
-      if (next.hasValue) ref.read(syncEngineProvider).requestSync();
-    });
     ref.listen(sessionControllerProvider, (previous, next) {
       final userId = next.valueOrNull?.user.id;
       final previousUserId = previous?.valueOrNull?.user.id;

@@ -102,7 +102,17 @@ class SyncEngine {
   final _states = StreamController<SyncState>.broadcast();
 
   SyncState get state => _state;
-  Stream<SyncState> get stream => _states.stream;
+  Stream<SyncState> get stream => Stream.multi((controller) {
+    final subscription = _states.stream.listen(
+      controller.add,
+      onError: controller.addError,
+      onDone: controller.close,
+    );
+    // New subscribers must not retain a prior account's status while this
+    // engine is idle, or miss completion before their subscription starts.
+    controller.add(_state);
+    controller.onCancel = subscription.cancel;
+  });
 
   /// Debounced trigger used by repositories after local writes.
   /// Respects auto-sync setting — won't trigger if disabled.
