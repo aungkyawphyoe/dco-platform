@@ -71,7 +71,7 @@ export default function AssignmentsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Driver Assignments"
-        description="One active vehicle per driver; unassign releases the vehicle"
+        description="Assign multiple vehicles to each driver, or share a vehicle between drivers"
         actions={
           canManage ? (
             <Button onClick={() => setShowAssign(true)}>Assign driver</Button>

@@ -24,6 +24,7 @@ function getNavForRole(role: string | null) {
   ];
 
   const adminNav = [
+    { section: "Submissions", items: [{ href: "/reviews", label: "Submission Review", exact: false }] },
     {
       section: "Configuration",
       items: [
