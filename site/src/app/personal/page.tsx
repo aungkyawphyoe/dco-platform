@@ -7,6 +7,7 @@ import {
   PERSONAL_SOLUTION,
   PERSONAL_STEPS,
 } from "@/content/personal";
+import { cardTone } from "@/lib/tone";
 import { BenefitList } from "@/components/marketing/benefit-list";
 import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
 import { CtaBanner } from "@/components/marketing/cta-banner";
@@ -26,17 +27,13 @@ export default function PersonalPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate overflow-hidden border-b border-line">
+      <section className="relative isolate flex min-h-svh flex-col items-center justify-center overflow-hidden border-b border-line pt-20 sm:pt-24">
         <AuroraBackdrop dots orbs />
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div className="flex flex-col items-start gap-6">
             <Reveal delay={0} className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-line-subtle bg-panel px-3 py-1 text-xs font-medium text-ink-caption">
-                {PERSONAL_HERO.eyebrow}
-              </span>
-              <span className="rounded-full bg-success-dim px-3 py-1 text-xs font-semibold text-success">
-                Free forever
-              </span>
+              <span className="pill pill-gold">{PERSONAL_HERO.eyebrow}</span>
+              <span className="pill pill-success">Free forever</span>
             </Reveal>
             <Reveal delay={80}>
               <h1 className="font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
@@ -85,7 +82,7 @@ export default function PersonalPage() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           {PERSONAL_PROBLEM.items.map((item, index) => (
             <Reveal key={item.title} delay={index * 70} className="h-full">
-              <article className="surface card-dots card-hover h-full rounded-xl p-6">
+              <article className={`surface card-grad card-hover h-full rounded-xl p-6 ${cardTone(index)}`}>
                 <h3 className="font-display text-lg font-semibold tracking-tight">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-ink-muted">{item.description}</p>
               </article>
@@ -102,7 +99,7 @@ export default function PersonalPage() {
           </div>
           <ul className="grid gap-3">
             {PERSONAL_SOLUTION.bullets.map((bullet, index) => (
-              <Reveal key={bullet} delay={index * 70} as="li" className="surface card-hover rounded-xl p-4">
+              <Reveal key={bullet} delay={index * 70} as="li" className={`surface surface-grad card-hover rounded-xl p-4 ${cardTone(index)}`}>
                 <span className="flex items-start gap-3 text-sm text-ink-muted">
                   <svg
                     aria-hidden="true"

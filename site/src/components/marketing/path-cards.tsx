@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cardTone, pillTone } from "@/lib/tone";
 import { Reveal } from "./reveal";
 
 type PathItem = {
@@ -17,11 +18,9 @@ export function PathCards({ items }: { items: readonly PathItem[] }) {
         <Reveal key={item.href} delay={index * 90} className="h-full">
           <Link
             href={item.href}
-            className="surface card-dots card-hover group flex h-full flex-col gap-4 rounded-xl p-7 hover:border-gold/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
+            className={`surface card-grad card-hover group flex h-full flex-col gap-4 rounded-xl p-7 hover:border-gold/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus ${cardTone(index)}`}
           >
-            <span className="w-fit rounded-full bg-panel px-3 py-1 text-xs font-medium text-ink-caption">
-              {item.badge}
-            </span>
+            <span className={`pill w-fit ${pillTone(index)}`}>{item.badge}</span>
             <div>
               <h3 className="font-display text-2xl font-semibold tracking-tight transition-colors duration-300 ease-out-soft group-hover:text-gold">
                 {item.title}

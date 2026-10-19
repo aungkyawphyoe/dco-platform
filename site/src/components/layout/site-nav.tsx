@@ -12,8 +12,8 @@ export function SiteNav() {
   const [open, setOpen] = useState(false);
 
   return (
-    <header className="glass sticky top-0 z-40 border-b border-line/60">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4 sm:px-6">
+    <header className="fixed inset-x-0 top-0 z-40 px-3 pt-3 sm:px-4 sm:pt-4">
+      <div className="glass shadow-float mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 rounded-full px-4 sm:px-5">
         <Link
           href="/"
           className="flex items-center gap-2.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
@@ -67,7 +67,11 @@ export function SiteNav() {
       </div>
 
       {open && (
-        <nav id="mobile-nav" aria-label="Primary mobile" className="border-t border-line bg-bg/95 px-4 pb-4 pt-2 backdrop-blur-xl md:hidden">
+        <nav
+          id="mobile-nav"
+          aria-label="Primary mobile"
+          className="glass shadow-float mx-auto mt-2 max-w-6xl rounded-2xl px-3 py-3 backdrop-blur-xl md:hidden"
+        >
           {NAV_LINKS.map((link) => {
             const active = pathname === link.href;
             return (

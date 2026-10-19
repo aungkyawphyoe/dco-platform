@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cardTone } from "@/lib/tone";
 import {
   formatMmk,
   formatStorage,
@@ -10,6 +11,7 @@ import {
 type PricingCardProps = {
   plan: PricingPlan;
   period: BillingPeriod;
+  index: number;
 };
 
 function badgeFor(plan: PricingPlan): string | null {
@@ -19,21 +21,21 @@ function badgeFor(plan: PricingPlan): string | null {
   return null;
 }
 
-export function PricingCard({ plan, period }: PricingCardProps) {
+export function PricingCard({ plan, period, index }: PricingCardProps) {
   const money = plan.prices[period];
   const badge = badgeFor(plan);
   const highlighted = plan.highlighted;
 
   return (
     <article
-      className={`relative flex h-full flex-col gap-5 rounded-xl p-6 surface card-dots ${
-        highlighted ? "border-gold shadow-glow" : "card-hover"
+      className={`surface card-grad relative flex h-full flex-col gap-5 rounded-xl p-6 ${
+        highlighted ? "tone-gold border-gold shadow-glow" : `card-hover ${cardTone(index)}`
       }`}
     >
       {badge && (
         <span
-          className={`absolute -top-3 left-6 rounded-full px-3 py-1 text-xs font-semibold ${
-            highlighted ? "btn-gloss" : "bg-panel text-ink-caption"
+          className={`absolute -top-3 left-6 ${
+            highlighted ? "btn-gloss rounded-full px-3 py-1 text-xs font-semibold" : "pill pill-info"
           }`}
         >
           {badge}

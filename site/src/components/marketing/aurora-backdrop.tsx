@@ -16,7 +16,7 @@ export function AuroraBackdrop({ dots = false, orbs = false, className = "" }: A
   return (
     <div aria-hidden="true" className={`pointer-events-none absolute inset-0 -z-10 ${className}`}>
       <div className="bg-aurora absolute inset-0 mask-fade-strong opacity-95" />
-      {dots && <div className="bg-dots absolute inset-0 mask-fade-hero opacity-90" />}
+      {dots && <div className="bg-dots absolute inset-0 mask-fade-dots opacity-90" />}
       {orbs && (
         <>
           <div className="animate-float-slow absolute left-[6%] top-10 h-40 w-40 rounded-full bg-gold/10 blur-3xl sm:top-16" />

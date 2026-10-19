@@ -136,6 +136,7 @@ html.dark {
   --glow-gold: #feca1f2e;
   --glow-info: #7aa0b824;
   --glow-teal: #7cb89a1a;
+  --glow-violet: #8b9ccf26;
   --dot-color: #feca1f26;
   --gloss-sheen: #ffffff59;
   --gloss-a: #f2c36a;
@@ -151,6 +152,7 @@ html.light {
   --glow-gold: #87680038;
   --glow-info: #2c6e8f2e;
   --glow-teal: #2e7d5b24;
+  --glow-violet: #5b6fc420;
   --dot-color: #87680030;
   --gloss-sheen: #ffffff73;
   --gloss-a: #f2c36a;
@@ -178,15 +180,17 @@ html.light {
 }
 
 .bg-dots {
-  background-image: radial-gradient(var(--dot-color) 1.1px, transparent 1.4px);
-  background-size: 14px 14px;
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1.3px);
+  background-size: 11px 11px;
 }
 
-/* Dot texture for card surfaces (feature/pricing cards, CTA panel) —
- * same grid as the hero dots, painted under card content. */
+/* Dot texture for card surfaces (CTA panel overlay) — same grid as the hero
+ * dots and the same edge fade, painted under card content. */
 .card-dots {
-  background-image: radial-gradient(var(--dot-color) 1.1px, transparent 1.4px);
-  background-size: 14px 14px;
+  background-image: radial-gradient(var(--dot-color) 1px, transparent 1.3px);
+  background-size: 11px 11px;
+  -webkit-mask-image: radial-gradient(120% 110% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(120% 110% at 50% 0%, #000 40%, transparent 100%);
 }
 
 .mask-fade-b {
@@ -204,6 +208,14 @@ html.light {
   mask-image: linear-gradient(#000 70%, transparent);
 }
 
+/* Dot grid fade: dense near the centre-top and carried through the full height,
+ * dissolving toward the sides and the far (bottom) edge so the pattern never
+ * ends on a hard line. Shared by the hero grid, card texture and CTA panel. */
+.mask-fade-dots {
+  -webkit-mask-image: radial-gradient(120% 110% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(120% 110% at 50% 0%, #000 40%, transparent 100%);
+}
+
 .surface {
   background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
@@ -215,6 +227,140 @@ html.light {
   -webkit-backdrop-filter: blur(14px) saturate(1.4);
   backdrop-filter: blur(14px) saturate(1.4);
   border: 1px solid color-mix(in srgb, var(--border-subtle) 70%, transparent);
+}
+
+/* Depth utilities backed by the mode-aware --shadow-* vars above. */
+@utility shadow-float {
+  box-shadow: var(--shadow-float);
+}
+
+@utility shadow-glow {
+  box-shadow: var(--shadow-glow);
+}
+
+/* Theme background gradients for cards. `.surface-grad` (gradient only) layers
+ * over `.surface`; `.card-grad` combines the same gradient with the dot grid so
+ * a single class carries both textures. Tones pick the tint from the site-local
+ * glow vars — components choose one by index, never raw hex. */
+.surface-grad {
+  background-image:
+    radial-gradient(120% 115% at 0% 0%, var(--grad-a, transparent) 0%, transparent 56%),
+    radial-gradient(130% 120% at 100% 100%, var(--grad-b, transparent) 0%, transparent 62%);
+}
+
+/* Card texture lives on a masked pseudo-element (z-index:-1 inside the card's
+ * own stacking context) so the dots reuse the hero grid and fade toward the
+ * card edges, while the card's text stays above and unfaded. */
+.card-grad {
+  position: relative;
+  isolation: isolate;
+}
+
+.card-grad::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image:
+    radial-gradient(var(--dot-color) 1px, transparent 1.3px),
+    radial-gradient(120% 115% at 0% 0%, var(--grad-a, transparent) 0%, transparent 56%),
+    radial-gradient(130% 120% at 100% 100%, var(--grad-b, transparent) 0%, transparent 62%);
+  background-size:
+    11px 11px,
+    auto,
+    auto;
+  background-repeat: repeat, no-repeat, no-repeat;
+  -webkit-mask-image: radial-gradient(120% 110% at 50% 0%, #000 40%, transparent 100%);
+  mask-image: radial-gradient(120% 110% at 50% 0%, #000 40%, transparent 100%);
+}
+
+.tone-gold {
+  --grad-a: var(--glow-gold);
+  --grad-b: var(--glow-violet);
+}
+.tone-info {
+  --grad-a: var(--glow-info);
+  --grad-b: var(--glow-teal);
+}
+.tone-mint {
+  --grad-a: var(--glow-teal);
+  --grad-b: var(--glow-gold);
+}
+.tone-violet {
+  --grad-a: var(--glow-violet);
+  --grad-b: var(--glow-info);
+}
+
+/* Pill labels/tags/status. `.pill` tints its text, border and fill from a
+ * single --pill token; tone classes set that token from theme status/chart
+ * colors so pills stay on-palette but gain variety. */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--pill, var(--text-secondary));
+  background: color-mix(in srgb, var(--pill, transparent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pill, transparent) 32%, transparent);
+}
+
+.pill-sm {
+  padding: 0.125rem 0.55rem;
+  font-size: 0.6875rem;
+}
+
+.pill-dot::before {
+  content: "";
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 9999px;
+  background: var(--pill, currentColor);
+}
+
+.pill-gold {
+  --pill: var(--accent);
+}
+.pill-success {
+  --pill: var(--status-success);
+}
+.pill-warning {
+  --pill: var(--status-warning);
+}
+.pill-danger {
+  --pill: var(--status-danger);
+}
+.pill-info {
+  --pill: var(--status-info);
+}
+.pill-fuel {
+  --pill: var(--chart-fuel);
+}
+.pill-maintenance {
+  --pill: var(--chart-maintenance);
+}
+.pill-insurance {
+  --pill: var(--chart-insurance);
+}
+.pill-parts {
+  --pill: var(--chart-parts);
+}
+.pill-slate {
+  --pill: var(--chart-parking);
+}
+.pill-violet {
+  --pill: var(--chart-insurance);
+}
+.pill-mint {
+  --pill: var(--status-success);
+}
+.pill-on-gold {
+  --pill: var(--on-accent);
 }
 
 .card-hover {
@@ -317,6 +463,11 @@ html.light {
 }
 
 /* ------------------------------------------------------------- base */
+
+/* The floating nav is fixed, so in-page anchors reserve room for it. */
+html {
+  scroll-padding-top: 5.5rem;
+}
 
 body {
   background: var(--bg-primary);
