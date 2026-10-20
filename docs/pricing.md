@@ -34,7 +34,7 @@
 |---------|------|------|----------|-----------|
 | Maintenance Tracker | ✅ | ✅ | ✅ | ✅ |
 | Custom Maintenance Plan | ✅ | ✅ | ✅ | ✅ |
-| Reminders (Date/Mileage/Interval) | ✅ | ✅ | ✅ | ✅ |
+| Reminders (Date/Mileage) | ✅ | ✅ | ✅ | ✅ |
 
 ### Costs & Records
 | Feature | Free | Lite | Standard | Fleet/Pro |
@@ -251,7 +251,8 @@ the pricing fields live in `details`.
 | EV Charging Tracking | ✅ | Done |
 | Maintenance Tracker | ✅ | Done |
 | Custom Maintenance Plan | ✅ | Done |
-| Reminders (Date/Mileage/Interval) | ✅ | Done |
+| Reminders (Date/Mileage) | ✅ | Done |
+| Email Reminders | ✅ | Done (opt-in, maintenance plan items) |
 | Vehicle Expense Tracker | ✅ | Done |
 | Insurance Tracker | ❌ | Planned |
 | Digital Vehicle Logbook | ✅ | Done |
