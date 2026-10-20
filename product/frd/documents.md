@@ -1,5 +1,11 @@
 # Documents Module
 
+## Organization documents — approved 18 October 2026
+
+Documents on assigned vehicles are visible regardless of uploader. Only the uploader may change an ordinary document; admin corrections lock it. Organization downloads authenticate the current assignment on every request. Local files are account-scoped and removed when the assignment manifest revokes the vehicle.
+
+See [the approved realignment plan](mobile-personal-driver-realignment-plan.md) for the role matrix and acceptance criteria. This section supersedes earlier Driver-specific restrictions; the remaining baseline applies to Personal unless stated otherwise.
+
 ## Overview
 
 The Document Vault stores files that belong to the active vehicle: registration, insurance papers, invoices, warranties, and similar. It is a named list of files, not an insurance-policy or receipt-OCR product. Insurance **files** live here; insurance **policies** are v1.1.

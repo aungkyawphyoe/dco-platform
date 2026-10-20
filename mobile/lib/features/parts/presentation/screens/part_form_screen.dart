@@ -48,7 +48,9 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
       setState(() => _loading = false);
       return;
     }
-    final part = await ref.read(partsRepositoryProvider).getById(widget.partId!);
+    final part = await ref
+        .read(partsRepositoryProvider)
+        .getById(widget.partId!);
     if (!mounted) return;
     if (part != null) {
       _createdBy = part.createdBy;
@@ -93,7 +95,11 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
       ref.read(sessionControllerProvider).valueOrNull?.user.id,
     );
     return widget.isEditing
-        ? access.canEditRecord(_createdBy)
+        ? (access.canEditRecord(_createdBy) &&
+              !(ref
+                      .read(recordAdminLockProvider('part:${widget.partId}'))
+                      .valueOrNull ??
+                  (ref.read(driverOrganizationIdProvider) != null)))
         : access.canCreate;
   }
 
@@ -102,17 +108,29 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
-    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    final currentUserId = ref
+        .read(sessionControllerProvider)
+        .valueOrNull
+        ?.user
+        .id;
     if (currentUserId == null) return;
     if (!_canWrite()) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(partsRepositoryProvider);
       if (widget.isEditing) {
-        await repo.update(userId: currentUserId, partId: widget.partId!, draft: draft);
+        await repo.update(
+          userId: currentUserId,
+          partId: widget.partId!,
+          draft: draft,
+        );
         ref.read(analyticsProvider).track(AnalyticsEvent.partUpdated);
       } else {
-        await repo.add(userId: currentUserId, vehicleId: vehicle.id, draft: draft);
+        await repo.add(
+          userId: currentUserId,
+          vehicleId: vehicle.id,
+          draft: draft,
+        );
         ref.read(analyticsProvider).track(AnalyticsEvent.partAdded);
       }
       if (mounted) context.pop();
@@ -125,18 +143,31 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.partId != null) {
+      ref.watch(recordAdminLockProvider('part:${widget.partId}'));
+    }
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? s.partFormEditTitle : s.partFormAddTitle)),
-        body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        appBar: AppBar(
+          title: Text(
+            widget.isEditing ? s.partFormEditTitle : s.partFormAddTitle,
+          ),
+        ),
+        body: Center(
+          child: CircularProgressIndicator(color: tokens.text.accent),
+        ),
       );
     }
     final canWrite = _canWrite();
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? s.partFormEditTitle : s.partFormAddTitle)),
+      appBar: AppBar(
+        title: Text(
+          widget.isEditing ? s.partFormEditTitle : s.partFormAddTitle,
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -186,13 +217,21 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+                  Text(
+                    _formError!,
+                    style: TextStyle(color: tokens.status.dangerFg),
+                  ),
                 ],
               ],
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(tokens.space.s5, tokens.space.s3, tokens.space.s5, tokens.space.s5),
+            padding: EdgeInsets.fromLTRB(
+              tokens.space.s5,
+              tokens.space.s3,
+              tokens.space.s5,
+              tokens.space.s5,
+            ),
             child: Row(
               children: [
                 Expanded(

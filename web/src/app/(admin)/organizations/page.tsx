@@ -2,12 +2,13 @@
 
 import { useCallback, useState } from "react";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SearchInput } from "@/components/ui/search-input";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { Select } from "@dco/ui/components/select";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SearchInput } from "@dco/ui/components/search-input";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
   Table,
   TableHead,
@@ -15,13 +16,14 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
-import { SkeletonTable } from "@/components/ui/skeleton";
+} from "@dco/ui/components/table";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
 import {
   OrganizationStatusBadge,
   OrganizationTypeBadge,
 } from "@/components/ui/status-badge";
 import { useAdminOrganizations } from "@/lib/api/hooks";
+import { formatDate } from "@dco/ui/lib/format";
 
 export default function OrganizationsPage() {
   const [q, setQ] = useState("");
@@ -36,11 +38,19 @@ export default function OrganizationsPage() {
   });
 
   const organizations = data?.items ?? [];
+  const filtered = Boolean(debouncedQ || status);
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Organizations"
+        meta={
+          organizations.length
+            ? filtered
+              ? `${organizations.length} matching organizations`
+              : `${organizations.length} organizations`
+            : undefined
+        }
         description="Enterprise fleet organizations and their Org Admin accounts"
         actions={
           <Link href="/organizations/new">
@@ -89,19 +99,22 @@ export default function OrganizationsPage() {
           <EmptyState
             title="No organizations found"
             description={
-              debouncedQ || status
+              filtered
                 ? "Try adjusting your search or filter."
                 : "No Enterprise organizations provisioned yet."
             }
             action={
-              <Link href="/organizations/new">
-                <Button size="sm">New organization</Button>
-              </Link>
+              !filtered ? (
+                <Link href="/organizations/new">
+                  <Button size="sm">New organization</Button>
+                </Link>
+              ) : null
             }
           />
         </Card>
       ) : (
         <Card>
+          <SectionHeading title="Organizations" count={organizations.length} />
           <Table>
             <TableHead>
               <TableRow>
@@ -119,7 +132,7 @@ export default function OrganizationsPage() {
                   <TableCell>
                     <Link
                       href={`/organizations/${organization.id}`}
-                      className="text-gold hover:underline"
+                      className="font-medium text-ink transition-colors hover:text-gold"
                     >
                       {organization.name}
                     </Link>
@@ -136,12 +149,8 @@ export default function OrganizationsPage() {
                   <TableCell className="text-ink-muted">
                     {organization.contact_email ?? "—"}
                   </TableCell>
-                  <TableCell className="text-ink-caption">
-                    {new Intl.DateTimeFormat("en-US", {
-                      month: "short",
-                      day: "numeric",
-                      year: "numeric",
-                    }).format(new Date(organization.created_at))}
+                  <TableCell className="font-mono text-xs text-ink-caption">
+                    {formatDate(organization.created_at)}
                   </TableCell>
                 </TableRow>
               ))}

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState, useEffect, useRef, useImperativeHandle, forwardRef } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Modal } from "@/components/ui/modal";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { Modal } from "@dco/ui/components/modal";
 import {
   Table,
   TableHead,
@@ -15,9 +15,12 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
-import { SkeletonTable } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
+} from "@dco/ui/components/table";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
+import { Badge } from "@dco/ui/components/badge";
+import { InstrumentBand } from "@dco/ui/components/instrument-band";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { Stat } from "@dco/ui/components/stat";
 import {
   useCatalogItems,
   useCreateCatalogItem,
@@ -52,9 +55,9 @@ const FUEL_OPTIONS: { value: FuelType; label: string }[] = (
 
 function intervalLabel(days: number | null | undefined, km: number | null | undefined): string {
   const parts: string[] = [];
-  if (days != null) parts.push(`${days.toLocaleString()} d`);
+  if (days != null) parts.push(`${days.toLocaleString()} days`);
   if (km != null) parts.push(`${km.toLocaleString()} km`);
-  return parts.length > 0 ? parts.join(" · ") : "—";
+  return parts.length > 0 ? parts.join(", or ") : "—";
 }
 
 const INTERVAL_UNIT_OPTIONS: { value: IntervalUnit; label: string; days: number }[] = [
@@ -100,6 +103,8 @@ export default function CatalogPage() {
   );
   const items = data?.items ?? [];
   const hasFilter = Boolean(classFilter || fuelFilter);
+  const activeCount = items.filter((item) => item.enabled).length;
+  const disabledCount = items.length - activeCount;
 
   return (
     <div className="flex flex-col gap-6">
@@ -112,6 +117,14 @@ export default function CatalogPage() {
           </Button>
         }
       />
+
+      <InstrumentBand>
+        <div className="grid grid-cols-2 gap-5 p-5 sm:grid-cols-3">
+          <Stat label="Catalog items" value={items.length.toLocaleString()} />
+          <Stat label="Active" value={activeCount.toLocaleString()} />
+          <Stat label="Disabled" value={disabledCount.toLocaleString()} />
+        </div>
+      </InstrumentBand>
 
       <div className="flex flex-wrap items-end gap-3">
         <Select
@@ -158,6 +171,7 @@ export default function CatalogPage() {
         </Card>
       ) : (
         <Card>
+          <SectionHeading title="Catalog items" count={items.length} />
           <Table>
             <TableHead>
               <TableRow>
@@ -174,8 +188,8 @@ export default function CatalogPage() {
               {items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    <p className="text-gold font-medium">{item.name}</p>
-                    <p className="font-mono text-xs text-ink-muted">{item.catalog_key}</p>
+                    <p className="font-medium text-ink">{item.name}</p>
+                    <p className="font-mono text-xs text-ink-caption">{item.catalog_key}</p>
                   </TableCell>
                   <TableCell className="text-ink-muted">
                     {VEHICLE_CLASS_LABELS[item.vehicle_class] ?? item.vehicle_class}
@@ -205,7 +219,7 @@ export default function CatalogPage() {
                   </TableCell>
                   <TableCell>
                     <Button
-                      variant="ghost"
+                      variant="secondary"
                       size="sm"
                       onClick={() =>
                         setEditItem({
@@ -418,8 +432,8 @@ const CatalogForm = forwardRef<CatalogFormRef, {
         step="0.1"
       />
       <div>
-        <label className="mb-1.5 block text-sm font-medium text-ink">
-          Fuel Types
+        <label className="mb-1.5 block text-xs font-medium text-ink-caption">
+          Fuel types
         </label>
         <div className="flex gap-3">
           {(["petrol", "electric", "hybrid_plugin"] as FuelType[]).map((ft) => (

@@ -2,7 +2,10 @@ import '../entities/fuel_catalog_type.dart';
 import '../entities/fuel_log.dart';
 
 abstract class FuelRepository {
-  Stream<List<FuelCatalogType>> watchFuelTypes(String userId, {FuelCatalogKind? kind});
+  Stream<List<FuelCatalogType>> watchFuelTypes(
+    String userId, {
+    FuelCatalogKind? kind,
+  });
 
   Future<FuelCatalogType?> getFuelType(String id);
 
@@ -39,4 +42,5 @@ abstract class FuelRepository {
     required FuelLogKind kind,
     required FuelLogDraft draft,
   });
+  Future<void> deleteLog({required String userId, required String logId});
 }

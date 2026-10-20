@@ -20,6 +20,7 @@ The working plan is: mobile app (Flutter) is the primary surface (Dashboard afte
 - `web/` — web frontend (admin + shared vehicles dashboard)
 - `fleet-portal/` — Fleet management web portal (separate Next.js app)
 - `site/` — public marketing site (landing, personal, fleet, pricing, FAQ)
+- `packages/ui/` — shared `@dco/ui` Next.js UI kit + libs consumed by `web/` and `fleet-portal/` (see below)
 - `mobile/` — Flutter owner app (see `mobile/AGENTS.md`)
 - `architecture/` — system design / architectural docs
 - `product/` — product definitions, requirements
@@ -94,6 +95,16 @@ npm run build
 ```
 
 Stack: Next.js 15 App Router, Tailwind v4 + tokens from `docs/theme/garage-minimal-{dark,light}.json` (public, no auth, dark default). Pricing page server-fetches public `GET /v1/pricing` with a bundled fallback (`src/content/pricing-fallback.ts`); store links come from `NEXT_PUBLIC_APP_STORE_URL` / `NEXT_PUBLIC_PLAY_STORE_URL` env placeholders. Page copy lives in `src/content/`.
+
+### Shared UI package (Next.js)
+
+`packages/ui/` is the `@dco/ui` source-only package consumed by `web/` and `fleet-portal/`. It holds the Garage Minimal primitives (`components/*.tsx`), `nav-icons.tsx`, and `lib/{format,theme,theme-context}`. No build step — apps compile the TypeScript via `transpilePackages`.
+
+- Wired per app as `"@dco/ui": "file:../packages/ui"` (symlinked into `node_modules`; no workspace hoisting).
+- Import by subpath: `@dco/ui/components/button`, `@dco/ui/lib/format`, `@dco/ui/nav-icons`.
+- Each app's `next.config.ts` sets `transpilePackages: ["@dco/ui"]`, `globals.css` adds `@source "../../../packages/ui"` (Tailwind must scan outside the app dir), and `tsconfig.json` maps `react` → `node_modules/@types/react` and `next/*` → `node_modules/next/*` so TypeScript can resolve deps from the package (which has no `node_modules` of its own).
+- Because of the `file:` dependency, `web/Dockerfile` and `fleet-portal/Dockerfile` build from the **repository root** context (`docker build -f web/Dockerfile .`), with a root `.dockerignore`.
+- App-only components (`web/src/components/ui/status-badge.tsx`, `qr-code-modal.tsx`, sidebars, top bars) stay in their app.
 
 - Mobile: Flutter owner app, offline-first, JWT audience `dco-owner`
 - Backend: REST `/v1` + JWT (Fastify, PostgreSQL, `aud` `dco-owner` / `dco-admin`)

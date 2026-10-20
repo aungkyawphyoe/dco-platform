@@ -50,7 +50,8 @@ class GarageHomeScreen extends ConsumerWidget {
     final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
     final lengthUnit = ref.watch(lengthUnitProvider);
     final gate = ref.watch(featureGateProvider);
-    final canAddVehicle = gate?.canCreateVehicle ?? true;
+    final personal = ref.watch(driverOrganizationIdProvider) == null;
+    final canAddVehicle = personal && (gate?.canCreateVehicle ?? true);
 
     return Scaffold(
       appBar: AppBar(
@@ -65,15 +66,19 @@ class GarageHomeScreen extends ConsumerWidget {
         ],
       ),
       body: vehicles.when(
-        loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-        error: (error, _) => DcoEmptyState(title: s.garageLoadError, body: '$error'),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        error: (error, _) =>
+            DcoEmptyState(title: s.garageLoadError, body: '$error'),
         data: (items) {
           if (items.isEmpty) {
             return DcoEmptyState(
               title: s.garageEmptyTitle,
               body: s.garageEmptyBody,
               actionLabel: s.garageRegisterTooltip,
-              onAction: () => _openAddVehicle(context, ref),
+              onAction: canAddVehicle
+                  ? () => _openAddVehicle(context, ref)
+                  : null,
             );
           }
           return ListView(
@@ -86,18 +91,23 @@ class GarageHomeScreen extends ConsumerWidget {
                     vehicle: vehicle,
                     isActive: vehicle.id == active?.id,
                     lengthUnit: lengthUnit,
-                    onOpen: () => context.push(AppRoutes.vehicleDetail(vehicle.id)),
-                    onEdit: vehicle.source == VehicleSource.owned
+                    onOpen: () =>
+                        context.push(AppRoutes.vehicleDetail(vehicle.id)),
+                    onEdit: personal && vehicle.source == VehicleSource.owned
                         ? () => context.push(AppRoutes.vehicleEdit(vehicle.id))
                         : null,
-                    onShare: vehicle.source == VehicleSource.owned
-                        ? () => context.push(AppRoutes.vehicleShareManage(vehicle.id))
+                    onShare: personal && vehicle.source == VehicleSource.owned
+                        ? () => context.push(
+                            AppRoutes.vehicleShareManage(vehicle.id),
+                          )
                         : null,
                     onSetActive: vehicle.id == active?.id || userId == null
                         ? null
                         : () async {
                             try {
-                              await ref.read(setActiveVehicleProvider)(vehicle.id);
+                              await ref.read(setActiveVehicleProvider)(
+                                vehicle.id,
+                              );
                               ref
                                   .read(analyticsProvider)
                                   .track(AnalyticsEvent.vehicleSwitched);
@@ -113,90 +123,107 @@ class GarageHomeScreen extends ConsumerWidget {
                               }
                               return;
                             }
-                            if (context.mounted) context.go(AppRoutes.dashboard);
+                            if (context.mounted) {
+                              context.go(AppRoutes.dashboard);
+                            }
                           },
                   ),
                 ),
               ),
-              SizedBox(height: tokens.space.s3),
-              Material(
-                color: tokens.background.card,
-                borderRadius: BorderRadius.circular(tokens.radius.md),
-                child: InkWell(
-                  onTap: () => context.push(AppRoutes.sharedWithMe),
+              if (personal) ...[
+                SizedBox(height: tokens.space.s3),
+                Material(
+                  color: tokens.background.card,
                   borderRadius: BorderRadius.circular(tokens.radius.md),
-                  child: Padding(
-                    padding: EdgeInsets.all(tokens.space.s4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.people_outline, color: tokens.icon.inactive),
-                        SizedBox(width: tokens.space.s3),
-                        Expanded(
-                          child: Text(
-                            s.drawerSharedWithMe,
-                            style: Theme.of(context).textTheme.titleSmall,
+                  child: InkWell(
+                    onTap: () => context.push(AppRoutes.sharedWithMe),
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                    child: Padding(
+                      padding: EdgeInsets.all(tokens.space.s4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.people_outline,
+                            color: tokens.icon.inactive,
                           ),
-                        ),
-                        Icon(Icons.chevron_right, color: tokens.icon.inactive),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(height: tokens.space.s2),
-              Material(
-                color: tokens.background.card,
-                borderRadius: BorderRadius.circular(tokens.radius.md),
-                child: InkWell(
-                  onTap: () => context.push(AppRoutes.vehicleShareJoin),
-                  borderRadius: BorderRadius.circular(tokens.radius.md),
-                  child: Padding(
-                    padding: EdgeInsets.all(tokens.space.s4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.qr_code_scanner, color: tokens.icon.inactive),
-                        SizedBox(width: tokens.space.s3),
-                        Expanded(
-                          child: Text(
-                            s.sharedWithMeJoin,
-                            style: Theme.of(context).textTheme.titleSmall,
+                          SizedBox(width: tokens.space.s3),
+                          Expanded(
+                            child: Text(
+                              s.drawerSharedWithMe,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
                           ),
-                        ),
-                        Icon(Icons.chevron_right, color: tokens.icon.inactive),
-                      ],
+                          Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-              SizedBox(height: tokens.space.s3),
-              Material(
-                color: tokens.background.card,
-                borderRadius: BorderRadius.circular(tokens.radius.md),
-                child: InkWell(
-                  onTap: canAddVehicle
-                      ? () => _openAddVehicle(context, ref)
-                      : null,
+                SizedBox(height: tokens.space.s2),
+                Material(
+                  color: tokens.background.card,
                   borderRadius: BorderRadius.circular(tokens.radius.md),
-                  child: Padding(
-                    padding: EdgeInsets.all(tokens.space.s4),
-                    child: Column(
-                      children: [
-                        Text(
-                          s.garageAddCardTitle,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(color: tokens.text.accent),
-                        ),
-                        SizedBox(height: tokens.space.s2),
-                        Text(
-                          canAddVehicle
-                              ? s.garageAddCardSubtitle
-                              : gate!.vehicleBlockMessage(s),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                  child: InkWell(
+                    onTap: () => context.push(AppRoutes.vehicleShareJoin),
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                    child: Padding(
+                      padding: EdgeInsets.all(tokens.space.s4),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.qr_code_scanner,
+                            color: tokens.icon.inactive,
+                          ),
+                          SizedBox(width: tokens.space.s3),
+                          Expanded(
+                            child: Text(
+                              s.sharedWithMeJoin,
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
+                          ),
+                          Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
+                SizedBox(height: tokens.space.s3),
+                Material(
+                  color: tokens.background.card,
+                  borderRadius: BorderRadius.circular(tokens.radius.md),
+                  child: InkWell(
+                    onTap: canAddVehicle
+                        ? () => _openAddVehicle(context, ref)
+                        : null,
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                    child: Padding(
+                      padding: EdgeInsets.all(tokens.space.s4),
+                      child: Column(
+                        children: [
+                          Text(
+                            s.garageAddCardTitle,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(color: tokens.text.accent),
+                          ),
+                          SizedBox(height: tokens.space.s2),
+                          Text(
+                            canAddVehicle
+                                ? s.garageAddCardSubtitle
+                                : gate!.vehicleBlockMessage(s),
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ],
           );
         },

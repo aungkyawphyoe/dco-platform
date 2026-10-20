@@ -1,15 +1,18 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Modal } from "@/components/ui/modal";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { Modal } from "@dco/ui/components/modal";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
+import { InstrumentBand } from "@dco/ui/components/instrument-band";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { Stat } from "@dco/ui/components/stat";
 import {
   Table,
   TableBody,
@@ -17,7 +20,7 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import {
   useCreateMaintenanceTemplate,
   useDeleteMaintenanceTemplate,
@@ -100,9 +103,9 @@ function formFromTemplate(template: MaintenanceTemplate): TemplateForm {
 
 function intervalLabel(template: MaintenanceTemplate) {
   const parts: string[] = [];
-  if (template.interval_days) parts.push(`${template.interval_days} d`);
+  if (template.interval_days) parts.push(`${template.interval_days} days`);
   if (template.interval_distance) parts.push(`${template.interval_distance.toLocaleString()} km`);
-  return parts.length ? parts.join(" · ") : "—";
+  return parts.length ? parts.join(", or ") : "—";
 }
 
 export default function MaintenanceTemplatesPage() {
@@ -129,6 +132,10 @@ export default function MaintenanceTemplatesPage() {
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const templates = useMemo(() => data?.items ?? [], [data]);
+
+  const orgCopies = templates.filter((t) => t.source === "org").length;
+  const platformDefaults = templates.filter((t) => t.source === "global").length;
+  const disabledCount = templates.filter((t) => !t.enabled).length;
 
   function openNew() {
     setForm(emptyForm);
@@ -229,16 +236,24 @@ export default function MaintenanceTemplatesPage() {
     }
   }
 
-  const editorTitle =
-    editor?.mode === "edit" ? "Edit catalog item" : "Add catalog item";
+  const editorTitle = editor?.mode === "edit" ? "Edit catalog item" : "Add catalog item";
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Maintenance Catalog"
-        description="Vehicle-class maintenance catalog — platform defaults plus your organization's copies"
+        description="Vehicle-class maintenance catalog: platform defaults plus your organization's copies"
         actions={canManage ? <Button onClick={openNew}>Add item</Button> : null}
       />
+
+      <InstrumentBand>
+        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-4">
+          <Stat label="Catalog items" value={templates.length.toLocaleString()} />
+          <Stat label="Org copies" value={orgCopies.toLocaleString()} />
+          <Stat label="Platform defaults" value={platformDefaults.toLocaleString()} />
+          <Stat label="Disabled" value={disabledCount.toLocaleString()} />
+        </div>
+      </InstrumentBand>
 
       <div className="flex flex-wrap items-end gap-3">
         <Select
@@ -260,6 +275,7 @@ export default function MaintenanceTemplatesPage() {
       </div>
 
       <Card>
+        <SectionHeading title="Catalog items" count={templates.length} />
         {isLoading ? (
           <div className="p-5">
             <SkeletonTable rows={8} cols={canManage ? 8 : 7} />
@@ -330,7 +346,7 @@ export default function MaintenanceTemplatesPage() {
                               : openEdit(template)
                           }
                         >
-                          Edit
+                          {template.source === "global" ? "Copy to org" : "Edit"}
                         </Button>
                         {template.source === "org" ? (
                           <Button size="sm" variant="destructive" onClick={() => setDeleteTarget(template)}>
@@ -360,7 +376,7 @@ export default function MaintenanceTemplatesPage() {
             label="Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
-            placeholder="e.g. Oil Change"
+            placeholder="e.g. Oil change"
             maxLength={80}
           />
           <div className="grid grid-cols-2 gap-3">
@@ -368,9 +384,7 @@ export default function MaintenanceTemplatesPage() {
               label="Vehicle class"
               options={vehicleClassOptions}
               value={form.vehicle_class}
-              onChange={(value) =>
-                setForm({ ...form, vehicle_class: value as VehicleClass })
-              }
+              onChange={(value) => setForm({ ...form, vehicle_class: value as VehicleClass })}
             />
             <Select
               label="Lifecycle"
@@ -382,38 +396,34 @@ export default function MaintenanceTemplatesPage() {
               }
             />
           </div>
-          <div>
-            <div className="flex gap-2">
-              <Input
-                label="Interval (time)"
-                type="number"
-                placeholder="e.g. 6"
-                min={1}
-                value={form.interval_time}
-                onChange={(e) => setForm({ ...form, interval_time: e.target.value })}
-              />
-              <Select
-                label="Unit"
-                options={INTERVAL_UNIT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
-                value={form.interval_unit}
-                onChange={(value) =>
-                  setForm({ ...form, interval_unit: value as IntervalUnit })
-                }
-                className="flex-1 min-w-[120px]"
-              />
-            </div>
+          <div className="flex gap-2">
+            <Input
+              label="Interval (time)"
+              type="number"
+              placeholder="e.g. 6"
+              min={1}
+              value={form.interval_time}
+              onChange={(e) => setForm({ ...form, interval_time: e.target.value })}
+            />
+            <Select
+              label="Unit"
+              options={INTERVAL_UNIT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+              value={form.interval_unit}
+              onChange={(value) => setForm({ ...form, interval_unit: value as IntervalUnit })}
+              className="flex-1 min-w-[120px]"
+            />
           </div>
           <Input
             label="Interval (km)"
             type="number"
-            placeholder="optional"
+            placeholder="Optional"
             min={1}
             step="0.1"
             value={form.interval_distance}
             onChange={(e) => setForm({ ...form, interval_distance: e.target.value })}
           />
           <div>
-            <label className="mb-1.5 block text-sm font-medium text-ink">Fuel Types</label>
+            <label className="mb-1.5 block text-xs font-medium text-ink-caption">Fuel types</label>
             <div className="flex flex-wrap gap-4">
               {fuelTypeOptions.map((fuel) => (
                 <label key={fuel.value} className="inline-flex items-center gap-2 text-sm text-ink">
@@ -458,7 +468,7 @@ export default function MaintenanceTemplatesPage() {
         <div className="flex flex-col gap-3">
           <p>
             Delete <span className="font-semibold text-ink">{deleteTarget?.name}</span>? This only
-            removes the organization copy — generated plans are unaffected.
+            removes the organization copy; generated plans are unaffected.
           </p>
           {deleteError ? (
             <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">{deleteError}</p>

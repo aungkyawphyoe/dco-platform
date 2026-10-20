@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
-import { Modal } from "@/components/ui/modal";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Select } from "@dco/ui/components/select";
+import { Modal } from "@dco/ui/components/modal";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
   Table,
   TableBody,
@@ -16,7 +17,7 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import {
   useAssignments,
   useCreateAssignment,
@@ -25,6 +26,7 @@ import {
   useVehicles,
 } from "@/lib/api/hooks";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
+import { formatDate } from "@dco/ui/lib/format";
 
 export default function AssignmentsPage() {
   const orgId = useOrgId();
@@ -42,8 +44,7 @@ export default function AssignmentsPage() {
   const [driverId, setDriverId] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const drivers =
-    members?.items.filter((m) => m.role === "org_driver") ?? [];
+  const drivers = members?.items.filter((m) => m.role === "org_driver") ?? [];
   const vehicleList = vehicles?.items ?? [];
   const memberById = new Map(members?.items.map((m) => [m.user_id, m]) ?? []);
   const vehicleById = new Map(vehicleList.map((v) => [v.id, v]));
@@ -70,21 +71,14 @@ export default function AssignmentsPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Driver Assignments"
-        description="One active vehicle per driver; unassign releases the vehicle"
-        actions={
-          canManage ? (
-            <Button onClick={() => setShowAssign(true)}>Assign driver</Button>
-          ) : null
-        }
+        title="Driver assignments"
+        meta={active.length ? `${active.length} active` : undefined}
+        description="Assign multiple vehicles to each driver, or share a vehicle between drivers"
+        actions={canManage ? <Button onClick={() => setShowAssign(true)}>Assign driver</Button> : null}
       />
 
       <Card>
-        <div className="border-b border-line-subtle px-5 py-4">
-          <h2 className="font-display text-base font-semibold text-ink">
-            Active assignments
-          </h2>
-        </div>
+        <SectionHeading title="Active assignments" count={active.length} />
         {isLoading ? (
           <div className="p-5">
             <SkeletonTable rows={4} cols={5} />
@@ -112,18 +106,19 @@ export default function AssignmentsPage() {
                 return (
                   <TableRow key={assignment.id}>
                     <TableCell>
-                      {vehicle
-                        ? `${vehicle.name} (${vehicle.license_plate})`
-                        : assignment.vehicle_id.slice(0, 8)}
+                      <p className="text-ink">{vehicle?.name ?? "Unknown vehicle"}</p>
+                      <p className="font-mono text-xs text-ink-caption">
+                        {vehicle?.license_plate ?? assignment.vehicle_id.slice(0, 8)}
+                      </p>
                     </TableCell>
                     <TableCell>
-                      <p className="text-ink">{driver?.display_name || driver?.email || assignment.driver_id.slice(0, 8)}</p>
+                      <p className="text-ink">
+                        {driver?.display_name || driver?.email || assignment.driver_id.slice(0, 8)}
+                      </p>
                       <p className="text-xs text-ink-caption">{driver?.email}</p>
                     </TableCell>
-                    <TableCell className="text-xs text-ink-caption">
-                      {assignment.assigned_at
-                        ? new Date(assignment.assigned_at).toLocaleDateString()
-                        : "—"}
+                    <TableCell className="font-mono text-xs text-ink-caption">
+                      {assignment.assigned_at ? formatDate(assignment.assigned_at) : "—"}
                     </TableCell>
                     <TableCell>
                       <Badge tone="success">{assignment.status}</Badge>
@@ -150,11 +145,7 @@ export default function AssignmentsPage() {
 
       {history.length ? (
         <Card>
-          <div className="border-b border-line-subtle px-5 py-4">
-            <h2 className="font-display text-base font-semibold text-ink">
-              History
-            </h2>
-          </div>
+          <SectionHeading title="History" count={history.length} />
           <Table>
             <TableHead>
               <TableRow>
@@ -171,14 +162,12 @@ export default function AssignmentsPage() {
                     {vehicleById.get(assignment.vehicle_id)?.name ??
                       assignment.vehicle_id.slice(0, 8)}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="text-ink-muted">
                     {memberById.get(assignment.driver_id)?.email ??
                       assignment.driver_id.slice(0, 8)}
                   </TableCell>
-                  <TableCell className="text-xs text-ink-caption">
-                    {assignment.unassigned_at
-                      ? new Date(assignment.unassigned_at).toLocaleDateString()
-                      : "—"}
+                  <TableCell className="font-mono text-xs text-ink-caption">
+                    {assignment.unassigned_at ? formatDate(assignment.unassigned_at) : "—"}
                   </TableCell>
                   <TableCell>
                     <Badge tone="neutral">{assignment.status}</Badge>
@@ -220,9 +209,7 @@ export default function AssignmentsPage() {
             onChange={setDriverId}
           />
           {error ? (
-            <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">
-              {error}
-            </p>
+            <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">{error}</p>
           ) : null}
         </div>
       </Modal>

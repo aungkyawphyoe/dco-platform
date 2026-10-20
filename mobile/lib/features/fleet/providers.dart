@@ -1,16 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/features/fleet/data/repositories/fleet_repository_impl.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/driver_context.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/driver_plan_item.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/entitlements.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/fleet_mode.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
-import 'package:dco_mobile/features/fleet/domain/entities/driver_service_record.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/work_order.dart';
 import 'package:dco_mobile/features/fleet/domain/repositories/fleet_repository.dart';
-import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
-import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 
 final fleetRepositoryProvider = Provider<FleetRepository>((ref) {
   final dio = ref.watch(dioProvider);
@@ -40,19 +35,13 @@ final fleetModeProvider = Provider<FleetMode>((ref) {
 });
 
 // ---------------------------------------------------------------------------
-// Driver surface (online-first)
+// Supplemental fleet workflows (online-only)
 // ---------------------------------------------------------------------------
 
 final inspectionTemplatesProvider =
     FutureProvider.family<List<InspectionTemplate>, String>((ref, orgId) {
-  return ref.watch(fleetRepositoryProvider).getInspectionTemplates(orgId);
-});
-
-final driverMyVehicleProvider = FutureProvider<DriverMyVehicle>((ref) {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) throw StateError('No signed-in user');
-  return ref.watch(fleetRepositoryProvider).getDriverMyVehicle();
-});
+      return ref.watch(fleetRepositoryProvider).getInspectionTemplates(orgId);
+    });
 
 final driverWorkOrdersProvider = FutureProvider<List<WorkOrder>>((ref) {
   final userId = ref.watch(currentUserIdProvider);
@@ -64,59 +53,4 @@ final driverInspectionsProvider = FutureProvider<List<Inspection>>((ref) {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null) throw StateError('No signed-in user');
   return ref.watch(fleetRepositoryProvider).getDriverInspections();
-});
-
-/// Assigned vehicle's maintenance plan (online-first; active assignment
-/// required).
-final driverPlanItemsProvider =
-    FutureProvider.family<List<DriverPlanItem>, String>((ref, vehicleId) {
-  return ref.watch(fleetRepositoryProvider).getDriverPlanItems(vehicleId);
-});
-
-/// Suggested items from the vehicle's assigned maintenance template set
-/// (empty when no template is assigned).
-final driverSuggestedPlanItemsProvider =
-    FutureProvider.family<List<DriverSuggestedPlanItem>, String>(
-  (ref, vehicleId) {
-    return ref
-        .watch(fleetRepositoryProvider)
-        .getDriverSuggestedPlanItems(vehicleId);
-  },
-);
-
-/// Merged maintenance history: service records + maintenance-branch work
-/// orders (`scheduled_service`), newest first.
-final driverMaintenanceHistoryProvider =
-    FutureProvider.family<List<DriverHistoryEntry>, String>((ref, vehicleId) {
-  return ref.watch(fleetRepositoryProvider).getDriverMaintenanceHistory(
-        vehicleId,
-      );
-});
-
-/// Assigned vehicle's service records, newest first (fuel-only Expenses
-/// history counterpart).
-final driverServiceRecordsProvider =
-    FutureProvider.family<List<DriverServiceRecord>, String>(
-  (ref, vehicleId) {
-    return ref.watch(fleetRepositoryProvider).getDriverServiceRecords(
-        vehicleId,
-      );
-  },
-);
-
-/// The signed-in driver's own fuel logs on the assigned vehicle, newest
-/// first (fuel-only Expenses tab).
-final driverFuelLogsProvider =
-    FutureProvider.family<List<FuelLog>, String>((ref, vehicleId) {
-  return ref.watch(fleetRepositoryProvider).getDriverFuelLogs(vehicleId);
-});
-
-/// The signed-in user's local fuel-type catalog (drivers log org fuel with
-/// their own fuel types; seeds defaults on first read).
-final driverFuelCatalogProvider = StreamProvider<List<FuelCatalogType>>((ref) {
-  final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return Stream.value(const []);
-  final repository = ref.watch(fuelRepositoryProvider);
-  repository.ensureDefaultFuelTypes(userId);
-  return repository.watchFuelTypes(userId);
 });

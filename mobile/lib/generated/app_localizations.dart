@@ -7151,6 +7151,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Privacy Policy'**
   String get privacyPolicy;
+
+  /// No description provided for @syncReviewTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Submission review'**
+  String get syncReviewTitle;
+
+  /// No description provided for @syncReviewSubmission.
+  ///
+  /// In en, this message translates to:
+  /// **'Vehicle record submission'**
+  String get syncReviewSubmission;
+
+  /// No description provided for @syncReviewAccepted.
+  ///
+  /// In en, this message translates to:
+  /// **'Accepted by Fleet Admin'**
+  String get syncReviewAccepted;
+
+  /// No description provided for @syncReviewRejected.
+  ///
+  /// In en, this message translates to:
+  /// **'Declined by Fleet Admin'**
+  String get syncReviewRejected;
+
+  /// No description provided for @syncReviewPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Waiting for Fleet Admin'**
+  String get syncReviewPending;
+
+  /// No description provided for @recordUpdatedByAdmin.
+  ///
+  /// In en, this message translates to:
+  /// **'Updated by Fleet Admin · Read-only'**
+  String get recordUpdatedByAdmin;
+
+  /// No description provided for @recordDeleteBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this record and its linked expense? Totals and any linked maintenance schedule will update after synchronization.'**
+  String get recordDeleteBody;
+
+  /// No description provided for @fuelFillStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank after refueling'**
+  String get fuelFillStatus;
+
+  /// No description provided for @fuelFillUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get fuelFillUnknown;
+
+  /// No description provided for @fuelFillFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full tank'**
+  String get fuelFillFull;
+
+  /// No description provided for @fuelFillPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial fill'**
+  String get fuelFillPartial;
+
+  /// No description provided for @fuelFillHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Full tanks with odometer readings help calculate fuel consumption.'**
+  String get fuelFillHelp;
 }
 
 class _AppLocalizationsDelegate

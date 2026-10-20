@@ -2,13 +2,17 @@
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Modal } from "@/components/ui/modal";
-import { Select } from "@/components/ui/select";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { Badge } from "@dco/ui/components/badge";
+import { Skeleton } from "@dco/ui/components/skeleton";
+import { Modal } from "@dco/ui/components/modal";
+import { Select } from "@dco/ui/components/select";
+import { DataPlate } from "@dco/ui/components/data-plate";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { Stat } from "@dco/ui/components/stat";
+import { formatDate } from "@dco/ui/lib/format";
 import {
   Table,
   TableHead,
@@ -16,12 +20,12 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import {
   UserStatusBadge,
   PlanBadge,
 } from "@/components/ui/status-badge";
-import { Input } from "@/components/ui/input";
+import { Input } from "@dco/ui/components/input";
 import {
   useAdminUser,
   useUpdateUserPlan,
@@ -99,8 +103,11 @@ export default function UserProfilePage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        backHref="/users"
+        backLabel="Back to users"
         title={user.display_name || user.email || "User"}
-        description="Profile, vehicles, documents count, and support actions"
+        status={<UserStatusBadge status={user.status} />}
+        meta={user.email}
       />
 
       {feedback && (
@@ -110,104 +117,78 @@ export default function UserProfilePage({
       )}
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className="p-5">
-          <h2 className="font-display text-base font-semibold text-ink">
-            Account
-          </h2>
-          <dl className="mt-4 space-y-3 text-sm">
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Email</dt>
-              <dd className="text-ink">{user.email}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Username</dt>
-              <dd className="font-mono text-ink">{user.username ?? "—"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Display name</dt>
-              <dd className="text-ink">{user.display_name ?? "—"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Contact phone</dt>
-              <dd className="text-ink">{user.contact_phone ?? "—"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Address</dt>
-              <dd className="text-ink max-w-xs truncate">{user.address ?? "—"}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Plan</dt>
-              <dd>
-                <PlanBadge plan={user.plan} />
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Status</dt>
-              <dd>
-                <UserStatusBadge status={user.status} />
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Member since</dt>
-              <dd className="text-ink">
-                {user.created_at
-                  ? new Intl.DateTimeFormat("en-US", {
-                      month: "long",
-                      day: "numeric",
-                      year: "numeric",
-                    }).format(new Date(user.created_at))
-                  : "—"}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="text-ink-caption">Documents</dt>
-              <dd className="text-ink">{user.documents_count ?? 0}</dd>
-            </div>
-          </dl>
+        <Card className="flex flex-col">
+          <SectionHeading title="Account">
+            <UserStatusBadge status={user.status} />
+          </SectionHeading>
+          <div className="p-5">
+            <DataPlate
+              className=""
+              fields={[
+                { label: "Email", value: user.email },
+                { label: "Username", value: user.username ?? "—", mono: true },
+                { label: "Display name", value: user.display_name ?? "—" },
+                { label: "Contact phone", value: user.contact_phone ?? "—" },
+                { label: "Address", value: user.address ?? "—" },
+                { label: "Plan", value: <PlanBadge plan={user.plan} /> },
+                {
+                  label: "Member since",
+                  value: user.created_at ? formatDate(user.created_at) : "—",
+                  mono: true,
+                },
+                {
+                  label: "Documents",
+                  value: (user.documents_count ?? 0).toLocaleString(),
+                  mono: true,
+                },
+              ]}
+            />
+          </div>
         </Card>
 
-        <Card className="p-5">
-          <h2 className="font-display text-base font-semibold text-ink">
-            Vehicles
-          </h2>
-          {!user.vehicles?.length ? (
-            <p className="mt-4 text-sm text-ink-caption">No vehicles.</p>
-          ) : (
-            <Table className="mt-4">
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell>Nickname</TableHeadCell>
-                  <TableHeadCell>Plate</TableHeadCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {user.vehicles.map((v) => (
-                  <TableRow key={v.id}>
-                    <TableCell>{v.nickname ?? "—"}</TableCell>
-                    <TableCell className="font-mono">
-                      {v.license_plate ?? "—"}
-                    </TableCell>
+        <Card className="flex flex-col">
+          <SectionHeading title="Vehicles" count={user.vehicles?.length ?? 0} />
+          <div className="p-5">
+            {!user.vehicles?.length ? (
+              <p className="text-sm text-ink-caption">No vehicles.</p>
+            ) : (
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableHeadCell>Nickname</TableHeadCell>
+                    <TableHeadCell>Plate</TableHeadCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+                </TableHead>
+                <TableBody>
+                  {user.vehicles.map((v) => (
+                    <TableRow key={v.id}>
+                      <TableCell>{v.nickname ?? "—"}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {v.license_plate ?? "—"}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
         </Card>
       </div>
 
-      <Card className="p-5">
-        <h2 className="font-display text-base font-semibold text-ink">
-          Account access <span className="ml-2 text-xs font-normal text-gold">demo controls</span>
-        </h2>
-        <div className="mt-4 flex flex-wrap items-end gap-3">
-          <div>
-            <p className="text-label uppercase tracking-wide text-ink-caption">Email verified</p>
-            <div className="mt-1.5">
+      <Card className="flex flex-col">
+        <SectionHeading title="Account access">
+          <span className="text-xs text-gold">demo controls</span>
+        </SectionHeading>
+        <div className="flex flex-wrap items-end gap-3 p-5">
+          <Stat
+            label="Email verified"
+            mono={false}
+            value={
               <Badge tone={user.email_verified ? "success" : "warning"}>
                 {user.email_verified ? "Yes" : "No"}
               </Badge>
-            </div>
-          </div>
+            }
+          />
           {!user.email_verified && (
             <Button
               variant="secondary"
@@ -224,14 +205,15 @@ export default function UserProfilePage({
             </Button>
           )}
 
-          <div>
-            <p className="text-label uppercase tracking-wide text-ink-caption">Must change password</p>
-            <div className="mt-1.5">
+          <Stat
+            label="Must change password"
+            mono={false}
+            value={
               <Badge tone={user.must_change_password ? "warning" : "success"}>
                 {user.must_change_password ? "Yes" : "No"}
               </Badge>
-            </div>
-          </div>
+            }
+          />
           {user.must_change_password && (
             <Button
               variant="secondary"
@@ -262,11 +244,9 @@ export default function UserProfilePage({
         </div>
       </Card>
 
-      <Card className="p-5">
-        <h2 className="font-display text-base font-semibold text-ink">
-          Actions
-        </h2>
-        <div className="mt-4 flex flex-wrap gap-3">
+      <Card className="flex flex-col">
+        <SectionHeading title="Actions" />
+        <div className="flex flex-wrap gap-3 p-5">
           <Select
             label="Plan"
             options={[...PLAN_OPTIONS]}

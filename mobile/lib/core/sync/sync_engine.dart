@@ -102,7 +102,17 @@ class SyncEngine {
   final _states = StreamController<SyncState>.broadcast();
 
   SyncState get state => _state;
-  Stream<SyncState> get stream => _states.stream;
+  Stream<SyncState> get stream => Stream.multi((controller) {
+    final subscription = _states.stream.listen(
+      controller.add,
+      onError: controller.addError,
+      onDone: controller.close,
+    );
+    // New subscribers must not retain a prior account's status while this
+    // engine is idle, or miss completion before their subscription starts.
+    controller.add(_state);
+    controller.onCancel = subscription.cancel;
+  });
 
   /// Debounced trigger used by repositories after local writes.
   /// Respects auto-sync setting — won't trigger if disabled.
@@ -146,6 +156,7 @@ class SyncEngine {
         );
         return;
       }
+      if (_outbox.derivesExpenses) await _uploadPendingMedia(userId);
       await _pushAll(userId);
       if (_pausedForAccountChange) return;
       final linked = await _uploadPendingMedia(userId);
@@ -303,11 +314,12 @@ class SyncEngine {
     final rows =
         await (_db.select(_db.serviceRecordRows)..where(
               (row) =>
-                  row.vehicleId.isInQuery(
-                    _db.selectOnly(_db.vehicleRecords)
-                      ..addColumns([_db.vehicleRecords.id])
-                      ..where(_db.vehicleRecords.userId.equals(userId)),
-                  ) &
+                  (row.createdBy.equals(userId) |
+                      row.vehicleId.isInQuery(
+                        _db.selectOnly(_db.vehicleRecords)
+                          ..addColumns([_db.vehicleRecords.id])
+                          ..where(_db.vehicleRecords.userId.equals(userId)),
+                      )) &
                   row.receiptLocalPath.isNotNull() &
                   row.receiptMediaId.isNull(),
             ))
@@ -315,6 +327,10 @@ class SyncEngine {
     var linked = 0;
     for (final row in rows) {
       if (_pausedForAccountChange) return linked;
+      if (_outbox.derivesExpenses &&
+          !await _canUploadRecord('service_record', row.id)) {
+        continue;
+      }
       final media = await _uploadFile(
         file: File(row.receiptLocalPath!),
         purpose: MediaPurpose.serviceReceipt,
@@ -336,11 +352,12 @@ class SyncEngine {
     final rows =
         await (_db.select(_db.expenseRecords)..where(
               (row) =>
-                  row.vehicleId.isInQuery(
-                    _db.selectOnly(_db.vehicleRecords)
-                      ..addColumns([_db.vehicleRecords.id])
-                      ..where(_db.vehicleRecords.userId.equals(userId)),
-                  ) &
+                  (row.createdBy.equals(userId) |
+                      row.vehicleId.isInQuery(
+                        _db.selectOnly(_db.vehicleRecords)
+                          ..addColumns([_db.vehicleRecords.id])
+                          ..where(_db.vehicleRecords.userId.equals(userId)),
+                      )) &
                   row.receiptLocalPath.isNotNull() &
                   row.receiptMediaId.isNull(),
             ))
@@ -348,6 +365,10 @@ class SyncEngine {
     var linked = 0;
     for (final row in rows) {
       if (_pausedForAccountChange) return linked;
+      if (_outbox.derivesExpenses &&
+          !await _canUploadRecord('expense', row.id)) {
+        continue;
+      }
       final media = await _uploadFile(
         file: File(row.receiptLocalPath!),
         purpose: MediaPurpose.expenseReceipt,
@@ -368,11 +389,12 @@ class SyncEngine {
     final rows =
         await (_db.select(_db.documentRecords)..where(
               (row) =>
-                  row.vehicleId.isInQuery(
-                    _db.selectOnly(_db.vehicleRecords)
-                      ..addColumns([_db.vehicleRecords.id])
-                      ..where(_db.vehicleRecords.userId.equals(userId)),
-                  ) &
+                  (row.createdBy.equals(userId) |
+                      row.vehicleId.isInQuery(
+                        _db.selectOnly(_db.vehicleRecords)
+                          ..addColumns([_db.vehicleRecords.id])
+                          ..where(_db.vehicleRecords.userId.equals(userId)),
+                      )) &
                   row.localFilePath.isNotNull() &
                   row.mediaId.isNull(),
             ))
@@ -380,6 +402,10 @@ class SyncEngine {
     var linked = 0;
     for (final row in rows) {
       if (_pausedForAccountChange) return linked;
+      if (_outbox.derivesExpenses &&
+          !await _canUploadRecord('document', row.id)) {
+        continue;
+      }
       final media = await _uploadFile(
         file: File(row.localFilePath!),
         purpose: MediaPurpose.document,
@@ -394,6 +420,15 @@ class SyncEngine {
       linked++;
     }
     return linked;
+  }
+
+  Future<bool> _canUploadRecord(String kind, String id) async {
+    final row = await (_db.select(
+      _db.appMeta,
+    )..where((r) => r.key.equals('org_record:$kind:$id'))).getSingleOrNull();
+    if (row?.value == null) return true;
+    final meta = jsonDecode(row!.value!) as Map<String, dynamic>;
+    return meta['admin_corrected_by'] == null && meta['source_id'] == null;
   }
 
   Future<String?> _uploadFile({
@@ -480,6 +515,7 @@ class SyncEngine {
             try {
               await _applier.apply(change, userId: userId);
             } catch (_) {
+              if (_outbox.derivesExpenses) rethrow;
               // One malformed change must not roll back the whole page or
               // permanently stall the cursor; skip it and keep the rest.
             }
@@ -595,7 +631,7 @@ class SyncEngine {
 
   void _emit(SyncState newState) {
     _state = newState;
-    _states.add(newState);
+    if (!_states.isClosed) _states.add(newState);
   }
 
   void dispose() {

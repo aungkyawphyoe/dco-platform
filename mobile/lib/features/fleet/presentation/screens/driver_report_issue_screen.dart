@@ -4,6 +4,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/fleet/presentation/fleet_labels.dart';
 import 'package:dco_mobile/features/fleet/providers.dart';
+import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,16 +42,16 @@ class _DriverReportIssueScreenState
     final description = _description.text.trim();
     setState(() {
       _errors
-        ..['odometer'] = (odometer == null || odometer < 0)
-            ? s.required
-            : null
+        ..['odometer'] = (odometer == null || odometer < 0) ? s.required : null
         ..['description'] = description.length < 10 ? s.required : null;
     });
     if (_errors.values.any((error) => error != null)) return;
 
     setState(() => _saving = true);
     try {
-      await ref.read(fleetRepositoryProvider).createWorkOrder(
+      await ref
+          .read(fleetRepositoryProvider)
+          .createWorkOrder(
             orgId,
             vehicleId: vehicleId,
             odometerKm: odometer!,
@@ -78,7 +79,7 @@ class _DriverReportIssueScreenState
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final orgCtx = ref.watch(entitlementsProvider).valueOrNull?.organization;
-    final myVehicle = ref.watch(driverMyVehicleProvider).valueOrNull;
+    final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
 
     if (orgCtx == null) {
       return Scaffold(
@@ -89,7 +90,7 @@ class _DriverReportIssueScreenState
         ),
       );
     }
-    if (myVehicle?.hasAssignedVehicle != true) {
+    if (vehicle == null) {
       return Scaffold(
         appBar: AppBar(title: Text(s.fleetWoReportTitle)),
         body: DcoEmptyState(
@@ -98,7 +99,6 @@ class _DriverReportIssueScreenState
         ),
       );
     }
-    final vehicle = myVehicle!.vehicle!;
 
     return Scaffold(
       appBar: AppBar(title: Text(s.fleetWoReportTitle)),

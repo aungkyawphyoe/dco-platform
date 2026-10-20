@@ -3,6 +3,7 @@ import type { FastifyInstance } from "fastify";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import { changeLog } from "../db/schema.js";
+import { assertPersonalGarageAllowed } from "../lib/personal-garage.js";
 import { AppError } from "../lib/errors.js";
 import { requireOwner } from "./auth.js";
 
@@ -58,6 +59,7 @@ export const syncPlugin: FastifyPluginAsync = async (app) => {
 
   app.get("/sync/changes", async (request) => {
     requireOwner(request);
+    await assertPersonalGarageAllowed(app.db, request.authUser!.sub);
     const cursorRaw = (request.query as { cursor?: string }).cursor;
     if (cursorRaw === undefined) throw new AppError(400, "invalid_cursor", "cursor is required");
     let after = 0;

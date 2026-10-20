@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "./theme-tokens.css";
 
+@source "../../../packages/ui";
+
 /*
  * Garage Minimal web mapping (dark + light).
  * Source of truth: docs/theme/garage-minimal-{dark,light}.json → theme-tokens.css

@@ -47,13 +47,18 @@ import 'analytics/analytics.dart';
 import 'config/app_config.dart';
 import 'database/app_database.dart';
 import 'media/media_api.dart';
+import 'media/document_cache.dart';
 import 'network/dio_client.dart';
 import 'notifications/flutter_local_notification_client.dart';
 import 'notifications/local_notification_client.dart';
 import 'storage/token_store.dart';
 import 'sync/outbox_writer.dart';
 import 'sync/sync_api.dart';
+import 'sync/organization_sync_api.dart';
+import 'sync/change_applier.dart';
+import '../../features/fleet/providers.dart';
 import 'sync/sync_engine.dart';
+import 'sync/sync_account_coordinator.dart';
 
 final appConfigProvider = Provider<AppConfig>((ref) {
   throw StateError('AppConfig must be overridden in bootstrap');
@@ -67,9 +72,97 @@ final appDatabaseProvider = Provider<AppDatabase>((ref) {
   throw StateError('AppDatabase must be overridden in bootstrap');
 });
 
+/// Entitlements select a data scope, never a user-controlled mode toggle.
+final driverOrganizationIdProvider = Provider<String?>((ref) {
+  if (ref.watch(currentUserIdProvider) == null ||
+      ref.watch(appConfigProvider).mockAuth) {
+    return null;
+  }
+  final organization = ref
+      .watch(entitlementsProvider)
+      .valueOrNull
+      ?.organization;
+  return organization?.isDriver == true ? organization!.id : null;
+});
+
+final organizationDatabaseProvider = Provider.family<AppDatabase, String>((
+  ref,
+  scope,
+) {
+  final db = AppDatabase.scoped('dco_org_$scope');
+  ref.onDispose(() {
+    unawaited(db.close());
+  });
+  return db;
+});
+
+final recordDatabaseProvider = Provider<AppDatabase>((ref) {
+  final organizationId = ref.watch(driverOrganizationIdProvider);
+  final userId = ref.watch(currentUserIdProvider);
+  if (organizationId == null || userId == null) {
+    return ref.watch(appDatabaseProvider);
+  }
+  return ref.watch(organizationDatabaseProvider('${userId}_$organizationId'));
+});
+
+final recordAdminLockProvider = StreamProvider.family<bool, String>((ref, key) {
+  if (ref.watch(driverOrganizationIdProvider) == null) {
+    return Stream.value(false);
+  }
+  final db = ref.watch(recordDatabaseProvider);
+  return (db.select(db.appMeta)
+        ..where((row) => row.key.equals('org_record:$key')))
+      .watchSingleOrNull()
+      .map((row) {
+        if (row?.value == null) return false;
+        final metadata = jsonDecode(row!.value!) as Map<String, dynamic>;
+        return metadata['admin_corrected_by'] != null ||
+            metadata['source_id'] != null;
+      });
+});
+
+final adminCorrectedRecordProvider = StreamProvider.family<bool, String>((
+  ref,
+  key,
+) {
+  if (ref.watch(driverOrganizationIdProvider) == null) {
+    return Stream.value(false);
+  }
+  final db = ref.watch(recordDatabaseProvider);
+  return (db.select(
+    db.appMeta,
+  )..where((row) => row.key.equals('org_record:$key'))).watchSingleOrNull().map(
+    (row) =>
+        row?.value != null &&
+        (jsonDecode(row!.value!)
+                as Map<String, dynamic>)['admin_corrected_by'] !=
+            null,
+  );
+});
+
+/// Submission status remains available after assignment access is removed.
+final organizationReviewsProvider = StreamProvider<List<Map<String, dynamic>>>((
+  ref,
+) {
+  if (ref.watch(driverOrganizationIdProvider) == null) {
+    return Stream.value(const []);
+  }
+  final db = ref.watch(recordDatabaseProvider);
+  return (db.select(
+    db.appMeta,
+  )..where((row) => row.key.like('org_review:%'))).watch().map(
+    (rows) => rows
+        .where((row) => row.value != null)
+        .map((row) => jsonDecode(row.value!) as Map<String, dynamic>)
+        .toList(),
+  );
+});
+
 final analyticsProvider = Provider<Analytics>((ref) => const Analytics());
 
-final localNotificationClientProvider = Provider<LocalNotificationClient>((ref) {
+final localNotificationClientProvider = Provider<LocalNotificationClient>((
+  ref,
+) {
   return FlutterLocalNotificationClient();
 });
 
@@ -145,7 +238,10 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
 });
 
 final outboxWriterProvider = Provider<OutboxWriter>((ref) {
-  return OutboxWriter(ref.watch(appDatabaseProvider));
+  final db = ref.watch(recordDatabaseProvider);
+  return ref.watch(driverOrganizationIdProvider) == null
+      ? OutboxWriter(db)
+      : OrganizationOutboxWriter(db);
 });
 
 final connectivityProvider = StreamProvider<List<ConnectivityResult>>((ref) {
@@ -153,6 +249,15 @@ final connectivityProvider = StreamProvider<List<ConnectivityResult>>((ref) {
 });
 
 final syncApiProvider = Provider<SyncApi>((ref) {
+  final organizationId = ref.watch(driverOrganizationIdProvider);
+  if (organizationId != null) {
+    return OrganizationSyncApi(
+      ref.watch(dioProvider),
+      ref.watch(recordDatabaseProvider),
+      organizationId,
+      ref.watch(currentUserIdProvider)!,
+    );
+  }
   return DioSyncApi(ref.watch(dioProvider));
 });
 
@@ -160,22 +265,64 @@ final mediaApiProvider = Provider<MediaApi>((ref) {
   return DioMediaApi(ref.watch(dioProvider));
 });
 
-final mediaUrlProvider = FutureProvider.family<String?, String>((ref, mediaId) async {
+final documentFileProvider = FutureProvider.autoDispose.family<String?, String>(
+  (ref, documentId) {
+    final userId = ref.watch(currentUserIdProvider);
+    if (userId == null) return Future.value(null);
+    return cacheDocument(
+      dio: ref.watch(dioProvider),
+      db: ref.watch(recordDatabaseProvider),
+      userId: userId,
+      documentId: documentId,
+      organizationId: ref.watch(driverOrganizationIdProvider),
+    );
+  },
+);
+
+final mediaUrlProvider = FutureProvider.family<String?, String>((
+  ref,
+  mediaId,
+) async {
   if (mediaId.isEmpty) return null;
   final api = ref.watch(mediaApiProvider);
   final media = await api.get(mediaId);
   return media.downloadUrl;
 });
 
+final syncAccountCoordinatorProvider = Provider<SyncAccountCoordinator>(
+  (ref) => SyncAccountCoordinator(),
+);
+
 final syncEngineProvider = Provider<SyncEngine>((ref) {
   final engine = SyncEngine(
-    db: ref.watch(appDatabaseProvider),
+    db: ref.watch(recordDatabaseProvider),
     api: ref.watch(syncApiProvider),
     mediaApi: ref.watch(mediaApiProvider),
-    currentUser: () => ref.read(sessionControllerProvider).valueOrNull?.user.id,
+    currentUser: () {
+      if (!ref.read(appConfigProvider).mockAuth &&
+          ref.read(entitlementsProvider).valueOrNull == null) {
+        return null;
+      }
+      return ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    },
+    outbox: ref.watch(outboxWriterProvider),
+    applier: ChangeApplier(
+      ref.watch(recordDatabaseProvider),
+      authoritative: ref.watch(driverOrganizationIdProvider) != null,
+    ),
+    batchSize: ref.watch(driverOrganizationIdProvider) == null ? 25 : 1,
     autoSyncEnabled: () => ref.read(autoSyncProvider),
   );
-  ref.onDispose(engine.dispose);
+  final coordinator = ref.read(syncAccountCoordinatorProvider);
+  coordinator.register(engine);
+  // Every account/organization scope gets a fresh engine. Start that instance
+  // directly; an entitlement listener can otherwise schedule the old engine
+  // just before its dependencies replace and dispose it.
+  engine.requestSync();
+  ref.onDispose(() {
+    coordinator.unregister(engine);
+    engine.dispose();
+  });
   return engine;
 });
 
@@ -183,7 +330,9 @@ final syncStatusProvider = StreamProvider<SyncState>((ref) {
   return ref.watch(syncEngineProvider).stream;
 });
 
-final profileRemoteDataSourceProvider = Provider<ProfileRemoteDataSource>((ref) {
+final profileRemoteDataSourceProvider = Provider<ProfileRemoteDataSource>((
+  ref,
+) {
   final config = ref.watch(appConfigProvider);
   if (config.mockAuth) {
     return MockProfileRemoteDataSource();
@@ -211,7 +360,7 @@ final licenseRepositoryProvider = Provider<LicenseRepository>((ref) {
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {
   return VehicleRepositoryImpl(
-    db: ref.watch(appDatabaseProvider),
+    db: ref.watch(recordDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
   );
@@ -219,35 +368,36 @@ final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {
 
 final maintenanceRepositoryProvider = Provider<MaintenanceRepository>((ref) {
   return MaintenanceRepositoryImpl(
-    db: ref.watch(appDatabaseProvider),
+    db: ref.watch(recordDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
     expenseRepository: ref.watch(expenseRepositoryProvider),
   );
 });
 
-final maintenanceCatalogRepositoryProvider = Provider<MaintenanceCatalogRepository>((ref) {
-  return MaintenanceCatalogRepositoryImpl(
-    db: ref.watch(appDatabaseProvider),
-    dio: ref.watch(dioProvider),
-  );
-});
+final maintenanceCatalogRepositoryProvider =
+    Provider<MaintenanceCatalogRepository>((ref) {
+      return MaintenanceCatalogRepositoryImpl(
+        db: ref.watch(recordDatabaseProvider),
+        dio: ref.watch(dioProvider),
+      );
+    });
 
 final partsRepositoryProvider = Provider<PartsRepository>((ref) {
   return PartsRepositoryImpl(
-    db: ref.watch(appDatabaseProvider),
+    db: ref.watch(recordDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
   );
 });
 
 final notesRepositoryProvider = Provider<NotesRepository>((ref) {
-  return NotesRepositoryImpl(db: ref.watch(appDatabaseProvider));
+  return NotesRepositoryImpl(db: ref.watch(recordDatabaseProvider));
 });
 
 final fuelRepositoryProvider = Provider<FuelRepository>((ref) {
   return FuelRepositoryImpl(
-    db: ref.watch(appDatabaseProvider),
+    db: ref.watch(recordDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
     expenseRepository: ref.watch(expenseRepositoryProvider),
@@ -256,7 +406,7 @@ final fuelRepositoryProvider = Provider<FuelRepository>((ref) {
 
 final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
   return ExpenseRepositoryImpl(
-    db: ref.watch(appDatabaseProvider),
+    db: ref.watch(recordDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
   );
@@ -264,7 +414,7 @@ final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
 
 final documentRepositoryProvider = Provider<DocumentRepository>((ref) {
   return DocumentRepositoryImpl(
-    db: ref.watch(appDatabaseProvider),
+    db: ref.watch(recordDatabaseProvider),
     outbox: ref.watch(outboxWriterProvider),
     syncEngine: ref.watch(syncEngineProvider),
   );
@@ -320,9 +470,9 @@ class AutoSyncNotifier extends StateNotifier<bool> {
     final userId = _userId;
     if (userId == null || userId.isEmpty) return;
     final key = 'auto_sync:$userId';
-    final row =
-        await (_db.select(_db.appMeta)..where((m) => m.key.equals(key)))
-            .getSingleOrNull();
+    final row = await (_db.select(
+      _db.appMeta,
+    )..where((m) => m.key.equals(key))).getSingleOrNull();
     if (row != null) {
       state = row.value != 'false';
     }
@@ -333,14 +483,19 @@ class AutoSyncNotifier extends StateNotifier<bool> {
     final userId = _userId;
     if (userId == null || userId.isEmpty) return;
     final key = 'auto_sync:$userId';
-    final existing =
-        await (_db.select(_db.appMeta)..where((m) => m.key.equals(key)))
-            .getSingleOrNull();
+    final existing = await (_db.select(
+      _db.appMeta,
+    )..where((m) => m.key.equals(key))).getSingleOrNull();
     if (existing != null) {
-      await (_db.update(_db.appMeta)..where((m) => m.id.equals(existing.id)))
-          .write(AppMetaCompanion(value: Value<String?>(state ? 'true' : 'false')));
+      await (_db.update(
+        _db.appMeta,
+      )..where((m) => m.id.equals(existing.id))).write(
+        AppMetaCompanion(value: Value<String?>(state ? 'true' : 'false')),
+      );
     } else {
-      await _db.into(_db.appMeta).insert(
+      await _db
+          .into(_db.appMeta)
+          .insert(
             AppMetaCompanion.insert(
               key: key,
               value: Value<String?>(state ? 'true' : 'false'),
@@ -350,8 +505,7 @@ class AutoSyncNotifier extends StateNotifier<bool> {
   }
 }
 
-final autoSyncProvider =
-    StateNotifierProvider<AutoSyncNotifier, bool>((ref) {
+final autoSyncProvider = StateNotifierProvider<AutoSyncNotifier, bool>((ref) {
   final userId = ref.watch(currentUserIdProvider);
   final db = ref.watch(appDatabaseProvider);
   return AutoSyncNotifier(db, userId);
@@ -364,14 +518,15 @@ final autoSyncProvider =
 final pendingOutboxCountProvider = FutureProvider<int>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null || userId.isEmpty) return 0;
-  final db = ref.watch(appDatabaseProvider);
-  final rows = await (db.select(db.outboxEntries)
-        ..where(
-          (row) => row.userId.equals(userId) &
-              row.parked.equals(false) &
-              row.attemptCount.isSmallerOrEqualValue(4),
-        ))
-      .get();
+  final db = ref.watch(recordDatabaseProvider);
+  final rows =
+      await (db.select(db.outboxEntries)..where(
+            (row) =>
+                row.userId.equals(userId) &
+                row.parked.equals(false) &
+                row.attemptCount.isSmallerOrEqualValue(4),
+          ))
+          .get();
   return rows.length;
 });
 
@@ -380,11 +535,9 @@ final pendingOutboxCountProvider = FutureProvider<int>((ref) async {
 final parkedOutboxCountProvider = FutureProvider<int>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   if (userId == null || userId.isEmpty) return 0;
-  final db = ref.watch(appDatabaseProvider);
-  final rows = await (db.select(db.outboxEntries)
-        ..where(
-          (row) => row.userId.equals(userId) & row.parked.equals(true),
-        ))
-      .get();
+  final db = ref.watch(recordDatabaseProvider);
+  final rows = await (db.select(
+    db.outboxEntries,
+  )..where((row) => row.userId.equals(userId) & row.parked.equals(true))).get();
   return rows.length;
 });

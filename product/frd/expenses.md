@@ -1,5 +1,11 @@
 # Expenses Module
 
+## Driver expense parity — approved 18 October 2026
+
+Drivers use the same categories and forms as Personal and see full assigned-vehicle totals. Organization service and fuel records own one linked expense; corrections update it atomically. Linked expense fields are read-only; correct their source record. Drivers can change their own independent expenses unless an admin corrected them.
+
+See [the approved realignment plan](mobile-personal-driver-realignment-plan.md) for the role matrix and acceptance criteria. This section supersedes earlier Driver-specific restrictions; the remaining baseline applies to Personal unless stated otherwise.
+
 ## Overview
 
 Expenses is the ownership-cost log for a vehicle. The owner records category, amount, date, notes, and an optional receipt photo. Monthly and lifetime totals feed the dashboard ownership summary.

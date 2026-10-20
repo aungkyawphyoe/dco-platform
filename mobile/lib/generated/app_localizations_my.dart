@@ -3829,4 +3829,43 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get privacyPolicy => 'ကိုယ်ရေးအချက်အလက် မူဝါဒ';
+
+  @override
+  String get syncReviewTitle => 'တင်ပြချက် စစ်ဆေးမှု';
+
+  @override
+  String get syncReviewSubmission => 'ယာဉ်မှတ်တမ်း တင်ပြချက်';
+
+  @override
+  String get syncReviewAccepted => 'Fleet Admin က လက်ခံပြီး';
+
+  @override
+  String get syncReviewRejected => 'Fleet Admin က ငြင်းပယ်ပြီး';
+
+  @override
+  String get syncReviewPending => 'Fleet Admin စစ်ဆေးရန် စောင့်ဆိုင်းနေသည်';
+
+  @override
+  String get recordUpdatedByAdmin =>
+      'Fleet Admin က ပြင်ဆင်ထားသည် · ဖတ်ရှုရန်သာ';
+
+  @override
+  String get recordDeleteBody =>
+      'ဤမှတ်တမ်းနှင့် ချိတ်ဆက်ထားသော ကုန်ကျစရိတ်ကို ဖျက်မလား။ စုစုပေါင်းနှင့် ပြုပြင်ထိန်းသိမ်းမှု အချိန်ဇယားကို ထပ်တူပြုပြီးနောက် ပြင်ဆင်ပေးမည်။';
+
+  @override
+  String get fuelFillStatus => 'ဆီဖြည့်ပြီးနောက် ဆီတိုင်ကီအခြေအနေ';
+
+  @override
+  String get fuelFillUnknown => 'မမှတ်တမ်းတင်ထားပါ';
+
+  @override
+  String get fuelFillFull => 'ဆီအပြည့်';
+
+  @override
+  String get fuelFillPartial => 'ဆီတစ်စိတ်တစ်ပိုင်း';
+
+  @override
+  String get fuelFillHelp =>
+      'ဆီအပြည့်ဖြည့်ချိန် မိုင်နှုန်းမှတ်တမ်းက ဆီစားနှုန်းတွက်ချက်ရာတွင် အထောက်အကူပြုသည်။';
 }

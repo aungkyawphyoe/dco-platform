@@ -79,6 +79,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
 
   DateTime _loggedOn = DateTime.now();
   String? _fuelTypeId;
+  String _fillStatus = 'unknown';
   String? _formError;
   bool _loading = true;
   bool _saving = false;
@@ -104,12 +105,16 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
       final log = await ref.read(fuelRepositoryProvider).getLog(widget.logId!);
       if (log != null && mounted) {
         _createdBy = log.userId;
+        _fillStatus = log.fillStatus;
         _loggedOn = log.loggedOn;
         _date.text = DateFormat.yMMMd().format(log.loggedOn);
         _fuelTypeId = log.fuelTypeId;
         _fuelTypeLabel.text = log.fuelTypeName;
         _amount.text = _formatNumber(log.amount);
-        _cost.text = MoneyFormat.input(log.cost, ref.read(currencyProvider).code);
+        _cost.text = MoneyFormat.input(
+          log.cost,
+          ref.read(currencyProvider).code,
+        );
         if (log.odometer != null) {
           final display = ref.read(lengthUnitProvider).toDisplay(log.odometer!);
           _odometer.text = _formatNumber(display);
@@ -140,7 +145,9 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   }
 
   String _formatNumber(double value) {
-    return value == value.roundToDouble() ? value.toStringAsFixed(0) : value.toStringAsFixed(2);
+    return value == value.roundToDouble()
+        ? value.toStringAsFixed(0)
+        : value.toStringAsFixed(2);
   }
 
   FuelLogDraft? _draftOrNull() {
@@ -156,11 +163,14 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     if (_errors.values.any((error) => error != null)) return null;
     final odometerDisplay = FuelLogValidators.parseOdometer(_odometer.text);
     return FuelLogDraft(
+      fillStatus: widget.kind == FuelLogKind.charge ? 'unknown' : _fillStatus,
       loggedOn: _loggedOn,
       fuelTypeId: _fuelTypeId!,
       amount: FuelLogValidators.parseDecimal(_amount.text)!,
       cost: FuelLogValidators.parseDecimal(_cost.text)!,
-      odometer: odometerDisplay == null ? null : ref.read(lengthUnitProvider).toStorage(odometerDisplay),
+      odometer: odometerDisplay == null
+          ? null
+          : ref.read(lengthUnitProvider).toStorage(odometerDisplay),
     );
   }
 
@@ -170,7 +180,11 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
       ref.read(sessionControllerProvider).valueOrNull?.user.id,
     );
     return widget.isEditing
-        ? access.canEditRecord(_createdBy)
+        ? (access.canEditRecord(_createdBy) &&
+              !(ref
+                      .read(recordAdminLockProvider('fuel_log:${widget.logId}'))
+                      .valueOrNull ??
+                  (ref.read(driverOrganizationIdProvider) != null)))
         : access.canCreate;
   }
 
@@ -179,7 +193,11 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
-    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    final currentUserId = ref
+        .read(sessionControllerProvider)
+        .valueOrNull
+        ?.user
+        .id;
     if (currentUserId == null) return;
     if (!_canWrite()) return;
     setState(() => _saving = true);
@@ -242,14 +260,27 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(tokens.space.s4, tokens.space.s4, tokens.space.s4, tokens.space.s2),
-                child: Text(s.fuelLogFormTypeSheetTitle, style: Theme.of(context).textTheme.titleMedium),
+                padding: EdgeInsets.fromLTRB(
+                  tokens.space.s4,
+                  tokens.space.s4,
+                  tokens.space.s4,
+                  tokens.space.s2,
+                ),
+                child: Text(
+                  s.fuelLogFormTypeSheetTitle,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
               ),
               for (final type in types)
                 ListTile(
                   title: Text(type.name),
-                  subtitle: Text(type.unit, style: TextStyle(color: tokens.text.caption)),
-                  trailing: type.id == _fuelTypeId ? Icon(Icons.check, color: tokens.text.accent) : null,
+                  subtitle: Text(
+                    type.unit,
+                    style: TextStyle(color: tokens.text.caption),
+                  ),
+                  trailing: type.id == _fuelTypeId
+                      ? Icon(Icons.check, color: tokens.text.accent)
+                      : null,
                   onTap: () => Navigator.pop(context, type.id),
                 ),
               ListTile(
@@ -283,6 +314,9 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.logId != null) {
+      ref.watch(recordAdminLockProvider('fuel_log:${widget.logId}'));
+    }
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final types = ref.watch(matchingFuelTypesProvider);
@@ -300,18 +334,29 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
 
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? widget.kind.editLabel : widget.kind.addLabel)),
-        body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        appBar: AppBar(
+          title: Text(
+            widget.isEditing ? widget.kind.editLabel : widget.kind.addLabel,
+          ),
+        ),
+        body: Center(
+          child: CircularProgressIndicator(color: tokens.text.accent),
+        ),
       );
     }
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.isEditing ? widget.kind.editLabel : widget.kind.addLabel),
+        title: Text(
+          widget.isEditing ? widget.kind.editLabel : widget.kind.addLabel,
+        ),
         actions: [
           TextButton(
             onPressed: () => context.push(AppRoutes.fuelTypes),
-            child: Text(s.fuelLogFormTypesLink, style: TextStyle(color: tokens.text.link)),
+            child: Text(
+              s.fuelLogFormTypesLink,
+              style: TextStyle(color: tokens.text.link),
+            ),
           ),
         ],
       ),
@@ -328,31 +373,72 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   readOnly: true,
                   onTap: _pickDate,
                   errorText: _errors['date'],
-                  suffix: Icon(Icons.calendar_today_outlined, color: tokens.icon.inactive),
+                  suffix: Icon(
+                    Icons.calendar_today_outlined,
+                    color: tokens.icon.inactive,
+                  ),
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
                   key: const Key('fuel-log-type'),
                   label: s.fuelLogFormFuelType,
                   controller: _fuelTypeLabel,
-                  hint: types.isEmpty ? s.fuelLogFormFuelTypeHint : s.fuelLogFormSelect,
+                  hint: types.isEmpty
+                      ? s.fuelLogFormFuelTypeHint
+                      : s.fuelLogFormSelect,
                   readOnly: true,
                   onTap: () => _pickFuelType(types),
                   errorText: _errors['type'],
                   suffix: Icon(Icons.expand_more, color: tokens.icon.inactive),
                 ),
                 SizedBox(height: tokens.space.s4),
+                if (widget.kind == FuelLogKind.refuel) ...[
+                  DropdownButtonFormField<String>(
+                    key: const Key('fuel-log-fill-status'),
+                    initialValue: _fillStatus,
+                    decoration: InputDecoration(labelText: s.fuelFillStatus),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'unknown',
+                        child: Text(s.fuelFillUnknown),
+                      ),
+                      DropdownMenuItem(
+                        value: 'full',
+                        child: Text(s.fuelFillFull),
+                      ),
+                      DropdownMenuItem(
+                        value: 'partial',
+                        child: Text(s.fuelFillPartial),
+                      ),
+                    ],
+                    onChanged: canWrite
+                        ? (value) =>
+                              setState(() => _fillStatus = value ?? 'unknown')
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    s.fuelFillHelp,
+                    style: TextStyle(color: tokens.text.caption),
+                  ),
+                  SizedBox(height: tokens.space.s4),
+                ],
                 DcoTextField(
                   key: const Key('fuel-log-amount'),
                   label: s.fuelLogFormAmount,
                   controller: _amount,
                   hint: widget.kind == FuelLogKind.charge ? '32' : '40',
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   textInputAction: TextInputAction.next,
                   errorText: _errors['amount'],
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(unit, style: TextStyle(color: tokens.text.caption)),
+                    child: Text(
+                      unit,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
                   ),
                   onChanged: (_) => setState(() => _errors['amount'] = null),
                 ),
@@ -362,12 +448,17 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   label: s.fuelLogFormCost,
                   controller: _cost,
                   hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
-                  keyboardType: TextInputType.numberWithOptions(decimal: !MoneyFormat.isMmk(currency)),
+                  keyboardType: TextInputType.numberWithOptions(
+                    decimal: !MoneyFormat.isMmk(currency),
+                  ),
                   textInputAction: TextInputAction.next,
                   errorText: _errors['cost'],
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(currency, style: TextStyle(color: tokens.text.caption)),
+                    child: Text(
+                      currency,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
                   ),
                   onChanged: (_) => setState(() => _errors['cost'] = null),
                 ),
@@ -377,24 +468,37 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   label: s.fuelLogFormOdometer,
                   controller: _odometer,
                   hint: s.fuelLogFormOdometerHint,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   textInputAction: TextInputAction.done,
                   errorText: _errors['odometer'],
                   suffix: Padding(
                     padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(lengthUnit.label, style: TextStyle(color: tokens.text.caption)),
+                    child: Text(
+                      lengthUnit.label,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
                   ),
                   onChanged: (_) => setState(() => _errors['odometer'] = null),
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+                  Text(
+                    _formError!,
+                    style: TextStyle(color: tokens.status.dangerFg),
+                  ),
                 ],
               ],
             ),
           ),
           Padding(
-            padding: EdgeInsets.fromLTRB(tokens.space.s5, tokens.space.s3, tokens.space.s5, tokens.space.s5),
+            padding: EdgeInsets.fromLTRB(
+              tokens.space.s5,
+              tokens.space.s3,
+              tokens.space.s5,
+              tokens.space.s5,
+            ),
             child: Row(
               children: [
                 Expanded(

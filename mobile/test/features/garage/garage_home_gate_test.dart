@@ -45,15 +45,16 @@ void main() {
   );
 
   FeatureGateSnapshot freeGate({int vehicleCount = 0}) => FeatureGateSnapshot(
-        claims: EntitlementClaims.free,
-        vehicleCount: vehicleCount,
-        activeShareCount: 0,
-      );
+    claims: EntitlementClaims.free,
+    vehicleCount: vehicleCount,
+    activeShareCount: 0,
+  );
 
   Future<void> pumpGarage(
     WidgetTester tester, {
     required FeatureGateSnapshot? gate,
     required List<Vehicle> vehicles,
+    bool driver = false,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -75,6 +76,7 @@ void main() {
             ),
           ),
           featureGateProvider.overrideWithValue(gate),
+          driverOrganizationIdProvider.overrideWithValue(driver ? 'org' : null),
         ],
         child: MaterialApp(
           theme: buildDcoTheme(Brightness.dark),
@@ -114,4 +116,14 @@ void main() {
 
     expect(find.byIcon(Icons.add), findsOneWidget);
   });
+  testWidgets(
+    'Driver garage hides creation and sharing while the license loads',
+    (tester) async {
+      await pumpGarage(tester, gate: null, vehicles: [vehicle], driver: true);
+      expect(find.byIcon(Icons.add), findsNothing);
+      expect(find.byIcon(Icons.qr_code_scanner), findsNothing);
+      expect(find.byIcon(Icons.people_outline), findsNothing);
+      expect(tester.takeException(), isNull);
+    },
+  );
 }

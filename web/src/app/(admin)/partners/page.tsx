@@ -1,14 +1,15 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SearchInput } from "@/components/ui/search-input";
-import { Modal } from "@/components/ui/modal";
+import Link from "next/link";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SearchInput } from "@dco/ui/components/search-input";
+import { Modal } from "@dco/ui/components/modal";
 import {
   Table,
   TableHead,
@@ -16,13 +17,15 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
-import { SkeletonTable } from "@/components/ui/skeleton";
+} from "@dco/ui/components/table";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
   PartnerStatusBadge,
   PartnerTypeBadge,
 } from "@/components/ui/status-badge";
 import { useAdminPartners, useCreatePartner } from "@/lib/api/hooks";
+import { formatDate } from "@dco/ui/lib/format";
 
 export default function PartnersPage() {
   const [q, setQ] = useState("");
@@ -40,12 +43,20 @@ export default function PartnersPage() {
   });
 
   const partners = data?.items ?? [];
+  const filtered = Boolean(debouncedQ || type || status);
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Partners"
-        description="Workshops and insurers onboarding records"
+        meta={
+          partners.length
+            ? filtered
+              ? `${partners.length} matching partners`
+              : `${partners.length} partners`
+            : undefined
+        }
+        description="Workshop and insurer onboarding records"
         actions={
           <Button size="sm" onClick={() => setShowCreate(true)}>
             Add partner
@@ -104,7 +115,7 @@ export default function PartnersPage() {
           <EmptyState
             title="No partners found"
             description={
-              debouncedQ || type || status
+              filtered
                 ? "Try adjusting your search or filter."
                 : "No partners registered yet."
             }
@@ -117,6 +128,7 @@ export default function PartnersPage() {
         </Card>
       ) : (
         <Card>
+          <SectionHeading title="Partners" count={partners.length} />
           <Table>
             <TableHead>
               <TableRow>
@@ -132,7 +144,12 @@ export default function PartnersPage() {
               {partners.map((partner) => (
                 <TableRow key={partner.id}>
                   <TableCell>
-                    <span className="text-gold">{partner.name}</span>
+                    <Link
+                      href={`/partners/${partner.id}`}
+                      className="font-medium text-ink transition-colors hover:text-gold"
+                    >
+                      {partner.name}
+                    </Link>
                   </TableCell>
                   <TableCell>
                     <PartnerTypeBadge type={partner.type} />
@@ -143,17 +160,11 @@ export default function PartnersPage() {
                   <TableCell className="text-ink-muted">
                     {partner.contact_email ?? "—"}
                   </TableCell>
-                  <TableCell className="text-ink-muted">
+                  <TableCell className="font-mono text-xs text-ink-muted">
                     {partner.contact_phone ?? "—"}
                   </TableCell>
-                  <TableCell className="text-ink-caption">
-                    {partner.updated_at
-                      ? new Intl.DateTimeFormat("en-US", {
-                          month: "short",
-                          day: "numeric",
-                          year: "numeric",
-                        }).format(new Date(partner.updated_at))
-                      : "—"}
+                  <TableCell className="font-mono text-xs text-ink-caption">
+                    {partner.updated_at ? formatDate(partner.updated_at) : "—"}
                   </TableCell>
                 </TableRow>
               ))}

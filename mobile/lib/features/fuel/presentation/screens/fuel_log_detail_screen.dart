@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/widgets/delete_record_action.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -32,29 +33,53 @@ class FuelLogDetailScreen extends ConsumerWidget {
     final log = logAsync.valueOrNull;
 
     final canEdit =
+        !(ref.watch(recordAdminLockProvider('fuel_log:$logId')).valueOrNull ??
+            (ref.watch(driverOrganizationIdProvider) != null)) &&
         log != null &&
         vehicle != null &&
         VehicleAccess.of(vehicle, currentUserId).canEditRecord(log.userId);
 
     return Scaffold(
       appBar: AppBar(
+        bottom:
+            ref
+                    .watch(adminCorrectedRecordProvider('fuel_log:$logId'))
+                    .valueOrNull ==
+                true
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(32),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(s.recordUpdatedByAdmin),
+                ),
+              )
+            : null,
         title: Text(s.fuelLogDetailTitle),
         actions: [
+          if (canEdit &&
+              currentUserId != null &&
+              ref.watch(driverOrganizationIdProvider) != null)
+            DeleteRecordAction(
+              onDelete: () => ref
+                  .read(fuelRepositoryProvider)
+                  .deleteLog(userId: currentUserId, logId: logId),
+            ),
           if (canEdit)
             IconButton(
               tooltip: s.edit,
               icon: Icon(Icons.edit_outlined, color: tokens.icon.inactive),
               onPressed: () async {
                 await context.push(AppRoutes.fuelLogEdit(logId));
-                if (context.mounted) ref.invalidate(fuelLogDetailProvider(logId));
+                if (context.mounted) {
+                  ref.invalidate(fuelLogDetailProvider(logId));
+                }
               },
             ),
         ],
       ),
       body: logAsync.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: tokens.text.accent),
-        ),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
         error: (error, stackTrace) => DcoEmptyState(
           title: s.fuelLogDetailNotFound,
           body: s.fuelLogDetailNotFoundBody,
@@ -70,13 +95,16 @@ class FuelLogDetailScreen extends ConsumerWidget {
           return ListView(
             padding: EdgeInsets.all(tokens.space.s5),
             children: [
-              Text(log.fuelTypeName, style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                log.fuelTypeName,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               SizedBox(height: tokens.space.s2),
               Text(
                 DateFormat.yMMMd().format(log.loggedOn),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: tokens.text.secondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               SizedBox(height: tokens.space.s5),
               if (log.odometer != null)
@@ -86,7 +114,11 @@ class FuelLogDetailScreen extends ConsumerWidget {
                   MileageFormat.labeled(log.odometer!, lengthUnit),
                 ),
               _kv(context, s.fuelLogDetailAmount, log.amountLabel),
-              _kv(context, s.fuelLogDetailCost, MoneyFormat.labeled(log.cost, currency)),
+              _kv(
+                context,
+                s.fuelLogDetailCost,
+                MoneyFormat.labeled(log.cost, currency),
+              ),
               _kv(context, s.loggedBy, nameAsync.valueOrNull ?? '—'),
             ],
           );

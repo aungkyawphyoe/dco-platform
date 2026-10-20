@@ -31,12 +31,32 @@ class ExpenseDetailScreen extends ConsumerWidget {
     final expense = expenseAsync.valueOrNull;
 
     final canEdit =
+        !(ref
+                .watch(recordAdminLockProvider('expense:$expenseId'))
+                .valueOrNull ??
+            (ref.watch(driverOrganizationIdProvider) != null)) &&
         expense != null &&
         vehicle != null &&
-        VehicleAccess.of(vehicle, currentUserId).canEditRecord(expense.createdBy);
+        VehicleAccess.of(
+          vehicle,
+          currentUserId,
+        ).canEditRecord(expense.createdBy);
 
     return Scaffold(
       appBar: AppBar(
+        bottom:
+            ref
+                    .watch(adminCorrectedRecordProvider('expense:$expenseId'))
+                    .valueOrNull ==
+                true
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(32),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Text(s.recordUpdatedByAdmin),
+                ),
+              )
+            : null,
         title: Text(s.expenseDetailTitle),
         actions: [
           if (canEdit)
@@ -45,15 +65,16 @@ class ExpenseDetailScreen extends ConsumerWidget {
               icon: Icon(Icons.edit_outlined, color: tokens.icon.inactive),
               onPressed: () async {
                 await context.push(AppRoutes.expenseEdit(expenseId));
-                if (context.mounted) ref.invalidate(expenseDetailProvider(expenseId));
+                if (context.mounted) {
+                  ref.invalidate(expenseDetailProvider(expenseId));
+                }
               },
             ),
         ],
       ),
       body: expenseAsync.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: tokens.text.accent),
-        ),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
         error: (error, stackTrace) => DcoEmptyState(
           title: s.expenseDetailNotFound,
           body: s.expenseDetailNotFoundBody,
@@ -78,12 +99,16 @@ class ExpenseDetailScreen extends ConsumerWidget {
               SizedBox(height: tokens.space.s2),
               Text(
                 DateFormat.yMMMd().format(expense.incurredOn),
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: tokens.text.secondary,
-                ),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               SizedBox(height: tokens.space.s5),
-              _kv(context, s.expenseDetailAmount, MoneyFormat.labeled(expense.amount, currency)),
+              _kv(
+                context,
+                s.expenseDetailAmount,
+                MoneyFormat.labeled(expense.amount, currency),
+              ),
               if (expense.notes != null && expense.notes!.trim().isNotEmpty)
                 _kv(context, s.expenseDetailNotes, expense.notes!),
               if (expense.parts.isNotEmpty)

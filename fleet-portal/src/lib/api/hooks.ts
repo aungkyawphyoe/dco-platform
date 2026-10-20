@@ -22,6 +22,8 @@ import type {
   OrgWorkshop,
   TemplateAssignment,
   TransferredVehicle,
+  VehicleClass,
+  VehicleCostMetrics,
   VehicleCreateInput,
   VehiclePlanItem,
   VehicleServiceRecord,
@@ -130,7 +132,7 @@ export function useVehicleAnalytics(orgId: string | null, vehicleId: string | nu
   return useQuery({
     queryKey: ["fleet", "vehicle-analytics", orgId, vehicleId],
     queryFn: () =>
-      apiGet<Record<string, number>>(
+      apiGet<VehicleCostMetrics>(
         orgPath(orgId, `/analytics/vehicle/${vehicleId}`),
       ),
     enabled: Boolean(orgId && vehicleId),
@@ -523,10 +525,16 @@ export function useDeleteMaintenanceTemplate(orgId: string | null) {
 export function useAssignVehicleTemplate(orgId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ vehicleId, templateId }: { vehicleId: string; templateId: string | null }) =>
+    mutationFn: ({
+      vehicleId,
+      vehicleClass,
+    }: {
+      vehicleId: string;
+      vehicleClass: VehicleClass | null;
+    }) =>
       apiPut<TemplateAssignment>(
         orgPath(orgId, `/vehicles/${vehicleId}/maintenance-template`),
-        { template_id: templateId },
+        { vehicle_class: vehicleClass },
       ),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
@@ -537,11 +545,12 @@ export function useAssignVehicleTemplate(orgId: string | null) {
 export function useGenerateMaintenancePlan(orgId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (vehicleId: string) =>
+    mutationFn: ({ vehicleId, itemIds }: { vehicleId: string; itemIds: string[] }) =>
       apiPost<GeneratePlanResult>(
         orgPath(orgId, `/vehicles/${vehicleId}/maintenance-template/generate`),
+        { item_ids: itemIds },
       ),
-    onSuccess: (_result, vehicleId) => {
+    onSuccess: (_result, { vehicleId }) => {
       qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
       qc.invalidateQueries({ queryKey: ["fleet", "vehicle-plan", orgId, vehicleId] });
     },

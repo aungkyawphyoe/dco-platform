@@ -6,12 +6,8 @@ Fleet Management enables **business accounts** (showrooms, dealerships, taxi fle
 
 **Status:** Partial — backend, Fleet Portal (`fleet-portal/`, `dco-fleet`), mobile Driver mode, and Web Admin organization provisioning implemented; Workshop Portal still planned (Phase 3, Year 2). Web Admin does not import initial vehicles during provisioning — seed inventory via the Fleet Portal CSV import after activation.
 **Requirement alignment (October 2026 — implemented):** Enterprise access-model shift confirmed by grilling: (1) Fleet Portal sidebar visibility is role-based — full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`; (2) AutoX Admin provisions the Fleet Admin account with email + temporary password (invite-email provisioning retires); (3) drivers are created/deactivated by the Fleet Admin — ~~username + password and no email~~ superseded: drivers are created on the Fleet Portal **Members** page by **email** (see *Confirmed Access Decisions* 15–24); (4) driver login forces Driver mode; (5) driver deactivation is a soft delete that cascades to active assignments and reserves the username. See *Confirmed Access Decisions* 7–24.
-**Driver surface realignment (October 2026 — second grilling; implemented — mobile + backend + Fleet Portal, merged Oct 2026):** Driver mode now mirrors the personal app: **same four tabs** (Garage / Maintenance / Expenses / Settings) and the same screens, with driver-mode repositories mapping to org endpoints (`/organizations/:id/*`, `/drivers/*`) — online-first, no Drift/outbox for org data. Driver-only entry points (**Report Issue**, **Start Inspection**, Refuel, Notes) live in the Dashboard **Quick Actions** grid. Drivers log maintenance from the Maintenance tab through a **Report | Do myself** flow (Report → work order; Do myself → service record). **Shift start/end and live odometer capture are retired** — vehicle mileage is log-driven only (service records + fuel logs), same as personal mode. Drivers are **banned from the personal garage** (server-enforced) but see their assigned vehicle read-only in the Garage tab. On the Fleet Portal, work-order completion now **requires cost** and auto-creates a service record; vehicle detail gains read-only **Service history** and **Maintenance plan** cards. See *Confirmed Access Decisions* 15–24.
-**Mobile surface (October 2026 — implemented):** the mobile app serves personal owners and the restricted **Driver** surface only. Fleet management (members, inventory, assignments, work-order resolution, analytics/reports, warranty templates, transfers) lives exclusively on the Fleet Portal; management API routes require the `dco-fleet` audience and are unreachable from mobile's `dco-owner` token. Non-driver org members (`org_admin`/`org_manager`/`org_mechanic`) keep mobile login for their personal garage but have no fleet surface on mobile.
-**Maintenance templates (October 2026 — implemented):** vehicle-class maintenance templates (car/motorcycle/truck/van/bus) — platform-seeded globals plus org-scoped copies managed on the Fleet Portal **Maintenance Catalog** page (renamed from "Maintenance Templates" 18 Oct 2026 — cross-portal standardization, contract: [`fleet-maintenance-templates.md`](fleet-maintenance-templates.md) locked decision 12); per-vehicle assignment; one-time plan snapshot generation on assignment. Drivers view the generated plan and add items from the template set's suggested list in Driver mode.
-**Mobile implementation deviations:** the Workshop mobile screen (`dco-workshop` surface) is not implemented.
-**Contract:** This FRD extends `product/mvp-scope.md` and `architecture/iam.md`.  
-**Surfaces:** Mobile (Flutter — personal owners + fleet drivers), Backend (REST API), Fleet Dashboard (Next.js — `fleet.yourdomain.com` — full fleet management for Fleet Owners/Managers), Web Admin (Next.js — `admin.yourdomain.com` — AutoX user management, organization provisioning/activation, and read-only fleet support).
+**Driver realignment (approved 18 October 2026):** [Personal / Driver realignment](mobile-personal-driver-realignment-plan.md) replaces the former online-first, fuel-only, Report/Do myself design. Core screens and forms are shared; organization records are offline-capable and logically scoped. Full assigned-vehicle history and totals are visible. Drivers can log ordinary completed services and all expense categories; Fleet Admin manages vehicles and plans. Issue reports and inspections stay separate.
+
 
 ### Account Plans and Feature Entitlements
 
@@ -74,7 +70,7 @@ Enable organizations to:
 - Work order entity (driver reports, 3-step lifecycle: reported → in_progress → completed; optional `plan_item_id` linkage; completion requires cost → auto service record)
 - Inspection entity (template-based checklists, pre-trip/post-trip/random)
 - Inspection templates (configurable checklist items per org)
-- Driver assignment entity (vehicle ↔ driver, one active assignment at a time)
+- Driver assignment entity (vehicle ↔ driver, many-to-many; unique active pair)
 - Driver maintenance logging: do-myself service records (`POST /drivers/vehicles/:id/service-records`, plan-linked or free-text) and Report-branch work orders
 - ~~Shift mileage tracking (start/end odometer per shift)~~ **retired October 2026** — mileage is log-driven only
 - Cost analytics engine (TCO, cost-per-mile, lemon detection using maintenance + fuel + wear items)
@@ -82,12 +78,12 @@ Enable organizations to:
 
 ### Mobile (Flutter)
 - **Personal garage**: unchanged for personal owners; non-driver org members keep login for their personal garage only (no fleet surface)
-- **Driver Mode**: forced on login for `org_driver`, no mode toggle — **same four tabs and same screens as personal mode** (Garage / Maintenance / Expenses / Settings); driver-mode repositories map to org endpoints (`/organizations/:id/*`, `/drivers/*`), online-first (no Drift/outbox for org data)
+- **Driver Mode**: forced on login for `org_driver`, no mode toggle — **same four tabs and same screens as personal mode** (Garage / Maintenance / Expenses / Settings); driver-mode repositories map to org endpoints (`/organizations/:id/*`, `/drivers/*`), account/organization-scoped Drift and outbox
 - **Driver differences from personal mode**:
-  - Garage tab: assigned org vehicle shown **read-only** (single row in My Garage, "+" hidden, no edit/add/archive); spend/expense cards hidden (driver has fuel logs only, no expenses)
+  - Garage tab: all assigned vehicles shown with read-only master data, an active-vehicle selector, and full history/totals
   - Expenses tab: **fuel logs only** (existing org fuel endpoints) — no generic expense CRUD
   - Dashboard Quick Actions: **Report Issue · Start Inspection · Refuel · Notes** (personal set: Log Service · History · Refuel · Notes)
-  - Maintenance tab: plan (read-only + suggested add) + **Register service** form with **Report | Do myself** branches + merged history (service records + maintenance-Report work orders)
+  - Maintenance tab: read-only admin plans, shared completed-service form, and full assigned-vehicle history.
   - Pushed **Reports** screen (Quick Action): own inspections + Report-Issue work orders
   - Personal-garage routes are **server-denied** (403) while an `org_driver` role or active driver assignment exists; Notes stay local-only personal
 - **Buyer Claim Flow**: Auto-assigned vehicle appears in buyer's personal garage with full history
@@ -414,7 +410,7 @@ Enable organizations to:
 - `org_admin` (Fleet Owner): Full access — manage org, members, vehicles, templates, transfers, cost analytics, work order approval
 - `org_manager` (Fleet Manager): Vehicle CRUD, log service, update status, manage inventory, approve work orders, view reports. Cannot manage members or org settings
 - `org_mechanic`: Log service, view vehicles. Cannot add vehicles, manage templates, or transfer
-- `org_driver` (Driver): Register maintenance (Report | Do myself), complete inspections, report issues, log fuel (entering and seeing its own cost — Decision 14), view assigned vehicle only. Cannot see fleet cost analytics, other vehicles, or org management
+- `org_driver` (Driver): shared maintenance, expense, fuel and document logging; full assigned-vehicle history and costs; own-record corrections subject to admin locks. Issue reports and inspections remain separate. Org-wide analytics and management stay in the portal.
 - A user can only be invited if they don't already belong to an org
 - Any member role grants access to the Fleet context only while the organization is active; the role grants only the operations listed for that role
 - `organization_members.role` is separate from `users.role` and does not grant AutoX Admin privileges
@@ -670,8 +666,8 @@ Enable organizations to:
 | `status` | `active` \| `completed` |
 
 **Rules:**
-- One active assignment per driver at a time
-- One active assignment per vehicle at a time
+- A Driver may hold multiple active vehicle assignments
+- A vehicle may have multiple assigned Drivers; duplicate active organization/Driver/vehicle links are rejected
 - Driver must have `org_driver` role in the org
 - Owner/Manager assigns and unassigns
 - `completed` assignments are historical records (unassigned_at is set)
@@ -857,22 +853,21 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 
 #### Driver Mode (Personal Parity View)
 - Entry: login as a driver → **forced directly into Driver mode** (no Personal/Fleet toggle is offered to `org_driver` accounts)
-- **Same four tabs as personal mode**: Garage / Maintenance / Expenses / Settings — same screens, driver-mode repositories mapping to org endpoints (online-first)
-- **Dashboard (Garage tab)**: personal `DashboardScreen` with the assigned org vehicle as the active vehicle; **Quick Actions = Report Issue · Start Inspection · Refuel · Notes** (personal set is Log Service · History · Refuel · Notes); spend/expense cards hidden
-- **Garage**: assigned vehicle read-only — My Garage shows a single read-only row, "+" hidden, tap → read-only detail (no edit/archive/share)
-- **Maintenance**: plan (read-only + suggested add) · Register service (**Report | Do myself**) · merged history (service records as Completed, maintenance-Report work orders as Reported→Completed)
-- **Expenses**: fuel logs only (list + entry) — no generic expense CRUD
+- **Same four tabs as personal mode**: Garage / Maintenance / Expenses / Settings — same screens, scoped local repositories and organization sync
+- **Dashboard (Garage tab)**: personal `DashboardScreen` with the assigned org vehicle as the active vehicle; the shared quick actions plus Report Issue, Start Inspection and Reports; full assigned-vehicle totals
+- **Garage**: assigned vehicle read-only — My Garage lists all assigned vehicles, "+" hidden, tap → read-only detail (no edit/archive/share)
+- **Maintenance**: read-only admin plans, shared completed-service form, and full assigned-vehicle history.
+- **Expenses**: all existing Personal categories, full assigned-vehicle history and totals
 - **Settings**: own profile, change password (required on first login when `must_change_password`), sign out; sharing entry points removed
 - Pushed **Reports** screen (Dashboard quick action): own inspections + Report-Issue work orders with status chips
-- Cannot see: costs, analytics, other vehicles, org settings, member management — and cannot create/edit/delete vehicles or any user record beyond their own profile; personal-garage routes return 403 server-side
+- Cannot access unassigned vehicles or organization management. Full costs and history are available for assigned vehicles. Vehicle master data and plan changes remain admin-only.
 
-#### Driver - Register Service (Report | Do myself) Screen
-- Entry: Maintenance tab → **Register service** button (free-text logging entry; plan rows also offer "Log")
-- Segmented control: **Report | Do myself** (default: Do myself)
-- Shared fields: date (default today), odometer (required, auto-filled from `vehicles.mileage`), item (plan-item picker **or free-text**), cost (**required** — drivers who don't know the cost contact the fleet admin), notes, optional receipt photo
-- **Do myself** → `POST /drivers/vehicles/:vehicleId/service-records` → history row appears immediately as **Completed**; when a plan item was picked it is linked (`service_record_items.plan_item_id`) and its `nextDueMileage`/`nextDueOn` advance; **free-text logs are orphans** — they never touch any plan
-- **Report** → creates a work order (`scheduled_service`, optional `plan_item_id`) → history row shows **Reported**; flips to **Completed** when the fleet completes the work order (refresh-driven — online-first, no push)
-- Drivers may also **add plan items from the suggested list** (existing flow) — but cannot author arbitrary plan items from the form beyond free-text history logs
+#### Driver - Register Service
+- Uses the same completed-service form as Personal: date, odometer, planned items or free-text work, cost, notes, optional receipt and parts.
+- No ordinary approval or Report/Do myself branch. Report Issue remains a separate action.
+- Planned records recalculate due dates from service history; unplanned records never create plans.
+- Own-record edits require the current revision. Admin-corrected records are read-only; stale offline changes enter review.
+- A service and its linked expense are applied together, including correction/deletion. Backdated logs never reduce the server vehicle mileage.
 
 #### Driver - Work Order / Report Issue Screen (standalone)
 - Entry: Dashboard Quick Actions → **Report Issue** (standalone — not absorbed into Register service)
@@ -897,7 +892,7 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 - Reuses the personal-mode fuel log form; writes to the org fuel endpoint; bumps `vehicles.mileage`
 
 #### Driver - My Garage / Vehicle detail (read-only)
-- My Garage: single row for the assigned org vehicle; "+" hidden; no edit/archive/share actions
+- My Garage: all assigned vehicles; active-vehicle selector; no edit/archive/share actions
 - Tap → read-only vehicle detail (photo, make/model, plate, year, VIN, fuel type, documents, maintenance schedule)
 - Header vehicle chip shows the assigned vehicle; no vehicle switcher (exactly one vehicle)
 
@@ -1082,13 +1077,13 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 12. **Driver mode is derived** — effective mode comes from live entitlements; no stored mode preference
 13. **Archive-not-delete** — organizations are soft-archived, vehicles revert to owners
 14. **Invite email is one-time (legacy pending orgs only)** — pre-alignment pending org admins can be re-sent from the admin portal; new provisioning uses temporary passwords and sends no invite email
-15. **One active vehicle per driver** — driver cannot be assigned multiple vehicles simultaneously
-16. **One active driver per vehicle** — vehicle cannot have multiple active driver assignments
+15. **Multiple vehicles per Driver** — admins can assign multiple vehicles simultaneously (approved mobile realignment, 18 October 2026)
+16. **Multiple Drivers per vehicle** — shared vehicle access is allowed; duplicate active pairs are rejected
 17. **Work order status transitions** — reported → in_progress → completed (no skipping)
 18. **Inspection required items** — all required checklist items must be completed
 19. **Failed inspection auto-generates work order** — if any inspection item is not_ok
 20. **Mileage monotonicity** — logged odometer readings (service records, fuel logs) never decrease for a vehicle; mileage advances only through logs (shift capture retired)
-21. **Driver visibility is restricted** — drivers cannot see costs, analytics, other vehicles, or org settings; personal-garage routes are server-denied while `org_driver` role or an active assignment exists
+21. **Driver visibility is assignment-scoped** — full costs/history for assigned vehicles; no unassigned vehicles, org-wide analytics or management; personal-garage routes are server-denied while `org_driver` role or an active assignment exists
 22. **Lemon threshold default** — 2x fleet average cost-per-mile, org can override
 23. **Cost analytics uses existing data** — maintenance costs (service records), fuel costs (fuel logs), wear items (expenses)
 24. **Revenue label is informational only** — no payment processing or financial calculations
@@ -1105,11 +1100,11 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 35. **Login accepts email or username** — `users.username` remains a globally unique identifier (backfilled, reserved on deactivation); customer signup remains email-required; driver accounts are email-bearing (created via Members)
 36. **Temporary passwords are forced to change** — `must_change_password` blocks fleet/driver API access (except profile/password routes) until changed; backend-enforced, not a UI prompt
 37. **Driver deactivation is a soft delete** — status `deactivated`, login blocked, active assignment cascaded to completed, history retained and attributed, reactivation allowed, username reserved forever
-38. **Driver login forces Driver mode** — `org_driver` accounts never see Personal/Fleet mode toggles; they get the personal four-tab layout with org data (read-only Garage, fuel-only Expenses)
+38. **Driver login forces Driver mode** — `org_driver` accounts never see Personal/Fleet mode toggles; they get the personal four-tab layout with org data (read-only vehicle master data, full Expenses)
 39. **Fleet Admin is provisioned by AutoX Admin with email + temporary password** — invite-email provisioning retired for new orgs; exactly one admin per org, created only by AutoX Admin (admin transfer remains open decision #3)
 40. **Driver password recovery is email-based** — driver accounts always have an email (Members creation), so standard email recovery applies; temporary passwords are still handed over out-of-band at creation
 41. **Drivers cannot write user records** — a driver may edit only their own profile/password; no vehicle, org, or other-user create/edit/delete (server-enforced); personal-garage routes return 403
-42. **Driver maintenance logging is Report | Do myself** — Report creates a work order (appears in Maintenance history as Reported); Do myself writes a service record immediately Completed; cost is always required (contact fleet admin when unknown); free-text logs never touch a plan
+42. **Driver maintenance logging** uses the same completed-service form as Personal. Report Issue remains separate. Planned records recalculate due dates; unplanned records never create plans.
 43. **Work-order completion requires cost** — Admin/Manager only; completion auto-creates a service record at the **report-time odometer** and advances the linked plan item (`work_orders.plan_item_id`); the auto service record is portal-only, never shown to the driver
 44. **Work orders appear where they were created** — maintenance-Report WOs in Maintenance history; Report-Issue WOs in the pushed Reports screen; no duplicates across feeds
 45. **Vehicle mileage is log-driven only** — service records and fuel logs bump `vehicles.mileage`; odometer fields auto-fill from it; shift mileage is retired
@@ -1412,15 +1407,14 @@ Platform Admin (Web Admin Portal)
 | Admin email not found (invite) | 404 `user_not_found` |
 | Workshop: vehicle not assigned | 404 `vehicle_not_assigned` |
 | Org archived | 410 `org_archived` |
-| Driver already has active assignment | 409 `driver_already_assigned` |
-| Vehicle already has active driver | 409 `vehicle_already_assigned` |
+| Same Driver already has active access to this vehicle | 409 `assignment_already_active` |
 | Work order: invalid status transition | 400 `invalid_work_order_status` |
 | Inspection: required item not completed | 400 `inspection_incomplete` |
 | Mileage: end < start | 400 `invalid_odometer_range` |
 | Mileage: start < previous end | 400 `odometer_regression` |
 | Driver: not assigned to vehicle | 403 `not_assigned_to_vehicle` |
 | Driver: cannot view other vehicles | 403 `driver_access_restricted` |
-| Driver: cannot view costs/analytics | 403 `driver_no_cost_access` |
+| Driver: cannot view org-wide analytics | 403 `driver_no_cost_access` |
 | Username already taken | 409 `username_taken` |
 | Invalid username format | 400 `invalid_username` |
 | Temporary password not yet changed | 403 `password_change_required` |
@@ -1437,7 +1431,7 @@ Platform Admin (Web Admin Portal)
 
 ## Non-Functional Requirements
 
-- **Offline-first**: personal-mode data syncs via the existing change log; the **Driver surface is online-first by contract** — driver lists/forms read and write over HTTP (entitlements JSON cached in `AppMeta` as offline fallback), no Drift/outbox for org data
+- **Offline-first**: Personal and Driver core records use local Drift plus scoped outbox/sync; fleet-only issue and inspection workflows remain online.
 - **Load time**: Vehicle inventory < 2s (local DB), Org management < 1.5s, Cost analytics < 3s (on demand)
 - **Security**: Workshop access validated server-side on every request; buyer info not exposed to workshops; driver access restricted to assigned vehicle only
 - **CSV import**: Process in background, return job ID, poll for results
@@ -1584,7 +1578,7 @@ Platform Admin (Web Admin Portal)
 - **Partners table**: Add `workshop_account` flag for workshop AutoX accounts
 - **Users table**: Add `username` (NOT NULL after backfill, globally unique), make `email` nullable (Postgres UNIQUE already permits multiple NULLs), add `must_change_password` boolean; backfill usernames from email local part (collisions suffixed `_2`, `_3`, …); `status=deactivated` reused for driver soft delete with assignment cascade
 - **Sync**: New entity types `organization`, `organization_member`, `organization_vehicle`, `warranty_template`, `vehicle_warranty`, `transferred_vehicle`, `work_order`, `inspection`, `inspection_template`, `driver_assignment`
-- **Mobile Drift**: personal-mode only — the Driver surface is **online-first** (no Drift/outbox tables for org data; entitlements cached in `AppMeta`)
+- **Mobile Drift**: Personal and organization records use separate local scopes; Driver account and organization determine the database and cursor.
 - **Fleet Dashboard (fleet.yourdomain.com)**: New Next.js app with desktop-optimized layout, sidebar navigation, data tables, charts. SSO uses `dco-fleet`; full fleet management requires active Enterprise membership.
 - **Web Admin (admin.yourdomain.com)**: User management plus AutoX-only org provisioning/activation. Routes include `/users`, `/support`, `/organizations`, and `/fleet-view` (read-only fleet support).
 - **Admin API**: User and organization management endpoints (`/v1/admin/users/*`, `/v1/admin/organizations/*`, `/v1/admin/support/*`, `/v1/admin/fleet-view`)
@@ -1614,9 +1608,9 @@ Platform Admin (Web Admin Portal)
 ### Driver Surface Decisions (October 2026 — second grilling)
 
 15. **Driver creation is Members-only and email-based** — role `org_driver` + temporary password; **409 `personal_account_exists`** when the email belongs to any existing account (alert: "This email already has a personal account. Try again with a different email address."). `POST /organizations/:id/drivers` and Web Admin driver endpoints/UI are deleted (enforcing decision 13). Every driver account therefore has an email and standard email recovery applies.
-16. **Driver mode = personal parity** — same four tabs (Garage / Maintenance / Expenses / Settings) and same screens as personal mode; driver-mode repositories map to org endpoints (`/organizations/:id/*`, `/drivers/*`); online-first retained (no Drift/outbox for org data). The 3-tab shell (My Vehicle / My Reports) is removed; Reports becomes a pushed screen.
-17. **Driver Quick Actions** — Dashboard grid shows **Report Issue · Start Inspection · Refuel · Notes**; personal mode keeps Log Service · History · Refuel · Notes. Report Issue stays a **standalone** screen (not absorbed into Register service).
-18. **Driver maintenance logging = Report | Do myself** (Maintenance tab → Register service): Report creates a work order (`scheduled_service`, optional `plan_item_id`) shown as **Reported** in Maintenance history; Do myself writes a service record shown as **Completed** immediately. Cost is **required** on both paths (contact fleet admin when unknown). Plan-linked logs advance the plan item; **free-text do-myself logs are orphans** (never touch a plan). Suggested-item adds remain available.
+16. **Driver mode = personal parity** — same four tabs (Garage / Maintenance / Expenses / Settings) and same screens as personal mode; driver-mode repositories map to org endpoints (`/organizations/:id/*`, `/drivers/*`); account/organization-scoped Drift and outbox. The 3-tab shell (My Vehicle / My Reports) is removed; Reports becomes a pushed screen.
+17. **Driver Quick Actions** — the shared Personal actions plus Report Issue, Start Inspection and Reports.
+18. **Driver maintenance logging** — shared completed-service form; planned and unplanned work, no ordinary approval. Drivers cannot create or edit plans. Report Issue remains separate.
 19. **Work-order completion requires cost** — Admin/Manager only; auto-creates a service record using the **report-time odometer**, with notes and parts (free-text parts allowed — `service_record_parts.part_id` nullable); plan-linked WOs advance the plan item (`work_orders.plan_item_id` added). The auto service record is portal-side only — the driver's history shows the **WO row** carrying the status (no duplicate rows); Reported→Completed flips on refresh.
 20. **Work orders appear where they were created** — maintenance-Report WOs in Maintenance history; Report-Issue WOs in the pushed Reports screen (which also lists the driver's inspections).
 21. **Shift mileage is retired** — `shift_mileage` table and routes deleted; mileage is log-driven only (service records + fuel logs bump `vehicles.mileage`); odometer fields auto-fill from `vehicles.mileage`; cost-per-mile distance derives from logged odometer readings.

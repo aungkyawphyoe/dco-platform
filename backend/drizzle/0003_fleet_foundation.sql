@@ -102,10 +102,16 @@ CREATE TABLE IF NOT EXISTS driver_assignments (
   status assignment_status NOT NULL DEFAULT 'active'
 );
 CREATE INDEX IF NOT EXISTS driver_assignments_org_idx ON driver_assignments(org_id);
+-- Startup replays migrations. Do not recreate retired exclusive indexes after
+-- the many-to-many migration has been applied.
+DO $$ BEGIN
+  IF to_regclass('driver_assignments_active_pair_unique') IS NULL THEN
 CREATE UNIQUE INDEX IF NOT EXISTS driver_assignments_active_driver_unique
   ON driver_assignments(driver_id) WHERE status = 'active';
 CREATE UNIQUE INDEX IF NOT EXISTS driver_assignments_active_vehicle_unique
   ON driver_assignments(vehicle_id) WHERE status = 'active';
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS work_orders (
   id uuid PRIMARY KEY,

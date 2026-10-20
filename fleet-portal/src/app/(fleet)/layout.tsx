@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useSession, useOrgRole } from "@/lib/auth/session-context";
-import { Card } from "@/components/ui/card";
+import { Card } from "@dco/ui/components/card";
 
 export default function FleetLayout({ children }: { children: React.ReactNode }) {
   const { ready, user, org, passwordChangeRequired } = useSession();

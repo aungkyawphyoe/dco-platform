@@ -1,16 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { EmptyState } from "@/components/ui/empty-state";
-import { Modal } from "@/components/ui/modal";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { Badge } from "@dco/ui/components/badge";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { Modal } from "@dco/ui/components/modal";
 import { QrCodeModal } from "@/components/ui/qr-code-modal";
 import {
   Table,
@@ -19,8 +18,8 @@ import {
   TableRow,
   TableHeadCell,
   TableCell,
-} from "@/components/ui/table";
-import { SkeletonTable } from "@/components/ui/skeleton";
+} from "@dco/ui/components/table";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
 import {
   useCancelShareInvite,
   useCreateVehicleShare,
@@ -128,17 +127,17 @@ export default function VehicleSharesPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title={`Share — ${vehicleName}`}
-        description={
-          data ? `License plate ${data.vehicle.license_plate}` : "Loading vehicle…"
+        backHref="/vehicles"
+        backLabel="Back to vehicles"
+        title={vehicleName}
+        status={
+          data ? (
+            <span className="font-mono text-sm text-ink-caption">
+              {data.vehicle.license_plate}
+            </span>
+          ) : undefined
         }
-        actions={
-          <Link href="/vehicles">
-            <Button variant="secondary" size="sm">
-              Back to vehicles
-            </Button>
-          </Link>
-        }
+        meta="Sharing and access"
       />
 
       {detail.error ? (
@@ -393,7 +392,7 @@ export default function VehicleSharesPage() {
               {shareCode ? (
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <p className="text-label uppercase tracking-wide text-ink-caption">
+                    <p className="text-xs font-medium text-ink-caption">
                       Share code
                     </p>
                     <p className="font-mono text-2xl tracking-[0.3em] text-gold">

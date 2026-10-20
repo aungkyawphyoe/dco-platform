@@ -3,8 +3,8 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
 import { useSession } from "@/lib/auth/session-context";
 
 export default function ChangePasswordPage() {

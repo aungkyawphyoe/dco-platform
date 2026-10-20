@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Modal } from "@/components/ui/modal";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { Modal } from "@dco/ui/components/modal";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
+import { InstrumentBand } from "@dco/ui/components/instrument-band";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { Stat } from "@dco/ui/components/stat";
 import {
   Table,
   TableBody,
@@ -17,7 +20,7 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import { useInviteMember, useMembers, useUpdateMember } from "@/lib/api/hooks";
 import { orgRoleLabel } from "@/lib/api/types";
 import { useOrgId, useOrgRole, useSession } from "@/lib/auth/session-context";
@@ -91,25 +94,35 @@ export default function MembersPage() {
   }
 
   const members = data?.items ?? [];
+  const countByRole = (target: string) => members.filter((m) => m.role === target).length;
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Members"
+        meta={members.length ? `${members.length} people in this organization` : undefined}
         description="Add managers, mechanics, and drivers; manage roles"
-        actions={
-          isAdmin ? <Button onClick={() => setShowInvite(true)}>Add member</Button> : null
-        }
+        actions={isAdmin ? <Button onClick={() => setShowInvite(true)}>Add member</Button> : null}
       />
 
       {inviteResult ? (
         <Card className="p-4 text-sm text-success">{inviteResult}</Card>
       ) : null}
 
+      <InstrumentBand>
+        <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-4">
+          <Stat label="Admins" value={countByRole("org_admin").toLocaleString()} />
+          <Stat label="Managers" value={countByRole("org_manager").toLocaleString()} />
+          <Stat label="Mechanics" value={countByRole("org_mechanic").toLocaleString()} />
+          <Stat label="Drivers" value={countByRole("org_driver").toLocaleString()} />
+        </div>
+      </InstrumentBand>
+
       <Card>
+        <SectionHeading title="Team" count={members.length} />
         {isLoading ? (
           <div className="p-5">
-            <SkeletonTable rows={4} cols={4} />
+            <SkeletonTable rows={4} cols={3} />
           </div>
         ) : members.length === 0 ? (
           <EmptyState title="No members" description="Invite your organization team." />
@@ -119,7 +132,6 @@ export default function MembersPage() {
               <TableRow>
                 <TableHeadCell>Member</TableHeadCell>
                 <TableHeadCell>Role</TableHeadCell>
-                <TableHeadCell>Badge</TableHeadCell>
                 <TableHeadCell />
               </TableRow>
             </TableHead>
@@ -127,7 +139,12 @@ export default function MembersPage() {
               {members.map((member) => (
                 <TableRow key={member.user_id}>
                   <TableCell>
-                    <p className="text-ink">{member.display_name || "—"}</p>
+                    <p className="text-ink">
+                      {member.display_name || "—"}
+                      {member.user_id === user?.id ? (
+                        <span className="ml-2 text-xs text-ink-caption">You</span>
+                      ) : null}
+                    </p>
                     <p className="text-xs text-ink-caption">{member.email}</p>
                   </TableCell>
                   <TableCell>
@@ -145,13 +162,10 @@ export default function MembersPage() {
                         ))}
                       </select>
                     ) : (
-                      orgRoleLabel[member.role] ?? member.role
+                      <Badge tone={member.role === "org_admin" ? "info" : "neutral"}>
+                        {orgRoleLabel[member.role] ?? member.role}
+                      </Badge>
                     )}
-                  </TableCell>
-                  <TableCell>
-                    <Badge tone={member.role === "org_admin" ? "info" : "neutral"}>
-                      {orgRoleLabel[member.role] ?? member.role}
-                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     {isAdmin && member.role !== "org_admin" && member.user_id !== user?.id ? (
@@ -205,12 +219,10 @@ export default function MembersPage() {
             placeholder="Leave blank to auto-generate"
             minLength={8}
             maxLength={128}
-            hint="Used only when this email has no account yet. The password is shown once after adding — no email is sent."
+            hint="Used only when this email has no account yet. The password is shown once after adding, and no email is sent."
           />
           {error ? (
-            <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">
-              {error}
-            </p>
+            <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">{error}</p>
           ) : null}
         </div>
       </Modal>
@@ -227,8 +239,8 @@ export default function MembersPage() {
             Account created for <strong>{provisioned?.email}</strong>.
           </p>
           <p>
-            Share this temporary password with the member. No email is sent —
-            they must change it on first sign-in.
+            Share this temporary password with the member. No email is sent. They must change it on
+            first sign-in.
           </p>
           <div className="break-all rounded-md bg-field p-3 font-mono text-sm text-ink">
             {provisioned?.password}

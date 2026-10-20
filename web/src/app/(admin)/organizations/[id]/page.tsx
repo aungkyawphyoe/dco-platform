@@ -1,15 +1,16 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
-import { Skeleton } from "@/components/ui/skeleton";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { Button } from "@dco/ui/components/button";
+import { Modal } from "@dco/ui/components/modal";
+import { Skeleton } from "@dco/ui/components/skeleton";
 import { OrganizationStatusBadge, OrganizationTypeBadge } from "@/components/ui/status-badge";
+import { SectionHeading } from "@dco/ui/components/section-heading";
+import { DataPlate } from "@dco/ui/components/data-plate";
 import {
   useAdminOrganization,
   useResendOrganizationInvite,
@@ -187,15 +188,11 @@ export default function OrganizationDetailPage({
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        backHref="/organizations"
+        backLabel="Back to organizations"
         title={organization.name}
-        description="Enterprise organization — provisioning and lifecycle"
-        actions={
-          <Link href="/organizations">
-            <Button variant="secondary" size="sm">
-              Back to organizations
-            </Button>
-          </Link>
-        }
+        status={<OrganizationStatusBadge status={status} />}
+        meta="Provisioning and lifecycle"
       />
 
       {saved && (
@@ -215,11 +212,9 @@ export default function OrganizationDetailPage({
       )}
 
       <div className="grid max-w-4xl gap-6 lg:grid-cols-2">
-        <Card className="p-6">
-          <h2 className="font-display text-base font-semibold text-ink">
-            Details
-          </h2>
-          <form onSubmit={handleSave} className="mt-5 flex flex-col gap-5">
+        <Card className="flex flex-col">
+          <SectionHeading title="Details" />
+          <form onSubmit={handleSave} className="flex flex-col gap-5 p-6">
             <Input
               label="Name"
               value={name}
@@ -268,62 +263,50 @@ export default function OrganizationDetailPage({
         </Card>
 
         <div className="flex flex-col gap-6">
-          <Card className="p-6">
-            <h2 className="font-display text-base font-semibold text-ink">
-              Status &amp; access
-            </h2>
-            <dl className="mt-4 flex flex-col gap-3 text-sm">
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-ink-caption">Status</dt>
-                <dd>
-                  <OrganizationStatusBadge status={status} />
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-ink-caption">Type</dt>
-                <dd>
-                  <OrganizationTypeBadge type={organization.type} />
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-ink-caption">Plan</dt>
-                <dd className="text-ink">{organization.plan}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-ink-caption">Org Admin</dt>
-                <dd className="truncate text-ink">{organization.admin_email ?? "—"}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-ink-caption">Members</dt>
-                <dd className="text-ink">{organization.member_count}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-ink-caption">Created</dt>
-                <dd className="text-ink">
-                  {dateFormat.format(new Date(organization.created_at))}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-4">
-                <dt className="text-ink-caption">Activated</dt>
-                <dd className="text-ink">
-                  {organization.activated_at
-                    ? dateFormat.format(new Date(organization.activated_at))
-                    : "—"}
-                </dd>
-              </div>
-            </dl>
+          <Card className="flex flex-col">
+            <SectionHeading title="Status and access" />
+            <div className="p-5">
+              <DataPlate
+                className=""
+                fields={[
+                  {
+                    label: "Status",
+                    value: <OrganizationStatusBadge status={status} />,
+                    mono: false,
+                  },
+                  {
+                    label: "Type",
+                    value: <OrganizationTypeBadge type={organization.type} />,
+                    mono: false,
+                  },
+                  { label: "Plan", value: organization.plan },
+                  { label: "Org Admin", value: organization.admin_email ?? "—" },
+                  { label: "Members", value: organization.member_count, mono: true },
+                  {
+                    label: "Created",
+                    value: dateFormat.format(new Date(organization.created_at)),
+                    mono: true,
+                  },
+                  {
+                    label: "Activated",
+                    value: organization.activated_at
+                      ? dateFormat.format(new Date(organization.activated_at))
+                      : "—",
+                    mono: true,
+                  },
+                ]}
+              />
+            </div>
           </Card>
 
-          <Card className="p-6">
-            <h2 className="font-display text-base font-semibold text-ink">
-              Actions
-            </h2>
+          <Card className="flex flex-col">
+            <SectionHeading title="Actions" />
             {isArchived ? (
-              <p className="mt-3 text-sm text-ink-caption">
+              <p className="p-5 text-sm text-ink-caption">
                 This organization is archived. No actions are available.
               </p>
             ) : (
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="flex flex-wrap gap-3 p-5">
                 {(status === "pending" || status === "suspended") && (
                   <Button size="sm" onClick={() => setPendingAction("activate")}>
                     Activate

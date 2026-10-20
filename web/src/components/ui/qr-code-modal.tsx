@@ -2,8 +2,8 @@
 
 import QRCodeStyling from "qr-code-styling";
 import { useEffect, useRef } from "react";
-import { Modal } from "./modal";
-import { Button } from "./button";
+import { Modal } from "@dco/ui/components/modal";
+import { Button } from "@dco/ui/components/button";
 
 export function QrCodeModal({
   open,

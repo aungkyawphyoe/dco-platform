@@ -2,16 +2,16 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Modal } from "@/components/ui/modal";
-import { SearchInput } from "@/components/ui/search-input";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { Modal } from "@dco/ui/components/modal";
+import { SearchInput } from "@dco/ui/components/search-input";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
 import {
   Table,
   TableBody,
@@ -19,7 +19,7 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import {
   useBulkVehicleStatus,
   useCreateVehicle,
@@ -28,20 +28,18 @@ import {
   useUpdateVehicleStatus,
   useVehicles,
 } from "@/lib/api/hooks";
-import { lifecycleTransitions, vehicleClassOptions, type VehicleCreateInput } from "@/lib/api/types";
+import {
+  lifecycleTemplateOptions,
+  vehicleClassOptions,
+  lifecycleTransitions,
+  type VehicleCreateInput,
+} from "@/lib/api/types";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
-
-const lifecycleOptions = [
-  { value: "showroom", label: "Showroom" },
-  { value: "taxi_fleet", label: "Taxi fleet" },
-  { value: "rental", label: "Rental" },
-  { value: "commercial", label: "Commercial" },
-];
 
 const fuelOptions = [
   { value: "petrol", label: "Petrol" },
   { value: "electric", label: "Electric" },
-  { value: "hybrid_plugin", label: "Hybrid plugin" },
+  { value: "hybrid_plugin", label: "Hybrid" },
 ];
 
 const emptyForm: VehicleCreateInput = {
@@ -74,6 +72,8 @@ export default function VehiclesPage() {
   const { data, isLoading } = useVehicles(orgId);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [lifecycleFilter, setLifecycleFilter] = useState("");
+  const [classFilter, setClassFilter] = useState("");
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState<VehicleCreateInput>({ ...emptyForm, id: crypto.randomUUID() });
@@ -88,10 +88,11 @@ export default function VehiclesPage() {
   const { data: importJob } = useImportJob(orgId, importJobId);
 
   const vehicles = useMemo(() => data?.items ?? [], [data]);
-  const statuses = useMemo(
-    () => Array.from(new Set(vehicles.map((v) => v.status))).sort(),
-    [vehicles],
-  );
+  const statusCounts = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const v of vehicles) map.set(v.status, (map.get(v.status) ?? 0) + 1);
+    return [...map.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]));
+  }, [vehicles]);
 
   const filtered = vehicles.filter((v) => {
     const q = search.toLowerCase();
@@ -102,7 +103,9 @@ export default function VehiclesPage() {
       v.vin.toLowerCase().includes(q) ||
       `${v.make} ${v.model}`.toLowerCase().includes(q);
     const matchesStatus = !statusFilter || v.status === statusFilter;
-    return matchesSearch && matchesStatus;
+    const matchesLifecycle = !lifecycleFilter || v.lifecycle_template === lifecycleFilter;
+    const matchesClass = !classFilter || (v.vehicle_class ?? "car") === classFilter;
+    return matchesSearch && matchesStatus && matchesLifecycle && matchesClass;
   });
 
   function toggle(id: string) {
@@ -149,8 +152,12 @@ export default function VehiclesPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Vehicle Inventory"
-        description="Table view with filters and lifecycle status controls"
+        title="Vehicle inventory"
+        meta={
+          filtered.length === vehicles.length
+            ? `${vehicles.length} vehicles`
+            : `${filtered.length} of ${vehicles.length} vehicles`
+        }
         actions={
           <>
             {canImport ? (
@@ -165,14 +172,12 @@ export default function VehiclesPage() {
                     e.target.value = "";
                   }}
                 />
-                <span className="inline-flex h-11 cursor-pointer items-center justify-center rounded-md border border-line-strong bg-card px-5 font-display text-sm font-semibold text-ink transition-colors hover:bg-skeleton">
+                <span className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-line-strong bg-card px-4 font-display text-sm font-semibold text-ink transition-colors hover:bg-skeleton">
                   Import CSV
                 </span>
               </label>
             ) : null}
-            {canManage ? (
-              <Button onClick={() => setShowCreate(true)}>Add vehicle</Button>
-            ) : null}
+            {canManage ? <Button onClick={() => setShowCreate(true)}>Add vehicle</Button> : null}
           </>
         }
       />
@@ -180,13 +185,19 @@ export default function VehiclesPage() {
       {importJob ? (
         <Card className="p-4 text-sm">
           <p className="text-ink">
-            Import job <span className="font-mono">{importJob.job_id}</span> —{" "}
-            <Badge tone={importJob.status === "completed" ? "success" : importJob.status === "failed" ? "danger" : "info"}>
+            Import job <span className="font-mono">{importJob.job_id}</span>{" "}
+            <Badge
+              tone={
+                importJob.status === "completed"
+                  ? "success"
+                  : importJob.status === "failed"
+                    ? "danger"
+                    : "info"
+              }
+            >
               {importJob.status}
             </Badge>
-            {typeof importJob.total_rows === "number"
-              ? ` · ${importJob.total_rows} rows`
-              : ""}
+            {typeof importJob.total_rows === "number" ? `, ${importJob.total_rows} rows` : ""}
           </p>
           {importJob.results?.length ? (
             <ul className="mt-2 list-inside list-disc text-ink-caption">
@@ -198,43 +209,80 @@ export default function VehiclesPage() {
         </Card>
       ) : null}
 
-      <div className="flex flex-wrap items-end gap-3">
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Search name, plate, VIN…"
-          className="w-72"
-        />
-        <Select
-          label="Status"
-          options={statuses.map((s) => ({ value: s, label: s }))}
-          placeholder="All statuses"
-          value={statusFilter}
-          onChange={setStatusFilter}
-          className="w-44"
-        />
-        {canManage && selected.size > 0 ? (
-          <div className="flex items-end gap-2">
-            <Select
-              label="Bulk status"
-              options={[{ value: bulkStatus, label: bulkStatus || "Choose…" }].filter(
-                (o) => o.value,
-              )}
-              placeholder="Next status…"
-              value={bulkStatus}
-              onChange={setBulkStatus}
-              className="w-44"
-            />
-            <Button
-              size="sm"
-              className="h-11"
-              disabled={!bulkStatus || bulkUpdate.isPending}
-              onClick={() => void onBulkStatus()}
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setStatusFilter("")}
+            className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+              statusFilter === ""
+                ? "border-transparent bg-btn-primary font-semibold text-on-gold"
+                : "border-line-subtle bg-card text-ink-muted hover:border-line-strong hover:text-ink"
+            }`}
+          >
+            All <span className="font-mono">{vehicles.length}</span>
+          </button>
+          {statusCounts.map(([status, count]) => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setStatusFilter(statusFilter === status ? "" : status)}
+              className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                statusFilter === status
+                  ? "border-transparent bg-btn-primary font-semibold text-on-gold"
+                  : "border-line-subtle bg-card text-ink-muted hover:border-line-strong hover:text-ink"
+              }`}
             >
-              Apply to {selected.size}
-            </Button>
-          </div>
-        ) : null}
+              {status} <span className="font-mono">{count}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap items-end gap-3">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search name, plate, VIN…"
+            className="w-72"
+          />
+          <Select
+            label="Lifecycle"
+            options={lifecycleTemplateOptions}
+            placeholder="All lifecycles"
+            value={lifecycleFilter}
+            onChange={setLifecycleFilter}
+            className="w-44"
+          />
+          <Select
+            label="Class"
+            options={vehicleClassOptions}
+            placeholder="All classes"
+            value={classFilter}
+            onChange={setClassFilter}
+            className="w-44"
+          />
+          {canManage && selected.size > 0 ? (
+            <div className="flex items-end gap-2">
+              <Select
+                label="Bulk status"
+                options={[{ value: bulkStatus, label: bulkStatus || "Choose…" }].filter(
+                  (o) => o.value,
+                )}
+                placeholder="Next status…"
+                value={bulkStatus}
+                onChange={setBulkStatus}
+                className="w-44"
+              />
+              <Button
+                className="h-11"
+                disabled={!bulkStatus || bulkUpdate.isPending}
+                onClick={() => void onBulkStatus()}
+              >
+                Apply to {selected.size}
+              </Button>
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <Card>
@@ -244,8 +292,17 @@ export default function VehiclesPage() {
           </div>
         ) : filtered.length === 0 ? (
           <EmptyState
-            title="No vehicles"
-            description="Add vehicles one at a time or import a CSV."
+            title={vehicles.length === 0 ? "No vehicles yet" : "No vehicles match"}
+            description={
+              vehicles.length === 0
+                ? "Add vehicles one at a time, or import your inventory from a CSV."
+                : "Adjust the search or filters to see more of the fleet."
+            }
+            action={
+              vehicles.length === 0 && canManage ? (
+                <Button onClick={() => setShowCreate(true)}>Add vehicle</Button>
+              ) : null
+            }
           />
         ) : (
           <Table>
@@ -264,10 +321,10 @@ export default function VehiclesPage() {
                 ) : null}
                 <TableHeadCell>Vehicle</TableHeadCell>
                 <TableHeadCell>Plate</TableHeadCell>
+                <TableHeadCell>Class</TableHeadCell>
                 <TableHeadCell>Lifecycle</TableHeadCell>
                 <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>km</TableHeadCell>
-                <TableHeadCell>Driver</TableHeadCell>
+                <TableHeadCell>Distance</TableHeadCell>
                 <TableHeadCell />
               </TableRow>
             </TableHead>
@@ -289,25 +346,30 @@ export default function VehiclesPage() {
                       </TableCell>
                     ) : null}
                     <TableCell>
-                      <p className="font-medium text-ink">{vehicle.name}</p>
+                      <Link
+                        href={`/vehicles/${vehicle.id}`}
+                        className="font-medium text-ink hover:text-gold"
+                      >
+                        {vehicle.name}
+                      </Link>
                       <p className="text-xs text-ink-caption">
                         {vehicle.year} {vehicle.make} {vehicle.model}
                       </p>
                     </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {vehicle.license_plate}
+                    <TableCell className="font-mono text-xs">{vehicle.license_plate}</TableCell>
+                    <TableCell className="text-xs text-ink-muted">
+                      {vehicleClassOptions.find((o) => o.value === (vehicle.vehicle_class ?? "car"))
+                        ?.label ?? vehicle.vehicle_class}
                     </TableCell>
                     <TableCell className="text-xs text-ink-muted">
-                      {vehicle.lifecycle_template}
+                      {lifecycleTemplateOptions.find((o) => o.value === vehicle.lifecycle_template)
+                        ?.label ?? vehicle.lifecycle_template}
                     </TableCell>
                     <TableCell>
                       <Badge tone={statusTone(vehicle.status)}>{vehicle.status}</Badge>
                     </TableCell>
-                    <TableCell>{vehicle.mileage.toLocaleString()}</TableCell>
                     <TableCell className="font-mono text-xs text-ink-caption">
-                      {vehicle.assigned_driver_id
-                        ? vehicle.assigned_driver_id.slice(0, 8)
-                        : "—"}
+                      {vehicle.mileage.toLocaleString()} km
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
@@ -324,21 +386,21 @@ export default function VehiclesPage() {
                                   status: e.target.value,
                                 });
                               } catch {
-                                // surface via react-query error state if needed
+                                // surfaced by react-query error state
                               }
                             }}
                           >
-                            <option value="">Status…</option>
+                            <option value="">Move to…</option>
                             {nextStatuses.map((s) => (
                               <option key={s} value={s}>
-                                → {s}
+                                {s}
                               </option>
                             ))}
                           </select>
                         ) : null}
                         <Link
                           href={`/vehicles/${vehicle.id}`}
-                          className="text-sm text-gold hover:underline"
+                          className="font-display text-sm font-semibold text-gold hover:underline"
                         >
                           View
                         </Link>
@@ -392,7 +454,7 @@ export default function VehiclesPage() {
             />
           </div>
           <Input
-            label="VIN (17 chars)"
+            label="VIN (17 characters)"
             value={form.vin}
             maxLength={17}
             onChange={(e) => setForm({ ...form, vin: e.target.value })}
@@ -407,7 +469,7 @@ export default function VehiclesPage() {
               }
             />
             <Select
-              label="Vehicle class"
+              label="Class"
               options={vehicleClassOptions}
               value={form.vehicle_class ?? "car"}
               onChange={(value) =>
@@ -417,7 +479,7 @@ export default function VehiclesPage() {
           </div>
           <Select
             label="Lifecycle"
-            options={lifecycleOptions}
+            options={lifecycleTemplateOptions}
             value={form.lifecycle_template}
             onChange={(value) =>
               setForm({

@@ -105,7 +105,9 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     final id = widget.editServiceId;
     if (id == null || _hydrated) return;
     _hydrated = true;
-    final record = await ref.read(maintenanceRepositoryProvider).getServiceRecord(id);
+    final record = await ref
+        .read(maintenanceRepositoryProvider)
+        .getServiceRecord(id);
     if (!mounted) return;
     if (record == null) {
       context.pop();
@@ -125,7 +127,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       _total.text = _formatAmount(record.totalCost);
       _totalTouched = true;
       for (final item in record.items) {
-        final line = _ServiceLineInput(name: item.name, planItemId: item.planItemId);
+        final line = _ServiceLineInput(
+          name: item.name,
+          planItemId: item.planItemId,
+        );
         if (item.lineCost != null) {
           line.costController.text = _formatAmount(item.lineCost!);
         }
@@ -189,7 +194,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   }
 
   String? _mileageBelowMinError(Vehicle vehicle, MileageUnit unit) {
-    if (_isEdit) return null;
+    if (_isEdit || ref.read(driverOrganizationIdProvider) != null) return null;
     final parsed = PlanItemValidators.parseMileage(_mileage.text);
     if (parsed != null && parsed < unit.toDisplay(vehicle.mileage)) {
       return AppLocalizations.of(context)!.maintenanceMileageDecrease;
@@ -229,8 +234,9 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
         ..['total'] = ServiceRecordValidators.totalCost(total.toString());
       _formError = _errors['items'];
     });
-    if (_errors.values.any((error) => error != null) || odometer == null)
+    if (_errors.values.any((error) => error != null) || odometer == null) {
       return null;
+    }
 
     return ServiceRecordDraft(
       title: _title.text,
@@ -248,7 +254,11 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
-    final currentUserId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    final currentUserId = ref
+        .read(sessionControllerProvider)
+        .valueOrNull
+        ?.user
+        .id;
     if (currentUserId == null) return;
     setState(() => _saving = true);
     try {
@@ -507,7 +517,9 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     if (vehicle == null) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(_isEdit ? s.registerServiceEditTitle : s.registerServiceTitle),
+          title: Text(
+            _isEdit ? s.registerServiceEditTitle : s.registerServiceTitle,
+          ),
         ),
         body: DcoEmptyState(
           title: s.maintenanceNoActiveVehicle,
@@ -518,7 +530,9 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? s.registerServiceEditTitle : s.registerServiceTitle),
+        title: Text(
+          _isEdit ? s.registerServiceEditTitle : s.registerServiceTitle,
+        ),
       ),
       body: Column(
         children: [

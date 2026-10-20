@@ -1,3 +1,4 @@
+import { fleetAnalyticsPlugin } from "./modules/fleet-analytics.js";
 import { socialAuthPlugin } from "./modules/social-auth.js";
 import { accountSecurityPlugin } from "./modules/account-security.js";
 import Fastify from "fastify";
@@ -14,10 +15,11 @@ import { healthPlugin } from "./modules/health.js";
 import { pricingPlugin } from "./modules/pricing.js";
 import { mePlugin } from "./modules/me.js";
 import { vehiclesPlugin } from "./modules/vehicles.js";
-import { ownerPlugin } from "./modules/owner.js";
+import { ownerPlugin, organizationRecordsPlugin } from "./modules/owner.js";
 import { vehicleSharesPlugin } from "./modules/vehicle-shares.js";
 import { licensesPlugin } from "./modules/licenses.js";
 import { mediaPlugin } from "./modules/media.js";
+import { organizationSyncPlugin } from "./modules/organization-sync.js";
 import { syncPlugin } from "./modules/sync.js";
 import { adminPlugin } from "./modules/admin.js";
 import { docsPlugin } from "./modules/docs.js";
@@ -70,13 +72,16 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(mePlugin);
       await v1.register(vehiclesPlugin);
       await v1.register(ownerPlugin);
+      await v1.register(organizationRecordsPlugin, { prefix: "/organizations/:organizationId/records" });
       await v1.register(vehicleSharesPlugin);
       await v1.register(licensesPlugin);
       await v1.register(mediaPlugin);
       await v1.register(syncPlugin);
+      await v1.register(organizationSyncPlugin);
       await v1.register(profilePlugin);
       await v1.register(fleetPlugin);
       await v1.register(fleetOperationsPlugin);
+      await v1.register(fleetAnalyticsPlugin);
       await v1.register(adminPlugin);
     },
     { prefix: "/v1" },

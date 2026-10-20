@@ -1,3 +1,5 @@
+import '../providers.dart';
+import '../../features/fleet/providers.dart';
 import '../storage/entry_preferences.dart';
 import '../../features/auth/presentation/screens/introduction_screen.dart';
 import '../../features/auth/presentation/screens/email_verification_screen.dart';
@@ -20,13 +22,9 @@ import '../../features/documents/presentation/screens/document_form_screen.dart'
 import '../../features/documents/presentation/screens/document_viewer_screen.dart';
 import '../../features/expenses/presentation/screens/expense_detail_screen.dart';
 import '../../features/expenses/presentation/screens/expense_form_screen.dart';
-import '../../features/fleet/presentation/screens/driver_fuel_log_screen.dart';
 import '../../features/fleet/presentation/screens/driver_inspection_screen.dart';
-import '../../features/fleet/presentation/screens/driver_maintenance_plan_screen.dart';
-import '../../features/fleet/presentation/screens/driver_register_service_screen.dart';
 import '../../features/fleet/presentation/screens/driver_report_issue_screen.dart';
 import '../../features/fleet/presentation/screens/driver_reports_screen.dart';
-import '../../features/fleet/presentation/screens/driver_suggested_plan_screen.dart';
 import '../../features/fuel/domain/entities/fuel_catalog_type.dart';
 import '../../features/fuel/presentation/screens/fuel_log_detail_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
@@ -75,20 +73,10 @@ import 'tab_switchers.dart';
 /// so they cover the tab shell instead of sitting above the bottom bar.
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
-/// Routes that are considered driver routes (require password change if
-/// must_change_password=true).
-bool _isDriverRoute(String location) {
-  return location.startsWith(AppRoutes.driverReportIssue) ||
-      location.startsWith(AppRoutes.driverFuelLog) ||
-      location.startsWith(AppRoutes.driverInspectionNew) ||
-      location.startsWith(AppRoutes.driverMaintenancePlan) ||
-      location.startsWith(AppRoutes.driverRegisterService) ||
-      location.startsWith(AppRoutes.driverReports);
-}
-
 final goRouterProvider = Provider<GoRouter>((ref) {
   final refresh = ValueNotifier<int>(0);
   ref.listen(sessionControllerProvider, (_, _) => refresh.value++);
+  ref.listen(entitlementsProvider, (_, _) => refresh.value++);
   ref.onDispose(refresh.dispose);
 
   return GoRouter(
@@ -102,7 +90,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final onAuth = AppRoutes.authPaths.contains(location);
       final onSplash = location == AppRoutes.splash;
       final onChangePassword = location == AppRoutes.changePassword;
-      final onDriver = _isDriverRoute(location);
 
       if (session.isLoading) {
         // Keep entered credentials and validation feedback mounted during login/signup.
@@ -129,6 +116,24 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final user = session.valueOrNull?.user;
       final mustChange = user?.mustChangePassword ?? false;
 
+      if (mustChange && !onChangePassword) return AppRoutes.changePassword;
+
+      if (!ref.read(appConfigProvider).mockAuth &&
+          !mustChange &&
+          ref.read(entitlementsProvider).valueOrNull == null) {
+        return onSplash ? null : AppRoutes.splash;
+      }
+      if (ref.read(driverOrganizationIdProvider) != null &&
+          (location == AppRoutes.vehicleNew ||
+              collaboration ||
+              location.contains('/share') ||
+              location == AppRoutes.firstVehicle ||
+              RegExp(r'^/dashboard/garage/[^/]+/edit$').hasMatch(location) ||
+              location == AppRoutes.maintenancePlanNew ||
+              location == AppRoutes.maintenanceSuggested ||
+              RegExp(r'^/maintenance-plan/[^/]+/edit$').hasMatch(location))) {
+        return AppRoutes.dashboard;
+      }
       if (onAuth || onSplash) {
         return ref.read(postAuthRouteProvider) ??
             ref.read(pendingCollaborationProvider) ??
@@ -139,11 +144,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ref.read(pendingCollaborationProvider.notifier).state = state.uri
             .toString();
         return AppRoutes.verifyEmail;
-      }
-
-      // Force password change for driver routes if must_change_password is set.
-      if (mustChange && onDriver && !onChangePassword) {
-        return AppRoutes.changePassword;
       }
 
       return null;
@@ -561,7 +561,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.driverFuelLog,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const DriverFuelLogScreen(),
+        redirect: (context, state) => AppRoutes.fuelLogNew,
       ),
       GoRoute(
         path: AppRoutes.driverInspectionNew,
@@ -571,19 +571,21 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.driverMaintenancePlan,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const DriverMaintenancePlanScreen(),
+        redirect: (context, state) => AppRoutes.maintenancePlan,
       ),
       GoRoute(
         path: AppRoutes.driverMaintenanceSuggested,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const DriverSuggestedPlanScreen(),
+        redirect: (context, state) => AppRoutes.maintenancePlan,
       ),
       GoRoute(
         path: AppRoutes.driverRegisterService,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => DriverRegisterServiceScreen(
-          initialPlanItemId: state.uri.queryParameters['plan'],
-        ),
+        redirect: (context, state) => state.uri.queryParameters['plan'] == null
+            ? AppRoutes.maintenanceRegister
+            : AppRoutes.maintenanceRegisterItem(
+                state.uri.queryParameters['plan']!,
+              ),
       ),
       GoRoute(
         path: AppRoutes.driverReports,

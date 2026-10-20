@@ -1,25 +1,84 @@
 "use client";
 
 import { useState } from "react";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
-import { Select } from "@/components/ui/select";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
-} from "@/components/ui/table";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Badge } from "@dco/ui/components/badge";
+import { Button } from "@dco/ui/components/button";
+import { Modal } from "@dco/ui/components/modal";
+import { Select } from "@dco/ui/components/select";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { Skeleton } from "@dco/ui/components/skeleton";
 import { useMembers, useUpdateWorkOrder, useVehicles, useWorkOrders } from "@/lib/api/hooks";
-import { workOrderStatusTone } from "@/lib/api/types";
+import type { WorkOrder } from "@/lib/api/types";
 import { useOrgId, useOrgRole, useSession } from "@/lib/auth/session-context";
+import { formatDateTime } from "@dco/ui/lib/format";
+
+function urgencyTone(urgency: string): "danger" | "warning" | "neutral" {
+  if (urgency === "critical" || urgency === "high") return "danger";
+  if (urgency === "medium") return "warning";
+  return "neutral";
+}
+
+function WorkOrderCard({
+  order,
+  vehicleName,
+  action,
+}: {
+  order: WorkOrder;
+  vehicleName: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <article className="rounded-lg border border-line-subtle bg-card p-4">
+      <div className="flex items-start justify-between gap-3">
+        <p className="font-medium text-ink">{vehicleName}</p>
+        <Badge tone={urgencyTone(order.urgency)}>{order.urgency}</Badge>
+      </div>
+      <p className="mt-2 text-sm capitalize text-ink">{order.issue_type.replaceAll("_", " ")}</p>
+      <p className="mt-1 line-clamp-2 text-xs text-ink-caption">{order.description}</p>
+      <p className="mt-3 font-mono text-xs text-ink-caption">
+        {order.odometer_km.toLocaleString()} km
+      </p>
+      <p className="text-xs text-ink-faint">
+        {order.reported_at ? formatDateTime(order.reported_at) : "Reported"}
+      </p>
+      {action ? <div className="mt-3">{action}</div> : null}
+    </article>
+  );
+}
+
+function PipelineColumn({
+  title,
+  accent,
+  orders,
+  emptyText,
+  renderCard,
+}: {
+  title: string;
+  accent: string;
+  orders: WorkOrder[];
+  emptyText: string;
+  renderCard: (order: WorkOrder) => React.ReactNode;
+}) {
+  return (
+    <section className="flex min-w-0 flex-col gap-3">
+      <div
+        className={`flex items-center justify-between rounded-md border-t-2 bg-panel px-4 py-2.5 ${accent}`}
+      >
+        <h2 className="font-display text-sm font-semibold text-ink">{title}</h2>
+        <Badge tone="neutral">{orders.length}</Badge>
+      </div>
+      {orders.length === 0 ? (
+        <p className="rounded-lg border border-dashed border-line-subtle px-4 py-6 text-center text-xs text-ink-faint">
+          {emptyText}
+        </p>
+      ) : (
+        orders.map((order) => <div key={order.id}>{renderCard(order)}</div>)
+      )}
+    </section>
+  );
+}
 
 export default function WorkOrdersPage() {
   const orgId = useOrgId();
@@ -29,24 +88,19 @@ export default function WorkOrdersPage() {
 
   const { data, isLoading } = useWorkOrders(orgId);
   const { data: members } = useMembers(orgId);
+  const { data: vehiclesData } = useVehicles(orgId);
   const updateOrder = useUpdateWorkOrder(orgId);
 
-  const [advance, setAdvance] = useState<{
-    id: string;
-    next: string;
-    assign?: boolean;
-  } | null>(null);
+  const [advance, setAdvance] = useState<{ id: string; next: string; assign?: boolean } | null>(
+    null,
+  );
   const [assignee, setAssignee] = useState("");
   const [notes, setNotes] = useState("");
 
   const orders = data?.items ?? [];
-  const mechanics =
-    members?.items.filter((m) =>
-      ["org_manager", "org_mechanic"].includes(m.role),
-    ) ?? [];
-
-  const { data: vehiclesData } = useVehicles(orgId);
   const vehicles = vehiclesData?.items ?? [];
+  const mechanics =
+    members?.items.filter((m) => ["org_manager", "org_mechanic"].includes(m.role)) ?? [];
 
   function nextStatus(status: string): string | null {
     if (status === "reported") return "in_progress";
@@ -54,116 +108,111 @@ export default function WorkOrdersPage() {
     return null;
   }
 
+  const byStage = (stage: string) => orders.filter((o) => o.status === stage);
+  const reported = byStage("reported");
+  const inProgress = byStage("in_progress");
+  const completed = byStage("completed");
+  const openCount = reported.length + inProgress.length;
+  const criticalOpen = orders.filter(
+    (o) =>
+      o.status !== "completed" && (o.urgency === "critical" || o.urgency === "high"),
+  ).length;
+
+  const vehicleName = (id: string) => vehicles.find((v) => v.id === id)?.name ?? id.slice(0, 8);
+
   async function onAdvance() {
     if (!advance) return;
     await updateOrder.mutateAsync({
       id: advance.id,
       status: advance.next,
       ...(advance.assign && assignee ? { assigned_to: assignee } : {}),
-      ...(advance.next === "completed" && notes
-        ? { resolution_notes: notes }
-        : {}),
+      ...(advance.next === "completed" && notes ? { resolution_notes: notes } : {}),
     });
     setAdvance(null);
     setAssignee("");
     setNotes("");
   }
 
+  function actionFor(order: WorkOrder) {
+    const next = nextStatus(order.status);
+    if (!canManage || !next) return undefined;
+    return (
+      <Button
+        size="sm"
+        variant={next === "in_progress" ? "primary" : "secondary"}
+        className="w-full"
+        onClick={() =>
+          setAdvance({ id: order.id, next, assign: next === "in_progress" })
+        }
+      >
+        {next === "in_progress" ? "Start work" : "Mark completed"}
+      </Button>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Work Orders"
-        description="Reported → in progress → completed, with assignee controls"
+        meta={
+          orders.length === 0
+            ? undefined
+            : `${openCount} open, ${criticalOpen} critical or high`
+        }
       />
 
-      <Card>
-        {isLoading ? (
-          <div className="p-5">
-            <SkeletonTable rows={5} cols={6} />
-          </div>
-        ) : orders.length === 0 ? (
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-40 w-full" />
+          ))}
+        </div>
+      ) : orders.length === 0 ? (
+        <Card>
           <EmptyState
             title="No work orders"
             description="Drivers report issues from their assignment; orders appear here."
           />
-        ) : (
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Vehicle</TableHeadCell>
-                <TableHeadCell>Issue</TableHeadCell>
-                <TableHeadCell>Urgency</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Odometer</TableHeadCell>
-                <TableHeadCell>Reported</TableHeadCell>
-                <TableHeadCell />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {orders.map((order) => {
-                const next = nextStatus(order.status);
-                const vehicleName =
-                  vehicles.find((v) => v.id === order.vehicle_id)?.name ??
-                  order.vehicle_id.slice(0, 8);
-                return (
-                  <TableRow key={order.id}>
-                    <TableCell>{vehicleName}</TableCell>
-                    <TableCell>
-                      <p className="font-medium capitalize text-ink">
-                        {order.issue_type.replaceAll("_", " ")}
-                      </p>
-                      <p className="line-clamp-1 max-w-md text-xs text-ink-caption">
-                        {order.description}
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        tone={
-                          order.urgency === "critical" || order.urgency === "high"
-                            ? "danger"
-                            : order.urgency === "medium"
-                              ? "warning"
-                              : "neutral"
-                        }
-                      >
-                        {order.urgency}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge tone={workOrderStatusTone[order.status] ?? "neutral"}>
-                        {order.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{order.odometer_km.toLocaleString()} km</TableCell>
-                    <TableCell className="text-xs text-ink-caption">
-                      {order.reported_at
-                        ? new Date(order.reported_at).toLocaleString()
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {canManage && next ? (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => {
-                            setAdvance({
-                              id: order.id,
-                              next,
-                              assign: next === "in_progress",
-                            });
-                          }}
-                        >
-                          {next === "in_progress" ? "Start" : "Complete"}
-                        </Button>
-                      ) : null}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        )}
-      </Card>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+          <PipelineColumn
+            title="Reported"
+            accent="border-t-warning"
+            orders={reported}
+            emptyText="Nothing waiting to be triaged."
+            renderCard={(order) => (
+              <WorkOrderCard
+                order={order}
+                vehicleName={vehicleName(order.vehicle_id)}
+                action={actionFor(order)}
+              />
+            )}
+          />
+          <PipelineColumn
+            title="In progress"
+            accent="border-t-info"
+            orders={inProgress}
+            emptyText="No active repairs."
+            renderCard={(order) => (
+              <WorkOrderCard
+                order={order}
+                vehicleName={vehicleName(order.vehicle_id)}
+                action={actionFor(order)}
+              />
+            )}
+          />
+          <PipelineColumn
+            title="Completed"
+            accent="border-t-success"
+            orders={completed}
+            emptyText="Completed orders will list here."
+            renderCard={(order) => (
+              <WorkOrderCard order={order} vehicleName={vehicleName(order.vehicle_id)} />
+            )}
+          />
+        </div>
+      )}
 
       <Modal
         open={Boolean(advance)}

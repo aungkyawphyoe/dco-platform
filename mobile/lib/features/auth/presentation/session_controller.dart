@@ -17,13 +17,13 @@ class SessionController extends AsyncNotifier<Session?> {
       throw const UnknownAuthFailure('Sign-in is already in progress');
     }
     _changingAccount = true;
-    final engine = ref.read(syncEngineProvider);
+    final coordinator = ref.read(syncAccountCoordinatorProvider);
     try {
-      await engine.pauseForAccountChange();
+      await coordinator.pause();
       return await change();
     } finally {
       _changingAccount = false;
-      engine.resumeAfterAccountChange();
+      coordinator.resume();
     }
   }
 

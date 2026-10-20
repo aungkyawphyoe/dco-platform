@@ -2,8 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth/session-context";
-import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Button } from "@dco/ui/components/button";
+import { ThemeToggle } from "@dco/ui/components/theme-toggle";
 
 interface TopBarProps {
   user: { id: string; email: string; display_name: string | null; role: string };

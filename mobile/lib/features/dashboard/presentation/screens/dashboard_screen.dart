@@ -150,7 +150,9 @@ class DashboardScreen extends ConsumerWidget {
                     body: s.dashboardEmptyBody,
                     actionLabel: s.dashboardEmptyTitle,
                     actionKey: const Key('register-vehicle-cta'),
-                    onAction: () => context.push(AppRoutes.vehicleNew),
+                    onAction: ref.watch(driverOrganizationIdProvider) == null
+                        ? () => context.push(AppRoutes.vehicleNew)
+                        : null,
                   );
                 }
                 return _PopulatedDashboard(vehicle: vehicle);
@@ -187,10 +189,7 @@ class _PopulatedDashboard extends ConsumerWidget {
         ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
     final recent = history.take(DashboardScreen.recentActivityLimit).toList();
     final thresholds = ref.watch(reminderThresholdsProvider);
-    final access = VehicleAccess.of(
-      vehicle,
-      ref.watch(currentUserIdProvider),
-    );
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
     final next = DueCalculator.nearest(
       items: plan,
       vehicleMileage: vehicle.mileage,
@@ -340,6 +339,26 @@ class _PopulatedDashboard extends ConsumerWidget {
               color: tokens.chart.other,
               onTap: () => context.push(AppRoutes.notes),
             ),
+            if (ref.watch(driverOrganizationIdProvider) != null) ...[
+              QuickActionItem(
+                label: s.driverQuickReportIssue,
+                icon: Icons.report_problem_outlined,
+                color: tokens.chart.other,
+                onTap: () => context.push(AppRoutes.driverReportIssue),
+              ),
+              QuickActionItem(
+                label: s.driverQuickStartInspection,
+                icon: Icons.fact_check_outlined,
+                color: tokens.chart.maintenance,
+                onTap: () => context.push(AppRoutes.driverInspectionNew),
+              ),
+              QuickActionItem(
+                label: s.driverReportsTitle,
+                icon: Icons.assignment_outlined,
+                color: tokens.chart.other,
+                onTap: () => context.push(AppRoutes.driverReports),
+              ),
+            ],
           ],
         ),
         SizedBox(height: tokens.space.s5),

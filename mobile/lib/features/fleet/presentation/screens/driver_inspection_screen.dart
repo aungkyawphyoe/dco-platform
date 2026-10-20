@@ -4,6 +4,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
 import 'package:dco_mobile/features/fleet/providers.dart';
+import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +42,9 @@ class _DriverInspectionScreenState
     if (template == null) return;
     setState(() => _saving = true);
     try {
-      final inspection = await ref.read(fleetRepositoryProvider).startInspection(
+      final inspection = await ref
+          .read(fleetRepositoryProvider)
+          .startInspection(
             orgId,
             vehicleId: vehicleId,
             templateId: template.id,
@@ -118,12 +121,11 @@ class _DriverInspectionScreenState
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final orgCtx = ref.watch(entitlementsProvider).valueOrNull?.organization;
-    final myVehicle = ref.watch(driverMyVehicleProvider).valueOrNull;
-    final templates =
-        orgCtx == null
-            ? const <InspectionTemplate>[]
-            : ref.watch(inspectionTemplatesProvider(orgCtx.id)).valueOrNull ??
-                  const [];
+    final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
+    final templates = orgCtx == null
+        ? const <InspectionTemplate>[]
+        : ref.watch(inspectionTemplatesProvider(orgCtx.id)).valueOrNull ??
+              const [];
 
     if (orgCtx == null) {
       return Scaffold(
@@ -134,7 +136,7 @@ class _DriverInspectionScreenState
         ),
       );
     }
-    if (myVehicle?.hasAssignedVehicle != true) {
+    if (vehicle == null) {
       return Scaffold(
         appBar: AppBar(title: Text(s.driverInspectionStart)),
         body: DcoEmptyState(
@@ -143,7 +145,6 @@ class _DriverInspectionScreenState
         ),
       );
     }
-    final vehicle = myVehicle!.vehicle!;
 
     // ── Stage 2: checklist ──
     if (_started != null) {
@@ -173,9 +174,8 @@ class _DriverInspectionScreenState
                       : null,
                   value: _results[item.itemName] ?? true,
                   activeThumbColor: tokens.icon.active,
-                  onChanged: (value) => setState(
-                    () => _results[item.itemName] = value,
-                  ),
+                  onChanged: (value) =>
+                      setState(() => _results[item.itemName] = value),
                 ),
               ),
             SizedBox(height: tokens.space.s2),
@@ -244,8 +244,9 @@ class _DriverInspectionScreenState
                       ),
                   ],
                   onChanged: (v) => setState(
-                    () => _template =
-                        templates.where((t) => t.id == v).firstOrNull,
+                    () => _template = templates
+                        .where((t) => t.id == v)
+                        .firstOrNull,
                   ),
                 ),
                 SizedBox(height: tokens.space.s5),

@@ -1,9 +1,10 @@
 "use client";
 
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { EmptyState } from "@/components/ui/empty-state";
-import { SkeletonTable } from "@/components/ui/skeleton";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { EmptyState } from "@dco/ui/components/empty-state";
+import { SkeletonTable } from "@dco/ui/components/skeleton";
+import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
   Table,
   TableBody,
@@ -11,9 +12,10 @@ import {
   TableHead,
   TableHeadCell,
   TableRow,
-} from "@/components/ui/table";
+} from "@dco/ui/components/table";
 import { useTransferred } from "@/lib/api/hooks";
 import { useOrgId } from "@/lib/auth/session-context";
+import { formatDateTime } from "@dco/ui/lib/format";
 
 export default function TransferredPage() {
   const orgId = useOrgId();
@@ -24,10 +26,12 @@ export default function TransferredPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Transferred"
+        meta={items.length ? `${items.length} vehicles` : undefined}
         description="Read-only audit of vehicles transferred out of the organization"
       />
 
       <Card>
+        <SectionHeading title="Transfer log" count={items.length} />
         {isLoading ? (
           <div className="p-5">
             <SkeletonTable rows={4} cols={5} />
@@ -57,18 +61,12 @@ export default function TransferredPage() {
                       {item.vehicle.year} {item.vehicle.make} {item.vehicle.model}
                     </p>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {item.vehicle.plate}
-                  </TableCell>
-                  <TableCell className="text-xs text-ink-caption">
-                    {item.transferred_at
-                      ? new Date(item.transferred_at).toLocaleString()
-                      : "—"}
+                  <TableCell className="font-mono text-xs">{item.vehicle.plate}</TableCell>
+                  <TableCell className="font-mono text-xs text-ink-caption">
+                    {item.transferred_at ? formatDateTime(item.transferred_at) : "—"}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-ink-caption">
-                    {item.warranty_instance_id
-                      ? item.warranty_instance_id.slice(0, 8)
-                      : "—"}
+                    {item.warranty_instance_id ? item.warranty_instance_id.slice(0, 8) : "—"}
                   </TableCell>
                   <TableCell className="font-mono text-xs text-ink-caption">
                     {item.transferred_by.slice(0, 8)}

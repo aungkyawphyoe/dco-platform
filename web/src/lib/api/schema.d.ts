@@ -4893,8 +4893,8 @@ export interface paths {
         };
         get?: never;
         /**
-         * Assign or clear a maintenance template on a vehicle
-         * @description template_id may reference a global row or an org copy; it must match the vehicle's class, lifecycle, and fuel. The id anchors the matching template set used for plan generation and driver suggestions.
+         * Assign or clear a maintenance template set (by class) on a vehicle
+         * @description The assigned set is identified by its vehicle class and must equal the vehicle's class; it anchors the matching template set used for plan generation and driver suggestions. null clears the assignment.
          */
         put: {
             parameters: {
@@ -4909,8 +4909,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** Format: uuid */
-                        template_id: string | null;
+                        vehicle_class: components["schemas"]["VehicleClass"] | null;
                     };
                 };
             };
@@ -4922,12 +4921,11 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            /** Format: uuid */
-                            maintenance_template_id: string | null;
+                            maintenance_template_class: components["schemas"]["VehicleClass"] | null;
                         };
                     };
                 };
-                /** @description template_disabled or template_mismatch */
+                /** @description template_mismatch */
                 400: {
                     headers: {
                         [name: string]: unknown;
@@ -4960,8 +4958,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * One-time snapshot of the assigned template into plan items
-         * @description Copies the assigned template's matching rows into plan_items with due dates from the vehicle's current mileage; names already present (case-insensitive) are skipped. Idempotent by design.
+         * Snapshot selected template items into plan items
+         * @description Creates plan_items for the given catalog item ids, which must belong to the vehicle's assigned template set (class + lifecycle + fuel), with due dates from the vehicle's current mileage; names already present (case-insensitive) are skipped. Idempotent by design.
          */
         post: {
             parameters: {
@@ -4973,7 +4971,13 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody: {
+                content: {
+                    "application/json": {
+                        item_ids: string[];
+                    };
+                };
+            };
             responses: {
                 /** @description Snapshot counts */
                 200: {
@@ -4990,6 +4994,7 @@ export interface paths {
                 400: components["responses"]["Error"];
                 403: components["responses"]["Error"];
                 404: components["responses"]["Error"];
+                422: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -5191,7 +5196,10 @@ export interface paths {
             };
         };
         put?: never;
-        /** Assign an organization vehicle to a driver */
+        /**
+         * Assign an organization vehicle to a driver
+         * @description Many-to-many access. A Driver can have multiple vehicles and a vehicle can have multiple Drivers. Duplicate active organization/Driver/vehicle pairs return 409 assignment_already_active.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -6364,7 +6372,10 @@ export interface paths {
             };
         };
         put?: never;
-        /** Driver adds a plan item (e.g. from the suggested list); idempotent by id */
+        /**
+         * Driver plan creation is forbidden; Fleet Admin manages plans
+         * @deprecated
+         */
         post: {
             parameters: {
                 query?: never;
@@ -6374,31 +6385,9 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** Format: uuid */
-                        id: string;
-                        name: string;
-                        interval_days?: number;
-                        interval_distance?: number;
-                        notes?: string;
-                    };
-                };
-            };
+            requestBody?: never;
             responses: {
-                /** @description Created (or idempotent replay) */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["PlanItem"];
-                    };
-                };
                 403: components["responses"]["Error"];
-                404: components["responses"]["Error"];
-                422: components["responses"]["Error"];
             };
         };
         delete?: never;
@@ -6907,10 +6896,1275 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{orgId}/media/{mediaId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                orgId: string;
+                mediaId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Download an assigned-vehicle attachment with current authorization
+         * @description Active Driver assignment or Fleet Admin portal access required. Generic signed media URLs cannot access organization attachments. Response uses private, no-store caching; mobile owns account-scoped offline files and removes them on revocation.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    orgId: string;
+                    mediaId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Original document or image bytes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/octet-stream": string;
+                    };
+                };
+                404: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/sync/changes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Pull assigned-vehicle history into the Driver account's local database
+         * @description Requires an active org_driver account and owner token. Initial pull or assignment changes return a full assigned-vehicle snapshot. Incremental pages contain up to 200 changes. Remove cached vehicles absent from the complete assignment manifest while preserving queued submissions.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    cursor?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Scoped changes and complete access manifest */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SyncPullResponse"] & {
+                            /** Format: uuid */
+                            organization_id: string;
+                            assigned_vehicle_ids: string[];
+                            bootstrap: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/sync/push": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Apply Driver submissions or retain conflicts for Fleet Admin review
+         * @description Owner token and historical assignment required. Active assignment, authorship and revision are checked on the server. Revoked assignment, stale revision and admin correction produce a review without changing live records or totals. Retry with the same operation_id and contents for idempotency.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        operations: components["schemas"]["OrganizationSyncOperation"][];
+                    };
+                };
+            };
+            responses: {
+                /** @description One applied, rejected or review result per operation */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            results?: {
+                                /** Format: uuid */
+                                entity_id: string;
+                                /** Format: uuid */
+                                operation_id: string;
+                                /** @enum {string} */
+                                status: "applied" | "rejected" | "review";
+                                /** Format: uuid */
+                                review_id?: string;
+                                error?: components["schemas"]["ErrorBody"];
+                            }[];
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * Submission review queue or own submission status
+         * @description Fleet Admin receives organization submissions including proposed contents. Drivers receive only their own submission status, including after assignment revocation; proposed contents are omitted.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Review items */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["OrganizationReview"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/reviews/{reviewId}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                reviewId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Accept or decline a submission as Fleet Admin
+         * @description Fleet token required. Acceptance atomically applies the record and accounting changes and records the decision; the original submitter remains the author. Transferred vehicles cannot be accepted. Supply the current revision when accepting a correction.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    reviewId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        decision: "accept" | "reject";
+                        expected_revision?: number | null;
+                        note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Decision or previously recorded terminal status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status?: "accepted" | "rejected";
+                        };
+                    };
+                };
+                409: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/vehicles/{vehicleId}/plan-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                vehicleId: components["parameters"]["vehicleId"];
+            };
+            cookie?: never;
+        };
+        /** @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Plan */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["PlanItem"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PlanItemWrite"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlanItem"];
+                    };
+                };
+                422: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/plan-items/{planItemId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                planItemId: components["parameters"]["planItemId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Disable or delete user copy; history remains on service records
+         * @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    planItemId: components["parameters"]["planItemId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Removed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    planItemId: components["parameters"]["planItemId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PlanItemPatch"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlanItem"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/vehicles/{vehicleId}/service-records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                vehicleId: components["parameters"]["vehicleId"];
+            };
+            cookie?: never;
+        };
+        /** @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description History newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["ServiceRecord"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ServiceRecordWrite"];
+                };
+            };
+            responses: {
+                /** @description Created; vehicle mileage may increase */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceRecord"];
+                    };
+                };
+                422: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/service-records/{serviceRecordId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                serviceRecordId: components["parameters"]["serviceRecordId"];
+            };
+            cookie?: never;
+        };
+        /** @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    serviceRecordId: components["parameters"]["serviceRecordId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Record */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceRecord"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete own record and linked expense */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    serviceRecordId: components["parameters"]["serviceRecordId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted; maintenance schedule recalculated where applicable */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                409: components["responses"]["Error"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current revision. Missing revision returns 428; stale revision returns 409. */
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    serviceRecordId: components["parameters"]["serviceRecordId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ServiceRecordWrite"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ServiceRecord"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/vehicles/{vehicleId}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                vehicleId: components["parameters"]["vehicleId"];
+            };
+            cookie?: never;
+        };
+        /** @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token. */
+        get: {
+            parameters: {
+                query?: {
+                    category?: components["schemas"]["DocumentCategory"];
+                };
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Vault list */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["Document"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["DocumentWrite"];
+                };
+            };
+            responses: {
+                /** @description Metadata created; upload bytes to /media */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Document"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/documents/{documentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                documentId: components["parameters"]["documentId"];
+            };
+            cookie?: never;
+        };
+        /** @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    documentId: components["parameters"]["documentId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Document */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Document"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current revision. Missing revision returns 428; stale revision returns 409. */
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    documentId: components["parameters"]["documentId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current revision. Missing revision returns 428; stale revision returns 409. */
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    documentId: components["parameters"]["documentId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["DocumentPatch"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Document"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/vehicles/{vehicleId}/expenses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                vehicleId: components["parameters"]["vehicleId"];
+            };
+            cookie?: never;
+        };
+        /** @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token. */
+        get: {
+            parameters: {
+                query?: {
+                    category?: components["schemas"]["ExpenseCategory"];
+                };
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["Expense"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ExpenseWrite"];
+                };
+            };
+            responses: {
+                /** @description Created */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Expense"];
+                    };
+                };
+                422: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/vehicles/{vehicleId}/expenses/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+            };
+            cookie?: never;
+        };
+        /** @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Month, total, optional category breakdown */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ExpenseSummary"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/expenses/{expenseId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                expenseId: components["parameters"]["expenseId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current revision. Missing revision returns 428; stale revision returns 409. */
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    expenseId: components["parameters"]["expenseId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current revision. Missing revision returns 428; stale revision returns 409. */
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    expenseId: components["parameters"]["expenseId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["ExpenseWrite"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Expense"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/vehicles/{vehicleId}/parts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                vehicleId: components["parameters"]["vehicleId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Per-vehicle parts catalog (name A–Z)
+         * @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Parts list */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["Part"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Add a part; no delete in this slice
+         * @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PartWrite"];
+                };
+            };
+            responses: {
+                /** @description Created (or idempotent replay) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Part"];
+                    };
+                };
+                422: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/parts/{partId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                partId: components["parameters"]["partId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current revision. Missing revision returns 428; stale revision returns 409. */
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    partId: components["parameters"]["partId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["PartPatch"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Part"];
+                    };
+                };
+                404: components["responses"]["Error"];
+            };
+        };
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/vehicles/{vehicleId}/fuel-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                vehicleId: components["parameters"]["vehicleId"];
+            };
+            cookie?: never;
+        };
+        /**
+         * Refuel or charge logs for the vehicle
+         * @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    fuel_type_id?: string;
+                    month?: "this_month" | "all";
+                };
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["FuelLog"][];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Log a refuel or charge; no delete in this slice
+         * @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FuelLogWrite"];
+                };
+            };
+            responses: {
+                /** @description Created (or idempotent replay) */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FuelLog"];
+                    };
+                };
+                422: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{organizationId}/records/fuel-logs/{fuelLogId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                organizationId: string;
+                fuelLogId: components["parameters"]["fuelLogId"];
+            };
+            cookie?: never;
+        };
+        /** @description Assigned Drivers see full vehicle history; Fleet Admin uses a fleet token. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    organizationId: string;
+                    fuelLogId: components["parameters"]["fuelLogId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Log */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FuelLog"];
+                    };
+                };
+                404: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete own record and linked expense */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    fuelLogId: components["parameters"]["fuelLogId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted; maintenance schedule recalculated where applicable */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                409: components["responses"]["Error"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** @description Fleet Admin manages plans. Drivers change their own records on assigned vehicles; admin corrections lock further Driver changes. Service and fuel mutations update one linked expense atomically. */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Current revision. Missing revision returns 428; stale revision returns 409. */
+                    "If-Match": number;
+                };
+                path: {
+                    organizationId: string;
+                    fuelLogId: components["parameters"]["fuelLogId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": components["schemas"]["FuelLogPatch"];
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FuelLog"];
+                    };
+                };
+                404: components["responses"]["Error"];
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        OrganizationSyncOperation: {
+            /** Format: uuid */
+            operation_id: string;
+            /** @enum {string} */
+            entity_type: "service_record" | "fuel_log" | "expense" | "document" | "part";
+            /** Format: uuid */
+            entity_id: string;
+            /** Format: uuid */
+            vehicle_id: string;
+            /** @enum {string} */
+            op: "upsert" | "delete";
+            expected_revision: number | null;
+            payload: {
+                [key: string]: unknown;
+            };
+        };
+        OrganizationReview: {
+            /** Format: uuid */
+            id?: string;
+            /** Format: uuid */
+            vehicle_id?: string;
+            /** Format: uuid */
+            submitted_by?: string;
+            reason?: string;
+            /** @enum {string} */
+            status?: "pending" | "accepted" | "rejected";
+            reviewer_note?: string | null;
+            /** Format: date-time */
+            created_at?: string;
+            operation?: components["schemas"]["OrganizationSyncOperation"];
+        };
         AuthCodeLocale: {
             /**
              * @default en
@@ -7203,6 +8457,9 @@ export interface components {
             fuel_type?: components["schemas"]["FuelType"];
         };
         ServiceRecord: {
+            readonly revision?: number;
+            /** Format: uuid */
+            readonly admin_corrected_by?: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -7253,6 +8510,9 @@ export interface components {
             parts?: components["schemas"]["ServicePart"][];
         };
         Document: {
+            readonly revision?: number;
+            /** Format: uuid */
+            readonly admin_corrected_by?: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -7291,6 +8551,9 @@ export interface components {
             media_id?: string;
         };
         Part: {
+            readonly revision?: number;
+            /** Format: uuid */
+            readonly admin_corrected_by?: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -7345,6 +8608,9 @@ export interface components {
             unit?: string;
         };
         FuelLog: {
+            readonly revision?: number;
+            /** Format: uuid */
+            readonly admin_corrected_by?: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -7385,6 +8651,13 @@ export interface components {
             odometer?: number;
         };
         Expense: {
+            /** @enum {string|null} */
+            readonly source_kind?: "service_record" | "fuel_log" | null;
+            /** Format: uuid */
+            readonly source_id?: string | null;
+            readonly revision?: number;
+            /** Format: uuid */
+            readonly admin_corrected_by?: string | null;
             /** Format: uuid */
             id: string;
             /** Format: uuid */

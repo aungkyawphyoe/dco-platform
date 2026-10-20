@@ -108,7 +108,15 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       ref.read(sessionControllerProvider).valueOrNull?.user.id,
     );
     return widget.isEditing
-        ? access.canEditRecord(_createdBy)
+        ? (access.canEditRecord(_createdBy) &&
+              !(ref
+                      .read(
+                        recordAdminLockProvider(
+                          'document:${widget.documentId}',
+                        ),
+                      )
+                      .valueOrNull ??
+                  (ref.read(driverOrganizationIdProvider) != null)))
         : access.canCreate;
   }
 
@@ -134,8 +142,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     if (draft == null) return;
     final vehicleId =
         widget.vehicleId ?? ref.read(activeVehicleProvider).valueOrNull?.id;
-    final userId =
-        ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    final userId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
     if (vehicleId == null || userId == null) return;
     if (widget.isEditing && !_canWrite()) return;
     setState(() => _saving = true);
@@ -148,21 +155,19 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
           draft: draft,
         );
       } else {
-        await repo.add(
-          userId: userId,
-          vehicleId: vehicleId,
-          draft: draft,
-        );
+        await repo.add(userId: userId, vehicleId: vehicleId, draft: draft);
         ref.read(analyticsProvider).track(AnalyticsEvent.documentUploaded);
       }
       if (mounted) context.pop();
     } on DocumentFailure catch (failure) {
       if (mounted) {
-        setState(() => _formError = switch (failure) {
-              DocumentValidationFailure(:final message) => message,
-              DocumentTooLargeFailure() => 'File is too large',
-              DocumentNotFoundFailure() => 'Document not found',
-            });
+        setState(
+          () => _formError = switch (failure) {
+            DocumentValidationFailure(:final message) => message,
+            DocumentTooLargeFailure() => 'File is too large',
+            DocumentNotFoundFailure() => 'Document not found',
+          },
+        );
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -170,8 +175,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   Future<void> _delete() async {
-    final userId =
-        ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    final userId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
     if (userId == null || widget.documentId == null) return;
     if (!_canWrite()) return;
     final confirmed = await showDialog<bool>(
@@ -197,18 +201,21 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     if (confirmed != true) return;
     setState(() => _saving = true);
     try {
-      await ref.read(documentRepositoryProvider).delete(
-            userId: userId,
-            documentId: widget.documentId!,
-          );
+      await ref
+          .read(documentRepositoryProvider)
+          .delete(userId: userId, documentId: widget.documentId!);
       ref.read(analyticsProvider).track(AnalyticsEvent.documentDeleted);
       if (mounted) context.pop();
     } on DocumentFailure catch (failure) {
-      if (mounted) setState(() => _formError = switch (failure) {
+      if (mounted) {
+        setState(
+          () => _formError = switch (failure) {
             DocumentValidationFailure(:final message) => message,
             DocumentTooLargeFailure() => 'File is too large',
             DocumentNotFoundFailure() => 'Document not found',
-          });
+          },
+        );
+      }
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -226,8 +233,10 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading:
-                    Icon(Icons.photo_camera_outlined, color: tokens.icon.active),
+                leading: Icon(
+                  Icons.photo_camera_outlined,
+                  color: tokens.icon.active,
+                ),
                 title: Text(s.documentFormCameraOption),
                 onTap: () {
                   Navigator.pop(context);
@@ -235,8 +244,10 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.photo_library_outlined,
-                    color: tokens.icon.active),
+                leading: Icon(
+                  Icons.photo_library_outlined,
+                  color: tokens.icon.active,
+                ),
                 title: Text(s.documentFormGalleryOption),
                 onTap: () {
                   Navigator.pop(context);
@@ -244,8 +255,10 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.picture_as_pdf_outlined,
-                    color: tokens.icon.active),
+                leading: Icon(
+                  Icons.picture_as_pdf_outlined,
+                  color: tokens.icon.active,
+                ),
                 title: Text(s.documentFormPdfOption),
                 onTap: () {
                   Navigator.pop(context);
@@ -317,7 +330,11 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
             children: [
               Padding(
                 padding: EdgeInsets.fromLTRB(
-                    tokens.space.s4, tokens.space.s4, tokens.space.s4, tokens.space.s2),
+                  tokens.space.s4,
+                  tokens.space.s4,
+                  tokens.space.s4,
+                  tokens.space.s2,
+                ),
                 child: Text(
                   s.documentFormCategorySheetTitle,
                   style: Theme.of(context).textTheme.titleMedium,
@@ -373,16 +390,19 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   String _categoryLabelFor(DocumentCategory category) => switch (category) {
-        DocumentCategory.insurance => 'Insurance',
-        DocumentCategory.registration => 'Registration',
-        DocumentCategory.invoice => 'Invoice',
-        DocumentCategory.warranty => 'Warranty',
-        DocumentCategory.receipt => 'Receipt',
-        DocumentCategory.other => 'Other',
-      };
+    DocumentCategory.insurance => 'Insurance',
+    DocumentCategory.registration => 'Registration',
+    DocumentCategory.invoice => 'Invoice',
+    DocumentCategory.warranty => 'Warranty',
+    DocumentCategory.receipt => 'Receipt',
+    DocumentCategory.other => 'Other',
+  };
 
   @override
   Widget build(BuildContext context) {
+    if (widget.documentId != null) {
+      ref.watch(recordAdminLockProvider('document:${widget.documentId}'));
+    }
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicleId = widget.vehicleId;
@@ -393,9 +413,13 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     if (_loading || vehicleAsync.isLoading) {
       return Scaffold(
         appBar: AppBar(
-            title: Text(
-                widget.isEditing ? s.documentFormEditTitle : s.documentFormAddTitle)),
-        body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+          title: Text(
+            widget.isEditing ? s.documentFormEditTitle : s.documentFormAddTitle,
+          ),
+        ),
+        body: Center(
+          child: CircularProgressIndicator(color: tokens.text.accent),
+        ),
       );
     }
 
@@ -404,8 +428,10 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     if (vehicle == null) {
       return Scaffold(
         appBar: AppBar(
-            title: Text(
-                widget.isEditing ? s.documentFormEditTitle : s.documentFormAddTitle)),
+          title: Text(
+            widget.isEditing ? s.documentFormEditTitle : s.documentFormAddTitle,
+          ),
+        ),
         body: DcoEmptyState(
           title: s.documentsNoActiveVehicle,
           body: s.documentFormNoActiveVehicleBody,
@@ -415,7 +441,15 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
 
     final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
     final canWrite = widget.isEditing
-        ? access.canEditRecord(_createdBy)
+        ? (access.canEditRecord(_createdBy) &&
+              !(ref
+                      .read(
+                        recordAdminLockProvider(
+                          'document:${widget.documentId}',
+                        ),
+                      )
+                      .valueOrNull ??
+                  (ref.read(driverOrganizationIdProvider) != null)))
         : access.canCreate;
 
     if (_missing) {
@@ -431,7 +465,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            widget.isEditing ? s.documentFormEditTitle : s.documentFormAddTitle),
+          widget.isEditing ? s.documentFormEditTitle : s.documentFormAddTitle,
+        ),
       ),
       body: Column(
         children: [
@@ -441,10 +476,9 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
               children: [
                 Text(
                   vehicle.displayName,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: tokens.text.caption),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                 ),
                 SizedBox(height: tokens.space.s4),
                 DcoTextField(
@@ -482,12 +516,17 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                             IconButton(
                               key: const Key('document-expiry-clear'),
                               tooltip: s.remove,
-                              icon: Icon(Icons.close,
-                                  color: tokens.icon.inactive, size: 20),
+                              icon: Icon(
+                                Icons.close,
+                                color: tokens.icon.inactive,
+                                size: 20,
+                              ),
                               onPressed: _clearExpiry,
                             ),
-                            Icon(Icons.expand_more,
-                                color: tokens.icon.inactive),
+                            Icon(
+                              Icons.expand_more,
+                              color: tokens.icon.inactive,
+                            ),
                           ],
                         ),
                 ),
@@ -501,8 +540,10 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                   minLines: 2,
                 ),
                 SizedBox(height: tokens.space.s5),
-                Text(s.documentFormFileSection,
-                    style: Theme.of(context).textTheme.labelLarge),
+                Text(
+                  s.documentFormFileSection,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
                 SizedBox(height: tokens.space.s3),
                 _FilePicker(
                   path: _localFilePath,
@@ -513,8 +554,10 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(_formError!,
-                      style: TextStyle(color: tokens.status.dangerFg)),
+                  Text(
+                    _formError!,
+                    style: TextStyle(color: tokens.status.dangerFg),
+                  ),
                 ],
                 if (widget.isEditing && canWrite) ...[
                   SizedBox(height: tokens.space.s5),
@@ -581,11 +624,14 @@ class _FilePicker extends StatelessWidget {
       return OutlinedButton.icon(
         onPressed: onAdd,
         icon: Icon(Icons.attach_file_outlined, color: tokens.icon.active),
-        label:
-            Text(s.documentFormAttachFile, style: TextStyle(color: tokens.text.link)),
+        label: Text(
+          s.documentFormAttachFile,
+          style: TextStyle(color: tokens.text.link),
+        ),
       );
     }
-    final isImage = path!.endsWith('.jpg') ||
+    final isImage =
+        path!.endsWith('.jpg') ||
         path!.endsWith('.jpeg') ||
         path!.endsWith('.png');
     return Column(
@@ -610,8 +656,11 @@ class _FilePicker extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.picture_as_pdf_outlined,
-                    color: tokens.status.dangerFg, size: 32),
+                Icon(
+                  Icons.picture_as_pdf_outlined,
+                  color: tokens.status.dangerFg,
+                  size: 32,
+                ),
                 SizedBox(width: tokens.space.s3),
                 Expanded(
                   child: Text(
@@ -628,13 +677,17 @@ class _FilePicker extends StatelessWidget {
           children: [
             TextButton(
               onPressed: onAdd,
-              child: Text(s.documentFormReplace,
-                  style: TextStyle(color: tokens.text.link)),
+              child: Text(
+                s.documentFormReplace,
+                style: TextStyle(color: tokens.text.link),
+              ),
             ),
             TextButton(
               onPressed: onRemove,
-              child: Text(s.remove,
-                  style: TextStyle(color: tokens.status.dangerFg)),
+              child: Text(
+                s.remove,
+                style: TextStyle(color: tokens.status.dangerFg),
+              ),
             ),
           ],
         ),

@@ -3,12 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { PageHeader } from "@/components/ui/page-header";
-import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Modal } from "@/components/ui/modal";
+import { PageHeader } from "@dco/ui/components/page-header";
+import { Card } from "@dco/ui/components/card";
+import { Input } from "@dco/ui/components/input";
+import { Select } from "@dco/ui/components/select";
+import { Button } from "@dco/ui/components/button";
+import { Modal } from "@dco/ui/components/modal";
 import { useCreateUser } from "@/lib/api/hooks";
 import { PLAN_OPTIONS, type Plan } from "@/lib/plans";
 
@@ -62,6 +62,8 @@ export default function NewUserPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
+        backHref="/users"
+        backLabel="Back to users"
         title="Create user"
         description="Create a new user account with a temporary password"
       />
