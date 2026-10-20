@@ -2,6 +2,7 @@ import { eq } from "drizzle-orm";
 import type { Db } from "../db/client.js";
 import {
   documents,
+  documentLinks,
   expenseParts,
   expenses,
   fuelLogs,
@@ -89,7 +90,8 @@ export function publicFuelLog(row: typeof fuelLogs.$inferSelect) {
   };
 }
 
-export function publicDoc(row: typeof documents.$inferSelect) {
+export async function publicDoc(db: Db, row: typeof documents.$inferSelect) {
+  const links = await db.select().from(documentLinks).where(eq(documentLinks.documentId, row.id));
   return {
     id: row.id,
     revision: row.revision,
@@ -99,6 +101,7 @@ export function publicDoc(row: typeof documents.$inferSelect) {
     category: row.category,
     notes: row.notes,
     expires_on: dateOnly(row.expiresOn),
+    links: links.map(link => ({ kind: link.serviceRecordId ? "service_record" : "fuel_log", record_id: link.serviceRecordId ?? link.fuelLogId })),
     media_id: row.mediaId,
     created_at: row.createdAt.toISOString(),
     created_by: row.createdBy,

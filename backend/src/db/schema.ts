@@ -318,6 +318,13 @@ export const documents = pgTable("documents", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const documentLinks = pgTable("document_links", {
+  id: uuid("id").primaryKey(),
+  documentId: uuid("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+  serviceRecordId: uuid("service_record_id").references(() => serviceRecords.id, { onDelete: "cascade" }),
+  fuelLogId: uuid("fuel_log_id").references(() => fuelLogs.id, { onDelete: "cascade" }),
+});
+
 export const expenses = pgTable("expenses", {
   sourceKind: text("source_kind"),
   sourceId: uuid("source_id"),

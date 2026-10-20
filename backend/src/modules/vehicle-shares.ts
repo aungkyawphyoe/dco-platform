@@ -210,7 +210,7 @@ export async function seedVehicleHistory(db: Db, vehicleId: string, targetUserId
   for (const row of fuelRows) await record("fuel_log", row.id, publicFuelLog(row));
 
   const docRows = await db.select().from(documents).where(eq(documents.vehicleId, vehicleId));
-  for (const row of docRows) await record("document", row.id, publicDoc(row));
+  for (const row of docRows) await record("document", row.id, await publicDoc(db, row));
 
   const expenseRows = await db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
   for (const row of expenseRows) await record("expense", row.id, await publicExpense(db, row.id));

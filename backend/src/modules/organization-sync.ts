@@ -28,7 +28,7 @@ async function serialize(db: Db, kind: Kind, id: string): Promise<Record<string,
   if (kind === "vehicle") { const [row] = await db.select().from(vehicles).where(eq(vehicles.id, id)); return row ? publicVehicle(row) : null; }
   if (kind === "plan_item") { const [row] = await db.select().from(planItems).where(eq(planItems.id, id)); return row ? publicPlan(row) : null; }
   if (kind === "fuel_log") { const [row] = await db.select().from(fuelLogs).where(eq(fuelLogs.id, id)); return row ? publicFuelLog(row) : null; }
-  if (kind === "document") { const [row] = await db.select().from(documents).where(eq(documents.id, id)); return row ? publicDoc(row) : null; }
+  if (kind === "document") { const [row] = await db.select().from(documents).where(eq(documents.id, id)); return row ? publicDoc(db, row) : null; }
   const [row] = await db.select().from(parts).where(eq(parts.id, id)); return row ? publicPart(row) : null;
 }
 

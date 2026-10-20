@@ -436,3 +436,12 @@ Storage usage sums stored primary-file bytes, excluding `vehicle_photo` and `pro
 `media_cleanup` holds media IDs awaiting object deletion. Document removal schedules cleanup; failed deletion keeps the media row charged. Storage refresh retries scoped cleanup, deleting the usage row only after object deletion succeeds. This queue is separate from user-visible Trash, which is not supported.
 
 Full attachment-link and replacement lifecycle implementation remains tracked in [Document storage implementation](../product/frd/document-storage-implementation.md).
+
+
+## Reusable document links (migration 0024)
+
+`document_links` associates an ordinary document with a service record or fuel log. Exactly one target is required per row; duplicate document/target pairs are prohibited. Both sides use cascading foreign keys: deleting a log removes only its links, while deleting a document removes all its links. Stored bytes remain on the document's single media object.
+
+Document API/sync payloads include `links: [{kind, record_id}]`. Omitted links preserve existing associations; an explicit empty array unlinks all targets after permission checks. Cross-vehicle links are rejected. Organization link changes feed the existing organization change stream. Legacy service receipts are attached once during migration, without copying bytes.
+
+Mobile schema 24 persists the link list as JSON on its document rows. Saving a service/fuel form and its document/outbox writes uses one local transaction. Deleting a log removes its cached and queued link references, preserving document rows and local files.

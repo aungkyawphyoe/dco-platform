@@ -642,6 +642,7 @@ class SyncEngine {
 
   Map<String, dynamic> _documentWriteJson(DocumentRecord row) => {
     'id': row.id,
+    'links': jsonDecode(row.linksJson),
     'name': row.name,
     'category': row.category,
     'notes': row.notes,

@@ -131,6 +131,28 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
                     body: s.documentViewerNoFileBody,
                   ),
           ),
+          if (doc.links.isNotEmpty)
+            SizedBox(
+              height: 64,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                children: doc.links
+                    .map(
+                      (link) => TextButton.icon(
+                        icon: const Icon(Icons.link),
+                        label: Text(
+                          '${link.kind == 'service_record' ? 'Service' : 'Fuel log'} · ${link.recordId.split('-').first}',
+                        ),
+                        onPressed: () => context.push(
+                          link.kind == 'service_record'
+                              ? AppRoutes.serviceDetail(link.recordId)
+                              : AppRoutes.fuelLogDetail(link.recordId),
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
           _DocumentInfoBar(document: doc),
         ],
       ),

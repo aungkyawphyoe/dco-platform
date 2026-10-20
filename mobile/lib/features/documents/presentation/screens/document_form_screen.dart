@@ -49,6 +49,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   final _errors = <String, String?>{};
 
   DocumentCategory? _category;
+  List<DocumentLink> _links = const [];
   String? _localFilePath;
   DateTime? _expiresOn;
   String? _formError;
@@ -70,6 +71,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
           .getById(widget.documentId!);
       if (doc != null && mounted) {
         _createdBy = doc.createdBy;
+        _links = doc.links;
         _name.text = doc.name;
         _category = doc.category;
         _categoryLabel.text = _categoryLabelFor(doc.category);
@@ -140,6 +142,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     if (_errors.values.any((error) => error != null)) return null;
     return DocumentDraft(
       name: _name.text.trim(),
+      links: _links,
       category: _category!,
       notes: _notes.text,
       expiresOn: _expiresOn,
@@ -194,7 +197,11 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
         final s = AppLocalizations.of(context)!;
         return AlertDialog(
           title: Text(s.documentFormDeleteTitle),
-          content: Text(s.documentFormDeleteBody),
+          content: Text(
+            _links.isEmpty
+                ? s.documentFormDeleteBody
+                : '${s.documentFormDeleteBody}\n\nAlso removed from:\n${_links.map((link) => "${link.kind == 'service_record' ? 'Service' : 'Fuel log'} · ${link.recordId}").join('\n')}\n\nThe log records will remain.',
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),

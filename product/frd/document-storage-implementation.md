@@ -15,9 +15,16 @@ Implemented on `codex/document-storage`:
 - Mobile sends vehicle scope and a stable upload ID, retains rejected files, and displays pending/waiting-for-space status. Documents shows cached storage usage and the personal license independently of vehicle selection.
 - The PDF action now uses a PDF file picker. Camera/gallery images use quality/dimension compression and a post-compression size check.
 
+## Checkpoint 2 — multiple log attachments
+
+- Service and fuel forms now share an attachment editor: camera, gallery, PDF, or an existing same-vehicle document. New files default to Invoice/Receipt and their names/categories can be edited before saving.
+- Log and document/outbox writes save in one local transaction. Unsaved attachment cancellation requires confirmation and discards only newly copied files.
+- Document links persist in mobile schema 24 and backend `document_links`, with same-vehicle/record permission checks and cascading link removal. Legacy service receipts migrate once without duplicate bytes.
+- Removing a file from a form unlinks it. Explicit document deletion checks affected records and clears legacy receipt pointers. Documents lists linked records for navigation and deletion confirmation.
+- Backend link and migration tests, plus mobile offline linking/rollback tests, cover the new data lifecycle. Device UI verification is still pending.
+
 ## Remaining before release
 
-- Multiple attachments on service/fuel records, same-vehicle document picker, reusable links, unlinking, and affected-record deletion confirmation.
 - Complete replacement lifecycle, including smaller replacements while over quota, old-version cleanup, and preservation across offline failures.
 - Full license lifecycle: required front/optional back, optional expiry, removal from either entry point, replacement cleanup, and offline image availability.
 - Fleet portal document UI and platform support permissions, audited access/deletion, reason capture, and owner notifications.

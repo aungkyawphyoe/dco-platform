@@ -1,4 +1,5 @@
 import 'dart:io';
+import '../../../../core/database/document_links.dart';
 
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -59,6 +60,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
       name: draft.name.trim(),
       category: draft.category,
       notes: _emptyToNull(draft.notes),
+      links: draft.links,
       expiresOn: draft.expiresOn,
       localFilePath: draft.localFilePath,
       createdBy: userId,
@@ -95,6 +97,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
       name: draft.name.trim(),
       category: draft.category,
       notes: _emptyToNull(draft.notes),
+      links: draft.links,
       expiresOn: draft.expiresOn,
       localFilePath: draft.localFilePath,
       updatedAt: DateTime.now().toUtc(),
@@ -131,6 +134,7 @@ class DocumentRepositoryImpl implements DocumentRepository {
     if (existing == null) throw const DocumentNotFoundFailure();
 
     await _db.transaction(() async {
+      if (existing.mediaId != null) await detachLegacyDocumentMedia(_db, existing.mediaId!);
       await (_db.delete(
         _db.documentRecords,
       )..where((row) => row.id.equals(documentId))).go();

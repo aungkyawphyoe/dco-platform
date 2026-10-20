@@ -5197,10 +5197,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ServicePart'
+    DocumentLink:
+      type: object
+      required: [kind, record_id]
+      properties:
+        kind: { type: string, enum: [service_record, fuel_log] }
+        record_id: { type: string, format: uuid }
+      description: A same-vehicle log reference. Removing a link preserves the file. Updating links requires permission on the document and affected logs.
     Document:
       type: object
       required: [id, vehicle_id, name, category]
       properties:
+        links:
+          type: array
+          items: { $ref: '#/components/schemas/DocumentLink' }
         revision: { type: integer, minimum: 1, readOnly: true }
         admin_corrected_by: { type: string, format: uuid, nullable: true, readOnly: true }
         id:
@@ -5233,11 +5243,14 @@ components:
           type: string
           format: uuid
           nullable: true
-          description: User who created the document. Shared users may only edit or delete documents they created.
+          description: Uploader identity. Personal share recipients are read-only; fleet drivers may change their own unlocked uploads.
     DocumentWrite:
       type: object
       required: [id, name, category]
       properties:
+        links:
+          type: array
+          items: { $ref: '#/components/schemas/DocumentLink' }
         id:
           type: string
           format: uuid
@@ -5257,6 +5270,9 @@ components:
     DocumentPatch:
       type: object
       properties:
+        links:
+          type: array
+          items: { $ref: '#/components/schemas/DocumentLink' }
         name:
           type: string
         category:

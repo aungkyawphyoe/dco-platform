@@ -36,12 +36,15 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.scoped(String name) : super(driftDatabase(name: name));
 
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
+      if (from >= 12 && from < 24) {
+        await migrator.addColumn(documentRecords, documentRecords.linksJson);
+      }
       if (from < 2) {
         await migrator.createTable(vehicleRecords);
         await migrator.createTable(userProfiles);

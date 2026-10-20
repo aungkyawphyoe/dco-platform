@@ -1,3 +1,5 @@
+import '../database/document_links.dart';
+import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../database/app_database.dart';
@@ -223,6 +225,7 @@ class ChangeApplier {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
+      await detachDocumentLinks(_db, 'service_record', id);
       await (_db.delete(
         _db.serviceLineRecords,
       )..where((row) => row.serviceRecordId.equals(id))).go();
@@ -385,6 +388,7 @@ class ChangeApplier {
     final payload = change.payload;
     final id = _idOf(payload, change);
     if (change.op == SyncChangeOp.delete) {
+      await detachDocumentLinks(_db, 'fuel_log', id);
       await (_db.delete(
         _db.fuelLogRecords,
       )..where((row) => row.id.equals(id))).go();
@@ -638,6 +642,8 @@ class ChangeApplier {
     final id = _idOf(payload, change);
 
     if (change.op == SyncChangeOp.delete) {
+      final removed = await (_db.select(_db.documentRecords)..where((row) => row.id.equals(id))).getSingleOrNull();
+      if (removed?.mediaId != null) await detachLegacyDocumentMedia(_db, removed!.mediaId!);
       await (_db.delete(
         _db.documentRecords,
       )..where((row) => row.id.equals(id))).go();
@@ -657,6 +663,9 @@ class ChangeApplier {
         _db.documentRecords,
       )..where((row) => row.id.equals(id))).write(
         DocumentRecordsCompanion(
+          linksJson: payload.containsKey('links')
+              ? Value(jsonEncode(payload['links']))
+              : const Value.absent(),
           name: Value(_str(payload['name'], fallback: existing.name)),
           category: Value(
             _str(payload['category'], fallback: existing.category),
@@ -681,6 +690,7 @@ class ChangeApplier {
               vehicleId: _str(payload['vehicle_id']),
               name: _str(payload['name']),
               category: _str(payload['category'], fallback: 'other'),
+              linksJson: Value(jsonEncode(payload['links'] ?? [])),
               notes: Value(_strN(payload['notes'])),
               expiresOn: Value(_dt(payload['expires_on'])),
               mediaId: Value(_strN(payload['media_id'])),
