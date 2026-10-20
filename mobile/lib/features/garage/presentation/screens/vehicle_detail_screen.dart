@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
+import 'package:dco_mobile/core/theme/dco_layout.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
@@ -26,10 +27,9 @@ import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
-/// Vehicle detail: collapsing photo hero plus Overview / Maintenance /
-/// Details tabs. Opens for any vehicle — owned or shared with the user.
-/// Edit is only offered for vehicles the current user owns; members keep
-/// view access plus "Set active" so they can log against the shared car.
+/// Vehicle detail: photo hero plus Overview / Maintenance / Details tabs.
+/// The primary vehicle action (log service) is pinned to the thumb zone;
+/// sharing and editing are quiet header actions.
 class VehicleDetailScreen extends ConsumerStatefulWidget {
   const VehicleDetailScreen({super.key, required this.vehicleId});
 
@@ -41,8 +41,8 @@ class VehicleDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
-  /// Opens a screen that is scoped to the active vehicle. Viewing can be
-  /// done for any vehicle, but acting on one makes it the active vehicle.
+  /// Opens a screen scoped to the active vehicle. Viewing works for any
+  /// vehicle, but acting on one makes it active first.
   Future<void> _openForVehicle(String route) async {
     final activeId = ref.read(activeVehicleProvider).valueOrNull?.id;
     if (activeId != null && activeId != widget.vehicleId) {
@@ -89,8 +89,6 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
 
     final activeId = ref.watch(activeVehicleProvider).valueOrNull?.id;
     final currentUserId = ref.watch(currentUserIdProvider);
-    // Vehicle identity (name, plate, photo, archive) is owner-only; shared
-    // users view the vehicle and contribute records without editing it.
     final canEdit = vehicle.userId == currentUserId;
 
     return DefaultTabController(
@@ -100,37 +98,37 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
           headerSliverBuilder: (context, innerBoxIsScrolled) => [
             SliverAppBar(
               pinned: true,
-              expandedHeight: 320,
+              expandedHeight: 264,
               backgroundColor: tokens.background.primary,
               surfaceTintColor: Colors.transparent,
+              foregroundColor: tokens.text.primary,
               title: Text(
-                s.vehicleDetailTitle,
+                vehicle.displayName,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               actions: [
+                if (canEdit)
+                  _RoundIconButton(
+                    tooltip: s.vehicleEditTooltip,
+                    icon: Icons.edit_outlined,
+                    onPressed: () => _push(AppRoutes.vehicleEdit(vehicle.id)),
+                  ),
                 if (vehicle.source == VehicleSource.owned)
-                  IconButton(
+                  _RoundIconButton(
                     tooltip: s.vehicleShareTooltip,
+                    icon: Icons.ios_share,
                     onPressed: () =>
                         context.push(AppRoutes.vehicleShareManage(vehicle.id)),
-                    icon: Icon(
-                      Icons.ios_share,
-                      size: 20,
-                      color: tokens.icon.inactive,
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 44,
-                      minHeight: 44,
-                    ),
-                    padding: EdgeInsets.zero,
                   ),
+                SizedBox(width: tokens.space.s2),
               ],
               flexibleSpace: FlexibleSpaceBar(
                 background: _VehicleHero(
                   vehicle: vehicle,
                   isActive: activeId == vehicle.id,
-                  canEdit: canEdit,
-                  onEdit: () => _push(AppRoutes.vehicleEdit(vehicle.id)),
+                  lengthUnit: ref.watch(lengthUnitProvider),
                   onSetActive: () async {
                     try {
                       await ref.read(setActiveVehicleProvider)(
@@ -149,8 +147,15 @@ class _VehicleDetailScreenState extends ConsumerState<VehicleDetailScreen> {
                 labelColor: tokens.text.accent,
                 unselectedLabelColor: tokens.text.secondary,
                 indicatorColor: tokens.text.accent,
-                indicatorWeight: 3,
+                indicatorWeight: 2,
+                dividerColor: tokens.border.divider,
                 indicatorSize: TabBarIndicatorSize.label,
+                labelStyle: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+                unselectedLabelStyle: Theme.of(
+                  context,
+                ).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w400),
                 tabs: [
                   Tab(text: s.vehicleDetailTabOverview),
                   Tab(text: s.vehicleDetailTabMaintenance),
@@ -182,15 +187,13 @@ class _VehicleHero extends StatelessWidget {
   const _VehicleHero({
     required this.vehicle,
     required this.isActive,
-    required this.canEdit,
-    required this.onEdit,
+    required this.lengthUnit,
     required this.onSetActive,
   });
 
   final Vehicle vehicle;
   final bool isActive;
-  final bool canEdit;
-  final VoidCallback onEdit;
+  final MileageUnit lengthUnit;
   final VoidCallback onSetActive;
 
   @override
@@ -200,113 +203,239 @@ class _VehicleHero extends StatelessWidget {
     final topPadding = MediaQuery.of(context).padding.top + kToolbarHeight;
     final hasPhoto =
         vehicle.photoLocalPath != null && vehicle.photoLocalPath!.isNotEmpty;
-
-    final background = tokens.background.primary;
+    final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
 
     return Container(
-      width: double.infinity,
-      color: background,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      color: tokens.background.primary,
+      child: Stack(
+        fit: StackFit.expand,
         children: [
-          SizedBox(height: topPadding),
-          Stack(
-            children: [
-              if (hasPhoto)
-                Positioned.fill(
-                  child: Image.file(
-                    File(vehicle.photoLocalPath!),
-                    fit: BoxFit.cover,
+          if (hasPhoto)
+            Image.file(
+              File(vehicle.photoLocalPath!),
+              fit: BoxFit.cover,
+              errorBuilder: (_, _, _) => ColoredBox(
+                color: tokens.background.secondary,
+                child: Center(
+                  child: Icon(
+                    Icons.directions_car_outlined,
+                    size: 64,
+                    color: tokens.icon.inactive,
                   ),
                 ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    height: 150 - tokens.space.s5,
-                    width: double.infinity,
-                    child: hasPhoto
-                        ? null
-                        : ColoredBox(
-                            color: tokens.background.primary,
-                            child: Center(
-                              child: Icon(
-                                Icons.directions_car_outlined,
-                                size: 64,
-                                color: tokens.icon.inactive,
-                              ),
-                            ),
-                          ),
+              ),
+            )
+          else
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    tokens.background.secondary,
+                    tokens.background.input,
+                  ],
+                ),
+              ),
+              child: Center(
+                child: Icon(
+                  Icons.directions_car_filled,
+                  size: 120,
+                  color: tokens.text.accent.withValues(alpha: 0.16),
+                ),
+              ),
+            ),
+          Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            height: topPadding + 40,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      tokens.background.primary.withValues(alpha: 0.85),
+                      tokens.background.primary.withValues(alpha: 0),
+                    ],
                   ),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.fromLTRB(
-                      tokens.space.s5,
-                      tokens.space.s3,
-                      tokens.space.s5,
-                      tokens.space.s3,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          background.withValues(alpha: 0),
-                          background.withValues(alpha: 0.75),
-                          background,
-                        ],
-                        stops: const [0, 0.14, 0.35],
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 140,
+            child: IgnorePointer(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      tokens.background.primary.withValues(alpha: 0),
+                      tokens.background.primary,
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Positioned(
+            left: DcoLayout.cardPaddingLoose,
+            right: DcoLayout.cardPaddingLoose,
+            bottom: kTextTabBarHeight + tokens.space.s2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    Flexible(child: _PlateChip(text: vehicle.licensePlate)),
+                    SizedBox(width: tokens.space.s2),
+                    Text(
+                      mileage,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.ibmPlexMono(
+                        fontSize: 12,
+                        color: tokens.text.secondary,
                       ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Text(
-                              vehicle.displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            const Spacer(),
-                            if (!isActive) ...[
-                              SizedBox(height: tokens.space.s1),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: _SetActiveChip(onTap: onSetActive),
-                              ),
-                            ],
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            Text(
-                              vehicle.licensePlate,
-                              style: GoogleFonts.ibmPlexMono(
-                                fontSize: 14,
-                                color: tokens.text.accent,
-                              ),
-                            ),
-                            const Spacer(),
-                            if (canEdit)
-                              TextButton(
-                                onPressed: onEdit,
-                                child: Text(
-                                  s.edit,
-                                  style: TextStyle(color: tokens.text.link),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+                SizedBox(height: tokens.space.s2),
+                Row(
+                  children: [
+                    if (isActive)
+                      _HeroBadge(
+                        label: s.active,
+                        color: tokens.text.accent,
+                        background: tokens.background.navActive,
+                      ),
+                    if (isActive && vehicle.source == VehicleSource.shared)
+                      SizedBox(width: tokens.space.s2),
+                    if (vehicle.source == VehicleSource.shared)
+                      _HeroBadge(
+                        label: s.garageSharedBadge,
+                        color: tokens.status.infoFg,
+                        background: tokens.status.infoBg,
+                      ),
+                    const Spacer(),
+                    if (!isActive) _SetActiveChip(onTap: onSetActive),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _PlateChip extends StatelessWidget {
+  const _PlateChip({required this.text});
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: tokens.space.s2,
+        vertical: tokens.space.s1,
+      ),
+      decoration: BoxDecoration(
+        color: tokens.background.card.withValues(alpha: 0.9),
+        borderRadius: BorderRadius.circular(tokens.radius.full),
+        border: Border.all(color: tokens.border.divider),
+      ),
+      child: Text(
+        text,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: GoogleFonts.ibmPlexMono(
+          fontSize: 16,
+          fontWeight: FontWeight.w600,
+          color: tokens.text.primary,
+        ),
+      ),
+    );
+  }
+}
+
+class _RoundIconButton extends StatelessWidget {
+  const _RoundIconButton({
+    required this.tooltip,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String tooltip;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Padding(
+      padding: EdgeInsets.only(right: tokens.space.s1),
+      child: Tooltip(
+        message: tooltip,
+        child: Material(
+          color: tokens.background.secondary,
+          shape: const CircleBorder(),
+          child: InkWell(
+            onTap: onPressed,
+            customBorder: const CircleBorder(),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: tokens.border.divider),
+              ),
+              child: Icon(icon, size: 18, color: tokens.icon.inactive),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _HeroBadge extends StatelessWidget {
+  const _HeroBadge({
+    required this.label,
+    required this.color,
+    required this.background,
+  });
+
+  final String label;
+  final Color color;
+  final Color background;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      padding: EdgeInsets.symmetric(
+        horizontal: tokens.space.s2,
+        vertical: tokens.space.s1,
+      ),
+      decoration: BoxDecoration(
+        color: background,
+        borderRadius: BorderRadius.circular(tokens.radius.full),
+      ),
+      child: Text(
+        label.toUpperCase(),
+        style: Theme.of(context).textTheme.labelLarge?.copyWith(color: color),
       ),
     );
   }
@@ -329,10 +458,7 @@ class _SetActiveChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(tokens.radius.full),
         child: Container(
           constraints: const BoxConstraints(minHeight: 44),
-          padding: EdgeInsets.symmetric(
-            horizontal: tokens.space.s3,
-            vertical: tokens.space.s2,
-          ),
+          padding: EdgeInsets.symmetric(horizontal: tokens.space.s3),
           decoration: BoxDecoration(
             border: Border.all(color: tokens.border.defaultColor),
             borderRadius: BorderRadius.circular(tokens.radius.full),
@@ -343,14 +469,14 @@ class _SetActiveChip extends StatelessWidget {
               Icon(
                 Icons.check_circle_outline,
                 size: 16,
-                color: tokens.icon.active,
+                color: tokens.icon.inactive,
               ),
               SizedBox(width: tokens.space.s1),
               Text(
                 s.vehicleDetailSetActive,
                 style: Theme.of(
                   context,
-                ).textTheme.bodySmall?.copyWith(color: tokens.text.link),
+                ).textTheme.labelLarge?.copyWith(color: tokens.text.primary),
               ),
             ],
           ),
@@ -416,42 +542,63 @@ class _OverviewTab extends ConsumerWidget {
             now: now,
             thresholds: thresholds,
           );
-    final urgencyColor = switch (urgency) {
-      PlanUrgency.overdue => tokens.feedback.overdue,
-      PlanUrgency.dueSoon => tokens.feedback.dueSoon,
-      _ => tokens.text.caption,
-    };
-    final urgencyIconColor = switch (urgency) {
-      PlanUrgency.overdue => tokens.status.dangerFg,
-      PlanUrgency.dueSoon => tokens.status.warningFg,
-      _ => tokens.status.infoFg,
-    };
-    final urgencyIconBg = switch (urgency) {
-      PlanUrgency.overdue => tokens.status.dangerBg,
-      PlanUrgency.dueSoon => tokens.status.warningBg,
-      _ => tokens.status.infoBg,
-    };
+
+    final healthValue = plan.isEmpty
+        ? s.vehicleDetailNoPlan
+        : health.overdueCount > 0
+        ? '${health.overdueCount} ${s.overdue}'
+        : health.dueSoonCount > 0
+        ? '${health.dueSoonCount} ${s.dueSoon}'
+        : s.vehicleDetailHealthGood;
+    final healthParts = <String>[
+      if (health.overdueCount > 0 && health.dueSoonCount > 0)
+        '${health.dueSoonCount} ${s.dueSoon}',
+      if (health.scheduledCount > 0)
+        '${health.scheduledCount} ${s.maintenanceScheduled}',
+    ];
+    final healthSubtitle = plan.isEmpty || healthParts.isEmpty
+        ? null
+        : healthParts.join(' · ');
+
+    VoidCallback? registrationTap;
+    final registrationDocument = registration.document;
+    if (registrationDocument == null) {
+      if (access.canCreate) {
+        registrationTap = () => onPush(
+          '${AppRoutes.documentNew}'
+          '?vehicle=${vehicle.id}&category=registration',
+        );
+      }
+    } else if (access.canEditRecord(registrationDocument.createdBy)) {
+      registrationTap = () =>
+          onPush(AppRoutes.documentEdit(registrationDocument.id));
+    } else if (registrationDocument.hasLocalFile ||
+        registrationDocument.mediaId != null) {
+      registrationTap = () =>
+          onPush(AppRoutes.documentView(registrationDocument.id));
+    }
 
     return ListView(
-      padding: EdgeInsets.all(tokens.space.s4),
+      padding: const EdgeInsets.all(DcoLayout.screenPadding),
       children: [
-        _OverviewTile(
-          icon: Icons.build_outlined,
-          iconBackground: urgencyIconBg,
-          iconColor: urgencyIconColor,
-          title: s.vehicleDetailNextService,
-          value: next?.name ?? s.vehicleDetailNoPlan,
-          valueColor: next == null ? tokens.text.secondary : null,
-          subtitle: next == null
+        Text(
+          s.vehicleDetailNextService,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
+        SizedBox(height: tokens.space.s3),
+        _NextServiceCard(
+          next: next,
+          urgency: urgency,
+          dueCopy: next == null
               ? null
               : _nextServiceCopy(next, urgency!, vehicle, lengthUnit, s),
-          subtitleColor: urgencyColor,
           onTap: next == null || !access.canCreate
               ? () => onOpenForVehicle(AppRoutes.maintenancePlan)
               : () => onOpenForVehicle(
                   AppRoutes.maintenanceRegisterItem(next.id),
                 ),
         ),
+        SizedBox(height: DcoLayout.sectionGap),
         _OverviewTile(
           icon: Icons.health_and_safety_outlined,
           iconBackground: switch (health.status) {
@@ -467,21 +614,18 @@ class _OverviewTab extends ConsumerWidget {
               plan.isEmpty ? tokens.status.infoFg : tokens.status.successFg,
           },
           title: s.vehicleDetailHealth,
-          value: plan.isNotEmpty
-              ? switch (health.status) {
-                  VehicleHealth.attention => s.vehicleDetailHealthAttention,
-                  VehicleHealth.dueSoon => s.dueSoon,
-                  VehicleHealth.good => s.vehicleDetailHealthGood,
-                }
-              : s.vehicleDetailNoPlan,
-          valueColor: switch (health.status) {
-            VehicleHealth.attention => tokens.feedback.overdue,
-            VehicleHealth.dueSoon => tokens.feedback.dueSoon,
-            VehicleHealth.good =>
-              plan.isEmpty ? tokens.text.secondary : tokens.status.successFg,
-          },
-          onTap: () => (),
+          value: healthValue,
+          valueColor: plan.isEmpty
+              ? tokens.text.secondary
+              : switch (health.status) {
+                  VehicleHealth.attention => tokens.feedback.overdue,
+                  VehicleHealth.dueSoon => tokens.feedback.dueSoon,
+                  VehicleHealth.good => tokens.status.successFg,
+                },
+          subtitle: healthSubtitle,
+          subtitleColor: tokens.text.caption,
         ),
+        SizedBox(height: tokens.space.s2),
         _OverviewTile(
           icon: Icons.tire_repair_outlined,
           iconBackground: tire == null
@@ -499,8 +643,9 @@ class _OverviewTab extends ConsumerWidget {
               ? () => onPush(AppRoutes.serviceDetail(tire.id))
               : access.canCreate
               ? () => onOpenForVehicle(AppRoutes.maintenanceRegister)
-              : () {},
+              : null,
         ),
+        SizedBox(height: tokens.space.s2),
         _OverviewTile(
           icon: Icons.event_outlined,
           iconBackground: switch (registration.status) {
@@ -544,22 +689,8 @@ class _OverviewTab extends ConsumerWidget {
             RegistrationExpiryStatus.expired => tokens.feedback.overdue,
             _ => null,
           },
-          onTap: () {
-            final doc = registration.document;
-            if (doc == null) {
-              if (!access.canCreate) return;
-              onPush(
-                '${AppRoutes.documentNew}'
-                '?vehicle=${vehicle.id}&category=registration',
-              );
-            } else if (access.canEditRecord(doc.createdBy)) {
-              onPush(AppRoutes.documentEdit(doc.id));
-            } else if (doc.hasLocalFile || doc.mediaId != null) {
-              onPush(AppRoutes.documentView(doc.id));
-            }
-          },
+          onTap: registrationTap,
         ),
-        SizedBox(height: tokens.space.s3),
       ],
     );
   }
@@ -576,22 +707,20 @@ class _OverviewTab extends ConsumerWidget {
     final miles = NumberFormat('#,###');
 
     if (urgency == PlanUrgency.overdue) {
-      final parts = <String>[s.overdue];
+      final parts = <String>[];
+      if (item.nextDueOn != null) {
+        final days = today
+            .difference(DueCalculator.dateOnly(item.nextDueOn!))
+            .inDays;
+        if (days > 0) parts.add(s.overdueBy(days));
+      }
       if (item.nextDueMileage != null &&
           vehicle.mileage > item.nextDueMileage!) {
         parts.add(
           '${miles.format(unit.toDisplay(vehicle.mileage - item.nextDueMileage!).round())} ${unit.label}',
         );
       }
-      if (item.nextDueOn != null) {
-        final days = today
-            .difference(DueCalculator.dateOnly(item.nextDueOn!))
-            .inDays;
-        if (days > 0) {
-          return '${s.overdue} ${s.overdueBy(days)}';
-        }
-      }
-      return parts.join(' ');
+      return parts.isEmpty ? s.overdue : parts.join(' · ');
     }
 
     final remainingMiles = item.nextDueMileage == null
@@ -613,6 +742,136 @@ class _OverviewTab extends ConsumerWidget {
   }
 }
 
+class _ChevronCircle extends StatelessWidget {
+  const _ChevronCircle();
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      width: 28,
+      height: 28,
+      decoration: BoxDecoration(
+        color: tokens.background.secondary,
+        shape: BoxShape.circle,
+      ),
+      child: Icon(Icons.chevron_right, size: 18, color: tokens.text.secondary),
+    );
+  }
+}
+
+class _NextServiceCard extends StatelessWidget {
+  const _NextServiceCard({
+    required this.next,
+    required this.urgency,
+    required this.dueCopy,
+    required this.onTap,
+  });
+
+  final PlanItem? next;
+  final PlanUrgency? urgency;
+  final String? dueCopy;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
+    final tokens = context.tokens;
+    final item = next;
+    final isOverdue = urgency == PlanUrgency.overdue;
+    final isDueSoon = urgency == PlanUrgency.dueSoon;
+    final statusColor = isOverdue
+        ? tokens.status.dangerFg
+        : isDueSoon
+        ? tokens.status.warningFg
+        : tokens.status.successFg;
+    final statusBg = isOverdue
+        ? tokens.status.dangerBg
+        : isDueSoon
+        ? tokens.status.warningBg
+        : tokens.status.successBg;
+    final radius = BorderRadius.circular(tokens.radius.lg);
+
+    return Material(
+      color: tokens.background.card,
+      borderRadius: radius,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Container(
+          padding: const EdgeInsets.all(DcoLayout.cardPadding),
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(
+              color: item == null
+                  ? tokens.border.divider
+                  : statusColor.withValues(alpha: 0.28),
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  if (item == null)
+                    Icon(
+                      Icons.build_outlined,
+                      size: 16,
+                      color: tokens.icon.inactive,
+                    )
+                  else if (isOverdue || isDueSoon)
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: tokens.space.s2,
+                        vertical: tokens.space.s1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: statusBg,
+                        borderRadius: BorderRadius.circular(tokens.radius.full),
+                      ),
+                      child: Text(
+                        (isOverdue ? s.overdue : s.dueSoon).toUpperCase(),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelLarge?.copyWith(color: statusColor),
+                      ),
+                    )
+                  else
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 16,
+                      color: statusColor,
+                    ),
+                  const Spacer(),
+                  const _ChevronCircle(),
+                ],
+              ),
+              SizedBox(height: tokens.space.s2),
+              Text(
+                item?.name ?? s.vehicleDetailNoPlan,
+                style: Theme.of(context).textTheme.titleLarge,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              if (dueCopy != null) ...[
+                SizedBox(height: tokens.space.s1),
+                Text(
+                  dueCopy!,
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    color: isOverdue || isDueSoon
+                        ? statusColor
+                        : tokens.text.secondary,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _OverviewTile extends StatelessWidget {
   const _OverviewTile({
     required this.icon,
@@ -620,7 +879,7 @@ class _OverviewTile extends StatelessWidget {
     required this.iconColor,
     required this.title,
     required this.value,
-    required this.onTap,
+    this.onTap,
     this.valueColor,
     this.subtitle,
     this.subtitleColor,
@@ -634,76 +893,71 @@ class _OverviewTile extends StatelessWidget {
   final Color? valueColor;
   final String? subtitle;
   final Color? subtitleColor;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    return Padding(
-      padding: EdgeInsets.only(bottom: tokens.space.s3),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(tokens.radius.lg),
-          boxShadow: tokens.shadows.card,
-        ),
-        child: Material(
-          color: tokens.background.card,
-          borderRadius: BorderRadius.circular(tokens.radius.lg),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(tokens.radius.lg),
-            child: Padding(
-              padding: EdgeInsets.all(tokens.space.s4),
-              child: Row(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: iconBackground,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(icon, size: 20, color: iconColor),
-                  ),
-                  SizedBox(width: tokens.space.s3),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: tokens.text.secondary),
-                        ),
-                        SizedBox(height: tokens.space.s1),
-                        Text(
-                          value,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: valueColor ?? tokens.text.primary,
-                              ),
-                        ),
-                        if (subtitle != null) ...[
-                          SizedBox(height: tokens.space.s1),
-                          Text(
-                            subtitle!,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  color: subtitleColor ?? tokens.text.caption,
-                                ),
-                          ),
-                        ],
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right, color: tokens.icon.inactive),
-                ],
+    final radius = BorderRadius.circular(tokens.radius.md);
+    return Material(
+      color: tokens.background.card,
+      borderRadius: radius,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: radius,
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: EdgeInsets.symmetric(
+            horizontal: tokens.space.s3,
+            vertical: tokens.space.s3,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: radius,
+            border: Border.all(color: tokens.border.divider),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: iconBackground,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 20, color: iconColor),
               ),
-            ),
+              SizedBox(width: tokens.space.s3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(title, style: Theme.of(context).textTheme.bodySmall),
+                    SizedBox(height: tokens.space.s1),
+                    Text(
+                      value,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: valueColor ?? tokens.text.primary,
+                      ),
+                    ),
+                    if (subtitle != null) ...[
+                      SizedBox(height: tokens.space.s1),
+                      Text(
+                        subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: subtitleColor ?? tokens.text.caption,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (onTap != null) const _ChevronCircle(),
+            ],
           ),
         ),
       ),
@@ -758,42 +1012,27 @@ class _DetailsTab extends ConsumerWidget {
     ];
 
     return ListView(
-      padding: EdgeInsets.all(tokens.space.s5),
+      padding: const EdgeInsets.all(DcoLayout.screenPadding),
       children: [
         Container(
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(tokens.radius.lg),
-            boxShadow: tokens.shadows.card,
-          ),
-          child: Material(
             color: tokens.background.card,
             borderRadius: BorderRadius.circular(tokens.radius.lg),
-            child: Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: tokens.space.s4,
-                vertical: tokens.space.s2,
-              ),
-              child: Column(
-                children: [
-                  for (var i = 0; i < rows.length; i++) ...[
-                    if (i > 0)
-                      Divider(
-                        height: 1,
-                        indent: 16,
-                        color: tokens.border.divider,
-                      ),
-                    _DetailRow(
-                      label: rows[i].$1,
-                      value: rows[i].$2,
-                      mono: rows[i].$3,
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            border: Border.all(color: tokens.border.divider),
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < rows.length; i++) ...[
+                if (i > 0) Divider(height: 1, color: tokens.border.divider),
+                _DetailRow(
+                  label: rows[i].$1,
+                  value: rows[i].$2,
+                  mono: rows[i].$3,
+                ),
+              ],
+            ],
           ),
         ),
-        SizedBox(height: tokens.space.s5),
       ],
     );
   }
@@ -814,19 +1053,22 @@ class _DetailRow extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final valueStyle = mono
-        ? GoogleFonts.ibmPlexMono(fontSize: 14, color: tokens.text.primary)
-        : Theme.of(context).textTheme.bodyMedium;
-    return Padding(
-      padding: EdgeInsets.symmetric(vertical: tokens.space.s3),
+        ? GoogleFonts.ibmPlexMono(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: tokens.text.primary,
+          )
+        : Theme.of(context).textTheme.bodyLarge;
+    return Container(
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: EdgeInsets.symmetric(
+        horizontal: tokens.space.s4,
+        vertical: tokens.space.s3,
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
-          ),
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
           SizedBox(width: tokens.space.s3),
           Expanded(
             child: Text(value, textAlign: TextAlign.end, style: valueStyle),

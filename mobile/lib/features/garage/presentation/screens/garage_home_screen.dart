@@ -5,7 +5,9 @@ import 'package:dco_mobile/core/gating/gate_messages.dart';
 import 'package:dco_mobile/core/gating/providers.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
+import 'package:dco_mobile/core/theme/dco_layout.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_error_dialog.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
@@ -22,9 +24,8 @@ class GarageHomeScreen extends ConsumerWidget {
   const GarageHomeScreen({super.key});
 
   /// Entry-point gate (§8.3 / §2): over-cap users never reach the form —
-  /// the "+" is hidden and the add card degrades to the upsell caption.
-  /// A null gate (hydrating) still navigates: the form's save re-checks
-  /// and denies (deny-by-default lives at the create itself).
+  /// the add CTA is replaced by the limit caption. A null gate (hydrating)
+  /// still navigates: the form's save re-checks and denies.
   void _openAddVehicle(BuildContext context, WidgetRef ref) {
     final gate = ref.read(featureGateProvider);
     if (gate != null && !gate.canCreateVehicle) {
@@ -54,17 +55,7 @@ class GarageHomeScreen extends ConsumerWidget {
     final canAddVehicle = personal && (gate?.canCreateVehicle ?? true);
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(s.garageMyGarage),
-        actions: [
-          if (canAddVehicle)
-            IconButton(
-              tooltip: s.garageRegisterTooltip,
-              onPressed: () => _openAddVehicle(context, ref),
-              icon: Icon(Icons.add, color: tokens.icon.active),
-            ),
-        ],
-      ),
+      appBar: AppBar(title: Text(s.garageMyGarage)),
       body: vehicles.when(
         loading: () =>
             Center(child: CircularProgressIndicator(color: tokens.text.accent)),
@@ -72,21 +63,20 @@ class GarageHomeScreen extends ConsumerWidget {
             DcoEmptyState(title: s.garageLoadError, body: '$error'),
         data: (items) {
           if (items.isEmpty) {
-            return DcoEmptyState(
-              title: s.garageEmptyTitle,
-              body: s.garageEmptyBody,
-              actionLabel: s.garageRegisterTooltip,
-              onAction: canAddVehicle
-                  ? () => _openAddVehicle(context, ref)
-                  : null,
-            );
+            return const _GarageEmpty();
           }
+          final ordered = _activeFirst(items, active?.id);
           return ListView(
-            padding: EdgeInsets.all(tokens.space.s4),
+            padding: EdgeInsets.fromLTRB(
+              DcoLayout.screenPadding,
+              DcoLayout.screenPadding,
+              DcoLayout.screenPadding,
+              personal ? DcoLayout.bottomBarInset : DcoLayout.screenPadding,
+            ),
             children: [
-              ...items.map(
-                (vehicle) => Padding(
-                  padding: EdgeInsets.only(bottom: tokens.space.s3),
+              for (final vehicle in ordered)
+                Padding(
+                  padding: EdgeInsets.only(bottom: tokens.space.s2),
                   child: VehicleCard(
                     vehicle: vehicle,
                     isActive: vehicle.id == active?.id,
@@ -129,104 +119,211 @@ class GarageHomeScreen extends ConsumerWidget {
                           },
                   ),
                 ),
-              ),
               if (personal) ...[
-                SizedBox(height: tokens.space.s3),
-                Material(
-                  color: tokens.background.card,
-                  borderRadius: BorderRadius.circular(tokens.radius.md),
-                  child: InkWell(
-                    onTap: () => context.push(AppRoutes.sharedWithMe),
-                    borderRadius: BorderRadius.circular(tokens.radius.md),
-                    child: Padding(
-                      padding: EdgeInsets.all(tokens.space.s4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.people_outline,
-                            color: tokens.icon.inactive,
-                          ),
-                          SizedBox(width: tokens.space.s3),
-                          Expanded(
-                            child: Text(
-                              s.drawerSharedWithMe,
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                SizedBox(height: DcoLayout.sectionGap),
+                _GarageLinkRow(
+                  icon: Icons.people_outline,
+                  label: s.drawerSharedWithMe,
+                  onTap: () => context.push(AppRoutes.sharedWithMe),
                 ),
                 SizedBox(height: tokens.space.s2),
-                Material(
-                  color: tokens.background.card,
-                  borderRadius: BorderRadius.circular(tokens.radius.md),
-                  child: InkWell(
-                    onTap: () => context.push(AppRoutes.vehicleShareJoin),
-                    borderRadius: BorderRadius.circular(tokens.radius.md),
-                    child: Padding(
-                      padding: EdgeInsets.all(tokens.space.s4),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.qr_code_scanner,
-                            color: tokens.icon.inactive,
-                          ),
-                          SizedBox(width: tokens.space.s3),
-                          Expanded(
-                            child: Text(
-                              s.sharedWithMeJoin,
-                              style: Theme.of(context).textTheme.titleSmall,
-                            ),
-                          ),
-                          Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                SizedBox(height: tokens.space.s3),
-                Material(
-                  color: tokens.background.card,
-                  borderRadius: BorderRadius.circular(tokens.radius.md),
-                  child: InkWell(
-                    onTap: canAddVehicle
-                        ? () => _openAddVehicle(context, ref)
-                        : null,
-                    borderRadius: BorderRadius.circular(tokens.radius.md),
-                    child: Padding(
-                      padding: EdgeInsets.all(tokens.space.s4),
-                      child: Column(
-                        children: [
-                          Text(
-                            s.garageAddCardTitle,
-                            style: Theme.of(context).textTheme.titleMedium
-                                ?.copyWith(color: tokens.text.accent),
-                          ),
-                          SizedBox(height: tokens.space.s2),
-                          Text(
-                            canAddVehicle
-                                ? s.garageAddCardSubtitle
-                                : gate!.vehicleBlockMessage(s),
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                _GarageLinkRow(
+                  icon: Icons.qr_code_scanner,
+                  label: s.sharedWithMeJoin,
+                  onTap: () => context.push(AppRoutes.vehicleShareJoin),
                 ),
               ],
             ],
           );
         },
+      ),
+      bottomNavigationBar: vehicles.maybeWhen(
+        data: (_) => personal
+            ? _GarageBottomBar(
+                canAddVehicle: canAddVehicle,
+                limitMessage: canAddVehicle
+                    ? null
+                    : gate!.vehicleBlockMessage(s),
+                onAdd: () => _openAddVehicle(context, ref),
+              )
+            : null,
+        orElse: () => null,
+      ),
+    );
+  }
+
+  List<Vehicle> _activeFirst(List<Vehicle> items, String? activeId) {
+    final ordered = [...items];
+    ordered.sort((a, b) {
+      final aRank = a.id == activeId ? 0 : 1;
+      final bRank = b.id == activeId ? 0 : 1;
+      return aRank.compareTo(bRank);
+    });
+    return ordered;
+  }
+}
+
+class _GarageEmpty extends StatelessWidget {
+  const _GarageEmpty();
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
+    final tokens = context.tokens;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(DcoLayout.sectionGap),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 96,
+              height: 96,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: tokens.background.secondary,
+                shape: BoxShape.circle,
+                border: Border.all(color: tokens.border.divider),
+              ),
+              child: Icon(
+                Icons.directions_car_outlined,
+                size: 40,
+                color: tokens.icon.inactive,
+              ),
+            ),
+            SizedBox(height: tokens.space.s5),
+            Text(
+              s.garageEmptyTitle,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            SizedBox(height: tokens.space.s2),
+            Text(
+              s.garageEmptyBody,
+              textAlign: TextAlign.center,
+              style: Theme.of(
+                context,
+              ).textTheme.bodyLarge?.copyWith(color: tokens.text.secondary),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _GarageLinkRow extends StatelessWidget {
+  const _GarageLinkRow({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Material(
+      color: tokens.background.card,
+      borderRadius: BorderRadius.circular(tokens.radius.md),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.md),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: EdgeInsets.symmetric(
+            horizontal: tokens.space.s4,
+            vertical: tokens.space.s3,
+          ),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(tokens.radius.md),
+            border: Border.all(color: tokens.border.divider),
+          ),
+          child: Row(
+            children: [
+              Icon(icon, size: 20, color: tokens.icon.inactive),
+              SizedBox(width: tokens.space.s3),
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              Icon(Icons.chevron_right, size: 20, color: tokens.text.tertiary),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _GarageBottomBar extends StatelessWidget {
+  const _GarageBottomBar({
+    required this.canAddVehicle,
+    required this.limitMessage,
+    required this.onAdd,
+  });
+
+  final bool canAddVehicle;
+  final String? limitMessage;
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = AppLocalizations.of(context)!;
+    final tokens = context.tokens;
+    return Container(
+      decoration: BoxDecoration(
+        color: tokens.background.primary,
+        border: Border(top: BorderSide(color: tokens.border.divider)),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            DcoLayout.screenPadding,
+            DcoLayout.rowGap,
+            DcoLayout.screenPadding,
+            DcoLayout.rowGap,
+          ),
+          child: canAddVehicle
+              ? DcoButton(
+                  label: s.garageRegisterTooltip,
+                  icon: Icons.add,
+                  onPressed: onAdd,
+                )
+              : Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: tokens.space.s3,
+                    vertical: tokens.space.s2,
+                  ),
+                  decoration: BoxDecoration(
+                    color: tokens.status.infoBg,
+                    borderRadius: BorderRadius.circular(tokens.radius.md),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        size: 16,
+                        color: tokens.status.infoFg,
+                      ),
+                      SizedBox(width: tokens.space.s2),
+                      Expanded(
+                        child: Text(
+                          limitMessage ?? '',
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: tokens.status.infoFg),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+        ),
       ),
     );
   }

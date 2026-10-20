@@ -12,6 +12,7 @@ class DcoButton extends StatelessWidget {
     this.variant = DcoButtonVariant.primary,
     this.loading = false,
     this.expanded = true,
+    this.icon,
   });
 
   final String label;
@@ -19,6 +20,7 @@ class DcoButton extends StatelessWidget {
   final DcoButtonVariant variant;
   final bool loading;
   final bool expanded;
+  final IconData? icon;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +41,21 @@ class DcoButton extends StatelessWidget {
               color: enabled ? colors.text : colors.textDisabled,
             ),
           )
-        : Text(label);
+        : Row(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  size: 18,
+                  color: enabled ? colors.text : colors.textDisabled,
+                ),
+                SizedBox(width: tokens.space.s2),
+              ],
+              Flexible(child: Text(label)),
+            ],
+          );
 
     final button = ConstrainedBox(
       constraints: const BoxConstraints(minHeight: 48, minWidth: 44),
@@ -49,7 +65,9 @@ class DcoButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(tokens.radius.full),
           border: colors.border.a == 0
               ? null
-              : Border.all(color: enabled ? colors.border : colors.textDisabled),
+              : Border.all(
+                  color: enabled ? colors.border : colors.textDisabled,
+                ),
           boxShadow: variant == DcoButtonVariant.primary && enabled
               ? [
                   BoxShadow(
@@ -75,7 +93,7 @@ class DcoButton extends StatelessWidget {
                   color: enabled ? colors.text : colors.textDisabled,
                 ),
                 textAlign: TextAlign.center,
-                child: Center(child: child),
+                child: Center(heightFactor: 1, child: child),
               ),
             ),
           ),
