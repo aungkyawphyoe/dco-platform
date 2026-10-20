@@ -16,9 +16,12 @@ final fleetRepositoryProvider = Provider<FleetRepository>((ref) {
 
 /// `GET /v1/me/entitlements` — navigation hints for conditional drawer
 /// entries. Rebuilt when the signed-in user changes.
-final entitlementsProvider = FutureProvider<Entitlements>((ref) {
+///
+/// Returns `null` while signed out so the startup splash never mistakes a
+/// missing session for an account-access failure.
+final entitlementsProvider = FutureProvider<Entitlements?>((ref) {
   final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) throw StateError('No signed-in user');
+  if (userId == null) return null;
   return ref.watch(fleetRepositoryProvider).getEntitlements();
 });
 

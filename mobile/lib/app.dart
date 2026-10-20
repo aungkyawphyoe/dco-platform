@@ -148,7 +148,7 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
         ref.read(syncEngineProvider).syncNow();
         final personal =
             ref.read(appConfigProvider).mockAuth ||
-            (ref.read(entitlementsProvider).hasValue &&
+            (ref.read(entitlementsProvider).valueOrNull != null &&
                 ref.read(driverOrganizationIdProvider) == null);
         if (personal) {
           ref.read(profileRepositoryProvider).flushPendingActiveVehicle(userId);
