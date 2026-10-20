@@ -41,7 +41,7 @@ After a successful owner login, land on **Dashboard** (tldraw screen 3) — the 
 
 Documents is reached from Expenses (header) and from vehicle flows — not a tab. Sync status is a compact indicator in the top bar or Settings — never a fifth tab.
 
-**In production scope:** everything that shipped in MVP — auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, **vehicle sharing** (replaces Family Sharing) — plus **Notes** (local-only personal notebook; see `product/production-scope.md`) and the **Driver surface** (shared UI with scoped offline records; see `product/frd/mobile-personal-driver-realignment-plan.md`). Fleet management (org members, inventory, assignments, analytics, warranty) is Fleet Portal only.
+**In production scope:** everything that shipped in MVP — auth (email + password), app shell, Drift/SQLite, sync outbox, dashboard, garage, maintenance, documents, expenses, parts, refuel/charge logs, local reminder notifications, opt-in server-side email reminders, **vehicle sharing** (replaces Family Sharing) — plus **Notes** (local-only personal notebook; see `product/production-scope.md`) and the **Driver surface** (shared UI with scoped offline records; see `product/frd/mobile-personal-driver-realignment-plan.md`). Fleet management (org members, inventory, assignments, analytics, warranty) is Fleet Portal only.
 
 **Still out of scope (do not add):** fuel efficiency / MPG / kWh economy KPIs; insurance policy module; receipt OCR; trips; Autozis assistant/PDF export; admin routes; note sync / server-side notes.
 
@@ -267,7 +267,7 @@ From [`docs/app-shell.md`](../docs/app-shell.md). Keep one `StatefulShellRoute` 
 
 Unauthenticated: login / signup / password-reset only.
 
-Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Refuel/Charge, Fuel Types, Parts, Notes; Maintenance Plan, Suggested items, Add item, Register Service, Service detail; Add/Edit expense, Expense detail; Document list / viewer / upload; Notification feed, Profile, Email & password, Notification prefs, Reminders (soon thresholds), Sync status.
+Push on the active tab (not new tabs): My Garage, Add/Edit Vehicle, Service History, Documents, Insurance, Refuel/Charge, Fuel Types, Parts, Notes; Maintenance Plan, Suggested items, Add item, Register Service, Service detail; Add/Edit expense, Expense detail; Document list / viewer / upload; Notification feed, Profile, Email & password, Notification prefs, Reminders (soon thresholds + email reminders), Sync status.
 
 Empty garage: Dashboard is still the default route. Maintenance, Expenses, and Documents show their "no active vehicle" empty states until a vehicle exists.
 

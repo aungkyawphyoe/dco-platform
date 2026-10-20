@@ -272,6 +272,8 @@ Local-only (mobile, not a server table): **outbox** rows (`entity_type`, `entity
 | `profile_photo_media_id` | Nullable FK to `media_objects`. Profile photo follows existing media pipeline. |
 | `contact_phone` | Optional. Max 20 chars. Free-form text. |
 | `address` | Optional. Max 500 chars. Free-form text. |
+| `email_reminders_enabled` | Boolean, default `false`. Only meaningful when the account has a verified email. |
+| `email_reminder_lead_days` | Integer 7–60, default 30. Days before `plan_items.next_due_on` for the upcoming email. |
 
 ### vehicles
 
@@ -331,6 +333,18 @@ Schema detail, access matrix, and query patterns: [`architecture/data-model-vehi
 - Entity types: `user`, `vehicle`, `plan_item`, `service_record`, `document`, `expense`, `notification`, `media`, `part`, `fuel_type`, `fuel_log`, `vehicle_share`, `driving_license`. Vehicle rows and their history are fanned out to the vehicle's **change audience** — the owner plus every user holding an active share.
 - Duplicate create with the same client UUID → idempotent success.
 - Archive vs later edit: **archive wins**.
+
+### reminder_email_deliveries
+
+Server-side dedupe/audit ledger for opt-in maintenance emails (`backend/drizzle/0024_reminder_emails.sql`). Not synced to mobile and not in `change_log`.
+
+| Field | Rule |
+|-------|------|
+| `plan_item_id`, `cycle_key`, `kind` | Unique together. `cycle_key` = `next_due_on` + `\|` + `next_due_mileage`; `kind` = `upcoming` \| `due`. A new cycle (service logged or due values edited) permits new rows. |
+| `user_id`, `vehicle_id` | Owner/vehicle at send time (FKs). |
+| `recipient` | Email address used for the attempt. |
+| `attempts`, `last_attempt_at`, `last_error` | Retry bookkeeping (1 h backoff, max 3 attempts). |
+| `sent_at` | Set on success; a non-null value permanently suppresses that cycle + kind. |
 
 ### partners / audit_events
 

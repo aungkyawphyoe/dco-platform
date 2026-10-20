@@ -122,7 +122,7 @@ Keep one `StatefulShellRoute` (or equivalent) for the four tabs. Push these on t
 - Add/Edit expense, Expense detail
 - Document list, viewer, upload
 - Maintenance Plan, Suggested items, Add item, Register Service, Service detail
-- Notification feed, Profile, Email & password, Notification prefs, Reminders (soon thresholds)
+- Notification feed, Profile, Email & password, Notification prefs, Reminders (soon thresholds + email reminders)
 - Vehicle Share Management, Shared with Me (share codes, email invites, access levels)
 - Fuel Stats, Maintenance Stats, Expense Stats (chart screens, `stats.md`)
 - Sync Status
