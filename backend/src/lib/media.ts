@@ -1,5 +1,5 @@
 import { createHmac, createHash } from "node:crypto";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { BlobServiceClient } from "@azure/storage-blob";
 import type { Env } from "../config/env.js";
@@ -11,6 +11,7 @@ export type StoredMedia = { blobKey: string; sha256: string; byteSize: number };
 export type MediaStore = {
   put(blobKey: string, bytes: Buffer, contentType: string): Promise<StoredMedia>;
   get(blobKey: string): Promise<Buffer>;
+  delete(blobKey: string): Promise<void>;
   signDownload(mediaId: string, ttlSec?: number): { token: string; expiresAt: Date };
   verifyDownload(mediaId: string, token: string): boolean;
 };
@@ -63,6 +64,13 @@ export function createMediaStore(env: Env): MediaStore {
         return Buffer.from(await client.downloadToBuffer());
       }
       return getLocal(blobKey);
+    },
+    async delete(blobKey) {
+      if (env.MEDIA_DRIVER === "azure_blob") {
+        if (!env.AZURE_STORAGE_CONNECTION_STRING) throw new Error("AZURE_STORAGE_CONNECTION_STRING required");
+        const service = BlobServiceClient.fromConnectionString(env.AZURE_STORAGE_CONNECTION_STRING);
+        await service.getContainerClient(env.AZURE_BLOB_CONTAINER).getBlockBlobClient(blobKey).deleteIfExists();
+      } else await rm(join(env.MEDIA_LOCAL_DIR, blobKey), { force: true });
     },
     signDownload(mediaId, ttlSec = 900) {
       const expiresAt = new Date(Date.now() + ttlSec * 1000);

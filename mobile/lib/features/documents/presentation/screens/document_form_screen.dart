@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:file_picker/file_picker.dart';
+import 'package:dco_mobile/core/media/media_api.dart';
+
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/providers.dart';
@@ -107,6 +110,9 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       vehicle,
       ref.read(sessionControllerProvider).valueOrNull?.user.id,
     );
+    if (!access.isOwner && ref.read(driverOrganizationIdProvider) == null) {
+      return false;
+    }
     return widget.isEditing
         ? (access.canEditRecord(_createdBy) &&
               !(ref
@@ -127,6 +133,10 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
         ..['category'] = _category == null ? 'Required' : null;
       _formError = null;
     });
+    if (_localFilePath == null && !widget.isEditing) {
+      _formError = 'Select an image or PDF';
+      return null;
+    }
     if (_errors.values.any((error) => error != null)) return null;
     return DocumentDraft(
       name: _name.text.trim(),
@@ -144,7 +154,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
         widget.vehicleId ?? ref.read(activeVehicleProvider).valueOrNull?.id;
     final userId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
     if (vehicleId == null || userId == null) return;
-    if (widget.isEditing && !_canWrite()) return;
+    if (!_canWrite()) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(documentRepositoryProvider);
@@ -277,8 +287,16 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       final picked = await ImagePicker().pickImage(
         source: source,
         imageQuality: 85,
+        maxWidth: 2400,
+        maxHeight: 2400,
       );
       if (picked == null) return;
+      if (await File(picked.path).length() > MediaApi.maxBytes) {
+        if (mounted) {
+          setState(() => _formError = 'File exceeds the 15 MB limit');
+        }
+        return;
+      }
       final directory = await getApplicationDocumentsDirectory();
       final dest = File('${directory.path}/documents/${const Uuid().v4()}.jpg');
       await dest.parent.create(recursive: true);
@@ -298,12 +316,23 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
 
   Future<void> _pickPdf() async {
     try {
-      final picked = await ImagePicker().pickImage(source: ImageSource.gallery);
-      if (picked == null) return;
+      final result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['pdf'],
+      );
+      final path = result.isEmpty ? null : result.single.path;
+      if (path == null) return;
+      final file = File(path);
+      if (await file.length() > MediaApi.maxBytes) {
+        if (mounted) {
+          setState(() => _formError = 'File exceeds the 15 MB limit');
+        }
+        return;
+      }
       final directory = await getApplicationDocumentsDirectory();
       final dest = File('${directory.path}/documents/${const Uuid().v4()}.pdf');
       await dest.parent.create(recursive: true);
-      await File(picked.path).copy(dest.path);
+      await file.copy(dest.path);
       if (!mounted) return;
       setState(() {
         _localFilePath = dest.path;

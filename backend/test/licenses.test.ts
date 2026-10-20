@@ -87,7 +87,7 @@ describe("driving licenses (standalone module)", () => {
     expect(expired.statusCode).toBe(400);
   });
 
-  it("gates cross-user license reads on an active vehicle share", async () => {
+  it("keeps licenses private even with an active vehicle share", async () => {
     const { app } = await createTestApp();
     const admin = await adminToken(app);
     const owner = await signup(app, "lic-share-owner");
@@ -139,8 +139,11 @@ describe("driving licenses (standalone module)", () => {
       url: `/v1/users/${owner.id}/license`,
       headers: auth(member.token),
     });
-    expect(memberRead.statusCode).toBe(200);
-    expect(memberRead.json().license_number).toBe("SH123456");
+    expect(memberRead.statusCode).toBe(403);
+    expect(memberRead.json().error.code).toBe("private_document");
+    const detail = await app.inject({ method: "GET", url: `/v1/users/${owner.id}/detail`, headers: auth(member.token) });
+    expect(detail.statusCode).toBe(200);
+    expect(detail.json().driving_license).toBeNull();
 
     const selfRead = await app.inject({
       method: "GET",

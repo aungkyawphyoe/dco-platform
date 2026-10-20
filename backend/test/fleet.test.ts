@@ -974,7 +974,7 @@ describe("Driver surface realignment (WP1)", () => {
     expect(snapshot.json().changes.some((c: { entity_id: string }) => c.entity_id === expenseId)).toBe(true);
     const mediaId = uuid();
     const boundary = "document-boundary";
-    const bytes = `--${boundary}\r\nContent-Disposition: form-data; name="id"\r\n\r\n${mediaId}\r\n--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="receipt.png"\r\nContent-Type: image/png\r\n\r\nimage-data\r\n--${boundary}--\r\n`;
+    const bytes = `--${boundary}\r\nContent-Disposition: form-data; name="id"\r\n\r\n${mediaId}\r\n--${boundary}\r\nContent-Disposition: form-data; name="purpose"\r\n\r\ndocument\r\n--${boundary}\r\nContent-Disposition: form-data; name="vehicle_id"\r\n\r\n${vehicleId}\r\n--${boundary}\r\nContent-Disposition: form-data; name="file"; filename="receipt.pdf"\r\nContent-Type: application/pdf\r\n\r\n%PDF-1.7\r\n--${boundary}--\r\n`;
     const uploaded = await app.inject({ method: "POST", url: "/v1/media", headers: { ...auth(first.token), "content-type": `multipart/form-data; boundary=${boundary}` }, payload: bytes });
     expect(uploaded.statusCode).toBe(201);
     const document = await app.inject({ method: "POST", url: `${base}/vehicles/${vehicleId}/documents`, headers: auth(first.token),

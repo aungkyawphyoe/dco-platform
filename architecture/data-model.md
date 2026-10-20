@@ -426,3 +426,13 @@ Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to thi
 `users.plan` is `free` / `lite` / `standard` / `fleet`. `vehicle_limit` on `GET /v1/me` is advisory (free 1, lite 3, standard 10, null = unlimited); enforcement lands with the server limit checks (`architecture/feature-gating.md` PR3).
 
 Plan limits are enforced per owner, not per vehicle alone: `checkShareLimits` refuses a share when the owner already holds `shareLimits[plan]` active shares on that vehicle, or that many across all vehicles. The limits live in one place — `backend/src/lib/plans.ts`, mirrored by the `plans` table — so there is nothing to keep in step.
+
+## Document storage ownership (migration 0023)
+
+`media_objects.vehicle_id` scopes vehicle uploads. `owner_org_id` selects the fleet storage pool; when null, `user_id` selects the personal pool. For organization uploads, `user_id` retains the uploader identity. Vehicle scope is immutable through upload retries. Existing document/service/expense references are backfilled during migration.
+
+Storage usage sums stored primary-file bytes, excluding `vehicle_photo` and `profile_photo`. Upload admission locks the owning user or organization row until the direct upload and media-row insert complete; retries reuse the media UUID. Current direct uploads do not issue presigned upload reservations.
+
+`media_cleanup` holds media IDs awaiting object deletion. Document removal schedules cleanup; failed deletion keeps the media row charged. Storage refresh retries scoped cleanup, deleting the usage row only after object deletion succeeds. This queue is separate from user-visible Trash, which is not supported.
+
+Full attachment-link and replacement lifecycle implementation remains tracked in [Document storage implementation](../product/frd/document-storage-implementation.md).

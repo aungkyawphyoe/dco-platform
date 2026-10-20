@@ -1,11 +1,13 @@
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
-import { drivingLicenses, mediaObjects, vehicleShares, vehicles } from "../db/schema.js";
+import { drivingLicenses, mediaObjects } from "../db/schema.js";
 import { newId } from "../lib/crypto.js";
 import { dateOnly, iso, recordChange } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
+import { documentContentType } from "../lib/document-files.js";
+import { storeWithQuota } from "../lib/storage.js";
 import { MEDIA_MAX_BYTES } from "../lib/media.js";
 import { requireOwner } from "./auth.js";
 
@@ -37,41 +39,6 @@ export async function getLicenseStatus(db: Db, userId: string): Promise<string |
   return "valid";
 }
 
-/**
- * True when the two users are connected through at least one vehicle share,
- * in either direction (requester owns a vehicle shared with the target, or
- * the other way round).
- */
-async function sharesVehicleWith(db: Db, requesterId: string, targetId: string): Promise<boolean> {
-  const requesterShares = await db
-    .select({ vehicleId: vehicleShares.vehicleId })
-    .from(vehicleShares)
-    .where(and(eq(vehicleShares.userId, requesterId), eq(vehicleShares.status, "active")));
-  const targetShares = await db
-    .select({ vehicleId: vehicleShares.vehicleId })
-    .from(vehicleShares)
-    .where(and(eq(vehicleShares.userId, targetId), eq(vehicleShares.status, "active")));
-
-  const requesterVehicleIds = new Set(requesterShares.map((s) => s.vehicleId));
-  if (targetShares.some((s) => requesterVehicleIds.has(s.vehicleId))) return true;
-
-  const [targetOwned] = await db
-    .select({ id: vehicles.id })
-    .from(vehicles)
-    .where(eq(vehicles.userId, targetId))
-    .limit(1);
-  if (targetOwned && requesterVehicleIds.has(targetOwned.id)) return true;
-
-  const [requesterOwned] = await db
-    .select({ id: vehicles.id })
-    .from(vehicles)
-    .where(eq(vehicles.userId, requesterId))
-    .limit(1);
-  if (requesterOwned && new Set(targetShares.map((s) => s.vehicleId)).has(requesterOwned.id)) return true;
-
-  return false;
-}
-
 export const licensesPlugin: FastifyPluginAsync = async (app) => {
   const db = () => app.db;
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
@@ -97,6 +64,14 @@ export const licensesPlugin: FastifyPluginAsync = async (app) => {
         back_media_id: uuid.optional().nullable(),
       })
       .parse(request.body);
+
+    for (const mediaId of [body.front_media_id, body.back_media_id]) {
+      if (!mediaId) continue;
+      const [media] = await db().select().from(mediaObjects).where(eq(mediaObjects.id, mediaId));
+      if (!media || media.userId !== userId || media.ownerOrgId || media.vehicleId || !["driving_license", "license_front", "license_back"].includes(media.purpose ?? "")) {
+        throw new AppError(422, "invalid_media", "Select your own driving license image");
+      }
+    }
 
     const expiryDate = new Date(body.expiry_date);
     if (expiryDate < new Date()) {
@@ -169,19 +144,9 @@ export const licensesPlugin: FastifyPluginAsync = async (app) => {
     const bytes = Buffer.concat(chunks);
 
     const mediaId = newId();
-    const stored = await app.media.put(`licenses/${userId}/${mediaId}`, bytes, data.mimetype);
-    const [media] = await db()
-      .insert(mediaObjects)
-      .values({
-        id: mediaId,
-        userId,
-        blobKey: stored.blobKey,
-        contentType: data.mimetype,
-        byteSize: stored.byteSize,
-        sha256: stored.sha256,
-        purpose: `license_${side}`,
-      })
-      .returning();
+    if (data.file.truncated) throw new AppError(413, "payload_too_large", "File exceeds 15MB");
+    const media = await storeWithQuota(db(), app.media, { id: mediaId, owner: { userId },
+      bytes, contentType: documentContentType(bytes, true), purpose: `license_${side}` });
 
     return reply.code(201).send({ media_id: media.id });
   });
@@ -191,8 +156,8 @@ export const licensesPlugin: FastifyPluginAsync = async (app) => {
     const userId = uid(request);
     const targetUserId = (request.params as { userId: string }).userId;
 
-    if (targetUserId !== userId && !(await sharesVehicleWith(db(), userId, targetUserId))) {
-      throw new AppError(403, "not_shared", "No shared vehicles between users");
+    if (targetUserId !== userId) {
+      throw new AppError(403, "private_document", "Driving licenses are private");
     }
 
     const [license] = await db().select().from(drivingLicenses).where(eq(drivingLicenses.userId, targetUserId)).limit(1);

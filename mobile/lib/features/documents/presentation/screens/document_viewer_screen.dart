@@ -84,6 +84,7 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
       ref.watch(currentUserIdProvider),
     );
     final canEdit =
+        (access.isOwner || ref.watch(driverOrganizationIdProvider) != null) &&
         access.canEditRecord(doc.createdBy) &&
         !(ref
                 .watch(recordAdminLockProvider('document:${doc.id}'))

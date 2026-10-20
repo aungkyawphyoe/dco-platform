@@ -1,11 +1,15 @@
 import { createHash } from "node:crypto";
 import type { FastifyPluginAsync } from "fastify";
-import { and, eq } from "drizzle-orm";
-import { mediaObjects, documents, expenses, serviceRecords, vehicles, organizationVehicles, driverAssignments } from "../db/schema.js";
+import { and, eq, isNull } from "drizzle-orm";
+import { mediaObjects, mediaCleanup, documents, expenses, serviceRecords, vehicles, organizationVehicles, driverAssignments } from "../db/schema.js";
 import { AppError } from "../lib/errors.js";
 import { recordChange } from "../lib/dbx.js";
 import { MEDIA_MAX_BYTES } from "../lib/media.js";
 import { requireOwner, requireFleetClient, requireFleetPortal } from "./auth.js";
+import { z } from "zod";
+import { documentContentType } from "../lib/document-files.js";
+import { storeWithQuota, storageUsage, deleteUnreferencedMedia } from "../lib/storage.js";
+import { getVehicleAccessLevel } from "./vehicle-shares.js";
 import { getOrganizationAccess, assertPasswordChangeClear } from "./fleet.js";
 
 export const mediaPlugin: FastifyPluginAsync = async (app) => {
@@ -18,6 +22,8 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     ];
   }
   async function assertPersonalMedia(mediaId: string) {
+    const [media] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId));
+    if (media?.ownerOrgId) throw new AppError(403, "organization_media", "Use authenticated organization media access");
     for (const ref of await mediaVehicles(mediaId)) {
       const [link] = await app.db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, ref.vehicleId));
       if (link) throw new AppError(403, "organization_media", "Use authenticated organization media access");
@@ -47,13 +53,41 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.post("/media", async (request, reply) => {
-    requireOwner(request);
+    requireFleetClient(request);
     const file = await request.file();
     if (!file) throw new AppError(422, "missing_file", "file is required");
     const fields = file.fields as Record<string, { value?: string } | undefined>;
     const id = fields.id?.value;
     const purpose = fields.purpose?.value;
     if (!id) throw new AppError(422, "missing_id", "id is required");
+    z.string().uuid().parse(id);
+    const mediaPurpose = z.enum(["vehicle_photo", "document", "service_receipt", "expense_receipt", "driving_license"]).parse(purpose);
+    const vehicleId = fields.vehicle_id?.value;
+    let orgId: string | null = null;
+    let ownerId = request.authUser!.sub;
+    if (vehicleId) {
+      z.string().uuid().parse(vehicleId);
+      const [vehicle] = await app.db.select().from(vehicles).where(eq(vehicles.id, vehicleId));
+      if (!vehicle) throw new AppError(404, "not_found", "Vehicle not found");
+      const [link] = await app.db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId));
+      if (link) {
+        const { membership } = await getOrganizationAccess(app.db, ownerId, link.orgId, ["org_admin", "org_driver"]);
+        await assertPasswordChangeClear(app.db, ownerId);
+        if (membership.role === "org_admin") requireFleetPortal(request);
+        else {
+          requireOwner(request);
+          const [assignment] = await app.db.select().from(driverAssignments).where(and(eq(driverAssignments.orgId, link.orgId), eq(driverAssignments.vehicleId, vehicleId), eq(driverAssignments.driverId, ownerId), eq(driverAssignments.status, "active")));
+          if (!assignment) throw new AppError(403, "not_assigned_to_vehicle", "Vehicle access is required");
+        }
+        orgId = link.orgId;
+
+      } else {
+        requireOwner(request);
+        if (vehicle.userId !== ownerId) throw new AppError(403, "insufficient_permission", "Only the vehicle owner can upload documents");
+      }
+    } else requireOwner(request);
+    if (mediaPurpose === "driving_license" && vehicleId) throw new AppError(422, "invalid_scope", "Driving licenses are personal");
+    if (["document", "service_receipt", "expense_receipt"].includes(mediaPurpose) && !vehicleId) throw new AppError(422, "missing_vehicle", "vehicle_id is required");
     const chunks: Buffer[] = [];
     let size = 0;
     for await (const chunk of file.file) {
@@ -62,25 +96,11 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
       chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
     }
     const bytes = Buffer.concat(chunks);
-    const [existing] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, id)).limit(1);
-    if (existing) {
-      if (existing.userId !== request.authUser!.sub) throw new AppError(409, "id_conflict", "Media ID already exists");
-      return reply.code(201).send(toMediaJson(app, existing));
-    }
-    const blobKey = `${request.authUser!.sub}/${id}`;
-    const stored = await app.media.put(blobKey, bytes, file.mimetype);
-    const [row] = await app.db
-      .insert(mediaObjects)
-      .values({
-        id,
-        userId: request.authUser!.sub,
-        blobKey: stored.blobKey,
-        contentType: file.mimetype,
-        byteSize: stored.byteSize,
-        sha256: stored.sha256,
-        purpose: purpose ?? null,
-      })
-      .returning();
+    if (file.file.truncated) throw new AppError(413, "payload_too_large", "File exceeds 15MB");
+    const contentType = documentContentType(bytes, mediaPurpose === "driving_license" || mediaPurpose === "vehicle_photo");
+    const row = await storeWithQuota(app.db, app.media, {
+      id, owner: { userId: ownerId, orgId }, vehicleId, purpose: mediaPurpose, bytes, contentType,
+    });
     const payload = toMediaJson(app, row);
     await recordChange(app.db, {
       userId: request.authUser!.sub,
@@ -90,6 +110,31 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
       payload,
     });
     return reply.code(201).send(payload);
+  });
+
+  async function retryCleanup(userId: string, orgId?: string) {
+    const pending = await app.db.select({ id: mediaObjects.id }).from(mediaCleanup)
+      .innerJoin(mediaObjects, eq(mediaCleanup.mediaId, mediaObjects.id))
+      .where(orgId ? eq(mediaObjects.ownerOrgId, orgId) : and(eq(mediaObjects.userId, userId), isNull(mediaObjects.ownerOrgId))).limit(50);
+    for (const row of pending) {
+      try { await app.db.transaction(tx => deleteUnreferencedMedia(tx as unknown as import("../db/client.js").Db, app.media, row.id)); }
+      catch (error) { app.log.warn({ err: error }, "Media cleanup will retry"); }
+    }
+  }
+
+  app.get("/users/me/storage", async (request) => {
+    requireOwner(request);
+    await retryCleanup(request.authUser!.sub);
+    return storageUsage(app.db, { userId: request.authUser!.sub });
+  });
+
+  app.get("/organizations/:orgId/storage", async (request) => {
+    requireFleetClient(request);
+    const { orgId } = request.params as { orgId: string };
+    await getOrganizationAccess(app.db, request.authUser!.sub, orgId, ["org_admin", "org_driver"]);
+    await assertPasswordChangeClear(app.db, request.authUser!.sub);
+    await retryCleanup(request.authUser!.sub, orgId);
+    return storageUsage(app.db, { userId: request.authUser!.sub, orgId });
   });
 
   app.get("/media/:mediaId", async (request) => {
@@ -102,7 +147,9 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
       if (!app.media.verifyDownload(mediaId, token)) throw new AppError(401, "unauthorized", "Invalid download token");
     } else {
       requireOwner(request);
-      if (row.userId !== request.authUser!.sub) throw new AppError(404, "not_found", "Media not found");
+      if (row.userId !== request.authUser!.sub && (!row.vehicleId || !await getVehicleAccessLevel(app.db, request.authUser!.sub, row.vehicleId))) {
+        throw new AppError(404, "not_found", "Media not found");
+      }
     }
     return toMediaJson(app, row);
   });

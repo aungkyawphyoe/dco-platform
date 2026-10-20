@@ -297,6 +297,7 @@ class SyncEngine {
       final media = await _uploadFile(
         file: File(row.photoLocalPath!),
         purpose: MediaPurpose.vehiclePhoto,
+        vehicleId: row.id,
       );
       if (media == null) continue;
       await (_db.update(_db.vehicleRecords)..where((r) => r.id.equals(row.id)))
@@ -334,6 +335,7 @@ class SyncEngine {
       final media = await _uploadFile(
         file: File(row.receiptLocalPath!),
         purpose: MediaPurpose.serviceReceipt,
+        vehicleId: row.vehicleId,
       );
       if (media == null) continue;
       await (_db.update(_db.serviceRecordRows)
@@ -372,6 +374,7 @@ class SyncEngine {
       final media = await _uploadFile(
         file: File(row.receiptLocalPath!),
         purpose: MediaPurpose.expenseReceipt,
+        vehicleId: row.vehicleId,
       );
       if (media == null) continue;
       await (_db.update(_db.expenseRecords)..where((r) => r.id.equals(row.id)))
@@ -409,6 +412,7 @@ class SyncEngine {
       final media = await _uploadFile(
         file: File(row.localFilePath!),
         purpose: MediaPurpose.document,
+        vehicleId: row.vehicleId,
       );
       if (media == null) continue;
       await (_db.update(_db.documentRecords)..where((r) => r.id.equals(row.id)))
@@ -434,19 +438,35 @@ class SyncEngine {
   Future<String?> _uploadFile({
     required File file,
     required MediaPurpose purpose,
+    required String vehicleId,
   }) async {
     if (!file.existsSync()) return null;
     try {
       final media = await _mediaApi.upload(
-        id: _uuid.v4(),
+        id: _uuid.v5(
+          Namespace.url.value,
+          '$vehicleId:${purpose.storage}:${file.path}',
+        ),
         file: file,
         purpose: purpose,
+        vehicleId: vehicleId,
       );
+      await (_db.delete(
+        _db.appMeta,
+      )..where((r) => r.key.equals('media_error:${file.path}'))).go();
       return media.id;
     } on ApiError catch (error) {
       // Connectivity problems abort the whole drain; permanent rejects
       // (too large, validation) are skipped until the file changes.
       if (error.code == 'network') rethrow;
+      await _db
+          .into(_db.appMeta)
+          .insertOnConflictUpdate(
+            AppMetaCompanion.insert(
+              key: 'media_error:${file.path}',
+              value: Value(error.code),
+            ),
+          );
       return null;
     }
   }

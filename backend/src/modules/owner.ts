@@ -16,6 +16,7 @@ import {
   fuelTypes,
   maintenanceCatalog,
   mediaObjects,
+  mediaCleanup,
   notificationFeed,
   parts,
   planItems,
@@ -24,6 +25,7 @@ import {
   serviceRecords,
   vehicles,
 } from "../db/schema.js";
+import { assertDocumentMedia, deleteUnreferencedMedia } from "../lib/storage.js";
 import { newId } from "../lib/crypto.js";
 import { dueFrom } from "../lib/catalog.js";
 import { dateOnly, num, recordChange, reqNum } from "../lib/dbx.js";
@@ -185,7 +187,7 @@ async function loadDocumentFor(db: Db, callerId: string, documentId: string, mod
   if (!row) throw new AppError(404, "not_found", "Document not found");
   const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
   if (!access) throw new AppError(404, "not_found", "Document not found");
-  if (mode === "write" && access === "view") {
+  if (mode === "write" && (access === "view" || (!organizationScoped && access !== "owner"))) {
     throw new AppError(403, "insufficient_permission", "Full access required");
   }
   if (mode === "write" && access === "add_edit_own" && row.createdBy !== callerId) {
@@ -285,6 +287,15 @@ async function recordVehicleScopedChange(
   const guard = async (request: { authUser?: { sub: string } }) => {
     if (!organizationScoped && request.authUser?.sub) await assertPersonalGarageAllowed(db(), request.authUser.sub);
   };
+  if (!organizationScoped) {
+    app.addHook("onRoute", (route) => {
+      if (!route.url.includes("/documents") || !["POST", "PATCH", "DELETE"].includes(String(route.method))) return;
+      const handler = route.handler;
+      route.handler = async function(request, reply) {
+        return app.db.transaction(async (tx) => transaction.run(tx as Db, () => handler.call(this, request, reply)));
+      };
+    });
+  }
   if (organizationScoped) {
     app.addHook("onRoute", (route) => {
       const handler = route.handler;
@@ -401,7 +412,7 @@ async function recordVehicleScopedChange(
       for (const mediaId of [body.media_id, body.receipt_media_id]) {
         if (typeof mediaId !== "string" || mediaId === currentMedia) continue;
         const [media] = await db().select().from(mediaObjects).where(eq(mediaObjects.id, uuid.parse(mediaId)));
-        if (!media || media.userId !== (reviewAuthor.getStore() ?? userId)) throw new AppError(422, "invalid_media", "Attachment must belong to the submitter");
+        if (!media || media.ownerOrgId !== orgId || media.vehicleId !== vehicleId) throw new AppError(422, "invalid_media", "Attachment must belong to this organization vehicle");
       }
       if (Array.isArray(body.parts)) {
         for (const ref of body.parts as { part_id?: string }[]) {
@@ -1008,6 +1019,7 @@ async function recordVehicleScopedChange(
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
+    if (!organizationScoped && await getVehicleAccessLevel(db(), uid(request), vehicleId) !== "owner") throw new AppError(403, "insufficient_permission", "Only the owner can upload documents");
     const body = z.object({
       id: uuid,
       name: z.string().min(1).max(120),
@@ -1017,7 +1029,12 @@ async function recordVehicleScopedChange(
       media_id: uuid.optional().nullable(),
     }).parse(request.body);
     const [existing] = await db().select().from(documents).where(eq(documents.id, body.id)).limit(1);
-    if (existing) { reply.code(201); return publicDoc(existing); }
+    if (existing) {
+      if (existing.vehicleId !== vehicleId) throw new AppError(409, "id_conflict", "Document ID already exists");
+      await loadDocumentFor(db(), uid(request), existing.id, "write");
+      reply.code(201); return publicDoc(existing);
+    }
+    if (body.media_id) await assertDocumentMedia(db(), body.media_id, vehicleId);
     const [row] = await db()
       .insert(documents)
       .values({
@@ -1054,12 +1071,13 @@ async function recordVehicleScopedChange(
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
     if (!row) throw new AppError(404, "not_found", "Document not found");
     const body = z.object({
-      name: z.string().optional(),
+      name: z.string().trim().min(1).max(120).optional(),
       category: z.enum(["insurance", "registration", "invoice", "warranty", "receipt", "other"]).optional(),
       notes: z.string().optional().nullable(),
       expires_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
       media_id: uuid.optional().nullable(),
     }).parse(request.body ?? {});
+    if (body.media_id) await assertDocumentMedia(db(), body.media_id, row.vehicleId);
     const [updated] = await db()
       .update(documents)
       .set({
@@ -1083,7 +1101,12 @@ async function recordVehicleScopedChange(
     const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
     if (row) {
       await loadDocumentFor(db(), uid(request), documentId, "write");
+      if (row.mediaId) await db().insert(mediaCleanup).values({ mediaId: row.mediaId }).onConflictDoNothing();
       await db().delete(documents).where(eq(documents.id, documentId));
+      if (row.mediaId) {
+        try { await deleteUnreferencedMedia(db(), app.media, row.mediaId); }
+        catch (error) { app.log.warn({ err: error }, "Document file cleanup pending; storage remains charged"); }
+      }
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "document", entityId: documentId, op: "delete", payload: { id: documentId } });
     }
     reply.code(204); return null;

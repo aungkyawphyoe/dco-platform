@@ -42,8 +42,8 @@ class LicenseRepositoryImpl implements LicenseRepository {
           'issuing_country': issuingCountry,
           'expiry_date': expiryDate,
           'categories': categories,
-          'front_media_id': frontMediaId,
-          'back_media_id': backMediaId,
+          'front_media_id': frontMediaId?.isEmpty == true ? null : frontMediaId,
+          'back_media_id': backMediaId?.isEmpty == true ? null : backMediaId,
         },
       );
       return DrivingLicense.fromJson(response.data!);
@@ -56,8 +56,8 @@ class LicenseRepositoryImpl implements LicenseRepository {
   Future<String> uploadLicensePhoto(String side, List<int> bytes) async {
     try {
       final formData = FormData.fromMap({
-        'file': MultipartFile.fromBytes(bytes, filename: 'license_$side.jpg'),
         'side': side,
+        'file': MultipartFile.fromBytes(bytes, filename: 'license_$side.jpg'),
       });
       final response = await _dio.post<Map<String, dynamic>>(
         '/users/me/license/media',

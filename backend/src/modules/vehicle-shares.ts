@@ -362,7 +362,7 @@ export async function getUserDetail(db: Db, userId: string, requestingUserId: st
 
   return {
     ...publicUser(user),
-    driving_license: license ? publicDrivingLicense(license) : null,
+    driving_license: requestingUserId === userId && license ? publicDrivingLicense(license) : null,
     owned_vehicles: ownedVehicles.map((v) => publicVehicle(v)),
     shared_vehicles: sharedWithMe.map((r) => ({
       ...publicVehicle(r.vehicle),

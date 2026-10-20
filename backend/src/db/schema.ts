@@ -171,6 +171,8 @@ export const deviceTokens = pgTable("device_tokens", {
 });
 
 export const mediaObjects = pgTable("media_objects", {
+  ownerOrgId: uuid("owner_org_id"),
+  vehicleId: uuid("vehicle_id").references(() => vehicles.id),
   id: uuid("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
@@ -180,6 +182,11 @@ export const mediaObjects = pgTable("media_objects", {
   byteSize: integer("byte_size").notNull(),
   sha256: text("sha256"),
   purpose: text("purpose"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const mediaCleanup = pgTable("media_cleanup", {
+  mediaId: uuid("media_id").primaryKey().references(() => mediaObjects.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
