@@ -409,6 +409,12 @@ class ChangeApplier {
               fallback: existing?.vehicleId ?? '',
             ),
             kind: _str(payload['kind'], fallback: 'refuel'),
+            fillStatus: Value(
+              _str(
+                payload['fill_status'],
+                fallback: existing?.fillStatus ?? 'unknown',
+              ),
+            ),
             fuelTypeId: _str(payload['fuel_type_id'], fallback: ''),
             fuelTypeName: _str(payload['fuel_type_name']),
             unit: _str(payload['unit'], fallback: 'L'),

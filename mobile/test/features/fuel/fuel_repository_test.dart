@@ -90,6 +90,7 @@ void main() {
         fuelTypeId: petrol.id,
         amount: 40,
         cost: 52.5,
+        fillStatus: 'partial',
       ),
     );
 
@@ -98,6 +99,9 @@ void main() {
     expect(log.unit, 'L');
     expect(log.amount, 40);
     expect(log.cost, 52.5);
+    expect(log.fillStatus, 'partial');
+    expect((await fuel.getLog(log.id))!.fillStatus, 'partial');
+    expect(log.toWriteJson()['fill_status'], 'partial');
 
     final queued = await db.select(db.outboxEntries).get();
     expect(queued.any((row) => row.entityType == 'fuel_log' && row.entityId == log.id), isTrue);

@@ -7193,6 +7193,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Delete this record and its linked expense? Totals and any linked maintenance schedule will update after synchronization.'**
   String get recordDeleteBody;
+
+  /// No description provided for @fuelFillStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Tank after refueling'**
+  String get fuelFillStatus;
+
+  /// No description provided for @fuelFillUnknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Not recorded'**
+  String get fuelFillUnknown;
+
+  /// No description provided for @fuelFillFull.
+  ///
+  /// In en, this message translates to:
+  /// **'Full tank'**
+  String get fuelFillFull;
+
+  /// No description provided for @fuelFillPartial.
+  ///
+  /// In en, this message translates to:
+  /// **'Partial fill'**
+  String get fuelFillPartial;
+
+  /// No description provided for @fuelFillHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Full tanks with odometer readings help calculate fuel consumption.'**
+  String get fuelFillHelp;
 }
 
 class _AppLocalizationsDelegate

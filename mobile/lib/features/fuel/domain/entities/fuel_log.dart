@@ -53,6 +53,7 @@ class FuelLog {
     required this.updatedAt,
     required this.createdAt,
     this.odometer,
+    this.fillStatus = 'unknown',
   });
 
   final String id;
@@ -65,6 +66,7 @@ class FuelLog {
   final DateTime loggedOn;
   final double amount;
   final double cost;
+  final String fillStatus;
 
   /// Optional reading in storage units (miles). Feeds `stats.md` distance KPIs.
   final double? odometer;
@@ -72,7 +74,9 @@ class FuelLog {
   final DateTime createdAt;
 
   String get amountLabel {
-    final value = amount == amount.roundToDouble() ? amount.toStringAsFixed(0) : amount.toStringAsFixed(2);
+    final value = amount == amount.roundToDouble()
+        ? amount.toStringAsFixed(0)
+        : amount.toStringAsFixed(2);
     return '$value $unit';
   }
 
@@ -86,6 +90,7 @@ class FuelLog {
     'logged_on': loggedOn.toIso8601String(),
     'amount': amount,
     'cost': cost,
+    'fill_status': fillStatus,
     'odometer': odometer,
   };
 }
@@ -97,11 +102,13 @@ class FuelLogDraft {
     required this.amount,
     required this.cost,
     this.odometer,
+    this.fillStatus = 'unknown',
   });
 
   final DateTime loggedOn;
   final String fuelTypeId;
   final double amount;
   final double cost;
+  final String fillStatus;
   final double? odometer;
 }

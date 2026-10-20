@@ -3814,4 +3814,20 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get recordDeleteBody =>
       'Delete this record and its linked expense? Totals and any linked maintenance schedule will update after synchronization.';
+
+  @override
+  String get fuelFillStatus => 'Tank after refueling';
+
+  @override
+  String get fuelFillUnknown => 'Not recorded';
+
+  @override
+  String get fuelFillFull => 'Full tank';
+
+  @override
+  String get fuelFillPartial => 'Partial fill';
+
+  @override
+  String get fuelFillHelp =>
+      'Full tanks with odometer readings help calculate fuel consumption.';
 }

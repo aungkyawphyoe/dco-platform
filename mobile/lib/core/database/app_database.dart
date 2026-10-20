@@ -36,7 +36,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.scoped(String name) : super(driftDatabase(name: name));
 
   @override
-  int get schemaVersion => 22;
+  int get schemaVersion => 23;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -131,6 +131,9 @@ class AppDatabase extends _$AppDatabase {
       if (from < 21) {
         // Sharing: track who created each document so sharees only edit their own.
         await migrator.addColumn(documentRecords, documentRecords.createdBy);
+      }
+      if (from >= 6 && from < 23) {
+        await migrator.addColumn(fuelLogRecords, fuelLogRecords.fillStatus);
       }
       if (from < 22) {
         // Gating: outbox rows parked by a LIMIT_EXCEEDED rejection (§9).

@@ -1180,5 +1180,10 @@
   "syncReviewRejected": "Declined by Fleet Admin",
   "syncReviewPending": "Waiting for Fleet Admin",
   "recordUpdatedByAdmin": "Updated by Fleet Admin · Read-only",
-  "recordDeleteBody": "Delete this record and its linked expense? Totals and any linked maintenance schedule will update after synchronization."
+  "recordDeleteBody": "Delete this record and its linked expense? Totals and any linked maintenance schedule will update after synchronization.",
+  "fuelFillStatus": "Tank after refueling",
+  "fuelFillUnknown": "Not recorded",
+  "fuelFillFull": "Full tank",
+  "fuelFillPartial": "Partial fill",
+  "fuelFillHelp": "Full tanks with odometer readings help calculate fuel consumption."
 }

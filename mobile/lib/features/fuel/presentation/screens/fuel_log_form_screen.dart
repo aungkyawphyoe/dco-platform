@@ -79,6 +79,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
 
   DateTime _loggedOn = DateTime.now();
   String? _fuelTypeId;
+  String _fillStatus = 'unknown';
   String? _formError;
   bool _loading = true;
   bool _saving = false;
@@ -104,6 +105,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
       final log = await ref.read(fuelRepositoryProvider).getLog(widget.logId!);
       if (log != null && mounted) {
         _createdBy = log.userId;
+        _fillStatus = log.fillStatus;
         _loggedOn = log.loggedOn;
         _date.text = DateFormat.yMMMd().format(log.loggedOn);
         _fuelTypeId = log.fuelTypeId;
@@ -161,6 +163,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     if (_errors.values.any((error) => error != null)) return null;
     final odometerDisplay = FuelLogValidators.parseOdometer(_odometer.text);
     return FuelLogDraft(
+      fillStatus: widget.kind == FuelLogKind.charge ? 'unknown' : _fillStatus,
       loggedOn: _loggedOn,
       fuelTypeId: _fuelTypeId!,
       amount: FuelLogValidators.parseDecimal(_amount.text)!,
@@ -389,6 +392,37 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   suffix: Icon(Icons.expand_more, color: tokens.icon.inactive),
                 ),
                 SizedBox(height: tokens.space.s4),
+                if (widget.kind == FuelLogKind.refuel) ...[
+                  DropdownButtonFormField<String>(
+                    key: const Key('fuel-log-fill-status'),
+                    initialValue: _fillStatus,
+                    decoration: InputDecoration(labelText: s.fuelFillStatus),
+                    items: [
+                      DropdownMenuItem(
+                        value: 'unknown',
+                        child: Text(s.fuelFillUnknown),
+                      ),
+                      DropdownMenuItem(
+                        value: 'full',
+                        child: Text(s.fuelFillFull),
+                      ),
+                      DropdownMenuItem(
+                        value: 'partial',
+                        child: Text(s.fuelFillPartial),
+                      ),
+                    ],
+                    onChanged: canWrite
+                        ? (value) =>
+                              setState(() => _fillStatus = value ?? 'unknown')
+                        : null,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    s.fuelFillHelp,
+                    style: TextStyle(color: tokens.text.caption),
+                  ),
+                  SizedBox(height: tokens.space.s4),
+                ],
                 DcoTextField(
                   key: const Key('fuel-log-amount'),
                   label: s.fuelLogFormAmount,
