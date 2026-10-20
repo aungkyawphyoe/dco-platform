@@ -64,6 +64,7 @@ void main() {
               apiBaseUrl: 'http://localhost:8080/v1',
               jwtOwnerAud: 'dco-owner',
               mockAuth: true,
+              analyticsEnabled: false,
             ),
           ),
           tokenStoreProvider.overrideWithValue(MemoryTokenStore()),

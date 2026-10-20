@@ -17,7 +17,7 @@ export default async function PricingPage() {
     <>
       <section className="relative isolate overflow-hidden border-b border-line">
         <AuroraBackdrop dots />
-        <div className="mx-auto max-w-6xl px-4 py-14 sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-6xl px-4 pb-14 pt-24 sm:px-6 sm:pb-16 sm:pt-28">
           <SectionHeading
             eyebrow="Pricing"
             title="Simple, transparent pricing"

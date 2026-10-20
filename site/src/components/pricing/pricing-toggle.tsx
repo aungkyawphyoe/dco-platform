@@ -28,11 +28,7 @@ export function PricingToggle({ value, onChange }: PricingToggleProps) {
           >
             {period === "monthly" ? "Monthly" : "Annual"}
             {period === "annual" && (
-              <span
-                className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-                  active ? "bg-on-gold/15 text-on-gold" : "bg-success-dim text-success"
-                }`}
-              >
+              <span className={`pill pill-sm ml-2 ${active ? "pill-on-gold" : "pill-mint"}`}>
                 2 months free
               </span>
             )}

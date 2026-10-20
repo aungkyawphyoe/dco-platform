@@ -31,6 +31,7 @@ class SessionController extends AsyncNotifier<Session?> {
   Future<Session?> build() async {
     final session = await ref.read(authRepositoryProvider).restoreSession();
     if (session != null) {
+      await ref.read(analyticsProvider).setUserId(session.user.id);
       await ref.read(entryPreferencesProvider.notifier).complete();
     }
     return session;
@@ -75,6 +76,7 @@ class SessionController extends AsyncNotifier<Session?> {
   }
 
   Future<void> _prepare(Session session, bool isNew) async {
+    await ref.read(analyticsProvider).setUserId(session.user.id);
     await ref
         .read(entryPreferencesProvider.notifier)
         .initializeAccountLanguage(session.user.id);
@@ -135,6 +137,7 @@ class SessionController extends AsyncNotifier<Session?> {
     await _withAccountChange(() async {
       await ref.read(authRepositoryProvider).signOut();
       ref.read(analyticsProvider).track(AnalyticsEvent.authSignedOut);
+      await ref.read(analyticsProvider).setUserId(null);
       try {
         await ref.read(vehicleShareRepositoryProvider).clearCache();
       } catch (_) {}

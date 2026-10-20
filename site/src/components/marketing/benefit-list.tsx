@@ -1,3 +1,4 @@
+import { cardTone } from "@/lib/tone";
 import { Reveal } from "./reveal";
 
 type BenefitItem = {
@@ -10,7 +11,7 @@ export function BenefitList({ items }: { items: readonly BenefitItem[] }) {
     <div className="grid gap-4 sm:grid-cols-2">
       {items.map((item, index) => (
         <Reveal key={item.title} delay={index * 70} className="h-full">
-          <article className="surface card-dots card-hover flex h-full gap-4 rounded-xl p-6">
+          <article className={`surface card-grad card-hover flex h-full gap-4 rounded-xl p-6 ${cardTone(index)}`}>
             <span className="font-mono text-sm font-medium text-gold">{String(index + 1).padStart(2, "0")}</span>
             <div>
               <h3 className="font-display text-lg font-semibold tracking-tight">{item.title}</h3>

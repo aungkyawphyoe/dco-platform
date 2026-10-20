@@ -10,6 +10,7 @@ import {
   FLEET_STEPS,
 } from "@/content/fleet";
 import { FLEET_CONTACT_EMAIL } from "@/content/site";
+import { cardTone, pillTone } from "@/lib/tone";
 import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
 import { BenefitList } from "@/components/marketing/benefit-list";
 import { CtaBanner } from "@/components/marketing/cta-banner";
@@ -33,21 +34,23 @@ function ContactSalesLink({ className }: { className: string }) {
   );
 }
 
+const VEHICLE_STATUS_TONE: Record<string, string> = {
+  "On route": "pill-info",
+  Maintenance: "pill-warning",
+  Available: "pill-mint",
+};
+
 export default function FleetPage() {
   return (
     <>
       {/* Hero */}
-      <section className="relative isolate overflow-hidden border-b border-line">
+      <section className="relative isolate flex min-h-svh flex-col items-center justify-center overflow-hidden border-b border-line pt-20 sm:pt-24">
         <AuroraBackdrop dots orbs />
-        <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div className="flex flex-col items-start gap-6">
             <Reveal delay={0} className="flex flex-wrap items-center gap-3">
-              <span className="rounded-full border border-line-subtle bg-panel px-3 py-1 text-xs font-medium text-ink-caption">
-                {FLEET_HERO.eyebrow}
-              </span>
-              <span className="rounded-full bg-info-dim px-3 py-1 text-xs font-semibold text-info">
-                Fleet/Pro · Guided onboarding
-              </span>
+              <span className="pill pill-gold">{FLEET_HERO.eyebrow}</span>
+              <span className="pill pill-info">Fleet/Pro · Guided onboarding</span>
             </Reveal>
             <Reveal delay={80}>
               <h1 className="font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
@@ -95,7 +98,7 @@ export default function FleetPage() {
             <div className="surface animate-float-slow w-full max-w-sm rounded-xl p-6">
               <div className="flex items-center justify-between border-b border-line-subtle pb-3">
                 <span className="text-sm font-semibold">Active fleet</span>
-                <span className="rounded-full bg-success-dim px-2 py-0.5 text-xs text-success">Live</span>
+                <span className="pill pill-sm pill-success">Live</span>
               </div>
               <ul className="mt-4 space-y-3">
                 {[
@@ -106,7 +109,7 @@ export default function FleetPage() {
                 ].map(([plate, status]) => (
                   <li key={plate} className="flex items-center justify-between text-sm">
                     <span className="font-mono text-xs text-ink-muted">{plate}</span>
-                    <span className="text-xs text-ink-caption">{status}</span>
+                    <span className={`pill pill-sm ${VEHICLE_STATUS_TONE[status]}`}>{status}</span>
                   </li>
                 ))}
               </ul>
@@ -137,7 +140,7 @@ export default function FleetPage() {
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           {FLEET_CHALLENGES.items.map((item, index) => (
             <Reveal key={item.title} delay={index * 70} className="h-full">
-              <article className="surface card-dots card-hover h-full rounded-xl p-6">
+              <article className={`surface card-grad card-hover h-full rounded-xl p-6 ${cardTone(index)}`}>
                 <h3 className="font-display text-lg font-semibold tracking-tight">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-ink-muted">{item.description}</p>
               </article>
@@ -220,10 +223,10 @@ export default function FleetPage() {
             title="Built for operations that run on vehicles"
           />
           <Reveal className="mt-10 flex flex-wrap justify-center gap-3">
-            {FLEET_INDUSTRIES.map((industry) => (
+            {FLEET_INDUSTRIES.map((industry, index) => (
               <span
                 key={industry}
-                className="surface card-hover rounded-full px-4 py-2 text-sm text-ink-muted"
+                className={`pill ${pillTone(index)} px-4 py-2 text-sm transition-transform duration-200 ease-out-soft hover:-translate-y-0.5`}
               >
                 {industry}
               </span>

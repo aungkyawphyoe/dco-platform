@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 enum AnalyticsEvent {
@@ -41,12 +43,58 @@ enum AnalyticsEvent {
   final String name;
 }
 
-class Analytics {
-  const Analytics();
+/// Destination for analytics events. Implementations must never throw or
+/// block the caller — analytics is best-effort and must not affect UX.
+abstract interface class AnalyticsSink {
+  Future<void> logEvent(String name, Map<String, Object?> parameters);
 
-  void track(AnalyticsEvent event, [Map<String, Object?> properties = const {}]) {
+  Future<void> setUserId(String? userId);
+
+  Future<void> setUserProperty(String name, String? value);
+
+  Future<void> setCollectionEnabled(bool enabled);
+}
+
+/// Default sink. Keeps the app running (and tests hermetic) when no
+/// analytics backend is configured.
+class NoOpAnalyticsSink implements AnalyticsSink {
+  const NoOpAnalyticsSink();
+
+  @override
+  Future<void> logEvent(String name, Map<String, Object?> parameters) async {}
+
+  @override
+  Future<void> setUserId(String? userId) async {}
+
+  @override
+  Future<void> setUserProperty(String name, String? value) async {}
+
+  @override
+  Future<void> setCollectionEnabled(bool enabled) async {}
+}
+
+/// Thin facade over an [AnalyticsSink]. Feature code depends on this only,
+/// so Firebase never leaks past `core/analytics`.
+class Analytics {
+  const Analytics([this._sink = const NoOpAnalyticsSink()]);
+
+  final AnalyticsSink _sink;
+
+  void track(
+    AnalyticsEvent event, [
+    Map<String, Object?> properties = const {},
+  ]) {
     if (kDebugMode) {
       debugPrint('[analytics] ${event.name} $properties');
     }
+    unawaited(_sink.logEvent(event.name, properties));
   }
+
+  Future<void> setUserId(String? userId) => _sink.setUserId(userId);
+
+  Future<void> setUserProperty(String name, String? value) =>
+      _sink.setUserProperty(name, value);
+
+  Future<void> setCollectionEnabled(bool enabled) =>
+      _sink.setCollectionEnabled(enabled);
 }
