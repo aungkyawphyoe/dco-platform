@@ -1,25 +1,31 @@
 import { apiBaseUrl } from "./config";
 import { ApiError, parseApiError } from "./errors";
-import { clearToken, ensureFreshToken, getToken } from "@/lib/auth/token-store";
+import { ensureFreshToken } from "@/lib/auth/token-store";
 
 type Json = Record<string, unknown> | unknown[] | undefined;
 
-async function request<T>(path: string, init: RequestInit, token: string | null): Promise<Response> {
+async function request(path: string, init: RequestInit, token: string | null): Promise<Response> {
   const headers = new Headers(init.headers);
-  if (init.body && !headers.has("content-type")) {
+  if (typeof init.body === "string" && !headers.has("content-type")) {
     headers.set("content-type", "application/json");
   }
   if (token) headers.set("authorization", `Bearer ${token}`);
   return fetch(`${apiBaseUrl()}${path}`, { ...init, headers });
 }
 
-async function execute<T>(path: string, init: RequestInit): Promise<T> {
-  const first = await request(path, init, getToken());
-  let res = first;
-  if (res.status === 401 && !path.startsWith("/auth/")) {
-    const refreshed = await ensureFreshToken();
+/** Shared by JSON requests, uploads and downloads. Retry authentication once. */
+export async function apiRequest(path: string, init: RequestInit = {}): Promise<Response> {
+  const sentToken = await ensureFreshToken();
+  let res = await request(path, init, sentToken);
+  if (sentToken && res.status === 401 && !path.startsWith("/auth/")) {
+    const refreshed = await ensureFreshToken(sentToken);
     if (refreshed) res = await request(path, init, refreshed);
   }
+  return res;
+}
+
+async function execute<T>(path: string, init: RequestInit): Promise<T> {
+  const res = await apiRequest(path, init);
   if (!res.ok) throw await parseApiError(res);
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;

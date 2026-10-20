@@ -1,9 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { apiDelete, apiGet, apiPatch, apiPost, apiPut } from "./client";
-import { ensureFreshToken } from "@/lib/auth/token-store";
-import { apiBaseUrl } from "@/lib/api/config";
+import { apiDelete, apiGet, apiPatch, apiPost, apiPut, apiRequest } from "./client";
 import { parseApiError } from "@/lib/api/errors";
 import type {
   Assignment,
@@ -143,12 +141,10 @@ export function useImportVehicleCsv(orgId: string | null) {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (file: File) => {
-      const token = await ensureFreshToken();
       const form = new FormData();
       form.append("file", file);
-      const res = await fetch(`${apiBaseUrl()}${orgPath(orgId, "/vehicles/import")}`, {
+      const res = await apiRequest(orgPath(orgId, "/vehicles/import"), {
         method: "POST",
-        headers: token ? { authorization: `Bearer ${token}` } : undefined,
         body: form,
       });
       if (!res.ok) throw await parseApiError(res);
@@ -175,11 +171,7 @@ export async function downloadReport(
   orgId: string,
   type: "vehicles" | "fleet" | "lemons",
 ): Promise<void> {
-  const token = await ensureFreshToken();
-  const res = await fetch(
-    `${apiBaseUrl()}${orgPath(orgId, `/reports/export?type=${type}`)}`,
-    { headers: token ? { authorization: `Bearer ${token}` } : undefined },
-  );
+  const res = await apiRequest(orgPath(orgId, `/reports/export?type=${type}`));
   if (!res.ok) throw await parseApiError(res);
   const blob = await res.blob();
   const url = URL.createObjectURL(blob);

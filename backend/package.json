@@ -12,6 +12,7 @@
     "start": "node dist/server.js",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:portal-auth": "PORTAL=web vitest run --config portal-auth.config.ts && PORTAL=fleet-portal vitest run --config portal-auth.config.ts",
     "db:migrate": "tsx src/db/run-migrate.ts",
     "seed:org": "tsx src/scripts/seed-org.ts",
     "license:key": "tsx src/scripts/generate-license-key.ts"
