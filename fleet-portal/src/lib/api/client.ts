@@ -49,3 +49,13 @@ export function apiDelete(path: string): Promise<void> {
 }
 
 export { ApiError };
+
+export async function apiDownload(path: string): Promise<Blob> {
+  let res = await request(path, { method: "GET" }, getToken());
+  if (res.status === 401) {
+    const token = await ensureFreshToken();
+    if (token) res = await request(path, { method: "GET" }, token);
+  }
+  if (!res.ok) throw await parseApiError(res);
+  return res.blob();
+}

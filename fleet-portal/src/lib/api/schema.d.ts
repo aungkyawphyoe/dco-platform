@@ -8130,6 +8130,332 @@ export interface paths {
         };
         trace?: never;
     };
+    "/organizations/{id}/analytics/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recorded costs and efficiency with shared date and vehicle filters
+         * @description Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+         */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    /** @description Comma-separated organization vehicle UUIDs; omitted selects all. */
+                    vehicles?: string;
+                    active?: boolean;
+                    /** @description Use equivalent calendar periods for preset comparisons; custom ranges use equal days. */
+                    calendar?: boolean;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Filtered reporting result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Organization role does not permit analytics */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Selected vehicle is outside the organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Reporting currency requires administrator confirmation */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid date range or query */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/analytics/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paginated expense drill-down with organization-scoped record details
+         * @description Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+         */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    /** @description Comma-separated organization vehicle UUIDs; omitted selects all. */
+                    vehicles?: string;
+                    active?: boolean;
+                    /** @description Use equivalent calendar periods for preset comparisons; custom ranges use equal days. */
+                    calendar?: boolean;
+                    category?: string;
+                    page?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Filtered reporting result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Organization role does not permit analytics */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Selected vehicle is outside the organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Reporting currency requires administrator confirmation */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid date range or query */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/analytics/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * CSV export of the filtered report or expenses
+         * @description Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+         */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    /** @description Comma-separated organization vehicle UUIDs; omitted selects all. */
+                    vehicles?: string;
+                    active?: boolean;
+                    /** @description Use equivalent calendar periods for preset comparisons; custom ranges use equal days. */
+                    calendar?: boolean;
+                    category?: string;
+                    kind?: "vehicles" | "expenses";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Filtered reporting result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Organization role does not permit analytics */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Selected vehicle is outside the organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Reporting currency requires administrator confirmation */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid date range or query */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/analytics/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Read reporting currency and timezone (admins and managers) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Reporting settings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            currency?: string | null;
+                            timezone?: string;
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Confirm reporting currency and timezone (admins only)
+         * @description Existing amounts are not converted. Currency changes require a separate data migration.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        currency: string;
+                        /** @example Asia/Yangon */
+                        timezone: string;
+                        /** @enum {boolean} */
+                        confirm_existing_amounts: true;
+                    };
+                };
+            };
+            responses: {
+                /** @description Reporting settings saved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Administrator role required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Currency is already locked to a different value */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unsupported currency or timezone */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8619,6 +8945,12 @@ export interface components {
             vehicle_id: string;
             /** @enum {string} */
             kind: "refuel" | "charge";
+            /**
+             * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
+             * @default unknown
+             * @enum {string}
+             */
+            fill_status: "full" | "partial" | "unknown";
             /** Format: uuid */
             fuel_type_id?: string | null;
             fuel_type_name: string;
@@ -8633,6 +8965,12 @@ export interface components {
         FuelLogWrite: {
             /** Format: uuid */
             id: string;
+            /**
+             * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
+             * @default unknown
+             * @enum {string}
+             */
+            fill_status: "full" | "partial" | "unknown";
             /** Format: uuid */
             fuel_type_id: string;
             /** Format: date */
@@ -8642,6 +8980,12 @@ export interface components {
             odometer?: number;
         };
         FuelLogPatch: {
+            /**
+             * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
+             * @default unknown
+             * @enum {string}
+             */
+            fill_status: "full" | "partial" | "unknown";
             /** Format: uuid */
             fuel_type_id?: string;
             /** Format: date */

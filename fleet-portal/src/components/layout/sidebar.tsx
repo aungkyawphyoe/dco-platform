@@ -26,7 +26,7 @@ function getNavForRole(role: string | null): NavGroup[] {
     {
       section: "Overview",
       icon: "overview",
-      items: [{ href: "/", label: "Dashboard", exact: true }],
+      items: [{ href: "/", label: "Dashboard", exact: true }, ...(["org_admin", "org_manager"].includes(role ?? "") ? [{ href: "/analytics", label: "Analytics", exact: false }] : [])],
     },
     {
       section: "Fleet",
