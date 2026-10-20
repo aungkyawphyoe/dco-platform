@@ -4236,6 +4236,162 @@ paths:
           description: Deleted; maintenance schedule recalculated where applicable
         '409':
           $ref: '#/components/responses/Error'
+  /organizations/{id}/analytics/report:
+    get:
+      tags: [Fleet]
+      summary: Recorded costs and efficiency with shared date and vehicle filters
+      description: Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: from
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: to
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: vehicles
+          description: Comma-separated organization vehicle UUIDs; omitted selects all.
+          schema: {type: string}
+        - in: query
+          name: active
+          schema: {type: boolean, default: false}
+        - in: query
+          name: calendar
+          description: Use equivalent calendar periods for preset comparisons; custom ranges use equal days.
+          schema: {type: boolean, default: false}
+      responses:
+        '200': {description: Filtered reporting result}
+        '403': {description: Organization role does not permit analytics}
+        '404': {description: Selected vehicle is outside the organization}
+        '409': {description: Reporting currency requires administrator confirmation}
+        '422': {description: Invalid date range or query}
+  /organizations/{id}/analytics/records:
+    get:
+      tags: [Fleet]
+      summary: Paginated expense drill-down with organization-scoped record details
+      description: Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: from
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: to
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: vehicles
+          description: Comma-separated organization vehicle UUIDs; omitted selects all.
+          schema: {type: string}
+        - in: query
+          name: active
+          schema: {type: boolean, default: false}
+        - in: query
+          name: calendar
+          description: Use equivalent calendar periods for preset comparisons; custom ranges use equal days.
+          schema: {type: boolean, default: false}
+        - in: query
+          name: category
+          schema: {type: string}
+        - in: query
+          name: page
+          schema: {type: integer, minimum: 1, default: 1}
+      responses:
+        '200': {description: Filtered reporting result}
+        '403': {description: Organization role does not permit analytics}
+        '404': {description: Selected vehicle is outside the organization}
+        '409': {description: Reporting currency requires administrator confirmation}
+        '422': {description: Invalid date range or query}
+  /organizations/{id}/analytics/export:
+    get:
+      tags: [Fleet]
+      summary: CSV export of the filtered report or expenses
+      description: Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: from
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: to
+          required: true
+          schema: {type: string, format: date}
+        - in: query
+          name: vehicles
+          description: Comma-separated organization vehicle UUIDs; omitted selects all.
+          schema: {type: string}
+        - in: query
+          name: active
+          schema: {type: boolean, default: false}
+        - in: query
+          name: calendar
+          description: Use equivalent calendar periods for preset comparisons; custom ranges use equal days.
+          schema: {type: boolean, default: false}
+        - in: query
+          name: category
+          schema: {type: string}
+        - in: query
+          name: kind
+          schema: {type: string, enum: [vehicles, expenses], default: vehicles}
+      responses:
+        '200': {description: Filtered reporting result}
+        '403': {description: Organization role does not permit analytics}
+        '404': {description: Selected vehicle is outside the organization}
+        '409': {description: Reporting currency requires administrator confirmation}
+        '422': {description: Invalid date range or query}
+  /organizations/{id}/analytics/settings:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Fleet]
+      summary: Read reporting currency and timezone (admins and managers)
+      responses:
+        '200':
+          description: Reporting settings
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  currency: {type: string, nullable: true}
+                  timezone: {type: string}
+    put:
+      tags: [Fleet]
+      summary: Confirm reporting currency and timezone (admins only)
+      description: Existing amounts are not converted. Currency changes require a separate data migration.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currency, timezone, confirm_existing_amounts]
+              properties:
+                currency: {type: string, pattern: '^[A-Z]{3}$'}
+                timezone: {type: string, example: Asia/Yangon}
+                confirm_existing_amounts: {type: boolean, enum: [true]}
+      responses:
+        '200': {description: Reporting settings saved}
+        '403': {description: Administrator role required}
+        '409': {description: Currency is already locked to a different value}
+        '422': {description: Unsupported currency or timezone}
 components:
   securitySchemes:
     bearerAuth:
@@ -5188,6 +5344,11 @@ components:
         kind:
           type: string
           enum: [refuel, charge]
+        fill_status:
+          type: string
+          enum: [full, partial, unknown]
+          default: unknown
+          description: Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
         fuel_type_id:
           type: string
           format: uuid
@@ -5215,6 +5376,11 @@ components:
         id:
           type: string
           format: uuid
+        fill_status:
+          type: string
+          enum: [full, partial, unknown]
+          default: unknown
+          description: Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
         fuel_type_id:
           type: string
           format: uuid
@@ -5233,6 +5399,11 @@ components:
     FuelLogPatch:
       type: object
       properties:
+        fill_status:
+          type: string
+          enum: [full, partial, unknown]
+          default: unknown
+          description: Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
         fuel_type_id:
           type: string
           format: uuid

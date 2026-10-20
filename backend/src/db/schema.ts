@@ -285,6 +285,7 @@ export const fuelLogs = pgTable("fuel_logs", {
     .notNull()
     .references(() => vehicles.id),
   kind: fuelLogKindEnum("kind").notNull(),
+  fillStatus: text("fill_status").notNull().default("unknown"),
   fuelTypeId: uuid("fuel_type_id"),
   fuelTypeName: text("fuel_type_name").notNull(),
   unit: text("unit").notNull(),

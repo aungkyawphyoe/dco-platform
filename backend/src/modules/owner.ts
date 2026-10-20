@@ -889,6 +889,7 @@ async function recordVehicleScopedChange(
       logged_on: z.string(),
       amount: z.number().positive(),
       cost: z.number().min(0),
+      fill_status: z.enum(["full", "partial", "unknown"]).default("unknown"),
       odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body);
     if (body.logged_on.slice(0, 10) > new Date().toISOString().slice(0, 10)) {
@@ -898,7 +899,7 @@ async function recordVehicleScopedChange(
     if (existing) { reply.code(201); return publicFuelLog(existing); }
     const [ft] = await db().select().from(fuelTypes).where(eq(fuelTypes.id, body.fuel_type_id)).limit(1);
     if (!ft || ft.userId !== (reviewAuthor.getStore() ?? uid(request))) throw new AppError(422, "invalid_fuel_type", "Unknown fuel type");
-    const kind = vehicle.fuelType === "electric" ? "charge" : "refuel";
+    const kind = vehicle.fuelType === "electric" || (vehicle.fuelType === "hybrid_plugin" && ft.kind === "electric") ? "charge" : "refuel";
     if (kind === "charge" && ft.kind !== "electric") {
       throw new AppError(422, "invalid_fuel_type", "Electric vehicles log charge types");
     }
@@ -915,6 +916,7 @@ async function recordVehicleScopedChange(
         userId: reviewAuthor.getStore() ?? uid(request),
         vehicleId,
         kind,
+        fillStatus: kind === "charge" ? "unknown" : body.fill_status,
         fuelTypeId: ft.id,
         fuelTypeName: ft.name,
         unit: ft.unit,
@@ -951,6 +953,7 @@ async function recordVehicleScopedChange(
       logged_on: z.string().optional(),
       amount: z.number().optional(),
       cost: z.number().optional(),
+      fill_status: z.enum(["full", "partial", "unknown"]).optional(),
       odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body ?? {});
     let fuelTypeName = row.fuelTypeName;
@@ -969,6 +972,7 @@ async function recordVehicleScopedChange(
         ...(body.logged_on ? { loggedOn: body.logged_on } : {}),
         ...(body.amount !== undefined ? { amount: String(body.amount) } : {}),
         ...(body.cost !== undefined ? { cost: String(body.cost) } : {}),
+        ...(body.fill_status !== undefined ? { fillStatus: row.kind === "charge" ? "unknown" : body.fill_status } : {}),
         ...(body.odometer !== undefined ? { odometer: body.odometer != null ? String(body.odometer) : null } : {}),
         fuelTypeId,
         fuelTypeName,

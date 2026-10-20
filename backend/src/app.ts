@@ -1,3 +1,4 @@
+import { fleetAnalyticsPlugin } from "./modules/fleet-analytics.js";
 import { socialAuthPlugin } from "./modules/social-auth.js";
 import { accountSecurityPlugin } from "./modules/account-security.js";
 import Fastify from "fastify";
@@ -80,6 +81,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(profilePlugin);
       await v1.register(fleetPlugin);
       await v1.register(fleetOperationsPlugin);
+      await v1.register(fleetAnalyticsPlugin);
       await v1.register(adminPlugin);
     },
     { prefix: "/v1" },
