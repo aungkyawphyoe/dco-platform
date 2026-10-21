@@ -2,11 +2,11 @@
 
 ## Overview
 
-Notifications tell the owner that a maintenance plan item is due. MVP delivery is **local** on the device (scheduled from the plan). The backend also keeps an in-app notification feed and a delivery queue so the product is push-ready. There are no marketing campaigns, no broadcast pushes, and no insurance-renewal product notifications.
+Notifications tell the owner that a maintenance plan item is due. MVP delivery is **local** on the device (scheduled from the plan). An optional **server-side email reminder** for the same plan items is available when the account has a verified email. The backend also keeps an in-app notification feed and a delivery queue so the product is push-ready. There are no marketing campaigns, no broadcast pushes, and no insurance-renewal product notifications.
 
-Source of truth for scope: `product/mvp-scope.md`.
+Source of truth for scope: `product/production-scope.md`.
 
-**As built (28 Aug 2026): Done (local).** OS local reminders via `flutter_local_notifications`. No remote FCM/APNs. Extended 28 Sep 2026: two reminder phases (upcoming + due) with localized banner copy, and user-configurable soon thresholds (Settings → Reminders) shared with the in-app Upcoming grouping. Status index: `product/frd/README.md`.
+**As built (28 Aug 2026): Done (local).** OS local reminders via `flutter_local_notifications`. No remote FCM/APNs. Extended 28 Sep 2026: two reminder phases (upcoming + due) with localized banner copy, and user-configurable soon thresholds (Settings → Reminders) shared with the in-app Upcoming grouping. Extended Oct 2026: opt-in, server-side email reminders for the same plan items (Settings → Reminders → Email reminders), with per-account lead time and delivery logging. Status index: `product/frd/README.md`.
 
 ---
 
@@ -17,11 +17,13 @@ Enable users to:
 - Be alerted when a plan item is upcoming, or due by date and/or mileage
 - Mark the reminder done or dismiss it
 - See recent alerts in an in-app feed
+- Receive an optional email reminder when the device did not deliver one
 
 Enable the platform to:
 
 - Store notification records
 - Ship with push infrastructure unused by campaigns
+- Record email reminder deliveries per plan-item cycle for auditing and dedupe
 
 ---
 
@@ -33,6 +35,7 @@ Enable the platform to:
 - In-app notification feed (list)
 - Backend notification records and delivery queue
 - Push-ready wiring (device token registration) without sending campaign pushes
+- Optional server-side email reminders for maintenance plan items (opt-in, verified email required)
 
 ---
 
@@ -41,7 +44,8 @@ Enable the platform to:
 - Push campaigns / marketing automation
 - Insurance policy expiry product (v1.1)
 - Document expiry extracted from files
-- Email or SMS reminders (except auth mail in `auth.md`)
+- SMS reminders
+- Email reminders outside maintenance plan items (insurance expiry, document expiry, workshop booking) and marketing email
 - Workshop booking alerts
 - Reminder fan-out to users who hold a share on the vehicle
 - Quiet hours customization beyond OS settings
@@ -114,6 +118,24 @@ So that I can catch what I missed if I ignored the banner.
 - **Behavior change vs MVP:** the mileage reminder used to fire at 100 km remaining; the default is now 500 km.
 - Screen also offers **Reset to defaults** (30 days / 500 km).
 
+## Email reminders (server-side)
+
+Settings → Reminders → **Email reminders** is a separate, opt-in channel. It does not replace or suppress local OS notifications.
+
+- **Availability** — enabling requires a verified email on the account. Until then the switch is disabled and the screen explains why ("Verify your email to turn on email reminders") with a link to verification. Accounts with no email show that email reminders are unavailable.
+- **Preference** — one per account: `enabled` (default off) and `lead_days` (7–60, step 1, default 30). Stored server-side (`users.email_reminders_enabled`, `users.email_reminder_lead_days`), not in local preferences, so the same account behaves consistently across devices.
+- **Scheduling** — the backend scans every `REMINDER_EMAIL_SCAN_MINUTES` (default 15; 0 disables). A scan sends at most one email per plan item per due cycle per phase:
+  - **Upcoming** — once the item's due date enters the `lead_days` window (due date − `lead_days`).
+  - **Due** — once the due date is reached or the vehicle mileage reaches the item's next due mileage. Mileage is compared in canonical storage units (miles), so the result is unit-independent.
+  - Upcoming is suppressed when the due condition is already true; the first scan after the window opens sends upcoming, and the due email follows in a later scan.
+- **Recipients** — the vehicle owner's email only. Organization/fleet vehicles are excluded; owner vehicles shared with other accounts send only to the owner.
+- **Cycle identity** — `next_due_on` + `next_due_mileage`. Logging a service or editing the plan item's next due values starts a new cycle and allows new emails.
+- **Dedupe and retry** — every send attempt is recorded in `reminder_email_deliveries`, uniquely keyed by `(plan_item_id, cycle_key, kind)`. Failed sends retry on later scans (1 h backoff, max 3 attempts). Successful sends are never repeated for the same cycle and phase.
+- **Exclusions** — archived vehicles, disabled plan items, inactive accounts, unverified emails, and plan items with neither a due date nor a due mileage are skipped.
+- **Email content** — vehicle nickname (or name), plan item name, due date and/or due mileage, current mileage, phase-specific subject. Copy is English-only today because the account has no stored locale; app UI copy remains en/my.
+- **Failure handling** — a mail failure is logged on the delivery row (`last_error`); it does not block other rows or other plan items.
+- **Opt-out** — turning the switch off stops future scans for that account. Already-queued emails are not recalled.
+
 ## Permission
 
 - Request notification permission on the first reminder sync when an enabled plan item has a due date or mileage, if not yet determined
@@ -160,6 +182,9 @@ Both phases write a feed row (upcoming and due dedupe independently). Mark as re
 - Archived vehicles: cancel their scheduled locals and hide feed items
 - Each phase fires at most once per due cycle until a service is logged or the item is updated
 - The soon thresholds are per-device preferences; changing them reschedules but never re-fires an already delivered phase
+- Email reminders are per-account and independent from local thresholds: `lead_days` sets only the upcoming email window; due email timing follows the due date/mileage
+- Changing email reminder preferences never re-sends an email already delivered for the current cycle
+- Email reminders are owner-only; shared vehicle recipients are never emailed
 - Feed retains 90 days in MVP then may prune locally
 
 ---
@@ -192,6 +217,9 @@ Done (optional Register Service) or Dismiss
 - Body maximum 140 characters
 - Cannot schedule for a disabled plan item
 - Device token, when present, is an opaque string stored per user-device
+- Email `lead_days` must be an integer 7–60
+- Enabling email reminders requires `email_verified = true`; otherwise the API returns 409 `email_verification_required`
+- A plan item with neither `next_due_on` nor `next_due_mileage` produces no email
 
 ---
 
@@ -201,6 +229,9 @@ Done (optional Register Service) or Dismiss
 - Notification plugin unavailable on the platform (feed still works)
 - Offline: local schedule still works; feed rows sync later
 - Duplicate fire for the same phase and due cycle (dedupe by plan item + phase + cycle id)
+- Email settings unavailable (network): the Email reminders card shows a retry action; local notifications are unaffected
+- Email verification required / no email on account (explained in Settings; switch disabled)
+- Mail provider failure: delivery recorded with `last_error`, retried with backoff up to 3 attempts
 
 ---
 
@@ -212,6 +243,8 @@ Done (optional Register Service) or Dismiss
 - No PII in notification bodies beyond vehicle nickname and item name
 - Tests for date-due, mileage-due, upcoming-window, and first-of-either logic
 - Tests for threshold clamping/snapping and for the schedule reacting to a threshold change
+- Email scans are idempotent: repeated scans, restarts, and multiple app instances never duplicate an email for the same cycle and phase
+- Email settings reads/writes are owner-scoped; reminder scans are bounded and must not block request handling
 
 ---
 
@@ -247,12 +280,17 @@ maintenance_reminder_dismissed
 - Sync Engine
 - OS notification APIs
 - Optional: push provider (registered, unused for campaigns)
+- Backend Mailer + `REMINDER_EMAIL_SCAN_MINUTES` scheduler (`backend/src/lib/reminder-email.ts`)
+- Email verification (`auth.md`)
 
 ---
 
 # Future Enhancements
 
 - Remote push for due items when the app is not opened
+- First-class reminders entity (arbitrary remind-on date/mileage, recurrence, notes) if insurance or documents enter scope
+- Localized email copy using a stored account locale
+- Per-reminder delivery channel (email vs local only)
 - Insurance renewal reminders (with Insurance module)
 - Document expiry reminders
 - Quiet hours in-app

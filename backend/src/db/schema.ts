@@ -106,6 +106,8 @@ export const users = pgTable("users", {
   plan: planEnum("plan").notNull().default("free"),
   status: accountStatusEnum("status").notNull().default("active"),
   emailVerified: boolean("email_verified").notNull().default(false),
+  emailRemindersEnabled: boolean("email_reminders_enabled").notNull().default(false),
+  emailReminderLeadDays: integer("email_reminder_lead_days").notNull().default(30),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   activeVehicleId: uuid("active_vehicle_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -366,6 +368,31 @@ export const notificationFeed = pgTable("notification_feed", {
   dueReason: dueReasonEnum("due_reason"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const reminderEmailDeliveries = pgTable("reminder_email_deliveries", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  planItemId: uuid("plan_item_id")
+    .notNull()
+    .references(() => planItems.id, { onDelete: "cascade" }),
+  cycleKey: text("cycle_key").notNull(),
+  kind: text("kind").$type<"upcoming" | "due">().notNull(),
+  recipient: text("recipient").notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  cycleUnique: uniqueIndex("reminder_email_deliveries_cycle_unique")
+    .on(table.planItemId, table.cycleKey, table.kind),
+  userIndex: index("reminder_email_deliveries_user_idx").on(table.userId),
+}));
 
 export const changeLog = pgTable("change_log", {
   seq: bigint("seq", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),

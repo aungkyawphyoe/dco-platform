@@ -42,7 +42,7 @@ Superseded FRDs move to [`archive/`](archive/).
 | Documents | [documents.md](documents.md) | Mobile + API | **Done** | Full vault: Drift table, CRUD, upload/viewer, sync outbox. |
 | Expenses | [expenses.md](expenses.md) | Mobile + API | **Done** | Categories, summaries, receipt photo, assign parts. |
 | Sync | [sync.md](sync.md) | Mobile + API | **Done** (core) | Outbox → push → media → pull. Documents sync outbox wired. Live status in drawer → Sync status (bound to `SyncEngine`); no Settings sync row. |
-| Notifications | [notifications.md](notifications.md) | Mobile + API | **Done** (local) | OS local reminders (`flutter_local_notifications`), user-configurable thresholds (default 30 days / 500 km). In-app feed. No remote FCM/APNs. Device-token register exists on the API. |
+| Notifications | [notifications.md](notifications.md) | Mobile + API | **Done** (local + email) | OS local reminders (`flutter_local_notifications`), user-configurable thresholds (default 30 days / 500 km), and opt-in server-side maintenance emails (verified email, lead time, dedupe). In-app feed. No remote FCM/APNs. Device-token register exists on the API. |
 | Parts | [parts.md](parts.md) | Mobile + API | **Done** | Per-vehicle catalog; assign on service and expense. |
 | Fuel | [fuel.md](fuel.md) | Mobile + API | **Done** | Logs + Fuel Types. `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. Optional odometer + economy KPIs live in [stats.md](stats.md). |
 | Stats | [stats.md](stats.md) | Mobile | **Done** | KPIs, charts, period filters (local Drift aggregation, no stats API); optional fuel-log odometer feeds distance/consumption KPIs. |

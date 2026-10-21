@@ -24,6 +24,7 @@ import { syncPlugin } from "./modules/sync.js";
 import { adminPlugin } from "./modules/admin.js";
 import { docsPlugin } from "./modules/docs.js";
 import { profilePlugin } from "./modules/profile.js";
+import { reminderEmailsPlugin } from "./modules/reminder-emails.js";
 import { fleetPlugin } from "./modules/fleet.js";
 import { fleetOperationsPlugin } from "./modules/fleet-operations.js";
 import "./types.js";
@@ -79,6 +80,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(syncPlugin);
       await v1.register(organizationSyncPlugin);
       await v1.register(profilePlugin);
+      await v1.register(reminderEmailsPlugin);
       await v1.register(fleetPlugin);
       await v1.register(fleetOperationsPlugin);
       await v1.register(fleetAnalyticsPlugin);

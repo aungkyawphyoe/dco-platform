@@ -5,6 +5,8 @@ import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/units/mileage_unit.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
+import 'package:dco_mobile/features/settings/data/datasources/email_reminder_settings_api.dart';
+import 'package:dco_mobile/features/settings/domain/entities/email_reminder_settings.dart';
 import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -52,3 +54,17 @@ final reminderThresholdsProvider = Provider<DueThresholds>((ref) {
     soonDistanceKm: prefs.soonDistanceKm,
   );
 });
+
+final emailReminderSettingsApiProvider = Provider<EmailReminderSettingsApi>((
+  ref,
+) {
+  if (ref.watch(appConfigProvider).mockAuth) {
+    return MockEmailReminderSettingsApi();
+  }
+  return DioEmailReminderSettingsApi(ref.watch(dioProvider));
+});
+
+final emailReminderSettingsProvider =
+    FutureProvider.autoDispose<EmailReminderSettings>((ref) {
+      return ref.watch(emailReminderSettingsApiProvider).get();
+    });
