@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/widgets/license_delete_button.dart';
 import 'dart:io';
 import 'package:dco_mobile/features/profile/presentation/widgets/license_flip_card.dart';
 
@@ -89,6 +90,7 @@ class DocumentsScreen extends ConsumerWidget {
                   },
                   child: const Text('Manage driving license'),
                 ),
+                const LicenseDeleteButton(),
               ],
             ),
           Expanded(

@@ -68,16 +68,15 @@ final documentStorageProvider = StreamProvider<Map<String, dynamic>?>((ref) {
 final personalDocumentLicenseProvider =
     StreamProvider.autoDispose<DrivingLicense?>((ref) {
       final db = ref.watch(appDatabaseProvider);
-      final sessionLicense = ref
-          .watch(sessionControllerProvider)
-          .valueOrNull
-          ?.user
-          .drivingLicense;
+      ref.watch(sessionControllerProvider);
+      var cancelled = false;
+      ref.onDispose(() => cancelled = true);
       final repository = ref.watch(licenseRepositoryProvider);
       const key = 'personal_document_license';
       Future<void>(() async {
         try {
-          final license = sessionLicense ?? await repository.getMyLicense();
+          final license = await repository.getMyLicense();
+          if (cancelled) return;
           await db
               .into(db.appMeta)
               .insertOnConflictUpdate(

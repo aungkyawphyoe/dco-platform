@@ -178,6 +178,12 @@ class SessionController extends AsyncNotifier<Session?> {
     }
   }
 
+  void clearDrivingLicenseFor(String userId) {
+    final current = state.valueOrNull;
+    if (current == null || current.user.id != userId) return;
+    state = AsyncData(current.copyWithUser(current.user.copyWith(clearDrivingLicense: true)));
+  }
+
   void updateUser(User user) {
     final current = state.valueOrNull;
     if (current == null) return;

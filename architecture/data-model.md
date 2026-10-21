@@ -323,6 +323,7 @@ Schema detail, access matrix, and query patterns: [`architecture/data-model-vehi
 - Two ways in: `POST /v1/vehicles/:id/shares` with `method: code_qr` (8-char code, 7-day expiry, stored on `vehicle_share_invitations.share_code`) or `method: email` (random token, 7-day expiry, emailed link).
 - `vehicle_share_invitations` is the invite ledger; `vehicle_shares` is the access ledger. Both are needed because a code/QR invite has no addressee.
 - `users.family_id` was dropped in `backend/drizzle/0008_vehicle_sharing.sql`, which also converts legacy `vehicle_grants` and `family_vehicles` rows into `vehicle_shares`.
+- License expiry is optional; missing expiry carries no validity status.
 - `driving_licenses` is a **standalone** per-user module, unrelated to sharing; it stays even though the family tables were removed.
 
 ### change_log

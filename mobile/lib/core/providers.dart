@@ -352,10 +352,7 @@ final licenseRepositoryProvider = Provider<LicenseRepository>((ref) {
   if (config.mockAuth) {
     return MockLicenseRepository();
   }
-  return LicenseRepositoryImpl(
-    ref.watch(dioProvider),
-    ref.watch(mediaApiProvider),
-  );
+  return LicenseRepositoryImpl(ref.watch(dioProvider));
 });
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {

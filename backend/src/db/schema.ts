@@ -198,7 +198,7 @@ export const drivingLicenses = pgTable("driving_licenses", {
     .references(() => users.id, { onDelete: "cascade" }),
   licenseNumber: text("license_number"),
   issuingCountry: text("issuing_country"),
-  expiryDate: date("expiry_date").notNull(),
+  expiryDate: date("expiry_date"),
   categories: text("categories"),
   frontMediaId: uuid("front_media_id").references(() => mediaObjects.id),
   backMediaId: uuid("back_media_id").references(() => mediaObjects.id),

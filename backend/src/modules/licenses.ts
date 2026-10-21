@@ -2,12 +2,12 @@ import { eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
-import { drivingLicenses, mediaObjects } from "../db/schema.js";
+import { drivingLicenses, mediaObjects, mediaCleanup, users } from "../db/schema.js";
 import { newId } from "../lib/crypto.js";
 import { dateOnly, iso, recordChange } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
 import { documentContentType } from "../lib/document-files.js";
-import { storeWithQuota } from "../lib/storage.js";
+import { storeWithQuota, deleteUnreferencedMedia } from "../lib/storage.js";
 import { MEDIA_MAX_BYTES } from "../lib/media.js";
 import { requireOwner } from "./auth.js";
 
@@ -30,7 +30,7 @@ export function publicDrivingLicense(row: typeof drivingLicenses.$inferSelect) {
 
 export async function getLicenseStatus(db: Db, userId: string): Promise<string | null> {
   const [license] = await db.select().from(drivingLicenses).where(eq(drivingLicenses.userId, userId)).limit(1);
-  if (!license) return null;
+  if (!license || !license.expiryDate) return null;
   const today = new Date();
   const expiry = new Date(license.expiryDate);
   const diffDays = Math.ceil((expiry.getTime() - today.getTime()) / 86400000);
@@ -58,67 +58,77 @@ export const licensesPlugin: FastifyPluginAsync = async (app) => {
       .object({
         license_number: z.string().max(50).optional().nullable(),
         issuing_country: z.string().length(2).optional().nullable(),
-        expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+        expiry_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional().nullable(),
         categories: z.string().optional().nullable(),
         front_media_id: uuid.optional().nullable(),
         back_media_id: uuid.optional().nullable(),
       })
       .parse(request.body);
 
-    for (const mediaId of [body.front_media_id, body.back_media_id]) {
-      if (!mediaId) continue;
-      const [media] = await db().select().from(mediaObjects).where(eq(mediaObjects.id, mediaId));
-      if (!media || media.userId !== userId || media.ownerOrgId || media.vehicleId || !["driving_license", "license_front", "license_back"].includes(media.purpose ?? "")) {
-        throw new AppError(422, "invalid_media", "Select your own driving license image");
-      }
+    const expiryDate = body.expiry_date ? new Date(body.expiry_date) : null;
+    if (expiryDate && (Number.isNaN(expiryDate.getTime()) || expiryDate.toISOString().slice(0, 10) !== body.expiry_date)) {
+      throw new AppError(400, "invalid_expiry_date", "Enter a valid expiry date");
     }
-
-    const expiryDate = new Date(body.expiry_date);
-    if (expiryDate < new Date()) {
+    if (expiryDate && expiryDate < new Date()) {
       throw new AppError(400, "invalid_expiry_date", "Expiry date must be in the future");
     }
 
-    const [existing] = await db().select().from(drivingLicenses).where(eq(drivingLicenses.userId, userId)).limit(1);
-    let license;
-    if (existing) {
-      [license] = await db()
-        .update(drivingLicenses)
-        .set({
-          licenseNumber: body.license_number,
-          issuingCountry: body.issuing_country,
-          expiryDate: body.expiry_date,
-          categories: body.categories,
-          frontMediaId: body.front_media_id,
-          backMediaId: body.back_media_id,
-          updatedAt: new Date(),
-        })
-        .where(eq(drivingLicenses.userId, userId))
-        .returning();
-    } else {
-      [license] = await db()
-        .insert(drivingLicenses)
-        .values({
-          id: newId(),
-          userId,
-          licenseNumber: body.license_number,
-          issuingCountry: body.issuing_country,
-          expiryDate: body.expiry_date,
-          categories: body.categories,
-          frontMediaId: body.front_media_id,
-          backMediaId: body.back_media_id,
-        })
-        .returning();
-    }
-
-    await recordChange(db(), {
-      userId,
-      entityType: "driving_license",
-      entityId: license.id,
-      op: "upsert",
-      payload: publicDrivingLicense(license),
+    const cleanup: string[] = [];
+    const payload = await db().transaction(async tx => {
+      await tx.select().from(users).where(eq(users.id, userId)).for("update");
+      const [existing] = await tx.select().from(drivingLicenses).where(eq(drivingLicenses.userId, userId));
+      const frontId = body.front_media_id === undefined ? existing?.frontMediaId : body.front_media_id;
+      const backId = body.back_media_id === undefined ? existing?.backMediaId : body.back_media_id;
+      if (!frontId) throw new AppError(422, "front_required", "Add the front of your driving license");
+      for (const mediaId of [...new Set([frontId, backId].filter((id): id is string => !!id))].sort()) {
+        const [media] = await tx.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId)).for("update");
+        if (!media || media.userId !== userId || media.ownerOrgId || media.vehicleId || !["driving_license", "license_front", "license_back"].includes(media.purpose ?? "")) {
+          throw new AppError(422, "invalid_media", "Select your own driving license image");
+        }
+      }
+      const values = { licenseNumber: body.license_number, issuingCountry: body.issuing_country,
+        expiryDate: body.expiry_date ?? null, categories: body.categories,
+        frontMediaId: frontId, backMediaId: backId ?? null, updatedAt: new Date() };
+      const [license] = existing
+        ? await tx.update(drivingLicenses).set(values).where(eq(drivingLicenses.id, existing.id)).returning()
+        : await tx.insert(drivingLicenses).values({ ...values, id: newId(), userId }).returning();
+      for (const id of new Set([existing?.frontMediaId, existing?.backMediaId])) {
+        if (id && id !== frontId && id !== backId) {
+          cleanup.push(id);
+          await tx.insert(mediaCleanup).values({ mediaId: id }).onConflictDoNothing();
+        }
+      }
+      const result = publicDrivingLicense(license);
+      await recordChange(tx as unknown as Db, { userId, entityType: "driving_license", entityId: license.id, op: "upsert", payload: result });
+      return result;
     });
+    await cleanFiles(cleanup);
+    return payload;
+  });
 
-    return publicDrivingLicense(license);
+  async function cleanFiles(ids: string[]) {
+    for (const id of ids) {
+      try { await db().transaction(tx => deleteUnreferencedMedia(tx as unknown as Db, app.media, id)); }
+      catch (error) { app.log.warn({ err: error }, "License cleanup pending; storage remains charged"); }
+    }
+  }
+
+  app.delete("/users/me/license", async (request, reply) => {
+    requireOwner(request);
+    const userId = uid(request);
+    const cleanup: string[] = [];
+    await db().transaction(async tx => {
+      await tx.select().from(users).where(eq(users.id, userId)).for("update");
+      const [license] = await tx.select().from(drivingLicenses).where(eq(drivingLicenses.userId, userId));
+      if (!license) return;
+      await tx.delete(drivingLicenses).where(eq(drivingLicenses.id, license.id));
+      for (const id of new Set([license.frontMediaId, license.backMediaId])) {
+        if (id) { cleanup.push(id); await tx.insert(mediaCleanup).values({ mediaId: id }).onConflictDoNothing(); }
+      }
+      await recordChange(tx as unknown as Db, { userId, entityType: "driving_license", entityId: license.id, op: "delete", payload: { id: license.id } });
+    });
+    await cleanFiles(cleanup);
+    return reply.code(204).send();
   });
 
   app.post("/users/me/license/media", async (request, reply) => {

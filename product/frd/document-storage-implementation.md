@@ -29,10 +29,17 @@ Implemented on `codex/document-storage`:
 - Writes use record revisions; successful admin document mutations create transactional audit events. A backend integration test covers audit records, stale revisions, admin correction locks, and portal role restrictions.
 - Portal TypeScript and targeted ESLint checks pass. Browser/device verification and file replacement remain pending.
 
+## Checkpoint 4 — license metadata and removal
+
+- A front image is required on first save; the back and expiry date are optional. Profile supports clearing expiry, and unknown expiry does not claim validity.
+- License updates serialize on the personal account and validate image ownership. Replaced images enter the retry cleanup queue after the new reference commits; deletion releases storage only after blob cleanup succeeds.
+- Profile and Documents offer confirmed permanent license deletion. Session and Documents metadata can clear a removed license without restoring stale session values.
+- Backend tests cover required front, optional/invalid dates, replacement storage accounting, deletion, and privacy. Full backend suite: 88 tests passed. Targeted mobile document/sync/license suite: 43 tests passed. Portal type/lint checks and targeted mobile analysis pass. Device UI checks remain pending.
+
 ## Remaining before release
 
 - Complete replacement lifecycle, including smaller replacements while over quota, old-version cleanup, and preservation across offline failures.
-- Full license lifecycle: required front/optional back, optional expiry, removal from either entry point, replacement cleanup, and offline image availability.
+- License offline upload/outbox integration, offline image availability, optional back-image removal UI, and over-quota replacement admission remain unfinished.
 - Platform support permissions, audited access/deletion, reason capture, and owner notifications.
 - Temporary-file cancellation cleanup and robust abandoned-upload reconciliation.
 - Localized storage messages, personal upgrade navigation when available, and broader device/accessibility verification.
