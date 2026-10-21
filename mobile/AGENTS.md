@@ -278,6 +278,9 @@ Empty garage: Dashboard is still the default route. Maintenance, Expenses, and D
 
 ## Theme and UI rules
 
+**Cards are elevated, never outlined (approved 21 October 2026).** Every new or redesigned mobile feature must use `DcoCard` (`core/widgets/dco_card.dart`) or an equivalent surface with `background.card`, rounded theme corners, and `tokens.shadows.card` (or `elevated` for the main featured card). Do not add a permanent `Border.all`/`BorderSide` to a card. Selection uses fill, a check/radio icon, and shadow—not an outline. Input borders, dividers, and accessible keyboard-focus rings remain separate control treatments. Standard Flutter `Card` inherits the elevated app theme. Check light and dark modes, Burmese/English, and narrow screens before delivery.
+
+
 Map [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.json) and [`docs/theme/garage-minimal-light.json`](../docs/theme/garage-minimal-light.json) 1:1 into `ColorScheme` + `ThemeExtension<DcoTokens>` (status, radius, space). Values are generated into `dco_tokens.g.dart` by `tools/generate-theme.mjs` — edit the JSON and regenerate, never the `.g.dart`. Both modes ship; `buildDcoTheme(Brightness)` builds them and Settings → Appearance (Light / Dark / System, default System) selects the mode.
 
 `ThemeData`:
