@@ -23,11 +23,17 @@ Implemented on `codex/document-storage`:
 - Removing a file from a form unlinks it. Explicit document deletion checks affected records and clears legacy receipt pointers. Documents lists linked records for navigation and deletion confirmation.
 - Backend link and migration tests, plus mobile offline linking/rollback tests, cover the new data lifecycle. Device UI verification is still pending.
 
+## Checkpoint 3 — Fleet document management
+
+- Fleet admins can upload images/PDFs, download, edit document metadata, and permanently delete files from vehicle details. The panel displays organization storage usage and lists affected log attachments before deletion.
+- Writes use record revisions; successful admin document mutations create transactional audit events. A backend integration test covers audit records, stale revisions, admin correction locks, and portal role restrictions.
+- Portal TypeScript and targeted ESLint checks pass. Browser/device verification and file replacement remain pending.
+
 ## Remaining before release
 
 - Complete replacement lifecycle, including smaller replacements while over quota, old-version cleanup, and preservation across offline failures.
 - Full license lifecycle: required front/optional back, optional expiry, removal from either entry point, replacement cleanup, and offline image availability.
-- Fleet portal document UI and platform support permissions, audited access/deletion, reason capture, and owner notifications.
+- Platform support permissions, audited access/deletion, reason capture, and owner notifications.
 - Temporary-file cancellation cleanup and robust abandoned-upload reconciliation.
 - Localized storage messages, personal upgrade navigation when available, and broader device/accessibility verification.
 - Production rollout and existing-data reconciliation. No deployment has been performed.

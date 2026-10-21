@@ -7,6 +7,7 @@ import type { Db } from "../db/client.js";
 import {
   documents,
   documentLinks,
+  auditEvents,
   driverAssignments,
   organizationVehicles,
   organizationOperations,
@@ -355,6 +356,12 @@ async function recordVehicleScopedChange(
           const result = approvedReview
             ? await reviewAuthor.run(approvedReview.userId, runHandler)
             : await runHandler();
+          if (membership.role === "org_admin" && request.routeOptions.url?.includes("/documents") && ["POST", "PATCH", "DELETE"].includes(request.method)) {
+            const params = request.params as Record<string, string>;
+            await db().insert(auditEvents).values({ adminUserId: uid(request), action: `fleet.document.${request.method.toLowerCase()}`,
+              detail: { organization_id: orgId, document_id: params.documentId ?? (request.body as { id?: string })?.id,
+                vehicle_id: params.vehicleId, expected_revision: request.headers["if-match"] ?? null } });
+          }
           if (scheduleVehicle) {
             const plans = await db().select().from(planItems).where(eq(planItems.vehicleId, scheduleVehicle));
             for (const plan of plans) {
