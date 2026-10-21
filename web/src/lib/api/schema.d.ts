@@ -2606,7 +2606,12 @@ export interface paths {
                         /** Format: binary */
                         file: string;
                         /** @enum {string} */
-                        purpose?: "vehicle_photo" | "document" | "service_receipt" | "expense_receipt";
+                        purpose: "vehicle_photo" | "document" | "service_receipt" | "expense_receipt" | "driving_license";
+                        /**
+                         * Format: uuid
+                         * @description Required for documents and receipts; determines the owning storage pool. Omit for personal licenses.
+                         */
+                        vehicle_id?: string;
                     };
                 };
             };
@@ -2623,6 +2628,80 @@ export interface paths {
                 413: components["responses"]["Error"];
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Personal storage usage (compressed primary files; thumbnails excluded) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Current usage and plan allowance */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StorageUsage"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{orgId}/storage": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Organization storage usage for an active admin or driver */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    orgId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Organization allowance, independent of personal subscriptions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["StorageUsage"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3892,11 +3971,14 @@ export interface paths {
                     "application/json": {
                         license_number?: string | null;
                         issuing_country?: string | null;
-                        /** @description YYYY-MM-DD, must be in the future */
-                        expiry_date: string;
+                        /** @description Optional YYYY-MM-DD; when supplied, must be in the future */
+                        expiry_date?: string | null;
                         categories?: string | null;
-                        /** Format: uuid */
-                        front_media_id?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description Required on first save; omission preserves the current front image. Cannot be null.
+                         */
+                        front_media_id?: string;
                         /** Format: uuid */
                         back_media_id?: string | null;
                     };
@@ -3916,7 +3998,26 @@ export interface paths {
             };
         };
         post?: never;
-        delete?: never;
+        /** Permanently delete the caller's driving license and queue its images for cleanup */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Deleted (also returned when no license exists) */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                401: components["responses"]["Error"];
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -3978,7 +4079,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get another user's driving license (requires a shared vehicle) */
+        /** Get your own driving license by user ID (other users are denied) */
         get: {
             parameters: {
                 query?: never;
@@ -4057,7 +4158,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** User detail with license, owned vehicles, and vehicles shared with them */
+        /** User detail; license is included only when viewing yourself */
         get: {
             parameters: {
                 query?: never;
@@ -8130,10 +8231,346 @@ export interface paths {
         };
         trace?: never;
     };
+    "/organizations/{id}/analytics/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Recorded costs and efficiency with shared date and vehicle filters
+         * @description Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+         */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    /** @description Comma-separated organization vehicle UUIDs; omitted selects all. */
+                    vehicles?: string;
+                    active?: boolean;
+                    /** @description Use equivalent calendar periods for preset comparisons; custom ranges use equal days. */
+                    calendar?: boolean;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Filtered reporting result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Organization role does not permit analytics */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Selected vehicle is outside the organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Reporting currency requires administrator confirmation */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid date range or query */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/analytics/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Paginated expense drill-down with organization-scoped record details
+         * @description Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+         */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    /** @description Comma-separated organization vehicle UUIDs; omitted selects all. */
+                    vehicles?: string;
+                    active?: boolean;
+                    /** @description Use equivalent calendar periods for preset comparisons; custom ranges use equal days. */
+                    calendar?: boolean;
+                    category?: string;
+                    page?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Filtered reporting result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Organization role does not permit analytics */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Selected vehicle is outside the organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Reporting currency requires administrator confirmation */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid date range or query */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/analytics/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * CSV export of the filtered report or expenses
+         * @description Admins and managers only. See architecture/fleet-analytics.md for calculation and historical attribution contracts. Reporting currency must be confirmed first.
+         */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                    /** @description Comma-separated organization vehicle UUIDs; omitted selects all. */
+                    vehicles?: string;
+                    active?: boolean;
+                    /** @description Use equivalent calendar periods for preset comparisons; custom ranges use equal days. */
+                    calendar?: boolean;
+                    category?: string;
+                    kind?: "vehicles" | "expenses";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Filtered reporting result */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Organization role does not permit analytics */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Selected vehicle is outside the organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Reporting currency requires administrator confirmation */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid date range or query */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/analytics/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Read reporting currency and timezone (admins and managers) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Reporting settings */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            currency?: string | null;
+                            timezone?: string;
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Confirm reporting currency and timezone (admins only)
+         * @description Existing amounts are not converted. Currency changes require a separate data migration.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        currency: string;
+                        /** @example Asia/Yangon */
+                        timezone: string;
+                        /** @enum {boolean} */
+                        confirm_existing_amounts: true;
+                    };
+                };
+            };
+            responses: {
+                /** @description Reporting settings saved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Administrator role required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Currency is already locked to a different value */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unsupported currency or timezone */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        StorageUsage: {
+            /** @enum {string} */
+            scope: "personal" | "organization";
+            /** Format: uuid */
+            owner_id: string;
+            /** Format: int64 */
+            used_bytes: number;
+            /** Format: int64 */
+            limit_bytes: number;
+        };
         OrganizationSyncOperation: {
             /** Format: uuid */
             operation_id: string;
@@ -8509,7 +8946,15 @@ export interface components {
             items: components["schemas"]["ServiceLine"][];
             parts?: components["schemas"]["ServicePart"][];
         };
+        /** @description A same-vehicle log reference. Removing a link preserves the file. Updating links requires permission on the document and affected logs. */
+        DocumentLink: {
+            /** @enum {string} */
+            kind: "service_record" | "fuel_log";
+            /** Format: uuid */
+            record_id: string;
+        };
         Document: {
+            links?: components["schemas"]["DocumentLink"][];
             readonly revision?: number;
             /** Format: uuid */
             readonly admin_corrected_by?: string | null;
@@ -8528,11 +8973,12 @@ export interface components {
             created_at?: string;
             /**
              * Format: uuid
-             * @description User who created the document. Shared users may only edit or delete documents they created.
+             * @description Uploader identity. Personal share recipients are read-only; fleet drivers may change their own unlocked uploads.
              */
             created_by?: string | null;
         };
         DocumentWrite: {
+            links?: components["schemas"]["DocumentLink"][];
             /** Format: uuid */
             id: string;
             name: string;
@@ -8543,6 +8989,7 @@ export interface components {
             media_id?: string;
         };
         DocumentPatch: {
+            links?: components["schemas"]["DocumentLink"][];
             name?: string;
             category?: components["schemas"]["DocumentCategory"];
             notes?: string;
@@ -8619,6 +9066,12 @@ export interface components {
             vehicle_id: string;
             /** @enum {string} */
             kind: "refuel" | "charge";
+            /**
+             * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
+             * @default unknown
+             * @enum {string}
+             */
+            fill_status: "full" | "partial" | "unknown";
             /** Format: uuid */
             fuel_type_id?: string | null;
             fuel_type_name: string;
@@ -8633,6 +9086,12 @@ export interface components {
         FuelLogWrite: {
             /** Format: uuid */
             id: string;
+            /**
+             * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
+             * @default unknown
+             * @enum {string}
+             */
+            fill_status: "full" | "partial" | "unknown";
             /** Format: uuid */
             fuel_type_id: string;
             /** Format: date */
@@ -8642,6 +9101,12 @@ export interface components {
             odometer?: number;
         };
         FuelLogPatch: {
+            /**
+             * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
+             * @default unknown
+             * @enum {string}
+             */
+            fill_status: "full" | "partial" | "unknown";
             /** Format: uuid */
             fuel_type_id?: string;
             /** Format: date */
@@ -9043,7 +9508,7 @@ export interface components {
             license_number?: string | null;
             issuing_country?: string | null;
             /** Format: date */
-            expiry_date?: string;
+            expiry_date?: string | null;
             categories?: string | null;
             /** Format: uuid */
             front_media_id?: string | null;
