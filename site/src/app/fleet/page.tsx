@@ -13,6 +13,7 @@ import { FLEET_CONTACT_EMAIL } from "@/content/site";
 import { cardTone, pillTone } from "@/lib/tone";
 import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
 import { BenefitList } from "@/components/marketing/benefit-list";
+import { BrowserFrame } from "@/components/marketing/browser-frame";
 import { CtaBanner } from "@/components/marketing/cta-banner";
 import { FeatureGrid } from "@/components/marketing/feature-grid";
 import { Reveal } from "@/components/marketing/reveal";
@@ -34,19 +35,13 @@ function ContactSalesLink({ className }: { className: string }) {
   );
 }
 
-const VEHICLE_STATUS_TONE: Record<string, string> = {
-  "On route": "pill-info",
-  Maintenance: "pill-warning",
-  Available: "pill-mint",
-};
-
 export default function FleetPage() {
   return (
     <>
       {/* Hero */}
       <section className="relative isolate flex min-h-svh flex-col items-center justify-center overflow-hidden border-b border-line pt-20 sm:pt-24">
         <AuroraBackdrop dots orbs />
-        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
+        <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1fr_1.15fr] lg:items-center">
           <div className="flex flex-col items-start gap-6">
             <Reveal delay={0} className="flex flex-wrap items-center gap-3">
               <span className="pill pill-gold">{FLEET_HERO.eyebrow}</span>
@@ -94,37 +89,13 @@ export default function FleetPage() {
               <p className="text-xs text-ink-caption">No self-serve signup — we provision your workspace for you.</p>
             </Reveal>
           </div>
-          <Reveal delay={220} className="flex flex-col items-center gap-4">
-            <div className="surface animate-float-slow w-full max-w-sm rounded-xl p-6">
-              <div className="flex items-center justify-between border-b border-line-subtle pb-3">
-                <span className="text-sm font-semibold">Active fleet</span>
-                <span className="pill pill-sm pill-success">Live</span>
-              </div>
-              <ul className="mt-4 space-y-3">
-                {[
-                  ["CAM-001", "On route"],
-                  ["CAM-002", "Maintenance"],
-                  ["CAM-003", "Available"],
-                  ["CAM-004", "On route"],
-                ].map(([plate, status]) => (
-                  <li key={plate} className="flex items-center justify-between text-sm">
-                    <span className="font-mono text-xs text-ink-muted">{plate}</span>
-                    <span className={`pill pill-sm ${VEHICLE_STATUS_TONE[status]}`}>{status}</span>
-                  </li>
-                ))}
-              </ul>
-              <div className="mt-5 grid grid-cols-2 gap-3 border-t border-line-subtle pt-4">
-                <div>
-                  <p className="text-xs text-ink-caption">Due services</p>
-                  <p className="font-display text-xl font-semibold">2</p>
-                </div>
-                <div>
-                  <p className="text-xs text-ink-caption">Pending alerts</p>
-                  <p className="font-display text-xl font-semibold">0</p>
-                </div>
-              </div>
-            </div>
-            <p className="text-xs text-ink-caption">Fleet portal preview</p>
+          <Reveal delay={220} className="flex justify-center lg:justify-end">
+            <BrowserFrame
+              src={{ dark: "/screenshots/portal-dashboard-dark.webp", light: "/screenshots/portal-dashboard-light.webp" }}
+              alt="Fleet portal dashboard with vehicle analytics and lemon flags"
+              label="Fleet portal — ACME Motors workspace"
+              priority
+            />
           </Reveal>
         </div>
       </section>

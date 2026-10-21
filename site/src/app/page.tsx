@@ -42,7 +42,13 @@ export default function HomePage() {
             </Reveal>
           </div>
           <Reveal delay={220} className="flex justify-center lg:justify-end">
-            <PhoneFrame label="App preview — screenshot coming soon" float />
+            <PhoneFrame
+              src={{ dark: "/screenshots/app-dashboard-dark.webp", light: "/screenshots/app-dashboard-light.webp" }}
+              alt="AutoX dashboard showing the vehicle garage"
+              label="Dashboard — your garage at a glance"
+              float
+              priority
+            />
           </Reveal>
         </div>
       </section>
@@ -103,17 +109,29 @@ export default function HomePage() {
         <SectionHeading
           eyebrow="Explore the app"
           title="See your garage at a glance"
-          intro="Final app screenshots are on the way — these frames show where each preview will live."
+          intro="Fuel logs, maintenance plans and costs — captured straight from the app."
         />
         <div className="mt-10 flex flex-wrap items-start justify-center gap-8">
           <Reveal delay={0}>
-            <PhoneFrame label="Dashboard" />
+            <PhoneFrame
+              src={{ dark: "/screenshots/app-dashboard-dark.webp", light: "/screenshots/app-dashboard-light.webp" }}
+              alt="Dashboard screen"
+              label="Dashboard"
+            />
           </Reveal>
           <Reveal delay={90}>
-            <PhoneFrame label="Fuel log" />
+            <PhoneFrame
+              src={{ dark: "/screenshots/app-fuel-dark.webp", light: "/screenshots/app-fuel-light.webp" }}
+              alt="Fuel log screen"
+              label="Fuel log"
+            />
           </Reveal>
           <Reveal delay={180}>
-            <PhoneFrame label="Maintenance plan" />
+            <PhoneFrame
+              src={{ dark: "/screenshots/app-maintenance-dark.webp", light: "/screenshots/app-maintenance-light.webp" }}
+              alt="Maintenance plan screen"
+              label="Maintenance plan"
+            />
           </Reveal>
         </div>
       </section>
