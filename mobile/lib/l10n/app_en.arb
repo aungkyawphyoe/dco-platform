@@ -1253,5 +1253,30 @@
         "type": "String"
       }
     }
+  },
+  "pricingHeadline": "A plan for every garage.",
+  "pricingIntro": "More room for your vehicles. Everything you need to keep them moving.",
+  "pricingFreeDescription": "Your everyday essentials, in one place.",
+  "pricingLiteDescription": "A little more room for the vehicles you love.",
+  "pricingStandardDescription": "Your growing garage, beautifully organized.",
+  "pricingFreeForever": "Free, always",
+  "pricingComparePeriods": "Compare pricing",
+  "pricingMonthlyPrice": "Price per month",
+  "pricingAnnualPrice": "Price for the full year",
+  "pricingAnnualSaving": "Save {amount} MMK per year",
+  "pricingVehicleBenefit": "Keep your vehicles together",
+  "pricingShareBenefit": "Share with the people you trust",
+  "pricingStorageBenefit": "Space for documents and receipts",
+  "pricingGiftCta": "Redeem a gift code",
+  "pricingGiftWelcome": "A little gift. More possibilities.",
+  "pricingGiftIntro": "Enter your code to enjoy time on Lite or Standard.",
+  "pricingGiftReady": "Your gift is ready.",
+  "pricingBackToPlans": "Back to plans",
+  "@pricingAnnualSaving": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
   }
 }

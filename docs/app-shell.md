@@ -199,4 +199,4 @@ Flow: Login → Dashboard → Users (search → profile → deactivate / reactiv
 
 ### Personal plans and gifts
 
-Settings → **Plans & subscriptions** opens `/pricing`. Vehicle/share limit dialogs and personal storage-full state expose **View plans**. The screen shows the current personal plan, gift end time, Free/Lite/Standard prices (monthly/annual), and online code redemption. Driver mode hides and route-guards this screen. Paid checkout remains unavailable. See `product/frd/mobile-pricing-promotions.md`.
+Settings → **Plans & subscriptions** opens `/pricing`. Vehicle/share limit dialogs and personal storage-full state expose **View plans**. The screen shows the current personal plan, gift end time, and selectable Free/Lite/Standard price comparisons (monthly/annual). **Redeem a gift code** opens the dedicated `/pricing/redeem` screen for online redemption, verification, feedback, and retry. Browsing plans never changes the subscription. Driver mode hides and route-guards this screen. Paid checkout remains unavailable. See `product/frd/mobile-pricing-promotions.md`.

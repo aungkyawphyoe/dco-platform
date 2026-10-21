@@ -10,6 +10,9 @@ import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:dco_mobile/core/router/routes.dart';
+import 'package:dco_mobile/features/pricing/presentation/gift_redemption_screen.dart';
 
 class TestSession extends SessionController {
   TestSession(this.verified);
@@ -80,48 +83,113 @@ class TestPricing implements PricingRepository {
 }
 
 void main() {
+  Future<void> pumpPricing(
+    WidgetTester tester,
+    String lang, {
+    bool verified = true,
+    double scale = 1,
+  }) async {
+    tester.view.physicalSize = const Size(375, 812);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final router = GoRouter(
+      initialLocation: AppRoutes.pricing,
+      routes: [
+        GoRoute(
+          path: AppRoutes.pricing,
+          builder: (_, _) => const PricingScreen(),
+          routes: [
+            GoRoute(
+              path: 'redeem',
+              builder: (_, _) => const GiftRedemptionScreen(),
+            ),
+          ],
+        ),
+        GoRoute(
+          path: AppRoutes.verifyEmail,
+          builder: (_, _) => const Scaffold(body: Text('Verify email')),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
+    final t = lang == 'en'
+        ? DcoTokens.garageMinimalDark
+        : DcoTokens.garageMinimalLight;
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          pricingRepositoryProvider.overrideWithValue(TestPricing()),
+          sessionControllerProvider.overrideWith(() => TestSession(verified)),
+          licenseControllerProvider.overrideWith(TestLicense.new),
+        ],
+        child: MaterialApp.router(
+          routerConfig: router,
+          locale: Locale(lang),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: ThemeData(
+            brightness: lang == 'en' ? Brightness.dark : Brightness.light,
+            scaffoldBackgroundColor: t.background.primary,
+            extensions: [t],
+          ),
+          builder: (context, child) => MediaQuery(
+            data: MediaQuery.of(
+              context,
+            ).copyWith(textScaler: TextScaler.linear(scale)),
+            child: child!,
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+  }
+
   for (final lang in ['en', 'my']) {
     testWidgets(
-      'pricing supports $lang on a narrow screen and shows redemption feedback',
+      'compare plans and navigate to separate gift redemption in $lang',
       (tester) async {
-        tester.view.physicalSize = const Size(375, 812);
-        tester.view.devicePixelRatio = 1;
-        addTearDown(tester.view.resetPhysicalSize);
-        addTearDown(tester.view.resetDevicePixelRatio);
-        final key = GlobalKey();
-        await tester.pumpWidget(
-          ProviderScope(
-            overrides: [
-              pricingRepositoryProvider.overrideWithValue(TestPricing()),
-              sessionControllerProvider.overrideWith(() => TestSession(true)),
-              licenseControllerProvider.overrideWith(TestLicense.new),
-            ],
-            child: RepaintBoundary(
-              key: key,
-              child: MaterialApp(
-                locale: Locale(lang),
-                localizationsDelegates: AppLocalizations.localizationsDelegates,
-                supportedLocales: AppLocalizations.supportedLocales,
-                theme: ThemeData(
-                  brightness: lang == 'en' ? Brightness.dark : Brightness.light,
-                  extensions: [
-                    lang == 'en'
-                        ? DcoTokens.garageMinimalDark
-                        : DcoTokens.garageMinimalLight,
-                  ],
-                ),
-                home: const PricingScreen(),
-              ),
-            ),
-          ),
-        );
+        await pumpPricing(tester, lang);
+        expect(find.byType(TextField), findsNothing);
+        expect(find.byKey(const ValueKey('featured-price')), findsOneWidget);
+        await tester.tap(find.byKey(const ValueKey('plan-lite')));
         await tester.pumpAndSettle();
+        expect(
+          (tester.widget<Text>(
+            find.byKey(const ValueKey('featured-price')),
+          )).data,
+          lang == 'en' ? '3,000' : '၃,၀၀၀',
+        );
+        // Selection is comparison only; the current account stays Free.
+        expect(find.textContaining('· Free'), findsOneWidget);
+        final annual = lang == 'en' ? 'Annual' : 'နှစ်စဉ်';
+        await tester.scrollUntilVisible(
+          find.text(annual),
+          250,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(find.text(annual));
+        await tester.pumpAndSettle();
+        await tester.drag(find.byType(ListView), const Offset(0, 1800));
+        await tester.pumpAndSettle();
+        expect(
+          (tester.widget<Text>(
+            find.byKey(const ValueKey('featured-price')),
+          )).data,
+          lang == 'en' ? '30,000' : '၃၀,၀၀၀',
+        );
+        final cta = lang == 'en'
+            ? 'Redeem a gift code'
+            : 'လက်ဆောင်ကုဒ် အသုံးပြုရန်';
+        await tester.tap(find.text(cta));
+        await tester.pumpAndSettle();
+        expect(find.byType(GiftRedemptionScreen), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
         await tester.enterText(find.byType(TextField), 'INVALIDCODE');
         await tester.pumpAndSettle();
-        final label = lang == 'en' ? 'Redeem code' : 'ကုဒ်အသုံးပြုရန်';
-        await tester.ensureVisible(find.text(label));
-        await tester.tap(find.text(label));
+        final button = find.byKey(const ValueKey('gift-submit'));
+        await tester.ensureVisible(button);
+        await tester.tap(button);
         await tester.pumpAndSettle();
         expect(
           find.text(
@@ -131,16 +199,47 @@ void main() {
           ),
           findsOneWidget,
         );
-        await tester.drag(find.byType(ListView), const Offset(0, -600));
+        await tester.tap(find.byType(BackButton));
         await tester.pumpAndSettle();
-        await tester.scrollUntilVisible(
-          find.text('Standard'),
-          250,
-          scrollable: find.byType(Scrollable).first,
+        expect(find.byType(GiftRedemptionScreen), findsNothing);
+        expect(
+          (tester.widget<Text>(
+            find.byKey(const ValueKey('featured-price')),
+          )).data,
+          lang == 'en' ? '30,000' : '၃၀,၀၀၀',
         );
-        expect(find.text('Standard'), findsOneWidget);
         expect(tester.takeException(), isNull);
       },
     );
   }
+  testWidgets('unverified owners get verification on the separate screen', (
+    tester,
+  ) async {
+    await pumpPricing(tester, 'en', verified: false);
+    await tester.tap(find.text('Redeem a gift code'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TextField), findsNothing);
+    expect(
+      find.text('Verify your email before redeeming a gift.'),
+      findsOneWidget,
+    );
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('large text keeps plan selection and gift action usable', (
+    tester,
+  ) async {
+    await pumpPricing(tester, 'my', scale: 1.6);
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('plan-free')),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.byKey(const ValueKey('plan-free')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const ValueKey('featured-price')), findsOneWidget);
+    await tester.tap(find.text('လက်ဆောင်ကုဒ် အသုံးပြုရန်'));
+    await tester.pumpAndSettle();
+    expect(find.byType(GiftRedemptionScreen), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }

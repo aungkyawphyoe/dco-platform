@@ -3978,4 +3978,65 @@ class AppLocalizationsMy extends AppLocalizations {
   String pricingPrice(String amount, String period) {
     return '$period / $amount MMK';
   }
+
+  @override
+  String get pricingHeadline => 'ကားဂိုဒေါင်တိုင်းအတွက် အစီအစဉ်။';
+
+  @override
+  String get pricingIntro =>
+      'ယာဉ်များအတွက် နေရာပိုများနှင့် လိုအပ်သမျှကို တစ်နေရာတည်းတွင် စီမံပါ။';
+
+  @override
+  String get pricingFreeDescription => 'နေ့စဉ်လိုအပ်သမျှကို တစ်နေရာတည်းတွင်။';
+
+  @override
+  String get pricingLiteDescription =>
+      'သင်နှစ်သက်သော ယာဉ်များအတွက် နေရာပိုများ။';
+
+  @override
+  String get pricingStandardDescription =>
+      'တိုးပွားလာသော သင့်ကားဂိုဒေါင်ကို စနစ်တကျစီမံပါ။';
+
+  @override
+  String get pricingFreeForever => 'အမြဲတမ်း အခမဲ့';
+
+  @override
+  String get pricingComparePeriods => 'ဈေးနှုန်းများ နှိုင်းယှဉ်ရန်';
+
+  @override
+  String get pricingMonthlyPrice => 'တစ်လစာ ဈေးနှုန်း';
+
+  @override
+  String get pricingAnnualPrice => 'တစ်နှစ်စာ ဈေးနှုန်း';
+
+  @override
+  String pricingAnnualSaving(String amount) {
+    return 'တစ်နှစ်လျှင် $amount ကျပ် သက်သာမည်';
+  }
+
+  @override
+  String get pricingVehicleBenefit =>
+      'သင့်ယာဉ်များကို တစ်နေရာတည်းတွင် စုစည်းပါ';
+
+  @override
+  String get pricingShareBenefit => 'ယုံကြည်ရသူများနှင့် မျှဝေပါ';
+
+  @override
+  String get pricingStorageBenefit => 'စာရွက်စာတမ်းနှင့် ပြေစာများအတွက် နေရာ';
+
+  @override
+  String get pricingGiftCta => 'လက်ဆောင်ကုဒ် အသုံးပြုရန်';
+
+  @override
+  String get pricingGiftWelcome => 'လက်ဆောင်လေးဖြင့် ပိုမိုအသုံးပြုနိုင်ပါပြီ။';
+
+  @override
+  String get pricingGiftIntro =>
+      'Lite သို့မဟုတ် Standard ကို အသုံးပြုရန် သင့်ကုဒ်ကို ထည့်ပါ။';
+
+  @override
+  String get pricingGiftReady => 'သင့်လက်ဆောင်ကို အသုံးပြုနိုင်ပါပြီ။';
+
+  @override
+  String get pricingBackToPlans => 'အစီအစဉ်များသို့ ပြန်သွားရန်';
 }

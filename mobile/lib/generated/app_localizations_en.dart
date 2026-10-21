@@ -3941,4 +3941,65 @@ class AppLocalizationsEn extends AppLocalizations {
   String pricingPrice(String amount, String period) {
     return '$amount MMK / $period';
   }
+
+  @override
+  String get pricingHeadline => 'A plan for every garage.';
+
+  @override
+  String get pricingIntro =>
+      'More room for your vehicles. Everything you need to keep them moving.';
+
+  @override
+  String get pricingFreeDescription =>
+      'Your everyday essentials, in one place.';
+
+  @override
+  String get pricingLiteDescription =>
+      'A little more room for the vehicles you love.';
+
+  @override
+  String get pricingStandardDescription =>
+      'Your growing garage, beautifully organized.';
+
+  @override
+  String get pricingFreeForever => 'Free, always';
+
+  @override
+  String get pricingComparePeriods => 'Compare pricing';
+
+  @override
+  String get pricingMonthlyPrice => 'Price per month';
+
+  @override
+  String get pricingAnnualPrice => 'Price for the full year';
+
+  @override
+  String pricingAnnualSaving(String amount) {
+    return 'Save $amount MMK per year';
+  }
+
+  @override
+  String get pricingVehicleBenefit => 'Keep your vehicles together';
+
+  @override
+  String get pricingShareBenefit => 'Share with the people you trust';
+
+  @override
+  String get pricingStorageBenefit => 'Space for documents and receipts';
+
+  @override
+  String get pricingGiftCta => 'Redeem a gift code';
+
+  @override
+  String get pricingGiftWelcome => 'A little gift. More possibilities.';
+
+  @override
+  String get pricingGiftIntro =>
+      'Enter your code to enjoy time on Lite or Standard.';
+
+  @override
+  String get pricingGiftReady => 'Your gift is ready.';
+
+  @override
+  String get pricingBackToPlans => 'Back to plans';
 }

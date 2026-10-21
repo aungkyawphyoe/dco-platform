@@ -7403,6 +7403,114 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{amount} MMK / {period}'**
   String pricingPrice(String amount, String period);
+
+  /// No description provided for @pricingHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'A plan for every garage.'**
+  String get pricingHeadline;
+
+  /// No description provided for @pricingIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'More room for your vehicles. Everything you need to keep them moving.'**
+  String get pricingIntro;
+
+  /// No description provided for @pricingFreeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your everyday essentials, in one place.'**
+  String get pricingFreeDescription;
+
+  /// No description provided for @pricingLiteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A little more room for the vehicles you love.'**
+  String get pricingLiteDescription;
+
+  /// No description provided for @pricingStandardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your growing garage, beautifully organized.'**
+  String get pricingStandardDescription;
+
+  /// No description provided for @pricingFreeForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Free, always'**
+  String get pricingFreeForever;
+
+  /// No description provided for @pricingComparePeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare pricing'**
+  String get pricingComparePeriods;
+
+  /// No description provided for @pricingMonthlyPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per month'**
+  String get pricingMonthlyPrice;
+
+  /// No description provided for @pricingAnnualPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price for the full year'**
+  String get pricingAnnualPrice;
+
+  /// No description provided for @pricingAnnualSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {amount} MMK per year'**
+  String pricingAnnualSaving(String amount);
+
+  /// No description provided for @pricingVehicleBenefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your vehicles together'**
+  String get pricingVehicleBenefit;
+
+  /// No description provided for @pricingShareBenefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with the people you trust'**
+  String get pricingShareBenefit;
+
+  /// No description provided for @pricingStorageBenefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Space for documents and receipts'**
+  String get pricingStorageBenefit;
+
+  /// No description provided for @pricingGiftCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem a gift code'**
+  String get pricingGiftCta;
+
+  /// No description provided for @pricingGiftWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'A little gift. More possibilities.'**
+  String get pricingGiftWelcome;
+
+  /// No description provided for @pricingGiftIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your code to enjoy time on Lite or Standard.'**
+  String get pricingGiftIntro;
+
+  /// No description provided for @pricingGiftReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Your gift is ready.'**
+  String get pricingGiftReady;
+
+  /// No description provided for @pricingBackToPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to plans'**
+  String get pricingBackToPlans;
 }
 
 class _AppLocalizationsDelegate

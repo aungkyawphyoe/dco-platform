@@ -10,7 +10,7 @@ Production scope, the mobile agent contract, feature-gating architecture, and HT
 
 ## Agreed product decisions
 
-1. Settings → **Plans & subscriptions** shows the current plan, gifted-access expiry when applicable, plan comparison, and **Redeem code**. Limit-reached prompts offer **View plans** and open the same screen.
+1. Settings → **Plans & subscriptions** shows the current plan, gifted-access expiry when applicable, plan comparison, and a **Redeem a gift code** action opening the separate `/pricing/redeem` screen. Limit-reached prompts offer **View plans** and open the same screen.
 2. Show Free, Lite, and Standard, monthly/annual prices, and **Paid subscriptions coming soon**. Do not offer a functioning paid-purchase action. Personal pricing and promotion entry points are hidden in Driver mode; gifts never increase organization limits.
 3. Support both batches of unique single-use codes and shared campaign codes. Both belong to a promotion.
 4. Each promotion grants either Lite or Standard for a configured number of days starting at successful redemption. There is no charge or automatic renewal.
@@ -81,3 +81,8 @@ These are engineering requirements, not additional interview decisions.
 - Configure the existing license signing environment and ship its matching public key in `mobile/assets/license_keys.json` (currently empty). Do not distribute the private key. Without the matching key, redemption can be confirmed server-side but mobile local limits cannot unlock.
 - Email verification must be configured for unverified users to become eligible. The gift API always requires verified email, independently of legacy sharing verification flags.
 - Complete real-device acceptance with a configured signing key: redeem, reopen offline, expire, reconnect, and confirm existing data/shares survive. No production deployment or signing-key changes were performed in this implementation session.
+
+
+## Visual refinement — 21 October 2026
+
+Subscription comparison uses a featured, shadow-elevated plan card, explicit tier selection, large price typography, icon-led benefits, and monthly/annual price options. Selection is for comparison only and never activates a paid plan. Annual savings are calculated from live API prices. The current entitlement remains separately labeled. Gift entry, verification, redemption feedback, and access-refresh recovery live on `/pricing/redeem`, which is also guarded against Driver access. All new/redesigned mobile cards use shadow/elevation without permanent outlines, per the design-system and mobile agent contract.

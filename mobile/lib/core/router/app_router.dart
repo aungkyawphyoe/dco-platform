@@ -1,3 +1,4 @@
+import '../../features/pricing/presentation/gift_redemption_screen.dart';
 import '../../features/pricing/presentation/pricing_screen.dart';
 import '../providers.dart';
 import '../../features/fleet/providers.dart';
@@ -126,6 +127,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       }
       if (ref.read(driverOrganizationIdProvider) != null &&
           (location == AppRoutes.pricing ||
+              location == AppRoutes.redeemGift ||
               location == AppRoutes.vehicleNew ||
               collaboration ||
               location.contains('/share') ||
@@ -154,6 +156,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.pricing,
         builder: (context, state) => const PricingScreen(),
+        routes: [
+          GoRoute(
+            path: 'redeem',
+            builder: (context, state) => const GiftRedemptionScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.verifyEmail,

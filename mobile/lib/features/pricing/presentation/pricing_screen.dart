@@ -1,17 +1,17 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/gating/providers.dart';
+import '../../../core/providers.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/dco_tokens.dart';
 import '../../../core/widgets/dco_button.dart';
-import '../../../core/providers.dart';
-import '../../../features/fleet/providers.dart';
+import '../../../core/widgets/dco_card.dart';
 import '../../../generated/app_localizations.dart';
 import '../domain/pricing.dart';
 import '../providers.dart';
+import 'widgets/plan_offer_card.dart';
 
 class PricingScreen extends ConsumerStatefulWidget {
   const PricingScreen({super.key});
@@ -20,20 +20,13 @@ class PricingScreen extends ConsumerStatefulWidget {
 }
 
 class _PricingScreenState extends ConsumerState<PricingScreen> {
-  final _code = TextEditingController();
-  bool _annual = false, _refreshing = false, _redeeming = false;
-  bool _refreshFailed = false;
-  String? _messageKey;
+  String? _selectedPlan;
+  bool _annual = false, _refreshing = false, _refreshFailed = false;
+
   @override
   void initState() {
     super.initState();
     Future.microtask(_refresh);
-  }
-
-  @override
-  void dispose() {
-    _code.dispose();
-    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -44,16 +37,10 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
     });
     try {
       await ref.read(pricingRepositoryProvider).refresh();
+      if (!mounted) return;
       await ref
           .read(licenseControllerProvider.notifier)
           .refreshIfStale(force: true);
-      if (mounted && _messageKey == 'license_pending') {
-        final gift = ref.read(subscriptionStatusProvider).valueOrNull?.gift;
-        final license = ref.read(licenseControllerProvider).valueOrNull;
-        if (gift != null && license?.planId == gift.plan) {
-          setState(() => _messageKey = 'success');
-        }
-      }
     } catch (_) {
       if (mounted) setState(() => _refreshFailed = true);
     } finally {
@@ -61,82 +48,34 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
     }
   }
 
-  Future<void> _redeem() async {
-    if (_code.text.trim().isEmpty || _redeeming) return;
-    setState(() {
-      _redeeming = true;
-      _messageKey = null;
-    });
-    try {
-      final gift = await ref.read(pricingRepositoryProvider).redeem(_code.text);
-      if (!mounted) return;
-      await ref
-          .read(licenseControllerProvider.notifier)
-          .refreshIfStale(force: true);
-      if (!mounted) return;
-      ref.invalidate(entitlementsProvider);
-      unawaited(ref.read(refreshAccountProfileProvider)().catchError((_) {}));
-      final license = ref.read(licenseControllerProvider).valueOrNull;
-      setState(() {
-        _messageKey = !gift.endsAt.isAfter(DateTime.now().toUtc())
-            ? 'ended'
-            : license?.planId == gift.plan
-            ? 'success'
-            : 'license_pending';
-        _code.clear();
-      });
-    } on RedemptionFailure catch (e) {
-      if (mounted) setState(() => _messageKey = e.code);
-    } catch (_) {
-      if (mounted) setState(() => _messageKey = 'unavailable');
-    } finally {
-      if (mounted) setState(() => _redeeming = false);
-    }
-  }
-
-  String _message(AppLocalizations s) => switch (_messageKey) {
-    'success' => s.pricingSuccess,
-    'ended' => s.pricingEnded,
-    'license_pending' => s.pricingLicensePending,
-    'email_verification_required' => s.pricingVerify,
-    'gift_active' => s.pricingActiveGift,
-    'plan_ineligible' => s.pricingIneligible,
-    'promotion_redeemed' => s.pricingAlreadyRedeemed,
-    'code_unavailable' || 'validation' => s.pricingUnavailable,
-    'rate_limited' => s.pricingRateLimited,
-    _ => s.pricingNetworkError,
-  };
-
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
-    final tokens = context.tokens;
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
     final plans = ref.watch(pricingPlansProvider);
+    final options = plans.valueOrNull ?? <PricingPlan>[];
     final subscription = ref.watch(subscriptionStatusProvider).valueOrNull;
     final license = ref.watch(licenseControllerProvider).valueOrNull;
     final user = ref.watch(authUserProvider);
     final gift = subscription?.gift;
-    final giftEnded =
-        gift != null && !gift.endsAt.isAfter(DateTime.now().toUtc());
-    final currentPlan = giftEnded
+    final ended = gift != null && !gift.endsAt.isAfter(DateTime.now().toUtc());
+    final current = ended
         ? 'free'
         : subscription?.plan ?? license?.planId ?? user?.plan ?? 'free';
-    final activeGift = gift != null && !giftEnded;
-    final verified = user?.emailVerified == true;
-    final canRedeem = verified && currentPlan == 'free' && !activeGift;
+    final currentName = switch (current) {
+      'free' => 'Free',
+      'lite' => 'Lite',
+      'standard' => 'Standard',
+      _ => current,
+    };
+    final selected =
+        options
+            .where((p) => p.id == (_selectedPlan ?? 'standard'))
+            .firstOrNull ??
+        options.firstOrNull;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final number = NumberFormat.decimalPattern(locale);
-
-    Widget panel(Widget child) => Container(
-      margin: EdgeInsets.only(bottom: tokens.space.s4),
-      padding: EdgeInsets.all(tokens.space.s4),
-      decoration: BoxDecoration(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.lg),
-        border: Border.all(color: tokens.border.defaultColor),
-      ),
-      child: child,
-    );
 
     return Scaffold(
       appBar: AppBar(
@@ -145,196 +84,256 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
           IconButton(
             tooltip: s.pricingRetry,
             onPressed: _refreshing ? null : _refresh,
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded),
           ),
         ],
       ),
       body: RefreshIndicator(
         onRefresh: _refresh,
         child: ListView(
-          padding: EdgeInsets.all(tokens.space.s4),
+          padding: EdgeInsets.fromLTRB(
+            t.space.s5,
+            t.space.s3,
+            t.space.s5,
+            t.space.s6,
+          ),
           children: [
             if (_refreshing) const LinearProgressIndicator(),
-            if (_refreshFailed)
+            Text(s.pricingHeadline, style: text.displaySmall),
+            SizedBox(height: t.space.s2),
+            Text(
+              s.pricingIntro,
+              style: text.bodyMedium?.copyWith(color: t.text.secondary),
+            ),
+            SizedBox(height: t.space.s4),
+            Row(
+              children: [
+                Icon(Icons.verified_outlined, size: 18, color: t.icon.active),
+                SizedBox(width: t.space.s2),
+                Expanded(
+                  child: Text(
+                    '${s.pricingCurrent} · $currentName',
+                    style: text.labelLarge,
+                  ),
+                ),
+              ],
+            ),
+            if (gift != null)
               Padding(
-                padding: EdgeInsets.symmetric(vertical: tokens.space.s3),
+                padding: EdgeInsets.only(top: t.space.s2),
+                child: Text(
+                  ended
+                      ? s.pricingEnded
+                      : s.pricingGiftEnds(
+                          DateFormat.yMMMd(
+                            locale,
+                          ).add_jm().format(gift.endsAt.toLocal()),
+                        ),
+                  style: text.bodySmall?.copyWith(color: t.text.secondary),
+                ),
+              ),
+            if (_refreshFailed || plans.hasError)
+              Padding(
+                padding: EdgeInsets.only(top: t.space.s4),
                 child: Text(
                   s.pricingOffline,
-                  style: TextStyle(color: tokens.text.secondary),
+                  style: TextStyle(color: t.status.infoFg),
                 ),
               ),
-            panel(
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            SizedBox(height: t.space.s5),
+            if (options.isNotEmpty) ...[
+              Row(
                 children: [
-                  Text(
-                    s.pricingCurrent,
-                    style: Theme.of(context).textTheme.labelLarge,
-                  ),
-                  SizedBox(height: tokens.space.s2),
-                  Text(
-                    currentPlan == 'free'
-                        ? 'Free'
-                        : currentPlan == 'lite'
-                        ? 'Lite'
-                        : currentPlan == 'standard'
-                        ? 'Standard'
-                        : currentPlan,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  if (gift != null) ...[
-                    SizedBox(height: tokens.space.s2),
-                    Text(
-                      giftEnded
-                          ? s.pricingEnded
-                          : s.pricingGiftEnds(
-                              DateFormat.yMMMd(
-                                locale,
-                              ).add_jm().format(gift.endsAt.toLocal()),
+                  for (final plan in options)
+                    Expanded(
+                      child: Padding(
+                        padding: EdgeInsets.only(
+                          right: plan == options.last ? 0 : t.space.s2,
+                        ),
+                        child: Semantics(
+                          button: true,
+                          selected: plan.id == selected?.id,
+                          child: DcoCard(
+                            key: ValueKey('plan-${plan.id}'),
+                            padding: EdgeInsets.symmetric(
+                              vertical: t.space.s3,
+                              horizontal: t.space.s1,
                             ),
-                    ),
-                    Text(
-                      s.pricingGiftTerms,
-                      style: TextStyle(color: tokens.text.secondary),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            panel(
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    s.pricingGiftTitle,
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  SizedBox(height: tokens.space.s3),
-                  if (!verified) ...[
-                    Text(s.pricingVerify),
-                    TextButton(
-                      onPressed: () async {
-                        await context.push(AppRoutes.verifyEmail);
-                        if (mounted) _refresh();
-                      },
-                      child: Text(s.authVerifyTitle),
-                    ),
-                  ] else if (activeGift)
-                    Text(s.pricingActiveGift)
-                  else if (currentPlan != 'free')
-                    Text(s.pricingIneligible),
-                  if (canRedeem) ...[
-                    TextField(
-                      controller: _code,
-                      enabled: !_redeeming,
-                      maxLength: 64,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      textCapitalization: TextCapitalization.characters,
-                      decoration: InputDecoration(
-                        labelText: s.pricingCode,
-                        prefixIcon: const Icon(Icons.redeem),
-                      ),
-                      onChanged: (_) => setState(() {}),
-                      onSubmitted: (_) => _redeem(),
-                    ),
-                    DcoButton(
-                      label: s.pricingRedeem,
-                      loading: _redeeming,
-                      onPressed: _code.text.trim().isEmpty ? null : _redeem,
-                    ),
-                    SizedBox(height: tokens.space.s2),
-                    Text(s.pricingGiftTerms),
-                  ],
-                  if (_messageKey != null)
-                    Padding(
-                      padding: EdgeInsets.only(top: tokens.space.s3),
-                      child: Semantics(
-                        liveRegion: true,
-                        child: Text(_message(s)),
-                      ),
-                    ),
-                  if (_messageKey == 'license_pending')
-                    TextButton(
-                      onPressed: _refreshing ? null : _refresh,
-                      child: Text(s.pricingRetry),
-                    ),
-                ],
-              ),
-            ),
-            Text(
-              s.pricingComingSoon,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            SizedBox(height: tokens.space.s3),
-            SegmentedButton<bool>(
-              segments: [
-                ButtonSegment(value: false, label: Text(s.pricingMonthly)),
-                ButtonSegment(value: true, label: Text(s.pricingAnnual)),
-              ],
-              selected: {_annual},
-              onSelectionChanged: (selection) =>
-                  setState(() => _annual = selection.first),
-            ),
-            SizedBox(height: tokens.space.s4),
-            if (plans.isLoading)
-              const Center(child: CircularProgressIndicator()),
-            if (!plans.isLoading &&
-                (plans.valueOrNull == null || plans.valueOrNull!.isEmpty))
-              Text(s.pricingNoPlans),
-            for (final plan in plans.valueOrNull ?? <PricingPlan>[])
-              panel(
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            plan.name,
-                            style: Theme.of(context).textTheme.titleLarge,
+                            color: plan.id == selected?.id
+                                ? t.background.navActive
+                                : t.background.card,
+                            onTap: () =>
+                                setState(() => _selectedPlan = plan.id),
+                            child: Column(
+                              children: [
+                                Icon(
+                                  plan.id == 'free'
+                                      ? Icons.directions_car_outlined
+                                      : plan.id == 'lite'
+                                      ? Icons.garage_outlined
+                                      : Icons.garage_rounded,
+                                  size: 22,
+                                  color: plan.id == selected?.id
+                                      ? t.icon.active
+                                      : t.icon.inactive,
+                                ),
+                                SizedBox(height: t.space.s1),
+                                Text(
+                                  plan.name,
+                                  textAlign: TextAlign.center,
+                                  style: text.labelLarge,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        if (plan.id == currentPlan)
-                          const Icon(Icons.check_circle_outline),
-                      ],
-                    ),
-                    SizedBox(height: tokens.space.s2),
-                    Text(
-                      s.pricingPrice(
-                        number.format(_annual ? plan.annual : plan.monthly),
-                        _annual ? s.pricingAnnual : s.pricingMonthly,
-                      ),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    SizedBox(height: tokens.space.s3),
-                    Text(
-                      s.pricingVehicleLimit(
-                        plan.vehicles == null
-                            ? s.pricingUnlimited
-                            : number.format(plan.vehicles),
                       ),
                     ),
-                    Text(
-                      s.pricingShareLimit(
-                        plan.sharing == null
-                            ? s.pricingUnlimited
-                            : number.format(plan.sharing),
-                      ),
-                    ),
-                    Text(
-                      s.pricingStorageLimit(
-                        number.format(plan.storageBytes ~/ (1024 * 1024)),
-                      ),
-                    ),
-                    SizedBox(height: tokens.space.s2),
-                    Text(
-                      s.pricingCoreFeatures,
-                      style: TextStyle(color: tokens.text.secondary),
+                ],
+              ),
+              SizedBox(height: t.space.s5),
+            ],
+            if (plans.isLoading)
+              const Center(child: CircularProgressIndicator()),
+            if (!plans.isLoading && options.isEmpty)
+              DcoCard(
+                child: Column(
+                  children: [
+                    const Icon(Icons.cloud_off_outlined),
+                    SizedBox(height: t.space.s3),
+                    Text(s.pricingNoPlans),
+                    TextButton(
+                      onPressed: _refresh,
+                      child: Text(s.pricingRetry),
                     ),
                   ],
                 ),
               ),
+            if (selected != null) ...[
+              PlanOfferCard(
+                plan: selected,
+                annual: _annual,
+                isCurrent: selected.id == current,
+              ),
+              SizedBox(height: t.space.s5),
+              if (selected.monthly > 0) ...[
+                Text(s.pricingComparePeriods, style: text.titleMedium),
+                SizedBox(height: t.space.s3),
+                _BillingOption(
+                  title: s.pricingMonthly,
+                  amount: '${number.format(selected.monthly)} MMK',
+                  caption: s.pricingMonthlyPrice,
+                  selected: !_annual,
+                  onTap: () => setState(() => _annual = false),
+                ),
+                SizedBox(height: t.space.s3),
+                _BillingOption(
+                  title: s.pricingAnnual,
+                  amount: '${number.format(selected.annual)} MMK',
+                  caption: selected.monthly * 12 > selected.annual
+                      ? s.pricingAnnualSaving(
+                          number.format(
+                            selected.monthly * 12 - selected.annual,
+                          ),
+                        )
+                      : s.pricingAnnualPrice,
+                  selected: _annual,
+                  onTap: () => setState(() => _annual = true),
+                ),
+                SizedBox(height: t.space.s4),
+              ],
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.info_outline_rounded,
+                    size: 18,
+                    color: t.text.caption,
+                  ),
+                  SizedBox(width: t.space.s2),
+                  Expanded(
+                    child: Text(
+                      s.pricingComingSoon,
+                      style: text.bodySmall?.copyWith(color: t.text.caption),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        ),
+      ),
+      bottomNavigationBar: DecoratedBox(
+        decoration: BoxDecoration(color: t.background.primary),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(
+              t.space.s5,
+              t.space.s3,
+              t.space.s5,
+              t.space.s4,
+            ),
+            child: DcoButton(
+              label: s.pricingGiftCta,
+              icon: Icons.redeem_rounded,
+              onPressed: () async {
+                await context.push(AppRoutes.redeemGift);
+                if (mounted) _refresh();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BillingOption extends StatelessWidget {
+  const _BillingOption({
+    required this.title,
+    required this.amount,
+    required this.caption,
+    required this.selected,
+    required this.onTap,
+  });
+  final String title, amount, caption;
+  final bool selected;
+  final VoidCallback onTap;
+  @override
+  Widget build(BuildContext context) {
+    final t = context.tokens;
+    final text = Theme.of(context).textTheme;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: DcoCard(
+        padding: EdgeInsets.all(t.space.s4),
+        color: selected ? t.background.navActive : t.background.card,
+        onTap: onTap,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(
+              selected ? Icons.radio_button_checked : Icons.radio_button_off,
+              color: selected ? t.icon.active : t.icon.inactive,
+            ),
+            SizedBox(width: t.space.s3),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: text.labelLarge),
+                  SizedBox(height: t.space.s1),
+                  Text(amount, style: text.titleMedium),
+                  SizedBox(height: t.space.s1),
+                  Text(
+                    caption,
+                    style: text.bodySmall?.copyWith(color: t.text.secondary),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
