@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dco_mobile/core/widgets/license_delete_button.dart';
 
 import 'package:dco_mobile/core/entities/driving_license.dart';
 import 'package:dco_mobile/core/providers.dart';
@@ -47,9 +48,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       text: license?.licenseNumber ?? '',
     );
     _expiryDateController = TextEditingController(
-      text: license != null
-          ? license.expiryDate.toIso8601String().split('T').first
-          : '',
+      text: license?.expiryDate?.toIso8601String().split('T').first ?? '',
     );
   }
 
@@ -121,6 +120,11 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   }
 
   Future<void> _captureLicensePhoto(String side) async {
+    final current = ref.read(sessionControllerProvider).valueOrNull?.user.drivingLicense;
+    if (side == 'back' && current?.frontMediaId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add the front of your license first.')));
+      return;
+    }
     final capturedPath = await GoRouter.of(
       context,
     ).push<String>(AppRoutes.licenseCapture, extra: side);
@@ -134,10 +138,12 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       final user = ref.read(sessionControllerProvider).valueOrNull?.user;
       final license = user?.drivingLicense;
 
-      final String frontMediaId =
-          side == 'front' ? mediaId : license?.frontMediaId ?? '';
-      final String backMediaId =
-          side == 'back' ? mediaId : license?.backMediaId ?? '';
+      final String frontMediaId = side == 'front'
+          ? mediaId
+          : license?.frontMediaId ?? '';
+      final String backMediaId = side == 'back'
+          ? mediaId
+          : license?.backMediaId ?? '';
 
       await repo.upsertLicense(
         licenseNumber: _licenseNumberController.text.trim().isEmpty
@@ -150,6 +156,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
 
       if (mounted) {
         await _refreshSession();
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -170,10 +177,6 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
   }
 
   Future<void> _saveLicense() async {
-    if (_licenseNumberController.text.trim().isEmpty ||
-        _expiryDateController.text.trim().isEmpty) {
-      return;
-    }
     setState(() => _licenseSaving = true);
     try {
       final repo = ref.read(licenseRepositoryProvider);
@@ -189,8 +192,11 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
 
       if (mounted) {
         await _refreshSession();
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(AppLocalizations.of(context)!.profileLicenseSaved)),
+          SnackBar(
+            content: Text(AppLocalizations.of(context)!.profileLicenseSaved),
+          ),
         );
       }
     } catch (e) {
@@ -210,9 +216,9 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     try {
       license = await ref.read(licenseRepositoryProvider).getMyLicense();
     } catch (_) {}
-    ref.read(sessionControllerProvider.notifier).updateUser(
-      user.copyWith(drivingLicense: license),
-    );
+    ref
+        .read(sessionControllerProvider.notifier)
+        .updateUser(user.copyWith(drivingLicense: license, clearDrivingLicense: license == null));
   }
 
   Future<void> _pickExpiryDate() async {
@@ -227,8 +233,7 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
       lastDate: DateTime.now().add(const Duration(days: 365 * 20)),
     );
     if (picked != null) {
-      _expiryDateController.text =
-          picked.toIso8601String().split('T').first;
+      _expiryDateController.text = picked.toIso8601String().split('T').first;
     }
   }
 
@@ -331,7 +336,10 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
                       backgroundImage: FileImage(File(_photoPath!)),
                     )
                   else
-                    DcoAvatar(name: user?.displayName ?? user?.email ?? '?', radius: 50),
+                    DcoAvatar(
+                      name: user?.displayName ?? user?.email ?? '?',
+                      radius: 50,
+                    ),
                   Positioned(
                     bottom: 0,
                     right: 0,
@@ -440,6 +448,10 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
             onSaveLicense: _saveLicense,
             saving: _licenseSaving,
           ),
+          if (license != null) LicenseDeleteButton(onDeleted: () {
+            _licenseNumberController.clear();
+            _expiryDateController.clear();
+          }),
           SizedBox(height: tokens.space.s7),
           DcoButton(
             label: s.profileDeleteAccount,
@@ -506,18 +518,20 @@ class _DrivingLicenseSection extends StatelessWidget {
           ),
           SizedBox(height: tokens.space.s3),
           DcoTextField(
-            label: s.profileLicenseExpiry,
+            label: '${s.profileLicenseExpiry} (${s.optional})',
             controller: expiryController,
             hint: s.profileLicenseExpiryHint,
             readOnly: true,
             onTap: onPickExpiry,
-          ),
-          if (license != null) ...[
-            SizedBox(height: tokens.space.s3),
-            _LicenseStatusBadge(
-              status: license!.status,
-              tokens: tokens,
+            suffix: IconButton(
+              tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
+              icon: const Icon(Icons.clear),
+              onPressed: expiryController.clear,
             ),
+          ),
+          if (license?.expiryDate != null) ...[
+            SizedBox(height: tokens.space.s3),
+            _LicenseStatusBadge(status: license!.status, tokens: tokens),
           ],
           SizedBox(height: license != null ? tokens.space.s4 : tokens.space.s3),
           DcoButton(

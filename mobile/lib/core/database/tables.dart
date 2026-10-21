@@ -314,6 +314,7 @@ class DocumentRecords extends Table {
   TextColumn get name => text()();
   TextColumn get category => text()();
   TextColumn get notes => text().nullable()();
+  TextColumn get linksJson => text().withDefault(const Constant('[]'))();
   DateTimeColumn get expiresOn => dateTime().nullable()();
   TextColumn get localFilePath => text().nullable()();
   TextColumn get mediaId => text().nullable()();

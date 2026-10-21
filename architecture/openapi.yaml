@@ -1314,7 +1314,7 @@ paths:
           multipart/form-data:
             schema:
               type: object
-              required: [file, id]
+              required: [file, id, purpose]
               properties:
                 id:
                   type: string
@@ -1325,7 +1325,11 @@ paths:
                   format: binary
                 purpose:
                   type: string
-                  enum: [vehicle_photo, document, service_receipt, expense_receipt]
+                  enum: [vehicle_photo, document, service_receipt, expense_receipt, driving_license]
+                vehicle_id:
+                  type: string
+                  format: uuid
+                  description: Required for documents and receipts; determines the owning storage pool. Omit for personal licenses.
       responses:
         '201':
           description: Stored
@@ -1335,6 +1339,33 @@ paths:
                 $ref: '#/components/schemas/MediaObject'
         '413':
           $ref: '#/components/responses/Error'
+  /users/me/storage:
+    get:
+      tags: [Media]
+      summary: Personal storage usage (compressed primary files; thumbnails excluded)
+      responses:
+        '200':
+          description: Current usage and plan allowance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageUsage'
+  /organizations/{orgId}/storage:
+    get:
+      tags: [Media]
+      summary: Organization storage usage for an active admin or driver
+      parameters:
+        - name: orgId
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Organization allowance, independent of personal subscriptions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StorageUsage'
   /media/{mediaId}:
     get:
       tags: [Media]
@@ -2011,7 +2042,6 @@ paths:
           application/json:
             schema:
               type: object
-              required: [expiry_date]
               properties:
                 license_number:
                   type: string
@@ -2025,14 +2055,15 @@ paths:
                 expiry_date:
                   type: string
                   pattern: '^\d{4}-\d{2}-\d{2}$'
-                  description: YYYY-MM-DD, must be in the future
+                  nullable: true
+                  description: Optional YYYY-MM-DD; when supplied, must be in the future
                 categories:
                   type: string
                   nullable: true
                 front_media_id:
                   type: string
                   format: uuid
-                  nullable: true
+                  description: Required on first save; omission preserves the current front image. Cannot be null.
                 back_media_id:
                   type: string
                   format: uuid
@@ -2046,6 +2077,15 @@ paths:
                 $ref: '#/components/schemas/DrivingLicense'
         '400':
           $ref: '#/components/responses/Error'
+    delete:
+      tags: [Licenses]
+      summary: Permanently delete the caller's driving license and queue its images for cleanup
+      responses:
+        '204':
+          description: Deleted (also returned when no license exists)
+        '401':
+          $ref: '#/components/responses/Error'
+
   /users/me/license/media:
     post:
       tags: [Licenses]
@@ -2080,7 +2120,7 @@ paths:
   /users/{userId}/license:
     get:
       tags: [Licenses]
-      summary: Get another user's driving license (requires a shared vehicle)
+      summary: Get your own driving license by user ID (other users are denied)
       parameters:
         - $ref: '#/components/parameters/userId'
       responses:
@@ -2112,7 +2152,7 @@ paths:
   /users/{userId}/detail:
     get:
       tags: [Me]
-      summary: User detail with license, owned vehicles, and vehicles shared with them
+      summary: User detail; license is included only when viewing yourself
       parameters:
         - $ref: '#/components/parameters/userId'
       responses:
@@ -4576,6 +4616,15 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorBody'
   schemas:
+    StorageUsage:
+      type: object
+      required: [scope, owner_id, used_bytes, limit_bytes]
+      properties:
+        scope: { type: string, enum: [personal, organization] }
+        owner_id: { type: string, format: uuid }
+        used_bytes: { type: integer, format: int64 }
+        limit_bytes: { type: integer, format: int64 }
+
     OrganizationSyncOperation:
       type: object
       required: [operation_id, entity_type, entity_id, vehicle_id, op, expected_revision, payload]
@@ -5216,10 +5265,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/ServicePart'
+    DocumentLink:
+      type: object
+      required: [kind, record_id]
+      properties:
+        kind: { type: string, enum: [service_record, fuel_log] }
+        record_id: { type: string, format: uuid }
+      description: A same-vehicle log reference. Removing a link preserves the file. Updating links requires permission on the document and affected logs.
     Document:
       type: object
       required: [id, vehicle_id, name, category]
       properties:
+        links:
+          type: array
+          items: { $ref: '#/components/schemas/DocumentLink' }
         revision: { type: integer, minimum: 1, readOnly: true }
         admin_corrected_by: { type: string, format: uuid, nullable: true, readOnly: true }
         id:
@@ -5252,11 +5311,14 @@ components:
           type: string
           format: uuid
           nullable: true
-          description: User who created the document. Shared users may only edit or delete documents they created.
+          description: Uploader identity. Personal share recipients are read-only; fleet drivers may change their own unlocked uploads.
     DocumentWrite:
       type: object
       required: [id, name, category]
       properties:
+        links:
+          type: array
+          items: { $ref: '#/components/schemas/DocumentLink' }
         id:
           type: string
           format: uuid
@@ -5276,6 +5338,9 @@ components:
     DocumentPatch:
       type: object
       properties:
+        links:
+          type: array
+          items: { $ref: '#/components/schemas/DocumentLink' }
         name:
           type: string
         category:
@@ -6229,6 +6294,7 @@ components:
         expiry_date:
           type: string
           format: date
+          nullable: true
         categories:
           type: string
           nullable: true

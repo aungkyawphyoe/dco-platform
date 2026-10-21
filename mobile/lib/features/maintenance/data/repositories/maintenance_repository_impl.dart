@@ -1,3 +1,4 @@
+import '../../../../core/database/document_links.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -53,6 +54,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     final record = await getServiceRecord(serviceRecordId);
     if (record == null) return;
     await _db.transaction(() async {
+      await detachDocumentLinks(_db, 'service_record', serviceRecordId);
       await _outbox.enqueue(
         userId: userId,
         entityType: 'service_record',

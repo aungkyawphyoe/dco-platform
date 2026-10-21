@@ -56,6 +56,7 @@ class User {
     int? vehicleLimit,
     String? createdAt,
     DrivingLicense? drivingLicense,
+    bool clearDrivingLicense = false,
   }) {
     return User(
       id: id ?? this.id,
@@ -73,7 +74,9 @@ class User {
       activeVehicleId: activeVehicleId ?? this.activeVehicleId,
       vehicleLimit: vehicleLimit ?? this.vehicleLimit,
       createdAt: createdAt ?? this.createdAt,
-      drivingLicense: drivingLicense ?? this.drivingLicense,
+      drivingLicense: clearDrivingLicense
+          ? null
+          : drivingLicense ?? this.drivingLicense,
     );
   }
 

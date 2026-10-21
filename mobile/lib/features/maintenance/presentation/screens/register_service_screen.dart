@@ -1,3 +1,6 @@
+import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/documents/presentation/widgets/log_attachments.dart';
+import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
@@ -44,6 +47,17 @@ class RegisterServiceScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
+  final _attachments = GlobalKey<LogAttachmentsState>();
+  bool _allowPop = false;
+  Future<void> _cancelAttachments() async {
+    if (await _attachments.currentState?.confirmDiscard() ?? true) {
+      if (!mounted) return;
+      setState(() => _allowPop = true);
+      await WidgetsBinding.instance.endOfFrame;
+      if (mounted) context.pop();
+    }
+  }
+
   final _title = TextEditingController();
   final _date = TextEditingController();
   final _mileage = TextEditingController();
@@ -60,6 +74,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   bool _mileagePrefill = false;
   bool _itemPrefill = false;
   bool _hydrated = false;
+  String? _recordCreatedBy;
 
   bool get _isEdit => widget.editServiceId != null;
 
@@ -114,6 +129,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       return;
     }
     setState(() {
+      _recordCreatedBy = record.createdBy;
       _title.text = record.title;
       _servicedOn = record.servicedOn;
       _date.text = DateFormat.yMMMd().format(record.servicedOn);
@@ -262,25 +278,30 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     if (currentUserId == null) return;
     setState(() => _saving = true);
     try {
+      final record = await ref.read(appDatabaseProvider).transaction(() async {
+        final repo = ref.read(maintenanceRepositoryProvider);
+        final record = _isEdit
+            ? await repo.updateService(
+                userId: currentUserId,
+                vehicle: vehicle,
+                serviceRecordId: widget.editServiceId!,
+                draft: draft,
+              )
+            : await repo.registerService(
+                userId: currentUserId,
+                vehicle: vehicle,
+                draft: draft,
+              );
+        await _attachments.currentState?.save(currentUserId, record.id);
+        return record;
+      });
+      _attachments.currentState?.markSaved();
+      if (mounted) setState(() => _allowPop = true);
+      await WidgetsBinding.instance.endOfFrame;
       if (_isEdit) {
-        await ref
-            .read(maintenanceRepositoryProvider)
-            .updateService(
-              userId: currentUserId,
-              vehicle: vehicle,
-              serviceRecordId: widget.editServiceId!,
-              draft: draft,
-            );
         if (mounted) context.pop();
         return;
       }
-      final record = await ref
-          .read(maintenanceRepositoryProvider)
-          .registerService(
-            userId: currentUserId,
-            vehicle: vehicle,
-            draft: draft,
-          );
       ref.read(analyticsProvider).track(AnalyticsEvent.maintenanceRecordAdded);
       if (draft.items.any((item) => item.planItemId != null)) {
         ref
@@ -528,241 +549,274 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _isEdit ? s.registerServiceEditTitle : s.registerServiceTitle,
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final canWrite = !_isEdit
+        ? access.canCreate
+        : access.canEditRecord(_recordCreatedBy) &&
+              !(ref
+                      .watch(
+                        recordAdminLockProvider(
+                          'service_record:${widget.editServiceId}',
+                        ),
+                      )
+                      .valueOrNull ??
+                  ref.watch(driverOrganizationIdProvider) != null);
+    return PopScope(
+      canPop: _allowPop || !(_attachments.currentState?.hasChanges ?? false),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _cancelAttachments();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            _isEdit ? s.registerServiceEditTitle : s.registerServiceTitle,
+          ),
         ),
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.all(tokens.space.s5),
-              children: [
-                DcoTextField(
-                  label: s.registerServiceJobTitle,
-                  controller: _title,
-                  hint: 'ABC123',
-                ),
-                SizedBox(height: tokens.space.s4),
-                DcoTextField(
-                  label: s.registerServiceDate,
-                  controller: _date,
-                  hint: 'dd/mm/yyyy',
-                  errorText: _errors['date'],
-                  readOnly: true,
-                  onTap: _pickDate,
-                  suffix: Icon(
-                    Icons.calendar_today_outlined,
-                    color: tokens.icon.inactive,
-                    size: 18,
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.all(tokens.space.s5),
+                children: [
+                  DcoTextField(
+                    label: s.registerServiceJobTitle,
+                    controller: _title,
+                    hint: 'ABC123',
                   ),
-                ),
-                SizedBox(height: tokens.space.s4),
-                DcoTextField(
-                  key: const Key('register-mileage'),
-                  label: s.registerServiceMileage,
-                  controller: _mileage,
-                  hint: '*** ${lengthUnit.label}',
-                  helperText: s.registerServiceCurrentMileage(
-                    MileageFormat.labeled(vehicle.mileage, lengthUnit),
-                  ),
-                  errorText: _errors['mileage'],
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  suffix: Padding(
-                    padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(
-                      lengthUnit.label,
-                      style: TextStyle(color: tokens.text.caption),
+                  SizedBox(height: tokens.space.s4),
+                  DcoTextField(
+                    label: s.registerServiceDate,
+                    controller: _date,
+                    hint: 'dd/mm/yyyy',
+                    errorText: _errors['date'],
+                    readOnly: true,
+                    onTap: _pickDate,
+                    suffix: Icon(
+                      Icons.calendar_today_outlined,
+                      color: tokens.icon.inactive,
+                      size: 18,
                     ),
                   ),
-                  onChanged: (_) {
-                    setState(() {
-                      _errors['mileage'] = _mileageBelowMinError(
-                        vehicle,
-                        lengthUnit,
-                      );
-                    });
-                  },
-                ),
-                SizedBox(height: tokens.space.s4),
-                DcoTextField(
-                  label: s.registerServiceNotes,
-                  controller: _notes,
-                  hint: 'write a message',
-                  maxLines: 4,
-                  minLines: 3,
-                ),
-                SizedBox(height: tokens.space.s5),
-                Text(
-                  s.registerServiceSection,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                SizedBox(height: tokens.space.s3),
-                ..._lines.map(
-                  (line) => Padding(
-                    padding: EdgeInsets.only(bottom: tokens.space.s3),
-                    child: Material(
-                      color: tokens.background.card,
-                      borderRadius: BorderRadius.circular(tokens.radius.md),
-                      child: Padding(
-                        padding: EdgeInsets.all(tokens.space.s3),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                Text(
-                                  line.name,
+                  SizedBox(height: tokens.space.s4),
+                  DcoTextField(
+                    key: const Key('register-mileage'),
+                    label: s.registerServiceMileage,
+                    controller: _mileage,
+                    hint: '*** ${lengthUnit.label}',
+                    helperText: s.registerServiceCurrentMileage(
+                      MileageFormat.labeled(vehicle.mileage, lengthUnit),
+                    ),
+                    errorText: _errors['mileage'],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    suffix: Padding(
+                      padding: const EdgeInsets.only(right: 12, top: 12),
+                      child: Text(
+                        lengthUnit.label,
+                        style: TextStyle(color: tokens.text.caption),
+                      ),
+                    ),
+                    onChanged: (_) {
+                      setState(() {
+                        _errors['mileage'] = _mileageBelowMinError(
+                          vehicle,
+                          lengthUnit,
+                        );
+                      });
+                    },
+                  ),
+                  SizedBox(height: tokens.space.s4),
+                  DcoTextField(
+                    label: s.registerServiceNotes,
+                    controller: _notes,
+                    hint: 'write a message',
+                    maxLines: 4,
+                    minLines: 3,
+                  ),
+                  SizedBox(height: tokens.space.s5),
+                  Text(
+                    s.registerServiceSection,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  SizedBox(height: tokens.space.s3),
+                  ..._lines.map(
+                    (line) => Padding(
+                      padding: EdgeInsets.only(bottom: tokens.space.s3),
+                      child: Material(
+                        color: tokens.background.card,
+                        borderRadius: BorderRadius.circular(tokens.radius.md),
+                        child: Padding(
+                          padding: EdgeInsets.all(tokens.space.s3),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    line.name,
+                                    style: Theme.of(
+                                      context,
+                                    ).textTheme.titleMedium,
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    tooltip: 'Remove',
+                                    padding: EdgeInsets.zero,
+                                    onPressed: () => _removeLine(line),
+                                    icon: Icon(
+                                      Icons.close,
+                                      color: tokens.icon.inactive,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              TextField(
+                                controller: line.costController,
+                                keyboardType:
+                                    const TextInputType.numberWithOptions(
+                                      decimal: true,
+                                    ),
+                                decoration: InputDecoration(
+                                  hintText: s.registerServiceCostHint,
+                                  suffixIcon: Padding(
+                                    padding: const EdgeInsets.only(
+                                      right: 12,
+                                      top: 12,
+                                    ),
+                                    child: Text(
+                                      currency,
+                                      style: TextStyle(
+                                        color: tokens.text.caption,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                onChanged: (_) => setState(_syncTitleAndTotal),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: () => _openAddService(vehicle, plan),
+                    icon: Icon(Icons.add, color: tokens.icon.active),
+                    label: Text(
+                      s.registerServiceAddService,
+                      style: TextStyle(color: tokens.text.link),
+                    ),
+                  ),
+                  if (_errors['items'] != null) ...[
+                    SizedBox(height: tokens.space.s2),
+                    Text(
+                      _errors['items']!,
+                      style: TextStyle(color: tokens.status.dangerFg),
+                    ),
+                  ],
+                  SizedBox(height: tokens.space.s5),
+                  Text(
+                    s.registerServicePartsSection,
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                  SizedBox(height: tokens.space.s3),
+                  ..._parts.map(
+                    (part) => Padding(
+                      padding: EdgeInsets.only(bottom: tokens.space.s3),
+                      child: Material(
+                        color: tokens.background.card,
+                        borderRadius: BorderRadius.circular(tokens.radius.md),
+                        child: Padding(
+                          padding: EdgeInsets.all(tokens.space.s3),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  part.name,
                                   style: Theme.of(
                                     context,
                                   ).textTheme.titleMedium,
                                 ),
-                                const Spacer(),
-                                IconButton(
-                                  tooltip: 'Remove',
-                                  padding: EdgeInsets.zero,
-                                  onPressed: () => _removeLine(line),
-                                  icon: Icon(
-                                    Icons.close,
-                                    color: tokens.icon.inactive,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            TextField(
-                              controller: line.costController,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              decoration: InputDecoration(
-                                hintText: s.registerServiceCostHint,
-                                suffixIcon: Padding(
-                                  padding: const EdgeInsets.only(
-                                    right: 12,
-                                    top: 12,
-                                  ),
-                                  child: Text(
-                                    currency,
-                                    style: TextStyle(
-                                      color: tokens.text.caption,
-                                    ),
-                                  ),
+                              ),
+                              IconButton(
+                                tooltip: 'Remove',
+                                onPressed: () =>
+                                    setState(() => _parts.remove(part)),
+                                icon: Icon(
+                                  Icons.close,
+                                  color: tokens.icon.inactive,
                                 ),
                               ),
-                              onChanged: (_) => setState(_syncTitleAndTotal),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: () => _openAddService(vehicle, plan),
-                  icon: Icon(Icons.add, color: tokens.icon.active),
-                  label: Text(
-                    s.registerServiceAddService,
-                    style: TextStyle(color: tokens.text.link),
+                  OutlinedButton.icon(
+                    onPressed: _openAssignPart,
+                    icon: Icon(Icons.add, color: tokens.icon.active),
+                    label: Text(
+                      s.registerServiceAssignPart,
+                      style: TextStyle(color: tokens.text.link),
+                    ),
                   ),
-                ),
-                if (_errors['items'] != null) ...[
-                  SizedBox(height: tokens.space.s2),
-                  Text(
-                    _errors['items']!,
-                    style: TextStyle(color: tokens.status.dangerFg),
-                  ),
-                ],
-                SizedBox(height: tokens.space.s5),
-                Text(
-                  s.registerServicePartsSection,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-                SizedBox(height: tokens.space.s3),
-                ..._parts.map(
-                  (part) => Padding(
-                    padding: EdgeInsets.only(bottom: tokens.space.s3),
-                    child: Material(
-                      color: tokens.background.card,
-                      borderRadius: BorderRadius.circular(tokens.radius.md),
-                      child: Padding(
-                        padding: EdgeInsets.all(tokens.space.s3),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                part.name,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ),
-                            IconButton(
-                              tooltip: 'Remove',
-                              onPressed: () =>
-                                  setState(() => _parts.remove(part)),
-                              icon: Icon(
-                                Icons.close,
-                                color: tokens.icon.inactive,
-                              ),
-                            ),
-                          ],
-                        ),
+                  SizedBox(height: tokens.space.s5),
+                  DcoTextField(
+                    label: s.registerServiceTotal,
+                    controller: _total,
+                    hint: '***',
+                    errorText: _errors['total'],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    suffix: Padding(
+                      padding: const EdgeInsets.only(right: 12, top: 12),
+                      child: Text(
+                        currency,
+                        style: TextStyle(color: tokens.text.caption),
                       ),
                     ),
+                    onChanged: (_) {
+                      _totalTouched = true;
+                      setState(() => _errors['total'] = null);
+                    },
                   ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _openAssignPart,
-                  icon: Icon(Icons.add, color: tokens.icon.active),
-                  label: Text(
-                    s.registerServiceAssignPart,
-                    style: TextStyle(color: tokens.text.link),
-                  ),
-                ),
-                SizedBox(height: tokens.space.s5),
-                DcoTextField(
-                  label: s.registerServiceTotal,
-                  controller: _total,
-                  hint: '***',
-                  errorText: _errors['total'],
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  suffix: Padding(
-                    padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(
-                      currency,
-                      style: TextStyle(color: tokens.text.caption),
-                    ),
-                  ),
-                  onChanged: (_) {
-                    _totalTouched = true;
-                    setState(() => _errors['total'] = null);
-                  },
-                ),
-                if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(
-                    _formError!,
-                    style: TextStyle(color: tokens.status.dangerFg),
+                  LogAttachments(
+                    key: _attachments,
+                    kind: 'service_record',
+                    category: DocumentCategory.invoice,
+                    vehicleId: vehicle.id,
+                    recordId: widget.editServiceId,
+                    readOnly:
+                        !canWrite ||
+                        (!access.isOwner &&
+                            ref.watch(driverOrganizationIdProvider) == null),
+                    onChanged: () => setState(() {}),
                   ),
+                  if (_formError != null) ...[
+                    SizedBox(height: tokens.space.s4),
+                    Text(
+                      _formError!,
+                      style: TextStyle(color: tokens.status.dangerFg),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
-          ),
-          DcoStickyActions(
-            secondaryLabel: s.cancel,
-            onSecondary: () => context.pop(),
-            primaryLabel: s.save,
-            onPrimary: _save,
-            primaryLoading: _saving,
-            primaryKey: const Key('register-service-save'),
-          ),
-        ],
+            DcoStickyActions(
+              secondaryLabel: s.cancel,
+              onSecondary: _cancelAttachments,
+              primaryLabel: s.save,
+              onPrimary: canWrite ? _save : null,
+              primaryLoading: _saving,
+              primaryKey: const Key('register-service-save'),
+            ),
+          ],
+        ),
       ),
     );
   }

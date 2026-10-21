@@ -1,3 +1,4 @@
+import '../../../../core/database/document_links.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -55,6 +56,7 @@ class FuelRepositoryImpl implements FuelRepository {
     final record = await getLog(logId);
     if (record == null) return;
     await _db.transaction(() async {
+      await detachDocumentLinks(_db, 'fuel_log', logId);
       await _outbox.enqueue(
         userId: userId,
         entityType: 'fuel_log',

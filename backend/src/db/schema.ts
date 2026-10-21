@@ -173,6 +173,8 @@ export const deviceTokens = pgTable("device_tokens", {
 });
 
 export const mediaObjects = pgTable("media_objects", {
+  ownerOrgId: uuid("owner_org_id"),
+  vehicleId: uuid("vehicle_id").references(() => vehicles.id),
   id: uuid("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
@@ -185,6 +187,11 @@ export const mediaObjects = pgTable("media_objects", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const mediaCleanup = pgTable("media_cleanup", {
+  mediaId: uuid("media_id").primaryKey().references(() => mediaObjects.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const drivingLicenses = pgTable("driving_licenses", {
   id: uuid("id").primaryKey(),
   userId: uuid("user_id")
@@ -193,7 +200,7 @@ export const drivingLicenses = pgTable("driving_licenses", {
     .references(() => users.id, { onDelete: "cascade" }),
   licenseNumber: text("license_number"),
   issuingCountry: text("issuing_country"),
-  expiryDate: date("expiry_date").notNull(),
+  expiryDate: date("expiry_date"),
   categories: text("categories"),
   frontMediaId: uuid("front_media_id").references(() => mediaObjects.id),
   backMediaId: uuid("back_media_id").references(() => mediaObjects.id),
@@ -311,6 +318,13 @@ export const documents = pgTable("documents", {
   mediaId: uuid("media_id"),
   createdBy: uuid("created_by").references(() => users.id),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const documentLinks = pgTable("document_links", {
+  id: uuid("id").primaryKey(),
+  documentId: uuid("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+  serviceRecordId: uuid("service_record_id").references(() => serviceRecords.id, { onDelete: "cascade" }),
+  fuelLogId: uuid("fuel_log_id").references(() => fuelLogs.id, { onDelete: "cascade" }),
 });
 
 export const expenses = pgTable("expenses", {

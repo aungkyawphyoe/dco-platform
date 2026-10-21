@@ -2,15 +2,21 @@ import 'package:dco_mobile/features/settings/domain/repositories/license_reposit
 import 'package:dio/dio.dart';
 
 import '../../../../core/entities/driving_license.dart';
-import '../../../../core/media/media_api.dart';
-import '../../../../core/network/api_error.dart';
 import '../../../../core/network/auth_interceptor.dart';
 
 class LicenseRepositoryImpl implements LicenseRepository {
-  LicenseRepositoryImpl(this._dio, this._mediaApi);
+  LicenseRepositoryImpl(this._dio);
 
   final Dio _dio;
-  final MediaApi _mediaApi;
+
+  @override
+  Future<void> deleteMyLicense() async {
+    try {
+      await _dio.delete<void>('/users/me/license');
+    } on DioException catch (error) {
+      throw mapDioError(error);
+    }
+  }
 
   @override
   Future<DrivingLicense?> getMyLicense() async {
@@ -40,10 +46,10 @@ class LicenseRepositoryImpl implements LicenseRepository {
         data: {
           'license_number': licenseNumber,
           'issuing_country': issuingCountry,
-          'expiry_date': expiryDate,
+          'expiry_date': expiryDate.trim().isEmpty ? null : expiryDate,
           'categories': categories,
-          'front_media_id': frontMediaId,
-          'back_media_id': backMediaId,
+          'front_media_id': frontMediaId?.isEmpty == true ? null : frontMediaId,
+          'back_media_id': backMediaId?.isEmpty == true ? null : backMediaId,
         },
       );
       return DrivingLicense.fromJson(response.data!);
@@ -56,8 +62,8 @@ class LicenseRepositoryImpl implements LicenseRepository {
   Future<String> uploadLicensePhoto(String side, List<int> bytes) async {
     try {
       final formData = FormData.fromMap({
-        'file': MultipartFile.fromBytes(bytes, filename: 'license_$side.jpg'),
         'side': side,
+        'file': MultipartFile.fromBytes(bytes, filename: 'license_$side.jpg'),
       });
       final response = await _dio.post<Map<String, dynamic>>(
         '/users/me/license/media',
@@ -89,6 +95,11 @@ class MockLicenseRepository implements LicenseRepository {
   DrivingLicense? _license;
 
   @override
+  Future<void> deleteMyLicense() async {
+    _license = null;
+  }
+
+  @override
   Future<DrivingLicense?> getMyLicense() async => _license;
 
   @override
@@ -106,7 +117,7 @@ class MockLicenseRepository implements LicenseRepository {
       userId: 'mock-user',
       licenseNumber: licenseNumber,
       issuingCountry: issuingCountry,
-      expiryDate: DateTime.parse(expiryDate),
+      expiryDate: expiryDate.trim().isEmpty ? null : DateTime.parse(expiryDate),
       categories: categories,
       frontMediaId: frontMediaId ?? _license?.frontMediaId,
       backMediaId: backMediaId ?? _license?.backMediaId,

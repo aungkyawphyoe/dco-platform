@@ -325,6 +325,7 @@ Schema detail, access matrix, and query patterns: [`architecture/data-model-vehi
 - Two ways in: `POST /v1/vehicles/:id/shares` with `method: code_qr` (8-char code, 7-day expiry, stored on `vehicle_share_invitations.share_code`) or `method: email` (random token, 7-day expiry, emailed link).
 - `vehicle_share_invitations` is the invite ledger; `vehicle_shares` is the access ledger. Both are needed because a code/QR invite has no addressee.
 - `users.family_id` was dropped in `backend/drizzle/0008_vehicle_sharing.sql`, which also converts legacy `vehicle_grants` and `family_vehicles` rows into `vehicle_shares`.
+- License expiry is optional; missing expiry carries no validity status.
 - `driving_licenses` is a **standalone** per-user module, unrelated to sharing; it stays even though the family tables were removed.
 
 ### change_log
@@ -440,3 +441,22 @@ Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to thi
 `users.plan` is `free` / `lite` / `standard` / `fleet`. `vehicle_limit` on `GET /v1/me` is advisory (free 1, lite 3, standard 10, null = unlimited); enforcement lands with the server limit checks (`architecture/feature-gating.md` PR3).
 
 Plan limits are enforced per owner, not per vehicle alone: `checkShareLimits` refuses a share when the owner already holds `shareLimits[plan]` active shares on that vehicle, or that many across all vehicles. The limits live in one place — `backend/src/lib/plans.ts`, mirrored by the `plans` table — so there is nothing to keep in step.
+
+## Document storage ownership (migration 0023)
+
+`media_objects.vehicle_id` scopes vehicle uploads. `owner_org_id` selects the fleet storage pool; when null, `user_id` selects the personal pool. For organization uploads, `user_id` retains the uploader identity. Vehicle scope is immutable through upload retries. Existing document/service/expense references are backfilled during migration.
+
+Storage usage sums stored primary-file bytes, excluding `vehicle_photo` and `profile_photo`. Upload admission locks the owning user or organization row until the direct upload and media-row insert complete; retries reuse the media UUID. Current direct uploads do not issue presigned upload reservations.
+
+`media_cleanup` holds media IDs awaiting object deletion. Document removal schedules cleanup; failed deletion keeps the media row charged. Storage refresh retries scoped cleanup, deleting the usage row only after object deletion succeeds. This queue is separate from user-visible Trash, which is not supported.
+
+Full attachment-link and replacement lifecycle implementation remains tracked in [Document storage implementation](../product/frd/document-storage-implementation.md).
+
+
+## Reusable document links (migration 0024)
+
+`document_links` associates an ordinary document with a service record or fuel log. Exactly one target is required per row; duplicate document/target pairs are prohibited. Both sides use cascading foreign keys: deleting a log removes only its links, while deleting a document removes all its links. Stored bytes remain on the document's single media object.
+
+Document API/sync payloads include `links: [{kind, record_id}]`. Omitted links preserve existing associations; an explicit empty array unlinks all targets after permission checks. Cross-vehicle links are rejected. Organization link changes feed the existing organization change stream. Legacy service receipts are attached once during migration, without copying bytes.
+
+Mobile schema 24 persists the link list as JSON on its document rows. Saving a service/fuel form and its document/outbox writes uses one local transaction. Deleting a log removes its cached and queued link references, preserving document rows and local files.

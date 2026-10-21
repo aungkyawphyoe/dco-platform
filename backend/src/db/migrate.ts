@@ -92,5 +92,8 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(readSql("0020_organization_accounting.sql"));
   await exec(readSql("0021_maintenance_template_class.sql"));
   await exec(readSql("0022_fleet_analytics.sql"));
+  await exec(readSql("0023_document_storage.sql"));
+  await exec(readSql("0024_document_links.sql"));
+  await exec(readSql("0025_license_optional_expiry.sql"));
   await exec(readSql("0024_reminder_emails.sql"));
 }

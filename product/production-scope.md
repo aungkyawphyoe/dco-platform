@@ -96,3 +96,8 @@ Same deferrals as MVP out-of-scope, plus not in this slice:
 1. To ship a feature: add it here (and update FRD / `mobile/AGENTS.md` if behavior or navigation changes).
 2. MVP scope does not block production features. Do not reopen `product/mvp-scope.md` to add work — add it here.
 3. HTTP shapes still win in `architecture/openapi.yaml`; local-only features have no OpenAPI entry.
+
+
+## Document storage expansion — approved 20 October 2026
+
+The approved [Documents and Storage specification](frd/documents.md) extends production scope with account/organization storage quotas, service and fuel multi-attachments, personal license visibility in Documents, and restricted platform/fleet administration. Its permission and ownership decisions supersede earlier document rules. Implementation is in progress; specification approval is not completion.
