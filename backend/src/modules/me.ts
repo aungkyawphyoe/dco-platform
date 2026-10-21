@@ -1,3 +1,4 @@
+import { effectiveSubscription } from "../lib/gifts.js";
 import { and, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
@@ -32,14 +33,15 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     const organization = organizationMembership?.organization ?? null;
     const fleetFeature = Boolean(organization && organization.plan === "enterprise" && organization.status === "active");
 
-    const limits = shareLimits(user.plan);
+    const subscription = await effectiveSubscription(app.db, userId);
+    const limits = shareLimits(subscription.plan);
     const [activeShares] = await app.db.select({ count: sql`count(*)` })
       .from(vehicleShares)
       .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
       .where(and(eq(vehicles.userId, userId), eq(vehicleShares.status, "active")));
 
     return {
-      plan: user.plan,
+      plan: subscription.plan,
       vehicle_sharing: {
         available: true,
         can_share: true,
@@ -65,7 +67,8 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     const userId = request.authUser!.sub;
     const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) throw new AppError(401, "unauthorized", "Unknown user");
-    const { license } = await issueLicense(app.env, { userId, plan: user.plan });
+    const subscription = await effectiveSubscription(app.db, userId);
+    const { license } = await issueLicense(app.env, { userId, plan: subscription.plan, giftEnd: subscription.gift?.endsAt });
     return { license };
   });
 

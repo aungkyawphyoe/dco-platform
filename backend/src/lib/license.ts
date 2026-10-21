@@ -42,6 +42,8 @@ export type LicenseIssueInput = {
   now?: Date;
   /** Billing period end; null until the subscriptions table lands. */
   periodEnd?: Date | null;
+  /** Gifts have no billing grace. */
+  giftEnd?: Date | null;
 };
 
 export type IssuedLicense = {
@@ -55,13 +57,14 @@ export async function issueLicense(env: Env, input: LicenseIssueInput): Promise<
   }
   const plan = PLANS[input.plan];
   const now = input.now ?? new Date();
-  const periodEnd = input.periodEnd ?? null;
-  const expiresAt = periodEnd
+  const periodEnd = input.giftEnd ?? input.periodEnd ?? null;
+  const expiresAt = input.giftEnd ?? (periodEnd
     ? new Date(periodEnd.getTime() + LICENSE_GRACE_DAYS * 86_400_000)
-    : new Date(now.getTime() + env.LICENSE_TTL_DAYS * 86_400_000);
+    : new Date(now.getTime() + env.LICENSE_TTL_DAYS * 86_400_000));
 
   const license = await new SignJWT({
     plan_id: plan.id,
+    gift_end: input.giftEnd?.toISOString() ?? null,
     vehicle_limit: plan.vehicleLimit,
     sharing_limit: plan.sharingLimit,
     storage_bytes: plan.storageBytes,

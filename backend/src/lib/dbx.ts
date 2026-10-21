@@ -1,3 +1,4 @@
+import { effectiveSubscription } from "./gifts.js";
 import { eq } from "drizzle-orm";
 import type { Db } from "../db/client.js";
 import { changeLog, users } from "../db/schema.js";
@@ -25,7 +26,9 @@ export async function recordChange(
 
 export async function getUser(db: Db, userId: string) {
   const rows = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-  return rows[0] ?? null;
+  if (!rows[0]) return null;
+  const subscription = await effectiveSubscription(db, userId);
+  return { ...rows[0], plan: subscription.plan };
 }
 
 export function num(v: string | number | null | undefined): number | null {

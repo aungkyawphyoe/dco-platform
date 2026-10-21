@@ -1,3 +1,4 @@
+import { effectiveSubscription } from "../lib/gifts.js";
 import { and, asc, desc, eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
@@ -145,7 +146,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     // Plate/vin conflicts are request-validity errors (409) independent of
     // tier — report them before the plan capacity check (403).
     await assertPlateVin(app.db, userId, body.license_plate, body.vin ?? null);
-    await assertVehicleLimit(app.db, userId, user.plan);
+    await assertVehicleLimit(app.db, userId, (await effectiveSubscription(app.db, userId)).plan);
     const [row] = await app.db
       .insert(vehicles)
       .values({

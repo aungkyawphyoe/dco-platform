@@ -35,6 +35,162 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /me/subscription:
+    get:
+      tags: [Me]
+      summary: Effective personal plan and current gift (owner audience; no drivers)
+      responses:
+        '200':
+          description: Live effective plan; gift expiry does not mutate the admin-assigned base plan
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionStatus'
+  /me/gift-redemptions:
+    post:
+      tags: [Me]
+      summary: Redeem a gift for a verified Free personal account
+      description: Online only. Atomic account/campaign admission; one active gift and one redemption per account per promotion. request_id replays the same successful request even after disable or expiry; a different code with that id is a conflict. Codes are case-insensitive. Rate limited to 10 attempts/account and 60/IP per ten minutes. Expiry has no grace and preserves existing records/shares.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [code, request_id]
+              properties:
+                code: { type: string, minLength: 6, maxLength: 64, pattern: '^[A-Za-z0-9-]+$' }
+                request_id: { type: string, format: uuid }
+      responses:
+        '200':
+          description: Successful grant or idempotent replay; refresh subscription status and offline license
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [gift, replayed]
+                properties:
+                  gift: { $ref: '#/components/schemas/GiftGrant' }
+                  replayed: { type: boolean }
+        '403':
+          description: email_verification_required, personal_garage_forbidden, or wrong audience
+        '409':
+          description: plan_ineligible, gift_active, promotion_redeemed, or request_conflict; no code consumed
+        '422':
+          description: validation or code_unavailable (invalid, expired, disabled, exhausted, or consumed)
+        '429':
+          description: rate_limited
+  /admin/promotions:
+    get:
+      tags: [Admin]
+      summary: List promotions and redemption counts
+      parameters:
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: At most 50 promotions, newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, next_offset]
+                properties:
+                  items:
+                    type: array
+                    items: { $ref: '#/components/schemas/Promotion' }
+                  next_offset: { type: integer, nullable: true }
+    post:
+      tags: [Admin]
+      summary: Create a promotion and generate its codes
+      description: Admin audience only. Plaintext codes are returned once; only SHA-256 hashes persist. Single-use batches max 1000 codes; shared campaigns max 1000000 redemptions. Deadline must be in the future. Codes use letters, numbers, and hyphens and are case-insensitive.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PromotionCreate'
+      responses:
+        '201':
+          description: Created; save codes before leaving the page
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [promotion, codes]
+                properties:
+                  promotion: { $ref: '#/components/schemas/Promotion' }
+                  codes: { type: array, items: { type: string } }
+        '409':
+          description: code_exists; choose a different shared code
+        '422':
+          description: validation or invalid_deadline
+  /admin/promotions/{id}:
+    patch:
+      tags: [Admin]
+      summary: Disable future redemptions without revoking grants
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [enabled]
+              properties:
+                enabled: { type: boolean, enum: [false] }
+      responses:
+        '200':
+          description: Disabled
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [id, enabled]
+                properties:
+                  id: { type: string, format: uuid }
+                  enabled: { type: boolean, enum: [false] }
+        '404':
+          description: Promotion not found
+  /admin/promotions/{id}/redemptions:
+    get:
+      tags: [Admin]
+      summary: Inspect gift redemption history without exposing code secrets
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: string, format: uuid }
+        - in: query
+          name: offset
+          schema: { type: integer, minimum: 0, default: 0 }
+      responses:
+        '200':
+          description: At most 50 grants, newest first
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, next_offset]
+                properties:
+                  next_offset: { type: integer, nullable: true }
+                  items:
+                    type: array
+                    items:
+                      allOf:
+                        - $ref: '#/components/schemas/GiftGrant'
+                        - type: object
+                          required: [user_id, email]
+                          properties:
+                            user_id: { type: string, format: uuid }
+                            email: { type: string, nullable: true }
   /auth/email-code:
     post:
       tags: [Auth]
@@ -4570,6 +4726,55 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorBody'
   schemas:
+    GiftGrant:
+      type: object
+      required: [id, promotion_id, plan, starts_at, ends_at]
+      properties:
+        id: { type: string, format: uuid }
+        promotion_id: { type: string, format: uuid }
+        plan: { type: string, enum: [lite, standard] }
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+    SubscriptionStatus:
+      type: object
+      required: [plan, gift]
+      properties:
+        plan: { type: string, enum: [free, lite, standard, fleet] }
+        gift:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/GiftGrant'
+    PromotionCreate:
+      type: object
+      additionalProperties: false
+      required: [name, kind, plan, duration_days, redeem_by, capacity]
+      properties:
+        name: { type: string, minLength: 1, maxLength: 100 }
+        kind: { type: string, enum: [single_use, shared] }
+        plan: { type: string, enum: [lite, standard] }
+        duration_days: { type: integer, minimum: 1, maximum: 3650 }
+        redeem_by: { type: string, format: date-time }
+        capacity: { type: integer, minimum: 1, maximum: 1000000 }
+        code:
+          type: string
+          minLength: 6
+          maxLength: 64
+          pattern: '^[A-Za-z0-9-]+$'
+          description: Optional custom code for shared campaigns only; otherwise generated
+    Promotion:
+      type: object
+      required: [id, name, kind, plan, duration_days, redeem_by, capacity, enabled, created_at, redeemed]
+      properties:
+        id: { type: string, format: uuid }
+        name: { type: string }
+        kind: { type: string, enum: [single_use, shared] }
+        plan: { type: string, enum: [lite, standard] }
+        duration_days: { type: integer }
+        redeem_by: { type: string, format: date-time }
+        capacity: { type: integer }
+        enabled: { type: boolean }
+        created_at: { type: string, format: date-time }
+        redeemed: { type: integer }
     StorageUsage:
       type: object
       required: [scope, owner_id, used_bytes, limit_bytes]

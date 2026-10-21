@@ -708,3 +708,38 @@ export const organizationReviews = pgTable("organization_reviews", {
   reviewerNote: text("reviewer_note"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Gift grants overlay the admin-assigned users.plan; expiry never mutates it.
+export const promotions = pgTable("promotions", {
+  id: uuid("id").primaryKey(),
+  name: text("name").notNull(),
+  kind: text("kind").notNull(),
+  plan: planEnum("plan").notNull(),
+  durationDays: integer("duration_days").notNull(),
+  redeemBy: timestamp("redeem_by", { withTimezone: true }).notNull(),
+  capacity: integer("capacity").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const promotionCodes = pgTable("promotion_codes", {
+  id: uuid("id").primaryKey(),
+  promotionId: uuid("promotion_id").notNull().references(() => promotions.id),
+  codeHash: text("code_hash").notNull().unique(),
+});
+export const giftGrants = pgTable("gift_grants", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  promotionId: uuid("promotion_id").notNull().references(() => promotions.id),
+  codeId: uuid("code_id").notNull().references(() => promotionCodes.id),
+  requestId: uuid("request_id").notNull(),
+  singleUseCodeId: uuid("single_use_code_id").unique().references(() => promotionCodes.id),
+  plan: planEnum("plan").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+}, (t) => ({
+  promotionAccount: unique().on(t.userId, t.promotionId),
+  requestAccount: unique().on(t.userId, t.requestId),
+  userExpiry: index("gift_grants_user_expiry_idx").on(t.userId, t.endsAt),
+  codeIndex: index("gift_grants_code_idx").on(t.codeId),
+}));

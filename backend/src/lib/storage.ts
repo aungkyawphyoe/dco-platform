@@ -1,3 +1,4 @@
+import { effectiveSubscription } from "./gifts.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "../db/client.js";
 import { documents, drivingLicenses, expenses, mediaObjects, organizations, serviceRecords, users, vehicles } from "../db/schema.js";
@@ -9,7 +10,7 @@ export type StorageOwner = { userId: string; orgId?: string | null };
 export const chargedPurpose = (purpose: string) => !["vehicle_photo", "profile_photo"].includes(purpose);
 
 export async function storageUsage(db: Db, owner: StorageOwner) {
-  const [account] = await db.select({ plan: users.plan }).from(users).where(eq(users.id, owner.userId));
+  const account = await effectiveSubscription(db, owner.userId);
   if (!account) throw new AppError(404, "not_found", "Account not found");
   const [usage] = await db.select({ bytes: sql<number>`coalesce(sum(${mediaObjects.byteSize}), 0)` }).from(mediaObjects).where(and(
     owner.orgId ? eq(mediaObjects.ownerOrgId, owner.orgId) : and(eq(mediaObjects.userId, owner.userId), isNull(mediaObjects.ownerOrgId)),
