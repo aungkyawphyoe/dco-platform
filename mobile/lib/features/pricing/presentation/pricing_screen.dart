@@ -263,28 +263,28 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: DecoratedBox(
-        decoration: BoxDecoration(color: t.background.primary),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(
-              t.space.s5,
-              t.space.s3,
-              t.space.s5,
-              t.space.s4,
-            ),
-            child: DcoButton(
-              label: s.pricingGiftCta,
-              icon: Icons.redeem_rounded,
-              onPressed: () async {
-                await context.push(AppRoutes.redeemGift);
-                if (mounted) _refresh();
-              },
-            ),
-          ),
-        ),
-      ),
+      // bottomNavigationBar: DecoratedBox(
+      //   decoration: BoxDecoration(color: t.background.primary),
+      //   child: SafeArea(
+      //     top: false,
+      //     child: Padding(
+      //       padding: EdgeInsets.fromLTRB(
+      //         t.space.s5,
+      //         t.space.s3,
+      //         t.space.s5,
+      //         t.space.s4,
+      //       ),
+      //       child: DcoButton(
+      //         label: s.pricingGiftCta,
+      //         icon: Icons.redeem_rounded,
+      //         onPressed: () async {
+      //           await context.push(AppRoutes.redeemGift);
+      //           if (mounted) _refresh();
+      //         },
+      //       ),
+      //     ),
+      //   ),
+      // ),
     );
   }
 }

@@ -110,10 +110,86 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ),
           ),
+
           Expanded(
             child: ListView(
               padding: EdgeInsets.all(tokens.space.s5),
               children: [
+                if (ref.watch(driverOrganizationIdProvider) == null)
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(tokens.radius.lg),
+                      boxShadow: tokens.shadows.card,
+                    ),
+                    child: Material(
+                      color: tokens.background.card,
+                      borderRadius: BorderRadius.circular(tokens.radius.lg),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(
+                                tokens.radius.lg,
+                              ),
+                              onTap: () => context.push(AppRoutes.pricing),
+                              child: Padding(
+                                padding: EdgeInsets.all(tokens.space.s3),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.workspace_premium_outlined,
+                                      color: tokens.icon.inactive,
+                                    ),
+                                    SizedBox(height: tokens.space.s1),
+                                    Text(
+                                      s.pricingTitle,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 40,
+                            color: tokens.border.defaultColor,
+                          ),
+                          Expanded(
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(
+                                tokens.radius.lg,
+                              ),
+                              onTap: () => context.push(AppRoutes.redeemGift),
+                              child: Padding(
+                                padding: EdgeInsets.all(tokens.space.s3),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.redeem,
+                                      color: tokens.icon.inactive,
+                                    ),
+                                    SizedBox(height: tokens.space.s1),
+                                    Text(
+                                      s.pricingGiftCta,
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (ref.watch(driverOrganizationIdProvider) == null)
+                  SizedBox(height: tokens.space.s2),
+
                 Container(
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(tokens.radius.lg),
@@ -124,13 +200,6 @@ class SettingsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(tokens.radius.lg),
                     child: Column(
                       children: [
-                        if (ref.watch(driverOrganizationIdProvider) == null)
-                          ListTile(
-                            leading: const Icon(Icons.redeem_outlined),
-                            title: Text(s.pricingTitle),
-                            trailing: const Icon(Icons.chevron_right),
-                            onTap: () => context.push(AppRoutes.pricing),
-                          ),
                         ListTile(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(
