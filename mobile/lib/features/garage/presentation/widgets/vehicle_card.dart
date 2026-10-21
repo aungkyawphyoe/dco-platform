@@ -10,6 +10,18 @@ import 'package:google_fonts/google_fonts.dart';
 
 enum _VehicleMenuAction { edit, share }
 
+/// Minimum interactive height, per `docs/design-system.md` (44×44 targets).
+const double _minHit = 44;
+
+/// Garage list card.
+///
+/// The vehicle photo leads: a full-height image column on the leading edge
+/// (a watermark glyph when no photo exists), then the identity stack —
+/// name, model, license plate — with the overflow menu pinned to the same
+/// right edge as the action below. The odometer and the active-vehicle
+/// action close the card. The active vehicle is marked three ways — tinted
+/// surface, brass border, gold "Active" chip — so it never relies on color
+/// alone.
 class VehicleCard extends StatelessWidget {
   const VehicleCard({
     super.key,
@@ -34,121 +46,301 @@ class VehicleCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
-    final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
     final hasMenu = onEdit != null || onShare != null;
 
     return Material(
-      color: tokens.background.card,
+      color: isActive ? tokens.background.navActive : tokens.background.card,
       borderRadius: BorderRadius.circular(tokens.radius.lg),
       child: InkWell(
         onTap: onOpen,
         borderRadius: BorderRadius.circular(tokens.radius.lg),
         child: Container(
-          padding: const EdgeInsets.all(DcoLayout.cardPadding),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(tokens.radius.lg),
+          ),
+          foregroundDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(tokens.radius.lg),
             border: Border.all(
               color: isActive
-                  ? tokens.border.highlight.withValues(alpha: 0.45)
+                  ? tokens.border.highlight
                   : tokens.border.divider,
+              width: isActive ? 1.5 : 1,
             ),
           ),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _Photo(path: vehicle.photoLocalPath),
-              SizedBox(width: tokens.space.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _LeadingImage(vehicle: vehicle, width: 88),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(DcoLayout.cardPadding),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Flexible(
-                          child: Text(
-                            vehicle.displayName,
-                            style: Theme.of(context).textTheme.titleMedium,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            minHeight: _minHit,
                           ),
-                        ),
-                        if (vehicle.source == VehicleSource.shared) ...[
-                          SizedBox(width: tokens.space.s2),
-                          _Badge(
-                            label: s.garageSharedBadge,
-                            color: tokens.status.infoFg,
-                            background: tokens.status.infoBg,
-                          ),
-                        ],
-                        if (hasMenu) ...[
-                          const Spacer(),
-                          _VehicleMenu(onEdit: onEdit, onShare: onShare),
-                        ],
-                      ],
-                    ),
-                    SizedBox(height: tokens.space.s1),
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            vehicle.yearMakeModel,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ),
-                        SizedBox(width: tokens.space.s2),
-                        Text(
-                          vehicle.licensePlate,
-                          style: GoogleFonts.ibmPlexMono(
-                            color: tokens.text.caption,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: tokens.space.s3),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            mileage,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.ibmPlexMono(
-                              color: tokens.text.primary,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        if (isActive)
-                          _Badge(
-                            label: s.active,
-                            color: tokens.text.accent,
-                            background: tokens.background.navActive,
-                          )
-                        else if (onSetActive != null)
-                          TextButton(
-                            onPressed: onSetActive,
-                            style: TextButton.styleFrom(
-                              minimumSize: const Size(44, 44),
-                              padding: EdgeInsets.symmetric(
-                                horizontal: tokens.space.s2,
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            vehicle.displayName,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleMedium,
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                        if (vehicle.source ==
+                                            VehicleSource.shared) ...[
+                                          SizedBox(width: tokens.space.s2),
+                                          _SharedBadge(
+                                            label: s.garageSharedBadge,
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                    SizedBox(height: tokens.space.s1),
+                                    Text(
+                                      vehicle.yearMakeModel,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: tokens.text.secondary,
+                                          ),
+                                    ),
+                                    SizedBox(height: tokens.space.s1),
+                                    Text(
+                                      vehicle.licensePlate,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.ibmPlexMono(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: tokens.text.primary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                              foregroundColor: tokens.text.link,
-                              textStyle: Theme.of(context).textTheme.labelLarge,
-                              shape: const StadiumBorder(),
-                            ),
-                            child: Text(s.vehicleSetActive),
+                              if (hasMenu) ...[
+                                SizedBox(width: tokens.space.s2),
+                                _VehicleMenu(onEdit: onEdit, onShare: onShare),
+                              ],
+                            ],
                           ),
+                        ),
+                        SizedBox(height: tokens.space.s3),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Expanded(
+                              child: _Odometer(
+                                mileage: vehicle.mileage,
+                                unit: lengthUnit,
+                              ),
+                            ),
+                            if (isActive)
+                              _ActiveChip(label: _sentenceCase(s.active))
+                            else if (onSetActive != null)
+                              _SetActiveButton(
+                                label: s.vehicleSetActive,
+                                onTap: onSetActive!,
+                              ),
+                          ],
+                        ),
                       ],
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Full-height vehicle photo on the leading edge, clipped to the card.
+/// Without a photo the column stays — a watermark car glyph clipped by the
+/// corner keeps the slot feeling designed rather than empty.
+class _LeadingImage extends StatelessWidget {
+  const _LeadingImage({required this.vehicle, required this.width});
+
+  final Vehicle vehicle;
+  final double width;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final path = vehicle.photoLocalPath;
+    final hasPhoto = path != null && path.isNotEmpty;
+
+    return SizedBox(
+      width: width,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: tokens.background.input,
+          border: Border(right: BorderSide(color: tokens.border.divider)),
+        ),
+        child: hasPhoto
+            ? Image.file(
+                File(path),
+                fit: BoxFit.cover,
+                errorBuilder: (_, _, _) => const _HeroPlaceholder(),
+              )
+            : const _HeroPlaceholder(),
+      ),
+    );
+  }
+}
+
+class _HeroPlaceholder extends StatelessWidget {
+  const _HeroPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: EdgeInsets.only(
+              right: tokens.space.s1,
+              bottom: tokens.space.s1,
+            ),
+            child: Icon(
+              Icons.directions_car_outlined,
+              size: 48,
+              color: tokens.icon.inactive,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Odometer reading: the number carries the weight, the unit stays quiet.
+class _Odometer extends StatelessWidget {
+  const _Odometer({required this.mileage, required this.unit});
+
+  final double mileage;
+  final MileageUnit unit;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Text.rich(
+      TextSpan(
+        children: [
+          TextSpan(
+            text: MileageFormat.number(mileage, unit),
+            style: GoogleFonts.ibmPlexMono(
+              fontSize: 17,
+              fontWeight: FontWeight.w600,
+              color: tokens.text.primary,
+            ),
+          ),
+          TextSpan(
+            text: ' ${unit.label}',
+            style: GoogleFonts.ibmPlexMono(
+              fontSize: 12,
+              fontWeight: FontWeight.w400,
+              color: tokens.text.secondary,
+            ),
+          ),
+        ],
+      ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+}
+
+/// Solid gold status chip on the active vehicle — the one loud element in
+/// the garage. Not interactive: the card itself opens the vehicle.
+class _ActiveChip extends StatelessWidget {
+  const _ActiveChip({required this.label});
+
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Container(
+      height: _minHit,
+      padding: EdgeInsets.symmetric(horizontal: tokens.space.s4),
+      decoration: BoxDecoration(
+        color: tokens.button.primary.background,
+        borderRadius: BorderRadius.circular(tokens.radius.full),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.check, size: 18, color: tokens.icon.onAccent),
+          SizedBox(width: tokens.space.s1),
+          Text(
+            label,
+            style: Theme.of(context).textTheme.labelLarge?.copyWith(
+              color: tokens.button.primary.text,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Outline pill that switches the active vehicle. Same footprint as the
+/// active chip so the right edge of the card stays aligned in both states.
+class _SetActiveButton extends StatelessWidget {
+  const _SetActiveButton({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    return Material(
+      type: MaterialType.transparency,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(tokens.radius.full),
+        child: Container(
+          height: _minHit,
+          padding: EdgeInsets.symmetric(horizontal: tokens.space.s4),
+          decoration: BoxDecoration(
+            border: Border.all(color: tokens.border.defaultColor),
+            borderRadius: BorderRadius.circular(tokens.radius.full),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.labelLarge?.copyWith(color: tokens.text.link),
+            ),
           ),
         ),
       ),
@@ -169,8 +361,8 @@ class _VehicleMenu extends StatelessWidget {
     return PopupMenuButton<_VehicleMenuAction>(
       tooltip: MaterialLocalizations.of(context).showMenuTooltip,
       icon: Container(
-        width: 36,
-        height: 36,
+        width: _minHit,
+        height: _minHit,
         decoration: BoxDecoration(
           color: tokens.background.secondary,
           shape: BoxShape.circle,
@@ -178,7 +370,10 @@ class _VehicleMenu extends StatelessWidget {
         ),
         child: Icon(Icons.more_horiz, size: 18, color: tokens.icon.inactive),
       ),
-      constraints: const BoxConstraints(minWidth: 44, minHeight: 44),
+      constraints: const BoxConstraints(
+        minWidth: _minHit,
+        minHeight: _minHit,
+      ),
       padding: EdgeInsets.zero,
       onSelected: (action) {
         switch (action) {
@@ -222,16 +417,10 @@ class _VehicleMenu extends StatelessWidget {
   }
 }
 
-class _Badge extends StatelessWidget {
-  const _Badge({
-    required this.label,
-    required this.color,
-    required this.background,
-  });
+class _SharedBadge extends StatelessWidget {
+  const _SharedBadge({required this.label});
 
   final String label;
-  final Color color;
-  final Color background;
 
   @override
   Widget build(BuildContext context) {
@@ -242,50 +431,22 @@ class _Badge extends StatelessWidget {
         vertical: tokens.space.s1,
       ),
       decoration: BoxDecoration(
-        color: background,
+        color: tokens.status.infoBg,
         borderRadius: BorderRadius.circular(tokens.radius.full),
       ),
       child: Text(
-        label.toUpperCase(),
-        style: Theme.of(context).textTheme.labelLarge?.copyWith(color: color),
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelLarge?.copyWith(color: tokens.status.infoFg),
       ),
     );
   }
 }
 
-class _Photo extends StatelessWidget {
-  const _Photo({required this.path});
-
-  final String? path;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: SizedBox(
-        width: 72,
-        height: 72,
-        child: path == null
-            ? ColoredBox(
-                color: tokens.background.input,
-                child: Icon(
-                  Icons.directions_car_outlined,
-                  color: tokens.icon.inactive,
-                ),
-              )
-            : Image.file(
-                File(path!),
-                fit: BoxFit.cover,
-                errorBuilder: (_, _, _) => ColoredBox(
-                  color: tokens.background.input,
-                  child: Icon(
-                    Icons.directions_car_outlined,
-                    color: tokens.icon.inactive,
-                  ),
-                ),
-              ),
-      ),
-    );
-  }
+/// `s.active` ships lowercase ("active"); status chips read as a word.
+/// No-op for scripts without case (e.g. Myanmar).
+String _sentenceCase(String value) {
+  if (value.isEmpty) return value;
+  return value[0].toUpperCase() + value.substring(1);
 }
