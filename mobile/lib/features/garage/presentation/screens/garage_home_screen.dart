@@ -34,6 +34,10 @@ class GarageHomeScreen extends ConsumerWidget {
         showDcoErrorDialog(
           context,
           title: s.planLimitTitle,
+          actionLabel: s.pricingViewPlans,
+          onAction: () {
+            if (context.mounted) context.push(AppRoutes.pricing);
+          },
           message: gate.vehicleBlockMessage(s),
         ),
       );
@@ -144,7 +148,9 @@ class GarageHomeScreen extends ConsumerWidget {
                 limitMessage: canAddVehicle
                     ? null
                     : gate!.vehicleBlockMessage(s),
-                onAdd: () => _openAddVehicle(context, ref),
+                onAdd: () => canAddVehicle
+                    ? _openAddVehicle(context, ref)
+                    : context.push(AppRoutes.pricing),
               )
             : null,
         orElse: () => null,
@@ -319,6 +325,10 @@ class _GarageBottomBar extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(color: tokens.status.infoFg),
                         ),
+                      ),
+                      TextButton(
+                        onPressed: onAdd,
+                        child: Text(s.pricingViewPlans),
                       ),
                     ],
                   ),

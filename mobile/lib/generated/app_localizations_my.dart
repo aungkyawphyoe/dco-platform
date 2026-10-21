@@ -3868,4 +3868,114 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get fuelFillHelp =>
       'ဆီအပြည့်ဖြည့်ချိန် မိုင်နှုန်းမှတ်တမ်းက ဆီစားနှုန်းတွက်ချက်ရာတွင် အထောက်အကူပြုသည်။';
+
+  @override
+  String get pricingTitle => 'အစီအစဉ်နှင့် စာရင်းသွင်းမှုများ';
+
+  @override
+  String get pricingViewPlans => 'အစီအစဉ်များကြည့်ရန်';
+
+  @override
+  String get pricingCurrent => 'လက်ရှိအစီအစဉ်';
+
+  @override
+  String get pricingMonthly => 'လစဉ်';
+
+  @override
+  String get pricingAnnual => 'နှစ်စဉ်';
+
+  @override
+  String get pricingComingSoon => 'အခပေးအစီအစဉ်များ မကြာမီရရှိပါမည်';
+
+  @override
+  String get pricingGiftTitle => 'လက်ဆောင်ကုဒ် ရှိပါသလား။';
+
+  @override
+  String get pricingCode => 'လက်ဆောင်ကုဒ်';
+
+  @override
+  String get pricingRedeem => 'ကုဒ်အသုံးပြုရန်';
+
+  @override
+  String get pricingGiftTerms =>
+      'လက်ဆောင်ကာလကုန်လျှင် အလိုအလျောက်ရပ်ပါမည်။ ငွေပေးချေရန်နှင့် သက်တမ်းတိုးရန် မလိုပါ။';
+
+  @override
+  String get pricingVerify => 'လက်ဆောင်ရယူရန် အီးမေးလ်ကို အရင်အတည်ပြုပါ။';
+
+  @override
+  String get pricingActiveGift =>
+      'လက်ရှိလက်ဆောင် သက်တမ်းရှိနေပါသည်။ ကုန်ဆုံးပြီးမှ အခြားပရိုမိုးရှင်းကို အသုံးပြုနိုင်ပါသည်။';
+
+  @override
+  String get pricingIneligible =>
+      'လက်ဆောင်ကုဒ်ကို Free အကောင့်များသာ အသုံးပြုနိုင်ပါသည်။';
+
+  @override
+  String get pricingUnavailable =>
+      'ဤကုဒ် မမှန်ကန်ပါ၊ သက်တမ်းကုန်ပါပြီ၊ ပိတ်ထားပါသည် သို့မဟုတ် အသုံးပြုခွင့် ပြည့်သွားပါပြီ။';
+
+  @override
+  String get pricingAlreadyRedeemed => 'ဤပရိုမိုးရှင်းကို အသုံးပြုပြီးပါပြီ။';
+
+  @override
+  String get pricingRetry => 'ပြန်ကြိုးစားရန်';
+
+  @override
+  String get pricingOffline =>
+      'အချက်အလက် အသစ်မရနိုင်ပါ။ ရှိပါက သိမ်းထားသောအချက်အလက်ကို ပြထားပါသည်။ အင်တာနက်ချိတ်ပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get pricingNetworkError =>
+      'လက်ဆောင်ရယူမှုကို အတည်မပြုနိုင်ပါ။ အင်တာနက်ချိတ်ပြီး တူညီသောကုဒ်ဖြင့် ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get pricingSuccess => 'လက်ဆောင်ရယူပြီးပါပြီ။ အသုံးပြုနိုင်ပါပြီ။';
+
+  @override
+  String get pricingLicensePending =>
+      'လက်ဆောင်ရယူမှု အတည်ပြုပြီးပါပြီ။ ဤစက်တွင် အသုံးပြုခွင့်ပြင်ဆင်ရန် အင်တာနက်ချိတ်ပြီး ပြန်ကြိုးစားရန်ကို နှိပ်ပါ။';
+
+  @override
+  String get pricingRateLimited =>
+      'အကြိမ်များလွန်းပါသည်။ မိနစ်အနည်းငယ်ကြာမှ ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get pricingUnlimited => 'အကန့်အသတ်မရှိ';
+
+  @override
+  String get pricingCoreFeatures =>
+      'ဆီနှင့်အားသွင်းမှတ်တမ်း · ပြုပြင်ထိန်းသိမ်းမှုနှင့်သတိပေးချက် · အသုံးစရိတ် · စာရွက်စာတမ်း';
+
+  @override
+  String get pricingNoPlans => 'အစီအစဉ်အချက်အလက် မရရှိသေးပါ။';
+
+  @override
+  String get pricingEnded =>
+      'လက်ဆောင်သက်တမ်းကုန်ဆုံးပါပြီ။ ရှိပြီးသားမှတ်တမ်းနှင့် မျှဝေမှုများကို ဆက်လက်အသုံးပြုနိုင်ပါသည်။';
+
+  @override
+  String pricingGiftEnds(String date) {
+    return 'လက်ဆောင်သက်တမ်း $date တွင်ကုန်ဆုံးမည်';
+  }
+
+  @override
+  String pricingVehicleLimit(String count) {
+    return 'ယာဉ် $count စီး';
+  }
+
+  @override
+  String pricingShareLimit(String count) {
+    return 'လက်ရှိမျှဝေမှု $count ခု';
+  }
+
+  @override
+  String pricingStorageLimit(String count) {
+    return 'သိုလှောင်မှု $count MB';
+  }
+
+  @override
+  String pricingPrice(String amount, String period) {
+    return '$period / $amount MMK';
+  }
 }

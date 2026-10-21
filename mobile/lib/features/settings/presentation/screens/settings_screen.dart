@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
@@ -123,6 +124,13 @@ class SettingsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(tokens.radius.lg),
                     child: Column(
                       children: [
+                        if (ref.watch(driverOrganizationIdProvider) == null)
+                          ListTile(
+                            leading: const Icon(Icons.redeem_outlined),
+                            title: Text(s.pricingTitle),
+                            trailing: const Icon(Icons.chevron_right),
+                            onTap: () => context.push(AppRoutes.pricing),
+                          ),
                         ListTile(
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(

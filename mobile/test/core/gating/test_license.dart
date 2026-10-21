@@ -29,6 +29,8 @@ Future<MintedLicense> mintLicense({
   final now = DateTime.now().toUtc();
   final header = {'alg': alg, 'kid': kid};
   final payload = <String, Object?>{
+    'iss': 'dco',
+    'sub': 'u1',
     'plan_id': planId,
     'vehicle_limit': vehicleLimit,
     'sharing_limit': sharingLimit,
@@ -38,13 +40,17 @@ Future<MintedLicense> mintLicense({
     'period_end': null,
     'iat': (issuedAt ?? now).millisecondsSinceEpoch ~/ 1000,
     'exp':
-        (expiresAt ?? now.add(const Duration(days: 30))).millisecondsSinceEpoch ~/
+        (expiresAt ?? now.add(const Duration(days: 30)))
+            .millisecondsSinceEpoch ~/
         1000,
     ...extraPayload,
   };
   final signingInput =
       '${b64u(utf8.encode(jsonEncode(header)))}.${b64u(utf8.encode(jsonEncode(payload)))}';
-  final signature = await Ed25519().sign(utf8.encode(signingInput), keyPair: keyPair);
+  final signature = await Ed25519().sign(
+    utf8.encode(signingInput),
+    keyPair: keyPair,
+  );
   return MintedLicense(
     jwt: '$signingInput.${b64u(signature.bytes)}',
     x: b64u(publicKey.bytes),

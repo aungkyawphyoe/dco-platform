@@ -35,6 +35,7 @@ abstract final class AppRoutes {
   static String expenseDetail(String id) => '/expenses/$id';
   static String expenseEdit(String id) => '/expenses/$id/edit';
 
+  static const pricing = '/pricing';
   static const settings = '/settings';
   static const settingsLocalization = '/settings/localization';
   static const settingsUnits = '/settings/units';

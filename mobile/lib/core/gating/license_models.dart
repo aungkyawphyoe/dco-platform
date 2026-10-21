@@ -69,8 +69,8 @@ class EntitlementClaims {
   final String aiTier;
   final Map<String, bool> features;
 
-  /// Billing period end — display only; null until billing lands
-  /// (pre-billing issuance, §5.1).
+  /// Gift or billing period end for display; gift JWT exp matches this
+  /// deadline with no billing grace. Null for rolling admin assignments.
   final DateTime? periodEnd;
   final DateTime issuedAt;
   final DateTime expiresAt;

@@ -1,3 +1,4 @@
+import '../../features/pricing/presentation/pricing_screen.dart';
 import '../providers.dart';
 import '../../features/fleet/providers.dart';
 import '../storage/entry_preferences.dart';
@@ -124,7 +125,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         return onSplash ? null : AppRoutes.splash;
       }
       if (ref.read(driverOrganizationIdProvider) != null &&
-          (location == AppRoutes.vehicleNew ||
+          (location == AppRoutes.pricing ||
+              location == AppRoutes.vehicleNew ||
               collaboration ||
               location.contains('/share') ||
               location == AppRoutes.firstVehicle ||
@@ -149,6 +151,10 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       return null;
     },
     routes: [
+      GoRoute(
+        path: AppRoutes.pricing,
+        builder: (context, state) => const PricingScreen(),
+      ),
       GoRoute(
         path: AppRoutes.verifyEmail,
         builder: (context, state) => const EmailVerificationScreen(),

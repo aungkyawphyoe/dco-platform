@@ -3830,4 +3830,115 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fuelFillHelp =>
       'Full tanks with odometer readings help calculate fuel consumption.';
+
+  @override
+  String get pricingTitle => 'Plans & subscriptions';
+
+  @override
+  String get pricingViewPlans => 'View plans';
+
+  @override
+  String get pricingCurrent => 'Current plan';
+
+  @override
+  String get pricingMonthly => 'Monthly';
+
+  @override
+  String get pricingAnnual => 'Annual';
+
+  @override
+  String get pricingComingSoon => 'Paid subscriptions coming soon';
+
+  @override
+  String get pricingGiftTitle => 'Have a gift code?';
+
+  @override
+  String get pricingCode => 'Gift code';
+
+  @override
+  String get pricingRedeem => 'Redeem code';
+
+  @override
+  String get pricingGiftTerms =>
+      'Gift access ends automatically. No payment or renewal.';
+
+  @override
+  String get pricingVerify => 'Verify your email before redeeming a gift.';
+
+  @override
+  String get pricingActiveGift =>
+      'You already have an active gift. Redeem a different promotion after it expires.';
+
+  @override
+  String get pricingIneligible =>
+      'Gift codes are available to Free accounts only.';
+
+  @override
+  String get pricingUnavailable =>
+      'This code is invalid, expired, disabled, or fully redeemed.';
+
+  @override
+  String get pricingAlreadyRedeemed =>
+      'You have already redeemed this promotion.';
+
+  @override
+  String get pricingRetry => 'Retry';
+
+  @override
+  String get pricingOffline =>
+      'Could not refresh. Saved information is shown when available. Connect to the internet and retry.';
+
+  @override
+  String get pricingNetworkError =>
+      'Could not confirm redemption. Connect and retry the same code safely.';
+
+  @override
+  String get pricingSuccess => 'Gift redeemed. Your access is ready.';
+
+  @override
+  String get pricingLicensePending =>
+      'Gift confirmed. Connect and tap Retry to finish updating access on this device.';
+
+  @override
+  String get pricingRateLimited =>
+      'Too many attempts. Please try again in a few minutes.';
+
+  @override
+  String get pricingUnlimited => 'Unlimited';
+
+  @override
+  String get pricingCoreFeatures =>
+      'Fuel & charging logs · Maintenance & reminders · Expenses · Documents';
+
+  @override
+  String get pricingNoPlans => 'Plan information is not available yet.';
+
+  @override
+  String get pricingEnded =>
+      'Your gift has ended. Existing records and shares remain available.';
+
+  @override
+  String pricingGiftEnds(String date) {
+    return 'Gift access ends $date';
+  }
+
+  @override
+  String pricingVehicleLimit(String count) {
+    return '$count vehicles';
+  }
+
+  @override
+  String pricingShareLimit(String count) {
+    return '$count active shares';
+  }
+
+  @override
+  String pricingStorageLimit(String count) {
+    return '$count MB storage';
+  }
+
+  @override
+  String pricingPrice(String amount, String period) {
+    return '$amount MMK / $period';
+  }
 }

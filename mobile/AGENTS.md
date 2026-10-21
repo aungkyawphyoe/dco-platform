@@ -151,7 +151,7 @@ flowchart TB
 - Archive vehicles (soft-delete). Do not hard-delete vehicles or their child records.
 - Fuel type required: `petrol` | `electric` | `hybrid_plugin`.
 - Year: 1900 … current year + 1. Plate max 20 chars. Mileage ≥ 0 and monotonic.
-- `users.plan` is `free` / `lite` / `standard` / `fleet` (`docs/pricing.md`). Billing is not live: do not invent purchase UI. Local gating hides entry points only — the server is authoritative (`architecture/feature-gating.md`).
+- `users.plan` is `free` / `lite` / `standard` / `fleet` (`docs/pricing.md`). Paid billing is not live. Personal plan comparison and online gift redemption are approved by `product/frd/mobile-pricing-promotions.md`; no paid checkout. Pricing/status reads are cached in account-scoped Drift AppMeta; redemption is an online-only transaction, never an outbox write. Local gating hides entry points only — the server is authoritative (`architecture/feature-gating.md`).
 - Offline license: signed EdDSA JWT from `GET /v1/me/license`, verified against `mobile/assets/license_keys.json` (ships empty). Mint keypairs with `npm run license:key` in `backend/` — private key goes to backend env only, public entry to the keyring. Gating lives in `lib/core/gating/` (`architecture/feature-gating.md`).
 - Expense `fuel` is money only (no litres, no kWh). Volume and kWh live on fuel logs. Dashboard totals read **expenses only**, not service-record costs or fuel-log costs.
 

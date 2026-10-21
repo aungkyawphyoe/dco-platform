@@ -71,6 +71,13 @@ class DocumentsScreen extends ConsumerWidget {
                 onPressed: () => ref.invalidate(documentStorageProvider),
               ),
             ),
+          if (usage != null &&
+              usage['scope'] == 'personal' &&
+              (usage['used_bytes'] as num) >= (usage['limit_bytes'] as num))
+            TextButton(
+              onPressed: () => context.push(AppRoutes.pricing),
+              child: Text(AppLocalizations.of(context)!.pricingViewPlans),
+            ),
           if (license?.frontMediaId != null)
             ExpansionTile(
               title: const Text('Personal Documents'),
