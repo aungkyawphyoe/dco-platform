@@ -54,8 +54,16 @@ export function SiteFooter() {
                     Help center
                   </Link>
                 </li>
-                <li className="text-sm text-ink-faint">Terms of Service</li>
-                <li className="text-sm text-ink-faint">Privacy Policy</li>
+                <li>
+                  <Link href="/terms" className="text-sm text-ink-muted transition-colors duration-150 hover:text-gold">
+                    Terms of Service
+                  </Link>
+                </li>
+                <li>
+                  <Link href="/privacy" className="text-sm text-ink-muted transition-colors duration-150 hover:text-gold">
+                    Privacy Policy
+                  </Link>
+                </li>
               </ul>
             </div>
           </div>
