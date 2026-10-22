@@ -1304,5 +1304,8 @@
         "type": "String"
       }
     }
-  }
+  },
+  "playChoosePlan": "Choose a paid plan",
+  "playDemoUnavailable": "Google Play checkout is unavailable in demo mode. Sign in with a real account in a billing-enabled Android build.",
+  "playAndroidOnly": "Google Play subscriptions are available in the Android app. Checkout is not available on this platform."
 }

@@ -269,7 +269,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                   SizedBox(width: t.space.s2),
                   Expanded(
                     child: Text(
-                      storeBilling ? s.playTerms : s.pricingComingSoon,
+                      storeBilling ? s.playTerms : s.playAndroidOnly,
                       style: text.bodySmall?.copyWith(color: t.text.caption),
                     ),
                   ),
@@ -314,19 +314,22 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                       textAlign: TextAlign.center,
                     ),
                   ),
-                if (selected != null && selected.id != 'free')
-                  DcoButton(
-                    key: const ValueKey('play-subscribe'),
-                    label: s.playSubscribe,
-                    onPressed:
-                        !billing.busy &&
+                DcoButton(
+                  key: const ValueKey('play-subscribe'),
+                  label: selected?.id == 'free'
+                      ? s.playChoosePlan
+                      : s.playSubscribe,
+                  onPressed:
+                      selected?.id == 'free' &&
+                          options.any((p) => p.id == 'standard')
+                      ? () => setState(() => _selectedPlan = 'standard')
+                      : !billing.busy &&
                             !billing.loading &&
                             billing.canPurchase &&
                             offer != null
-                        ? () =>
-                              ref.read(playBillingProvider.notifier).buy(offer)
-                        : null,
-                  ),
+                      ? () => ref.read(playBillingProvider.notifier).buy(offer)
+                      : null,
+                ),
                 Wrap(
                   alignment: WrapAlignment.center,
                   children: [
@@ -392,6 +395,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
 
 String _billingMessage(AppLocalizations s, PlayBillingState billing) =>
     switch (billing.message) {
+      'mock_auth' => s.playDemoUnavailable,
       'pending' => s.playPending,
       'verifying' || 'restoring' => s.playVerifying,
       'success' => s.playSuccess,

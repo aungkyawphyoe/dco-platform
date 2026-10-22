@@ -7607,6 +7607,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{price} / {period}. Auto-renews until canceled in Google Play.'**
   String playCheckoutTerms(String price, String period);
+
+  /// No description provided for @playChoosePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a paid plan'**
+  String get playChoosePlan;
+
+  /// No description provided for @playDemoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play checkout is unavailable in demo mode. Sign in with a real account in a billing-enabled Android build.'**
+  String get playDemoUnavailable;
+
+  /// No description provided for @playAndroidOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play subscriptions are available in the Android app. Checkout is not available on this platform.'**
+  String get playAndroidOnly;
 }
 
 class _AppLocalizationsDelegate

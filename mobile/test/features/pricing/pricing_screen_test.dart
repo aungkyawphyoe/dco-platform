@@ -1,3 +1,7 @@
+import 'package:dco_mobile/core/widgets/dco_button.dart';
+import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/core/config/app_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:dco_mobile/features/pricing/billing/providers.dart';
 import 'package:dco_mobile/features/pricing/billing/play_billing_controller.dart';
 import 'package:dco_mobile/features/pricing/domain/play_billing.dart';
@@ -86,7 +90,7 @@ class TestPricing implements PricingRepository {
 }
 
 class TestBilling extends PlayBillingController {
-  TestBilling(bool supported)
+  TestBilling(bool supported, {bool demo = false})
     : super(
         store: null,
         backend: null,
@@ -95,11 +99,22 @@ class TestBilling extends PlayBillingController {
       ) {
     state = PlayBillingState(
       supported: supported,
-      canPurchase: supported,
-      offers: const [
-        BillingOffer(plan: 'standard', period: 'monthly', price: '\$2.99'),
-        BillingOffer(plan: 'standard', period: 'annual', price: '\$29.99'),
-      ],
+      canPurchase: supported && !demo,
+      message: demo ? 'mock_auth' : null,
+      offers: demo
+          ? const []
+          : const [
+              BillingOffer(
+                plan: 'standard',
+                period: 'monthly',
+                price: '\$2.99',
+              ),
+              BillingOffer(
+                plan: 'standard',
+                period: 'annual',
+                price: '\$29.99',
+              ),
+            ],
     );
   }
 }
@@ -111,6 +126,7 @@ void main() {
     bool verified = true,
     double scale = 1,
     bool play = false,
+    bool demo = false,
   }) async {
     tester.view.physicalSize = const Size(375, 812);
     tester.view.devicePixelRatio = 1;
@@ -142,7 +158,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          playBillingProvider.overrideWith((ref) => TestBilling(play)),
+          playBillingProvider.overrideWith(
+            (ref) => TestBilling(play, demo: demo),
+          ),
           pricingRepositoryProvider.overrideWithValue(TestPricing()),
           sessionControllerProvider.overrideWith(() => TestSession(verified)),
           licenseControllerProvider.overrideWith(TestLicense.new),
@@ -168,6 +186,58 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  test(
+    'Android demo mode keeps the billing surface discoverable without a native store',
+    () {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      addTearDown(() => debugDefaultTargetPlatformOverride = null);
+      final container = ProviderContainer(
+        overrides: [
+          currentUserIdProvider.overrideWithValue('demo'),
+          authUserProvider.overrideWithValue(null),
+          licenseKeyringProvider.overrideWith((ref) async => []),
+          appConfigProvider.overrideWithValue(
+            const AppConfig(
+              apiBaseUrl: 'http://localhost',
+              jwtOwnerAud: 'dco-owner',
+              mockAuth: true,
+              analyticsEnabled: false,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final billing = container.read(playBillingProvider);
+      expect(billing.supported, true);
+      expect(billing.canPurchase, false);
+      expect(billing.loading, false);
+      expect(billing.message, 'mock_auth');
+    },
+  );
+  testWidgets(
+    'demo mode shows disabled subscribe with a reason; Free links to paid plans',
+    (tester) async {
+      await pumpPricing(tester, 'en', play: true, demo: true);
+      final subscribe = find.byKey(const ValueKey('play-subscribe'));
+      expect(subscribe, findsOneWidget);
+      expect(tester.widget<DcoButton>(subscribe).onPressed, isNull);
+      expect(find.textContaining('unavailable in demo mode'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.byKey(const ValueKey('plan-free')).hitTestable(),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await tester.tap(find.byKey(const ValueKey('plan-free')));
+      await tester.pumpAndSettle();
+      expect(find.text('Choose a paid plan'), findsOneWidget);
+      await tester.tap(find.text('Choose a paid plan'));
+      await tester.pumpAndSettle();
+      expect(find.text('Subscribe with Google Play'), findsOneWidget);
+      expect(tester.widget<DcoButton>(subscribe).onPressed, isNull);
+      expect(tester.takeException(), isNull);
+    },
+  );
 
   for (final lang in ['en', 'my']) {
     testWidgets(

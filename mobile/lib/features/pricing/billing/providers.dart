@@ -12,13 +12,17 @@ final playBillingProvider =
     StateNotifierProvider<PlayBillingController, PlayBillingState>((ref) {
       final userId = ref.watch(currentUserIdProvider);
       final keyring = ref.watch(licenseKeyringProvider).valueOrNull ?? [];
+      final supported =
+          !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+      final mock = ref.watch(appConfigProvider).mockAuth;
       final enabled =
-          !kIsWeb &&
-          defaultTargetPlatform == TargetPlatform.android &&
+          supported &&
           userId != null &&
           ref.watch(authUserProvider.select((u) => u?.role)) != 'org_driver' &&
-          !ref.watch(appConfigProvider).mockAuth;
+          !mock;
       return PlayBillingController(
+        supported: supported,
+        initialMessage: supported && mock ? 'mock_auth' : null,
         store: enabled ? GooglePlayStore(InAppPurchase.instance) : null,
         backend: enabled
             ? PlayBillingBackend(

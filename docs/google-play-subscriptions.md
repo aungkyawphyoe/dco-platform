@@ -12,6 +12,10 @@ The server calls `purchases.subscriptionsv2.get`, persists entitlement, then ack
 
 New checkout requires a verified personal Free account with no live gift or existing unresolved Play subscription. Existing subscribers manage/cancel in Google Play and wait for expiry before purchasing a different tier/period in this first release. This avoids parallel charges without implementing replacement/proration yet.
 
+## Where users subscribe
+
+Open **Setting → Plans & subscriptions**, select Lite or Standard and a billing period, then tap **Subscribe with Google Play**. Selecting Free shows **Choose a paid plan** instead. Android keeps this action visible even when billing is unavailable; it stays disabled until checkout is ready. Debug builds using mock authentication show an explicit demo-mode message. Use `DCO_MOCK_AUTH=false` with a real account to exercise billing. Non-Android platforms explain that Google Play checkout requires the Android app.
+
 ## 1. Confirm the app identity and release signing
 
 The current package/application ID is **`com.dco.dco_mobile`** in `mobile/android/app/build.gradle.kts`. Use this exact package in Play Console and `PLAY_PACKAGE_NAME`. If you want a different permanent package ID, change it before the first upload and update Firebase, Android namespace/source package, OAuth registration, and server configuration together. This guide does not rename it.

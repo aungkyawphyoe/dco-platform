@@ -26,12 +26,18 @@ class PlayBillingState {
 class PlayBillingController extends StateNotifier<PlayBillingState> {
   PlayBillingController({
     required BillingStore? store,
+    bool? supported,
+    String? initialMessage,
     required this.backend,
     required this.refreshEntitlements,
     required this.isCurrentAccount,
   }) : _store = store,
        super(
-         PlayBillingState(supported: store != null, loading: store != null),
+         PlayBillingState(
+           supported: supported ?? store != null,
+           loading: store != null,
+           message: initialMessage,
+         ),
        ) {
     if (store != null) {
       _listener = store.events.listen((events) {

@@ -4061,4 +4061,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String playCheckoutTerms(String price, String period) {
     return '$price / $period. Auto-renews until canceled in Google Play.';
   }
+
+  @override
+  String get playChoosePlan => 'Choose a paid plan';
+
+  @override
+  String get playDemoUnavailable =>
+      'Google Play checkout is unavailable in demo mode. Sign in with a real account in a billing-enabled Android build.';
+
+  @override
+  String get playAndroidOnly =>
+      'Google Play subscriptions are available in the Android app. Checkout is not available on this platform.';
 }

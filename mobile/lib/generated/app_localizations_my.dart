@@ -4097,4 +4097,15 @@ class AppLocalizationsMy extends AppLocalizations {
   String playCheckoutTerms(String price, String period) {
     return '$price / $period။ Google Play တွင် မပယ်ဖျက်မချင်း အလိုအလျောက် သက်တမ်းတိုးပါမည်။';
   }
+
+  @override
+  String get playChoosePlan => 'အခပေးအစီအစဉ် ရွေးရန်';
+
+  @override
+  String get playDemoUnavailable =>
+      'စမ်းသပ်မုဒ်တွင် Google Play ဖြင့် ဝယ်ယူ၍မရပါ။ ငွေပေးချေမှုပါဝင်သော Android အက်ပ်တွင် အကောင့်အစစ်ဖြင့် ဝင်ပါ။';
+
+  @override
+  String get playAndroidOnly =>
+      'Google Play စာရင်းသွင်းမှုကို Android အက်ပ်တွင် ရနိုင်ပါသည်။ ဤပလက်ဖောင်းတွင် ဝယ်ယူ၍မရပါ။';
 }
