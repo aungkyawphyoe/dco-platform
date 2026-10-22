@@ -86,3 +86,7 @@ These are engineering requirements, not additional interview decisions.
 ## Visual refinement — 21 October 2026
 
 Subscription comparison uses a featured, shadow-elevated plan card, explicit tier selection, large price typography, icon-led benefits, and monthly/annual price options. Selection is for comparison only and never activates a paid plan. Annual savings are calculated from live API prices. The current entitlement remains separately labeled. Gift entry, verification, redemption feedback, and access-refresh recovery live on `/pricing/redeem`, which is also guarded against Driver access. All new/redesigned mobile cards use shadow/elevation without permanent outlines, per the design-system and mobile agent contract.
+
+## Android billing extension — 22 October 2026
+
+The no-checkout scope above is superseded for Android by [Google Play subscriptions](../../docs/google-play-subscriptions.md). Lite and Standard support regular monthly/annual Play base plans. Native prices replace API comparison prices for Android checkout. Payment pending, verification/retry, restore and account mismatch are explicit states. The server owns entitlement, acknowledgements and lifecycle synchronization. iOS billing, offers/trials and prorated plan switching remain outside this release.
