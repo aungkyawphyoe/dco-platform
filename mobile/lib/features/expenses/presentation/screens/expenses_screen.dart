@@ -70,18 +70,6 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         _SummaryHeader(summary: summary, currency: currency),
-                        if (items.isNotEmpty) ...[
-                          if (summary.byCategory.isNotEmpty)
-                            _CategoryBreakdown(
-                              summary: summary,
-                              currency: currency,
-                            ),
-                          _CategoryFilterBar(
-                            selected: _category,
-                            onSelected: (category) =>
-                                setState(() => _category = category),
-                          ),
-                        ],
                         Expanded(
                           child: items.isEmpty
                               ? Center(
@@ -94,40 +82,73 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                                         ? s.expensesAddExpense
                                         : null,
                                     onAction: access.canCreate
-                                        ? () => context.push(AppRoutes.expenseNew)
+                                        ? () =>
+                                              context.push(AppRoutes.expenseNew)
                                         : null,
                                   ),
                                 )
-                              : filtered.isEmpty
-                              ? Center(
-                                  child: DcoEmptyState(
-                                    title: s.expensesNoMatching,
-                                    body: s.expensesNoMatchingBody,
-                                  ),
-                                )
-                              : ListView.builder(
-                                  padding: EdgeInsets.fromLTRB(
-                                    tokens.space.s4,
-                                    tokens.space.s2,
-                                    tokens.space.s4,
-                                    tokens.space.s5,
-                                  ),
-                                  itemCount: filtered.length,
-                                  itemBuilder: (context, index) {
-                                    final expense = filtered[index];
-                                    return Padding(
-                                      padding: EdgeInsets.only(
-                                        bottom: tokens.space.s3,
-                                      ),
-                                      child: _ExpenseTile(
-                                        expense: expense,
-                                        currency: currency,
-                                        onTap: () => context.push(
-                                          AppRoutes.expenseDetail(expense.id),
+                              : CustomScrollView(
+                                  slivers: [
+                                    if (summary.byCategory.isNotEmpty)
+                                      SliverToBoxAdapter(
+                                        child: _CategoryBreakdown(
+                                          summary: summary,
+                                          currency: currency,
                                         ),
                                       ),
-                                    );
-                                  },
+                                    SliverPersistentHeader(
+                                      pinned: true,
+                                      delegate: _CategoryFilterBarDelegate(
+                                        selected: _category,
+                                        onSelected: (category) => setState(
+                                          () => _category = category,
+                                        ),
+                                        tokens: tokens,
+                                      ),
+                                    ),
+                                    if (filtered.isEmpty)
+                                      SliverFillRemaining(
+                                        hasScrollBody: false,
+                                        child: Center(
+                                          child: DcoEmptyState(
+                                            title: s.expensesNoMatching,
+                                            body: s.expensesNoMatchingBody,
+                                          ),
+                                        ),
+                                      )
+                                    else
+                                      SliverPadding(
+                                        padding: EdgeInsets.fromLTRB(
+                                          tokens.space.s4,
+                                          tokens.space.s2,
+                                          tokens.space.s4,
+                                          tokens.space.s5,
+                                        ),
+                                        sliver: SliverList.builder(
+                                          itemCount: filtered.length,
+                                          itemBuilder: (context, index) {
+                                            final expense = filtered[index];
+                                            return Padding(
+                                              padding: EdgeInsets.only(
+                                                bottom: tokens.space.s3,
+                                              ),
+                                              child: _ExpenseTile(
+                                                expense: expense,
+                                                currency: currency,
+                                                onTap: () => context.push(
+                                                  AppRoutes.expenseDetail(
+                                                    expense.id,
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    const SliverToBoxAdapter(
+                                      child: SizedBox(height: 80),
+                                    ),
+                                  ],
                                 ),
                         ),
                       ],
@@ -325,13 +346,9 @@ class _CategoryFilterBar extends StatelessWidget {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     return Padding(
-      padding: EdgeInsets.fromLTRB(
-        tokens.space.s4,
-        tokens.space.s2,
-        tokens.space.s4,
-        tokens.space.s2,
-      ),
+      padding: EdgeInsets.fromLTRB(0, tokens.space.s2, 0, tokens.space.s2),
       child: SingleChildScrollView(
+        padding: EdgeInsets.only(left: tokens.space.s4),
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
@@ -353,6 +370,46 @@ class _CategoryFilterBar extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Keeps the category filter bar pinned to the top of the scroll viewport
+/// while the category breakdown and expense list scroll underneath it.
+class _CategoryFilterBarDelegate extends SliverPersistentHeaderDelegate {
+  _CategoryFilterBarDelegate({
+    required this.selected,
+    required this.onSelected,
+    required this.tokens,
+  });
+
+  final ExpenseCategory? selected;
+  final ValueChanged<ExpenseCategory?> onSelected;
+  final DcoTokens tokens;
+
+  double get _height => tokens.space.s2 * 2 + 40;
+
+  @override
+  double get minExtent => _height;
+
+  @override
+  double get maxExtent => _height;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return ColoredBox(
+      color: tokens.background.primary,
+      child: _CategoryFilterBar(selected: selected, onSelected: onSelected),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _CategoryFilterBarDelegate oldDelegate) =>
+      oldDelegate.selected != selected ||
+      oldDelegate.onSelected != onSelected ||
+      oldDelegate.tokens != tokens;
 }
 
 class _FilterChip extends StatelessWidget {

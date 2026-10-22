@@ -329,12 +329,15 @@ class HistoryTile extends StatelessWidget {
                   ),
                   SizedBox(height: tokens.space.s1),
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        record.title,
-                        style: Theme.of(context).textTheme.titleMedium,
+                      Expanded(
+                        child: Text(
+                          record.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
                       ),
-                      const Spacer(),
+                      SizedBox(width: tokens.space.s3),
                       Text(
                         money,
                         style: GoogleFonts.ibmPlexMono(
