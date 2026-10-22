@@ -136,7 +136,7 @@ Auth endpoints themselves are **online-only**. After a session exists, Garage / 
 | Admin portal | No | Required |
 | Mileage conflict | Local higher value kept | Server accepts max(local, remote); never decreases |
 | Media bytes | Stored on device; queued | Upload after metadata ack; retry bytes without duplicating the record |
-| Notifications (due reminders) | Local OS schedule | Feed rows sync; push send is **not** required in MVP |
+| Notifications (due reminders) | Local OS schedule | Feed rows sync; opt-in maintenance emails are sent server-side on a scan; push send is **not** required in MVP |
 
 Sync triggers: cold start after auth, reconnect, debounced local write (~1s), manual retry. Status is informational and must not block navigation.
 

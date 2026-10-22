@@ -69,14 +69,17 @@ class FakeSyncApi implements SyncApi {
 class FakeMediaApi implements MediaApi {
   final uploads = <({String id, File file, MediaPurpose purpose})>[];
   String uploadedId = 'media-1';
+  ApiError? uploadError;
 
   @override
   Future<MediaObject> upload({
     required String id,
     required File file,
     required MediaPurpose purpose,
+    String? vehicleId,
   }) async {
     uploads.add((id: id, file: file, purpose: purpose));
+    if (uploadError != null) throw uploadError!;
     return MediaObject(id: uploadedId, contentType: 'image/jpeg', byteSize: 10);
   }
 
@@ -166,6 +169,7 @@ void main() {
               apiBaseUrl: 'http://localhost',
               jwtOwnerAud: 'owner',
               mockAuth: true,
+              analyticsEnabled: false,
             ),
           ),
           sessionControllerProvider.overrideWith(SignedInSession.new),
@@ -545,6 +549,58 @@ void main() {
     final remaining = await db.select(db.outboxEntries).get();
     expect(remaining, isEmpty);
   });
+
+  test(
+    'quota rejection retains the file and retries the same upload ID',
+    () async {
+      final dir = await Directory.systemTemp.createTemp('dco_quota_test');
+      final file = File('${dir.path}/receipt.jpg')
+        ..writeAsBytesSync([255, 216, 255]);
+      addTearDown(() => dir.delete(recursive: true));
+      await db
+          .into(db.documentRecords)
+          .insert(
+            DocumentRecordsCompanion.insert(
+              id: 'doc1',
+              vehicleId: 'v1',
+              name: 'Invoice',
+              category: 'invoice',
+              localFilePath: Value(file.path),
+              createdBy: const Value('u1'),
+              updatedAt: DateTime.now().toUtc(),
+              createdAt: DateTime.now().toUtc(),
+            ),
+          );
+      mediaApi.uploadError = const ApiError(
+        code: 'LIMIT_EXCEEDED',
+        message: 'Storage full',
+      );
+      await engine.syncNow();
+      expect(file.existsSync(), isTrue);
+      expect((await db.select(db.documentRecords).getSingle()).mediaId, isNull);
+      expect(
+        (await (db.select(db.appMeta)
+                  ..where((r) => r.key.equals('media_error:${file.path}')))
+                .getSingle())
+            .value,
+        'LIMIT_EXCEEDED',
+      );
+      final retryId = mediaApi.uploads.single.id;
+      mediaApi.uploadError = null;
+      await engine.syncNow();
+      expect(mediaApi.uploads.last.id, retryId);
+      expect(
+        (await db.select(db.documentRecords).getSingle()).mediaId,
+        'media-1',
+      );
+      expect(
+        await (db.select(db.appMeta)
+              ..where((r) => r.key.equals('media_error:${file.path}')))
+            .getSingleOrNull(),
+        isNull,
+      );
+    },
+  );
 
   test('signed-out engine does nothing', () async {
     final signedOut = SyncEngine(

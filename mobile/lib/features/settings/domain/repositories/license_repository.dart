@@ -3,6 +3,8 @@ import 'package:dco_mobile/core/entities/driving_license.dart';
 abstract class LicenseRepository {
   Future<DrivingLicense?> getMyLicense();
 
+  Future<void> deleteMyLicense();
+
   Future<DrivingLicense> upsertLicense({
     String? licenseNumber,
     String? issuingCountry,

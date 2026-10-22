@@ -1,4 +1,6 @@
+import 'package:dco_mobile/core/widgets/license_delete_button.dart';
 import 'dart:io';
+import 'package:dco_mobile/features/profile/presentation/widgets/license_flip_card.dart';
 
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -23,7 +25,13 @@ class DocumentsScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final documents = ref.watch(vehicleDocumentsProvider);
+    final license = ref.watch(personalDocumentLicenseProvider).valueOrNull;
+    final usage = ref.watch(documentStorageProvider).valueOrNull;
     final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+
+    final canCreate =
+        access.isOwner ||
+        (ref.watch(driverOrganizationIdProvider) != null && access.canCreate);
 
     return Scaffold(
       appBar: AppBar(
@@ -31,93 +39,165 @@ class DocumentsScreen extends ConsumerWidget {
         actions: [
           IconButton(
             tooltip: s.documentsAddTooltip,
-            onPressed: !access.canCreate
+            onPressed: !canCreate
                 ? null
                 : () => context.push(AppRoutes.documentNew),
             icon: Icon(
               Icons.add,
-              color: !access.canCreate
-                  ? tokens.icon.inactive
-                  : tokens.icon.active,
+              color: !canCreate ? tokens.icon.inactive : tokens.icon.active,
             ),
           ),
         ],
       ),
-      body: vehicle == null
-          ? Center(
-              child: DcoEmptyState(
-                title: s.documentsNoActiveVehicle,
-                body: s.documentsNoActiveVehicleBody,
+      body: Column(
+        children: [
+          if (usage != null)
+            ListTile(
+              leading: const Icon(Icons.cloud_outlined),
+              title: Text(
+                'Storage: ${((usage['used_bytes'] as num) / (1024 * 1024)).toStringAsFixed(1)} / ${((usage['limit_bytes'] as num) / (1024 * 1024)).toStringAsFixed(0)} MB',
               ),
-            )
-          : documents.when(
-              loading: () => Center(
-                child: CircularProgressIndicator(color: tokens.text.accent),
-              ),
-              error: (error, _) =>
-                  DcoEmptyState(title: s.documentsLoadError, body: '$error'),
-              data: (items) => items.isEmpty
-                  ? Center(
-                      child: DcoEmptyState(
-                        title: s.documentsEmptyTitle,
-                        body: s.documentsEmptyBody(vehicle.displayName),
-                        actionLabel: access.canCreate
-                            ? s.documentsAddDocument
-                            : null,
-                        onAction: access.canCreate
-                            ? () => context.push(AppRoutes.documentNew)
-                            : null,
-                      ),
+              subtitle:
+                  (usage['used_bytes'] as num) >= (usage['limit_bytes'] as num)
+                  ? Text(
+                      usage['scope'] == 'organization'
+                          ? 'Organization storage is full. Contact your fleet admin.'
+                          : 'Storage is full. Delete unneeded documents to free space.',
                     )
-                  : ListView.builder(
-                      padding: EdgeInsets.fromLTRB(
-                        tokens.space.s4,
-                        tokens.space.s2,
-                        tokens.space.s4,
-                        tokens.space.s5,
+                  : null,
+              trailing: IconButton(
+                icon: const Icon(Icons.refresh),
+                tooltip: 'Refresh storage',
+                onPressed: () => ref.invalidate(documentStorageProvider),
+              ),
+            ),
+          if (usage != null &&
+              usage['scope'] == 'personal' &&
+              (usage['used_bytes'] as num) >= (usage['limit_bytes'] as num))
+            TextButton(
+              onPressed: () => context.push(AppRoutes.pricing),
+              child: Text(AppLocalizations.of(context)!.pricingViewPlans),
+            ),
+          if (license?.frontMediaId != null)
+            ExpansionTile(
+              title: const Text('Personal Documents'),
+              subtitle: const Text('Driving license · Private'),
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(tokens.space.s4),
+                  child: LicenseFlipCard(
+                    frontMediaId: license!.frontMediaId,
+                    backMediaId: license.backMediaId,
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await context.push(AppRoutes.profileEdit);
+                    ref.invalidate(personalDocumentLicenseProvider);
+                  },
+                  child: const Text('Manage driving license'),
+                ),
+                const LicenseDeleteButton(),
+              ],
+            ),
+          Expanded(
+            child: vehicle == null
+                ? Center(
+                    child: DcoEmptyState(
+                      title: s.documentsNoActiveVehicle,
+                      body: s.documentsNoActiveVehicleBody,
+                    ),
+                  )
+                : documents.when(
+                    loading: () => Center(
+                      child: CircularProgressIndicator(
+                        color: tokens.text.accent,
                       ),
-                      itemCount: items.length,
-                      itemBuilder: (context, index) {
-                        final doc = items[index];
-                        final locked =
-                            ref
-                                .watch(
-                                  recordAdminLockProvider('document:${doc.id}'),
-                                )
-                                .valueOrNull ??
-                            (ref.watch(driverOrganizationIdProvider) != null);
-                        return Padding(
-                          padding: EdgeInsets.only(bottom: tokens.space.s3),
-                          child: _DocumentTile(
-                            document: doc,
-                            onTap: () {
-                              final hasFile =
-                                  doc.hasLocalFile || doc.mediaId != null;
-                              if (!hasFile &&
-                                  access.canEditRecord(doc.createdBy) &&
-                                  !locked) {
-                                context.push(AppRoutes.documentEdit(doc.id));
-                              } else {
-                                context.push(AppRoutes.documentView(doc.id));
-                              }
+                    ),
+                    error: (error, _) => DcoEmptyState(
+                      title: s.documentsLoadError,
+                      body: '$error',
+                    ),
+                    data: (items) => items.isEmpty
+                        ? Center(
+                            child: DcoEmptyState(
+                              title: s.documentsEmptyTitle,
+                              body: s.documentsEmptyBody(vehicle.displayName),
+                              actionLabel: canCreate
+                                  ? s.documentsAddDocument
+                                  : null,
+                              onAction: canCreate
+                                  ? () => context.push(AppRoutes.documentNew)
+                                  : null,
+                            ),
+                          )
+                        : ListView.builder(
+                            padding: EdgeInsets.fromLTRB(
+                              tokens.space.s4,
+                              tokens.space.s2,
+                              tokens.space.s4,
+                              tokens.space.s5,
+                            ),
+                            itemCount: items.length,
+                            itemBuilder: (context, index) {
+                              final doc = items[index];
+                              final locked =
+                                  ref
+                                      .watch(
+                                        recordAdminLockProvider(
+                                          'document:${doc.id}',
+                                        ),
+                                      )
+                                      .valueOrNull ??
+                                  (ref.watch(driverOrganizationIdProvider) !=
+                                      null);
+                              return Padding(
+                                padding: EdgeInsets.only(
+                                  bottom: tokens.space.s3,
+                                ),
+                                child: _DocumentTile(
+                                  document: doc,
+                                  onTap: () {
+                                    final hasFile =
+                                        doc.hasLocalFile || doc.mediaId != null;
+                                    if (!hasFile &&
+                                        canCreate &&
+                                        access.canEditRecord(doc.createdBy) &&
+                                        !locked) {
+                                      context.push(
+                                        AppRoutes.documentEdit(doc.id),
+                                      );
+                                    } else {
+                                      context.push(
+                                        AppRoutes.documentView(doc.id),
+                                      );
+                                    }
+                                  },
+                                ),
+                              );
                             },
                           ),
-                        );
-                      },
-                    ),
-            ),
+                  ),
+          ),
+        ],
+      ),
     );
   }
 }
 
-class _DocumentTile extends StatelessWidget {
+class _DocumentTile extends ConsumerWidget {
   const _DocumentTile({required this.document, required this.onTap});
 
   final Document document;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final uploadError = document.localFilePath == null
+        ? null
+        : ref
+              .watch(documentUploadErrorProvider(document.localFilePath!))
+              .valueOrNull;
     final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
     final isImage =
@@ -174,6 +254,13 @@ class _DocumentTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
+                    if (!document.isSynced)
+                      Text(
+                        uploadError == 'LIMIT_EXCEEDED'
+                            ? 'Waiting for storage space'
+                            : 'Pending upload',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                     SizedBox(height: tokens.space.s1),
                     Row(
                       children: [

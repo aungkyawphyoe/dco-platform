@@ -66,7 +66,13 @@ export default function PersonalPage() {
             </Reveal>
           </div>
           <Reveal delay={220} className="flex justify-center lg:justify-end">
-            <PhoneFrame label="App preview — screenshot coming soon" float />
+            <PhoneFrame
+              src={{ dark: "/screenshots/app-garage-dark.webp", light: "/screenshots/app-garage-light.webp" }}
+              alt="AutoX personal garage with vehicle cards"
+              label="Your garage — fuel, costs and documents in one place"
+              float
+              priority
+            />
           </Reveal>
         </div>
       </section>

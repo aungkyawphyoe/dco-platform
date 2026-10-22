@@ -316,3 +316,17 @@ Rejected during grilling — do not reintroduce without a new decision:
 - Entitlements endpoint / OpenAPI: `architecture/openapi.yaml` (`/v1/me/entitlements`)
 - Sync engine: `mobile/lib/core/sync/sync_engine.dart`, `docs/mvp-as-built.md`
 - Mobile contract: `mobile/AGENTS.md`
+
+## Gift access amendment — October 2026
+
+The pricing/gift release adds time-limited personal gifts independently of paid billing. `users.plan` remains the base admin assignment; an unexpired gift overlays Free. The API resolves expiry per request, with no cleanup-job dependency and no share revocation.
+
+For gift licenses, `period_end` and `gift_end` contain the grant's end timestamp and JWT `exp` is the end timestamp in integer seconds, **without the seven-day billing grace**. Ordinary admin-assigned licenses retain their rolling TTL. The mobile verifier checks issuer and current account subject; the controller expires in-memory claims using trusted time on a deadline timer and before foreground refresh. Failed networking cannot extend expired claims. Existing clock-rollback threat-model limitations still apply.
+
+Mobile pricing/status are cached in account-scoped Drift AppMeta. Gift redemption is an online transaction with a persisted, code-hash-keyed request UUID; it does not enter the outbox. After success the app refreshes status, entitlements, session profile, and the signed license, which requeues parked writes through the existing sync mechanism. An unverified/unavailable license displays a refresh-needed state rather than claiming local access is ready.
+
+Deployment still requires `LICENSE_ED25519_KEY`/`LICENSE_KID` on the API and the matching public entry in `mobile/assets/license_keys.json`. The repository keyring is currently empty; release operators must supply their public key before distributing an app with paid/gift offline limits. No signing private key belongs in the app.
+
+### Android Play billing — 22 October 2026
+
+`play_subscriptions` stores server-verified Google lifecycle state separately from `users.plan`. The effective plan includes active/grace/canceled-unexpired Play access without clearing independent admin assignments. RTDN re-fetches Google's latest state under an account lock; hourly reconciliation backs it up. A Play-derived signed license uses `paidEnd` and expires at the earlier of the verified expiry and 24 hours from issuance, with **no additional seven-day grace**. Google-provided grace is already reflected in the verified expiry. Restore and purchase callbacks never grant local access without a verified signed license. See [release guide](../docs/google-play-subscriptions.md).

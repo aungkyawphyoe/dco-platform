@@ -12,8 +12,10 @@ void main() {
   LicenseVerifier withKeyring(List<LicenseKeyringEntry> entries) =>
       LicenseVerifier(keyring: entries, trustedNow: () async => fixedNow);
 
-  LicenseKeyringEntry entryFor(MintedLicense license, {String kid = 'test-key'}) =>
-      LicenseKeyringEntry(kid: kid, alg: 'EdDSA', x: license.x);
+  LicenseKeyringEntry entryFor(
+    MintedLicense license, {
+    String kid = 'test-key',
+  }) => LicenseKeyringEntry(kid: kid, alg: 'EdDSA', x: license.x);
 
   test('valid signature and clock window returns claims', () async {
     final minted = await mintLicense(
@@ -57,9 +59,9 @@ void main() {
   test('tampered payload without re-signing is rejected', () async {
     final minted = await mintLicense(planId: 'free', vehicleLimit: 1);
     final parts = minted.jwt.split('.');
-    final payload = jsonDecode(
-      utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
-    ) as Map<String, dynamic>;
+    final payload =
+        jsonDecode(utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))))
+            as Map<String, dynamic>;
     payload['plan_id'] = 'fleet';
     payload['vehicle_limit'] = null;
     final forged =
@@ -71,9 +73,9 @@ void main() {
     final minted = await mintLicense(kid: 'rotated-away');
     expect(await withKeyring([entryFor(minted)]).verify(minted.jwt), isNull);
     expect(
-      await withKeyring([entryFor(minted, kid: 'current-key')]).verify(
-        minted.jwt,
-      ),
+      await withKeyring([
+        entryFor(minted, kid: 'current-key'),
+      ]).verify(minted.jwt),
       isNull,
     );
   });
@@ -117,5 +119,22 @@ void main() {
     expect(await v.verify(''), isNull);
     expect(await v.verify('a.b'), isNull);
     expect(await v.verify('!!.!!.!!'), isNull);
+  });
+  test('expiry boundary is exclusive and licenses are account-bound', () async {
+    final ended = await mintLicense(
+      issuedAt: fixedNow.subtract(const Duration(days: 1)),
+      expiresAt: fixedNow,
+    );
+    expect(await withKeyring([entryFor(ended)]).verify(ended.jwt), isNull);
+    final active = await mintLicense(
+      issuedAt: fixedNow.subtract(const Duration(hours: 1)),
+      expiresAt: fixedNow.add(const Duration(days: 1)),
+    );
+    final wrongAccount = LicenseVerifier(
+      keyring: [entryFor(active)],
+      trustedNow: () async => fixedNow,
+      expectedSubject: 'another-user',
+    );
+    expect(await wrongAccount.verify(active.jwt), isNull);
   });
 }

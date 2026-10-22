@@ -272,6 +272,8 @@ Local-only (mobile, not a server table): **outbox** rows (`entity_type`, `entity
 | `profile_photo_media_id` | Nullable FK to `media_objects`. Profile photo follows existing media pipeline. |
 | `contact_phone` | Optional. Max 20 chars. Free-form text. |
 | `address` | Optional. Max 500 chars. Free-form text. |
+| `email_reminders_enabled` | Boolean, default `false`. Only meaningful when the account has a verified email. |
+| `email_reminder_lead_days` | Integer 7–60, default 30. Days before `plan_items.next_due_on` for the upcoming email. |
 
 ### vehicles
 
@@ -323,6 +325,7 @@ Schema detail, access matrix, and query patterns: [`architecture/data-model-vehi
 - Two ways in: `POST /v1/vehicles/:id/shares` with `method: code_qr` (8-char code, 7-day expiry, stored on `vehicle_share_invitations.share_code`) or `method: email` (random token, 7-day expiry, emailed link).
 - `vehicle_share_invitations` is the invite ledger; `vehicle_shares` is the access ledger. Both are needed because a code/QR invite has no addressee.
 - `users.family_id` was dropped in `backend/drizzle/0008_vehicle_sharing.sql`, which also converts legacy `vehicle_grants` and `family_vehicles` rows into `vehicle_shares`.
+- License expiry is optional; missing expiry carries no validity status.
 - `driving_licenses` is a **standalone** per-user module, unrelated to sharing; it stays even though the family tables were removed.
 
 ### change_log
@@ -331,6 +334,18 @@ Schema detail, access matrix, and query patterns: [`architecture/data-model-vehi
 - Entity types: `user`, `vehicle`, `plan_item`, `service_record`, `document`, `expense`, `notification`, `media`, `part`, `fuel_type`, `fuel_log`, `vehicle_share`, `driving_license`. Vehicle rows and their history are fanned out to the vehicle's **change audience** — the owner plus every user holding an active share.
 - Duplicate create with the same client UUID → idempotent success.
 - Archive vs later edit: **archive wins**.
+
+### reminder_email_deliveries
+
+Server-side dedupe/audit ledger for opt-in maintenance emails (`backend/drizzle/0024_reminder_emails.sql`). Not synced to mobile and not in `change_log`.
+
+| Field | Rule |
+|-------|------|
+| `plan_item_id`, `cycle_key`, `kind` | Unique together. `cycle_key` = `next_due_on` + `\|` + `next_due_mileage`; `kind` = `upcoming` \| `due`. A new cycle (service logged or due values edited) permits new rows. |
+| `user_id`, `vehicle_id` | Owner/vehicle at send time (FKs). |
+| `recipient` | Email address used for the attempt. |
+| `attempts`, `last_attempt_at`, `last_error` | Retry bookkeeping (1 h backoff, max 3 attempts). |
+| `sent_at` | Set on success; a non-null value permanently suppresses that cycle + kind. |
 
 ### partners / audit_events
 
@@ -426,3 +441,32 @@ Do not add Autozis tables (`trips`, `policies`, `notes`, `expense_types`) to thi
 `users.plan` is `free` / `lite` / `standard` / `fleet`. `vehicle_limit` on `GET /v1/me` is advisory (free 1, lite 3, standard 10, null = unlimited); enforcement lands with the server limit checks (`architecture/feature-gating.md` PR3).
 
 Plan limits are enforced per owner, not per vehicle alone: `checkShareLimits` refuses a share when the owner already holds `shareLimits[plan]` active shares on that vehicle, or that many across all vehicles. The limits live in one place — `backend/src/lib/plans.ts`, mirrored by the `plans` table — so there is nothing to keep in step.
+
+## Document storage ownership (migration 0023)
+
+`media_objects.vehicle_id` scopes vehicle uploads. `owner_org_id` selects the fleet storage pool; when null, `user_id` selects the personal pool. For organization uploads, `user_id` retains the uploader identity. Vehicle scope is immutable through upload retries. Existing document/service/expense references are backfilled during migration.
+
+Storage usage sums stored primary-file bytes, excluding `vehicle_photo` and `profile_photo`. Upload admission locks the owning user or organization row until the direct upload and media-row insert complete; retries reuse the media UUID. Current direct uploads do not issue presigned upload reservations.
+
+`media_cleanup` holds media IDs awaiting object deletion. Document removal schedules cleanup; failed deletion keeps the media row charged. Storage refresh retries scoped cleanup, deleting the usage row only after object deletion succeeds. This queue is separate from user-visible Trash, which is not supported.
+
+Full attachment-link and replacement lifecycle implementation remains tracked in [Document storage implementation](../product/frd/document-storage-implementation.md).
+
+
+## Reusable document links (migration 0024)
+
+`document_links` associates an ordinary document with a service record or fuel log. Exactly one target is required per row; duplicate document/target pairs are prohibited. Both sides use cascading foreign keys: deleting a log removes only its links, while deleting a document removes all its links. Stored bytes remain on the document's single media object.
+
+Document API/sync payloads include `links: [{kind, record_id}]`. Omitted links preserve existing associations; an explicit empty array unlinks all targets after permission checks. Cross-vehicle links are rejected. Organization link changes feed the existing organization change stream. Legacy service receipts are attached once during migration, without copying bytes.
+
+Mobile schema 24 persists the link list as JSON on its document rows. Saving a service/fuel form and its document/outbox writes uses one local transaction. Deleting a log removes its cached and queued link references, preserving document rows and local files.
+
+## Subscription gifts — October 2026
+
+`promotions` stores creator, name, code kind (`single_use`/`shared`), Lite/Standard tier, duration in days, UTC redemption deadline, capacity, and enabled state. Creation fixes those terms; disabling only prevents future redemption. `promotion_codes` stores globally unique SHA-256 hashes of normalized uppercase codes, never plaintext. Codes are returned once on creation.
+
+`gift_grants` is the durable redemption ledger: account, promotion, code, client request UUID, granted tier, start and end instants. Unique `(user_id, promotion_id)` prevents repeat participation; unique `(user_id, request_id)` supports safe retries; unique nullable `single_use_code_id` prevents a batch code being consumed twice. Account then promotion row locks serialize active-gift admission and campaign capacity. Shared codes omit `single_use_code_id`.
+
+`users.plan` remains the admin-assigned base plan. A live gift overlays Free only; a non-Free admin assignment takes precedence. Expiry never updates `users.plan`, deletes records, or revokes shares, and needs no scheduled job. Vehicle creation, new sharing, storage admission, `/me`, entitlement snapshots, and license issuance resolve effective grants at request time. A remaining live gift can resume if an admin independently resets the base plan to Free; promotion disable is not revocation.
+
+See [Mobile pricing and promotions](../product/frd/mobile-pricing-promotions.md) for eligibility and lifecycle rules.

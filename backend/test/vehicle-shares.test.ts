@@ -596,6 +596,11 @@ describe("vehicle share sync propagation", () => {
     expect((await app.inject({
       method: "POST", url: `/v1/vehicles/${vehicleId}/documents`, headers: auth(contributor.token),
       payload: { id: contributorDocumentId, name: "Towing receipt", category: "receipt" },
+    })).statusCode).toBe(403);
+    // Documents are read-only for personal share recipients, even contributors.
+    expect((await app.inject({
+      method: "POST", url: `/v1/vehicles/${vehicleId}/documents`, headers: auth(owner.token),
+      payload: { id: contributorDocumentId, name: "Towing receipt", category: "receipt" },
     })).statusCode).toBe(201);
 
     // ── Contributor: never manages the maintenance plan or the vehicle ──

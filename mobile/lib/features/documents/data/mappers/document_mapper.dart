@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import '../../../../core/database/app_database.dart';
@@ -10,6 +11,12 @@ Document documentFromDrift(DocumentRecord row) {
     name: row.name,
     category: DocumentCategory.fromString(row.category),
     notes: row.notes,
+    links: (jsonDecode(row.linksJson) as List)
+        .map(
+          (item) =>
+              DocumentLink.fromJson(Map<String, dynamic>.from(item as Map)),
+        )
+        .toList(),
     expiresOn: row.expiresOn,
     localFilePath: row.localFilePath,
     mediaId: row.mediaId,
@@ -26,6 +33,9 @@ DocumentRecordsCompanion documentToCompanion(Document doc) {
     name: doc.name,
     category: doc.category.storage,
     notes: Value(doc.notes),
+    linksJson: Value(
+      jsonEncode(doc.links.map((link) => link.toJson()).toList()),
+    ),
     expiresOn: Value(doc.expiresOn),
     localFilePath: Value(doc.localFilePath),
     mediaId: Value(doc.mediaId),

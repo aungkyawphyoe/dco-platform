@@ -352,10 +352,7 @@ final licenseRepositoryProvider = Provider<LicenseRepository>((ref) {
   if (config.mockAuth) {
     return MockLicenseRepository();
   }
-  return LicenseRepositoryImpl(
-    ref.watch(dioProvider),
-    ref.watch(mediaApiProvider),
-  );
+  return LicenseRepositoryImpl(ref.watch(dioProvider));
 });
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {
@@ -448,6 +445,13 @@ final currentUserIdProvider = Provider<String?>((ref) {
   final session = ref.watch(sessionControllerProvider).valueOrNull;
   return session?.user.id;
 });
+
+/// Refresh profile after an account-level mutation without coupling screens to
+/// the authentication presentation controller.
+final refreshAccountProfileProvider = Provider<Future<void> Function()>(
+  (ref) =>
+      () => ref.read(sessionControllerProvider.notifier).refreshAccount(),
+);
 
 final authUserProvider = Provider((ref) {
   final session = ref.watch(sessionControllerProvider).valueOrNull;

@@ -1,3 +1,5 @@
+import { playBillingPlugin } from "./modules/play-billing.js";
+import { promotionsPlugin } from "./modules/promotions.js";
 import { fleetAnalyticsPlugin } from "./modules/fleet-analytics.js";
 import { socialAuthPlugin } from "./modules/social-auth.js";
 import { accountSecurityPlugin } from "./modules/account-security.js";
@@ -24,6 +26,7 @@ import { syncPlugin } from "./modules/sync.js";
 import { adminPlugin } from "./modules/admin.js";
 import { docsPlugin } from "./modules/docs.js";
 import { profilePlugin } from "./modules/profile.js";
+import { reminderEmailsPlugin } from "./modules/reminder-emails.js";
 import { fleetPlugin } from "./modules/fleet.js";
 import { fleetOperationsPlugin } from "./modules/fleet-operations.js";
 import "./types.js";
@@ -66,6 +69,8 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await attachAuth(v1);
       await v1.register(healthPlugin);
       await v1.register(pricingPlugin);
+      await v1.register(promotionsPlugin);
+      await v1.register(playBillingPlugin);
       await v1.register(authPlugin);
       await v1.register(accountSecurityPlugin);
       await v1.register(socialAuthPlugin);
@@ -79,6 +84,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(syncPlugin);
       await v1.register(organizationSyncPlugin);
       await v1.register(profilePlugin);
+      await v1.register(reminderEmailsPlugin);
       await v1.register(fleetPlugin);
       await v1.register(fleetOperationsPlugin);
       await v1.register(fleetAnalyticsPlugin);

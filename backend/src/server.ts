@@ -5,6 +5,7 @@ import { createPgDb } from "./db/client.js";
 import { bootstrapAdmin } from "./lib/bootstrap.js";
 import { createMailer } from "./lib/mail.js";
 import { createMediaStore } from "./lib/media.js";
+import { startReminderEmailScheduler } from "./lib/reminder-email.js";
 import { buildApp } from "./app.js";
 process.stderr.write("[BOOT] imports done\n");
 
@@ -26,7 +27,11 @@ async function main() {
   });
   console.error("[STARTUP] Listening on port " + env.PORT);
   await app.listen({ port: env.PORT, host: "0.0.0.0" });
+  const stopReminderEmails = env.REMINDER_EMAIL_SCAN_MINUTES > 0
+    ? startReminderEmailScheduler(app, env.REMINDER_EMAIL_SCAN_MINUTES * 60_000)
+    : () => {};
   const shutdown = async () => {
+    stopReminderEmails();
     await app.close();
     await pool.end();
     process.exit(0);

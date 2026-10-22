@@ -106,6 +106,8 @@ export const users = pgTable("users", {
   plan: planEnum("plan").notNull().default("free"),
   status: accountStatusEnum("status").notNull().default("active"),
   emailVerified: boolean("email_verified").notNull().default(false),
+  emailRemindersEnabled: boolean("email_reminders_enabled").notNull().default(false),
+  emailReminderLeadDays: integer("email_reminder_lead_days").notNull().default(30),
   mustChangePassword: boolean("must_change_password").notNull().default(false),
   activeVehicleId: uuid("active_vehicle_id"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -171,6 +173,8 @@ export const deviceTokens = pgTable("device_tokens", {
 });
 
 export const mediaObjects = pgTable("media_objects", {
+  ownerOrgId: uuid("owner_org_id"),
+  vehicleId: uuid("vehicle_id").references(() => vehicles.id),
   id: uuid("id").primaryKey(),
   userId: uuid("user_id")
     .notNull()
@@ -183,6 +187,11 @@ export const mediaObjects = pgTable("media_objects", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const mediaCleanup = pgTable("media_cleanup", {
+  mediaId: uuid("media_id").primaryKey().references(() => mediaObjects.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const drivingLicenses = pgTable("driving_licenses", {
   id: uuid("id").primaryKey(),
   userId: uuid("user_id")
@@ -191,7 +200,7 @@ export const drivingLicenses = pgTable("driving_licenses", {
     .references(() => users.id, { onDelete: "cascade" }),
   licenseNumber: text("license_number"),
   issuingCountry: text("issuing_country"),
-  expiryDate: date("expiry_date").notNull(),
+  expiryDate: date("expiry_date"),
   categories: text("categories"),
   frontMediaId: uuid("front_media_id").references(() => mediaObjects.id),
   backMediaId: uuid("back_media_id").references(() => mediaObjects.id),
@@ -311,6 +320,13 @@ export const documents = pgTable("documents", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const documentLinks = pgTable("document_links", {
+  id: uuid("id").primaryKey(),
+  documentId: uuid("document_id").notNull().references(() => documents.id, { onDelete: "cascade" }),
+  serviceRecordId: uuid("service_record_id").references(() => serviceRecords.id, { onDelete: "cascade" }),
+  fuelLogId: uuid("fuel_log_id").references(() => fuelLogs.id, { onDelete: "cascade" }),
+});
+
 export const expenses = pgTable("expenses", {
   sourceKind: text("source_kind"),
   sourceId: uuid("source_id"),
@@ -352,6 +368,31 @@ export const notificationFeed = pgTable("notification_feed", {
   dueReason: dueReasonEnum("due_reason"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+export const reminderEmailDeliveries = pgTable("reminder_email_deliveries", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id")
+    .notNull()
+    .references(() => vehicles.id, { onDelete: "cascade" }),
+  planItemId: uuid("plan_item_id")
+    .notNull()
+    .references(() => planItems.id, { onDelete: "cascade" }),
+  cycleKey: text("cycle_key").notNull(),
+  kind: text("kind").$type<"upcoming" | "due">().notNull(),
+  recipient: text("recipient").notNull(),
+  attempts: integer("attempts").notNull().default(0),
+  lastAttemptAt: timestamp("last_attempt_at", { withTimezone: true }),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => ({
+  cycleUnique: uniqueIndex("reminder_email_deliveries_cycle_unique")
+    .on(table.planItemId, table.cycleKey, table.kind),
+  userIndex: index("reminder_email_deliveries_user_idx").on(table.userId),
+}));
 
 export const changeLog = pgTable("change_log", {
   seq: bigint("seq", { mode: "number" }).primaryKey().generatedAlwaysAsIdentity(),
@@ -694,3 +735,52 @@ export const organizationReviews = pgTable("organization_reviews", {
   reviewerNote: text("reviewer_note"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
+
+// Gift grants overlay the admin-assigned users.plan; expiry never mutates it.
+export const promotions = pgTable("promotions", {
+  id: uuid("id").primaryKey(),
+  name: text("name").notNull(),
+  kind: text("kind").notNull(),
+  plan: planEnum("plan").notNull(),
+  durationDays: integer("duration_days").notNull(),
+  redeemBy: timestamp("redeem_by", { withTimezone: true }).notNull(),
+  capacity: integer("capacity").notNull(),
+  enabled: boolean("enabled").notNull().default(true),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const promotionCodes = pgTable("promotion_codes", {
+  id: uuid("id").primaryKey(),
+  promotionId: uuid("promotion_id").notNull().references(() => promotions.id),
+  codeHash: text("code_hash").notNull().unique(),
+});
+export const giftGrants = pgTable("gift_grants", {
+  id: uuid("id").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  promotionId: uuid("promotion_id").notNull().references(() => promotions.id),
+  codeId: uuid("code_id").notNull().references(() => promotionCodes.id),
+  requestId: uuid("request_id").notNull(),
+  singleUseCodeId: uuid("single_use_code_id").unique().references(() => promotionCodes.id),
+  plan: planEnum("plan").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+}, (t) => ({
+  promotionAccount: unique().on(t.userId, t.promotionId),
+  requestAccount: unique().on(t.userId, t.requestId),
+  userExpiry: index("gift_grants_user_expiry_idx").on(t.userId, t.endsAt),
+  codeIndex: index("gift_grants_code_idx").on(t.codeId),
+}));
+
+// Play owns lifecycle; never overwrite the independent admin plan.
+export const playSubscriptions = pgTable("play_subscriptions", {
+  purchaseToken: text("purchase_token").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  productId: text("product_id").notNull(),
+  basePlanId: text("base_plan_id").notNull(),
+  plan: planEnum("plan").notNull(),
+  state: text("state").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  autoRenewing: boolean("auto_renewing").notNull().default(false),
+  acknowledged: boolean("acknowledged").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, t => ({ userIndex: index("play_subscriptions_user_idx").on(t.userId) }));

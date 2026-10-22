@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { VehicleDocuments } from "@/components/vehicles/vehicle-documents";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Card } from "@dco/ui/components/card";
@@ -809,6 +810,7 @@ export default function VehicleDetailPage() {
       </header>
 
       <VehicleDataPlate vehicle={vehicle} />
+      {orgId && role === "org_admin" && <VehicleDocuments key={`${orgId}:${vehicle.id}`} orgId={orgId} vehicleId={vehicle.id} />}
 
       {showSetup ? (
         <section className="rounded-lg border border-line-strong bg-card p-5 sm:p-6">

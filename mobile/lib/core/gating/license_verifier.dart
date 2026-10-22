@@ -11,7 +11,13 @@ import 'license_models.dart';
 /// `iat`) returns `null` — the caller evaluates as Free. Never throws,
 /// never blocks app start (decisions 10, 11).
 class LicenseVerifier {
-  LicenseVerifier({required this.keyring, required this.trustedNow});
+  LicenseVerifier({
+    required this.keyring,
+    required this.trustedNow,
+    this.expectedSubject,
+  });
+
+  final String? expectedSubject;
 
   static const futureTolerance = Duration(minutes: 5);
 
@@ -63,7 +69,11 @@ class LicenseVerifier {
     final issuedAt = _epoch(payload['iat']);
     final expiresAt = _epoch(payload['exp']);
     if (issuedAt == null || expiresAt == null) return null;
-    if (now.isAfter(expiresAt)) return null;
+    if (!now.isBefore(expiresAt)) return null;
+    if (payload['iss'] != 'dco') return null;
+    if (expectedSubject != null && payload['sub'] != expectedSubject) {
+      return null;
+    }
     if (issuedAt.isAfter(now.add(futureTolerance))) return null;
 
     try {

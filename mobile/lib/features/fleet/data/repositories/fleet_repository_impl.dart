@@ -346,8 +346,9 @@ class FleetRepositoryImpl implements FleetRepository {
     final key = '$_cachePrefix.$name';
     await _db
         .into(_db.appMeta)
-        .insertOnConflictUpdate(
+        .insert(
           AppMetaCompanion(key: drift.Value(key), value: drift.Value(value)),
+          mode: drift.InsertMode.insertOrReplace,
         );
   }
 

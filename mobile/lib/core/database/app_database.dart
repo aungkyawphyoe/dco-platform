@@ -30,18 +30,32 @@ part 'app_database.g.dart';
   ],
 )
 class AppDatabase extends _$AppDatabase {
+  /// The app intentionally keeps more than one database open at once: the
+  /// personal `dco_owner` database plus one org-scoped database per driver
+  /// account (`dco_org_<user>_<org>`, see `organizationDatabaseProvider`).
+  /// Each instance passes its own executor — either an injected test
+  /// executor or [driftDatabase] with a distinct name — so no two instances
+  /// ever share a QueryExecutor. Drift's warning is keyed on the class, not
+  /// the executor, so it would fire on every driver login; opt out here.
   AppDatabase([QueryExecutor? executor])
-    : super(executor ?? driftDatabase(name: 'dco_owner'));
+    : super(executor ?? driftDatabase(name: 'dco_owner')) {
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  }
 
-  AppDatabase.scoped(String name) : super(driftDatabase(name: name));
+  AppDatabase.scoped(String name) : super(driftDatabase(name: name)) {
+    driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  }
 
   @override
-  int get schemaVersion => 23;
+  int get schemaVersion => 24;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
+      if (from >= 12 && from < 24) {
+        await migrator.addColumn(documentRecords, documentRecords.linksJson);
+      }
       if (from < 2) {
         await migrator.createTable(vehicleRecords);
         await migrator.createTable(userProfiles);

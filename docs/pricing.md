@@ -14,7 +14,7 @@
 | **Free** | 1 | 1 | 50 MB | Base | 0 | 0 | 0 | 0 |
 | **Lite** | 3 | 3 | 150 MB | Higher | 3,000 | $1.00 | 30,000 | $10.00 |
 | **Standard** | 10 | Unlimited | 500 MB | Highest | 9,000 | $2.99 | 90,000 | $29.99 |
-| **Fleet/Pro** | Unlimited | Unlimited | 5 GB+ | Unlimited | 70,000 | $14.99 | 700,000 | $149.99 |
+| **Fleet/Pro** | Unlimited | Unlimited | 5 GB | Unlimited | 70,000 | $14.99 | 700,000 | $149.99 |
 
 **Annual Discount**: 2 months free (10× monthly price)
 
@@ -34,7 +34,7 @@
 |---------|------|------|----------|-----------|
 | Maintenance Tracker | ✅ | ✅ | ✅ | ✅ |
 | Custom Maintenance Plan | ✅ | ✅ | ✅ | ✅ |
-| Reminders (Date/Mileage/Interval) | ✅ | ✅ | ✅ | ✅ |
+| Reminders (Date/Mileage) | ✅ | ✅ | ✅ | ✅ |
 
 ### Costs & Records
 | Feature | Free | Lite | Standard | Fleet/Pro |
@@ -82,7 +82,7 @@
 |--------|------|------|----------|-----------|
 | **Vehicles** | 1 | 3 | 10 | Unlimited |
 | **Sharing Invites** | 1 | 3 | Unlimited | Unlimited |
-| **Storage** | 50 MB | 150 MB | 500 MB | 5 GB+ |
+| **Storage** | 50 MB | 150 MB | 500 MB | 5 GB |
 | **AI Assistant** | Base | Higher | Highest | Unlimited |
 | **Multi-Vehicle** | ❌ | ✅ | ✅ | ✅ |
 | **Vehicle Sharing** | 1 | 3 | Unlimited | Unlimited |
@@ -101,7 +101,17 @@
 ### Hard Limits (Block + Upsell)
 - **Vehicles**: Hard block at limit, show upgrade prompt
 - **Sharing Invites**: Hard block at limit, show upgrade prompt
-- **Storage**: Hard block on upload when quota exceeded
+- **Storage**: Block uploads that would exceed the account or organization allowance. Keep existing files readable/downloadable, including after a downgrade. Permit deletion and storage-reducing replacements. Service/fuel logs can still be saved without successful attachment uploads.
+
+### Document Storage Policy — approved 20 October 2026
+
+Personal accounts share one storage pool across their vehicle documents, service/fuel attachments, and personal driving-license images. Fleet vehicle files consume the organization's pool regardless of uploader and remain organization-owned when the uploader leaves. Personal subscriptions do not increase fleet storage.
+
+Count actual stored primary-file bytes after image compression, once even when linked to multiple records. Do not charge for generated thumbnails. Fleet includes 5 GB; storage add-ons are deferred. There is no document-count gate.
+
+Accept images and PDFs with a 15 MB per-file limit after compression. Preserve offline attachments rejected for quota and show a waiting-for-space state. Release storage after successful deletion. Full storage presents role-appropriate actions: personal owners can manage storage or upgrade where available; fleet admins can manage storage; drivers contact their fleet admin. Do not advertise unavailable upgrades or storage add-ons.
+
+The complete ownership, permission, lifecycle, and acceptance requirements are in [Documents and Storage](../product/frd/documents.md). These are approved requirements; implementation completion must be validated separately.
 
 ### Enforcement Layers
 1. **JWT (Passport)** — Fast gatekeeper with plan claims (15min TTL)
@@ -115,6 +125,12 @@
 - Owner revokes share → slot returned to owner's quota
 
 ---
+
+## Gift subscriptions — implemented October 2026
+
+Mobile personal accounts can view Free/Lite/Standard pricing and redeem time-limited gifts. AutoX Admin creates shared campaign codes or single-use batches. Only verified Free accounts are eligible, one active gift at a time and one redemption per promotion. Gifts expire without renewal or charges; existing records and active shares remain available. See [the feature contract](../product/frd/mobile-pricing-promotions.md).
+
+Android Play checkout is implemented behind configuration as of 22 October 2026; see [Google Play setup](google-play-subscriptions.md). Play-localized prices and renewal policies apply to Android subscriptions. The broader billing policies below remain future design where they differ from that implementation; gifts never auto-renew.
 
 ## Payment & Billing
 
@@ -251,7 +267,8 @@ the pricing fields live in `details`.
 | EV Charging Tracking | ✅ | Done |
 | Maintenance Tracker | ✅ | Done |
 | Custom Maintenance Plan | ✅ | Done |
-| Reminders (Date/Mileage/Interval) | ✅ | Done |
+| Reminders (Date/Mileage) | ✅ | Done |
+| Email Reminders | ✅ | Done (opt-in, maintenance plan items) |
 | Vehicle Expense Tracker | ✅ | Done |
 | Insurance Tracker | ❌ | Planned |
 | Digital Vehicle Logbook | ✅ | Done |

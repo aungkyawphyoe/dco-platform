@@ -1,3 +1,4 @@
+import { effectiveSubscription } from "../lib/gifts.js";
 import { requireVerifiedForSharing } from "./account-security.js";
 import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
@@ -78,7 +79,7 @@ async function inviterLabel(db: Db, userId: string): Promise<string> {
 }
 
 async function checkShareLimits(db: Db, ownerId: string, vehicleId: string): Promise<void> {
-  const [owner] = await db.select({ plan: users.plan }).from(users).where(eq(users.id, ownerId)).limit(1);
+  const owner = await effectiveSubscription(db, ownerId);
   const plan = owner?.plan ?? "free";
   const limits = shareLimits(plan);
 
@@ -210,7 +211,7 @@ export async function seedVehicleHistory(db: Db, vehicleId: string, targetUserId
   for (const row of fuelRows) await record("fuel_log", row.id, publicFuelLog(row));
 
   const docRows = await db.select().from(documents).where(eq(documents.vehicleId, vehicleId));
-  for (const row of docRows) await record("document", row.id, publicDoc(row));
+  for (const row of docRows) await record("document", row.id, await publicDoc(db, row));
 
   const expenseRows = await db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
   for (const row of expenseRows) await record("expense", row.id, await publicExpense(db, row.id));
@@ -362,7 +363,7 @@ export async function getUserDetail(db: Db, userId: string, requestingUserId: st
 
   return {
     ...publicUser(user),
-    driving_license: license ? publicDrivingLicense(license) : null,
+    driving_license: requestingUserId === userId && license ? publicDrivingLicense(license) : null,
     owned_vehicles: ownedVehicles.map((v) => publicVehicle(v)),
     shared_vehicles: sharedWithMe.map((r) => ({
       ...publicVehicle(r.vehicle),
@@ -550,8 +551,7 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
       .from(vehicleShareInvitations)
       .where(and(eq(vehicleShareInvitations.vehicleId, vehicleId), isNull(vehicleShareInvitations.acceptedAt)));
 
-    const [owner] = await db().select().from(users).where(eq(users.id, userId)).limit(1);
-    const limits = shareLimits(owner?.plan ?? "free");
+    const limits = shareLimits((await effectiveSubscription(db(), userId)).plan);
     const [activeCount] = await db()
       .select({ count: sql`count(*)` })
       .from(vehicleShares)

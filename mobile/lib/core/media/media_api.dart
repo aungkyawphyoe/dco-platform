@@ -32,7 +32,9 @@ class MediaObject {
       contentType: json['content_type'] as String? ?? '',
       byteSize: json['byte_size'] as int? ?? 0,
       downloadUrl: json['download_url'] as String?,
-      expiresAt: json['expires_at'] is String ? DateTime.parse(json['expires_at'] as String) : null,
+      expiresAt: json['expires_at'] is String
+          ? DateTime.parse(json['expires_at'] as String)
+          : null,
     );
   }
 
@@ -50,6 +52,7 @@ abstract class MediaApi {
     required String id,
     required File file,
     required MediaPurpose purpose,
+    String? vehicleId,
   });
 
   Future<MediaObject> get(String mediaId);
@@ -65,6 +68,7 @@ class DioMediaApi implements MediaApi {
     required String id,
     required File file,
     required MediaPurpose purpose,
+    String? vehicleId,
   }) async {
     final size = file.lengthSync();
     if (size > MediaApi.maxBytes) {
@@ -77,9 +81,13 @@ class DioMediaApi implements MediaApi {
       final form = FormData.fromMap({
         'id': id,
         'purpose': purpose.storage,
+        'vehicle_id': ?vehicleId,
         'file': await MultipartFile.fromFile(file.path),
       });
-      final response = await _dio.post<Map<String, dynamic>>('/media', data: form);
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/media',
+        data: form,
+      );
       return MediaObject.fromJson(response.data!);
     } on DioException catch (error) {
       throw mapDioError(error);

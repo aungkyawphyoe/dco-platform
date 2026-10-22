@@ -7,7 +7,7 @@ import { shareLimits } from "./plans.js";
 
 export async function changeUserPlan(db: Db, userId: string, nextPlan: Plan) {
   return db.transaction(async (tx) => {
-    const [user] = await tx.select().from(users).where(eq(users.id, userId)).limit(1);
+    const [user] = await tx.select().from(users).where(eq(users.id, userId)).limit(1).for("update");
     if (!user) throw new AppError(404, "not_found", "User not found");
 
     const target = shareLimits(nextPlan);

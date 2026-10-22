@@ -557,20 +557,47 @@ class _NextMaintenanceCard extends StatelessWidget {
         color: tokens.background.card,
         borderRadius: BorderRadius.circular(tokens.radius.lg),
         child: Padding(
-          padding: EdgeInsets.all(tokens.space.s4),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: EdgeInsets.all(tokens.space.s3),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            spacing: tokens.space.s1,
             children: [
-              Text(item!.name, style: Theme.of(context).textTheme.titleMedium),
-              SizedBox(height: tokens.space.s2),
-              Text(
-                _dueCopy(item!, vehicle, lengthUnit, s, thresholds),
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(color: dueColor),
+              Expanded(
+                flex: 3,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item!.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    SizedBox(height: tokens.space.s2),
+                    Text(
+                      _dueCopy(item!, vehicle, lengthUnit, s, thresholds),
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodySmall?.copyWith(color: dueColor),
+                    ),
+                  ],
+                ),
               ),
-              SizedBox(height: tokens.space.s4),
-              DcoButton(label: s.dashboardLogService, onPressed: onLogService),
+
+              Expanded(
+                flex: 1,
+                child: IconButton(
+                  onPressed: onLogService,
+                  icon: const Icon(Icons.car_repair),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: tokens.button.primary.background,
+                    foregroundColor: tokens.text.onAccent,
+                    padding: EdgeInsets.zero,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(tokens.radius.full),
+                    ),
+                  ),
+                ),
+              ),
             ],
           ),
         ),

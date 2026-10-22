@@ -38,6 +38,7 @@ Placeholders only. Store in Key Vault (Azure) or a local ignored `.env` (`chmod 
 | `MAIL_PROVIDER` | API | `stdout` (local) or `acs` (Azure Communication Services Email). |
 | `MAIL_API_KEY` | API | ACS connection string or key when `MAIL_PROVIDER=acs`. |
 | `MAIL_FROM` | API | e.g. `noreply@<domain>` |
+| `REMINDER_EMAIL_SCAN_MINUTES` | API | Maintenance email reminder scan interval (default `15`; `0` disables). Not a secret. |
 | `MEDIA_DRIVER` | API | `local` on a laptop; `azure_blob` on Azure. |
 | `AZURE_STORAGE_CONNECTION_STRING` | API | When Blob is on. |
 | `AZURE_BLOB_CONTAINER` | API | Separate containers per env. |
@@ -88,6 +89,8 @@ Local dev may use generated secrets in an ignored `.env`. Prod keys are generate
 
 MVP needs verification and password-reset mail (`product/frd/auth.md`). Provider: **stdout** locally; **Azure Communication Services Email** on Azure.
 
+Production also sends opt-in maintenance reminder emails (`product/frd/notifications.md`), same provider and from-address. The scan runs inside the API process on `REMINDER_EMAIL_SCAN_MINUTES`. The delivery unique index plus a conditional claim keep concurrent replicas from double-sending the same cycle; a crash after the provider accepts an email but before `sent_at` is recorded is the only duplicate window.
+
 ---
 
 ## Media bucket
@@ -123,3 +126,7 @@ Local: `backend/.env` + Docker Compose Postgres. See `docs/adr/azure-hosting.md`
 - [ ] Mail from-address verified at the provider
 - [ ] Blob container not public-listable
 - [ ] CORS locked to the admin origin
+
+## Google Play Billing
+
+See [setup and release guide](google-play-subscriptions.md). Backend-only secrets: `PLAY_SERVICE_ACCOUNT_JSON` and existing `LICENSE_ED25519_KEY`. Nonsecret settings: `PLAY_BILLING_ENABLED` (default off), `PLAY_PACKAGE_NAME`, `PLAY_RTDN_AUDIENCE`, `PLAY_RTDN_SERVICE_ACCOUNT`, `LICENSE_KID`. Flutter bundles only public license keys; never package Google service credentials. Schedule the reconciliation command hourly with the backend environment. Android upload signing lives in ignored `mobile/android/key.properties` and an external private keystore.

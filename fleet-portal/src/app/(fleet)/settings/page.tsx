@@ -85,7 +85,7 @@ export default function SettingsPage() {
             <p className="text-sm text-ink">
               Current threshold:{" "}
               <span className="font-mono text-ink">
-                {lemons ? `${lemons.threshold_cost_per_km.toFixed(3)} €/km` : "—"}
+                {lemons ? `${lemons.threshold_cost_per_km.toFixed(3)} MMK/km` : "—"}
               </span>
             </p>
             <p className="mt-1 text-xs text-ink-caption">
@@ -98,13 +98,13 @@ export default function SettingsPage() {
                   label="Mode"
                   options={[
                     { value: "multiplier", label: "Multiplier of fleet average" },
-                    { value: "absolute", label: "Absolute €/km" },
+                    { value: "absolute", label: "Absolute MMK/km" },
                   ]}
                   value={mode}
                   onChange={(v) => setMode(v as "multiplier" | "absolute")}
                 />
                 <Input
-                  label={mode === "multiplier" ? "Multiplier" : "Cost per km (€)"}
+                  label={mode === "multiplier" ? "Multiplier" : "Cost per km (MMK)"}
                   type="number"
                   step={mode === "multiplier" ? "0.1" : "0.001"}
                   min={mode === "multiplier" ? 1 : 0}

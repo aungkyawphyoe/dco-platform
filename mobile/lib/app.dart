@@ -16,6 +16,7 @@ import 'features/auth/presentation/session_controller.dart';
 import 'features/garage/providers.dart';
 import 'features/fleet/providers.dart';
 import 'features/notifications/presentation/reminder_sync_controller.dart';
+import 'features/pricing/billing/providers.dart';
 import 'features/settings/domain/entities/user_preferences.dart';
 import 'features/settings/providers.dart';
 import 'generated/app_localizations.dart';
@@ -90,6 +91,7 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       unawaited(_refreshLicenseIfStale());
+      unawaited(ref.read(playBillingProvider.notifier).reload());
     }
   }
 
@@ -140,6 +142,7 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
     // interactive check reads a settled snapshot instead of racing
     // hydration (§8.1).
     ref.watch(featureGateProvider);
+    ref.watch(playBillingProvider);
 
     ref.listen(sessionControllerProvider, (previous, next) {
       final userId = next.valueOrNull?.user.id;
@@ -179,6 +182,9 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
     ref.listen(connectivityProvider, (previous, next) {
       final regained =
           !_isOnline(previous?.valueOrNull) && _isOnline(next.valueOrNull);
+      if (regained) {
+        unawaited(ref.read(playBillingProvider.notifier).reload());
+      }
       if (regained && ref.read(autoSyncProvider)) {
         ref.read(syncEngineProvider).requestSync();
       }

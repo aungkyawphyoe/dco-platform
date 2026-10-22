@@ -1,3 +1,5 @@
+import 'package:dco_mobile/features/documents/presentation/widgets/log_attachments.dart';
+import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
@@ -70,6 +72,17 @@ class FuelLogForm extends ConsumerStatefulWidget {
 }
 
 class _FuelLogFormState extends ConsumerState<FuelLogForm> {
+  final _attachments = GlobalKey<LogAttachmentsState>();
+  bool _allowPop = false;
+  Future<void> _cancelAttachments() async {
+    if (await _attachments.currentState?.confirmDiscard() ?? true) {
+      if (!mounted) return;
+      setState(() => _allowPop = true);
+      await WidgetsBinding.instance.endOfFrame;
+      if (mounted) context.pop();
+    }
+  }
+
   final _date = TextEditingController();
   final _fuelTypeLabel = TextEditingController();
   final _amount = TextEditingController();
@@ -202,27 +215,38 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     if (!_canWrite()) return;
     setState(() => _saving = true);
     try {
-      final repo = ref.read(fuelRepositoryProvider);
-      if (widget.isEditing) {
-        await repo.updateLog(
-          userId: currentUserId,
-          logId: widget.logId!,
-          kind: widget.kind,
-          draft: draft,
-        );
-        ref.read(analyticsProvider).track(AnalyticsEvent.fuelLogUpdated);
-      } else {
-        await repo.addLog(
-          userId: currentUserId,
-          vehicleId: vehicle.id,
-          kind: widget.kind,
-          draft: draft,
-        );
-        ref.read(analyticsProvider).track(AnalyticsEvent.fuelLogAdded);
-      }
+      await ref.read(appDatabaseProvider).transaction(() async {
+        final repo = ref.read(fuelRepositoryProvider);
+        final log = widget.isEditing
+            ? await repo.updateLog(
+                userId: currentUserId,
+                logId: widget.logId!,
+                kind: widget.kind,
+                draft: draft,
+              )
+            : await repo.addLog(
+                userId: currentUserId,
+                vehicleId: vehicle.id,
+                kind: widget.kind,
+                draft: draft,
+              );
+        await _attachments.currentState?.save(currentUserId, log.id);
+      });
+      _attachments.currentState?.markSaved();
+      ref
+          .read(analyticsProvider)
+          .track(
+            widget.isEditing
+                ? AnalyticsEvent.fuelLogUpdated
+                : AnalyticsEvent.fuelLogAdded,
+          );
+      if (mounted) setState(() => _allowPop = true);
+      await WidgetsBinding.instance.endOfFrame;
       if (mounted) context.pop();
     } on FuelFailure catch (failure) {
       if (mounted) setState(() => _formError = failure.message);
+    } catch (error) {
+      if (mounted) setState(() => _formError = '$error');
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -345,182 +369,207 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
       );
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.isEditing ? widget.kind.editLabel : widget.kind.addLabel,
+    final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
+    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    return PopScope(
+      canPop: _allowPop || !(_attachments.currentState?.hasChanges ?? false),
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) _cancelAttachments();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            widget.isEditing ? widget.kind.editLabel : widget.kind.addLabel,
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => context.push(AppRoutes.fuelTypes),
+              child: Text(
+                s.fuelLogFormTypesLink,
+                style: TextStyle(color: tokens.text.link),
+              ),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => context.push(AppRoutes.fuelTypes),
-            child: Text(
-              s.fuelLogFormTypesLink,
-              style: TextStyle(color: tokens.text.link),
-            ),
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.all(tokens.space.s5),
-              children: [
-                DcoTextField(
-                  key: const Key('fuel-log-date'),
-                  label: s.fuelLogFormDate,
-                  controller: _date,
-                  readOnly: true,
-                  onTap: _pickDate,
-                  errorText: _errors['date'],
-                  suffix: Icon(
-                    Icons.calendar_today_outlined,
-                    color: tokens.icon.inactive,
-                  ),
-                ),
-                SizedBox(height: tokens.space.s4),
-                DcoTextField(
-                  key: const Key('fuel-log-type'),
-                  label: s.fuelLogFormFuelType,
-                  controller: _fuelTypeLabel,
-                  hint: types.isEmpty
-                      ? s.fuelLogFormFuelTypeHint
-                      : s.fuelLogFormSelect,
-                  readOnly: true,
-                  onTap: () => _pickFuelType(types),
-                  errorText: _errors['type'],
-                  suffix: Icon(Icons.expand_more, color: tokens.icon.inactive),
-                ),
-                SizedBox(height: tokens.space.s4),
-                if (widget.kind == FuelLogKind.refuel) ...[
-                  DropdownButtonFormField<String>(
-                    key: const Key('fuel-log-fill-status'),
-                    initialValue: _fillStatus,
-                    decoration: InputDecoration(labelText: s.fuelFillStatus),
-                    items: [
-                      DropdownMenuItem(
-                        value: 'unknown',
-                        child: Text(s.fuelFillUnknown),
-                      ),
-                      DropdownMenuItem(
-                        value: 'full',
-                        child: Text(s.fuelFillFull),
-                      ),
-                      DropdownMenuItem(
-                        value: 'partial',
-                        child: Text(s.fuelFillPartial),
-                      ),
-                    ],
-                    onChanged: canWrite
-                        ? (value) =>
-                              setState(() => _fillStatus = value ?? 'unknown')
-                        : null,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    s.fuelFillHelp,
-                    style: TextStyle(color: tokens.text.caption),
+        body: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.all(tokens.space.s5),
+                children: [
+                  DcoTextField(
+                    key: const Key('fuel-log-date'),
+                    label: s.fuelLogFormDate,
+                    controller: _date,
+                    readOnly: true,
+                    onTap: _pickDate,
+                    errorText: _errors['date'],
+                    suffix: Icon(
+                      Icons.calendar_today_outlined,
+                      color: tokens.icon.inactive,
+                    ),
                   ),
                   SizedBox(height: tokens.space.s4),
-                ],
-                DcoTextField(
-                  key: const Key('fuel-log-amount'),
-                  label: s.fuelLogFormAmount,
-                  controller: _amount,
-                  hint: widget.kind == FuelLogKind.charge ? '32' : '40',
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  textInputAction: TextInputAction.next,
-                  errorText: _errors['amount'],
-                  suffix: Padding(
-                    padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(
-                      unit,
-                      style: TextStyle(color: tokens.text.caption),
+                  DcoTextField(
+                    key: const Key('fuel-log-type'),
+                    label: s.fuelLogFormFuelType,
+                    controller: _fuelTypeLabel,
+                    hint: types.isEmpty
+                        ? s.fuelLogFormFuelTypeHint
+                        : s.fuelLogFormSelect,
+                    readOnly: true,
+                    onTap: () => _pickFuelType(types),
+                    errorText: _errors['type'],
+                    suffix: Icon(
+                      Icons.expand_more,
+                      color: tokens.icon.inactive,
                     ),
                   ),
-                  onChanged: (_) => setState(() => _errors['amount'] = null),
-                ),
-                SizedBox(height: tokens.space.s4),
-                DcoTextField(
-                  key: const Key('fuel-log-cost'),
-                  label: s.fuelLogFormCost,
-                  controller: _cost,
-                  hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
-                  keyboardType: TextInputType.numberWithOptions(
-                    decimal: !MoneyFormat.isMmk(currency),
-                  ),
-                  textInputAction: TextInputAction.next,
-                  errorText: _errors['cost'],
-                  suffix: Padding(
-                    padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(
-                      currency,
-                      style: TextStyle(color: tokens.text.caption),
-                    ),
-                  ),
-                  onChanged: (_) => setState(() => _errors['cost'] = null),
-                ),
-                SizedBox(height: tokens.space.s4),
-                DcoTextField(
-                  key: const Key('fuel-log-odometer'),
-                  label: s.fuelLogFormOdometer,
-                  controller: _odometer,
-                  hint: s.fuelLogFormOdometerHint,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  textInputAction: TextInputAction.done,
-                  errorText: _errors['odometer'],
-                  suffix: Padding(
-                    padding: const EdgeInsets.only(right: 12, top: 12),
-                    child: Text(
-                      lengthUnit.label,
-                      style: TextStyle(color: tokens.text.caption),
-                    ),
-                  ),
-                  onChanged: (_) => setState(() => _errors['odometer'] = null),
-                ),
-                if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(
-                    _formError!,
-                    style: TextStyle(color: tokens.status.dangerFg),
+                  if (widget.kind == FuelLogKind.refuel) ...[
+                    DropdownButtonFormField<String>(
+                      key: const Key('fuel-log-fill-status'),
+                      initialValue: _fillStatus,
+                      decoration: InputDecoration(labelText: s.fuelFillStatus),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'unknown',
+                          child: Text(s.fuelFillUnknown),
+                        ),
+                        DropdownMenuItem(
+                          value: 'full',
+                          child: Text(s.fuelFillFull),
+                        ),
+                        DropdownMenuItem(
+                          value: 'partial',
+                          child: Text(s.fuelFillPartial),
+                        ),
+                      ],
+                      onChanged: canWrite
+                          ? (value) =>
+                                setState(() => _fillStatus = value ?? 'unknown')
+                          : null,
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      s.fuelFillHelp,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
+                    SizedBox(height: tokens.space.s4),
+                  ],
+                  DcoTextField(
+                    key: const Key('fuel-log-amount'),
+                    label: s.fuelLogFormAmount,
+                    controller: _amount,
+                    hint: widget.kind == FuelLogKind.charge ? '32' : '40',
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    textInputAction: TextInputAction.next,
+                    errorText: _errors['amount'],
+                    suffix: Padding(
+                      padding: const EdgeInsets.only(right: 12, top: 12),
+                      child: Text(
+                        unit,
+                        style: TextStyle(color: tokens.text.caption),
+                      ),
+                    ),
+                    onChanged: (_) => setState(() => _errors['amount'] = null),
+                  ),
+                  SizedBox(height: tokens.space.s4),
+                  DcoTextField(
+                    key: const Key('fuel-log-cost'),
+                    label: s.fuelLogFormCost,
+                    controller: _cost,
+                    hint: MoneyFormat.isMmk(currency) ? '0' : '0.00',
+                    keyboardType: TextInputType.numberWithOptions(
+                      decimal: !MoneyFormat.isMmk(currency),
+                    ),
+                    textInputAction: TextInputAction.next,
+                    errorText: _errors['cost'],
+                    suffix: Padding(
+                      padding: const EdgeInsets.only(right: 12, top: 12),
+                      child: Text(
+                        currency,
+                        style: TextStyle(color: tokens.text.caption),
+                      ),
+                    ),
+                    onChanged: (_) => setState(() => _errors['cost'] = null),
+                  ),
+                  SizedBox(height: tokens.space.s4),
+                  DcoTextField(
+                    key: const Key('fuel-log-odometer'),
+                    label: s.fuelLogFormOdometer,
+                    controller: _odometer,
+                    hint: s.fuelLogFormOdometerHint,
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    textInputAction: TextInputAction.done,
+                    errorText: _errors['odometer'],
+                    suffix: Padding(
+                      padding: const EdgeInsets.only(right: 12, top: 12),
+                      child: Text(
+                        lengthUnit.label,
+                        style: TextStyle(color: tokens.text.caption),
+                      ),
+                    ),
+                    onChanged: (_) =>
+                        setState(() => _errors['odometer'] = null),
+                  ),
+                  if (vehicle != null)
+                    LogAttachments(
+                      key: _attachments,
+                      kind: 'fuel_log',
+                      category: DocumentCategory.receipt,
+                      vehicleId: vehicle.id,
+                      recordId: widget.logId,
+                      readOnly:
+                          !canWrite ||
+                          (!access.isOwner &&
+                              ref.watch(driverOrganizationIdProvider) == null),
+                      onChanged: () => setState(() {}),
+                    ),
+                  if (_formError != null) ...[
+                    SizedBox(height: tokens.space.s4),
+                    Text(
+                      _formError!,
+                      style: TextStyle(color: tokens.status.dangerFg),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.fromLTRB(
+                tokens.space.s5,
+                tokens.space.s3,
+                tokens.space.s5,
+                tokens.space.s5,
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: DcoButton(
+                      label: s.cancel,
+                      variant: DcoButtonVariant.secondary,
+                      onPressed: _cancelAttachments,
+                    ),
+                  ),
+                  SizedBox(width: tokens.space.s3),
+                  Expanded(
+                    child: DcoButton(
+                      key: const Key('fuel-log-save'),
+                      label: s.save,
+                      onPressed: canWrite ? _save : null,
+                      loading: _saving,
+                    ),
                   ),
                 ],
-              ],
+              ),
             ),
-          ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              tokens.space.s5,
-              tokens.space.s3,
-              tokens.space.s5,
-              tokens.space.s5,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DcoButton(
-                    label: s.cancel,
-                    variant: DcoButtonVariant.secondary,
-                    onPressed: () => context.pop(),
-                  ),
-                ),
-                SizedBox(width: tokens.space.s3),
-                Expanded(
-                  child: DcoButton(
-                    key: const Key('fuel-log-save'),
-                    label: s.save,
-                    onPressed: canWrite ? _save : null,
-                    loading: _saving,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

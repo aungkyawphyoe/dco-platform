@@ -122,7 +122,7 @@ Keep one `StatefulShellRoute` (or equivalent) for the four tabs. Push these on t
 - Add/Edit expense, Expense detail
 - Document list, viewer, upload
 - Maintenance Plan, Suggested items, Add item, Register Service, Service detail
-- Notification feed, Profile, Email & password, Notification prefs, Reminders (soon thresholds)
+- Notification feed, Profile, Email & password, Notification prefs, Reminders (soon thresholds + email reminders)
 - Vehicle Share Management, Shared with Me (share codes, email invites, access levels)
 - Fuel Stats, Maintenance Stats, Expense Stats (chart screens, `stats.md`)
 - Sync Status
@@ -196,3 +196,7 @@ Sidebar (Autozis-like chrome, AutoX items only):
 No owner modules (Garage, Refuel, Trips, Insurance, Documents vault).
 
 Flow: Login → Dashboard → Users (search → profile → deactivate / reactivate / reset / plan) or Partners (create/edit status) or Shared Vehicles (vehicle owner shares view).
+
+### Personal plans and gifts
+
+Settings → **Plans & subscriptions** opens `/pricing`. Vehicle/share limit dialogs and personal storage-full state expose **View plans**. The screen shows the current personal plan, gift end time, and selectable Free/Lite/Standard price comparisons (monthly/annual). **Redeem a gift code** opens the dedicated `/pricing/redeem` screen for online redemption, verification, feedback, and retry. Browsing plans never changes the subscription. Driver mode hides and route-guards this screen. Paid checkout remains unavailable. See `product/frd/mobile-pricing-promotions.md`.

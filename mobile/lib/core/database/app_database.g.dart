@@ -10503,6 +10503,18 @@ class $DocumentRecordsTable extends DocumentRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _linksJsonMeta = const VerificationMeta(
+    'linksJson',
+  );
+  @override
+  late final GeneratedColumn<String> linksJson = GeneratedColumn<String>(
+    'links_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
   static const VerificationMeta _expiresOnMeta = const VerificationMeta(
     'expiresOn',
   );
@@ -10576,6 +10588,7 @@ class $DocumentRecordsTable extends DocumentRecords
     name,
     category,
     notes,
+    linksJson,
     expiresOn,
     localFilePath,
     mediaId,
@@ -10628,6 +10641,12 @@ class $DocumentRecordsTable extends DocumentRecords
       context.handle(
         _notesMeta,
         notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('links_json')) {
+      context.handle(
+        _linksJsonMeta,
+        linksJson.isAcceptableOrUnknown(data['links_json']!, _linksJsonMeta),
       );
     }
     if (data.containsKey('expires_on')) {
@@ -10702,6 +10721,10 @@ class $DocumentRecordsTable extends DocumentRecords
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
       ),
+      linksJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}links_json'],
+      )!,
       expiresOn: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}expires_on'],
@@ -10741,6 +10764,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
   final String name;
   final String category;
   final String? notes;
+  final String linksJson;
   final DateTime? expiresOn;
   final String? localFilePath;
   final String? mediaId;
@@ -10753,6 +10777,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     required this.name,
     required this.category,
     this.notes,
+    required this.linksJson,
     this.expiresOn,
     this.localFilePath,
     this.mediaId,
@@ -10770,6 +10795,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
+    map['links_json'] = Variable<String>(linksJson);
     if (!nullToAbsent || expiresOn != null) {
       map['expires_on'] = Variable<DateTime>(expiresOn);
     }
@@ -10796,6 +10822,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
+      linksJson: Value(linksJson),
       expiresOn: expiresOn == null && nullToAbsent
           ? const Value.absent()
           : Value(expiresOn),
@@ -10824,6 +10851,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
       name: serializer.fromJson<String>(json['name']),
       category: serializer.fromJson<String>(json['category']),
       notes: serializer.fromJson<String?>(json['notes']),
+      linksJson: serializer.fromJson<String>(json['linksJson']),
       expiresOn: serializer.fromJson<DateTime?>(json['expiresOn']),
       localFilePath: serializer.fromJson<String?>(json['localFilePath']),
       mediaId: serializer.fromJson<String?>(json['mediaId']),
@@ -10841,6 +10869,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
       'name': serializer.toJson<String>(name),
       'category': serializer.toJson<String>(category),
       'notes': serializer.toJson<String?>(notes),
+      'linksJson': serializer.toJson<String>(linksJson),
       'expiresOn': serializer.toJson<DateTime?>(expiresOn),
       'localFilePath': serializer.toJson<String?>(localFilePath),
       'mediaId': serializer.toJson<String?>(mediaId),
@@ -10856,6 +10885,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     String? name,
     String? category,
     Value<String?> notes = const Value.absent(),
+    String? linksJson,
     Value<DateTime?> expiresOn = const Value.absent(),
     Value<String?> localFilePath = const Value.absent(),
     Value<String?> mediaId = const Value.absent(),
@@ -10868,6 +10898,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     name: name ?? this.name,
     category: category ?? this.category,
     notes: notes.present ? notes.value : this.notes,
+    linksJson: linksJson ?? this.linksJson,
     expiresOn: expiresOn.present ? expiresOn.value : this.expiresOn,
     localFilePath: localFilePath.present
         ? localFilePath.value
@@ -10884,6 +10915,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
       name: data.name.present ? data.name.value : this.name,
       category: data.category.present ? data.category.value : this.category,
       notes: data.notes.present ? data.notes.value : this.notes,
+      linksJson: data.linksJson.present ? data.linksJson.value : this.linksJson,
       expiresOn: data.expiresOn.present ? data.expiresOn.value : this.expiresOn,
       localFilePath: data.localFilePath.present
           ? data.localFilePath.value
@@ -10903,6 +10935,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('notes: $notes, ')
+          ..write('linksJson: $linksJson, ')
           ..write('expiresOn: $expiresOn, ')
           ..write('localFilePath: $localFilePath, ')
           ..write('mediaId: $mediaId, ')
@@ -10920,6 +10953,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
     name,
     category,
     notes,
+    linksJson,
     expiresOn,
     localFilePath,
     mediaId,
@@ -10936,6 +10970,7 @@ class DocumentRecord extends DataClass implements Insertable<DocumentRecord> {
           other.name == this.name &&
           other.category == this.category &&
           other.notes == this.notes &&
+          other.linksJson == this.linksJson &&
           other.expiresOn == this.expiresOn &&
           other.localFilePath == this.localFilePath &&
           other.mediaId == this.mediaId &&
@@ -10950,6 +10985,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
   final Value<String> name;
   final Value<String> category;
   final Value<String?> notes;
+  final Value<String> linksJson;
   final Value<DateTime?> expiresOn;
   final Value<String?> localFilePath;
   final Value<String?> mediaId;
@@ -10963,6 +10999,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     this.name = const Value.absent(),
     this.category = const Value.absent(),
     this.notes = const Value.absent(),
+    this.linksJson = const Value.absent(),
     this.expiresOn = const Value.absent(),
     this.localFilePath = const Value.absent(),
     this.mediaId = const Value.absent(),
@@ -10977,6 +11014,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     required String name,
     required String category,
     this.notes = const Value.absent(),
+    this.linksJson = const Value.absent(),
     this.expiresOn = const Value.absent(),
     this.localFilePath = const Value.absent(),
     this.mediaId = const Value.absent(),
@@ -10996,6 +11034,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     Expression<String>? name,
     Expression<String>? category,
     Expression<String>? notes,
+    Expression<String>? linksJson,
     Expression<DateTime>? expiresOn,
     Expression<String>? localFilePath,
     Expression<String>? mediaId,
@@ -11010,6 +11049,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
       if (name != null) 'name': name,
       if (category != null) 'category': category,
       if (notes != null) 'notes': notes,
+      if (linksJson != null) 'links_json': linksJson,
       if (expiresOn != null) 'expires_on': expiresOn,
       if (localFilePath != null) 'local_file_path': localFilePath,
       if (mediaId != null) 'media_id': mediaId,
@@ -11026,6 +11066,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     Value<String>? name,
     Value<String>? category,
     Value<String?>? notes,
+    Value<String>? linksJson,
     Value<DateTime?>? expiresOn,
     Value<String?>? localFilePath,
     Value<String?>? mediaId,
@@ -11040,6 +11081,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
       name: name ?? this.name,
       category: category ?? this.category,
       notes: notes ?? this.notes,
+      linksJson: linksJson ?? this.linksJson,
       expiresOn: expiresOn ?? this.expiresOn,
       localFilePath: localFilePath ?? this.localFilePath,
       mediaId: mediaId ?? this.mediaId,
@@ -11067,6 +11109,9 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
     }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
+    }
+    if (linksJson.present) {
+      map['links_json'] = Variable<String>(linksJson.value);
     }
     if (expiresOn.present) {
       map['expires_on'] = Variable<DateTime>(expiresOn.value);
@@ -11100,6 +11145,7 @@ class DocumentRecordsCompanion extends UpdateCompanion<DocumentRecord> {
           ..write('name: $name, ')
           ..write('category: $category, ')
           ..write('notes: $notes, ')
+          ..write('linksJson: $linksJson, ')
           ..write('expiresOn: $expiresOn, ')
           ..write('localFilePath: $localFilePath, ')
           ..write('mediaId: $mediaId, ')
@@ -17604,6 +17650,7 @@ typedef $$DocumentRecordsTableCreateCompanionBuilder =
       required String name,
       required String category,
       Value<String?> notes,
+      Value<String> linksJson,
       Value<DateTime?> expiresOn,
       Value<String?> localFilePath,
       Value<String?> mediaId,
@@ -17619,6 +17666,7 @@ typedef $$DocumentRecordsTableUpdateCompanionBuilder =
       Value<String> name,
       Value<String> category,
       Value<String?> notes,
+      Value<String> linksJson,
       Value<DateTime?> expiresOn,
       Value<String?> localFilePath,
       Value<String?> mediaId,
@@ -17659,6 +17707,11 @@ class $$DocumentRecordsTableFilterComposer
 
   ColumnFilters<String> get notes => $composableBuilder(
     column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get linksJson => $composableBuilder(
+    column: $table.linksJson,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17727,6 +17780,11 @@ class $$DocumentRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get linksJson => $composableBuilder(
+    column: $table.linksJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<DateTime> get expiresOn => $composableBuilder(
     column: $table.expiresOn,
     builder: (column) => ColumnOrderings(column),
@@ -17781,6 +17839,9 @@ class $$DocumentRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get linksJson =>
+      $composableBuilder(column: $table.linksJson, builder: (column) => column);
 
   GeneratedColumn<DateTime> get expiresOn =>
       $composableBuilder(column: $table.expiresOn, builder: (column) => column);
@@ -17845,6 +17906,7 @@ class $$DocumentRecordsTableTableManager
                 Value<String> name = const Value.absent(),
                 Value<String> category = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
+                Value<String> linksJson = const Value.absent(),
                 Value<DateTime?> expiresOn = const Value.absent(),
                 Value<String?> localFilePath = const Value.absent(),
                 Value<String?> mediaId = const Value.absent(),
@@ -17858,6 +17920,7 @@ class $$DocumentRecordsTableTableManager
                 name: name,
                 category: category,
                 notes: notes,
+                linksJson: linksJson,
                 expiresOn: expiresOn,
                 localFilePath: localFilePath,
                 mediaId: mediaId,
@@ -17873,6 +17936,7 @@ class $$DocumentRecordsTableTableManager
                 required String name,
                 required String category,
                 Value<String?> notes = const Value.absent(),
+                Value<String> linksJson = const Value.absent(),
                 Value<DateTime?> expiresOn = const Value.absent(),
                 Value<String?> localFilePath = const Value.absent(),
                 Value<String?> mediaId = const Value.absent(),
@@ -17886,6 +17950,7 @@ class $$DocumentRecordsTableTableManager
                 name: name,
                 category: category,
                 notes: notes,
+                linksJson: linksJson,
                 expiresOn: expiresOn,
                 localFilePath: localFilePath,
                 mediaId: mediaId,
