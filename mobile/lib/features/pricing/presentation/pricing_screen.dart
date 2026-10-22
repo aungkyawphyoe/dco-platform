@@ -1,3 +1,6 @@
+import 'package:url_launcher/url_launcher.dart';
+import '../billing/providers.dart';
+import '../billing/play_billing_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -51,6 +54,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
+    final billing = ref.watch(playBillingProvider);
     final t = context.tokens;
     final text = Theme.of(context).textTheme;
     final plans = ref.watch(pricingPlansProvider);
@@ -76,6 +80,8 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
         options.firstOrNull;
     final locale = Localizations.localeOf(context).toLanguageTag();
     final number = NumberFormat.decimalPattern(locale);
+    final offer = selected == null ? null : billing.offer(selected.id, _annual);
+    final storeBilling = billing.supported;
 
     return Scaffold(
       appBar: AppBar(
@@ -214,6 +220,8 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                 plan: selected,
                 annual: _annual,
                 isCurrent: selected.id == current,
+                storeBilling: storeBilling,
+                storePrice: offer?.price,
               ),
               SizedBox(height: t.space.s5),
               if (selected.monthly > 0) ...[
@@ -221,7 +229,10 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                 SizedBox(height: t.space.s3),
                 _BillingOption(
                   title: s.pricingMonthly,
-                  amount: '${number.format(selected.monthly)} MMK',
+                  amount: storeBilling
+                      ? billing.offer(selected.id, false)?.price ??
+                            s.playUnavailablePrice
+                      : '${number.format(selected.monthly)} MMK',
                   caption: s.pricingMonthlyPrice,
                   selected: !_annual,
                   onTap: () => setState(() => _annual = false),
@@ -229,8 +240,13 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                 SizedBox(height: t.space.s3),
                 _BillingOption(
                   title: s.pricingAnnual,
-                  amount: '${number.format(selected.annual)} MMK',
-                  caption: selected.monthly * 12 > selected.annual
+                  amount: storeBilling
+                      ? billing.offer(selected.id, true)?.price ??
+                            s.playUnavailablePrice
+                      : '${number.format(selected.annual)} MMK',
+                  caption: storeBilling
+                      ? s.pricingAnnualPrice
+                      : selected.monthly * 12 > selected.annual
                       ? s.pricingAnnualSaving(
                           number.format(
                             selected.monthly * 12 - selected.annual,
@@ -253,7 +269,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                   SizedBox(width: t.space.s2),
                   Expanded(
                     child: Text(
-                      s.pricingComingSoon,
+                      storeBilling ? s.playTerms : s.pricingComingSoon,
                       style: text.bodySmall?.copyWith(color: t.text.caption),
                     ),
                   ),
@@ -263,31 +279,131 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
           ],
         ),
       ),
-      // bottomNavigationBar: DecoratedBox(
-      //   decoration: BoxDecoration(color: t.background.primary),
-      //   child: SafeArea(
-      //     top: false,
-      //     child: Padding(
-      //       padding: EdgeInsets.fromLTRB(
-      //         t.space.s5,
-      //         t.space.s3,
-      //         t.space.s5,
-      //         t.space.s4,
-      //       ),
-      //       child: DcoButton(
-      //         label: s.pricingGiftCta,
-      //         icon: Icons.redeem_rounded,
-      //         onPressed: () async {
-      //           await context.push(AppRoutes.redeemGift);
-      //           if (mounted) _refresh();
-      //         },
-      //       ),
-      //     ),
-      //   ),
-      // ),
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            t.space.s5,
+            t.space.s2,
+            t.space.s5,
+            t.space.s3,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (storeBilling) ...[
+                if (billing.message != null)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: t.space.s2),
+                    child: Text(
+                      _billingMessage(s, billing),
+                      style: text.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                if (billing.loading) const LinearProgressIndicator(),
+                if (offer != null)
+                  Padding(
+                    padding: EdgeInsets.only(bottom: t.space.s2),
+                    child: Text(
+                      s.playCheckoutTerms(
+                        offer.price,
+                        _annual ? s.pricingAnnual : s.pricingMonthly,
+                      ),
+                      style: text.bodySmall,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                if (selected != null && selected.id != 'free')
+                  DcoButton(
+                    key: const ValueKey('play-subscribe'),
+                    label: s.playSubscribe,
+                    onPressed:
+                        !billing.busy &&
+                            !billing.loading &&
+                            billing.canPurchase &&
+                            offer != null
+                        ? () =>
+                              ref.read(playBillingProvider.notifier).buy(offer)
+                        : null,
+                  ),
+                Wrap(
+                  alignment: WrapAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: billing.busy
+                          ? null
+                          : () => ref
+                                .read(playBillingProvider.notifier)
+                                .restore(),
+                      child: Text(s.playRestore),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        final opened = await launchUrl(
+                          Uri.https(
+                            'play.google.com',
+                            '/store/account/subscriptions',
+                          ),
+                          mode: LaunchMode.externalApplication,
+                        );
+                        if (!opened && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(s.playUnavailable)),
+                          );
+                        }
+                      },
+                      child: Text(s.playManage),
+                    ),
+                    if (!billing.canPurchase)
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(playBillingProvider.notifier).reload(),
+                        child: Text(s.pricingRetry),
+                      ),
+                  ],
+                ),
+                if (!billing.canPurchase &&
+                    !billing.loading &&
+                    billing.message == null)
+                  Text(
+                    user?.emailVerified != true
+                        ? s.pricingVerify
+                        : s.playEligibility,
+                    style: text.bodySmall,
+                    textAlign: TextAlign.center,
+                  ),
+              ],
+              TextButton.icon(
+                onPressed: () async {
+                  await context.push(AppRoutes.redeemGift);
+                  if (mounted) _refresh();
+                },
+                icon: const Icon(Icons.redeem_rounded),
+                label: Text(s.pricingGiftCta),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
+
+String _billingMessage(AppLocalizations s, PlayBillingState billing) =>
+    switch (billing.message) {
+      'pending' => s.playPending,
+      'verifying' || 'restoring' => s.playVerifying,
+      'success' => s.playSuccess,
+      'canceled' => s.playCanceled,
+      'purchase_account_mismatch' => s.playAccountMismatch,
+      'restore_complete' => s.playRestoreComplete,
+      'inactive' => s.playInactive,
+      'ineligible' => s.playEligibility,
+      'license_pending' => s.pricingLicensePending,
+      'unavailable' => s.playUnavailable,
+      _ => s.playVerificationPending,
+    };
 
 class _BillingOption extends StatelessWidget {
   const _BillingOption({

@@ -1,3 +1,6 @@
+import 'package:dco_mobile/features/pricing/billing/providers.dart';
+import 'package:dco_mobile/features/pricing/billing/play_billing_controller.dart';
+import 'package:dco_mobile/features/pricing/domain/play_billing.dart';
 import 'package:dco_mobile/core/gating/license_models.dart';
 import 'package:dco_mobile/core/gating/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -82,12 +85,32 @@ class TestPricing implements PricingRepository {
       throw const RedemptionFailure('code_unavailable');
 }
 
+class TestBilling extends PlayBillingController {
+  TestBilling(bool supported)
+    : super(
+        store: null,
+        backend: null,
+        refreshEntitlements: () async => true,
+        isCurrentAccount: () => true,
+      ) {
+    state = PlayBillingState(
+      supported: supported,
+      canPurchase: supported,
+      offers: const [
+        BillingOffer(plan: 'standard', period: 'monthly', price: '\$2.99'),
+        BillingOffer(plan: 'standard', period: 'annual', price: '\$29.99'),
+      ],
+    );
+  }
+}
+
 void main() {
   Future<void> pumpPricing(
     WidgetTester tester,
     String lang, {
     bool verified = true,
     double scale = 1,
+    bool play = false,
   }) async {
     tester.view.physicalSize = const Size(375, 812);
     tester.view.devicePixelRatio = 1;
@@ -119,6 +142,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
+          playBillingProvider.overrideWith((ref) => TestBilling(play)),
           pricingRepositoryProvider.overrideWithValue(TestPricing()),
           sessionControllerProvider.overrideWith(() => TestSession(verified)),
           licenseControllerProvider.overrideWith(TestLicense.new),
@@ -143,6 +167,41 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+  }
+
+  for (final lang in ['en', 'my']) {
+    testWidgets(
+      'Play checkout uses native prices and exposes restore/manage in $lang',
+      (tester) async {
+        await pumpPricing(tester, lang, play: true, scale: 1.3);
+        final context = tester.element(find.byType(PricingScreen));
+        final s = AppLocalizations.of(context)!;
+        expect(find.text(s.playSubscribe), findsOneWidget);
+        expect(find.text(s.playRestore), findsOneWidget);
+        expect(find.text(s.playManage), findsOneWidget);
+        await tester.scrollUntilVisible(
+          find.byKey(const ValueKey('featured-price')),
+          150,
+          scrollable: find.byType(Scrollable).first,
+        );
+        expect(
+          tester
+              .widget<Text>(find.byKey(const ValueKey('featured-price')))
+              .data,
+          '\$2.99',
+        );
+        await tester.scrollUntilVisible(
+          find.text(s.pricingAnnual),
+          200,
+          scrollable: find.byType(Scrollable).first,
+        );
+        await tester.tap(find.text(s.pricingAnnual));
+        await tester.pumpAndSettle();
+        expect(find.text(s.playTerms), findsOneWidget);
+        expect(find.textContaining('MMK'), findsNothing);
+        expect(tester.takeException(), isNull);
+      },
+    );
   }
 
   for (final lang in ['en', 'my']) {
@@ -230,12 +289,17 @@ void main() {
   ) async {
     await pumpPricing(tester, 'my', scale: 1.6);
     await tester.scrollUntilVisible(
-      find.byKey(const ValueKey('plan-free')),
+      find.byKey(const ValueKey('plan-free')).hitTestable(),
       250,
       scrollable: find.byType(Scrollable).first,
     );
     await tester.tap(find.byKey(const ValueKey('plan-free')));
     await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.byKey(const ValueKey('featured-price')),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
     expect(find.byKey(const ValueKey('featured-price')), findsOneWidget);
     await tester.tap(find.text('လက်ဆောင်ကုဒ် အသုံးပြုရန်'));
     await tester.pumpAndSettle();

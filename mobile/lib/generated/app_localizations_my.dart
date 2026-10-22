@@ -4039,4 +4039,62 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get pricingBackToPlans => 'အစီအစဉ်များသို့ ပြန်သွားရန်';
+
+  @override
+  String get playUnavailablePrice => 'မရရှိနိုင်ပါ';
+
+  @override
+  String get playSubscribe => 'Google Play ဖြင့် စာရင်းသွင်းရန်';
+
+  @override
+  String get playRestore => 'ဝယ်ယူမှုများ ပြန်လည်ရယူရန်';
+
+  @override
+  String get playManage => 'စာရင်းသွင်းမှု စီမံရန်';
+
+  @override
+  String get playTerms =>
+      'သင့် Google Play အကောင့်မှ ငွေကောက်ခံပါမည်။ မပယ်ဖျက်မချင်း ကာလတစ်ခုစီတွင် ဖော်ပြထားသောဈေးနှုန်းဖြင့် အလိုအလျောက် သက်တမ်းတိုးပါမည်။ Google Play တွင် ပယ်ဖျက်နိုင်ပါသည်။ စာရင်းမသွင်းဘဲ Free ကို ဆက်သုံးနိုင်ပါသည်။';
+
+  @override
+  String get playPending =>
+      'ငွေပေးချေမှု စောင့်ဆိုင်းနေသည်။ Google Play အတည်ပြုပြီးပါက အသုံးပြုခွင့်ရပါမည်။';
+
+  @override
+  String get playVerifying => 'ဝယ်ယူမှု အတည်ပြုနေသည်…';
+
+  @override
+  String get playSuccess => 'သင့်စာရင်းသွင်းမှု အဆင်သင့်ဖြစ်ပါပြီ။';
+
+  @override
+  String get playCanceled => 'ဝယ်ယူမှု ပယ်ဖျက်ပြီးပါပြီ။ ငွေမကောက်ခံပါ။';
+
+  @override
+  String get playAccountMismatch =>
+      'ဤဝယ်ယူမှုတွင် သုံးခဲ့သော AutoX အကောင့်ဖြင့် ဝင်ပြီး ပြန်လည်ရယူပါ။';
+
+  @override
+  String get playRestoreComplete =>
+      'ပြန်လည်ရယူပြီးပါပြီ။ အသက်ဝင်သော ဝယ်ယူမှုများကို ဤအကောင့်အတွက် အတည်ပြုပါမည်။';
+
+  @override
+  String get playInactive =>
+      'ဤစာရင်းသွင်းမှု အသက်မဝင်ပါ။ Google Play တွင် စစ်ဆေးပါ။';
+
+  @override
+  String get playEligibility =>
+      'အခပေး သို့မဟုတ် လက်ဆောင်အသုံးပြုခွင့် ရှိပြီးပါက လက်ရှိစာရင်းသွင်းမှုကို စီမံပါ။ အသုံးပြုခွင့်ကုန်ဆုံးပြီးမှ စာရင်းသွင်းပါ။';
+
+  @override
+  String get playUnavailable =>
+      'Google Play ငွေပေးချေမှု မရနိုင်ပါ။ အင်တာနက် စစ်ပြီး ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get playVerificationPending =>
+      'ဝယ်ယူမှုကို အတည်မပြုနိုင်သေးပါ။ ထပ်မဝယ်ပါနှင့်။ ဝယ်ယူမှုများ ပြန်လည်ရယူရန်ကို နှိပ်ပါ။';
+
+  @override
+  String playCheckoutTerms(String price, String period) {
+    return '$price / $period။ Google Play တွင် မပယ်ဖျက်မချင်း အလိုအလျောက် သက်တမ်းတိုးပါမည်။';
+  }
 }

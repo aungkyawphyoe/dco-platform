@@ -1278,5 +1278,31 @@
         "type": "String"
       }
     }
+  },
+  "playUnavailablePrice": "Not available",
+  "playSubscribe": "Subscribe with Google Play",
+  "playRestore": "Restore purchases",
+  "playManage": "Manage subscription",
+  "playTerms": "Payment is charged to your Google Play account. Your subscription renews automatically at the displayed price each billing period until canceled. Cancel in Google Play. Free remains available without a subscription.",
+  "playPending": "Payment is pending. Access will activate after Google Play confirms it.",
+  "playVerifying": "Confirming your purchase…",
+  "playSuccess": "Your subscription is ready. Enjoy your upgraded garage.",
+  "playCanceled": "Purchase canceled. You have not been charged.",
+  "playAccountMismatch": "Sign in to the AutoX account used for this purchase, then restore again.",
+  "playRestoreComplete": "Restore finished. Any active purchases will be verified for this account.",
+  "playInactive": "This subscription is not active. Check its status in Google Play.",
+  "playEligibility": "Already have paid or gifted access? Manage your existing subscription, or wait until that access ends before subscribing.",
+  "playUnavailable": "Google Play billing is unavailable. Check your connection and try again.",
+  "playVerificationPending": "We could not confirm your purchase yet. Do not buy again. Use Restore purchases to retry.",
+  "playCheckoutTerms": "{price} / {period}. Auto-renews until canceled in Google Play.",
+  "@playCheckoutTerms": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
   }
 }

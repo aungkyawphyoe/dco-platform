@@ -4002,4 +4002,63 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get pricingBackToPlans => 'Back to plans';
+
+  @override
+  String get playUnavailablePrice => 'Not available';
+
+  @override
+  String get playSubscribe => 'Subscribe with Google Play';
+
+  @override
+  String get playRestore => 'Restore purchases';
+
+  @override
+  String get playManage => 'Manage subscription';
+
+  @override
+  String get playTerms =>
+      'Payment is charged to your Google Play account. Your subscription renews automatically at the displayed price each billing period until canceled. Cancel in Google Play. Free remains available without a subscription.';
+
+  @override
+  String get playPending =>
+      'Payment is pending. Access will activate after Google Play confirms it.';
+
+  @override
+  String get playVerifying => 'Confirming your purchase…';
+
+  @override
+  String get playSuccess =>
+      'Your subscription is ready. Enjoy your upgraded garage.';
+
+  @override
+  String get playCanceled => 'Purchase canceled. You have not been charged.';
+
+  @override
+  String get playAccountMismatch =>
+      'Sign in to the AutoX account used for this purchase, then restore again.';
+
+  @override
+  String get playRestoreComplete =>
+      'Restore finished. Any active purchases will be verified for this account.';
+
+  @override
+  String get playInactive =>
+      'This subscription is not active. Check its status in Google Play.';
+
+  @override
+  String get playEligibility =>
+      'Already have paid or gifted access? Manage your existing subscription, or wait until that access ends before subscribing.';
+
+  @override
+  String get playUnavailable =>
+      'Google Play billing is unavailable. Check your connection and try again.';
+
+  @override
+  String get playVerificationPending =>
+      'We could not confirm your purchase yet. Do not buy again. Use Restore purchases to retry.';
+
+  @override
+  String playCheckoutTerms(String price, String period) {
+    return '$price / $period. Auto-renews until canceled in Google Play.';
+  }
 }

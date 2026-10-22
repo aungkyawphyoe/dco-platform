@@ -38,12 +38,16 @@ class GiftAccess {
 }
 
 class SubscriptionStatus {
-  const SubscriptionStatus({required this.plan, this.gift});
+  const SubscriptionStatus({required this.plan, this.gift, this.play});
   final String plan;
   final GiftAccess? gift;
+  final PlaySubscription? play;
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) =>
       SubscriptionStatus(
         plan: json['plan'] as String,
+        play: json['play'] == null
+            ? null
+            : PlaySubscription.fromJson(json['play'] as Map<String, dynamic>),
         gift: json['gift'] == null
             ? null
             : GiftAccess.fromJson(json['gift'] as Map<String, dynamic>),
@@ -60,4 +64,23 @@ abstract interface class PricingRepository {
   Stream<SubscriptionStatus?> watchSubscription();
   Future<void> refresh();
   Future<GiftAccess> redeem(String code);
+}
+
+class PlaySubscription {
+  const PlaySubscription({
+    required this.productId,
+    required this.state,
+    required this.expiresAt,
+    required this.autoRenewing,
+  });
+  final String productId, state;
+  final DateTime expiresAt;
+  final bool autoRenewing;
+  factory PlaySubscription.fromJson(Map<String, dynamic> json) =>
+      PlaySubscription(
+        productId: json['product_id'] as String,
+        state: json['state'] as String,
+        expiresAt: DateTime.parse(json['expires_at'] as String),
+        autoRenewing: json['auto_renewing'] == true,
+      );
 }

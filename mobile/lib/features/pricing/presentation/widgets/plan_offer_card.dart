@@ -11,9 +11,13 @@ class PlanOfferCard extends StatelessWidget {
     required this.plan,
     required this.annual,
     required this.isCurrent,
+    this.storePrice,
+    this.storeBilling = false,
   });
   final PricingPlan plan;
   final bool annual, isCurrent;
+  final String? storePrice;
+  final bool storeBilling;
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +69,9 @@ class PlanOfferCard extends StatelessWidget {
           ),
           SizedBox(height: t.space.s5),
           Text(
-            number.format(annual && !free ? plan.annual : plan.monthly),
+            storeBilling && !free
+                ? (storePrice ?? s.playUnavailablePrice)
+                : number.format(annual && !free ? plan.annual : plan.monthly),
             key: const ValueKey('featured-price'),
             style: text.displayLarge?.copyWith(
               fontSize: 36,
@@ -77,7 +83,7 @@ class PlanOfferCard extends StatelessWidget {
           Text(
             free
                 ? s.pricingFreeForever
-                : 'MMK / ${annual ? s.pricingAnnual : s.pricingMonthly}',
+                : '${storeBilling ? '' : 'MMK / '}${annual ? s.pricingAnnual : s.pricingMonthly}',
             style: text.bodyMedium?.copyWith(color: t.text.secondary),
           ),
           SizedBox(height: t.space.s5),

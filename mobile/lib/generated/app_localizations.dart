@@ -7511,6 +7511,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back to plans'**
   String get pricingBackToPlans;
+
+  /// No description provided for @playUnavailablePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get playUnavailablePrice;
+
+  /// No description provided for @playSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe with Google Play'**
+  String get playSubscribe;
+
+  /// No description provided for @playRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get playRestore;
+
+  /// No description provided for @playManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get playManage;
+
+  /// No description provided for @playTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment is charged to your Google Play account. Your subscription renews automatically at the displayed price each billing period until canceled. Cancel in Google Play. Free remains available without a subscription.'**
+  String get playTerms;
+
+  /// No description provided for @playPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment is pending. Access will activate after Google Play confirms it.'**
+  String get playPending;
+
+  /// No description provided for @playVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your purchase…'**
+  String get playVerifying;
+
+  /// No description provided for @playSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription is ready. Enjoy your upgraded garage.'**
+  String get playSuccess;
+
+  /// No description provided for @playCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase canceled. You have not been charged.'**
+  String get playCanceled;
+
+  /// No description provided for @playAccountMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to the AutoX account used for this purchase, then restore again.'**
+  String get playAccountMismatch;
+
+  /// No description provided for @playRestoreComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore finished. Any active purchases will be verified for this account.'**
+  String get playRestoreComplete;
+
+  /// No description provided for @playInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'This subscription is not active. Check its status in Google Play.'**
+  String get playInactive;
+
+  /// No description provided for @playEligibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have paid or gifted access? Manage your existing subscription, or wait until that access ends before subscribing.'**
+  String get playEligibility;
+
+  /// No description provided for @playUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play billing is unavailable. Check your connection and try again.'**
+  String get playUnavailable;
+
+  /// No description provided for @playVerificationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not confirm your purchase yet. Do not buy again. Use Restore purchases to retry.'**
+  String get playVerificationPending;
+
+  /// No description provided for @playCheckoutTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} / {period}. Auto-renews until canceled in Google Play.'**
+  String playCheckoutTerms(String price, String period);
 }
 
 class _AppLocalizationsDelegate
