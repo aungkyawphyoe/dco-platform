@@ -446,6 +446,13 @@ final currentUserIdProvider = Provider<String?>((ref) {
   return session?.user.id;
 });
 
+/// Refresh profile after an account-level mutation without coupling screens to
+/// the authentication presentation controller.
+final refreshAccountProfileProvider = Provider<Future<void> Function()>(
+  (ref) =>
+      () => ref.read(sessionControllerProvider.notifier).refreshAccount(),
+);
+
 final authUserProvider = Provider((ref) {
   final session = ref.watch(sessionControllerProvider).valueOrNull;
   return session?.user;

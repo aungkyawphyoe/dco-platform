@@ -25,7 +25,9 @@ void main() {
   tearDown(() => db.close());
 
   Future<void> insertVehicle(String id, {String userId = 'u1'}) {
-    return db.into(db.vehicleRecords).insert(
+    return db
+        .into(db.vehicleRecords)
+        .insert(
           VehicleRecordsCompanion.insert(
             id: id,
             userId: userId,
@@ -56,7 +58,9 @@ void main() {
     required String vehicleId,
     String status = 'active',
   }) {
-    return db.into(db.vehicleShareRecords).insert(
+    return db
+        .into(db.vehicleShareRecords)
+        .insert(
           VehicleShareRecordsCompanion.insert(
             id: id,
             vehicleId: vehicleId,
@@ -103,26 +107,35 @@ void main() {
     throw StateError('feature gate never settled with the expected counts');
   }
 
-  test('free plan: one active vehicle fills the slot, archiving frees it', () async {
-    final license = await mintLicense(
-      planId: 'free',
-      vehicleLimit: 1,
-      sharingLimit: 1,
-      issuedAt: DateTime.now().toUtc().subtract(const Duration(minutes: 1)),
-    );
-    await store.writeLicense('u1', license.jwt);
-    final container = createContainer(license: license);
+  test(
+    'free plan: one active vehicle fills the slot, archiving frees it',
+    () async {
+      final license = await mintLicense(
+        planId: 'free',
+        vehicleLimit: 1,
+        sharingLimit: 1,
+        issuedAt: DateTime.now().toUtc().subtract(const Duration(minutes: 1)),
+      );
+      await store.writeLicense('u1', license.jwt);
+      final container = createContainer(license: license);
 
-    expect((await awaitGate(container)).canCreateVehicle, isTrue);
+      expect((await awaitGate(container)).canCreateVehicle, isTrue);
 
-    await insertVehicle('v1');
-    final full = await awaitGate(container, until: (g) => g.vehicleCount == 1);
-    expect(full.canCreateVehicle, isFalse);
+      await insertVehicle('v1');
+      final full = await awaitGate(
+        container,
+        until: (g) => g.vehicleCount == 1,
+      );
+      expect(full.canCreateVehicle, isFalse);
 
-    await archiveVehicle('v1');
-    final emptied = await awaitGate(container, until: (g) => g.vehicleCount == 0);
-    expect(emptied.canCreateVehicle, isTrue);
-  });
+      await archiveVehicle('v1');
+      final emptied = await awaitGate(
+        container,
+        until: (g) => g.vehicleCount == 0,
+      );
+      expect(emptied.canCreateVehicle, isTrue);
+    },
+  );
 
   test('lite plan allows up to its higher cap, then blocks', () async {
     final license = await mintLicense(
@@ -180,12 +193,18 @@ void main() {
 
     await (db.update(db.vehicleShareRecords)..where((r) => r.id.equals('s1')))
         .write(const VehicleShareRecordsCompanion(status: Value('active')));
-    final active = await awaitGate(container, until: (g) => g.activeShareCount == 1);
+    final active = await awaitGate(
+      container,
+      until: (g) => g.activeShareCount == 1,
+    );
     expect(active.canCreateShare, isFalse);
 
     await (db.update(db.vehicleShareRecords)..where((r) => r.id.equals('s1')))
         .write(const VehicleShareRecordsCompanion(status: Value('revoked')));
-    final revoked = await awaitGate(container, until: (g) => g.activeShareCount == 0);
+    final revoked = await awaitGate(
+      container,
+      until: (g) => g.activeShareCount == 0,
+    );
     expect(revoked.canCreateShare, isTrue);
   });
 
@@ -219,4 +238,32 @@ void main() {
     final full = await awaitGate(container, until: (g) => g.vehicleCount == 1);
     expect(full.canCreateVehicle, isFalse);
   });
+  test(
+    'a live gift expires in memory offline and preserves existing records',
+    () async {
+      final license = await mintLicense(
+        planId: 'standard',
+        vehicleLimit: 10,
+        sharingLimit: null,
+        issuedAt: DateTime.now().toUtc().subtract(const Duration(minutes: 1)),
+        expiresAt: DateTime.now().toUtc().add(const Duration(seconds: 3)),
+      );
+      await store.writeLicense('u1', license.jwt);
+      final container = createContainer(license: license);
+      await insertVehicle('v1');
+      await insertVehicle('v2');
+      await insertShare('s1', vehicleId: 'v1');
+      await insertShare('s2', vehicleId: 'v1');
+      expect((await awaitGate(container)).planId, 'standard');
+      await Future<void>.delayed(const Duration(seconds: 3));
+      final expired = await awaitGate(
+        container,
+        until: (g) => g.planId == 'free',
+      );
+      expect(expired.canCreateVehicle, isFalse);
+      expect(expired.canCreateShare, isFalse);
+      expect(expired.vehicleCount, 2);
+      expect(expired.activeShareCount, 2);
+    },
+  );
 }

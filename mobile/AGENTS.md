@@ -151,7 +151,7 @@ flowchart TB
 - Archive vehicles (soft-delete). Do not hard-delete vehicles or their child records.
 - Fuel type required: `petrol` | `electric` | `hybrid_plugin`.
 - Year: 1900 … current year + 1. Plate max 20 chars. Mileage ≥ 0 and monotonic.
-- `users.plan` is `free` / `lite` / `standard` / `fleet` (`docs/pricing.md`). Billing is not live: do not invent purchase UI. Local gating hides entry points only — the server is authoritative (`architecture/feature-gating.md`).
+- `users.plan` is `free` / `lite` / `standard` / `fleet` (`docs/pricing.md`). Android Google Play subscriptions are approved by `docs/google-play-subscriptions.md`; rollout requires Console/backend configuration. Use native localized prices and offer tokens, server-verified account-bound purchases, restore/manage, and signed licenses. Never unlock from a client purchase event alone. iOS checkout and in-app subscription replacement are not implemented. Personal plan comparison and online gift redemption remain supported. Pricing/status reads are cached in account-scoped Drift AppMeta; redemption is an online-only transaction, never an outbox write. Local gating hides entry points only — the server is authoritative (`architecture/feature-gating.md`).
 - Offline license: signed EdDSA JWT from `GET /v1/me/license`, verified against `mobile/assets/license_keys.json` (ships empty). Mint keypairs with `npm run license:key` in `backend/` — private key goes to backend env only, public entry to the keyring. Gating lives in `lib/core/gating/` (`architecture/feature-gating.md`).
 - Expense `fuel` is money only (no litres, no kWh). Volume and kWh live on fuel logs. Dashboard totals read **expenses only**, not service-record costs or fuel-log costs.
 
@@ -277,6 +277,9 @@ Empty garage: Dashboard is still the default route. Maintenance, Expenses, and D
 ---
 
 ## Theme and UI rules
+
+**Cards are elevated, never outlined (approved 21 October 2026).** Every new or redesigned mobile feature must use `DcoCard` (`core/widgets/dco_card.dart`) or an equivalent surface with `background.card`, rounded theme corners, and `tokens.shadows.card` (or `elevated` for the main featured card). Do not add a permanent `Border.all`/`BorderSide` to a card. Selection uses fill, a check/radio icon, and shadow—not an outline. Input borders, dividers, and accessible keyboard-focus rings remain separate control treatments. Standard Flutter `Card` inherits the elevated app theme. Check light and dark modes, Burmese/English, and narrow screens before delivery.
+
 
 Map [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.json) and [`docs/theme/garage-minimal-light.json`](../docs/theme/garage-minimal-light.json) 1:1 into `ColorScheme` + `ThemeExtension<DcoTokens>` (status, radius, space). Values are generated into `dco_tokens.g.dart` by `tools/generate-theme.mjs` — edit the JSON and regenerate, never the `.g.dart`. Both modes ship; `buildDcoTheme(Brightness)` builds them and Settings → Appearance (Light / Dark / System, default System) selects the mode.
 

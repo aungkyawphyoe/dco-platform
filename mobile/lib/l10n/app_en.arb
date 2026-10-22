@@ -1201,5 +1201,127 @@
   "fuelFillUnknown": "Not recorded",
   "fuelFillFull": "Full tank",
   "fuelFillPartial": "Partial fill",
-  "fuelFillHelp": "Full tanks with odometer readings help calculate fuel consumption."
+  "fuelFillHelp": "Full tanks with odometer readings help calculate fuel consumption.",
+  "pricingTitle": "Plans & subscriptions",
+  "pricingViewPlans": "View plans",
+  "pricingCurrent": "Current plan",
+  "pricingMonthly": "Monthly",
+  "pricingAnnual": "Annual",
+  "pricingComingSoon": "Paid subscriptions coming soon",
+  "pricingGiftTitle": "Have a gift code?",
+  "pricingCode": "Gift code",
+  "pricingRedeem": "Redeem code",
+  "pricingGiftTerms": "Gift access ends automatically. No payment or renewal.",
+  "pricingVerify": "Verify your email before redeeming a gift.",
+  "pricingActiveGift": "You already have an active gift. Redeem a different promotion after it expires.",
+  "pricingIneligible": "Gift codes are available to Free accounts only.",
+  "pricingUnavailable": "This code is invalid, expired, disabled, or fully redeemed.",
+  "pricingAlreadyRedeemed": "You have already redeemed this promotion.",
+  "pricingRetry": "Retry",
+  "pricingOffline": "Could not refresh. Saved information is shown when available. Connect to the internet and retry.",
+  "pricingNetworkError": "Could not confirm redemption. Connect and retry the same code safely.",
+  "pricingSuccess": "Gift redeemed. Your access is ready.",
+  "pricingLicensePending": "Gift confirmed. Connect and tap Retry to finish updating access on this device.",
+  "pricingRateLimited": "Too many attempts. Please try again in a few minutes.",
+  "pricingUnlimited": "Unlimited",
+  "pricingCoreFeatures": "Fuel & charging logs · Maintenance & reminders · Expenses · Documents",
+  "pricingNoPlans": "Plan information is not available yet.",
+  "pricingEnded": "Your gift has ended. Existing records and shares remain available.",
+  "pricingGiftEnds": "Gift access ends {date}",
+  "@pricingGiftEnds": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingVehicleLimit": "{count} vehicles",
+  "@pricingVehicleLimit": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingShareLimit": "{count} active shares",
+  "@pricingShareLimit": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingStorageLimit": "{count} MB storage",
+  "@pricingStorageLimit": {
+    "placeholders": {
+      "count": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingPrice": "{amount} MMK / {period}",
+  "@pricingPrice": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "pricingHeadline": "A plan for every garage.",
+  "pricingIntro": "More room for your vehicles. Everything you need to keep them moving.",
+  "pricingFreeDescription": "Your everyday essentials, in one place.",
+  "pricingLiteDescription": "A little more room for the vehicles you love.",
+  "pricingStandardDescription": "Your growing garage, beautifully organized.",
+  "pricingFreeForever": "Free, always",
+  "pricingComparePeriods": "Compare pricing",
+  "pricingMonthlyPrice": "Price per month",
+  "pricingAnnualPrice": "Price for the full year",
+  "pricingAnnualSaving": "Save {amount} MMK per year",
+  "pricingVehicleBenefit": "Keep your vehicles together",
+  "pricingShareBenefit": "Share with the people you trust",
+  "pricingStorageBenefit": "Space for documents and receipts",
+  "pricingGiftCta": "Redeem a gift code",
+  "pricingGiftWelcome": "A little gift. More possibilities.",
+  "pricingGiftIntro": "Enter your code to enjoy time on Lite or Standard.",
+  "pricingGiftReady": "Your gift is ready.",
+  "pricingBackToPlans": "Back to plans",
+  "@pricingAnnualSaving": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "playUnavailablePrice": "Not available",
+  "playSubscribe": "Subscribe with Google Play",
+  "playRestore": "Restore purchases",
+  "playManage": "Manage subscription",
+  "playTerms": "Payment is charged to your Google Play account. Your subscription renews automatically at the displayed price each billing period until canceled. Cancel in Google Play. Free remains available without a subscription.",
+  "playPending": "Payment is pending. Access will activate after Google Play confirms it.",
+  "playVerifying": "Confirming your purchase…",
+  "playSuccess": "Your subscription is ready. Enjoy your upgraded garage.",
+  "playCanceled": "Purchase canceled. You have not been charged.",
+  "playAccountMismatch": "Sign in to the AutoX account used for this purchase, then restore again.",
+  "playRestoreComplete": "Restore finished. Any active purchases will be verified for this account.",
+  "playInactive": "This subscription is not active. Check its status in Google Play.",
+  "playEligibility": "Already have paid or gifted access? Manage your existing subscription, or wait until that access ends before subscribing.",
+  "playUnavailable": "Google Play billing is unavailable. Check your connection and try again.",
+  "playVerificationPending": "We could not confirm your purchase yet. Do not buy again. Use Restore purchases to retry.",
+  "playCheckoutTerms": "{price} / {period}. Auto-renews until canceled in Google Play.",
+  "@playCheckoutTerms": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      },
+      "period": {
+        "type": "String"
+      }
+    }
+  },
+  "playChoosePlan": "Choose a paid plan",
+  "playDemoUnavailable": "Google Play checkout is unavailable in demo mode. Sign in with a real account in a billing-enabled Android build.",
+  "playAndroidOnly": "Google Play subscriptions are available in the Android app. Checkout is not available on this platform."
 }

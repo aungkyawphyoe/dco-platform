@@ -1,3 +1,4 @@
+import { effectiveSubscription } from "../lib/gifts.js";
 import { requireVerifiedForSharing } from "./account-security.js";
 import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
@@ -78,7 +79,7 @@ async function inviterLabel(db: Db, userId: string): Promise<string> {
 }
 
 async function checkShareLimits(db: Db, ownerId: string, vehicleId: string): Promise<void> {
-  const [owner] = await db.select({ plan: users.plan }).from(users).where(eq(users.id, ownerId)).limit(1);
+  const owner = await effectiveSubscription(db, ownerId);
   const plan = owner?.plan ?? "free";
   const limits = shareLimits(plan);
 
@@ -550,8 +551,7 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
       .from(vehicleShareInvitations)
       .where(and(eq(vehicleShareInvitations.vehicleId, vehicleId), isNull(vehicleShareInvitations.acceptedAt)));
 
-    const [owner] = await db().select().from(users).where(eq(users.id, userId)).limit(1);
-    const limits = shareLimits(owner?.plan ?? "free");
+    const limits = shareLimits((await effectiveSubscription(db(), userId)).plan);
     const [activeCount] = await db()
       .select({ count: sql`count(*)` })
       .from(vehicleShares)

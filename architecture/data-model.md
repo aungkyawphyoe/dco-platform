@@ -460,3 +460,13 @@ Full attachment-link and replacement lifecycle implementation remains tracked in
 Document API/sync payloads include `links: [{kind, record_id}]`. Omitted links preserve existing associations; an explicit empty array unlinks all targets after permission checks. Cross-vehicle links are rejected. Organization link changes feed the existing organization change stream. Legacy service receipts are attached once during migration, without copying bytes.
 
 Mobile schema 24 persists the link list as JSON on its document rows. Saving a service/fuel form and its document/outbox writes uses one local transaction. Deleting a log removes its cached and queued link references, preserving document rows and local files.
+
+## Subscription gifts — October 2026
+
+`promotions` stores creator, name, code kind (`single_use`/`shared`), Lite/Standard tier, duration in days, UTC redemption deadline, capacity, and enabled state. Creation fixes those terms; disabling only prevents future redemption. `promotion_codes` stores globally unique SHA-256 hashes of normalized uppercase codes, never plaintext. Codes are returned once on creation.
+
+`gift_grants` is the durable redemption ledger: account, promotion, code, client request UUID, granted tier, start and end instants. Unique `(user_id, promotion_id)` prevents repeat participation; unique `(user_id, request_id)` supports safe retries; unique nullable `single_use_code_id` prevents a batch code being consumed twice. Account then promotion row locks serialize active-gift admission and campaign capacity. Shared codes omit `single_use_code_id`.
+
+`users.plan` remains the admin-assigned base plan. A live gift overlays Free only; a non-Free admin assignment takes precedence. Expiry never updates `users.plan`, deletes records, or revokes shares, and needs no scheduled job. Vehicle creation, new sharing, storage admission, `/me`, entitlement snapshots, and license issuance resolve effective grants at request time. A remaining live gift can resume if an admin independently resets the base plan to Free; promotion disable is not revocation.
+
+See [Mobile pricing and promotions](../product/frd/mobile-pricing-promotions.md) for eligibility and lifecycle rules.

@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
@@ -14,6 +15,7 @@ class AppDrawer extends ConsumerWidget {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final user = ref.watch(sessionControllerProvider).valueOrNull?.user;
+    final personal = ref.watch(driverOrganizationIdProvider) == null;
 
     return Drawer(
       backgroundColor: tokens.background.primary,
@@ -98,22 +100,23 @@ class AppDrawer extends ConsumerWidget {
                       onTap: () => _navigate(context, AppRoutes.expenseStats),
                     ),
 
-                    Divider(height: 1, color: tokens.border.divider),
-                    SizedBox(height: tokens.space.s2),
-
-                    // Sharing & Fleet (conditional)
-                    _SectionLabel(label: s.drawerFamilyFleet),
-                    _DrawerTile(
-                      icon: Icons.people_outline,
-                      title: s.drawerSharedWithMe,
-                      onTap: () => _navigate(context, AppRoutes.sharedWithMe),
-                    ),
-                    _DrawerTile(
-                      icon: Icons.qr_code_scanner,
-                      title: s.drawerJoinShare,
-                      onTap: () =>
-                          _navigate(context, AppRoutes.vehicleShareJoin),
-                    ),
+                    // Sharing & Fleet (personal mode only — hidden for drivers)
+                    if (personal) ...[
+                      Divider(height: 1, color: tokens.border.divider),
+                      SizedBox(height: tokens.space.s2),
+                      _SectionLabel(label: s.drawerFamilyFleet),
+                      _DrawerTile(
+                        icon: Icons.people_outline,
+                        title: s.drawerSharedWithMe,
+                        onTap: () => _navigate(context, AppRoutes.sharedWithMe),
+                      ),
+                      _DrawerTile(
+                        icon: Icons.qr_code_scanner,
+                        title: s.drawerJoinShare,
+                        onTap: () =>
+                            _navigate(context, AppRoutes.vehicleShareJoin),
+                      ),
+                    ],
                     // Fleet management lives on the Fleet Portal. Driver mode
                     // uses the personal four-tab shell — there is no mobile
                     // Fleet entry.

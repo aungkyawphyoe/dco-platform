@@ -126,3 +126,7 @@ Local: `backend/.env` + Docker Compose Postgres. See `docs/adr/azure-hosting.md`
 - [ ] Mail from-address verified at the provider
 - [ ] Blob container not public-listable
 - [ ] CORS locked to the admin origin
+
+## Google Play Billing
+
+See [setup and release guide](google-play-subscriptions.md). Backend-only secrets: `PLAY_SERVICE_ACCOUNT_JSON` and existing `LICENSE_ED25519_KEY`. Nonsecret settings: `PLAY_BILLING_ENABLED` (default off), `PLAY_PACKAGE_NAME`, `PLAY_RTDN_AUDIENCE`, `PLAY_RTDN_SERVICE_ACCOUNT`, `LICENSE_KID`. Flutter bundles only public license keys; never package Google service credentials. Schedule the reconciliation command hourly with the backend environment. Android upload signing lives in ignored `mobile/android/key.properties` and an external private keystore.

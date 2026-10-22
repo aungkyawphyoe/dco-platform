@@ -25,8 +25,9 @@ final licenseApiProvider = Provider<LicenseApi>((ref) {
 /// Ships public keys only; mint a pair with `npm run license:key` in
 /// `backend/` and paste the keyring entry here (§5.2 rotation: keyring
 /// is a list, old kids stay trusted across releases).
-final licenseKeyringProvider =
-    FutureProvider<List<LicenseKeyringEntry>>((ref) async {
+final licenseKeyringProvider = FutureProvider<List<LicenseKeyringEntry>>((
+  ref,
+) async {
   try {
     final raw = await rootBundle.loadString('assets/license_keys.json');
     final decoded = jsonDecode(raw);
@@ -45,16 +46,24 @@ final licenseKeyringProvider =
 /// awaits the network — the gate works from cache first).
 final licenseControllerProvider =
     AsyncNotifierProvider<LicenseController, EntitlementClaims>(
-  LicenseController.new,
-);
+      LicenseController.new,
+    );
 
 class LicenseController extends AsyncNotifier<EntitlementClaims> {
   String? _userId;
   TrustedClock? _clock;
   LicenseVerifier? _verifier;
+  Timer? _expiryTimer;
+  int _generation = 0;
 
   @override
   Future<EntitlementClaims> build() async {
+    final generation = ++_generation;
+    _expiryTimer?.cancel();
+    ref.onDispose(() {
+      _generation++;
+      _expiryTimer?.cancel();
+    });
     final userId = ref.watch(currentUserIdProvider);
     _userId = userId;
     if (userId == null) return EntitlementClaims.free;
@@ -62,7 +71,11 @@ class LicenseController extends AsyncNotifier<EntitlementClaims> {
     final store = ref.read(licenseStoreProvider);
     final keyring = await ref.read(licenseKeyringProvider.future);
     final clock = TrustedClock(store: store, userId: userId);
-    final verifier = LicenseVerifier(keyring: keyring, trustedNow: clock.now);
+    final verifier = LicenseVerifier(
+      keyring: keyring,
+      trustedNow: clock.now,
+      expectedSubject: userId,
+    );
     _clock = clock;
     _verifier = verifier;
 
@@ -76,7 +89,12 @@ class LicenseController extends AsyncNotifier<EntitlementClaims> {
     // claims are issued at the epoch → always stale → a signed-in user
     // fetches the real license; startup never blocks on the network
     // (decision 14).
-    scheduleMicrotask(refreshIfStale);
+    scheduleMicrotask(() {
+      if (generation == _generation) {
+        refreshIfStale();
+        _scheduleExpiry();
+      }
+    });
     return hydrated;
   }
 
@@ -84,8 +102,39 @@ class LicenseController extends AsyncNotifier<EntitlementClaims> {
   /// >24h ago or expiring within 48h (§5.3). Never blocks the caller on
   /// startup; safe to call at any time.
   Future<void> refreshIfStale({bool force = false}) async {
-    final claims = await future;
+    await future;
+    await _expireIfNeeded();
+    final claims = state.valueOrNull ?? EntitlementClaims.free;
     if (force || await _isStale(claims)) await _fetchAndStore();
+  }
+
+  Future<void> _expireIfNeeded() async {
+    final generation = _generation;
+    final now = await _clock?.now();
+    if (generation != _generation || now == null) return;
+    final claims = state.valueOrNull;
+    if (claims != null && !now.isBefore(claims.expiresAt)) {
+      state = AsyncData(EntitlementClaims.free);
+    }
+  }
+
+  void _scheduleExpiry() {
+    _expiryTimer?.cancel();
+    final generation = _generation;
+    final claims = state.valueOrNull;
+    if (claims == null || claims == EntitlementClaims.free) return;
+    // Check wall-clock jumps at least once per minute, and wake at the exact
+    // deadline when closer. Foreground refresh also expires before networking.
+    final remaining = claims.expiresAt.difference(DateTime.now().toUtc());
+    final delay = remaining <= Duration.zero
+        ? Duration.zero
+        : remaining < const Duration(minutes: 1)
+        ? remaining
+        : const Duration(minutes: 1);
+    _expiryTimer = Timer(delay, () async {
+      await _expireIfNeeded();
+      if (generation == _generation) _scheduleExpiry();
+    });
   }
 
   static const staleAfter = Duration(hours: 24);
@@ -114,6 +163,7 @@ class LicenseController extends AsyncNotifier<EntitlementClaims> {
       await clock.observe(verified.issuedAt);
       if (userId != ref.read(currentUserIdProvider)) return;
       state = AsyncData(verified);
+      _scheduleExpiry();
       // A fresher license can lift a plan cap — let parked outbox rows
       // try again (§9, "requeue after upgrade").
       await ref.read(syncEngineProvider).requeueParked(userId);
@@ -146,20 +196,19 @@ final activeShareCountProvider = StreamProvider<int>((ref) {
   if (userId == null) return Stream.value(0);
   final db = ref.watch(appDatabaseProvider);
   final count = db.vehicleShareRecords.id.count();
-  final query = db.select(db.vehicleShareRecords).join(
-    [
-      innerJoin(
-        db.vehicleRecords,
-        db.vehicleRecords.id.equalsExp(db.vehicleShareRecords.vehicleId),
-        useColumns: false,
-      ),
-    ],
-  )
-    ..where(
-      db.vehicleRecords.userId.equals(userId) &
-          db.vehicleShareRecords.status.equals('active'),
-    )
-    ..addColumns([count]);
+  final query =
+      db.select(db.vehicleShareRecords).join([
+          innerJoin(
+            db.vehicleRecords,
+            db.vehicleRecords.id.equalsExp(db.vehicleShareRecords.vehicleId),
+            useColumns: false,
+          ),
+        ])
+        ..where(
+          db.vehicleRecords.userId.equals(userId) &
+              db.vehicleShareRecords.status.equals('active'),
+        )
+        ..addColumns([count]);
   return query.map((row) => row.read(count) ?? 0).watchSingle();
 });
 

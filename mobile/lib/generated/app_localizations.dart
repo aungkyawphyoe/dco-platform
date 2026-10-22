@@ -7277,6 +7277,408 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Full tanks with odometer readings help calculate fuel consumption.'**
   String get fuelFillHelp;
+
+  /// No description provided for @pricingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Plans & subscriptions'**
+  String get pricingTitle;
+
+  /// No description provided for @pricingViewPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'View plans'**
+  String get pricingViewPlans;
+
+  /// No description provided for @pricingCurrent.
+  ///
+  /// In en, this message translates to:
+  /// **'Current plan'**
+  String get pricingCurrent;
+
+  /// No description provided for @pricingMonthly.
+  ///
+  /// In en, this message translates to:
+  /// **'Monthly'**
+  String get pricingMonthly;
+
+  /// No description provided for @pricingAnnual.
+  ///
+  /// In en, this message translates to:
+  /// **'Annual'**
+  String get pricingAnnual;
+
+  /// No description provided for @pricingComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Paid subscriptions coming soon'**
+  String get pricingComingSoon;
+
+  /// No description provided for @pricingGiftTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a gift code?'**
+  String get pricingGiftTitle;
+
+  /// No description provided for @pricingCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift code'**
+  String get pricingCode;
+
+  /// No description provided for @pricingRedeem.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem code'**
+  String get pricingRedeem;
+
+  /// No description provided for @pricingGiftTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift access ends automatically. No payment or renewal.'**
+  String get pricingGiftTerms;
+
+  /// No description provided for @pricingVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email before redeeming a gift.'**
+  String get pricingVerify;
+
+  /// No description provided for @pricingActiveGift.
+  ///
+  /// In en, this message translates to:
+  /// **'You already have an active gift. Redeem a different promotion after it expires.'**
+  String get pricingActiveGift;
+
+  /// No description provided for @pricingIneligible.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift codes are available to Free accounts only.'**
+  String get pricingIneligible;
+
+  /// No description provided for @pricingUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This code is invalid, expired, disabled, or fully redeemed.'**
+  String get pricingUnavailable;
+
+  /// No description provided for @pricingAlreadyRedeemed.
+  ///
+  /// In en, this message translates to:
+  /// **'You have already redeemed this promotion.'**
+  String get pricingAlreadyRedeemed;
+
+  /// No description provided for @pricingRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get pricingRetry;
+
+  /// No description provided for @pricingOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh. Saved information is shown when available. Connect to the internet and retry.'**
+  String get pricingOffline;
+
+  /// No description provided for @pricingNetworkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not confirm redemption. Connect and retry the same code safely.'**
+  String get pricingNetworkError;
+
+  /// No description provided for @pricingSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift redeemed. Your access is ready.'**
+  String get pricingSuccess;
+
+  /// No description provided for @pricingLicensePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift confirmed. Connect and tap Retry to finish updating access on this device.'**
+  String get pricingLicensePending;
+
+  /// No description provided for @pricingRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Please try again in a few minutes.'**
+  String get pricingRateLimited;
+
+  /// No description provided for @pricingUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited'**
+  String get pricingUnlimited;
+
+  /// No description provided for @pricingCoreFeatures.
+  ///
+  /// In en, this message translates to:
+  /// **'Fuel & charging logs · Maintenance & reminders · Expenses · Documents'**
+  String get pricingCoreFeatures;
+
+  /// No description provided for @pricingNoPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan information is not available yet.'**
+  String get pricingNoPlans;
+
+  /// No description provided for @pricingEnded.
+  ///
+  /// In en, this message translates to:
+  /// **'Your gift has ended. Existing records and shares remain available.'**
+  String get pricingEnded;
+
+  /// No description provided for @pricingGiftEnds.
+  ///
+  /// In en, this message translates to:
+  /// **'Gift access ends {date}'**
+  String pricingGiftEnds(String date);
+
+  /// No description provided for @pricingVehicleLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} vehicles'**
+  String pricingVehicleLimit(String count);
+
+  /// No description provided for @pricingShareLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active shares'**
+  String pricingShareLimit(String count);
+
+  /// No description provided for @pricingStorageLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} MB storage'**
+  String pricingStorageLimit(String count);
+
+  /// No description provided for @pricingPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'{amount} MMK / {period}'**
+  String pricingPrice(String amount, String period);
+
+  /// No description provided for @pricingHeadline.
+  ///
+  /// In en, this message translates to:
+  /// **'A plan for every garage.'**
+  String get pricingHeadline;
+
+  /// No description provided for @pricingIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'More room for your vehicles. Everything you need to keep them moving.'**
+  String get pricingIntro;
+
+  /// No description provided for @pricingFreeDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your everyday essentials, in one place.'**
+  String get pricingFreeDescription;
+
+  /// No description provided for @pricingLiteDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'A little more room for the vehicles you love.'**
+  String get pricingLiteDescription;
+
+  /// No description provided for @pricingStandardDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Your growing garage, beautifully organized.'**
+  String get pricingStandardDescription;
+
+  /// No description provided for @pricingFreeForever.
+  ///
+  /// In en, this message translates to:
+  /// **'Free, always'**
+  String get pricingFreeForever;
+
+  /// No description provided for @pricingComparePeriods.
+  ///
+  /// In en, this message translates to:
+  /// **'Compare pricing'**
+  String get pricingComparePeriods;
+
+  /// No description provided for @pricingMonthlyPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price per month'**
+  String get pricingMonthlyPrice;
+
+  /// No description provided for @pricingAnnualPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price for the full year'**
+  String get pricingAnnualPrice;
+
+  /// No description provided for @pricingAnnualSaving.
+  ///
+  /// In en, this message translates to:
+  /// **'Save {amount} MMK per year'**
+  String pricingAnnualSaving(String amount);
+
+  /// No description provided for @pricingVehicleBenefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep your vehicles together'**
+  String get pricingVehicleBenefit;
+
+  /// No description provided for @pricingShareBenefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Share with the people you trust'**
+  String get pricingShareBenefit;
+
+  /// No description provided for @pricingStorageBenefit.
+  ///
+  /// In en, this message translates to:
+  /// **'Space for documents and receipts'**
+  String get pricingStorageBenefit;
+
+  /// No description provided for @pricingGiftCta.
+  ///
+  /// In en, this message translates to:
+  /// **'Redeem a gift code'**
+  String get pricingGiftCta;
+
+  /// No description provided for @pricingGiftWelcome.
+  ///
+  /// In en, this message translates to:
+  /// **'A little gift. More possibilities.'**
+  String get pricingGiftWelcome;
+
+  /// No description provided for @pricingGiftIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter your code to enjoy time on Lite or Standard.'**
+  String get pricingGiftIntro;
+
+  /// No description provided for @pricingGiftReady.
+  ///
+  /// In en, this message translates to:
+  /// **'Your gift is ready.'**
+  String get pricingGiftReady;
+
+  /// No description provided for @pricingBackToPlans.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to plans'**
+  String get pricingBackToPlans;
+
+  /// No description provided for @playUnavailablePrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Not available'**
+  String get playUnavailablePrice;
+
+  /// No description provided for @playSubscribe.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscribe with Google Play'**
+  String get playSubscribe;
+
+  /// No description provided for @playRestore.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore purchases'**
+  String get playRestore;
+
+  /// No description provided for @playManage.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage subscription'**
+  String get playManage;
+
+  /// No description provided for @playTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment is charged to your Google Play account. Your subscription renews automatically at the displayed price each billing period until canceled. Cancel in Google Play. Free remains available without a subscription.'**
+  String get playTerms;
+
+  /// No description provided for @playPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Payment is pending. Access will activate after Google Play confirms it.'**
+  String get playPending;
+
+  /// No description provided for @playVerifying.
+  ///
+  /// In en, this message translates to:
+  /// **'Confirming your purchase…'**
+  String get playVerifying;
+
+  /// No description provided for @playSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Your subscription is ready. Enjoy your upgraded garage.'**
+  String get playSuccess;
+
+  /// No description provided for @playCanceled.
+  ///
+  /// In en, this message translates to:
+  /// **'Purchase canceled. You have not been charged.'**
+  String get playCanceled;
+
+  /// No description provided for @playAccountMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign in to the AutoX account used for this purchase, then restore again.'**
+  String get playAccountMismatch;
+
+  /// No description provided for @playRestoreComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore finished. Any active purchases will be verified for this account.'**
+  String get playRestoreComplete;
+
+  /// No description provided for @playInactive.
+  ///
+  /// In en, this message translates to:
+  /// **'This subscription is not active. Check its status in Google Play.'**
+  String get playInactive;
+
+  /// No description provided for @playEligibility.
+  ///
+  /// In en, this message translates to:
+  /// **'Already have paid or gifted access? Manage your existing subscription, or wait until that access ends before subscribing.'**
+  String get playEligibility;
+
+  /// No description provided for @playUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play billing is unavailable. Check your connection and try again.'**
+  String get playUnavailable;
+
+  /// No description provided for @playVerificationPending.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not confirm your purchase yet. Do not buy again. Use Restore purchases to retry.'**
+  String get playVerificationPending;
+
+  /// No description provided for @playCheckoutTerms.
+  ///
+  /// In en, this message translates to:
+  /// **'{price} / {period}. Auto-renews until canceled in Google Play.'**
+  String playCheckoutTerms(String price, String period);
+
+  /// No description provided for @playChoosePlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a paid plan'**
+  String get playChoosePlan;
+
+  /// No description provided for @playDemoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play checkout is unavailable in demo mode. Sign in with a real account in a billing-enabled Android build.'**
+  String get playDemoUnavailable;
+
+  /// No description provided for @playAndroidOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Google Play subscriptions are available in the Android app. Checkout is not available on this platform.'**
+  String get playAndroidOnly;
 }
 
 class _AppLocalizationsDelegate

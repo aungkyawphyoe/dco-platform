@@ -1,3 +1,4 @@
+import { effectiveSubscription } from "../lib/gifts.js";
 import { authLimit } from "./account-security.js";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
@@ -390,6 +391,7 @@ async function issueSession(
   audience = user.role === "admin" ? app.env.JWT_ADMIN_AUD : app.env.JWT_OWNER_AUD,
   authTime = Math.floor(Date.now() / 1000),
 ) {
+  user = { ...user, plan: (await effectiveSubscription(app.db, user.id)).plan };
   const access = await signAccess(app.env, {
     sub: user.id,
     role: user.role,

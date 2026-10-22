@@ -55,14 +55,26 @@ ThemeData buildDcoTheme(Brightness brightness) {
     extensions: [tokens],
     cardTheme: CardThemeData(
       color: tokens.background.card,
-      elevation: 0,
+      elevation: 2,
+      shadowColor: tokens.shadows.card.first.color,
+      surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(tokens.radius.lg),
       ),
       margin: EdgeInsets.zero,
     ),
     textTheme: TextTheme(
-      displaySmall: barlowTitle.copyWith(fontSize: 28, height: 34 / 28, letterSpacing: -0.3),
+      displayLarge: GoogleFonts.ibmPlexMono(
+        fontSize: 36,
+        height: 1.15,
+        fontWeight: FontWeight.w600,
+        color: tokens.text.primary,
+      ),
+      displaySmall: barlowTitle.copyWith(
+        fontSize: 28,
+        height: 34 / 28,
+        letterSpacing: -0.3,
+      ),
       titleLarge: barlowTitle.copyWith(fontSize: 20, height: 26 / 20),
       titleMedium: barlowTitle.copyWith(fontSize: 18, height: 24 / 18),
       bodyLarge: plexBody.copyWith(fontSize: 16, height: 24 / 16),

@@ -42,6 +42,12 @@ These values are kept. Contrast of white and secondary text on all three surface
 
 ## Additions (required)
 
+### Mobile cards — required for all new and redesigned features
+
+Cards use **elevation and soft shadows, with no permanent border**. Use Flutter `DcoCard` (`mobile/lib/core/widgets/dco_card.dart`) for the shared `background.card` surface, `radius.lg` corners, and `shadows.card`; use `shadows.elevated` for a featured plan or other primary card. Default Flutter `Card` also has elevation and no outline. Selected cards use a filled surface and an explicit selection icon, not a border. Keep shadows outside clipping parents and leave enough spacing to see their depth in both themes.
+
+This applies to future mobile feature implementations and to cards being redesigned. Borders on input controls, separators between rows, and keyboard-focus indicators are not card outlines and remain available for accessibility.
+
 ### Surfaces
 
 - `input` `#16242D` — fields sit slightly darker than cards
@@ -136,7 +142,7 @@ The shell is the same in both modes. Tables sit on `background.card`; sticky hea
 
 - **Gold splits in two:** bright `#FECA1F` stays as button/chip **fill** (with `text.onAccent`); accent **text**, links, focus rings, and active icons use deep brass `#876800` (AA on white and on the gray page).
 - Status and chart hues are darkened variants (all ≥ 3:1 on white; status text ≥ 4.5:1).
-- Cards are pure white on a `#F4F6F8` page; separation comes from borders plus a subtle card shadow (`elevation.card`).
+- Cards are pure white on a `#F4F6F8` page; mobile card separation comes from soft elevation shadows (`elevation.card`), never permanent borders.
 
 ---
 

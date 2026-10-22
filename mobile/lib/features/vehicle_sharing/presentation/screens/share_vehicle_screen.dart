@@ -1,3 +1,5 @@
+import 'package:dco_mobile/core/router/routes.dart';
+import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -58,6 +60,10 @@ class _ShareVehicleScreenState extends ConsumerState<ShareVehicleScreen>
     await showDcoErrorDialog(
       context,
       title: s.planLimitTitle,
+      actionLabel: s.pricingViewPlans,
+      onAction: () {
+        if (context.mounted) context.push(AppRoutes.pricing);
+      },
       message: gate == null ? s.planLimitChecking : gate.shareBlockMessage(s),
     );
     return false;
@@ -90,9 +96,9 @@ class _ShareVehicleScreenState extends ConsumerState<ShareVehicleScreen>
           );
       ref.invalidate(vehicleSharesProvider(widget.vehicleId));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(s.shareInviteSent(email))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(s.shareInviteSent(email))));
       _emailController.clear();
     } catch (error) {
       if (!mounted) return;
@@ -153,8 +159,11 @@ class _ShareVehicleScreenState extends ConsumerState<ShareVehicleScreen>
     final text = error.toString();
     if (text.contains('share_limit_reached')) {
       final limit =
-          ref.read(vehicleSharesProvider(widget.vehicleId)).valueOrNull
-              ?.limits.perVehicle ??
+          ref
+              .read(vehicleSharesProvider(widget.vehicleId))
+              .valueOrNull
+              ?.limits
+              .perVehicle ??
           1;
       return s.sharePlanLimitReached(limit);
     }
@@ -183,14 +192,14 @@ class _ShareVehicleScreenState extends ConsumerState<ShareVehicleScreen>
         ),
       ),
       body: sharesAsync.when(
-        loading: () => Center(
-          child: CircularProgressIndicator(color: tokens.text.accent),
-        ),
+        loading: () =>
+            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
         error: (error, _) => DcoEmptyState(
           title: s.error,
           body: error.toString(),
           actionLabel: s.retry,
-          onAction: () => ref.invalidate(vehicleSharesProvider(widget.vehicleId)),
+          onAction: () =>
+              ref.invalidate(vehicleSharesProvider(widget.vehicleId)),
         ),
         data: (detail) => TabBarView(
           controller: _tabController,

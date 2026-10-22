@@ -4,6 +4,482 @@
  */
 
 export interface paths {
+    "/me/play-billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Play catalog IDs and fresh personal-account checkout eligibility */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Billing defaults off; account_id is an obfuscated purchase binding, never a raw user ID */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enabled: boolean;
+                            can_purchase: boolean;
+                            account_id: string;
+                            package_name: string;
+                            license_kid: string;
+                            products: string[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/play-purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify and acknowledge an account-bound Google Play subscription
+         * @description Online only. Verify using subscriptionsv2, persist entitlement, then acknowledge. Retry safely with the same token. The server determines product, plan, expiry and account binding; client claims never grant access. 60 requests per account per ten minutes.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        purchase_token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Verified state; refresh subscription status and signed license. False entitled means no paid access. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            verified: boolean;
+                            entitled: boolean;
+                            acknowledged: boolean;
+                        };
+                    };
+                };
+                /** @description Purchase belongs to another AutoX account */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid or unsupported purchase */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Billing disabled or Google verification temporarily unavailable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/google-play/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Authenticated Google Cloud Pub/Sub subscription lifecycle push
+         * @description Requires Google-signed Bearer ID token with configured issuer, audience and verified service-account email. This is not an AutoX access token. Known purchases are re-fetched from Google; unknown purchases await authenticated app verification. Non-2xx deliveries retry.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        message: {
+                            /** @description Base64 DeveloperNotification JSON */
+                            data: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Notification processed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid Google push identity */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Retryable processing failure or unconfigured billing */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Effective personal plan, current gift and latest Play subscription (owner audience; no drivers) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Live effective plan; gift expiry does not mutate the admin-assigned base plan */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SubscriptionStatus"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/gift-redemptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Redeem a gift for a verified Free personal account
+         * @description Online only. Atomic account/campaign admission; one active gift and one redemption per account per promotion. request_id replays the same successful request even after disable or expiry; a different code with that id is a conflict. Codes are case-insensitive. Rate limited to 10 attempts/account and 60/IP per ten minutes. Expiry has no grace and preserves existing records/shares.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        /** Format: uuid */
+                        request_id: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Successful grant or idempotent replay; refresh subscription status and offline license */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            gift: components["schemas"]["GiftGrant"];
+                            replayed: boolean;
+                        };
+                    };
+                };
+                /** @description email_verification_required, personal_garage_forbidden, or wrong audience */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description plan_ineligible, gift_active, promotion_redeemed, or request_conflict; no code consumed */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description validation or code_unavailable (invalid, expired, disabled, exhausted, or consumed) */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description rate_limited */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List promotions and redemption counts */
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description At most 50 promotions, newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["Promotion"][];
+                            next_offset: number | null;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a promotion and generate its codes
+         * @description Admin audience only. Plaintext codes are returned once; only SHA-256 hashes persist. Single-use batches max 1000 codes; shared campaigns max 1000000 redemptions. Deadline must be in the future. Codes use letters, numbers, and hyphens and are case-insensitive.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["PromotionCreate"];
+                };
+            };
+            responses: {
+                /** @description Created; save codes before leaving the page */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            promotion: components["schemas"]["Promotion"];
+                            codes: string[];
+                        };
+                    };
+                };
+                /** @description code_exists; choose a different shared code */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description validation or invalid_deadline */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/promotions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Disable future redemptions without revoking grants */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {boolean} */
+                        enabled: false;
+                    };
+                };
+            };
+            responses: {
+                /** @description Disabled */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {boolean} */
+                            enabled: false;
+                        };
+                    };
+                };
+                /** @description Promotion not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/admin/promotions/{id}/redemptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inspect gift redemption history without exposing code secrets */
+        get: {
+            parameters: {
+                query?: {
+                    offset?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description At most 50 grants, newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            next_offset: number | null;
+                            items: (components["schemas"]["GiftGrant"] & {
+                                /** Format: uuid */
+                                user_id: string;
+                                email: string | null;
+                            })[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/email-code": {
         parameters: {
             query?: never;
@@ -8561,6 +9037,64 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        GiftGrant: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            promotion_id: string;
+            /** @enum {string} */
+            plan: "lite" | "standard";
+            /** Format: date-time */
+            starts_at: string;
+            /** Format: date-time */
+            ends_at: string;
+        };
+        SubscriptionStatus: {
+            /** @enum {string} */
+            plan: "free" | "lite" | "standard" | "fleet";
+            gift: components["schemas"]["GiftGrant"] | null;
+            play: components["schemas"]["PlaySubscription"] | null;
+        };
+        PlaySubscription: {
+            product_id: string;
+            base_plan_id: string;
+            /** @enum {string} */
+            plan: "lite" | "standard";
+            state: string;
+            /** Format: date-time */
+            expires_at: string;
+            auto_renewing: boolean;
+        };
+        PromotionCreate: {
+            name: string;
+            /** @enum {string} */
+            kind: "single_use" | "shared";
+            /** @enum {string} */
+            plan: "lite" | "standard";
+            duration_days: number;
+            /** Format: date-time */
+            redeem_by: string;
+            capacity: number;
+            /** @description Optional custom code for shared campaigns only; otherwise generated */
+            code?: string;
+        };
+        Promotion: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** @enum {string} */
+            kind: "single_use" | "shared";
+            /** @enum {string} */
+            plan: "lite" | "standard";
+            duration_days: number;
+            /** Format: date-time */
+            redeem_by: string;
+            capacity: number;
+            enabled: boolean;
+            /** Format: date-time */
+            created_at: string;
+            redeemed: number;
+        };
         StorageUsage: {
             /** @enum {string} */
             scope: "personal" | "organization";

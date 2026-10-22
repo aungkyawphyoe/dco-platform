@@ -3902,4 +3902,244 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get fuelFillHelp =>
       'ဆီအပြည့်ဖြည့်ချိန် မိုင်နှုန်းမှတ်တမ်းက ဆီစားနှုန်းတွက်ချက်ရာတွင် အထောက်အကူပြုသည်။';
+
+  @override
+  String get pricingTitle => 'အစီအစဉ်နှင့် စာရင်းသွင်းမှုများ';
+
+  @override
+  String get pricingViewPlans => 'အစီအစဉ်များကြည့်ရန်';
+
+  @override
+  String get pricingCurrent => 'လက်ရှိအစီအစဉ်';
+
+  @override
+  String get pricingMonthly => 'လစဉ်';
+
+  @override
+  String get pricingAnnual => 'နှစ်စဉ်';
+
+  @override
+  String get pricingComingSoon => 'အခပေးအစီအစဉ်များ မကြာမီရရှိပါမည်';
+
+  @override
+  String get pricingGiftTitle => 'လက်ဆောင်ကုဒ် ရှိပါသလား။';
+
+  @override
+  String get pricingCode => 'လက်ဆောင်ကုဒ်';
+
+  @override
+  String get pricingRedeem => 'ကုဒ်အသုံးပြုရန်';
+
+  @override
+  String get pricingGiftTerms =>
+      'လက်ဆောင်ကာလကုန်လျှင် အလိုအလျောက်ရပ်ပါမည်။ ငွေပေးချေရန်နှင့် သက်တမ်းတိုးရန် မလိုပါ။';
+
+  @override
+  String get pricingVerify => 'လက်ဆောင်ရယူရန် အီးမေးလ်ကို အရင်အတည်ပြုပါ။';
+
+  @override
+  String get pricingActiveGift =>
+      'လက်ရှိလက်ဆောင် သက်တမ်းရှိနေပါသည်။ ကုန်ဆုံးပြီးမှ အခြားပရိုမိုးရှင်းကို အသုံးပြုနိုင်ပါသည်။';
+
+  @override
+  String get pricingIneligible =>
+      'လက်ဆောင်ကုဒ်ကို Free အကောင့်များသာ အသုံးပြုနိုင်ပါသည်။';
+
+  @override
+  String get pricingUnavailable =>
+      'ဤကုဒ် မမှန်ကန်ပါ၊ သက်တမ်းကုန်ပါပြီ၊ ပိတ်ထားပါသည် သို့မဟုတ် အသုံးပြုခွင့် ပြည့်သွားပါပြီ။';
+
+  @override
+  String get pricingAlreadyRedeemed => 'ဤပရိုမိုးရှင်းကို အသုံးပြုပြီးပါပြီ။';
+
+  @override
+  String get pricingRetry => 'ပြန်ကြိုးစားရန်';
+
+  @override
+  String get pricingOffline =>
+      'အချက်အလက် အသစ်မရနိုင်ပါ။ ရှိပါက သိမ်းထားသောအချက်အလက်ကို ပြထားပါသည်။ အင်တာနက်ချိတ်ပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get pricingNetworkError =>
+      'လက်ဆောင်ရယူမှုကို အတည်မပြုနိုင်ပါ။ အင်တာနက်ချိတ်ပြီး တူညီသောကုဒ်ဖြင့် ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get pricingSuccess => 'လက်ဆောင်ရယူပြီးပါပြီ။ အသုံးပြုနိုင်ပါပြီ။';
+
+  @override
+  String get pricingLicensePending =>
+      'လက်ဆောင်ရယူမှု အတည်ပြုပြီးပါပြီ။ ဤစက်တွင် အသုံးပြုခွင့်ပြင်ဆင်ရန် အင်တာနက်ချိတ်ပြီး ပြန်ကြိုးစားရန်ကို နှိပ်ပါ။';
+
+  @override
+  String get pricingRateLimited =>
+      'အကြိမ်များလွန်းပါသည်။ မိနစ်အနည်းငယ်ကြာမှ ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get pricingUnlimited => 'အကန့်အသတ်မရှိ';
+
+  @override
+  String get pricingCoreFeatures =>
+      'ဆီနှင့်အားသွင်းမှတ်တမ်း · ပြုပြင်ထိန်းသိမ်းမှုနှင့်သတိပေးချက် · အသုံးစရိတ် · စာရွက်စာတမ်း';
+
+  @override
+  String get pricingNoPlans => 'အစီအစဉ်အချက်အလက် မရရှိသေးပါ။';
+
+  @override
+  String get pricingEnded =>
+      'လက်ဆောင်သက်တမ်းကုန်ဆုံးပါပြီ။ ရှိပြီးသားမှတ်တမ်းနှင့် မျှဝေမှုများကို ဆက်လက်အသုံးပြုနိုင်ပါသည်။';
+
+  @override
+  String pricingGiftEnds(String date) {
+    return 'လက်ဆောင်သက်တမ်း $date တွင်ကုန်ဆုံးမည်';
+  }
+
+  @override
+  String pricingVehicleLimit(String count) {
+    return 'ယာဉ် $count စီး';
+  }
+
+  @override
+  String pricingShareLimit(String count) {
+    return 'လက်ရှိမျှဝေမှု $count ခု';
+  }
+
+  @override
+  String pricingStorageLimit(String count) {
+    return 'သိုလှောင်မှု $count MB';
+  }
+
+  @override
+  String pricingPrice(String amount, String period) {
+    return '$period / $amount MMK';
+  }
+
+  @override
+  String get pricingHeadline => 'ကားဂိုဒေါင်တိုင်းအတွက် အစီအစဉ်။';
+
+  @override
+  String get pricingIntro =>
+      'ယာဉ်များအတွက် နေရာပိုများနှင့် လိုအပ်သမျှကို တစ်နေရာတည်းတွင် စီမံပါ။';
+
+  @override
+  String get pricingFreeDescription => 'နေ့စဉ်လိုအပ်သမျှကို တစ်နေရာတည်းတွင်။';
+
+  @override
+  String get pricingLiteDescription =>
+      'သင်နှစ်သက်သော ယာဉ်များအတွက် နေရာပိုများ။';
+
+  @override
+  String get pricingStandardDescription =>
+      'တိုးပွားလာသော သင့်ကားဂိုဒေါင်ကို စနစ်တကျစီမံပါ။';
+
+  @override
+  String get pricingFreeForever => 'အမြဲတမ်း အခမဲ့';
+
+  @override
+  String get pricingComparePeriods => 'ဈေးနှုန်းများ နှိုင်းယှဉ်ရန်';
+
+  @override
+  String get pricingMonthlyPrice => 'တစ်လစာ ဈေးနှုန်း';
+
+  @override
+  String get pricingAnnualPrice => 'တစ်နှစ်စာ ဈေးနှုန်း';
+
+  @override
+  String pricingAnnualSaving(String amount) {
+    return 'တစ်နှစ်လျှင် $amount ကျပ် သက်သာမည်';
+  }
+
+  @override
+  String get pricingVehicleBenefit =>
+      'သင့်ယာဉ်များကို တစ်နေရာတည်းတွင် စုစည်းပါ';
+
+  @override
+  String get pricingShareBenefit => 'ယုံကြည်ရသူများနှင့် မျှဝေပါ';
+
+  @override
+  String get pricingStorageBenefit => 'စာရွက်စာတမ်းနှင့် ပြေစာများအတွက် နေရာ';
+
+  @override
+  String get pricingGiftCta => 'လက်ဆောင်ကုဒ် အသုံးပြုရန်';
+
+  @override
+  String get pricingGiftWelcome => 'လက်ဆောင်လေးဖြင့် ပိုမိုအသုံးပြုနိုင်ပါပြီ။';
+
+  @override
+  String get pricingGiftIntro =>
+      'Lite သို့မဟုတ် Standard ကို အသုံးပြုရန် သင့်ကုဒ်ကို ထည့်ပါ။';
+
+  @override
+  String get pricingGiftReady => 'သင့်လက်ဆောင်ကို အသုံးပြုနိုင်ပါပြီ။';
+
+  @override
+  String get pricingBackToPlans => 'အစီအစဉ်များသို့ ပြန်သွားရန်';
+
+  @override
+  String get playUnavailablePrice => 'မရရှိနိုင်ပါ';
+
+  @override
+  String get playSubscribe => 'Google Play ဖြင့် စာရင်းသွင်းရန်';
+
+  @override
+  String get playRestore => 'ဝယ်ယူမှုများ ပြန်လည်ရယူရန်';
+
+  @override
+  String get playManage => 'စာရင်းသွင်းမှု စီမံရန်';
+
+  @override
+  String get playTerms =>
+      'သင့် Google Play အကောင့်မှ ငွေကောက်ခံပါမည်။ မပယ်ဖျက်မချင်း ကာလတစ်ခုစီတွင် ဖော်ပြထားသောဈေးနှုန်းဖြင့် အလိုအလျောက် သက်တမ်းတိုးပါမည်။ Google Play တွင် ပယ်ဖျက်နိုင်ပါသည်။ စာရင်းမသွင်းဘဲ Free ကို ဆက်သုံးနိုင်ပါသည်။';
+
+  @override
+  String get playPending =>
+      'ငွေပေးချေမှု စောင့်ဆိုင်းနေသည်။ Google Play အတည်ပြုပြီးပါက အသုံးပြုခွင့်ရပါမည်။';
+
+  @override
+  String get playVerifying => 'ဝယ်ယူမှု အတည်ပြုနေသည်…';
+
+  @override
+  String get playSuccess => 'သင့်စာရင်းသွင်းမှု အဆင်သင့်ဖြစ်ပါပြီ။';
+
+  @override
+  String get playCanceled => 'ဝယ်ယူမှု ပယ်ဖျက်ပြီးပါပြီ။ ငွေမကောက်ခံပါ။';
+
+  @override
+  String get playAccountMismatch =>
+      'ဤဝယ်ယူမှုတွင် သုံးခဲ့သော AutoX အကောင့်ဖြင့် ဝင်ပြီး ပြန်လည်ရယူပါ။';
+
+  @override
+  String get playRestoreComplete =>
+      'ပြန်လည်ရယူပြီးပါပြီ။ အသက်ဝင်သော ဝယ်ယူမှုများကို ဤအကောင့်အတွက် အတည်ပြုပါမည်။';
+
+  @override
+  String get playInactive =>
+      'ဤစာရင်းသွင်းမှု အသက်မဝင်ပါ။ Google Play တွင် စစ်ဆေးပါ။';
+
+  @override
+  String get playEligibility =>
+      'အခပေး သို့မဟုတ် လက်ဆောင်အသုံးပြုခွင့် ရှိပြီးပါက လက်ရှိစာရင်းသွင်းမှုကို စီမံပါ။ အသုံးပြုခွင့်ကုန်ဆုံးပြီးမှ စာရင်းသွင်းပါ။';
+
+  @override
+  String get playUnavailable =>
+      'Google Play ငွေပေးချေမှု မရနိုင်ပါ။ အင်တာနက် စစ်ပြီး ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get playVerificationPending =>
+      'ဝယ်ယူမှုကို အတည်မပြုနိုင်သေးပါ။ ထပ်မဝယ်ပါနှင့်။ ဝယ်ယူမှုများ ပြန်လည်ရယူရန်ကို နှိပ်ပါ။';
+
+  @override
+  String playCheckoutTerms(String price, String period) {
+    return '$price / $period။ Google Play တွင် မပယ်ဖျက်မချင်း အလိုအလျောက် သက်တမ်းတိုးပါမည်။';
+  }
+
+  @override
+  String get playChoosePlan => 'အခပေးအစီအစဉ် ရွေးရန်';
+
+  @override
+  String get playDemoUnavailable =>
+      'စမ်းသပ်မုဒ်တွင် Google Play ဖြင့် ဝယ်ယူ၍မရပါ။ ငွေပေးချေမှုပါဝင်သော Android အက်ပ်တွင် အကောင့်အစစ်ဖြင့် ဝင်ပါ။';
+
+  @override
+  String get playAndroidOnly =>
+      'Google Play စာရင်းသွင်းမှုကို Android အက်ပ်တွင် ရနိုင်ပါသည်။ ဤပလက်ဖောင်းတွင် ဝယ်ယူ၍မရပါ။';
 }

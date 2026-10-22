@@ -167,6 +167,10 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         await showDcoErrorDialog(
           context,
           title: s.planLimitTitle,
+          actionLabel: s.pricingViewPlans,
+          onAction: () {
+            if (context.mounted) context.push(AppRoutes.pricing);
+          },
           message: gate == null
               ? s.planLimitChecking
               : gate.vehicleBlockMessage(s),

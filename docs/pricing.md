@@ -126,6 +126,12 @@ The complete ownership, permission, lifecycle, and acceptance requirements are i
 
 ---
 
+## Gift subscriptions — implemented October 2026
+
+Mobile personal accounts can view Free/Lite/Standard pricing and redeem time-limited gifts. AutoX Admin creates shared campaign codes or single-use batches. Only verified Free accounts are eligible, one active gift at a time and one redemption per promotion. Gifts expire without renewal or charges; existing records and active shares remain available. See [the feature contract](../product/frd/mobile-pricing-promotions.md).
+
+Android Play checkout is implemented behind configuration as of 22 October 2026; see [Google Play setup](google-play-subscriptions.md). Play-localized prices and renewal policies apply to Android subscriptions. The broader billing policies below remain future design where they differ from that implementation; gifts never auto-renew.
+
 ## Payment & Billing
 
 ### Currency Strategy

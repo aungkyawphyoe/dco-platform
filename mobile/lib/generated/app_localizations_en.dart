@@ -3864,4 +3864,246 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get fuelFillHelp =>
       'Full tanks with odometer readings help calculate fuel consumption.';
+
+  @override
+  String get pricingTitle => 'Plans & subscriptions';
+
+  @override
+  String get pricingViewPlans => 'View plans';
+
+  @override
+  String get pricingCurrent => 'Current plan';
+
+  @override
+  String get pricingMonthly => 'Monthly';
+
+  @override
+  String get pricingAnnual => 'Annual';
+
+  @override
+  String get pricingComingSoon => 'Paid subscriptions coming soon';
+
+  @override
+  String get pricingGiftTitle => 'Have a gift code?';
+
+  @override
+  String get pricingCode => 'Gift code';
+
+  @override
+  String get pricingRedeem => 'Redeem code';
+
+  @override
+  String get pricingGiftTerms =>
+      'Gift access ends automatically. No payment or renewal.';
+
+  @override
+  String get pricingVerify => 'Verify your email before redeeming a gift.';
+
+  @override
+  String get pricingActiveGift =>
+      'You already have an active gift. Redeem a different promotion after it expires.';
+
+  @override
+  String get pricingIneligible =>
+      'Gift codes are available to Free accounts only.';
+
+  @override
+  String get pricingUnavailable =>
+      'This code is invalid, expired, disabled, or fully redeemed.';
+
+  @override
+  String get pricingAlreadyRedeemed =>
+      'You have already redeemed this promotion.';
+
+  @override
+  String get pricingRetry => 'Retry';
+
+  @override
+  String get pricingOffline =>
+      'Could not refresh. Saved information is shown when available. Connect to the internet and retry.';
+
+  @override
+  String get pricingNetworkError =>
+      'Could not confirm redemption. Connect and retry the same code safely.';
+
+  @override
+  String get pricingSuccess => 'Gift redeemed. Your access is ready.';
+
+  @override
+  String get pricingLicensePending =>
+      'Gift confirmed. Connect and tap Retry to finish updating access on this device.';
+
+  @override
+  String get pricingRateLimited =>
+      'Too many attempts. Please try again in a few minutes.';
+
+  @override
+  String get pricingUnlimited => 'Unlimited';
+
+  @override
+  String get pricingCoreFeatures =>
+      'Fuel & charging logs · Maintenance & reminders · Expenses · Documents';
+
+  @override
+  String get pricingNoPlans => 'Plan information is not available yet.';
+
+  @override
+  String get pricingEnded =>
+      'Your gift has ended. Existing records and shares remain available.';
+
+  @override
+  String pricingGiftEnds(String date) {
+    return 'Gift access ends $date';
+  }
+
+  @override
+  String pricingVehicleLimit(String count) {
+    return '$count vehicles';
+  }
+
+  @override
+  String pricingShareLimit(String count) {
+    return '$count active shares';
+  }
+
+  @override
+  String pricingStorageLimit(String count) {
+    return '$count MB storage';
+  }
+
+  @override
+  String pricingPrice(String amount, String period) {
+    return '$amount MMK / $period';
+  }
+
+  @override
+  String get pricingHeadline => 'A plan for every garage.';
+
+  @override
+  String get pricingIntro =>
+      'More room for your vehicles. Everything you need to keep them moving.';
+
+  @override
+  String get pricingFreeDescription =>
+      'Your everyday essentials, in one place.';
+
+  @override
+  String get pricingLiteDescription =>
+      'A little more room for the vehicles you love.';
+
+  @override
+  String get pricingStandardDescription =>
+      'Your growing garage, beautifully organized.';
+
+  @override
+  String get pricingFreeForever => 'Free, always';
+
+  @override
+  String get pricingComparePeriods => 'Compare pricing';
+
+  @override
+  String get pricingMonthlyPrice => 'Price per month';
+
+  @override
+  String get pricingAnnualPrice => 'Price for the full year';
+
+  @override
+  String pricingAnnualSaving(String amount) {
+    return 'Save $amount MMK per year';
+  }
+
+  @override
+  String get pricingVehicleBenefit => 'Keep your vehicles together';
+
+  @override
+  String get pricingShareBenefit => 'Share with the people you trust';
+
+  @override
+  String get pricingStorageBenefit => 'Space for documents and receipts';
+
+  @override
+  String get pricingGiftCta => 'Redeem a gift code';
+
+  @override
+  String get pricingGiftWelcome => 'A little gift. More possibilities.';
+
+  @override
+  String get pricingGiftIntro =>
+      'Enter your code to enjoy time on Lite or Standard.';
+
+  @override
+  String get pricingGiftReady => 'Your gift is ready.';
+
+  @override
+  String get pricingBackToPlans => 'Back to plans';
+
+  @override
+  String get playUnavailablePrice => 'Not available';
+
+  @override
+  String get playSubscribe => 'Subscribe with Google Play';
+
+  @override
+  String get playRestore => 'Restore purchases';
+
+  @override
+  String get playManage => 'Manage subscription';
+
+  @override
+  String get playTerms =>
+      'Payment is charged to your Google Play account. Your subscription renews automatically at the displayed price each billing period until canceled. Cancel in Google Play. Free remains available without a subscription.';
+
+  @override
+  String get playPending =>
+      'Payment is pending. Access will activate after Google Play confirms it.';
+
+  @override
+  String get playVerifying => 'Confirming your purchase…';
+
+  @override
+  String get playSuccess =>
+      'Your subscription is ready. Enjoy your upgraded garage.';
+
+  @override
+  String get playCanceled => 'Purchase canceled. You have not been charged.';
+
+  @override
+  String get playAccountMismatch =>
+      'Sign in to the AutoX account used for this purchase, then restore again.';
+
+  @override
+  String get playRestoreComplete =>
+      'Restore finished. Any active purchases will be verified for this account.';
+
+  @override
+  String get playInactive =>
+      'This subscription is not active. Check its status in Google Play.';
+
+  @override
+  String get playEligibility =>
+      'Already have paid or gifted access? Manage your existing subscription, or wait until that access ends before subscribing.';
+
+  @override
+  String get playUnavailable =>
+      'Google Play billing is unavailable. Check your connection and try again.';
+
+  @override
+  String get playVerificationPending =>
+      'We could not confirm your purchase yet. Do not buy again. Use Restore purchases to retry.';
+
+  @override
+  String playCheckoutTerms(String price, String period) {
+    return '$price / $period. Auto-renews until canceled in Google Play.';
+  }
+
+  @override
+  String get playChoosePlan => 'Choose a paid plan';
+
+  @override
+  String get playDemoUnavailable =>
+      'Google Play checkout is unavailable in demo mode. Sign in with a real account in a billing-enabled Android build.';
+
+  @override
+  String get playAndroidOnly =>
+      'Google Play subscriptions are available in the Android app. Checkout is not available on this platform.';
 }
