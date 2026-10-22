@@ -35,10 +35,82 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /me/play-billing:
+    get:
+      tags: [Me]
+      summary: Google Play catalog IDs and fresh personal-account checkout eligibility
+      responses:
+        '200':
+          description: Billing defaults off; account_id is an obfuscated purchase binding, never a raw user ID
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [enabled, can_purchase, account_id, package_name, products, license_kid]
+                properties:
+                  enabled: { type: boolean }
+                  can_purchase: { type: boolean }
+                  account_id: { type: string }
+                  package_name: { type: string }
+                  license_kid: { type: string }
+                  products: { type: array, items: { type: string } }
+  /me/play-purchases:
+    post:
+      tags: [Me]
+      summary: Verify and acknowledge an account-bound Google Play subscription
+      description: Online only. Verify using subscriptionsv2, persist entitlement, then acknowledge. Retry safely with the same token. The server determines product, plan, expiry and account binding; client claims never grant access. 60 requests per account per ten minutes.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [purchase_token]
+              properties:
+                purchase_token: { type: string, minLength: 1, maxLength: 4096 }
+      responses:
+        '200':
+          description: Verified state; refresh subscription status and signed license. False entitled means no paid access.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [verified, entitled, acknowledged]
+                properties:
+                  verified: { type: boolean }
+                  entitled: { type: boolean }
+                  acknowledged: { type: boolean }
+        '409': { description: Purchase belongs to another AutoX account }
+        '422': { description: Invalid or unsupported purchase }
+        '503': { description: Billing disabled or Google verification temporarily unavailable }
+  /billing/google-play/notifications:
+    post:
+      tags: [Me]
+      security: []
+      summary: Authenticated Google Cloud Pub/Sub subscription lifecycle push
+      description: Requires Google-signed Bearer ID token with configured issuer, audience and verified service-account email. This is not an AutoX access token. Known purchases are re-fetched from Google; unknown purchases await authenticated app verification. Non-2xx deliveries retry.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message:
+                  type: object
+                  required: [data]
+                  properties:
+                    data: { type: string, description: Base64 DeveloperNotification JSON }
+      responses:
+        '204': { description: Notification processed }
+        '401': { description: Invalid Google push identity }
+        '503': { description: Retryable processing failure or unconfigured billing }
   /me/subscription:
     get:
       tags: [Me]
-      summary: Effective personal plan and current gift (owner audience; no drivers)
+      summary: Effective personal plan, current gift and latest Play subscription (owner audience; no drivers)
       responses:
         '200':
           description: Live effective plan; gift expiry does not mutate the admin-assigned base plan
@@ -4737,13 +4809,27 @@ components:
         ends_at: { type: string, format: date-time }
     SubscriptionStatus:
       type: object
-      required: [plan, gift]
+      required: [plan, gift, play]
       properties:
         plan: { type: string, enum: [free, lite, standard, fleet] }
         gift:
           nullable: true
           allOf:
             - $ref: '#/components/schemas/GiftGrant'
+        play:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/PlaySubscription'
+    PlaySubscription:
+      type: object
+      required: [product_id, base_plan_id, plan, state, expires_at, auto_renewing]
+      properties:
+        product_id: { type: string }
+        base_plan_id: { type: string }
+        plan: { type: string, enum: [lite, standard] }
+        state: { type: string }
+        expires_at: { type: string, format: date-time }
+        auto_renewing: { type: boolean }
     PromotionCreate:
       type: object
       additionalProperties: false

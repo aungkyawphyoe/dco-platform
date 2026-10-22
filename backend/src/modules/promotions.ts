@@ -1,9 +1,10 @@
+import { publicPlaySubscription } from "../lib/play-subscriptions.js";
 import { randomBytes } from "node:crypto";
 import { and, desc, eq, gt, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
-import { auditEvents, giftGrants, promotionCodes, promotions, users } from "../db/schema.js";
+import { auditEvents, giftGrants, playSubscriptions, promotionCodes, promotions, users } from "../db/schema.js";
 import { newId, sha256 } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { effectiveSubscription, publicGift } from "../lib/gifts.js";
@@ -33,7 +34,8 @@ export const promotionsPlugin: FastifyPluginAsync = async (app) => {
     requireOwner(request);
     await assertPersonalGarageAllowed(app.db, request.authUser!.sub);
     const sub = await effectiveSubscription(app.db, request.authUser!.sub);
-    return { plan: sub.plan, gift: sub.gift ? publicGift(sub.gift) : null };
+    const [play] = await app.db.select().from(playSubscriptions).where(eq(playSubscriptions.userId, request.authUser!.sub)).orderBy(desc(playSubscriptions.expiresAt)).limit(1);
+    return { plan: sub.plan, gift: sub.gift ? publicGift(sub.gift) : null, play: play ? publicPlaySubscription(play) : null };
   });
 
   app.post("/me/gift-redemptions", async request => {
@@ -58,7 +60,7 @@ export const promotionsPlugin: FastifyPluginAsync = async (app) => {
       const [promotion] = await tx.select().from(promotions).where(eq(promotions.id, code.promotionId)).for("update");
       const now = new Date();
       if (!promotion.enabled || promotion.redeemBy <= now) throw new AppError(422, "code_unavailable", "This code is invalid or no longer available");
-      if (user.plan !== "free") throw new AppError(409, "plan_ineligible", "Only Free accounts can redeem a gift");
+      if ((await effectiveSubscription(tx as unknown as Db, userId)).play || user.plan !== "free") throw new AppError(409, "plan_ineligible", "Only Free accounts can redeem a gift");
       const [active] = await tx.select().from(giftGrants).where(and(eq(giftGrants.userId, userId), gt(giftGrants.endsAt, now))).limit(1);
       if (active) throw new AppError(409, "gift_active", "Wait until your current gift expires before redeeming another");
       const [used] = await tx.select().from(giftGrants).where(and(eq(giftGrants.userId, userId), eq(giftGrants.promotionId, promotion.id)));

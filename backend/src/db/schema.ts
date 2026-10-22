@@ -743,3 +743,17 @@ export const giftGrants = pgTable("gift_grants", {
   userExpiry: index("gift_grants_user_expiry_idx").on(t.userId, t.endsAt),
   codeIndex: index("gift_grants_code_idx").on(t.codeId),
 }));
+
+// Play owns lifecycle; never overwrite the independent admin plan.
+export const playSubscriptions = pgTable("play_subscriptions", {
+  purchaseToken: text("purchase_token").primaryKey(),
+  userId: uuid("user_id").notNull().references(() => users.id),
+  productId: text("product_id").notNull(),
+  basePlanId: text("base_plan_id").notNull(),
+  plan: planEnum("plan").notNull(),
+  state: text("state").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  autoRenewing: boolean("auto_renewing").notNull().default(false),
+  acknowledged: boolean("acknowledged").notNull().default(false),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, t => ({ userIndex: index("play_subscriptions_user_idx").on(t.userId) }));

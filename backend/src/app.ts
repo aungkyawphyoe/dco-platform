@@ -1,3 +1,4 @@
+import { playBillingPlugin } from "./modules/play-billing.js";
 import { promotionsPlugin } from "./modules/promotions.js";
 import { fleetAnalyticsPlugin } from "./modules/fleet-analytics.js";
 import { socialAuthPlugin } from "./modules/social-auth.js";
@@ -68,6 +69,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(healthPlugin);
       await v1.register(pricingPlugin);
       await v1.register(promotionsPlugin);
+      await v1.register(playBillingPlugin);
       await v1.register(authPlugin);
       await v1.register(accountSecurityPlugin);
       await v1.register(socialAuthPlugin);

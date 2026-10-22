@@ -68,7 +68,7 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) throw new AppError(401, "unauthorized", "Unknown user");
     const subscription = await effectiveSubscription(app.db, userId);
-    const { license } = await issueLicense(app.env, { userId, plan: subscription.plan, giftEnd: subscription.gift?.endsAt });
+    const { license } = await issueLicense(app.env, { userId, plan: subscription.plan, giftEnd: subscription.gift?.endsAt, paidEnd: subscription.paidEnd });
     return { license };
   });
 
