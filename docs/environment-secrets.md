@@ -38,6 +38,7 @@ Placeholders only. Store in Key Vault (Azure) or a local ignored `.env` (`chmod 
 | `MAIL_PROVIDER` | API | `stdout` (local) or `acs` (Azure Communication Services Email). |
 | `MAIL_API_KEY` | API | ACS connection string or key when `MAIL_PROVIDER=acs`. |
 | `MAIL_FROM` | API | e.g. `noreply@<domain>` |
+| `REMINDER_EMAIL_SCAN_MINUTES` | API | Maintenance email reminder scan interval (default `15`; `0` disables). Not a secret. |
 | `MEDIA_DRIVER` | API | `local` on a laptop; `azure_blob` on Azure. |
 | `AZURE_STORAGE_CONNECTION_STRING` | API | When Blob is on. |
 | `AZURE_BLOB_CONTAINER` | API | Separate containers per env. |
@@ -87,6 +88,8 @@ Local dev may use generated secrets in an ignored `.env`. Prod keys are generate
 ## Email
 
 MVP needs verification and password-reset mail (`product/frd/auth.md`). Provider: **stdout** locally; **Azure Communication Services Email** on Azure.
+
+Production also sends opt-in maintenance reminder emails (`product/frd/notifications.md`), same provider and from-address. The scan runs inside the API process on `REMINDER_EMAIL_SCAN_MINUTES`. The delivery unique index plus a conditional claim keep concurrent replicas from double-sending the same cycle; a crash after the provider accepts an email but before `sent_at` is recorded is the only duplicate window.
 
 ---
 

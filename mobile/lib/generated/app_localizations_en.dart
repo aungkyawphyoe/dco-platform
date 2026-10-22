@@ -1830,6 +1830,40 @@ class AppLocalizationsEn extends AppLocalizations {
   String get remindersReset => 'Reset to defaults';
 
   @override
+  String get remindersEmailTitle => 'Email reminders';
+
+  @override
+  String get remindersEmailBody =>
+      'Get an email before a plan item is due, and again when it is due.';
+
+  @override
+  String remindersEmailTo(String email) {
+    return 'Sent to $email.';
+  }
+
+  @override
+  String get remindersEmailLeadLabel => 'Email lead time';
+
+  @override
+  String get remindersEmailLeadHelp =>
+      'Send the email this many days before the due date.';
+
+  @override
+  String get remindersEmailNeedsVerification =>
+      'Verify your email address to turn on email reminders.';
+
+  @override
+  String get remindersEmailUnavailable =>
+      'Add and verify an email address to use email reminders.';
+
+  @override
+  String get remindersEmailVerify => 'Verify email';
+
+  @override
+  String get remindersEmailSaveError =>
+      'Could not save email reminder settings.';
+
+  @override
   String get languageEnglish => 'English';
 
   @override

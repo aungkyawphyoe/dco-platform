@@ -30,6 +30,7 @@ const schema = z.object({
   BOOTSTRAP_ADMIN_PASSWORD: z.string().optional(),
   MAIL_PROVIDER: z.enum(["stdout", "acs"]).default("stdout"),
   EMAIL_VERIFICATION: z.enum(["off", "on"]).default("off"),
+  REMINDER_EMAIL_SCAN_MINUTES: z.coerce.number().int().min(0).max(1440).default(15),
   MAIL_API_KEY: z.string().optional(),
   MAIL_FROM: z.string().default("noreply@localhost"),
   ACS_ENDPOINT: z.string().optional(),

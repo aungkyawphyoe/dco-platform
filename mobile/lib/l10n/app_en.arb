@@ -566,6 +566,22 @@
   "remindersSoonDistanceLabel": "Distance before due",
   "remindersSoonDistanceHelp": "A mileage reminder fires when the remaining distance is at or below this.",
   "remindersReset": "Reset to defaults",
+  "remindersEmailTitle": "Email reminders",
+  "remindersEmailBody": "Get an email before a plan item is due, and again when it is due.",
+  "remindersEmailTo": "Sent to {email}.",
+  "@remindersEmailTo": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "remindersEmailLeadLabel": "Email lead time",
+  "remindersEmailLeadHelp": "Send the email this many days before the due date.",
+  "remindersEmailNeedsVerification": "Verify your email address to turn on email reminders.",
+  "remindersEmailUnavailable": "Add and verify an email address to use email reminders.",
+  "remindersEmailVerify": "Verify email",
+  "remindersEmailSaveError": "Could not save email reminder settings.",
   "languageEnglish": "English",
   "languageMyanmar": "Myanmar",
   "currencyUSD": "US Dollar (USD)",

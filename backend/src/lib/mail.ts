@@ -1,5 +1,15 @@
 import type { Env } from "../config/env.js";
 
+export type MaintenanceReminderEmail = {
+  phase: "upcoming" | "due";
+  vehicleName: string;
+  itemName: string;
+  dueOn: string | null;
+  dueMileage: number | null;
+  currentMileage: number;
+  mileageUnit: "mi" | "km";
+};
+
 export type Mailer = {
   sendCode(to: string, code: string, purpose: "verify" | "reset", locale: "en" | "my"): Promise<void>;
   sendVerification(to: string, token: string): Promise<void>;
@@ -13,7 +23,47 @@ export type Mailer = {
     inviterName: string,
     inviteUrl: string,
   ): Promise<void>;
+  sendMaintenanceReminder(to: string, reminder: MaintenanceReminderEmail): Promise<void>;
 };
+
+function formatDate(value: string): string {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Intl.DateTimeFormat("en", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, day)));
+}
+
+function formatDistance(miles: number, unit: "mi" | "km"): string {
+  const value = unit === "km" ? miles * 1.609344 : miles;
+  return `${Math.round(value).toLocaleString("en-US")} ${unit}`;
+}
+
+export function maintenanceReminderCopy(reminder: MaintenanceReminderEmail) {
+  const due: string[] = [];
+  if (reminder.dueOn) due.push(`due on ${formatDate(reminder.dueOn)}`);
+  if (reminder.dueMileage != null) {
+    due.push(`due at ${formatDistance(reminder.dueMileage, reminder.mileageUnit)}`);
+  }
+  const dueText = due.length > 0 ? due.join(" and ") : "due";
+  const subject = reminder.phase === "upcoming"
+    ? `Upcoming maintenance: ${reminder.itemName}`
+    : `Maintenance due: ${reminder.itemName}`;
+  const intro = reminder.phase === "upcoming"
+    ? `${reminder.itemName} is coming up for ${reminder.vehicleName}.`
+    : `${reminder.itemName} is due for ${reminder.vehicleName}.`;
+  const body = [
+    intro,
+    "",
+    `It is ${dueText}.`,
+    `Current odometer: ${formatDistance(reminder.currentMileage, reminder.mileageUnit)}.`,
+    "",
+    "Open the AutoX app to record the service or manage this reminder.",
+  ].join("\n");
+  return { subject, body };
+}
 
 function link(env: Env, path: string, token: string): string {
   const base = env.PUBLIC_API_URL.replace(/\/$/, "");
@@ -81,6 +131,14 @@ export function createMailer(env: Env): Mailer {
         return;
       }
       await sendAcs(env, to, `AutoX: ${vehicleName} shared with you`, body);
+    },
+    async sendMaintenanceReminder(to, reminder) {
+      const { subject, body } = maintenanceReminderCopy(reminder);
+      if (env.MAIL_PROVIDER === "stdout") {
+        console.log(`[mail] maintenance ${reminder.phase} ${to}: ${subject}`);
+        return;
+      }
+      await sendAcs(env, to, subject, body);
     },
   };
 }

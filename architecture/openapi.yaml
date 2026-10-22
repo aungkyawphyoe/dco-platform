@@ -862,6 +862,52 @@ paths:
       responses:
         '204':
           description: Stored
+  /me/reminder-emails:
+    get:
+      tags: [Me]
+      summary: Email reminder preferences for maintenance plan items
+      description: >
+        Owner-only. `available` is false until the account has a verified
+        email address; enabling reminders while unavailable returns 409
+        `email_verification_required`.
+      responses:
+        '200':
+          description: Preferences
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailReminderSettings'
+    put:
+      tags: [Me]
+      summary: Update email reminder preferences
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled, lead_days]
+              properties:
+                enabled:
+                  type: boolean
+                lead_days:
+                  type: integer
+                  minimum: 7
+                  maximum: 60
+                  description: Days before a plan item's due date to send the upcoming email.
+      responses:
+        '200':
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EmailReminderSettings'
+        '409':
+          description: Email verification required to enable reminders
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /vehicles:
     get:
       tags: [Vehicles]
@@ -5133,6 +5179,19 @@ components:
         active_vehicle_id:
           type: string
           format: uuid
+    EmailReminderSettings:
+      type: object
+      required: [enabled, lead_days, available]
+      properties:
+        enabled:
+          type: boolean
+        lead_days:
+          type: integer
+          minimum: 7
+          maximum: 60
+        available:
+          type: boolean
+          description: True when the account has a verified email address; reminders cannot be enabled otherwise.
     Vehicle:
       type: object
       required: [id, user_id, name, make, model, year, license_plate, fuel_type, vehicle_class, mileage, archived]

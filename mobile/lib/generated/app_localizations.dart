@@ -3500,6 +3500,60 @@ abstract class AppLocalizations {
   /// **'Reset to defaults'**
   String get remindersReset;
 
+  /// No description provided for @remindersEmailTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Email reminders'**
+  String get remindersEmailTitle;
+
+  /// No description provided for @remindersEmailBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Get an email before a plan item is due, and again when it is due.'**
+  String get remindersEmailBody;
+
+  /// No description provided for @remindersEmailTo.
+  ///
+  /// In en, this message translates to:
+  /// **'Sent to {email}.'**
+  String remindersEmailTo(String email);
+
+  /// No description provided for @remindersEmailLeadLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Email lead time'**
+  String get remindersEmailLeadLabel;
+
+  /// No description provided for @remindersEmailLeadHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Send the email this many days before the due date.'**
+  String get remindersEmailLeadHelp;
+
+  /// No description provided for @remindersEmailNeedsVerification.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email address to turn on email reminders.'**
+  String get remindersEmailNeedsVerification;
+
+  /// No description provided for @remindersEmailUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Add and verify an email address to use email reminders.'**
+  String get remindersEmailUnavailable;
+
+  /// No description provided for @remindersEmailVerify.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify email'**
+  String get remindersEmailVerify;
+
+  /// No description provided for @remindersEmailSaveError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not save email reminder settings.'**
+  String get remindersEmailSaveError;
+
   /// No description provided for @languageEnglish.
   ///
   /// In en, this message translates to:

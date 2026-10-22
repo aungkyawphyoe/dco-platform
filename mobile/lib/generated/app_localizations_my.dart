@@ -1852,6 +1852,40 @@ class AppLocalizationsMy extends AppLocalizations {
   String get remindersReset => 'မူလအတိုင်း ပြန်ထားမည်';
 
   @override
+  String get remindersEmailTitle => 'အီးမေးလ် သတိပေးချက်များ';
+
+  @override
+  String get remindersEmailBody =>
+      'ပြုပြင်ထိန်းသိမ်းရန် သတ်မှတ်ရက်မတိုင်မီနှင့် အချိန်ကျသည့်အခါ အီးမေးလ် ပို့ပေးပါမည်။';
+
+  @override
+  String remindersEmailTo(String email) {
+    return '$email သို့ ပို့ပါမည်။';
+  }
+
+  @override
+  String get remindersEmailLeadLabel => 'အီးမေးလ် သတိပေးရက်';
+
+  @override
+  String get remindersEmailLeadHelp =>
+      'သတ်မှတ်ရက်မတိုင်မီ ဤမျှရက်ကြာ အီးမေးလ် ပို့ပါမည်။';
+
+  @override
+  String get remindersEmailNeedsVerification =>
+      'အီးမေးလ် သတိပေးချက် ဖွင့်ရန် အီးမေးလ်ကို အတည်ပြုပါ။';
+
+  @override
+  String get remindersEmailUnavailable =>
+      'အီးမေးလ် သတိပေးချက် အသုံးပြုရန် အီးမေးလ် ထည့်ပြီး အတည်ပြုပါ။';
+
+  @override
+  String get remindersEmailVerify => 'အီးမေးလ် အတည်ပြုမည်';
+
+  @override
+  String get remindersEmailSaveError =>
+      'အီးမေးလ် သတိပေးချက် ဆက်တင်များကို သိမ်း၍မရပါ။';
+
+  @override
   String get languageEnglish => 'အင်္ဂလိပ်';
 
   @override
