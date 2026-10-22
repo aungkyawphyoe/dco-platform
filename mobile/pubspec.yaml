@@ -75,6 +75,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/branding/autox-logo.png
+    - assets/branding/autox-logo-cb.png
     - assets/license_keys.json
     - assets/onboarding/01-car-home.svg
     - assets/onboarding/02-service-reminders.svg

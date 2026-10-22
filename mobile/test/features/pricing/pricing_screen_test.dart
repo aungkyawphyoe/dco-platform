@@ -276,7 +276,7 @@ void main() {
 
   for (final lang in ['en', 'my']) {
     testWidgets(
-      'compare plans and navigate to separate gift redemption in $lang',
+      'compare plans without gift CTA and retain separate redemption in $lang',
       (tester) async {
         await pumpPricing(tester, lang);
         expect(find.byType(TextField), findsNothing);
@@ -310,7 +310,10 @@ void main() {
         final cta = lang == 'en'
             ? 'Redeem a gift code'
             : 'လက်ဆောင်ကုဒ် အသုံးပြုရန်';
-        await tester.tap(find.text(cta));
+        expect(find.text(cta), findsNothing);
+        GoRouter.of(
+          tester.element(find.byType(PricingScreen)),
+        ).push(AppRoutes.redeemGift);
         await tester.pumpAndSettle();
         expect(find.byType(GiftRedemptionScreen), findsOneWidget);
         expect(find.byType(TextField), findsOneWidget);
@@ -345,7 +348,9 @@ void main() {
     tester,
   ) async {
     await pumpPricing(tester, 'en', verified: false);
-    await tester.tap(find.text('Redeem a gift code'));
+    GoRouter.of(
+      tester.element(find.byType(PricingScreen)),
+    ).push(AppRoutes.redeemGift);
     await tester.pumpAndSettle();
     expect(find.byType(TextField), findsNothing);
     expect(
@@ -354,9 +359,7 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
-  testWidgets('large text keeps plan selection and gift action usable', (
-    tester,
-  ) async {
+  testWidgets('large text keeps plan selection usable', (tester) async {
     await pumpPricing(tester, 'my', scale: 1.6);
     await tester.scrollUntilVisible(
       find.byKey(const ValueKey('plan-free')).hitTestable(),
@@ -371,9 +374,7 @@ void main() {
       scrollable: find.byType(Scrollable).first,
     );
     expect(find.byKey(const ValueKey('featured-price')), findsOneWidget);
-    await tester.tap(find.text('လက်ဆောင်ကုဒ် အသုံးပြုရန်'));
-    await tester.pumpAndSettle();
-    expect(find.byType(GiftRedemptionScreen), findsOneWidget);
+    expect(find.text('လက်ဆောင်ကုဒ် အသုံးပြုရန်'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

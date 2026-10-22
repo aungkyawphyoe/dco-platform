@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
 class DcoLogo extends StatelessWidget {
-  const DcoLogo({super.key, this.size = 120});
+  const DcoLogo({super.key, this.size = 240});
 
-  static const assetPath = 'assets/branding/autox-logo.png';
+  static const assetPath = 'assets/branding/autox-logo-cb.png';
 
   final double size;
 

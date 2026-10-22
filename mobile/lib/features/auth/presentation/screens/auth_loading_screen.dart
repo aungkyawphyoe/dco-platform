@@ -17,7 +17,7 @@ class AuthLoadingScreen extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const DcoLogo(size: 96),
+            const DcoLogo(),
             SizedBox(height: tokens.space.s5),
             if (failed) ...[
               const Text('Unable to load account access. Connect and retry.'),

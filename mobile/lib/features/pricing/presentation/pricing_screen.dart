@@ -3,11 +3,9 @@ import '../billing/providers.dart';
 import '../billing/play_billing_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../core/gating/providers.dart';
 import '../../../core/providers.dart';
-import '../../../core/router/routes.dart';
 import '../../../core/theme/dco_tokens.dart';
 import '../../../core/widgets/dco_button.dart';
 import '../../../core/widgets/dco_card.dart';
@@ -279,116 +277,113 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: SafeArea(
-        top: false,
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(
-            t.space.s5,
-            t.space.s2,
-            t.space.s5,
-            t.space.s3,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (storeBilling) ...[
-                if (billing.message != null)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: t.space.s2),
-                    child: Text(
-                      _billingMessage(s, billing),
-                      style: text.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                if (billing.loading) const LinearProgressIndicator(),
-                if (offer != null)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: t.space.s2),
-                    child: Text(
-                      s.playCheckoutTerms(
-                        offer.price,
-                        _annual ? s.pricingAnnual : s.pricingMonthly,
-                      ),
-                      style: text.bodySmall,
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                DcoButton(
-                  key: const ValueKey('play-subscribe'),
-                  label: selected?.id == 'free'
-                      ? s.playChoosePlan
-                      : s.playSubscribe,
-                  onPressed:
-                      selected?.id == 'free' &&
-                          options.any((p) => p.id == 'standard')
-                      ? () => setState(() => _selectedPlan = 'standard')
-                      : !billing.busy &&
-                            !billing.loading &&
-                            billing.canPurchase &&
-                            offer != null
-                      ? () => ref.read(playBillingProvider.notifier).buy(offer)
-                      : null,
+      bottomNavigationBar: !storeBilling
+          ? null
+          : SafeArea(
+              top: false,
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(
+                  t.space.s5,
+                  t.space.s2,
+                  t.space.s5,
+                  t.space.s3,
                 ),
-                Wrap(
-                  alignment: WrapAlignment.center,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    TextButton(
-                      onPressed: billing.busy
-                          ? null
-                          : () => ref
-                                .read(playBillingProvider.notifier)
-                                .restore(),
-                      child: Text(s.playRestore),
-                    ),
-                    TextButton(
-                      onPressed: () async {
-                        final opened = await launchUrl(
-                          Uri.https(
-                            'play.google.com',
-                            '/store/account/subscriptions',
+                    if (storeBilling) ...[
+                      if (billing.message != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: t.space.s2),
+                          child: Text(
+                            _billingMessage(s, billing),
+                            style: text.bodySmall,
+                            textAlign: TextAlign.center,
                           ),
-                          mode: LaunchMode.externalApplication,
-                        );
-                        if (!opened && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(s.playUnavailable)),
-                          );
-                        }
-                      },
-                      child: Text(s.playManage),
-                    ),
-                    if (!billing.canPurchase)
-                      TextButton(
-                        onPressed: () =>
-                            ref.read(playBillingProvider.notifier).reload(),
-                        child: Text(s.pricingRetry),
+                        ),
+                      if (billing.loading) const LinearProgressIndicator(),
+                      if (offer != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: t.space.s2),
+                          child: Text(
+                            s.playCheckoutTerms(
+                              offer.price,
+                              _annual ? s.pricingAnnual : s.pricingMonthly,
+                            ),
+                            style: text.bodySmall,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      DcoButton(
+                        key: const ValueKey('play-subscribe'),
+                        label: selected?.id == 'free'
+                            ? s.playChoosePlan
+                            : s.playSubscribe,
+                        onPressed:
+                            selected?.id == 'free' &&
+                                options.any((p) => p.id == 'standard')
+                            ? () => setState(() => _selectedPlan = 'standard')
+                            : !billing.busy &&
+                                  !billing.loading &&
+                                  billing.canPurchase &&
+                                  offer != null
+                            ? () => ref
+                                  .read(playBillingProvider.notifier)
+                                  .buy(offer)
+                            : null,
                       ),
+                      Wrap(
+                        alignment: WrapAlignment.center,
+                        children: [
+                          TextButton(
+                            onPressed: billing.busy
+                                ? null
+                                : () => ref
+                                      .read(playBillingProvider.notifier)
+                                      .restore(),
+                            child: Text(s.playRestore),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final opened = await launchUrl(
+                                Uri.https(
+                                  'play.google.com',
+                                  '/store/account/subscriptions',
+                                ),
+                                mode: LaunchMode.externalApplication,
+                              );
+                              if (!opened && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text(s.playUnavailable)),
+                                );
+                              }
+                            },
+                            child: Text(s.playManage),
+                          ),
+                          if (!billing.canPurchase)
+                            TextButton(
+                              onPressed: () => ref
+                                  .read(playBillingProvider.notifier)
+                                  .reload(),
+                              child: Text(s.pricingRetry),
+                            ),
+                        ],
+                      ),
+                      if (!billing.canPurchase &&
+                          !billing.loading &&
+                          billing.message == null)
+                        Text(
+                          user?.emailVerified != true
+                              ? s.pricingVerify
+                              : s.playEligibility,
+                          style: text.bodySmall,
+                          textAlign: TextAlign.center,
+                        ),
+                    ],
                   ],
                 ),
-                if (!billing.canPurchase &&
-                    !billing.loading &&
-                    billing.message == null)
-                  Text(
-                    user?.emailVerified != true
-                        ? s.pricingVerify
-                        : s.playEligibility,
-                    style: text.bodySmall,
-                    textAlign: TextAlign.center,
-                  ),
-              ],
-              TextButton.icon(
-                onPressed: () async {
-                  await context.push(AppRoutes.redeemGift);
-                  if (mounted) _refresh();
-                },
-                icon: const Icon(Icons.redeem_rounded),
-                label: Text(s.pricingGiftCta),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 }
