@@ -27,6 +27,11 @@ class AuthRepositoryImpl implements AuthRepository {
       final session = await _remote.refresh(refreshToken: refresh);
       await _persist(session);
       return session;
+    } on RateLimitedFailure {
+      // A temporary throttle is not a revoked session. Keep credentials for retry.
+      rethrow;
+    } on ServiceUnavailableFailure {
+      rethrow;
     } on AuthFailure {
       final cached = await _tokenStore.readUserJson();
       if (refresh.startsWith('mock_refresh_') && cached != null) {

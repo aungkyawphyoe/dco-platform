@@ -27,6 +27,7 @@ AuthFailure mapStatusToAuthFailure(int? status, String message) {
     },
     409 => EmailTakenFailure(message),
     429 => RateLimitedFailure(message),
+    503 => ServiceUnavailableFailure(message),
     null => NetworkAuthFailure(message),
     _ => UnknownAuthFailure(message),
   };

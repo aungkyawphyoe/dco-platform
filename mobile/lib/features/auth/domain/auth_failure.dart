@@ -19,6 +19,10 @@ class RateLimitedFailure extends AuthFailure {
   const RateLimitedFailure([super.message = 'Too many attempts. Try again shortly']);
 }
 
+class ServiceUnavailableFailure extends AuthFailure {
+  const ServiceUnavailableFailure([super.message = 'Service temporarily unavailable. Try again shortly']);
+}
+
 class SessionExpiredFailure extends AuthFailure {
   const SessionExpiredFailure([super.message = 'Session expired. Sign in again']);
 }
