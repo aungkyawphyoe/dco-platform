@@ -40,7 +40,6 @@ const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 export const authPlugin: FastifyPluginAsync = async (app) => {
   app.post("/auth/signup", { config: { public: true } }, async (request, reply) => {
     const body = signupBody.parse(request.body);
-    if (app.env.AUTH_CODES_ENABLED === "on") await authLimit(app.db, `signup:${request.ip}`, 10);
     const email = body.email.toLowerCase();
     const existing = await app.db.select().from(users).where(eq(users.email, email)).limit(1);
     if (existing[0]) throw new AppError(409, "email_taken", "Email already registered");
@@ -93,14 +92,12 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/login", { config: { public: true } }, async (request) => {
     const body = loginBody.parse(request.body);
-    if (app.env.AUTH_CODES_ENABLED === "on") {
-      await authLimit(app.db, `login-ip:${request.ip}`, 60);
-      await authLimit(app.db, `login-account:${body.email.trim().toLowerCase()}`, 20);
-    }
     const identifier = body.email.trim().toLowerCase();
     const [user] = identifier.includes("@")
       ? await app.db.select().from(users).where(eq(users.email, identifier)).limit(1)
       : await app.db.select().from(users).where(eq(users.username, identifier)).limit(1);
+    // Email and username aliases share the same account budget.
+    await authLimit(app.db, `login-account:${user?.id ?? identifier}`, 20);
     if (!user || !(await verifyPassword(body.password, user.passwordHash))) {
       throw new AppError(401, "invalid_credentials", "Invalid credentials");
     }
@@ -257,7 +254,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/resend-verification", async (request, reply) => {
     const userId = request.authUser!.sub;
-    if (app.env.AUTH_CODES_ENABLED === "on") await authLimit(app.db, `legacy-verify:${userId}`, 5);
+    await authLimit(app.db, `legacy-verify:${userId}`, 5);
     const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (user && !user.emailVerified && user.email) {
       const token = randomToken();
@@ -275,10 +272,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/forgot-password", { config: { public: true } }, async (request, reply) => {
     const body = z.object({ email: z.string().email() }).parse(request.body);
-    if (app.env.AUTH_CODES_ENABLED === "on") {
-      await authLimit(app.db, `legacy-reset:${body.email.toLowerCase()}`, 5);
-      await authLimit(app.db, `legacy-reset-ip:${request.ip}`, 20);
-    }
+    await authLimit(app.db, `legacy-reset:${body.email.toLowerCase()}`, 5);
     const [user] = await app.db.select().from(users).where(eq(users.email, body.email.toLowerCase())).limit(1);
     if (user?.passwordHash) {
       const token = randomToken();

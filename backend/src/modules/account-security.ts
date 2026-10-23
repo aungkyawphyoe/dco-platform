@@ -1,22 +1,14 @@
 import { createHmac, randomInt, timingSafeEqual } from "node:crypto";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import type { FastifyInstance, FastifyPluginAsync, FastifyRequest } from "fastify";
 import { z } from "zod";
-import type { Db } from "../db/client.js";
-import { authChallenges, authLimits, emailTokens, refreshTokens, users } from "../db/schema.js";
-import { hashPassword, newId, sha256, verifyPassword } from "../lib/crypto.js";
+import { authChallenges, emailTokens, refreshTokens, users } from "../db/schema.js";
+import { hashPassword, newId, verifyPassword } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { publicUser } from "../lib/serialize.js";
 
-// PostgreSQL-backed counters work across replicas. Upsert serializes contenders.
-export async function authLimit(db: Db, key: string, max: number, seconds = 3600) {
-  const [row] = await db.insert(authLimits).values({ key: sha256(key), count: 1, expiresAt: new Date(Date.now() + seconds * 1000) })
-    .onConflictDoUpdate({ target: authLimits.key, set: {
-      count: sql`CASE WHEN ${authLimits.expiresAt} <= now() THEN 1 ELSE ${authLimits.count} + 1 END`,
-      expiresAt: sql`CASE WHEN ${authLimits.expiresAt} <= now() THEN now() + ${seconds} * interval '1 second' ELSE ${authLimits.expiresAt} END`,
-    } }).returning();
-  if (row.count > max) throw new AppError(429, "rate_limited", "Too many requests. Please try again later.");
-}
+import { authLimit } from "../lib/rate-limit.js";
+export { authLimit } from "../lib/rate-limit.js";
 
 export async function requireRecent(app: FastifyInstance, request: FastifyRequest, password?: string) {
   const [user] = await app.db.select().from(users).where(eq(users.id, request.authUser!.sub));

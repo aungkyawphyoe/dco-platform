@@ -691,7 +691,7 @@ export const authChallenges = pgTable("auth_challenges", {
 });
 export const authLimits = pgTable("auth_limits", {
   key: text("key").primaryKey(), count: integer("count").notNull().default(0), expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
-});
+}, (table) => [index("auth_limits_expires_at_idx").on(table.expiresAt)]);
 export const authIdentities = pgTable("auth_identities", {
   id: uuid("id").primaryKey(), userId: uuid("user_id").notNull().references(() => users.id),
   provider: text("provider").notNull(), subject: text("subject").notNull(), createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
