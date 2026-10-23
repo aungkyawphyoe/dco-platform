@@ -8,6 +8,11 @@ info:
     Fleet audience split: fleet **management** routes (organization members, inventory writes, assignments, work-order status changes, inspections lists, analytics, reports, warranty templates, transfers, CSV import) require the `dco-fleet` audience (Fleet Portal). The mobile app (`dco-owner`) reaches only the personal garage, shared fleet **context** (`/me/entitlements`, `/organizations/me`), the organization-scoped shared record and sync APIs (`/organizations/{organizationId}/records/*`, `/organizations/{id}/sync/*`), and the supplemental **driver surface** (`/drivers/*`, driver work-order/fuel-log/inspection/driver-service-record routes). Driver identities are rejected on personal-garage routes with 403 `personal_garage_forbidden` (Oct 2026 second grilling).
     Client-generated UUIDs on create are idempotent. Mileage never decreases.
     Azure hostname is environment-specific and is not part of this contract.
+    Public routes (except health/readiness probes) have shared PostgreSQL-backed IP rate limits,
+    applied before payload parsing and independent of AUTH_CODES_ENABLED. Login and recovery
+    also enforce account budgets. A 429 response includes Retry-After (seconds); clients must
+    preserve sessions and wait before retrying. Limiter-store failure returns 503 with Retry-After.
+    Policy thresholds and ingress requirements are documented in docs/public-api-rate-limits.md.
 servers:
   - url: http://localhost:8080/v1
     description: local
@@ -104,6 +109,8 @@ paths:
                   properties:
                     data: { type: string, description: Base64 DeveloperNotification JSON }
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204': { description: Notification processed }
         '401': { description: Invalid Google push identity }
         '503': { description: Retryable processing failure or unconfigured billing }
@@ -346,7 +353,7 @@ paths:
         '200':
           $ref: '#/components/responses/AuthChallengeResponse'
         '429':
-          description: Rate limit or cooldown reached
+          $ref: '#/components/responses/RateLimited'
   /auth/recovery-code/confirm:
     post:
       tags: [Auth]
@@ -365,6 +372,8 @@ paths:
                   properties:
                     password: {type: string, minLength: 8, maxLength: 128}
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204':
           description: Password replaced; sign in again
         '400':
@@ -397,6 +406,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/AuthProvider'
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '200':
           description: Keep the secret in app memory; open authorization_url in the system browser
           content:
@@ -422,6 +433,8 @@ paths:
         - {in: query, name: code, schema: {type: string}}
         - {in: query, name: error, schema: {type: string}}
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '302':
           description: Return to dco-auth callback with flow_id only; no session or exchange secrets
     post:
@@ -440,6 +453,8 @@ paths:
                 code: {type: string}
                 error: {type: string}
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '302':
           description: Return to dco-auth callback with flow_id only
   /auth/social/complete:
@@ -459,6 +474,8 @@ paths:
                   properties:
                     create_account: {type: boolean, default: false}
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '200':
           description: AutoX session plus is_new, or needs_account_choice true without a session
           content:
@@ -558,6 +575,8 @@ paths:
         prices, USD display prices, plan limits, marketing bullets, and the
         as-built feature matrix. Unauthenticated.
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '200':
           description: Current pricing catalog
           content:
@@ -626,6 +645,8 @@ paths:
                 refresh_token:
                   type: string
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '200':
           description: New session pair
           content:
@@ -654,6 +675,8 @@ paths:
                 refresh_token:
                   type: string
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204':
           description: Logged out
         '401':
@@ -673,6 +696,8 @@ paths:
                 token:
                   type: string
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204':
           description: Verified
         '400':
@@ -702,6 +727,8 @@ paths:
                   type: string
                   format: email
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '202':
           description: Always generic success
   /auth/reset-password:
@@ -722,6 +749,8 @@ paths:
                   type: string
                   minLength: 8
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204':
           description: Password changed; refresh tokens revoked
         '400':
@@ -907,7 +936,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorBody'
   /vehicles:
     get:
       tags: [Vehicles]
@@ -1594,6 +1623,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StorageUsage'
+  /media/{mediaId}/content:
+    get:
+      tags: [Media]
+      security: []
+      summary: Download personal media using a time-limited signed capability
+      parameters:
+        - {in: path, name: mediaId, required: true, schema: {type: string, format: uuid}}
+        - {in: query, name: token, required: true, schema: {type: string}}
+      responses:
+        '200':
+          description: Media bytes
+          content:
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        '401': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '429': {$ref: '#/components/responses/RateLimited'}
   /media/{mediaId}:
     get:
       tags: [Media]
@@ -4826,6 +4872,16 @@ components:
         type: string
         format: uuid
   responses:
+    RateLimited:
+      description: Request budget exhausted. Wait before retrying; retain existing session credentials.
+      headers:
+        Retry-After:
+          description: Seconds until another attempt is allowed
+          schema: {type: integer, minimum: 1}
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
     AuthChallengeResponse:
       description: Challenge issued; no code is returned in the response
       content:

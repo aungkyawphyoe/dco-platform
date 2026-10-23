@@ -4,6 +4,180 @@
  */
 
 export interface paths {
+    "/me/play-billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Google Play catalog IDs and fresh personal-account checkout eligibility */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Billing defaults off; account_id is an obfuscated purchase binding, never a raw user ID */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enabled: boolean;
+                            can_purchase: boolean;
+                            account_id: string;
+                            package_name: string;
+                            license_kid: string;
+                            products: string[];
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/play-purchases": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Verify and acknowledge an account-bound Google Play subscription
+         * @description Online only. Verify using subscriptionsv2, persist entitlement, then acknowledge. Retry safely with the same token. The server determines product, plan, expiry and account binding; client claims never grant access. 60 requests per account per ten minutes.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        purchase_token: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Verified state; refresh subscription status and signed license. False entitled means no paid access. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            verified: boolean;
+                            entitled: boolean;
+                            acknowledged: boolean;
+                        };
+                    };
+                };
+                /** @description Purchase belongs to another AutoX account */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid or unsupported purchase */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Billing disabled or Google verification temporarily unavailable */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/billing/google-play/notifications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Authenticated Google Cloud Pub/Sub subscription lifecycle push
+         * @description Requires Google-signed Bearer ID token with configured issuer, audience and verified service-account email. This is not an AutoX access token. Known purchases are re-fetched from Google; unknown purchases await authenticated app verification. Non-2xx deliveries retry.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        message: {
+                            /** @description Base64 DeveloperNotification JSON */
+                            data: string;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Notification processed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid Google push identity */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                429: components["responses"]["RateLimited"];
+                /** @description Retryable processing failure or unconfigured billing */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/subscription": {
         parameters: {
             query?: never;
@@ -11,7 +185,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Effective personal plan and current gift (owner audience; no drivers) */
+        /** Effective personal plan, current gift and latest Play subscription (owner audience; no drivers) */
         get: {
             parameters: {
                 query?: never;
@@ -486,13 +660,7 @@ export interface paths {
             };
             responses: {
                 200: components["responses"]["AuthChallengeResponse"];
-                /** @description Rate limit or cooldown reached */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -543,6 +711,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -641,6 +810,7 @@ export interface paths {
                         };
                     };
                 };
+                429: components["responses"]["RateLimited"];
                 /** @description Provider configuration missing */
                 503: {
                     headers: {
@@ -688,6 +858,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         put?: never;
@@ -718,6 +889,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -776,6 +948,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -983,6 +1156,7 @@ export interface paths {
                         "application/json": components["schemas"]["PricingResponse"];
                     };
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         put?: never;
@@ -1113,6 +1287,7 @@ export interface paths {
                     };
                 };
                 401: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1157,6 +1332,7 @@ export interface paths {
                     content?: never;
                 };
                 401: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1197,6 +1373,7 @@ export interface paths {
                     content?: never;
                 };
                 400: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1272,6 +1449,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1313,6 +1491,7 @@ export interface paths {
                     content?: never;
                 };
                 400: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1561,6 +1740,82 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/reminder-emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Email reminder preferences for maintenance plan items
+         * @description Owner-only. `available` is false until the account has a verified email address; enabling reminders while unavailable returns 409 `email_verification_required`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Preferences */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmailReminderSettings"];
+                    };
+                };
+            };
+        };
+        /** Update email reminder preferences */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        enabled: boolean;
+                        /** @description Days before a plan item's due date to send the upcoming email. */
+                        lead_days: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmailReminderSettings"];
+                    };
+                };
+                /** @description Email verification required to enable reminders */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3001,6 +3256,49 @@ export interface paths {
                         "application/json": components["schemas"]["StorageUsage"];
                     };
                 };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{mediaId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download personal media using a time-limited signed capability */
+        get: {
+            parameters: {
+                query: {
+                    token: string;
+                };
+                header?: never;
+                path: {
+                    mediaId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Media bytes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/octet-stream": string;
+                    };
+                };
+                401: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         put?: never;
@@ -8880,6 +9178,17 @@ export interface components {
             /** @enum {string} */
             plan: "free" | "lite" | "standard" | "fleet";
             gift: components["schemas"]["GiftGrant"] | null;
+            play: components["schemas"]["PlaySubscription"] | null;
+        };
+        PlaySubscription: {
+            product_id: string;
+            base_plan_id: string;
+            /** @enum {string} */
+            plan: "lite" | "standard";
+            state: string;
+            /** Format: date-time */
+            expires_at: string;
+            auto_renewing: boolean;
         };
         PromotionCreate: {
             name: string;
@@ -9105,6 +9414,12 @@ export interface components {
             display_name?: string;
             /** Format: uuid */
             active_vehicle_id?: string;
+        };
+        EmailReminderSettings: {
+            enabled: boolean;
+            lead_days: number;
+            /** @description True when the account has a verified email address; reminders cannot be enabled otherwise. */
+            available: boolean;
         };
         Vehicle: {
             /** Format: uuid */
@@ -9894,6 +10209,17 @@ export interface components {
         };
     };
     responses: {
+        /** @description Request budget exhausted. Wait before retrying; retain existing session credentials. */
+        RateLimited: {
+            headers: {
+                /** @description Seconds until another attempt is allowed */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorBody"];
+            };
+        };
         /** @description Challenge issued; no code is returned in the response */
         AuthChallengeResponse: {
             headers: {
