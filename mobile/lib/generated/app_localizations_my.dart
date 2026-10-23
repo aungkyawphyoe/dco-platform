@@ -192,26 +192,26 @@ class AppLocalizationsMy extends AppLocalizations {
   String get authUnknownError => 'တစ်ခုခု မှားယွင်းနေသည်';
 
   @override
-  String get identifierLabel => 'Email or username';
+  String get identifierLabel => 'အီးမေးလ် သို့မဟုတ် အသုံးပြုသူအမည်';
 
   @override
-  String get identifierHint => 'you@example.com or driver_john';
+  String get identifierHint => 'you@example.com သို့မဟုတ် driver_john';
 
   @override
-  String get changePassword => 'Change password';
+  String get changePassword => 'စကားဝှက် ပြောင်းရန်';
 
   @override
   String get forcedPasswordChangeBody =>
-      'Your temporary password must be changed before accessing fleet features.';
+      'ဖလီး လုပ်ဆောင်ချက်များ မဝင်ရောက်မီ သင့်ယာယီစကားဝှက်ကို ပြောင်းလဲရပါမည်။';
 
   @override
-  String get currentPasswordLabel => 'Current password';
+  String get currentPasswordLabel => 'လက်ရှိစကားဝှက်';
 
   @override
-  String get newPasswordLabel => 'New password';
+  String get newPasswordLabel => 'စကားဝှက်အသစ်';
 
   @override
-  String get passwordChangeFailed => 'Password change failed';
+  String get passwordChangeFailed => 'စကားဝှက် ပြောင်းရန် မအောင်မြင်ပါ';
 
   @override
   String get dashboardNoVehicle => 'ယာဉ် မရှိပါ';
@@ -1674,71 +1674,72 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsSyncTapToSync => 'သင့်ဒေတာများကို ချိတ်ဆက်ရန် နှိပ်ပါ';
 
   @override
-  String get profileTitle => 'Profile';
+  String get profileTitle => 'ကိုယ်ရေးအချက်အလက်';
 
   @override
-  String get profilePhoto => 'Profile Photo';
+  String get profilePhoto => 'ကိုယ်ရေးအချက်အလက် ဓာတ်ပုံ';
 
   @override
-  String get profilePhotoTapToChange => 'Tap to change photo';
+  String get profilePhotoTapToChange => 'ဓာတ်ပုံ ပြောင်းရန် နှိပ်ပါ';
 
   @override
-  String get profileName => 'Name';
+  String get profileName => 'အမည်';
 
   @override
-  String get profileNameHint => 'Enter your name';
+  String get profileNameHint => 'သင့်အမည် ထည့်ပါ';
 
   @override
-  String get profileContactPhone => 'Contact Number';
+  String get profileContactPhone => 'ဆက်သွယ်ရန် ဖုန်းနံပါတ်';
 
   @override
-  String get profileContactPhoneHint => 'Phone number (optional)';
+  String get profileContactPhoneHint => 'ဖုန်းနံပါတ် (မဖြည့်လည်းရသည်)';
 
   @override
-  String get profileAddress => 'Address';
+  String get profileAddress => 'လိပ်စာ';
 
   @override
-  String get profileAddressHint => 'Address (optional)';
+  String get profileAddressHint => 'လိပ်စာ (မဖြည့်လည်းရသည်)';
 
   @override
-  String get profileEmail => 'Email';
+  String get profileEmail => 'အီးမေးလ်';
 
   @override
-  String get profileEmailVerified => 'Verified';
+  String get profileEmailVerified => 'အတည်ပြုပြီး';
 
   @override
-  String get profileEmailNotVerified => 'Not verified';
+  String get profileEmailNotVerified => 'အတည်မပြုရသေးပါ';
 
   @override
-  String get profileMemberSince => 'Member since';
+  String get profileMemberSince => 'အဖွဲ့ဝင် ဖြစ်သည့်ရက်';
 
   @override
-  String get profileSave => 'Save Profile';
+  String get profileSave => 'ကိုယ်ရေးအချက်အလက် သိမ်းရန်';
 
   @override
-  String get profileSaved => 'Profile updated';
+  String get profileSaved => 'ကိုယ်ရေးအချက်အလက် ပြင်ဆင်ပြီးပါပြီ';
 
   @override
-  String get profileCompleteBanner => 'Complete your profile';
+  String get profileCompleteBanner =>
+      'သင့်ကိုယ်ရေးအချက်အလက်ကို ပြည့်စုံအောင် ဖြည့်ပါ';
 
   @override
-  String get profileCompleteBannerAction => 'Set up';
+  String get profileCompleteBannerAction => 'ပြင်ဆင်ရန်';
 
   @override
-  String get profileDeleteAccount => 'Delete Account';
+  String get profileDeleteAccount => 'အကောင့် ဖျက်ရန်';
 
   @override
-  String get profileDeleteAccountTitle => 'Delete Account?';
+  String get profileDeleteAccountTitle => 'အကောင့် ဖျက်မလား။';
 
   @override
   String get profileDeleteAccountBody =>
-      'This will deactivate your account and archive all your vehicles. You will not be able to sign in again.';
+      'ဤသည်က သင့်အကောင့်ကို ပိတ်ပြီး သင့်ယာဉ်အားလုံးကို သိမ်းဆည်းမည်။ ထပ်မံ အကောင့်ဝင်၍ မရတော့ပါ။';
 
   @override
-  String get profileDeleteAccountPassword => 'Enter your password to confirm';
+  String get profileDeleteAccountPassword => 'အတည်ပြုရန် သင့်စကားဝှက် ထည့်ပါ';
 
   @override
-  String get profileDeleteAccountSuccess => 'Your account has been deleted.';
+  String get profileDeleteAccountSuccess => 'သင့်အကောင့်ကို ဖျက်ပြီးပါပြီ။';
 
   @override
   String get profileLicenseSection => 'သောင်းရိုင်မီးဆွင့်လိုင်မယ်';
@@ -2267,11 +2268,11 @@ class AppLocalizationsMy extends AppLocalizations {
       'ဆာဗာသို့ ချိတ်ဆက်ရန် စောင့်ဆိုင်းနေသည့် ပြောင်းလဲမှုများ';
 
   @override
-  String get syncParkedTitle => 'Rejected changes';
+  String get syncParkedTitle => 'ငြင်းပယ်ခံရသော ပြောင်းလဲမှုများ';
 
   @override
   String syncParkedBody(Object count) {
-    return '$count changes rejected — upgrade to keep them syncing';
+    return 'ပြောင်းလဲမှု $count ခု ငြင်းပယ်ခံရသည် — ဆက်လက် ချိတ်ဆက်ရန် အဆင့်တိုးပါ';
   }
 
   @override
@@ -3537,21 +3538,21 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get planLimitTitle => 'Plan limit reached';
+  String get planLimitTitle => 'အစီအစဉ် ကန့်သတ်ချက် ပြည့်ပါပြီ';
 
   @override
   String planLimitVehicle(Object limit, Object plan) {
-    return 'Your $plan plan allows $limit vehicles.';
+    return 'သင့် $plan အစီအစဉ်အရ ယာဉ် $limit စီးအထိ ခွင့်ပြုသည်။';
   }
 
   @override
   String planLimitUpgradeTo(Object limit, Object plan) {
-    return 'Upgrade to $plan for $limit vehicles.';
+    return 'ယာဉ် $limit စီးအတွက် $plan သို့ အဆင့်တိုးပါ။';
   }
 
   @override
   String get planLimitChecking =>
-      'Checking your plan. Please try again in a moment.';
+      'သင့်အစီအစဉ်ကို စစ်ဆေးနေပါသည်။ ခဏအကြာတွင် ထပ်စမ်းကြည့်ပါ။';
 
   @override
   String get shareOwnerOnly => 'ယာဉ်ပိုင်ရှင်သာ မျှဝေမှုများကို စီမံနိုင်သည်။';

@@ -1,1 +1,9 @@
-[]
+[
+    {
+        "kid": "lic-2026-10-23",
+        "alg": "EdDSA",
+        "kty": "OKP",
+        "crv": "Ed25519",
+        "x": "QeU3ApritYJ0OTw80ahYkAeN0WwyoeFBM1czq2G23eM"
+    }
+]
