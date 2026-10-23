@@ -48,15 +48,15 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     (async () => {
-      const token = await ensureFreshToken();
-      if (!active) return;
-      if (!token) {
-        setUser(null);
-        setOrg(null);
-        setReady(true);
-        return;
-      }
       try {
+        const token = await ensureFreshToken();
+        if (!active) return;
+        if (!token) {
+          setUser(null);
+          setOrg(null);
+          setReady(true);
+          return;
+        }
         const res = await fetch(`${apiBaseUrl()}/me`, {
           headers: { authorization: `Bearer ${token}` },
         });
@@ -82,8 +82,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
             setPasswordChangeRequired(isPasswordChangeRequired(err));
           }
         }
-      } catch {
-        clearToken();
+      } catch (error) {
+        if (!(error instanceof ApiError && (error.status === 429 || error.status === 503))) clearToken();
         setUser(null);
         setOrg(null);
       } finally {

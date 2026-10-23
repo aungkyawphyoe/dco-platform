@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { clearToken, ensureFreshToken, setToken } from "@/lib/auth/token-store";
+import { ApiError } from "@/lib/api/errors";
 import { apiBaseUrl } from "@/lib/api/config";
 
 export type SessionUser = {
@@ -36,14 +37,14 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     (async () => {
-      const token = await ensureFreshToken();
-      if (!active) return;
-      if (!token) {
-        setUser(null);
-        setReady(true);
-        return;
-      }
       try {
+        const token = await ensureFreshToken();
+        if (!active) return;
+        if (!token) {
+          setUser(null);
+          setReady(true);
+          return;
+        }
         const res = await fetch(`${apiBaseUrl()}/me`, {
           headers: { authorization: `Bearer ${token}` },
         });
@@ -51,8 +52,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         const me = (await res.json()) as SessionUser;
         if (!active) return;
         setUser({ id: me.id, email: me.email, display_name: me.display_name, role: me.role });
-      } catch {
-        clearToken();
+      } catch (error) {
+        if (!(error instanceof ApiError && (error.status === 429 || error.status === 503))) clearToken();
         setUser(null);
       } finally {
         if (active) setReady(true);

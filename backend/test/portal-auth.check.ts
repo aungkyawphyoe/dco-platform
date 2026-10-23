@@ -4,12 +4,33 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 // PORTAL=fleet-portal npm exec -- vitest run --config portal-auth.config.ts
 import { apiGet, apiPost, apiRequest } from '@/lib/api/client';
 import { clearToken, ensureFreshToken, getToken, setToken } from '@/lib/auth/token-store';
+import { POST as loginRoute } from '@/app/api/auth/login/route';
+import { POST as sessionRoute } from '@/app/api/auth/session/route';
 const jwt = (seconds: number, id = '') => `header.${Buffer.from(JSON.stringify({ exp: Math.floor(Date.now()/1000)+seconds, id })).toString('base64url')}.signature`;
 const json = (body: unknown, status=200) => new Response(JSON.stringify(body),{status,headers:{'content-type':'application/json'}});
 const unauthorized = () => json({error:{code:'unauthenticated',message:'Expired'}},401);
 const authorization = (init?: RequestInit) => new Headers(init?.headers).get('authorization');
 beforeEach(() => clearToken());
 afterEach(() => { clearToken(); vi.unstubAllGlobals(); });
+it.each([429, 503])('propagates refresh backoff %s without discarding the token or sending an unauthenticated API request', async status => {
+  const old = jwt(-1); setToken(old);
+  const fetch = vi.fn().mockResolvedValue(json({error:{code:'rate_limited',message:'Try later',details:{retry_after:30}}},status));
+  vi.stubGlobal('fetch',fetch);
+  await expect(apiGet('/vehicles')).rejects.toMatchObject({status});
+  expect(getToken()).toBe(old);
+  expect(fetch).toHaveBeenCalledTimes(1);
+});
+it.each([429, 503])('preserves upstream status %s and Retry-After through login and session routes without clearing cookies', async status => {
+  vi.stubGlobal('fetch',vi.fn().mockImplementation(async()=>new Response('{}', {status,headers:{'retry-after':'42'}})));
+  const loginRequest = {json:async()=>({email:'test@example.com',password:'password'})} as Parameters<typeof loginRoute>[0];
+  const sessionRequest = {cookies:{get:()=>({value:'refresh'})}} as unknown as Parameters<typeof sessionRoute>[0];
+  for (const response of [await loginRoute(loginRequest), await sessionRoute(sessionRequest)]) {
+    expect(response.status).toBe(status);
+    expect(response.headers.get('retry-after')).toBe('42');
+    expect(response.headers.get('set-cookie')).toBeNull();
+    expect(response.headers.get('cache-control')).toBe('no-store');
+  }
+});
 it('refreshes an expired idle-session token before the next API request',async()=>{
   setToken(jwt(-1)); const fresh=jwt(900);
   const fetch=vi.fn().mockResolvedValueOnce(json({access_token:fresh})).mockResolvedValueOnce(json({ok:true})); vi.stubGlobal('fetch',fetch);

@@ -1,3 +1,4 @@
+import { authBackoffResponse } from "@/lib/auth/backoff-response";
 import { NextRequest, NextResponse } from "next/server";
 import {
   FLEET_REFRESH_COOKIE,
@@ -13,6 +14,9 @@ export async function POST(request: NextRequest) {
       method: "POST",
       body: JSON.stringify({ refresh_token: refresh }),
     });
+
+    const backoff = authBackoffResponse(res);
+    if (backoff) return backoff;
 
     if (res.status === 200) {
       const session = (await res.json()) as UpstreamSession;

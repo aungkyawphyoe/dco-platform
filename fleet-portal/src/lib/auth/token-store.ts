@@ -1,3 +1,5 @@
+import { ApiError, parseApiError } from "@/lib/api/errors";
+
 let token: string | null = null;
 let inflight: Promise<string | null> | null = null;
 let sessionVersion = 0;
@@ -42,12 +44,15 @@ export async function ensureFreshToken(rejectedToken?: string | null): Promise<s
   const pending = (async () => {
     try {
       const res = await fetch("/api/auth/session", { method: "POST", cache: "no-store" });
+      if (version !== sessionVersion) return null;
+      if (res.status === 429 || res.status === 503) throw await parseApiError(res);
       const data = res.ok ? await res.json() as { access_token?: string } : null;
       // A refresh started by an old session must not undo sign-out/sign-in.
       if (version !== sessionVersion) return null;
       token = typeof data?.access_token === "string" ? data.access_token : null;
       return token;
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && (error.status === 429 || error.status === 503)) throw error;
       if (version === sessionVersion) token = null;
       return null;
     }

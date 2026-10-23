@@ -1,3 +1,4 @@
+import { authBackoffResponse } from "@/lib/auth/backoff-response";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { setFleetSessionCookies } from "@/lib/auth/cookies";
@@ -21,6 +22,9 @@ export async function POST(request: NextRequest) {
     method: "POST",
     body: JSON.stringify({ ...parsed.data, surface: "fleet" }),
   });
+
+  const backoff = authBackoffResponse(res);
+  if (backoff) return backoff;
 
   if (res.status !== 200) {
     const body = (await res.json().catch(() => null)) as
