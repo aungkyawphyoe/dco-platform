@@ -54,7 +54,7 @@ export const FAQ_CATEGORIES: FaqCategory[] = [
       },
       {
         q: "Can I delete my account?",
-        a: "Yes. Account deletion is available in the app's settings. Deleting your account permanently removes your data and cannot be recovered.",
+        a: "Yes — Settings → Profile → Edit Profile → Delete Account. This deactivates your account and archives all your vehicles; you can't sign in again afterwards. Contact support if you'd like it restored, or permanently erased instead.",
       },
       {
         q: "Can I transfer my records to the buyer of the vehicle?",

@@ -130,7 +130,13 @@ export const PRIVACY_DOC: LegalDoc = {
       blocks: [
         {
           type: "p",
-          text: "We retain your personal data and vehicle records only as long as your account remains active or as needed to provide the Service. You can delete your account at any time from the app's Settings; deletion permanently removes your data and cannot be recovered. Data we are legally required to keep (for example, financial records) is retained only for as long as the law obliges.",
+          text: "We retain your personal data and vehicle records only as long as your account remains active or as needed to provide the Service. You can delete your account at any time from Settings → Profile → Edit Profile → Delete Account: this deactivates your account and archives your vehicles, and your records are retained so that the account can be restored — email us if you would prefer permanent erasure instead; the ",
+          link: {
+            href: "/account-deletion",
+            label: "Account and Data Deletion",
+            after:
+              " page explains exactly what is deleted and what is retained. Data we are legally required to keep (for example, financial records) is retained only for as long as the law obliges.",
+          },
         },
       ],
     },
