@@ -170,11 +170,12 @@ class SessionController extends AsyncNotifier<Session?> {
           currentPassword: currentPassword,
           newPassword: newPassword,
         );
-    // After successful password change, the user's must_change_password flag is cleared server-side.
-    // We need to refresh the session to get the updated user.
-    final session = await ref.read(authRepositoryProvider).restoreSession();
-    if (session != null) {
-      state = AsyncData(session);
+    // Password changes revoke every old session. Establish fresh credentials.
+    final email = state.valueOrNull?.user.email;
+    if (email != null && email.isNotEmpty) {
+      await signIn(email: email, password: newPassword);
+    } else {
+      state = const AsyncData(null);
     }
   }
 

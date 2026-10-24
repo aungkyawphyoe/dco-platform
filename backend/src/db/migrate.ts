@@ -98,5 +98,6 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(readSql("0026_promotions.sql"));
   await exec(readSql("0027_google_play.sql"));
   await exec(readSql("0028_rate_limit_cleanup.sql"));
+  await exec(readSql("0029_security_boundaries.sql"));
   await exec(readSql("0024_reminder_emails.sql"));
 }

@@ -31,7 +31,7 @@ type Op = z.infer<typeof opSchema>;
 export const syncPlugin: FastifyPluginAsync = async (app) => {
   app.post("/sync/push", async (request) => {
     requireOwner(request);
-    const body = z.object({ operations: z.array(opSchema) }).parse(request.body);
+    const body = z.object({ operations: z.array(opSchema).max(100) }).parse(request.body);
     const auth = request.headers.authorization ?? "";
     const results = [];
     for (const op of body.operations) {
@@ -65,15 +65,15 @@ export const syncPlugin: FastifyPluginAsync = async (app) => {
     let after = 0;
     if (cursorRaw !== "") {
       const parsed = Number(Buffer.from(cursorRaw, "base64url").toString("utf8"));
-      if (!Number.isFinite(parsed)) throw new AppError(400, "invalid_cursor", "Cursor rejected");
+      if (!Number.isSafeInteger(parsed) || parsed < 0) throw new AppError(400, "invalid_cursor", "Cursor rejected");
       after = parsed;
     }
     const rows = await app.db
       .select()
       .from(changeLog)
       .where(and(eq(changeLog.userId, request.authUser!.sub), gt(changeLog.seq, after)))
-      .orderBy(changeLog.seq);
-    const limited = rows.slice(0, 200);
+      .orderBy(changeLog.seq).limit(200);
+    const limited = rows;
     const nextSeq = limited.length ? limited[limited.length - 1].seq : after;
     return {
       cursor: Buffer.from(String(nextSeq), "utf8").toString("base64url"),
@@ -90,7 +90,7 @@ export const syncPlugin: FastifyPluginAsync = async (app) => {
 
 async function applyOp(app: FastifyInstance, auth: string, op: Op): Promise<"applied" | "idempotent"> {
   const headers = { authorization: auth };
-  const payload = { id: op.entity_id, ...op.payload };
+  const payload = { ...op.payload, id: op.entity_id };
   const vehicleId = String(op.payload.vehicle_id ?? "");
 
   const call = async (method: "GET" | "POST" | "PATCH" | "DELETE", url: string, body?: object) => {

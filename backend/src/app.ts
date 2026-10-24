@@ -42,6 +42,13 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
   app.decorate("mailer", deps.mailer);
   app.decorate("media", deps.media);
 
+  app.addHook("onSend", async (request, reply, payload) => {
+    reply.header("X-Content-Type-Options", "nosniff").header("Referrer-Policy", "no-referrer");
+    if (deps.env.APP_ENV === "prod") reply.header("Strict-Transport-Security", "max-age=31536000");
+    if (request.url.startsWith("/v1/") && !request.url.startsWith("/v1/pricing")) reply.header("Cache-Control", "no-store");
+    return payload;
+  });
+
   await app.register(cors, {
     origin: deps.env.CORS_ORIGINS.split(",").map((s) => s.trim()),
     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],

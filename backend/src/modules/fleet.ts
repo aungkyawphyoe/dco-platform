@@ -60,7 +60,7 @@ export async function getOrganizationAccess(db: Db, userId: string, orgId: strin
     .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
     .where(and(eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, userId)))
     .limit(1);
-  if (!result) throw new AppError(403, "not_org_member", "User is not a member of this organization");
+  if (!result || result.membership.status !== "active") throw new AppError(403, "not_org_member", "User is not a member of this organization");
   if (result.organization.plan !== "enterprise") throw new AppError(403, "enterprise_org_required", "Enterprise organization entitlement is required");
   if (result.organization.status !== "active") throw new AppError(403, "org_not_active", "Organization is not active");
   if (roles && !roles.includes(result.membership.role)) {
@@ -70,6 +70,8 @@ export async function getOrganizationAccess(db: Db, userId: string, orgId: strin
 }
 
 export async function assertPasswordChangeClear(db: Db, userId: string) {
+  const [membership] = await db.select().from(organizationMembers).where(eq(organizationMembers.userId, userId)).limit(1);
+  if (membership && membership.status !== "active") throw new AppError(403, "membership_inactive", "Organization membership is inactive");
   const [user] = await db
     .select({ mustChangePassword: users.mustChangePassword })
     .from(users)
@@ -99,6 +101,7 @@ function serializeMember(row: typeof organizationMembers.$inferSelect, user: typ
     email: user.email,
     display_name: user.displayName,
     role: row.role,
+    status: row.status,
     joined_at: iso(row.joinedAt),
     invited_by: row.invitedBy,
   };
@@ -131,7 +134,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
       .where(eq(organizationMembers.userId, userId))
       .limit(1);
-    if (!result || result.membership.role !== "org_driver") throw new AppError(403, "driver_mode_required", "An organization driver membership is required");
+    if (!result || result.membership.status !== "active" || result.membership.role !== "org_driver") throw new AppError(403, "driver_mode_required", "An organization driver membership is required");
     if (result.organization.status !== "active" || result.organization.plan !== "enterprise") {
       throw new AppError(403, "org_not_active", "Organization is not active");
     }
@@ -160,7 +163,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       .where(eq(organizationMembers.userId, uid(request)))
       .limit(1);
     if (!result) return { organization: null, fleet_access: false };
-    const access = result.organization.plan === "enterprise" && result.organization.status === "active";
+    const access = result.membership.status === "active" && result.organization.plan === "enterprise" && result.organization.status === "active";
     return {
       organization: serializeOrganization(result.organization, result.membership.role),
       fleet_access: access,
@@ -192,16 +195,10 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     let accountCreated = false;
     let temporaryPassword: string | null = null;
     if (member) {
-      // Confirmed Access Decision 15: a driver identity is always new. Reject an
-      // org_driver invite whose email already belongs to any existing account.
-      if (body.role === "org_driver") {
-        throw new AppError(409, "personal_account_exists", "This email already has a personal account. Try again with a different email address.");
-      }
-      if (body.temporary_password !== undefined) {
-        throw new AppError(400, "temporary_password_existing_account", "An account already exists for this email; remove the temporary password");
-      }
+      throw new AppError(409, "personal_account_exists", "Use a new email for a dedicated organization account. Existing accounts require an invitation acceptance flow.");
     } else {
       const provisioned = await provisionOwnerAccount(app.db, body.email, body.temporary_password);
+      if (!provisioned.created) throw new AppError(409, "personal_account_exists", "Existing accounts require an invitation acceptance flow");
       member = provisioned.user;
       accountCreated = provisioned.created;
       temporaryPassword = provisioned.temporaryPassword;
@@ -241,6 +238,9 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       await app.db.delete(organizationMembers).where(eq(organizationMembers.id, membership.id));
       return reply.code(204).send();
     }
+    if (body.role === "org_driver" && membership.role !== "org_driver") {
+      throw new AppError(409, "dedicated_driver_required", "Provision a dedicated driver account instead of converting an existing identity");
+    }
     const [updated] = await app.db.update(organizationMembers).set({ role: body.role! }).where(eq(organizationMembers.id, membership.id)).returning();
     const [member] = await app.db.select().from(users).where(eq(users.id, memberId)).limit(1);
     return serializeMember(updated, member!);
@@ -258,24 +258,14 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     if (membership.role === "org_admin") throw new AppError(409, "cannot_change_org_admin", "Cannot change org admin status");
     const [targetUser] = await app.db.select().from(users).where(eq(users.id, memberId)).limit(1);
     if (!targetUser) throw new AppError(404, "user_not_found", "User not found");
-    if (body.status === "deactivated") {
-      if (targetUser.status === "deactivated") throw new AppError(409, "already_deactivated", "User is already deactivated");
-      const [orgAdminOf] = await app.db.select().from(organizations).where(
-        and(eq(organizations.adminUserId, memberId), sql`${organizations.status} IN ('pending', 'active', 'suspended')`)
-      ).limit(1);
-      if (orgAdminOf) {
-        throw new AppError(409, "org_admin_active", `Cannot deactivate user who is admin of active organization "${orgAdminOf.name}". Suspend or archive that organization first.`);
+    await app.db.transaction(async (tx) => {
+      await tx.update(organizationMembers).set({ status: body.status }).where(eq(organizationMembers.id, membership.id));
+      if (body.status === "deactivated") {
+        await tx.update(driverAssignments).set({ status: "completed", unassignedAt: new Date() }).where(and(
+          eq(driverAssignments.orgId, orgId), eq(driverAssignments.driverId, memberId), eq(driverAssignments.status, "active"),
+        ));
       }
-      await app.db.update(driverAssignments).set({ status: "completed", unassignedAt: new Date() }).where(and(
-        eq(driverAssignments.orgId, orgId), eq(driverAssignments.driverId, memberId), eq(driverAssignments.status, "active"),
-      ));
-      await app.db.update(users).set({ status: "deactivated" }).where(eq(users.id, memberId));
-      await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, memberId));
-    } else {
-      if (targetUser.status === "active") throw new AppError(409, "already_active", "User is already active");
-      await app.db.update(users).set({ status: "active" }).where(eq(users.id, memberId));
-    }
-    await recordChange(app.db, { userId: actorId, entityType: "user", entityId: memberId, op: "upsert", payload: publicUser({ ...targetUser, status: body.status }) });
+    });
     return { status: body.status, user_id: memberId };
   });
 
@@ -450,7 +440,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin", "org_manager"]);
     const body = z.object({ vehicle_id: uuid, driver_id: uuid }).parse(request.body);
     const [driver] = await app.db.select().from(organizationMembers).where(and(
-      eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, body.driver_id), eq(organizationMembers.role, "org_driver"),
+      eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, body.driver_id), eq(organizationMembers.role, "org_driver"), eq(organizationMembers.status, "active"),
     )).limit(1);
     if (!driver) throw new AppError(422, "invalid_driver", "Driver must be an org_driver member of this organization");
     const [vehicle] = await app.db.select().from(organizationVehicles).where(and(
@@ -642,7 +632,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     requireFleetClient(request);
     const userId = uid(request);
     const [membership] = await app.db.select().from(organizationMembers).where(and(
-      eq(organizationMembers.userId, userId), eq(organizationMembers.role, "org_driver"),
+      eq(organizationMembers.userId, userId), eq(organizationMembers.role, "org_driver"), eq(organizationMembers.status, "active"),
     )).limit(1);
     if (!membership) throw new AppError(403, "driver_mode_required", "An organization driver membership is required");
     await getOrganizationAccess(app.db, userId, membership.orgId, ["org_driver"]);
@@ -672,7 +662,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     if (!allowed) throw new AppError(400, "invalid_work_order_status", "Work order must advance reported → in_progress → completed");
     if (body.assigned_to) {
       const [assignee] = await app.db.select().from(organizationMembers).where(and(
-        eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, body.assigned_to), inArray(organizationMembers.role, ["org_manager", "org_mechanic"]),
+        eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, body.assigned_to), inArray(organizationMembers.role, ["org_manager", "org_mechanic"]), eq(organizationMembers.status, "active"),
       )).limit(1);
       if (!assignee) throw new AppError(422, "invalid_assignee", "Work order assignee must be a mechanic or manager in this organization");
     }

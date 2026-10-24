@@ -494,6 +494,7 @@ export const organizationMembers = pgTable("organization_members", {
   orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   role: organizationRoleEnum("role").notNull(),
+  status: text("status").notNull().default("active"),
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
   invitedBy: uuid("invited_by").references(() => users.id),
 }, (table) => ({
@@ -609,6 +610,8 @@ export const vehicleWarranties = pgTable("vehicle_warranties", {
 });
 
 export const transferredVehicles = pgTable("transferred_vehicles", {
+  serviceSnapshot: jsonb("service_snapshot").$type<Array<{ id: string; serviced_on: string | null; odometer: number; total_cost: number; workshop_name: string | null; notes: string | null }>>().notNull().default(sql`'[]'::jsonb`),
+  vehicleSnapshot: jsonb("vehicle_snapshot").$type<Record<string, unknown>>(),
   id: uuid("id").primaryKey(),
   vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
   orgId: uuid("org_id").notNull().references(() => organizations.id),

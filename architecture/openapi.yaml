@@ -2573,7 +2573,7 @@ paths:
         '403': {$ref: '#/components/responses/Error'}
     post:
       tags: [Fleet]
-      summary: Add a member by email; role org_driver creates a driver account (new accounts get a temporary password instead of an invite email)
+      summary: Provision a dedicated organization member using a new email address
       requestBody:
         required: true
         content:
@@ -2591,7 +2591,7 @@ paths:
                   description: >-
                     Applied only when no account exists for email: the account is created active
                     with must_change_password=true and the password is returned once in the
-                    response (no email is sent). 400 when supplied and the account already exists.
+                    response (no email is sent). Existing accounts are rejected with 409 until an invitation acceptance flow is available.
       responses:
         '201':
           description: >-
@@ -2605,7 +2605,7 @@ paths:
         '403': {$ref: '#/components/responses/Error'}
         '409':
           description: >-
-            Conflict — for role org_driver: the email already belongs to an existing
+            Conflict — the email already belongs to an existing
             personal account (personal_account_exists); drivers are always new identities.
             Otherwise: already_in_org.
           content:
@@ -2643,11 +2643,11 @@ paths:
       - $ref: '#/components/parameters/userId'
     post:
       tags: [Fleet]
-      summary: Deactivate/reactivate a driver (soft delete) — org_admin only
+      summary: Suspend/reactivate organization membership — org_admin only
       description: >-
-        Deactivation sets users.status=deactivated, blocks login, cascades the active
-        driver_assignment to completed, and retains all history. The username stays
-        reserved. Reactivation restores login but requires manual re-assignment.
+        Deactivation changes only organization membership status and completes active
+        driver assignments. Personal login and global account status remain unchanged.
+        Reactivation restores organization access but requires manual re-assignment.
       requestBody:
         required: true
         content:
@@ -6036,6 +6036,7 @@ components:
       properties:
         operations:
           type: array
+          maxItems: 100
           items:
             $ref: '#/components/schemas/SyncOperation'
     SyncOperation:
@@ -6295,7 +6296,7 @@ components:
               nullable: true
     OrgMemberCreated:
       type: object
-      required: [user_id, role, joined_at, account_created, temporary_password]
+      required: [user_id, role, status, joined_at, account_created, temporary_password]
       properties:
         user_id:
           type: string
@@ -6309,6 +6310,9 @@ components:
         role:
           type: string
           enum: [org_admin, org_manager, org_mechanic, org_driver]
+        status:
+          type: string
+          enum: [active, deactivated]
         joined_at:
           type: string
           format: date-time

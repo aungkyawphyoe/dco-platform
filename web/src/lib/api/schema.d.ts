@@ -5047,7 +5047,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Add a member by email; role org_driver creates a driver account (new accounts get a temporary password instead of an invite email) */
+        /** Provision a dedicated organization member using a new email address */
         post: {
             parameters: {
                 query?: never;
@@ -5064,7 +5064,7 @@ export interface paths {
                         email: string;
                         /** @enum {string} */
                         role: "org_manager" | "org_mechanic" | "org_driver";
-                        /** @description Applied only when no account exists for email: the account is created active with must_change_password=true and the password is returned once in the response (no email is sent). 400 when supplied and the account already exists. */
+                        /** @description Applied only when no account exists for email: the account is created active with must_change_password=true and the password is returned once in the response (no email is sent). Existing accounts are rejected with 409 until an invitation acceptance flow is available. */
                         temporary_password?: string;
                     };
                 };
@@ -5081,7 +5081,7 @@ export interface paths {
                 };
                 400: components["responses"]["Error"];
                 403: components["responses"]["Error"];
-                /** @description Conflict — for role org_driver: the email already belongs to an existing personal account (personal_account_exists); drivers are always new identities. Otherwise: already_in_org. */
+                /** @description Conflict — the email already belongs to an existing personal account (personal_account_exists); drivers are always new identities. Otherwise: already_in_org. */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5164,8 +5164,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Deactivate/reactivate a driver (soft delete) — org_admin only
-         * @description Deactivation sets users.status=deactivated, blocks login, cascades the active driver_assignment to completed, and retains all history. The username stays reserved. Reactivation restores login but requires manual re-assignment.
+         * Suspend/reactivate organization membership — org_admin only
+         * @description Deactivation changes only organization membership status and completes active driver assignments. Personal login and global account status remain unchanged. Reactivation restores organization access but requires manual re-assignment.
          */
         post: {
             parameters: {
@@ -10016,6 +10016,8 @@ export interface components {
             display_name?: string | null;
             /** @enum {string} */
             role: "org_admin" | "org_manager" | "org_mechanic" | "org_driver";
+            /** @enum {string} */
+            status: "active" | "deactivated";
             /** Format: date-time */
             joined_at: string;
             /** Format: uuid */
