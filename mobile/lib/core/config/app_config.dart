@@ -23,6 +23,7 @@ class AppConfig {
       'DCO_ANALYTICS',
       defaultValue: true,
     );
+    validateApiBaseUrl(apiBaseUrl, releaseMode: kReleaseMode);
     return AppConfig(
       apiBaseUrl: apiBaseUrl,
       jwtOwnerAud: jwtOwnerAud,
@@ -39,4 +40,14 @@ class AppConfig {
 
   /// Google Analytics opt-out (`--dart-define=DCO_ANALYTICS=false`).
   final bool analyticsEnabled;
+}
+
+/// Release builds fail closed instead of sending credentials over cleartext.
+void validateApiBaseUrl(String value, {required bool releaseMode}) {
+  final uri = Uri.tryParse(value);
+  if (uri == null || uri.host.isEmpty || uri.userInfo.isNotEmpty ||
+      uri.hasQuery || uri.hasFragment ||
+      (uri.scheme != 'https' && (releaseMode || uri.scheme != 'http'))) {
+    throw StateError('API_BASE_URL must be a valid HTTPS API URL in release builds');
+  }
 }

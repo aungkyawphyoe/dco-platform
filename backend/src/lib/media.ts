@@ -1,4 +1,4 @@
-import { createHmac, createHash } from "node:crypto";
+import { createHmac, createHash, timingSafeEqual } from "node:crypto";
 import { mkdir, readFile, writeFile, rm } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { BlobServiceClient } from "@azure/storage-blob";
@@ -79,10 +79,11 @@ export function createMediaStore(env: Env): MediaStore {
       return { token, expiresAt };
     },
     verifyDownload(mediaId, token) {
-      const [expRaw, sig] = token.split(".");
+      const [expRaw, sig, extra] = token.split(".");
+      if (extra !== undefined || !sig || !/^[a-f0-9]{64}$/.test(sig)) return false;
       const exp = Number(expRaw);
-      if (!exp || Date.now() / 1000 > exp) return false;
-      return hmac(env, `${mediaId}:${exp}`) === sig;
+      if (!Number.isSafeInteger(exp) || exp <= 0 || Date.now() / 1000 > exp) return false;
+      return timingSafeEqual(Buffer.from(hmac(env, `${mediaId}:${exp}`), "hex"), Buffer.from(sig, "hex"));
     },
   };
 }

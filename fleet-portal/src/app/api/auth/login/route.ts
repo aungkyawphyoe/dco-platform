@@ -1,6 +1,8 @@
+import { rejectCrossOrigin } from "@/lib/auth/request-origin";
+import { authBackoffResponse } from "@/lib/auth/backoff-response";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { setFleetSessionCookies } from "@/lib/auth/cookies";
+import { clearSessionCookies, setFleetSessionCookies } from "@/lib/auth/cookies";
 import { upstream, type UpstreamSession } from "@/lib/api/upstream";
 
 const bodySchema = z.object({
@@ -9,6 +11,8 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const rejected = rejectCrossOrigin(request);
+  if (rejected) return rejected;
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
     return NextResponse.json(
@@ -21,6 +25,9 @@ export async function POST(request: NextRequest) {
     method: "POST",
     body: JSON.stringify({ ...parsed.data, surface: "fleet" }),
   });
+
+  const backoff = authBackoffResponse(res);
+  if (backoff) return backoff;
 
   if (res.status !== 200) {
     const body = (await res.json().catch(() => null)) as
@@ -51,9 +58,10 @@ export async function POST(request: NextRequest) {
   const session = (await res.json()) as UpstreamSession;
   const out = NextResponse.json({
     user: session.user,
-    access_token: session.access_token,
+    authenticated: true,
     redirect: "/",
   });
+  clearSessionCookies(out);
   setFleetSessionCookies(out, session.access_token, session.refresh_token);
   return out;
 }

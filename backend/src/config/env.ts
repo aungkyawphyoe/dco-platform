@@ -57,5 +57,21 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   if (parsed.data.AUTH_CODES_ENABLED === "on" && !parsed.data.AUTH_CODE_SECRET) {
     throw new Error("AUTH_CODE_SECRET is required when AUTH_CODES_ENABLED=on");
   }
-  return parsed.data;
+  const env = parsed.data;
+  if (new Set([env.JWT_OWNER_AUD, env.JWT_FLEET_AUD, env.JWT_WORKSHOP_AUD, env.JWT_ADMIN_AUD]).size !== 4) {
+    throw new Error("JWT audiences must be distinct for each client surface");
+  }
+  if (env.APP_ENV === "prod") {
+    if (env.JWT_ACCESS_SECRET.length < 32 || env.JWT_REFRESH_SECRET.length < 32 || env.JWT_ACCESS_SECRET === env.JWT_REFRESH_SECRET) {
+      throw new Error("Production requires distinct JWT secrets of at least 32 characters");
+    }
+    if (env.MEDIA_SIGNING_KEY.length < 32) throw new Error("Production requires a media signing key of at least 32 characters");
+    if (new URL(env.PUBLIC_API_URL).protocol !== "https:") throw new Error("Production PUBLIC_API_URL must use HTTPS");
+    if (env.MAIL_PROVIDER === "stdout") throw new Error("Production mail must not log authentication messages to stdout");
+    for (const origin of env.CORS_ORIGINS.split(",").map(value => value.trim()).filter(Boolean)) {
+      const url = new URL(origin);
+      if (url.protocol !== "https:" || url.origin !== origin) throw new Error("Production CORS origins must be exact HTTPS origins");
+    }
+  }
+  return env;
 }

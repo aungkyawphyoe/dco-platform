@@ -10,7 +10,8 @@ import {
 } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { clearToken, ensureFreshToken, setToken } from "@/lib/auth/token-store";
-import { apiBaseUrl } from "@/lib/api/config";
+import { ApiError } from "@/lib/api/errors";
+
 
 export type SessionUser = {
   id: string;
@@ -36,23 +37,21 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let active = true;
     (async () => {
-      const token = await ensureFreshToken();
-      if (!active) return;
-      if (!token) {
-        setUser(null);
-        setReady(true);
-        return;
-      }
       try {
-        const res = await fetch(`${apiBaseUrl()}/me`, {
-          headers: { authorization: `Bearer ${token}` },
-        });
+        const token = await ensureFreshToken();
+        if (!active) return;
+        if (!token) {
+          setUser(null);
+          setReady(true);
+          return;
+        }
+        const res = await fetch("/api/proxy/me", { cache: "no-store" });
         if (!res.ok) throw new Error("me failed");
         const me = (await res.json()) as SessionUser;
         if (!active) return;
         setUser({ id: me.id, email: me.email, display_name: me.display_name, role: me.role });
-      } catch {
-        clearToken();
+      } catch (error) {
+        if (!(error instanceof ApiError && (error.status === 429 || error.status === 503))) clearToken();
         setUser(null);
       } finally {
         if (active) setReady(true);
@@ -72,13 +71,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       });
       const data = (await res.json().catch(() => ({}))) as {
         user?: SessionUser;
-        access_token?: string;
+        authenticated?: boolean;
         error?: { message?: string };
       };
-      if (!res.ok || !data.user || !data.access_token) {
+      if (!res.ok || !data.user || !data.authenticated) {
         throw new Error(data.error?.message ?? "Sign in failed");
       }
-      setToken(data.access_token);
+      setToken(String(Date.now() + 10 * 60_000));
       setUser(data.user);
       queryClient.clear();
       return data.user;

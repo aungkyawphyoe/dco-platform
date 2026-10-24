@@ -10,6 +10,7 @@ import { ZodError } from "zod";
 import type { Env } from "./config/env.js";
 import type { Db } from "./db/client.js";
 import { AppError, errorBody } from "./lib/errors.js";
+import { attachPublicRateLimits } from "./lib/rate-limit.js";
 import type { Mailer } from "./lib/mail.js";
 import { MEDIA_MAX_BYTES, type MediaStore } from "./lib/media.js";
 import { attachAuth, authPlugin } from "./modules/auth.js";
@@ -41,14 +42,25 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
   app.decorate("mailer", deps.mailer);
   app.decorate("media", deps.media);
 
+  app.addHook("onSend", async (request, reply, payload) => {
+    reply.header("X-Content-Type-Options", "nosniff").header("Referrer-Policy", "no-referrer");
+    if (deps.env.APP_ENV === "prod") reply.header("Strict-Transport-Security", "max-age=31536000");
+    if (request.url.startsWith("/v1/") && !request.url.startsWith("/v1/pricing")) reply.header("Cache-Control", "no-store");
+    return payload;
+  });
+
   await app.register(cors, {
     origin: deps.env.CORS_ORIGINS.split(",").map((s) => s.trim()),
     methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    exposedHeaders: ["Retry-After"],
   });
   await app.register(multipart, { limits: { fileSize: MEDIA_MAX_BYTES } });
 
   app.setErrorHandler((err, _request, reply) => {
     if (err instanceof AppError) {
+      if (typeof err.details.retry_after === "number") {
+        reply.header("Retry-After", String(err.details.retry_after)).header("Cache-Control", "no-store");
+      }
       return reply.code(err.statusCode).send(errorBody(err));
     }
     if (err instanceof ZodError) {
@@ -66,6 +78,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
 
   await app.register(
     async (v1) => {
+      attachPublicRateLimits(v1);
       await attachAuth(v1);
       await v1.register(healthPlugin);
       await v1.register(pricingPlugin);

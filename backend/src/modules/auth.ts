@@ -40,7 +40,6 @@ const TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
 export const authPlugin: FastifyPluginAsync = async (app) => {
   app.post("/auth/signup", { config: { public: true } }, async (request, reply) => {
     const body = signupBody.parse(request.body);
-    if (app.env.AUTH_CODES_ENABLED === "on") await authLimit(app.db, `signup:${request.ip}`, 10);
     const email = body.email.toLowerCase();
     const existing = await app.db.select().from(users).where(eq(users.email, email)).limit(1);
     if (existing[0]) throw new AppError(409, "email_taken", "Email already registered");
@@ -93,14 +92,12 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/login", { config: { public: true } }, async (request) => {
     const body = loginBody.parse(request.body);
-    if (app.env.AUTH_CODES_ENABLED === "on") {
-      await authLimit(app.db, `login-ip:${request.ip}`, 60);
-      await authLimit(app.db, `login-account:${body.email.trim().toLowerCase()}`, 20);
-    }
     const identifier = body.email.trim().toLowerCase();
     const [user] = identifier.includes("@")
       ? await app.db.select().from(users).where(eq(users.email, identifier)).limit(1)
       : await app.db.select().from(users).where(eq(users.username, identifier)).limit(1);
+    // Email and username aliases share the same account budget.
+    await authLimit(app.db, `login-account:${user?.id ?? identifier}`, 20);
     if (!user || !(await verifyPassword(body.password, user.passwordHash))) {
       throw new AppError(401, "invalid_credentials", "Invalid credentials");
     }
@@ -127,6 +124,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
         .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
         .where(and(
           eq(organizationMembers.userId, user.id),
+          eq(organizationMembers.status, "active"),
           eq(organizations.plan, "enterprise"),
           eq(organizations.status, "active"),
         ));
@@ -147,23 +145,17 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     } catch {
       throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
     }
-    const [stored] = await app.db
-      .select()
-      .from(refreshTokens)
-      .where(
-        and(
-          eq(refreshTokens.id, payload.jti),
-          eq(refreshTokens.tokenHash, sha256(body.refresh_token)),
-          isNull(refreshTokens.revokedAt),
-          gt(refreshTokens.expiresAt, new Date()),
-        ),
-      )
-      .limit(1);
-    if (!stored) throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
-    await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.id, stored.id));
-    const [user] = await app.db.select().from(users).where(eq(users.id, stored.userId)).limit(1);
-    if (!user || user.status === "deactivated" || Number(payload.ver ?? 0) !== user.authVersion) throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
-    return issueSession(app, user, stored.audience, Number(payload.auth_time ?? payload.iat ?? 0));
+    return app.db.transaction(async tx => {
+      const [user] = await tx.select().from(users).where(eq(users.id, payload.sub)).for("update");
+      if (!user || user.status !== "active" || Number(payload.ver ?? 0) !== user.authVersion) throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
+      const [stored] = await tx.update(refreshTokens).set({ revokedAt: new Date() }).where(and(
+        eq(refreshTokens.id, payload.jti), eq(refreshTokens.userId, user.id),
+        eq(refreshTokens.tokenHash, sha256(body.refresh_token)), isNull(refreshTokens.revokedAt),
+        gt(refreshTokens.expiresAt, new Date()),
+      )).returning();
+      if (!stored) throw new AppError(401, "invalid_refresh", "Refresh token is invalid");
+      return issueSession({ env: app.env, db: tx as import("../db/client.js").Db }, user, stored.audience, Number(payload.auth_time ?? payload.iat ?? 0));
+    });
   });
 
   app.post("/auth/logout", { config: { public: true } }, async (request, reply) => {
@@ -212,26 +204,15 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
       })
       .parse(request.body);
     const userId = request.authUser!.sub;
-    const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user) throw new AppError(401, "unauthorized", "Invalid access token");
-    if (!(await verifyPassword(body.current_password, user.passwordHash))) {
-      throw new AppError(401, "invalid_password", "Current password is incorrect");
-    }
-    const [updated] = await app.db
-      .update(users)
-      .set({ passwordHash: await hashPassword(body.new_password), mustChangePassword: false })
-      .where(eq(users.id, userId))
-      .returning();
-    await app.db
-      .update(refreshTokens)
-      .set({ revokedAt: new Date() })
-      .where(eq(refreshTokens.userId, userId));
-    await recordChange(app.db, {
-      userId,
-      entityType: "user",
-      entityId: userId,
-      op: "upsert",
-      payload: publicUser(updated),
+    await authLimit(app.db, `password-change:${userId}`, 10);
+    const passwordHash = await hashPassword(body.new_password);
+    await app.db.transaction(async tx => {
+      const [user] = await tx.select().from(users).where(eq(users.id, userId)).for("update");
+      if (!user || user.authVersion !== (request.authUser!.ver ?? 0)) throw new AppError(401, "unauthorized", "Sign in again");
+      if (!(await verifyPassword(body.current_password, user.passwordHash))) throw new AppError(401, "invalid_password", "Current password is incorrect");
+      const [updated] = await tx.update(users).set({ passwordHash, mustChangePassword: false, authVersion: sql`${users.authVersion} + 1` }).where(eq(users.id, userId)).returning();
+      await tx.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, userId));
+      await recordChange(tx as import("../db/client.js").Db, { userId, entityType: "user", entityId: userId, op: "upsert", payload: publicUser(updated) });
     });
     return reply.code(204).send();
   });
@@ -257,7 +238,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/resend-verification", async (request, reply) => {
     const userId = request.authUser!.sub;
-    if (app.env.AUTH_CODES_ENABLED === "on") await authLimit(app.db, `legacy-verify:${userId}`, 5);
+    await authLimit(app.db, `legacy-verify:${userId}`, 5);
     const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (user && !user.emailVerified && user.email) {
       const token = randomToken();
@@ -275,10 +256,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 
   app.post("/auth/forgot-password", { config: { public: true } }, async (request, reply) => {
     const body = z.object({ email: z.string().email() }).parse(request.body);
-    if (app.env.AUTH_CODES_ENABLED === "on") {
-      await authLimit(app.db, `legacy-reset:${body.email.toLowerCase()}`, 5);
-      await authLimit(app.db, `legacy-reset-ip:${request.ip}`, 20);
-    }
+    await authLimit(app.db, `legacy-reset:${body.email.toLowerCase()}`, 5);
     const [user] = await app.db.select().from(users).where(eq(users.email, body.email.toLowerCase())).limit(1);
     if (user?.passwordHash) {
       const token = randomToken();
@@ -318,20 +296,9 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
 };
 
 export async function attachAuth(app: Parameters<FastifyPluginAsync>[0]): Promise<void> {
-  const publicPaths = new Set([
-    "/health",
-    "/ready",
-    "/auth/signup",
-    "/auth/login",
-    "/auth/refresh",
-    "/auth/verify-email",
-    "/auth/forgot-password",
-    "/auth/reset-password",
-  ]);
   app.addHook("preHandler", async (request) => {
     const cfg = request.routeOptions.config as { public?: boolean } | undefined;
-    const path = request.url.split("?")[0];
-    if (cfg?.public || publicPaths.has(path) || path.startsWith("/v1/media/") && path.endsWith("/content")) {
+    if (cfg?.public === true) {
       return;
     }
     const token = bearer(request);
@@ -339,7 +306,7 @@ export async function attachAuth(app: Parameters<FastifyPluginAsync>[0]): Promis
     try {
       const claims = await verifyAccess(app.env, token);
       const [account] = await app.db.select().from(users).where(eq(users.id, claims.sub));
-      if (!account || account.status !== "active" || (claims.ver ?? 0) !== account.authVersion) throw new Error("revoked");
+      if (!account || account.status !== "active" || claims.role !== account.role || (claims.ver ?? 0) !== account.authVersion) throw new Error("revoked");
       request.authUser = claims as AccessClaims & { sub: string };
     } catch {
       throw new AppError(401, "unauthorized", "Invalid access token");

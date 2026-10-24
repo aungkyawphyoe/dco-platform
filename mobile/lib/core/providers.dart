@@ -212,6 +212,10 @@ final dioProvider = Provider<Dio>((ref) {
           refreshToken: session.refreshToken,
         );
       } on DioException catch (error) {
+        if (error.response?.statusCode == 429 ||
+            error.response?.statusCode == 503) {
+          rethrow;
+        }
         if (error.response?.statusCode == 401) {
           await tokens.clear();
         }

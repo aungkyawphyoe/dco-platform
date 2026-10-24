@@ -31,7 +31,7 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
       .where(eq(organizationMembers.userId, userId))
       .limit(1);
     const organization = organizationMembership?.organization ?? null;
-    const fleetFeature = Boolean(organization && organization.plan === "enterprise" && organization.status === "active");
+    const fleetFeature = Boolean(organizationMembership?.membership.status === "active" && organization && organization.plan === "enterprise" && organization.status === "active");
 
     const subscription = await effectiveSubscription(app.db, userId);
     const limits = shareLimits(subscription.plan);
@@ -55,7 +55,7 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
         id: organization.id,
         type: organization.type,
         plan: organization.plan,
-        status: organization.status,
+        status: organizationMembership.membership.status === "active" ? organization.status : "suspended",
         role: organizationMembership.membership.role,
       } : null,
       features: { vehicle_sharing: true, fleet: fleetFeature },

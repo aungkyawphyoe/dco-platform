@@ -1,3 +1,5 @@
+import { randomInt } from "node:crypto";
+import { authLimit } from "../lib/rate-limit.js";
 import { effectiveSubscription } from "../lib/gifts.js";
 import { requireVerifiedForSharing } from "./account-security.js";
 import { and, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
@@ -46,7 +48,7 @@ const INVITE_EXPIRY_MS = 7 * 86400000;
 function generateShareCode(): string {
   let code = "";
   for (let i = 0; i < 8; i++) {
-    code += SHARE_CODE_CHARS.charAt(Math.floor(Math.random() * SHARE_CODE_CHARS.length));
+    code += SHARE_CODE_CHARS.charAt(randomInt(SHARE_CODE_CHARS.length));
   }
   return code;
 }
@@ -381,7 +383,14 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
   // personal-garage surface, so a driver identity (org_driver or active driver
   // assignment) is denied here. Drivers use org/driver assignment endpoints.
   app.addHook("preHandler", async (request) => {
-    if (request.authUser?.sub) await assertPersonalGarageAllowed(app.db, request.authUser.sub);
+    if (request.authUser?.sub) {
+      await assertPersonalGarageAllowed(app.db, request.authUser.sub);
+      const route = request.routeOptions.url ?? "";
+      if (route.includes("/vehicles/shares/")) {
+        await authLimit(app.db, `share-access:ip:${request.ip}`, 60, 3600);
+        await authLimit(app.db, `share-access:user:${request.authUser.sub}`, 30, 3600);
+      }
+    }
   });
 
   // ─── Create Share (email invite or code/QR) ─────────────────────

@@ -291,12 +291,57 @@ async function recordVehicleScopedChange(
   };
   if (!organizationScoped) {
     app.addHook("onRoute", (route) => {
-      if (!route.url.includes("/documents") || !["POST", "PATCH", "DELETE"].includes(String(route.method))) return;
+      if (!["POST", "PATCH", "DELETE"].includes(String(route.method))) return;
       const handler = route.handler;
       route.handler = async function(request, reply) {
-        return app.db.transaction(async (tx) => transaction.run(tx as Db, () => handler.call(this, request, reply)));
+        return app.db.transaction(async (tx) => transaction.run(tx as Db, async () => {
+          await validatePersonalReferences(request);
+          return handler.call(this, request, reply);
+        }));
       };
     });
+  }
+  async function validatePersonalReferences(request: FastifyRequest) {
+    requirePersonalOwner(request);
+    const params = request.params as Record<string, string>;
+    const body = (request.body ?? {}) as Record<string, unknown>;
+    for (const key of ["items", "parts"]) {
+      if (Array.isArray(body[key]) && body[key].length > 100) throw new AppError(422, "too_many_items", "At most 100 nested items are allowed");
+    }
+    const tables = { "plan-items": planItems, "service-records": serviceRecords,
+      "parts": parts, "fuel-logs": fuelLogs, "documents": documents, "expenses": expenses };
+    const resource = request.routeOptions.url?.split("/").reverse().find(segment => segment in tables);
+    let vehicleId = params.vehicleId;
+    for (const [key, table] of Object.entries({ serviceRecordId: serviceRecords, expenseId: expenses })) {
+      if (!params[key]) continue;
+      const [row] = await db().select().from(table).where(eq(table.id, uuid.parse(params[key])));
+      vehicleId = row?.vehicleId;
+    }
+    if (request.method === "POST" && resource && typeof body.id === "string") {
+      const table = tables[resource as keyof typeof tables];
+      const [row] = await db().select().from(table).where(eq(table.id, uuid.parse(body.id)));
+      if (row) {
+        if (row.vehicleId !== vehicleId) throw new AppError(409, "id_conflict", "Record ID already exists");
+        const access = await getVehicleAccessLevel(db(), uid(request), row.vehicleId);
+        const author = "createdBy" in row ? row.createdBy : "userId" in row ? row.userId : null;
+        if (!access || access === "view" || (access !== "owner" && author !== uid(request))) {
+          throw new AppError(403, "insufficient_permission", "Record access required");
+        }
+      }
+    }
+    if (!vehicleId) return;
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "full", true);
+    if (typeof body.receipt_media_id === "string") await assertDocumentMedia(db(), uuid.parse(body.receipt_media_id), vehicleId);
+    if (Array.isArray(body.items)) for (const item of body.items as { plan_item_id?: string }[]) {
+      if (!item?.plan_item_id) continue;
+      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, uuid.parse(item.plan_item_id)), eq(planItems.vehicleId, vehicleId))).for("update");
+      if (!plan) throw new AppError(422, "invalid_plan_item", "Plan item must belong to this vehicle");
+    }
+    if (Array.isArray(body.parts)) for (const part of body.parts as { part_id?: string }[]) {
+      if (!part?.part_id) continue;
+      const [row] = await db().select().from(parts).where(and(eq(parts.id, uuid.parse(part.part_id)), eq(parts.vehicleId, vehicleId)));
+      if (!row) throw new AppError(422, "invalid_part", "Part must belong to this vehicle");
+    }
   }
   if (organizationScoped) {
     app.addHook("onRoute", (route) => {
@@ -396,6 +441,9 @@ async function recordVehicleScopedChange(
       if (membership.role === "org_admin") requireFleetPortal(request);
       const params = request.params as Record<string, string>;
       const body = (request.body ?? {}) as Record<string, unknown>;
+      for (const key of ["items", "parts"]) {
+        if (Array.isArray(body[key]) && body[key].length > 100) throw new AppError(422, "too_many_items", "At most 100 nested items are allowed");
+      }
       // Existing UUIDs must never turn idempotent creates into cross-vehicle reads.
       const recordTables = { "plan-items": planItems, "service-records": serviceRecords,
         "parts": parts, "fuel-logs": fuelLogs, "documents": documents, "expenses": expenses };
@@ -604,8 +652,8 @@ async function recordVehicleScopedChange(
       plan_item_id: uuid.optional().nullable(),
       name: z.string(),
       line_cost: z.number().optional().nullable(),
-    })).min(1),
-    parts: z.array(z.object({ part_id: uuid, name: z.string(), id: uuid.optional() })).optional(),
+    })).min(1).max(100),
+    parts: z.array(z.object({ part_id: uuid, name: z.string(), id: uuid.optional() })).max(100).optional(),
   });
 
   app.get("/vehicles/:vehicleId/service-records", async (request) => {
@@ -1011,7 +1059,7 @@ async function recordVehicleScopedChange(
     return payload;
   });
 
-  const documentLinkBody = z.array(z.object({ kind: z.enum(["service_record", "fuel_log"]), record_id: uuid }));
+  const documentLinkBody = z.array(z.object({ kind: z.enum(["service_record", "fuel_log"]), record_id: uuid })).max(100);
   type DocumentLinkInput = z.infer<typeof documentLinkBody>[number];
   async function checkLink(request: FastifyRequest, vehicleId: string, link: DocumentLinkInput) {
     const record = link.kind === "service_record"
@@ -1177,7 +1225,7 @@ async function recordVehicleScopedChange(
     incurred_on: z.string(),
     notes: z.string().max(500).optional().nullable(),
     receipt_media_id: uuid.optional().nullable(),
-    parts: z.array(z.object({ part_id: uuid, name: z.string(), id: uuid.optional() })).optional(),
+    parts: z.array(z.object({ part_id: uuid, name: z.string(), id: uuid.optional() })).max(100).optional(),
   });
 
   app.get("/vehicles/:vehicleId/expenses", async (request) => {

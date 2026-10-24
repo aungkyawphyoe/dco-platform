@@ -35,61 +35,6 @@ function publicOrganization(row: typeof organizations.$inferSelect) {
 }
 
 export const adminPlugin: FastifyPluginAsync = async (app) => {
-  // TEMPORARY: Reset all users - REMOVE AFTER USE (must be before preHandler)
-app.post("/admin/reset-users", { config: { public: true } }, async (request, reply) => {
-    // Allow calling with a secret header for one-time use
-    const secret = request.headers["x-reset-secret"];
-    if (secret !== "reset-users-2024") {
-      return reply.code(401).send({ error: "Unauthorized" });
-    }
-    const { sql } = await import("drizzle-orm");
-    const bcrypt = (await import("bcryptjs")).default;
-
-    // Delete all user-related data
-    await app.db.execute(sql`DELETE FROM fleet_assignments`);
-    await app.db.execute(sql`DELETE FROM work_orders`);
-    await app.db.execute(sql`DELETE FROM inspections`);
-    await app.db.execute(sql`DELETE FROM warranty_templates`);
-    await app.db.execute(sql`DELETE FROM fuel_logs`);
-    await app.db.execute(sql`DELETE FROM vehicle_assignments`);
-    await app.db.execute(sql`DELETE FROM organization_members`);
-    await app.db.execute(sql`DELETE FROM organizations`);
-    await app.db.execute(sql`DELETE FROM vehicle_shares`);
-    await app.db.execute(sql`DELETE FROM vehicle_share_invitations`);
-    await app.db.execute(sql`DELETE FROM sync_changes`);
-    await app.db.execute(sql`DELETE FROM notifications`);
-    await app.db.execute(sql`DELETE FROM plan_items`);
-    await app.db.execute(sql`DELETE FROM service_records`);
-    await app.db.execute(sql`DELETE FROM documents`);
-    await app.db.execute(sql`DELETE FROM expenses`);
-    await app.db.execute(sql`DELETE FROM vehicles`);
-    await app.db.execute(sql`DELETE FROM users`);
-
-    const passwordHash = await bcrypt.hash("password123", 10);
-
-    // Create 2 customer users
-    await app.db.execute(sql`
-      INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
-      VALUES (gen_random_uuid(), 'customer1@example.com', 'customer1', ${passwordHash}, 'Customer One', 'owner', 'standard', 'active', true)
-    `);
-    await app.db.execute(sql`
-      INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
-      VALUES (gen_random_uuid(), 'customer2@example.com', 'customer2', ${passwordHash}, 'Customer Two', 'owner', 'free', 'active', true)
-    `);
-
-    // Create 1 fleet portal user
-    await app.db.execute(sql`
-      INSERT INTO users (id, email, username, password_hash, display_name, role, plan, status, email_verified)
-      VALUES (gen_random_uuid(), 'fleet@example.com', 'fleetuser', ${passwordHash}, 'Fleet User', 'owner', 'standard', 'active', true)
-    `);
-
-    return { message: "Users reset successfully", users: ["customer1@example.com", "customer2@example.com", "fleet@example.com"] };
-  });
-
-  // app.addHook("preHandler", async (request) => {
-  //   requireAdmin(request, app.env.JWT_ADMIN_AUD);
-  // });
-
   app.addHook("preHandler", async (request) => {
     requireAdmin(request, app.env.JWT_ADMIN_AUD);
   });
@@ -452,7 +397,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
           .from(users).where(eq(users.role, "admin"));
         if (Number(count) <= 1) throw new AppError(409, "last_admin", "Cannot change the role of the last admin");
       }
-      updated = await app.db.update(users).set({ role: body.role }).where(eq(users.id, userId)).returning().then((rows) => rows[0]!);
+      updated = await app.db.update(users).set({ role: body.role, authVersion: sql`${users.authVersion} + 1` }).where(eq(users.id, userId)).returning().then((rows) => rows[0]!);
       await audit(app, request.authUser!.sub, "user.role_change", { userId, role: body.role });
     }
     if (body.plan && body.plan !== updated.plan) {
@@ -499,7 +444,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     if (orgAdminOf) {
       throw new AppError(409, "org_admin_active", `Cannot deactivate user who is admin of active organization "${orgAdminOf.name}". Suspend or archive the organization first.`);
     }
-    await app.db.update(users).set({ status: "deactivated" }).where(eq(users.id, userId));
+    await app.db.update(users).set({ status: "deactivated", authVersion: sql`${users.authVersion} + 1` }).where(eq(users.id, userId));
     await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, userId));
     await audit(app, request.authUser!.sub, "user.deactivate", { userId });
     return reply.code(204).send();
@@ -596,7 +541,7 @@ app.post("/admin/reset-users", { config: { public: true } }, async (request, rep
     // Delete pending invitations created by the user
     await app.db.delete(vehicleShareInvitations).where(eq(vehicleShareInvitations.invitedBy, userId));
 
-    await app.db.update(users).set({ status: "deactivated" }).where(eq(users.id, userId));
+    await app.db.update(users).set({ status: "deactivated", authVersion: sql`${users.authVersion} + 1` }).where(eq(users.id, userId));
     await app.db.update(refreshTokens).set({ revokedAt: new Date() }).where(eq(refreshTokens.userId, userId));
 
     await audit(app, adminId, "user.delete", { userId, email: u.email });

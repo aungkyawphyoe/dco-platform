@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Barlow, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { THEME_COOKIE, THEME_INIT_SCRIPT, themeClassFromCookie } from "@dco/ui/lib/theme";
 import { Providers } from "./providers";
 import "./globals.css";
@@ -34,6 +34,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const cookieStore = await cookies();
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   const theme = themeClassFromCookie(cookieStore.get(THEME_COOKIE)?.value);
 
   return (
@@ -42,7 +43,7 @@ export default async function RootLayout({
         suppressHydrationWarning
         className={`${barlow.variable} ${plexSans.variable} ${plexMono.variable} bg-bg font-sans text-ink antialiased`}
       >
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <Providers>{children}</Providers>
       </body>
     </html>

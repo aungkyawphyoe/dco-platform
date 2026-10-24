@@ -162,6 +162,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
                 /** @description Retryable processing failure or unconfigured billing */
                 503: {
                     headers: {
@@ -659,13 +660,7 @@ export interface paths {
             };
             responses: {
                 200: components["responses"]["AuthChallengeResponse"];
-                /** @description Rate limit or cooldown reached */
-                429: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -716,6 +711,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -814,6 +810,7 @@ export interface paths {
                         };
                     };
                 };
+                429: components["responses"]["RateLimited"];
                 /** @description Provider configuration missing */
                 503: {
                     headers: {
@@ -861,6 +858,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         put?: never;
@@ -891,6 +889,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -949,6 +948,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1156,6 +1156,7 @@ export interface paths {
                         "application/json": components["schemas"]["PricingResponse"];
                     };
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         put?: never;
@@ -1286,6 +1287,7 @@ export interface paths {
                     };
                 };
                 401: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1330,6 +1332,7 @@ export interface paths {
                     content?: never;
                 };
                 401: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1370,6 +1373,7 @@ export interface paths {
                     content?: never;
                 };
                 400: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1445,6 +1449,7 @@ export interface paths {
                     };
                     content?: never;
                 };
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1486,6 +1491,7 @@ export interface paths {
                     content?: never;
                 };
                 400: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         delete?: never;
@@ -1734,6 +1740,82 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/reminder-emails": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Email reminder preferences for maintenance plan items
+         * @description Owner-only. `available` is false until the account has a verified email address; enabling reminders while unavailable returns 409 `email_verification_required`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Preferences */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmailReminderSettings"];
+                    };
+                };
+            };
+        };
+        /** Update email reminder preferences */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        enabled: boolean;
+                        /** @description Days before a plan item's due date to send the upcoming email. */
+                        lead_days: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["EmailReminderSettings"];
+                    };
+                };
+                /** @description Email verification required to enable reminders */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ErrorBody"];
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3174,6 +3256,49 @@ export interface paths {
                         "application/json": components["schemas"]["StorageUsage"];
                     };
                 };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/media/{mediaId}/content": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download personal media using a time-limited signed capability */
+        get: {
+            parameters: {
+                query: {
+                    token: string;
+                };
+                header?: never;
+                path: {
+                    mediaId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Media bytes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/octet-stream": string;
+                    };
+                };
+                401: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+                429: components["responses"]["RateLimited"];
             };
         };
         put?: never;
@@ -4922,7 +5047,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Add a member by email; role org_driver creates a driver account (new accounts get a temporary password instead of an invite email) */
+        /** Provision a dedicated organization member using a new email address */
         post: {
             parameters: {
                 query?: never;
@@ -4939,7 +5064,7 @@ export interface paths {
                         email: string;
                         /** @enum {string} */
                         role: "org_manager" | "org_mechanic" | "org_driver";
-                        /** @description Applied only when no account exists for email: the account is created active with must_change_password=true and the password is returned once in the response (no email is sent). 400 when supplied and the account already exists. */
+                        /** @description Applied only when no account exists for email: the account is created active with must_change_password=true and the password is returned once in the response (no email is sent). Existing accounts are rejected with 409 until an invitation acceptance flow is available. */
                         temporary_password?: string;
                     };
                 };
@@ -4956,7 +5081,7 @@ export interface paths {
                 };
                 400: components["responses"]["Error"];
                 403: components["responses"]["Error"];
-                /** @description Conflict — for role org_driver: the email already belongs to an existing personal account (personal_account_exists); drivers are always new identities. Otherwise: already_in_org. */
+                /** @description Conflict — the email already belongs to an existing personal account (personal_account_exists); drivers are always new identities. Otherwise: already_in_org. */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -5039,8 +5164,8 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Deactivate/reactivate a driver (soft delete) — org_admin only
-         * @description Deactivation sets users.status=deactivated, blocks login, cascades the active driver_assignment to completed, and retains all history. The username stays reserved. Reactivation restores login but requires manual re-assignment.
+         * Suspend/reactivate organization membership — org_admin only
+         * @description Deactivation changes only organization membership status and completes active driver assignments. Personal login and global account status remain unchanged. Reactivation restores organization access but requires manual re-assignment.
          */
         post: {
             parameters: {
@@ -9290,6 +9415,12 @@ export interface components {
             /** Format: uuid */
             active_vehicle_id?: string;
         };
+        EmailReminderSettings: {
+            enabled: boolean;
+            lead_days: number;
+            /** @description True when the account has a verified email address; reminders cannot be enabled otherwise. */
+            available: boolean;
+        };
         Vehicle: {
             /** Format: uuid */
             id: string;
@@ -9885,6 +10016,8 @@ export interface components {
             display_name?: string | null;
             /** @enum {string} */
             role: "org_admin" | "org_manager" | "org_mechanic" | "org_driver";
+            /** @enum {string} */
+            status: "active" | "deactivated";
             /** Format: date-time */
             joined_at: string;
             /** Format: uuid */
@@ -10078,6 +10211,17 @@ export interface components {
         };
     };
     responses: {
+        /** @description Request budget exhausted. Wait before retrying; retain existing session credentials. */
+        RateLimited: {
+            headers: {
+                /** @description Seconds until another attempt is allowed */
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorBody"];
+            };
+        };
         /** @description Challenge issued; no code is returned in the response */
         AuthChallengeResponse: {
             headers: {

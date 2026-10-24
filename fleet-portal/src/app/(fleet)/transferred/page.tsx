@@ -56,12 +56,12 @@ export default function TransferredPage() {
               {items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
-                    <p className="text-ink">{item.vehicle.name}</p>
+                    <p className="text-ink">{item.vehicle.name ?? "Historical vehicle"}</p>
                     <p className="text-xs text-ink-caption">
                       {item.vehicle.year} {item.vehicle.make} {item.vehicle.model}
                     </p>
                   </TableCell>
-                  <TableCell className="font-mono text-xs">{item.vehicle.plate}</TableCell>
+                  <TableCell className="font-mono text-xs">{item.vehicle.plate ?? "Unavailable"}</TableCell>
                   <TableCell className="font-mono text-xs text-ink-caption">
                     {item.transferred_at ? formatDateTime(item.transferred_at) : "—"}
                   </TableCell>

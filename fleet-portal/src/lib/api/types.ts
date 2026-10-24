@@ -13,6 +13,7 @@ export type OrgContext = {
 };
 
 export type OrgMember = {
+  status: "active" | "deactivated";
   user_id: string;
   email: string;
   display_name: string | null;

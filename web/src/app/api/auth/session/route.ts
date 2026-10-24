@@ -1,3 +1,5 @@
+import { rejectCrossOrigin } from "@/lib/auth/request-origin";
+import { authBackoffResponse } from "@/lib/auth/backoff-response";
 import { NextRequest, NextResponse } from "next/server";
 import {
   ADMIN_REFRESH_COOKIE,
@@ -9,6 +11,8 @@ import {
 import { upstream, type UpstreamSession } from "@/lib/api/upstream";
 
 export async function POST(request: NextRequest) {
+  const rejected = rejectCrossOrigin(request);
+  if (rejected) return rejected;
   // Try admin refresh first
   const adminRefresh = request.cookies.get(ADMIN_REFRESH_COOKIE)?.value;
   if (adminRefresh) {
@@ -17,12 +21,15 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ refresh_token: adminRefresh }),
     });
 
+    const backoff = authBackoffResponse(res);
+    if (backoff) return backoff;
+
     if (res.status === 200) {
       const session = (await res.json()) as UpstreamSession;
       if (session.user.role === "admin") {
         const out = NextResponse.json({
           user: session.user,
-          access_token: session.access_token,
+          authenticated: true,
         });
         setAdminSessionCookies(out, session.access_token, session.refresh_token);
         return out;
@@ -38,13 +45,17 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify({ refresh_token: ownerRefresh }),
     });
 
+    const backoff = authBackoffResponse(res);
+    if (backoff) return backoff;
+
     if (res.status === 200) {
       const session = (await res.json()) as UpstreamSession;
       if (session.user.role === "owner") {
         const out = NextResponse.json({
           user: session.user,
-          access_token: session.access_token,
+          authenticated: true,
         });
+        clearSessionCookies(out);
         setOwnerSessionCookies(out, session.access_token, session.refresh_token);
         return out;
       }

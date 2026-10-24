@@ -1,25 +1,24 @@
-import { apiBaseUrl } from "./config";
 import { ApiError, parseApiError } from "./errors";
 import { ensureFreshToken } from "@/lib/auth/token-store";
 
 type Json = Record<string, unknown> | unknown[] | undefined;
 
-async function request(path: string, init: RequestInit, token: string | null): Promise<Response> {
+async function request(path: string, init: RequestInit): Promise<Response> {
   const headers = new Headers(init.headers);
   if (typeof init.body === "string" && !headers.has("content-type")) {
     headers.set("content-type", "application/json");
   }
-  if (token) headers.set("authorization", `Bearer ${token}`);
-  return fetch(`${apiBaseUrl()}${path}`, { ...init, headers });
+  headers.delete("authorization");
+  return fetch(`/api/proxy${path}`, { ...init, headers, cache: "no-store" });
 }
 
 /** Shared by JSON requests, uploads and downloads. Retry authentication once. */
 export async function apiRequest(path: string, init: RequestInit = {}): Promise<Response> {
   const sentToken = await ensureFreshToken();
-  let res = await request(path, init, sentToken);
+  let res = await request(path, init);
   if (sentToken && res.status === 401 && !path.startsWith("/auth/")) {
     const refreshed = await ensureFreshToken(sentToken);
-    if (refreshed) res = await request(path, init, refreshed);
+    if (refreshed) res = await request(path, init);
   }
   return res;
 }

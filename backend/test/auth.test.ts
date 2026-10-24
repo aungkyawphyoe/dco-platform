@@ -298,6 +298,10 @@ describe("must_change_password guard", () => {
     });
     expect(changePw.statusCode).toBe(204);
 
+    const oldAccess = await app.inject({ method: "GET", url: "/v1/me", headers: { authorization: `Bearer ${session.access_token}` } });
+    expect(oldAccess.statusCode).toBe(401);
+    const fresh = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email, password: "password2" } });
+    session.access_token = fresh.json().access_token;
     const afterFleetCall = await app.inject({
       method: "GET",
       url: "/v1/drivers/my-vehicle",

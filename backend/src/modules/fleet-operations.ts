@@ -1,3 +1,4 @@
+import { csvCell } from "../lib/fleet-analytics.js";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
@@ -315,7 +316,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     requireFleetClient(request);
     const userId = uid(request);
     const [membership] = await app.db.select().from(organizationMembers).where(and(
-      eq(organizationMembers.userId, userId), eq(organizationMembers.role, "org_driver"),
+      eq(organizationMembers.userId, userId), eq(organizationMembers.role, "org_driver"), eq(organizationMembers.status, "active"),
     )).limit(1);
     if (!membership) throw new AppError(403, "driver_mode_required", "An organization driver membership is required");
     await getOrganizationAccess(app.db, userId, membership.orgId, ["org_driver"]);
@@ -659,6 +660,11 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       template = found;
     }
     const transfer = await app.db.transaction(async (tx) => {
+      const [lockedLink] = await tx.select().from(organizationVehicles).where(and(
+        eq(organizationVehicles.id, link.id), eq(organizationVehicles.orgId, orgId),
+      )).for("update");
+      if (!lockedLink) throw new AppError(409, "vehicle_already_transferred", "Vehicle no longer belongs to this organization");
+      const history = await tx.select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId)).orderBy(desc(serviceRecords.servicedOn));
       let warrantyId: string | null = null;
       if (template) {
         warrantyId = newId();
@@ -679,6 +685,8 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       const [auditRow] = await tx.insert(transferredVehicles).values({
         id: newId(), vehicleId, orgId, buyerUserId: buyer.id, transferredBy: actorId,
         warrantyInstanceId: warrantyId,
+        vehicleSnapshot: { id: vehicle.id, name: vehicle.name, make: vehicle.make, model: vehicle.model, year: vehicle.year, plate: vehicle.licensePlate },
+        serviceSnapshot: history.map(row => ({ id: row.id, serviced_on: dateOnly(row.servicedOn), odometer: reqNum(row.odometer), total_cost: reqNum(row.totalCost), workshop_name: row.workshopName, notes: row.notes })),
       }).returning();
       await tx.delete(organizationVehicles).where(eq(organizationVehicles.id, link.id));
       return { vehicle: updatedVehicle, audit: auditRow, warrantyId };
@@ -702,7 +710,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       .where(eq(transferredVehicles.orgId, orgId)).orderBy(desc(transferredVehicles.transferredAt));
     return { items: rows.map((row) => ({
       id: row.transfer.id,
-      vehicle: { id: row.vehicle.id, name: row.vehicle.name, make: row.vehicle.make, model: row.vehicle.model, year: row.vehicle.year, plate: row.vehicle.licensePlate },
+      vehicle: row.transfer.vehicleSnapshot ?? { id: row.transfer.vehicleId },
       buyer_user_id: row.transfer.buyerUserId,
       transferred_by: row.transfer.transferredBy,
       transferred_at: iso(row.transfer.transferredAt),
@@ -717,16 +725,15 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
     const [transfer] = await app.db.select().from(transferredVehicles).where(and(
       eq(transferredVehicles.orgId, orgId), eq(transferredVehicles.vehicleId, vehicleId),
-    )).limit(1);
+    )).orderBy(desc(transferredVehicles.transferredAt)).limit(1);
     if (!transfer) throw new AppError(404, "transferred_vehicle_not_found", "Transferred vehicle was not found");
-    const services = await app.db.select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId)).orderBy(desc(serviceRecords.servicedOn));
     const warranty = transfer.warrantyInstanceId
       ? (await app.db.select().from(vehicleWarranties).where(eq(vehicleWarranties.id, transfer.warrantyInstanceId)).limit(1))[0] ?? null
       : null;
     return {
       vehicle_id: vehicleId,
       transferred_at: iso(transfer.transferredAt),
-      service_records: services.map((row) => ({ id: row.id, serviced_on: dateOnly(row.servicedOn), odometer: reqNum(row.odometer), total_cost: reqNum(row.totalCost), workshop_name: row.workshopName, notes: row.notes })),
+      service_records: transfer.serviceSnapshot,
       warranty: warranty ? serializeWarranty(warranty, 0) : null,
     };
   });
@@ -809,7 +816,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     const orgId = uuid.parse((request.params as { id: string }).id);
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
     const query = z.object({ type: z.enum(["vehicles", "fleet", "lemons"]) }).parse(request.query ?? {});
-    const escape = (value: unknown) => `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const escape = csvCell;
     let lines: Array<Array<string | number | null>>;
     if (query.type === "vehicles") {
       const rows = await app.db.select({ vehicle: vehicles, link: organizationVehicles })

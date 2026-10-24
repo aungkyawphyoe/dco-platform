@@ -1,6 +1,8 @@
+import { rejectCrossOrigin } from "@/lib/auth/request-origin";
+import { authBackoffResponse } from "@/lib/auth/backoff-response";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { setAdminSessionCookies, setOwnerSessionCookies } from "@/lib/auth/cookies";
+import { clearSessionCookies, setAdminSessionCookies, setOwnerSessionCookies } from "@/lib/auth/cookies";
 import { upstream, type UpstreamSession } from "@/lib/api/upstream";
 
 const bodySchema = z.object({
@@ -9,6 +11,8 @@ const bodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const rejected = rejectCrossOrigin(request);
+  if (rejected) return rejected;
   const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
   if (!parsed.success) {
     return NextResponse.json(
@@ -21,6 +25,9 @@ export async function POST(request: NextRequest) {
     method: "POST",
     body: JSON.stringify(parsed.data),
   });
+
+  const backoff = authBackoffResponse(res);
+  if (backoff) return backoff;
 
   if (res.status !== 200) {
     const status = res.status === 401 ? 401 : 502;
@@ -47,11 +54,12 @@ export async function POST(request: NextRequest) {
   const redirectPath = isAdmin ? "/" : "/vehicles";
   const out = NextResponse.json({
     user: session.user,
-    access_token: session.access_token,
+    authenticated: true,
     redirect: redirectPath,
     role: isAdmin ? "admin" : "owner",
   });
   
+  clearSessionCookies(out);
   if (isAdmin) {
     setAdminSessionCookies(out, session.access_token, session.refresh_token);
   } else {

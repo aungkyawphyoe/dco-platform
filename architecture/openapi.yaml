@@ -8,6 +8,11 @@ info:
     Fleet audience split: fleet **management** routes (organization members, inventory writes, assignments, work-order status changes, inspections lists, analytics, reports, warranty templates, transfers, CSV import) require the `dco-fleet` audience (Fleet Portal). The mobile app (`dco-owner`) reaches only the personal garage, shared fleet **context** (`/me/entitlements`, `/organizations/me`), the organization-scoped shared record and sync APIs (`/organizations/{organizationId}/records/*`, `/organizations/{id}/sync/*`), and the supplemental **driver surface** (`/drivers/*`, driver work-order/fuel-log/inspection/driver-service-record routes). Driver identities are rejected on personal-garage routes with 403 `personal_garage_forbidden` (Oct 2026 second grilling).
     Client-generated UUIDs on create are idempotent. Mileage never decreases.
     Azure hostname is environment-specific and is not part of this contract.
+    Public routes (except health/readiness probes) have shared PostgreSQL-backed IP rate limits,
+    applied before payload parsing and independent of AUTH_CODES_ENABLED. Login and recovery
+    also enforce account budgets. A 429 response includes Retry-After (seconds); clients must
+    preserve sessions and wait before retrying. Limiter-store failure returns 503 with Retry-After.
+    Policy thresholds and ingress requirements are documented in docs/public-api-rate-limits.md.
 servers:
   - url: http://localhost:8080/v1
     description: local
@@ -104,6 +109,8 @@ paths:
                   properties:
                     data: { type: string, description: Base64 DeveloperNotification JSON }
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204': { description: Notification processed }
         '401': { description: Invalid Google push identity }
         '503': { description: Retryable processing failure or unconfigured billing }
@@ -346,7 +353,7 @@ paths:
         '200':
           $ref: '#/components/responses/AuthChallengeResponse'
         '429':
-          description: Rate limit or cooldown reached
+          $ref: '#/components/responses/RateLimited'
   /auth/recovery-code/confirm:
     post:
       tags: [Auth]
@@ -365,6 +372,8 @@ paths:
                   properties:
                     password: {type: string, minLength: 8, maxLength: 128}
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204':
           description: Password replaced; sign in again
         '400':
@@ -397,6 +406,8 @@ paths:
       parameters:
         - $ref: '#/components/parameters/AuthProvider'
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '200':
           description: Keep the secret in app memory; open authorization_url in the system browser
           content:
@@ -422,6 +433,8 @@ paths:
         - {in: query, name: code, schema: {type: string}}
         - {in: query, name: error, schema: {type: string}}
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '302':
           description: Return to dco-auth callback with flow_id only; no session or exchange secrets
     post:
@@ -440,6 +453,8 @@ paths:
                 code: {type: string}
                 error: {type: string}
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '302':
           description: Return to dco-auth callback with flow_id only
   /auth/social/complete:
@@ -459,6 +474,8 @@ paths:
                   properties:
                     create_account: {type: boolean, default: false}
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '200':
           description: AutoX session plus is_new, or needs_account_choice true without a session
           content:
@@ -558,6 +575,8 @@ paths:
         prices, USD display prices, plan limits, marketing bullets, and the
         as-built feature matrix. Unauthenticated.
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '200':
           description: Current pricing catalog
           content:
@@ -626,6 +645,8 @@ paths:
                 refresh_token:
                   type: string
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '200':
           description: New session pair
           content:
@@ -654,6 +675,8 @@ paths:
                 refresh_token:
                   type: string
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204':
           description: Logged out
         '401':
@@ -673,6 +696,8 @@ paths:
                 token:
                   type: string
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204':
           description: Verified
         '400':
@@ -702,6 +727,8 @@ paths:
                   type: string
                   format: email
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '202':
           description: Always generic success
   /auth/reset-password:
@@ -722,6 +749,8 @@ paths:
                   type: string
                   minLength: 8
       responses:
+        '429':
+          $ref: '#/components/responses/RateLimited'
         '204':
           description: Password changed; refresh tokens revoked
         '400':
@@ -907,7 +936,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: '#/components/schemas/ErrorBody'
   /vehicles:
     get:
       tags: [Vehicles]
@@ -1594,6 +1623,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/StorageUsage'
+  /media/{mediaId}/content:
+    get:
+      tags: [Media]
+      security: []
+      summary: Download personal media using a time-limited signed capability
+      parameters:
+        - {in: path, name: mediaId, required: true, schema: {type: string, format: uuid}}
+        - {in: query, name: token, required: true, schema: {type: string}}
+      responses:
+        '200':
+          description: Media bytes
+          content:
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        '401': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
+        '429': {$ref: '#/components/responses/RateLimited'}
   /media/{mediaId}:
     get:
       tags: [Media]
@@ -2527,7 +2573,7 @@ paths:
         '403': {$ref: '#/components/responses/Error'}
     post:
       tags: [Fleet]
-      summary: Add a member by email; role org_driver creates a driver account (new accounts get a temporary password instead of an invite email)
+      summary: Provision a dedicated organization member using a new email address
       requestBody:
         required: true
         content:
@@ -2545,7 +2591,7 @@ paths:
                   description: >-
                     Applied only when no account exists for email: the account is created active
                     with must_change_password=true and the password is returned once in the
-                    response (no email is sent). 400 when supplied and the account already exists.
+                    response (no email is sent). Existing accounts are rejected with 409 until an invitation acceptance flow is available.
       responses:
         '201':
           description: >-
@@ -2559,7 +2605,7 @@ paths:
         '403': {$ref: '#/components/responses/Error'}
         '409':
           description: >-
-            Conflict — for role org_driver: the email already belongs to an existing
+            Conflict — the email already belongs to an existing
             personal account (personal_account_exists); drivers are always new identities.
             Otherwise: already_in_org.
           content:
@@ -2597,11 +2643,11 @@ paths:
       - $ref: '#/components/parameters/userId'
     post:
       tags: [Fleet]
-      summary: Deactivate/reactivate a driver (soft delete) — org_admin only
+      summary: Suspend/reactivate organization membership — org_admin only
       description: >-
-        Deactivation sets users.status=deactivated, blocks login, cascades the active
-        driver_assignment to completed, and retains all history. The username stays
-        reserved. Reactivation restores login but requires manual re-assignment.
+        Deactivation changes only organization membership status and completes active
+        driver assignments. Personal login and global account status remain unchanged.
+        Reactivation restores organization access but requires manual re-assignment.
       requestBody:
         required: true
         content:
@@ -4826,6 +4872,16 @@ components:
         type: string
         format: uuid
   responses:
+    RateLimited:
+      description: Request budget exhausted. Wait before retrying; retain existing session credentials.
+      headers:
+        Retry-After:
+          description: Seconds until another attempt is allowed
+          schema: {type: integer, minimum: 1}
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorBody'
     AuthChallengeResponse:
       description: Challenge issued; no code is returned in the response
       content:
@@ -5980,6 +6036,7 @@ components:
       properties:
         operations:
           type: array
+          maxItems: 100
           items:
             $ref: '#/components/schemas/SyncOperation'
     SyncOperation:
@@ -6239,7 +6296,7 @@ components:
               nullable: true
     OrgMemberCreated:
       type: object
-      required: [user_id, role, joined_at, account_created, temporary_password]
+      required: [user_id, role, status, joined_at, account_created, temporary_password]
       properties:
         user_id:
           type: string
@@ -6253,6 +6310,9 @@ components:
         role:
           type: string
           enum: [org_admin, org_manager, org_mechanic, org_driver]
+        status:
+          type: string
+          enum: [active, deactivated]
         joined_at:
           type: string
           format: date-time

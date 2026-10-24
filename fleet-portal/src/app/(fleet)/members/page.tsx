@@ -70,7 +70,7 @@ export default function MembersPage() {
       if (created.account_created && created.temporary_password) {
         setProvisioned({ email: created.email, password: created.temporary_password });
       } else {
-        setInviteResult("Member added. Existing account linked to the organization.");
+        setInviteResult("Member added.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Add member failed");
@@ -155,7 +155,7 @@ export default function MembersPage() {
                         value={member.role}
                         onChange={(e) => void onRoleChange(member.user_id, e.target.value)}
                       >
-                        {assignableRoles.map((r) => (
+                        {assignableRoles.filter(r => r.value !== "org_driver" || member.role === "org_driver").map((r) => (
                           <option key={r.value} value={r.value}>
                             {r.label}
                           </option>
@@ -219,7 +219,7 @@ export default function MembersPage() {
             placeholder="Leave blank to auto-generate"
             minLength={8}
             maxLength={128}
-            hint="Used only when this email has no account yet. The password is shown once after adding, and no email is sent."
+            hint="Use a new email for a dedicated organization account. The temporary password is shown once; no email is sent."
           />
           {error ? (
             <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">{error}</p>

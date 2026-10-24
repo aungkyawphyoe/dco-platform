@@ -86,9 +86,11 @@ export async function signRefresh(env: Env, userId: string, jti: string, authTim
 export async function verifyAccess(env: Env, token: string): Promise<AccessClaims & JWTPayload> {
   const secret = new TextEncoder().encode(env.JWT_ACCESS_SECRET);
   const { payload } = await jwtVerify(token, secret, {
+    algorithms: ["HS256"],
+    requiredClaims: ["sub", "aud", "iat", "exp"],
     audience: [env.JWT_OWNER_AUD, env.JWT_FLEET_AUD, env.JWT_WORKSHOP_AUD, env.JWT_ADMIN_AUD],
   });
-  if (payload.typ !== ACCESS_TYP || !payload.sub || !payload.aud) {
+  if (payload.typ !== ACCESS_TYP || !payload.sub || typeof payload.aud !== "string" || !["owner", "admin"].includes(String(payload.role))) {
     throw new Error("invalid_access");
   }
   const surface = payload.aud === env.JWT_OWNER_AUD
@@ -103,7 +105,7 @@ export async function verifyAccess(env: Env, token: string): Promise<AccessClaim
 
 export async function verifyRefresh(env: Env, token: string) {
   const secret = new TextEncoder().encode(env.JWT_REFRESH_SECRET);
-  const { payload } = await jwtVerify(token, secret);
+  const { payload } = await jwtVerify(token, secret, { algorithms: ["HS256"], requiredClaims: ["sub", "jti", "iat", "exp"] });
   if (payload.typ !== REFRESH_TYP || !payload.sub || !payload.jti) {
     throw new Error("invalid_refresh");
   }

@@ -161,7 +161,7 @@ describe("Enterprise Fleet access", () => {
     const platformAdmin = await adminToken(app);
     const fleetOwner = await signup(app, "fleet-owner");
     const driverEmail = `driver-${uuid()}@test.local`;
-    const mechanic = await signup(app, "mechanic");
+    const mechanic = { email: `mechanic-${uuid()}@test.local` };
 
     const created = await app.inject({
       method: "POST",
@@ -219,9 +219,12 @@ describe("Enterprise Fleet access", () => {
       method: "POST",
       url: `/v1/organizations/${org.id}/members`,
       headers: auth(fleetToken),
-      payload: { email: mechanic.email, role: "org_mechanic" },
+      payload: { email: mechanic.email, role: "org_mechanic", temporary_password: "TempPass123" },
     });
     expect(addMechanic.statusCode).toBe(201);
+    const temporaryMechanic = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: mechanic.email, password: "TempPass123" } });
+    const mechanicPassword = await app.inject({ method: "POST", url: "/v1/auth/change-password", headers: auth(temporaryMechanic.json().access_token), payload: { current_password: "TempPass123", new_password: "password1" } });
+    expect(mechanicPassword.statusCode).toBe(204);
     const newStaffInvite = await app.inject({
       method: "POST",
       url: `/v1/organizations/${org.id}/members`,
@@ -750,7 +753,8 @@ describe("Driver provisioning", () => {
     });
     expect(changePw.statusCode).toBe(204);
 
-    const myVehicleAfter = await app.inject({ method: "GET", url: "/v1/drivers/my-vehicle", headers: auth(driverToken) });
+    const freshDriver = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: driverEmail, password: "NewPass456" } });
+    const myVehicleAfter = await app.inject({ method: "GET", url: "/v1/drivers/my-vehicle", headers: auth(freshDriver.json().access_token) });
     expect(myVehicleAfter.statusCode).toBe(200);
     expect(myVehicleAfter.json().assignment).toBeNull();
 
@@ -768,8 +772,10 @@ describe("Driver provisioning", () => {
       url: "/v1/auth/login",
       payload: { email: driverEmail, password: "NewPass456" },
     });
-    expect(loginDeactivated.statusCode).toBe(401);
-    expect(loginDeactivated.json().error.code).toBe("deactivated");
+    expect(loginDeactivated.statusCode).toBe(200);
+    const blockedFleet = await app.inject({ method: "GET", url: "/v1/drivers/my-vehicle", headers: auth(loginDeactivated.json().access_token) });
+    expect(blockedFleet.statusCode).toBe(403);
+    expect(blockedFleet.json().error.code).toBe("membership_inactive");
 
     const reactivate = await app.inject({
       method: "POST",
@@ -823,7 +829,8 @@ describe("Driver surface realignment (WP1)", () => {
       payload: { current_password: "TempPass123", new_password: "NewPass456" },
     });
     expect(changePw.statusCode).toBe(204);
-    return { email, driverId, token };
+    const fresh = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email, password: "NewPass456" } });
+    return { email, driverId, token: fresh.json().access_token as string };
   }
 
   it("blocks a driver's personal garage with 403 personal_garage_forbidden", async () => {
@@ -1714,7 +1721,7 @@ describe("Admin-driven account provisioning (no invite emails)", () => {
     expect(adminLogin.statusCode).toBe(200);
     expect(adminLogin.json().user.email_verified).toBe(true);
     expect(adminLogin.json().user.must_change_password).toBe(true);
-    const adminTokenValue = adminLogin.json().access_token as string;
+    let adminTokenValue = adminLogin.json().access_token as string;
 
     // Fleet routes are blocked until the temporary password is changed.
     const beforeChange = await app.inject({
@@ -1730,6 +1737,8 @@ describe("Admin-driven account provisioning (no invite emails)", () => {
     });
     expect(changePassword.statusCode).toBe(204);
 
+    const freshAdmin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: newAdminEmail, password: "ChangedAdmin456!", surface: "fleet" } });
+    adminTokenValue = freshAdmin.json().access_token;
     // New member without an explicit password: one is generated and returned once.
     const staffEmail = `provision-staff-${uuid()}@test.local`;
     const invite = await app.inject({
@@ -1769,9 +1778,8 @@ describe("Admin-driven account provisioning (no invite emails)", () => {
       method: "POST", url: `/v1/organizations/${org.id}/members`, headers: auth(adminTokenValue),
       payload: { email: existingMember.email, role: "org_mechanic" },
     });
-    expect(link.statusCode).toBe(201);
-    expect(link.json().account_created).toBe(false);
-    expect(link.json().temporary_password).toBeNull();
+    expect(link.statusCode).toBe(409);
+    expect(link.json().error.code).toBe("personal_account_exists");
 
     // ...but a supplied password for an existing account is rejected.
     const secondExisting = await signup(app, "provision-existing-2");
@@ -1779,8 +1787,8 @@ describe("Admin-driven account provisioning (no invite emails)", () => {
       method: "POST", url: `/v1/organizations/${org.id}/members`, headers: auth(adminTokenValue),
       payload: { email: secondExisting.email, role: "org_mechanic", temporary_password: "MemberPass123!" },
     });
-    expect(rejected.statusCode).toBe(400);
-    expect(rejected.json().error.code).toBe("temporary_password_existing_account");
+    expect(rejected.statusCode).toBe(409);
+    expect(rejected.json().error.code).toBe("personal_account_exists");
 
     await app.close();
   });
