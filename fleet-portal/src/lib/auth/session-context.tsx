@@ -11,7 +11,7 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 import { clearToken, ensureFreshToken, setToken } from "@/lib/auth/token-store";
 import { ApiError, apiGet, apiPost } from "@/lib/api/client";
-import { apiBaseUrl } from "@/lib/api/config";
+
 import type { OrgContext } from "@/lib/api/types";
 
 export type SessionUser = {
@@ -57,9 +57,7 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
           setReady(true);
           return;
         }
-        const res = await fetch(`${apiBaseUrl()}/me`, {
-          headers: { authorization: `Bearer ${token}` },
-        });
+        const res = await fetch("/api/proxy/me", { cache: "no-store" });
         if (!res.ok) throw new Error("me failed");
         const me = (await res.json()) as SessionUser;
         if (!active) return;
@@ -104,13 +102,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       });
       const data = (await res.json().catch(() => ({}))) as {
         user?: SessionUser;
-        access_token?: string;
+        authenticated?: boolean;
         error?: { message?: string };
       };
-      if (!res.ok || !data.user || !data.access_token) {
+      if (!res.ok || !data.user || !data.authenticated) {
         throw new Error(data.error?.message ?? "Sign in failed");
       }
-      setToken(data.access_token);
+      setToken(String(Date.now() + 10 * 60_000));
       setUser({
         id: data.user.id,
         email: data.user.email,

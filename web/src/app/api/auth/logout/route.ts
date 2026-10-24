@@ -1,8 +1,11 @@
+import { rejectCrossOrigin } from "@/lib/auth/request-origin";
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_REFRESH_COOKIE, OWNER_REFRESH_COOKIE, clearSessionCookies } from "@/lib/auth/cookies";
 import { upstream } from "@/lib/api/upstream";
 
 export async function POST(request: NextRequest) {
+  const rejected = rejectCrossOrigin(request);
+  if (rejected) return rejected;
   const adminRefresh = request.cookies.get(ADMIN_REFRESH_COOKIE)?.value;
   if (adminRefresh) {
     await upstream("/auth/logout", {
