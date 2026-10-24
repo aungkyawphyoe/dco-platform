@@ -23,7 +23,11 @@ class AuthInterceptor extends Interceptor {
   bool _refreshing = false;
 
   bool _shouldSkip(RequestOptions options) {
-    return _skipAuthPaths.any(options.path.contains);
+    final base = Uri.parse(options.baseUrl);
+    final target = options.uri;
+    if (target.scheme != base.scheme || target.host != base.host || target.port != base.port) return true;
+    final basePath = base.path.replaceFirst(RegExp(r'/$'), '');
+    return _skipAuthPaths.any((path) => target.path == '$basePath$path' || target.path == path);
   }
 
   @override
@@ -31,6 +35,11 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    final base = Uri.parse(options.baseUrl);
+    final target = options.uri;
+    if (target.scheme != base.scheme || target.host != base.host || target.port != base.port) {
+      options.headers.removeWhere((key, _) => key.toLowerCase() == 'authorization');
+    }
     if (!_shouldSkip(options)) {
       final token = await _tokenStore.readAccessToken();
       if (token != null) {

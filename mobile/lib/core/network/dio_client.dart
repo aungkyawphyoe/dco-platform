@@ -12,6 +12,7 @@ class DioClient {
   }) : dio = Dio(
          BaseOptions(
            baseUrl: config.apiBaseUrl,
+           followRedirects: false,
            connectTimeout: const Duration(seconds: 15),
            receiveTimeout: const Duration(seconds: 20),
            headers: const {

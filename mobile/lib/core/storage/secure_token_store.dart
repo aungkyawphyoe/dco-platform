@@ -4,7 +4,7 @@ import 'token_store.dart';
 
 class SecureTokenStore implements TokenStore {
   SecureTokenStore({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+      : _storage = storage ?? const FlutterSecureStorage(iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device));
 
   static const _accessKey = 'dco.access_token';
   static const _refreshKey = 'dco.refresh_token';
