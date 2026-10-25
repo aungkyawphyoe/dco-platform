@@ -69,7 +69,7 @@ class LicenseVerifier {
     final issuedAt = _epoch(payload['iat']);
     final expiresAt = _epoch(payload['exp']);
     if (issuedAt == null || expiresAt == null) return null;
-    if (!now.isBefore(expiresAt)) return null;
+
     if (payload['iss'] != 'dco') return null;
     if (expectedSubject != null && payload['sub'] != expectedSubject) {
       return null;
@@ -77,7 +77,13 @@ class LicenseVerifier {
     if (issuedAt.isAfter(now.add(futureTolerance))) return null;
 
     try {
-      return EntitlementClaims.fromPayload(payload);
+      final claims = EntitlementClaims.fromPayload(payload);
+      if (!now.isBefore(expiresAt)) {
+        return claims.billingManaged || claims.organizationId != null
+            ? claims.asFreeFallback()
+            : null;
+      }
+      return claims;
     } catch (_) {
       return null;
     }

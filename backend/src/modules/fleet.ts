@@ -1,3 +1,5 @@
+import { billingRequest } from "../lib/subscription-access.js";
+import { assertOrganizationWritable } from "../lib/subscriptions.js";
 import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
@@ -66,6 +68,7 @@ export async function getOrganizationAccess(db: Db, userId: string, orgId: strin
   if (roles && !roles.includes(result.membership.role)) {
     throw new AppError(403, "insufficient_org_role", "Organization role does not permit this operation");
   }
+  if (billingRequest.getStore()?.write) await assertOrganizationWritable(db, orgId);
   return result;
 }
 

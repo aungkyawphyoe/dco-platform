@@ -88,6 +88,9 @@ export const plans = pgTable("plans", {
   aiTier: text("ai_tier").notNull(),
   priceMonthlyMmk: integer("price_monthly_mmk").notNull().default(0),
   priceAnnualMmk: integer("price_annual_mmk").notNull().default(0),
+  priceMonthlyUsd: numeric("price_monthly_usd", { precision: 12, scale: 2 }),
+  priceAnnualUsd: numeric("price_annual_usd", { precision: 12, scale: 2 }),
+  priceVersion: integer("price_version").notNull().default(1),
   stripePriceId: text("stripe_price_id"),
   localGatewayPlanId: text("local_gateway_plan_id"),
 });
@@ -97,6 +100,8 @@ export const users = pgTable("users", {
   email: text("email").unique(),
   username: text("username").notNull().unique(),
   passwordHash: text("password_hash"),
+  billingManaged: boolean("billing_managed").notNull().default(false),
+  freeVehicleId: uuid("free_vehicle_id"),
   authVersion: integer("auth_version").notNull().default(0),
   displayName: text("display_name"),
   profilePhotoMediaId: uuid("profile_photo_media_id"),
@@ -468,6 +473,7 @@ export const vehicleShareInvitations = pgTable("vehicle_share_invitations", {
 });
 
 export const organizations = pgTable("organizations", {
+  billingMigrated: boolean("billing_migrated").notNull().default(true),
   id: uuid("id").primaryKey(),
   name: text("name").notNull(),
   type: organizationTypeEnum("type").notNull(),
@@ -787,3 +793,22 @@ export const playSubscriptions = pgTable("play_subscriptions", {
   acknowledged: boolean("acknowledged").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, t => ({ userIndex: index("play_subscriptions_user_idx").on(t.userId) }));
+
+export const subscriptionTerms = pgTable("subscription_terms", {
+  id: uuid("id").primaryKey(), userId: uuid("user_id").references(() => users.id),
+  organizationId: uuid("organization_id").references(() => organizations.id),
+  plan: planEnum("plan").notNull(), source: text("source").notNull(),
+  startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+  endsAt: timestamp("ends_at", { withTimezone: true }).notNull(),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  payment: jsonb("payment").$type<Record<string, unknown>>(), reason: text("reason"),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  requestFingerprint: text("request_fingerprint"),
+  requestId: uuid("request_id").notNull().unique(), version: integer("version").notNull().default(1),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+export const subscriptionNotices = pgTable("subscription_notices", {
+  id: text("id").primaryKey(), termId: uuid("term_id").notNull().references(() => subscriptionTerms.id),
+  milestone: text("milestone").notNull(), sentAt: timestamp("sent_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});

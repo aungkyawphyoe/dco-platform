@@ -59,6 +59,10 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 
 ## Next implementation
 
+### Planned subscription and pricing administration — 24 October 2026
+
+[Subscription Management and Admin Pricing](subscription-management.md) records the agreed requirements for subscription visibility, direct-paid terms, complimentary grants, expiry and renewal, per-organization migration, and editable catalog prices. **Implemented locally; deployment pending.** See its linked rollout notes for validation and deployment requirements. Google Play checkout already has a separate implementation described in [its release guide](../../docs/google-play-subscriptions.md); the older next-step summary below predates that work.
+
 MVP core functionality is shipped. Fleet backend (organizations, inventory, warranty, transfer, approved workshops, workshop accounts), the Fleet Portal (`fleet-portal/`), mobile Fleet/Driver modes, User Profile & Account Management, and the Stats module are implemented; the Workshop Portal remains a planned surface. The **Oct 2026 Fleet alignment** (email-based driver accounts via Members, role-gated portal sidebar, temp-password Fleet Admin provisioning, driver soft delete, forced Driver mode) is implemented — see `fleet-management.md` § Requirement alignment.
 
 **Next:** billing/payment slice (`product/production-scope.md` — plans are admin-managed today, no in-app purchase) and the auth live rollout (real Google/Apple providers, email delivery, device acceptance — `docs/auth-provider-setup.md`).

@@ -6,7 +6,7 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -79,9 +79,8 @@ class _DocumentViewerScreenState extends ConsumerState<DocumentViewerScreen> {
     }
 
     final doc = _document!;
-    final access = VehicleAccess.of(
-      ref.watch(activeVehicleProvider).valueOrNull,
-      ref.watch(currentUserIdProvider),
+    final access = ref.watch(
+      vehicleAccessProvider(ref.watch(activeVehicleProvider).valueOrNull),
     );
     final canEdit =
         (access.isOwner || ref.watch(driverOrganizationIdProvider) != null) &&

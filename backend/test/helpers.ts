@@ -54,3 +54,12 @@ export async function createTestApp() {
 export function uuid(): string {
   return crypto.randomUUID();
 }
+
+/** Fleet workflow fixtures require an explicit term under subscription enforcement. */
+export async function grantTestFleet(app: Awaited<ReturnType<typeof createTestApp>>['app'], token: string, id: string) {
+  const result = await app.inject({ method: 'POST', url: '/v1/admin/subscriptions', headers: { authorization: `Bearer ${token}` }, payload: {
+    kind:'organization', id, request_id:uuid(), plan:'fleet', source:'complimentary', reason:'Fleet workflow test fixture',
+    starts_at:new Date(Date.now()-60000).toISOString(), unit:'years', count:1,
+  }});
+  if(result.statusCode !== 200) throw new Error(result.body);
+}

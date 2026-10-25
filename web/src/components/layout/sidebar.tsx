@@ -39,7 +39,9 @@ const nav: NavGroup[] = [
     section: "Configuration",
     icon: "configuration",
     items: [{ href: "/catalog", label: "Maintenance Catalog", exact: false },
-      { href: "/promotions", label: "Promotions", exact: false }],
+      { href: "/promotions", label: "Promotions", exact: false },
+      { href: "/subscriptions", label: "Subscriptions", exact: false },
+      { href: "/pricing", label: "Plans & Pricing", exact: false }],
   },
 ];
 

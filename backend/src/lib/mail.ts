@@ -11,6 +11,7 @@ export type MaintenanceReminderEmail = {
 };
 
 export type Mailer = {
+  sendSubscriptionReminder?(to: string, body: string): Promise<void>;
   sendCode(to: string, code: string, purpose: "verify" | "reset", locale: "en" | "my"): Promise<void>;
   sendVerification(to: string, token: string): Promise<void>;
   sendPasswordReset(to: string, token: string): Promise<void>;
@@ -72,6 +73,13 @@ function link(env: Env, path: string, token: string): string {
 
 export function createMailer(env: Env): Mailer {
   return {
+    async sendSubscriptionReminder(to, body) {
+      if (env.MAIL_PROVIDER === "stdout") {
+        if (env.APP_ENV === "prod") throw new Error("Production email delivery is not configured");
+        console.log(`[mail] subscription ${to}: ${body}`); return;
+      }
+      await sendAcs(env, to, "AutoX subscription update", body);
+    },
     async sendCode(to, code, purpose, locale) {
       const subject = locale === "my" ? "AutoX အတည်ပြုကုဒ်" : (purpose === "reset" ? "Reset your AutoX password" : "Verify your AutoX email");
       const body = locale === "my"

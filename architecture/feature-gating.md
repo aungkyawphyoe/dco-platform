@@ -1,5 +1,7 @@
 # Offline feature gating (tiered plans)
 
+**24 October 2026 subscription extension:** [Subscription Management and Admin Pricing](../product/frd/subscription-management.md) defines direct-paid and complimentary terms, grace, read-only expiry, per-organization migration, and editable catalog prices. It supersedes older indefinite admin-access assumptions for managed subscribers; store lifecycle and prices remain provider-controlled.
+
 **Status:** Accepted. All four PRs implemented — PR1 (backend tier migration), PR2 (license issuance), PR3 (server limit checks), PR4 (mobile gating).
 **Contract:** `docs/pricing.md` (tier matrix, limits, error contract). Server remains authoritative per `product/production-scope.md`.
 **Scope:** Mobile (Flutter) owner surface + backend. Fleet/Pro stays an org/enterprise entitlement — see §4.
@@ -330,3 +332,8 @@ Deployment still requires `LICENSE_ED25519_KEY`/`LICENSE_KID` on the API and the
 ### Android Play billing — 22 October 2026
 
 `play_subscriptions` stores server-verified Google lifecycle state separately from `users.plan`. The effective plan includes active/grace/canceled-unexpired Play access without clearing independent admin assignments. RTDN re-fetches Google's latest state under an account lock; hourly reconciliation backs it up. A Play-derived signed license uses `paidEnd` and expires at the earlier of the verified expiry and 24 hours from issuance, with **no additional seven-day grace**. Google-provided grace is already reflected in the verified expiry. Restore and purchase callbacks never grant local access without a verified signed license. See [release guide](../docs/google-play-subscriptions.md).
+
+
+## Managed subscription license claims — 24 October 2026
+
+`billing_managed` and `free_vehicle_id` persist the locked personal Free-vehicle policy. `organization_id`, `organization_writable`, and `organization_access_end` govern Driver writes separately from personal plans. Admin-issued personal access uses `paidEnd` with its already-calculated grace deadline (no second grace), bounded to 24 hours. Fleet write deadlines are also bounded to 24 hours. Signature, issuer, and account checks precede use of any claim. An expired signed managed license may retain only Free-selection metadata; it must not retain premium personal privileges. Existing promotional gifts retain their established expiry policy on unmanaged accounts.

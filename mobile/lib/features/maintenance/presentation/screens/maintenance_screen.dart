@@ -2,7 +2,7 @@ import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
@@ -56,7 +56,7 @@ class MaintenanceScreen extends ConsumerWidget {
               body: s.maintenanceNoActiveVehicleBody,
             );
           }
-          final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+          final access = ref.watch(vehicleAccessProvider(vehicle));
           final items = plan.valueOrNull ?? const <PlanItem>[];
           final now = DateTime.now();
           final upcoming = items.where((item) {
@@ -123,8 +123,10 @@ class MaintenanceScreen extends ConsumerWidget {
                               thresholds: thresholds,
                               onTap: access.canCreate
                                   ? () => context.push(
-                                        AppRoutes.maintenanceRegisterItem(item.id),
-                                      )
+                                      AppRoutes.maintenanceRegisterItem(
+                                        item.id,
+                                      ),
+                                    )
                                   : null,
                             ),
                           ),
@@ -145,8 +147,10 @@ class MaintenanceScreen extends ConsumerWidget {
                               thresholds: thresholds,
                               onTap: access.canCreate
                                   ? () => context.push(
-                                        AppRoutes.maintenanceRegisterItem(item.id),
-                                      )
+                                      AppRoutes.maintenanceRegisterItem(
+                                        item.id,
+                                      ),
+                                    )
                                   : null,
                             ),
                           ),

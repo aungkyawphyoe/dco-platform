@@ -7,7 +7,7 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/features/documents/providers.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -27,7 +27,7 @@ class DocumentsScreen extends ConsumerWidget {
     final documents = ref.watch(vehicleDocumentsProvider);
     final license = ref.watch(personalDocumentLicenseProvider).valueOrNull;
     final usage = ref.watch(documentStorageProvider).valueOrNull;
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
 
     final canCreate =
         access.isOwner ||

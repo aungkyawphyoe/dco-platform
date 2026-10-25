@@ -1,3 +1,4 @@
+import { organizationBilling, accessEnd } from "../lib/subscriptions.js";
 import { effectiveSubscription } from "../lib/gifts.js";
 import { and, eq, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
@@ -68,7 +69,9 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
     const [user] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user) throw new AppError(401, "unauthorized", "Unknown user");
     const subscription = await effectiveSubscription(app.db, userId);
-    const { license } = await issueLicense(app.env, { userId, plan: subscription.plan, giftEnd: subscription.gift?.endsAt, paidEnd: subscription.paidEnd });
+    const [membership] = await app.db.select().from(organizationMembers).where(eq(organizationMembers.userId, userId));
+    const billing = membership ? await organizationBilling(app.db, membership.orgId) : null;
+    const { license } = await issueLicense(app.env, { userId, plan: subscription.plan, giftEnd: subscription.gift?.endsAt, paidEnd: subscription.paidEnd, billingManaged: subscription.user.billingManaged, freeVehicleId: subscription.user.freeVehicleId, organizationId: membership?.orgId, organizationWritable: membership?.status === "active" && billing?.writable, organizationAccessEnd: billing?.term ? new Date(Math.min(accessEnd(billing.term).getTime(), Date.now() + 86400000)) : billing?.writable ? new Date(Date.now() + 86400000) : null });
     return { license };
   });
 

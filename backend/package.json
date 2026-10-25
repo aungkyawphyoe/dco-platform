@@ -16,7 +16,8 @@
     "db:migrate": "tsx src/db/run-migrate.ts",
     "seed:org": "tsx src/scripts/seed-org.ts",
     "license:key": "tsx src/scripts/generate-license-key.ts",
-    "billing:reconcile": "tsx src/scripts/reconcile-play.ts"
+    "billing:reconcile": "tsx src/scripts/reconcile-play.ts",
+    "billing:reminders": "tsx src/scripts/subscription-reminders.ts"
   },
   "dependencies": {
     "@azure/communication-email": "^1.0.0",

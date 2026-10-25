@@ -1,3 +1,5 @@
+import { billingRequest } from "./lib/subscription-access.js";
+import { subscriptionsPlugin } from "./modules/subscriptions.js";
 import { playBillingPlugin } from "./modules/play-billing.js";
 import { promotionsPlugin } from "./modules/promotions.js";
 import { fleetAnalyticsPlugin } from "./modules/fleet-analytics.js";
@@ -37,6 +39,9 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
     redact: ["req.headers.authorization", "req.headers.cookie"],
     serializers: { req: (req) => ({ method: req.method, url: req.url?.split("?")[0], remoteAddress: req.ip }) },
   } });
+  app.addHook("onRequest", (request, _reply, done) => {
+    billingRequest.run({ write: !["GET", "HEAD", "OPTIONS"].includes(request.method) }, done);
+  });
   app.decorate("env", deps.env);
   app.decorate("db", deps.db);
   app.decorate("mailer", deps.mailer);
@@ -82,6 +87,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await attachAuth(v1);
       await v1.register(healthPlugin);
       await v1.register(pricingPlugin);
+      await v1.register(subscriptionsPlugin);
       await v1.register(promotionsPlugin);
       await v1.register(playBillingPlugin);
       await v1.register(authPlugin);

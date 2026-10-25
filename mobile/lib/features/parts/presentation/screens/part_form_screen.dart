@@ -4,7 +4,7 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/domain/part_failure.dart';
@@ -90,9 +90,8 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
   }
 
   bool _canWrite() {
-    final access = VehicleAccess.of(
-      ref.read(activeVehicleProvider).valueOrNull,
-      ref.read(sessionControllerProvider).valueOrNull?.user.id,
+    final access = ref.read(
+      vehicleAccessProvider(ref.read(activeVehicleProvider).valueOrNull),
     );
     return widget.isEditing
         ? (access.canEditRecord(_createdBy) &&

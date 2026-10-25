@@ -37,6 +37,11 @@ async function licenseSigningKey(raw: string): Promise<CryptoKey> {
 }
 
 export type LicenseIssueInput = {
+  billingManaged?: boolean;
+  freeVehicleId?: string | null;
+  organizationId?: string | null;
+  organizationWritable?: boolean;
+  organizationAccessEnd?: Date | null;
   userId: string;
   plan: Plan;
   now?: Date;
@@ -65,6 +70,11 @@ export async function issueLicense(env: Env, input: LicenseIssueInput): Promise<
     : new Date(now.getTime() + env.LICENSE_TTL_DAYS * 86_400_000));
 
   const license = await new SignJWT({
+    billing_managed: input.billingManaged ?? false,
+    free_vehicle_id: input.freeVehicleId ?? null,
+    organization_id: input.organizationId ?? null,
+    organization_writable: input.organizationWritable ?? false,
+    organization_access_end: input.organizationAccessEnd?.toISOString() ?? null,
     plan_id: plan.id,
     gift_end: input.giftEnd?.toISOString() ?? null,
     vehicle_limit: plan.vehicleLimit,

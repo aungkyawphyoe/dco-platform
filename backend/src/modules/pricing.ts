@@ -6,11 +6,9 @@ import { PLAN_IDS, type Plan } from "../lib/plans.js";
 /**
  * Public pricing endpoint for the marketing site (`site/`).
  *
- * Limits and MMK prices are served live from the `plans` table (seeded from
- * the `src/lib/plans.ts` registry — see test/plans.test.ts for the sync
- * assertion). Marketing copy and USD display prices live here because the
- * table only carries limits/prices; USD comes from docs/pricing.md and is a
- * display-only convenience (Stripe international).
+ * Catalog prices are persisted and published through Admin Plans & Pricing.
+ * Limits remain code-controlled reference values. Published prices are not
+ * store checkout quotes; Android uses Google Play's localized product data.
  *
  * The feature matrix lists only as-built features per
  * product/production-scope.md + docs/mvp-as-built.md — planned items
@@ -24,8 +22,6 @@ type MarketingPlan = {
   readonly tagline: string;
   readonly audience: "personal" | "fleet";
   readonly highlighted: boolean;
-  readonly usdMonthly: number;
-  readonly usdAnnual: number;
   readonly features: readonly string[];
 };
 
@@ -34,8 +30,6 @@ const MARKETING: Record<Plan, MarketingPlan> = {
     tagline: "Start free — forever",
     audience: "personal",
     highlighted: false,
-    usdMonthly: 0,
-    usdAnnual: 0,
     features: [
       "Digital garage for 1 vehicle",
       "Fuel and charging logs",
@@ -49,8 +43,6 @@ const MARKETING: Record<Plan, MarketingPlan> = {
     tagline: "More vehicles, more sharing",
     audience: "personal",
     highlighted: false,
-    usdMonthly: 1,
-    usdAnnual: 10,
     features: [
       "Everything in Free",
       "3 vehicles",
@@ -63,8 +55,6 @@ const MARKETING: Record<Plan, MarketingPlan> = {
     tagline: "The complete personal garage",
     audience: "personal",
     highlighted: true,
-    usdMonthly: 2.99,
-    usdAnnual: 29.99,
     features: [
       "Everything in Lite",
       "10 vehicles",
@@ -77,8 +67,6 @@ const MARKETING: Record<Plan, MarketingPlan> = {
     tagline: "For businesses and fleets",
     audience: "fleet",
     highlighted: false,
-    usdMonthly: 14.99,
-    usdAnnual: 149.99,
     features: [
       "Everything in Standard",
       "Unlimited vehicles",
@@ -162,7 +150,8 @@ const FEATURE_MATRIX = [
 ];
 
 export const pricingPlugin: FastifyPluginAsync = async (app) => {
-  app.get("/pricing", { config: { public: true } }, async () => {
+  app.get("/pricing", { config: { public: true } }, async (_request, reply) => {
+    reply.header("Cache-Control", "no-store");
     const rows = await app.db.select().from(plans).where(inArray(plans.id, [...PLAN_IDS]));
     const byId = new Map(rows.map((row) => [row.id, row]));
     const ordered = PLAN_IDS.map((id) => byId.get(id)).filter((row) => row !== undefined);
@@ -179,8 +168,8 @@ export const pricingPlugin: FastifyPluginAsync = async (app) => {
           audience: marketing.audience,
           highlighted: marketing.highlighted,
           prices: {
-            monthly: { mmk: row.priceMonthlyMmk, usd: marketing.usdMonthly },
-            annual: { mmk: row.priceAnnualMmk, usd: marketing.usdAnnual },
+            monthly: { mmk: row.priceMonthlyMmk, usd: Number(row.priceMonthlyUsd) },
+            annual: { mmk: row.priceAnnualMmk, usd: Number(row.priceAnnualUsd) },
           },
           limits: {
             vehicles: row.vehicleLimit,

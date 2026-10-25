@@ -6,7 +6,7 @@ import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/features/vehicle_sharing/providers.dart';
@@ -37,7 +37,7 @@ class FuelLogDetailScreen extends ConsumerWidget {
             (ref.watch(driverOrganizationIdProvider) != null)) &&
         log != null &&
         vehicle != null &&
-        VehicleAccess.of(vehicle, currentUserId).canEditRecord(log.userId);
+        ref.read(vehicleAccessProvider(vehicle)).canEditRecord(log.userId);
 
     return Scaffold(
       appBar: AppBar(

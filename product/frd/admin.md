@@ -1,5 +1,7 @@
 # Admin Module
 
+**24 October 2026 extension:** [Subscription Management and Admin Pricing](subscription-management.md) adds subscription administration and editable catalog prices. Its requirements supersede the historical billing exclusion below.
+
 ## Overview
 
 The web portal is the business-side surface for AutoX staff. It is not the owner app. Admins sign in with an admin-only role, see counts of users and vehicles, support a user account, and record workshop and insurer partners. Partners do not get a product portal in MVP: no bookings, no claims, no dealer tools.

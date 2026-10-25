@@ -5,7 +5,7 @@ export async function analyticsFixture() {
   const state = await createTestApp(), { db } = state;
   const userId = uuid(), orgId = uuid(), vehicleId = uuid(), typeId = uuid();
   await db.insert(users).values({ id: userId, email: 'analytics-preview@test.local', username: 'analytics_preview', displayName: 'Fleet manager', passwordHash: null, role: 'owner', plan: 'fleet' });
-  await db.insert(organizations).values({ id: orgId, name: 'Northside Fleet', type: 'commercial', status: 'active', adminUserId: userId, createdBy: userId });
+  await db.insert(organizations).values({ id: orgId, billingMigrated: false, name: 'Northside Fleet', type: 'commercial', status: 'active', adminUserId: userId, createdBy: userId });
   await db.insert(organizationMembers).values({id:uuid(),orgId,userId,role:'org_admin'});
   await db.insert(vehicles).values({id:vehicleId,userId,name:'Toyota Probox',make:'Toyota',model:'Probox',year:2022,licensePlate:'YGN 6S-2841',fuelType:'petrol',mileage:'12000',mileageUnit:'km'});
   await db.insert(organizationVehicles).values({id:uuid(),orgId,vehicleId,lifecycleTemplate:'commercial',status:'available',addedBy:userId,addedAt:new Date('2025-01-01')});

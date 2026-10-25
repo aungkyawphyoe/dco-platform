@@ -1,4 +1,5 @@
 "use client";
+import { Subscriptions } from "@/components/billing/subscriptions";
 
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -499,6 +500,7 @@ export default function UserProfilePage({
           />
         </div>
       </Modal>
+      <Subscriptions kind="user" id={id} />
     </div>
   );
 }

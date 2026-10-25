@@ -1,4 +1,5 @@
 "use client";
+import { Subscriptions } from "@/components/billing/subscriptions";
 
 import { use, useEffect, useState } from "react";
 import { PageHeader } from "@dco/ui/components/page-header";
@@ -362,6 +363,7 @@ export default function OrganizationDetailPage({
           </div>
         </Modal>
       )}
+      <Subscriptions kind="organization" id={id} />
     </div>
   );
 }

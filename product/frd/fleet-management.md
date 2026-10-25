@@ -1,5 +1,7 @@
 # Fleet Management Module
 
+**24 October 2026 subscription extension:** [Subscription Management and Admin Pricing](subscription-management.md) defines direct-paid and complimentary terms, grace, read-only expiry, per-organization migration, and editable catalog prices. It supersedes older indefinite admin-access assumptions for managed subscribers; store lifecycle and prices remain provider-controlled.
+
 ## Overview
 
 Fleet Management enables **business accounts** (showrooms, dealerships, taxi fleets, rental companies, commercial fleets) to manage multiple vehicles under an organization, track warranty periods with approved workshops, and transfer vehicle ownership to buyers with full maintenance history. Organizations are created exclusively by AutoX administrators via the Admin Portal (sales-led onboarding). This module extends the existing single-owner model to support multi-vehicle business operations with role-based access, warranty enforcement, ownership transfer, driver work orders, vehicle inspections, and cost analytics.

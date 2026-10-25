@@ -11,7 +11,7 @@ import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/features/documents/domain/registration_expiry.dart';
 import 'package:dco_mobile/features/documents/providers.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
@@ -516,7 +516,7 @@ class _OverviewTab extends ConsumerWidget {
         const <Document>[];
     final thresholds = ref.watch(reminderThresholdsProvider);
     final lengthUnit = ref.watch(lengthUnitProvider);
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
 
     final now = DateTime.now();
     final next = DueCalculator.nearest(

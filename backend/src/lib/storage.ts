@@ -1,3 +1,5 @@
+import { assertOrganizationWritable } from "./subscriptions.js";
+import { assertPersonalVehicleWritable } from "./subscription-access.js";
 import { effectiveSubscription } from "./gifts.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "../db/client.js";
@@ -24,6 +26,8 @@ export async function storageUsage(db: Db, owner: StorageOwner) {
 export async function storeWithQuota(db: Db, store: MediaStore, input: {
   id: string; owner: StorageOwner; vehicleId?: string | null; purpose: string; bytes: Buffer; contentType: string;
 }) {
+  if (input.owner.orgId) await assertOrganizationWritable(db, input.owner.orgId);
+  else if (input.vehicleId) await assertPersonalVehicleWritable(db, input.vehicleId);
   return db.transaction(async (tx) => {
     if (input.owner.orgId) await tx.select().from(organizations).where(eq(organizations.id, input.owner.orgId)).for("update");
     else await tx.select().from(users).where(eq(users.id, input.owner.userId)).for("update");

@@ -5,7 +5,7 @@ import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/features/documents/providers.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -132,7 +132,7 @@ class LogAttachmentsState extends ConsumerState<LogAttachments> {
 
   bool _canChange(Document doc) {
     final vehicle = ref.read(vehicleByIdProvider(widget.vehicleId)).valueOrNull;
-    final access = VehicleAccess.of(vehicle, ref.read(currentUserIdProvider));
+    final access = ref.read(vehicleAccessProvider(vehicle));
     final org = ref.read(driverOrganizationIdProvider);
     return !widget.readOnly &&
         (access.isOwner || org != null) &&

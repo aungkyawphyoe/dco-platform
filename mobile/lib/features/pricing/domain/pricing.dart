@@ -38,12 +38,29 @@ class GiftAccess {
 }
 
 class SubscriptionStatus {
-  const SubscriptionStatus({required this.plan, this.gift, this.play});
+  const SubscriptionStatus({
+    required this.plan,
+    this.gift,
+    this.play,
+    this.managed = false,
+    this.freeVehicleId,
+    this.adminTerm,
+    this.terms = const [],
+  });
+  final bool managed;
+  final String? freeVehicleId;
+  final Map<String, dynamic>? adminTerm;
+  final List<Map<String, dynamic>> terms;
   final String plan;
   final GiftAccess? gift;
   final PlaySubscription? play;
   factory SubscriptionStatus.fromJson(Map<String, dynamic> json) =>
       SubscriptionStatus(
+        managed: json['managed'] == true,
+        freeVehicleId: json['free_vehicle_id'] as String?,
+        adminTerm: json['admin_term'] as Map<String, dynamic>?,
+        terms: (json['terms'] as List? ?? const [])
+            .cast<Map<String, dynamic>>(),
         plan: json['plan'] as String,
         play: json['play'] == null
             ? null

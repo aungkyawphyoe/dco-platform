@@ -13,7 +13,7 @@ import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 import 'package:dco_mobile/features/fuel/domain/fuel_failure.dart';
 import 'package:dco_mobile/features/fuel/domain/fuel_validators.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -188,9 +188,8 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   }
 
   bool _canWrite() {
-    final access = VehicleAccess.of(
-      ref.read(activeVehicleProvider).valueOrNull,
-      ref.read(sessionControllerProvider).valueOrNull?.user.id,
+    final access = ref.read(
+      vehicleAccessProvider(ref.read(activeVehicleProvider).valueOrNull),
     );
     return widget.isEditing
         ? (access.canEditRecord(_createdBy) &&
@@ -370,7 +369,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     }
 
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
     return PopScope(
       canPop: _allowPop || !(_attachments.currentState?.hasChanges ?? false),
       onPopInvokedWithResult: (didPop, result) {

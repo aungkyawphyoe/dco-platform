@@ -40,6 +40,511 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /admin/prices:
+    get:
+      tags:
+        - Admin
+      summary: View catalog prices and read-only plan benefits
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CatalogPrice'
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /admin/prices/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          enum:
+            - free
+            - lite
+            - standard
+            - fleet
+    patch:
+      tags:
+        - Admin
+      summary: Publish prices immediately using an expected version
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version: &ref_0
+                  type: integer
+                monthly_mmk: *ref_0
+                annual_mmk: *ref_0
+                monthly_usd: &ref_1
+                  type: number
+                annual_usd: *ref_1
+              required:
+                - version
+                - monthly_mmk
+                - annual_mmk
+                - monthly_usd
+                - annual_usd
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CatalogPrice'
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /admin/price-history:
+    get:
+      tags:
+        - Admin
+      summary: Read the latest 100 price publications
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: &ref_5
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: *ref_0
+                        adminUserId: &ref_2
+                          type: string
+                          format: uuid
+                        action: &ref_3
+                          type: string
+                        detail:
+                          type: object
+                          additionalProperties: true
+                        at: &ref_4
+                          type: string
+                          format: date-time
+                      required: []
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /admin/subscriptions:
+    get:
+      tags:
+        - Admin
+      summary: >-
+        Search subscriptions, store states, gifts, legacy assignments and
+        migration review
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminSubscriptionTerm'
+                  next_offset:
+                    type: integer
+                    nullable: true
+                  stores:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                  gifts:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                  legacy:
+                    type: array
+                    items:
+                      type: object
+                      additionalProperties: true
+                  awaiting_review:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: *ref_2
+                        name: *ref_3
+                      required: []
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+      parameters:
+        - name: q
+          in: query
+          schema: *ref_3
+        - name: kind
+          in: query
+          schema: *ref_3
+        - name: id
+          in: query
+          schema: *ref_3
+        - name: source
+          in: query
+          schema: *ref_3
+        - name: status
+          in: query
+          schema: *ref_3
+        - name: plan
+          in: query
+          schema: *ref_3
+        - name: offset
+          in: query
+          schema: *ref_0
+    post:
+      tags:
+        - Admin
+      summary: >-
+        Record confirmed direct payment or complimentary grant; retry with
+        identical request_id and payload
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminTermCreate'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubscriptionTerm'
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /admin/subscriptions/preview:
+    post:
+      tags:
+        - Admin
+      summary: Calculate exact UTC start, end and grace deadline before confirmation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                kind:
+                  type: string
+                  enum:
+                    - user
+                    - organization
+                id: *ref_2
+                starts_at: *ref_4
+                unit:
+                  type: string
+                  enum:
+                    - months
+                    - years
+                    - days
+                count: *ref_0
+                renew: &ref_7
+                  type: boolean
+                source:
+                  type: string
+                  enum:
+                    - direct
+                    - complimentary
+              required:
+                - kind
+                - id
+                - starts_at
+                - unit
+                - count
+                - renew
+                - source
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  starts_at: *ref_4
+                  ends_at: *ref_4
+                  access_ends_at: *ref_4
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /admin/subscriptions/{id}:
+    parameters:
+      - &ref_6
+        name: id
+        in: path
+        required: true
+        schema: *ref_2
+    patch:
+      tags:
+        - Admin
+      summary: >-
+        Correct, immediately revoke, or upgrade an admin-issued term; preserve
+        audit history
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AdminTermChange'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminSubscriptionTerm'
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /admin/subscriptions/history:
+    get:
+      tags:
+        - Admin
+      summary: Read up to 100 audit events for a subscriber or term
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema: *ref_5
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+      parameters:
+        - name: id
+          in: query
+          required: true
+          schema: *ref_2
+  /admin/organizations/{id}/migrate-billing:
+    parameters:
+      - *ref_6
+    post:
+      tags:
+        - Admin
+      summary: Permanently confirm per-organization migration after assigning a term
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  migrated: *ref_7
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /admin/users/{id}/free-vehicle:
+    parameters:
+      - *ref_6
+    post:
+      tags:
+        - Admin
+      summary: Correct the locked Free vehicle with an audit reason
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vehicle_id: *ref_2
+                reason: *ref_3
+              required:
+                - vehicle_id
+                - reason
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  free_vehicle_id: *ref_2
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /me/free-vehicle:
+    post:
+      tags:
+        - Me
+      summary: Select and lock one editable owned vehicle after managed downgrade
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                vehicle_id: *ref_2
+              required:
+                - vehicle_id
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  free_vehicle_id: *ref_2
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /me/subscriptions:
+    get:
+      tags:
+        - Me
+      summary: View own admin-issued terms and Free vehicle selection
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  plan: *ref_3
+                  free_vehicle_id:
+                    type: string
+                    format: uuid
+                    nullable: true
+                  managed: *ref_7
+                  terms:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/AdminSubscriptionTerm'
+                  store:
+                    type: object
+                    nullable: true
+                    additionalProperties: true
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
+  /organizations/{id}/subscription:
+    parameters:
+      - *ref_6
+    get:
+      tags:
+        - Fleet
+      summary: View organization access status and renewal dates
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: *ref_3
+                  writable: *ref_7
+                  term:
+                    type: object
+                    nullable: true
+                    properties:
+                      plan: *ref_3
+                      source: *ref_3
+                      startsAt: *ref_4
+                      endsAt: *ref_4
+                      accessEndsAt: *ref_4
+                required: []
+        '403':
+          description: Not permitted or subscription is read-only
+        '409':
+          description: >-
+            Source conflict, overlap, locked selection, stale version, or retry
+            payload mismatch
+        '422':
+          description: Invalid fields
   /me/play-billing:
     get:
       tags: [Me]
@@ -4900,6 +5405,203 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorBody'
   schemas:
+    AdminPayment:
+      type: object
+      properties:
+        amount:
+          type: number
+          exclusiveMinimum: true
+          minimum: 0
+        currency:
+          type: string
+          enum:
+            - MMK
+            - USD
+        paid_at: &ref_1
+          type: string
+          format: date-time
+        method: &ref_0
+          type: string
+        reference: *ref_0
+        receipt:
+          type: string
+          format: uri
+        override_reason: *ref_0
+        catalog_amount:
+          type: number
+          nullable: true
+        catalog_version: &ref_2
+          type: integer
+        period:
+          type: string
+          nullable: true
+      required:
+        - amount
+        - currency
+        - paid_at
+        - method
+    AdminSubscriptionTerm:
+      type: object
+      properties:
+        id: &ref_3
+          type: string
+          format: uuid
+        userId:
+          type: string
+          format: uuid
+          nullable: true
+        organizationId:
+          type: string
+          format: uuid
+          nullable: true
+        plan:
+          type: string
+          enum:
+            - lite
+            - standard
+            - fleet
+        source:
+          type: string
+          enum:
+            - direct
+            - complimentary
+        startsAt: *ref_1
+        endsAt: *ref_1
+        accessEndsAt: *ref_1
+        revokedAt:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+          enum:
+            - scheduled
+            - active
+            - grace
+            - expired
+            - revoked
+        version: *ref_2
+        payment:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/AdminPayment'
+        reason:
+          type: string
+          nullable: true
+        createdBy: *ref_3
+        requestId: *ref_3
+        createdAt: *ref_1
+        label:
+          type: string
+          nullable: true
+      required:
+        - id
+        - plan
+        - source
+        - startsAt
+        - endsAt
+        - accessEndsAt
+        - status
+        - version
+    CatalogPrice:
+      type: object
+      properties:
+        id:
+          type: string
+          enum:
+            - free
+            - lite
+            - standard
+            - fleet
+        name: *ref_0
+        priceVersion: *ref_2
+        priceMonthlyMmk: *ref_2
+        priceAnnualMmk: *ref_2
+        priceMonthlyUsd: *ref_0
+        priceAnnualUsd: *ref_0
+        vehicleLimit:
+          type: integer
+          nullable: true
+        sharingLimit:
+          type: integer
+          nullable: true
+        storageBytes:
+          type: number
+      required:
+        - id
+        - name
+        - priceVersion
+        - priceMonthlyMmk
+        - priceAnnualMmk
+        - priceMonthlyUsd
+        - priceAnnualUsd
+    AdminTermCreate:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+            - user
+            - organization
+        id: *ref_3
+        request_id: *ref_3
+        plan:
+          type: string
+          enum:
+            - lite
+            - standard
+            - fleet
+        source:
+          type: string
+          enum:
+            - direct
+            - complimentary
+        starts_at: *ref_1
+        unit:
+          type: string
+          enum:
+            - months
+            - years
+            - days
+        count:
+          type: integer
+          minimum: 1
+          maximum: 3650
+        renew:
+          type: boolean
+        expected_start: *ref_1
+        reason: *ref_0
+        payment:
+          $ref: '#/components/schemas/AdminPayment'
+        price_version: *ref_2
+      required:
+        - kind
+        - id
+        - request_id
+        - plan
+        - source
+        - starts_at
+        - unit
+        - count
+    AdminTermChange:
+      type: object
+      properties:
+        version: *ref_2
+        action:
+          type: string
+          enum:
+            - correct
+            - revoke
+            - upgrade
+        reason: *ref_0
+        starts_at: *ref_1
+        ends_at: *ref_1
+        payment:
+          $ref: '#/components/schemas/AdminPayment'
+      required:
+        - version
+        - action
+        - reason
     GiftGrant:
       type: object
       required: [id, promotion_id, plan, starts_at, ends_at]
@@ -4913,6 +5615,16 @@ components:
       type: object
       required: [plan, gift, play]
       properties:
+        managed: { type: boolean }
+        free_vehicle_id: { type: string, format: uuid, nullable: true }
+        admin_term:
+          nullable: true
+          allOf:
+            - $ref: '#/components/schemas/AdminSubscriptionTerm'
+        terms:
+          type: array
+          items:
+            $ref: '#/components/schemas/AdminSubscriptionTerm'
         plan: { type: string, enum: [free, lite, standard, fleet] }
         gift:
           nullable: true
