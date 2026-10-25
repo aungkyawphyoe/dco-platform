@@ -1,7 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
 import { ADMIN_REFRESH_COOKIE, OWNER_REFRESH_COOKIE } from "@/lib/auth/cookies";
 
+function getPublicOrigin(request: NextRequest): string {
+  const proto = request.headers.get("x-forwarded-proto") || "https";
+  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
+  const cleanHost = host.replace(/:3000$/, "");
+  return `${proto}://${cleanHost}`;
+}
+
+function normalizeRequestUrl(request: NextRequest): NextRequest {
+  const publicOrigin = getPublicOrigin(request);
+  const url = new URL(request.url);
+  if (url.origin !== publicOrigin) {
+    url.protocol = publicOrigin.startsWith("https") ? "https:" : "http:";
+    url.host = publicOrigin.replace(/^https?:\/\//, "");
+    return new NextRequest(url, request);
+  }
+  return request;
+}
+
 export function middleware(request: NextRequest) {
+  request = normalizeRequestUrl(request);
+  const publicOrigin = getPublicOrigin(request);
   const nonce = btoa(crypto.randomUUID());
   const development = process.env.NODE_ENV !== "production";
   const csp = `default-src 'self'; script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${development ? " 'unsafe-eval'" : ""}; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self'; connect-src 'self'${development ? " ws: wss:" : ""}; object-src 'none'; base-uri 'none'; form-action 'self'; frame-ancestors 'none';${development ? "" : " upgrade-insecure-requests;"}`;
@@ -21,8 +41,8 @@ export function middleware(request: NextRequest) {
 
   if (pathname === "/login") {
     if (hasSession) {
-      if (hasAdminSession) return NextResponse.redirect(new URL("/", request.url));
-      if (hasOwnerSession) return NextResponse.redirect(new URL("/vehicles", request.url));
+      if (hasAdminSession) return NextResponse.redirect(new URL("/", publicOrigin));
+      if (hasOwnerSession) return NextResponse.redirect(new URL("/vehicles", publicOrigin));
     }
     return next();
   }
@@ -35,7 +55,7 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/organizations")
   ) {
     if (!hasAdminSession) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/login", publicOrigin));
     }
     return next();
   }
@@ -43,16 +63,16 @@ export function middleware(request: NextRequest) {
   // Owner routes (vehicle sharing)
   if (pathname.startsWith("/vehicles") || pathname.startsWith("/family")) {
     if (!hasOwnerSession) {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/login", publicOrigin));
     }
     if (pathname.startsWith("/family")) {
-      return NextResponse.redirect(new URL("/vehicles", request.url));
+      return NextResponse.redirect(new URL("/vehicles", publicOrigin));
     }
     return next();
   }
 
   if (!hasSession) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/login", publicOrigin));
   }
   return next();
 }
