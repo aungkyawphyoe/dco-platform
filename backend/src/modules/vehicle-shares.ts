@@ -1,3 +1,4 @@
+import { assertPersonalVehicleWritable } from "../lib/subscription-access.js";
 import { randomInt } from "node:crypto";
 import { authLimit } from "../lib/rate-limit.js";
 import { effectiveSubscription } from "../lib/gifts.js";
@@ -232,7 +233,7 @@ export async function getVehicleAccessLevel(
     .where(eq(organizationVehicles.vehicleId, vehicleId))
     .limit(1);
   if (organizationLink) return null;
-  if (vehicle.userId === userId) return "owner";
+  if (vehicle.userId === userId) { await assertPersonalVehicleWritable(db, vehicleId); return "owner"; }
 
   const [share] = await db
     .select()
@@ -240,6 +241,7 @@ export async function getVehicleAccessLevel(
     .where(and(eq(vehicleShares.vehicleId, vehicleId), eq(vehicleShares.userId, userId), eq(vehicleShares.status, "active")))
     .limit(1);
   if (!share) return null;
+  await assertPersonalVehicleWritable(db, vehicleId);
   return share.accessLevel;
 }
 

@@ -1,3 +1,4 @@
+import { subscriberTerms, termStatus } from "../lib/subscriptions.js";
 import { desc, eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
@@ -20,12 +21,13 @@ export const playBillingPlugin: FastifyPluginAsync = async app => {
     const userId = request.authUser!.sub;
     await assertPersonalGarageAllowed(app.db, userId);
     const sub = await effectiveSubscription(app.db, userId);
+    const reserved = (await subscriberTerms(app.db, "user", userId)).some(t => ["scheduled", "active", "grace"].includes(termStatus(t)));
     const [latest] = await app.db.select().from(playSubscriptions).where(eq(playSubscriptions.userId, userId)).orderBy(desc(playSubscriptions.expiresAt)).limit(1);
     // Holds/paused/pending subscriptions must be resolved, not bought again.
     const existing = latest && !["SUBSCRIPTION_STATE_EXPIRED", "SUBSCRIPTION_STATE_PENDING_PURCHASE_CANCELED", "REPLACED"].includes(latest.state) &&
       (latest.expiresAt > new Date() || ["SUBSCRIPTION_STATE_ON_HOLD", "SUBSCRIPTION_STATE_PAUSED", "SUBSCRIPTION_STATE_PENDING"].includes(latest.state));
     return { enabled: playEnabled(app.env), account_id: playAccountId(userId),
-      can_purchase: playEnabled(app.env) && sub.user.emailVerified && sub.plan === "free" && !existing,
+      can_purchase: playEnabled(app.env) && sub.user.emailVerified && sub.plan === "free" && !existing && !reserved,
       license_kid: app.env.LICENSE_KID, products: Object.keys(PLAY_PRODUCTS), package_name: app.env.PLAY_PACKAGE_NAME };
   });
   app.post("/me/play-purchases", async request => {

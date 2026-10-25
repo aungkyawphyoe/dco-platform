@@ -4,6 +4,891 @@
  */
 
 export interface paths {
+    "/admin/prices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View catalog prices and read-only plan benefits */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["CatalogPrice"][];
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/prices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: "free" | "lite" | "standard" | "fleet";
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Publish prices immediately using an expected version */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: "free" | "lite" | "standard" | "fleet";
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        version: number;
+                        monthly_mmk: number;
+                        annual_mmk: number;
+                        monthly_usd: number;
+                        annual_usd: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CatalogPrice"];
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/admin/price-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the latest 100 price publications */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: {
+                                id?: number;
+                                /** Format: uuid */
+                                adminUserId?: string;
+                                action?: string;
+                                detail?: {
+                                    [key: string]: unknown;
+                                };
+                                /** Format: date-time */
+                                at?: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Search subscriptions, store states, gifts, legacy assignments and migration review */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    kind?: string;
+                    id?: string;
+                    source?: string;
+                    status?: string;
+                    plan?: string;
+                    offset?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: components["schemas"]["AdminSubscriptionTerm"][];
+                            next_offset?: number | null;
+                            stores?: {
+                                [key: string]: unknown;
+                            }[];
+                            gifts?: {
+                                [key: string]: unknown;
+                            }[];
+                            legacy?: {
+                                [key: string]: unknown;
+                            }[];
+                            awaiting_review?: {
+                                /** Format: uuid */
+                                id?: string;
+                                name?: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /** Record confirmed direct payment or complimentary grant; retry with identical request_id and payload */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AdminTermCreate"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminSubscriptionTerm"];
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/subscriptions/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Calculate exact UTC start, end and grace deadline before confirmation */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        kind: "user" | "organization";
+                        /** Format: uuid */
+                        id: string;
+                        /** Format: date-time */
+                        starts_at: string;
+                        /** @enum {string} */
+                        unit: "months" | "years" | "days";
+                        count: number;
+                        renew: boolean;
+                        /** @enum {string} */
+                        source: "direct" | "complimentary";
+                    };
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date-time */
+                            starts_at?: string;
+                            /** Format: date-time */
+                            ends_at?: string;
+                            /** Format: date-time */
+                            access_ends_at?: string;
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/subscriptions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Correct, immediately revoke, or upgrade an admin-issued term; preserve audit history */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["AdminTermChange"];
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["AdminSubscriptionTerm"];
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/admin/subscriptions/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read up to 100 audit events for a subscriber or term */
+        get: {
+            parameters: {
+                query: {
+                    id: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items?: {
+                                id?: number;
+                                /** Format: uuid */
+                                adminUserId?: string;
+                                action?: string;
+                                detail?: {
+                                    [key: string]: unknown;
+                                };
+                                /** Format: date-time */
+                                at?: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/organizations/{id}/migrate-billing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Permanently confirm per-organization migration after assigning a term */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            migrated?: boolean;
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/admin/users/{id}/free-vehicle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Correct the locked Free vehicle with an audit reason */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        vehicle_id: string;
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            free_vehicle_id?: string;
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/free-vehicle": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select and lock one editable owned vehicle after managed downgrade */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        vehicle_id: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            free_vehicle_id?: string;
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/me/subscriptions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** View own admin-issued terms and Free vehicle selection */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            plan?: string;
+                            /** Format: uuid */
+                            free_vehicle_id?: string | null;
+                            managed?: boolean;
+                            terms?: components["schemas"]["AdminSubscriptionTerm"][];
+                            store?: {
+                                [key: string]: unknown;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/subscription": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** View organization access status and renewal dates */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Success */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            status?: string;
+                            writable?: boolean;
+                            term?: {
+                                plan?: string;
+                                source?: string;
+                                /** Format: date-time */
+                                startsAt?: string;
+                                /** Format: date-time */
+                                endsAt?: string;
+                                /** Format: date-time */
+                                accessEndsAt?: string;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Not permitted or subscription is read-only */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Source conflict, overlap, locked selection, stale version, or retry payload mismatch */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid fields */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/me/play-billing": {
         parameters: {
             query?: never;
@@ -9162,6 +10047,100 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AdminPayment: {
+            amount: number;
+            /** @enum {string} */
+            currency: "MMK" | "USD";
+            /** Format: date-time */
+            paid_at: string;
+            method: string;
+            reference?: string;
+            /** Format: uri */
+            receipt?: string;
+            override_reason?: string;
+            catalog_amount?: number | null;
+            catalog_version?: number;
+            period?: string | null;
+        };
+        AdminSubscriptionTerm: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            userId?: string | null;
+            /** Format: uuid */
+            organizationId?: string | null;
+            /** @enum {string} */
+            plan: "lite" | "standard" | "fleet";
+            /** @enum {string} */
+            source: "direct" | "complimentary";
+            /** Format: date-time */
+            startsAt: string;
+            /** Format: date-time */
+            endsAt: string;
+            /** Format: date-time */
+            accessEndsAt: string;
+            /** Format: date-time */
+            revokedAt?: string | null;
+            /** @enum {string} */
+            status: "scheduled" | "active" | "grace" | "expired" | "revoked";
+            version: number;
+            payment?: components["schemas"]["AdminPayment"] | null;
+            reason?: string | null;
+            /** Format: uuid */
+            createdBy?: string;
+            /** Format: uuid */
+            requestId?: string;
+            /** Format: date-time */
+            createdAt?: string;
+            label?: string | null;
+        };
+        CatalogPrice: {
+            /** @enum {string} */
+            id: "free" | "lite" | "standard" | "fleet";
+            name: string;
+            priceVersion: number;
+            priceMonthlyMmk: number;
+            priceAnnualMmk: number;
+            priceMonthlyUsd: string;
+            priceAnnualUsd: string;
+            vehicleLimit?: number | null;
+            sharingLimit?: number | null;
+            storageBytes?: number;
+        };
+        AdminTermCreate: {
+            /** @enum {string} */
+            kind: "user" | "organization";
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            request_id: string;
+            /** @enum {string} */
+            plan: "lite" | "standard" | "fleet";
+            /** @enum {string} */
+            source: "direct" | "complimentary";
+            /** Format: date-time */
+            starts_at: string;
+            /** @enum {string} */
+            unit: "months" | "years" | "days";
+            count: number;
+            renew?: boolean;
+            /** Format: date-time */
+            expected_start?: string;
+            reason?: string;
+            payment?: components["schemas"]["AdminPayment"];
+            price_version?: number;
+        };
+        AdminTermChange: {
+            version: number;
+            /** @enum {string} */
+            action: "correct" | "revoke" | "upgrade";
+            reason: string;
+            /** Format: date-time */
+            starts_at?: string;
+            /** Format: date-time */
+            ends_at?: string;
+            payment?: components["schemas"]["AdminPayment"];
+        };
         GiftGrant: {
             /** Format: uuid */
             id: string;
@@ -9175,6 +10154,11 @@ export interface components {
             ends_at: string;
         };
         SubscriptionStatus: {
+            managed?: boolean;
+            /** Format: uuid */
+            free_vehicle_id?: string | null;
+            admin_term?: components["schemas"]["AdminSubscriptionTerm"] | null;
+            terms?: components["schemas"]["AdminSubscriptionTerm"][];
             /** @enum {string} */
             plan: "free" | "lite" | "standard" | "fleet";
             gift: components["schemas"]["GiftGrant"] | null;

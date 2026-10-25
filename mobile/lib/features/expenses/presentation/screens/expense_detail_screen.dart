@@ -5,7 +5,7 @@ import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/features/vehicle_sharing/providers.dart';
@@ -37,10 +37,9 @@ class ExpenseDetailScreen extends ConsumerWidget {
             (ref.watch(driverOrganizationIdProvider) != null)) &&
         expense != null &&
         vehicle != null &&
-        VehicleAccess.of(
-          vehicle,
-          currentUserId,
-        ).canEditRecord(expense.createdBy);
+        ref
+            .read(vehicleAccessProvider(vehicle))
+            .canEditRecord(expense.createdBy);
 
     return Scaffold(
       appBar: AppBar(

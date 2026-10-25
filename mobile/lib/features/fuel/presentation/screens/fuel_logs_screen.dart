@@ -6,7 +6,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -38,7 +38,7 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
     final currency = ref.watch(currencyProvider).code;
     final title = kind?.label ?? s.fuelLogsTitle;
     ref.watch(seedFuelTypesProvider);
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
 
     return Scaffold(
       appBar: AppBar(

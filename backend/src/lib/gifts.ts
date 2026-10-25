@@ -1,3 +1,4 @@
+import { activeAdminTerm, accessEnd } from "./subscriptions.js";
 import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import type { Db } from "../db/client.js";
 import { giftGrants, users, playSubscriptions } from "../db/schema.js";
@@ -14,14 +15,19 @@ export async function effectiveSubscription(db: Db, userId: string, now = new Da
     inArray(playSubscriptions.state, ["SUBSCRIPTION_STATE_ACTIVE", "SUBSCRIPTION_STATE_IN_GRACE_PERIOD", "SUBSCRIPTION_STATE_CANCELED"]),
   )).orderBy(sql`CASE ${playSubscriptions.plan} WHEN 'standard' THEN 2 WHEN 'lite' THEN 1 ELSE 0 END DESC`, desc(playSubscriptions.expiresAt)).limit(1);
   const rank = { free: 0, lite: 1, standard: 2, fleet: 3 };
-  let plan = user.plan;
+  const adminTerm = await activeAdminTerm(db, "user", userId, now);
+  const basePlan = user.billingManaged ? "free" : user.plan;
+  let plan = basePlan;
   let giftEnd: Date | null = null;
   let paidEnd: Date | null = null;
-  if (gift && user.plan === "free") { plan = gift.plan; giftEnd = gift.endsAt; }
-  if (play && rank[play.plan] >= rank[plan] && rank[play.plan] > rank[user.plan]) {
+  if (gift && basePlan === "free") { plan = gift.plan; giftEnd = gift.endsAt; }
+  if (play && rank[play.plan] >= rank[plan] && rank[play.plan] > rank[basePlan]) {
     plan = play.plan; giftEnd = null; paidEnd = play.expiresAt;
   }
-  return { user, plan, gift: giftEnd ? gift : null, play: play ?? null, paidEnd };
+  if (adminTerm && rank[adminTerm.plan] >= rank[plan]) {
+    plan = adminTerm.plan; giftEnd = null; paidEnd = accessEnd(adminTerm);
+  }
+  return { user, plan, adminTerm, gift: giftEnd ? gift : null, play: play ?? null, paidEnd };
 
 }
 

@@ -86,6 +86,22 @@ void main() {
     expect(api.recordedOps.map((o) => o.entityId), contains('e1'));
   });
 
+  for (final code in ['subscription_read_only', 'vehicle_read_only']) {
+    test('$code preserves and parks writes until access refresh', () async {
+      await enqueue('u1', OutboxEntityType.expense, 'e1');
+      api.pushHandler = (ops) => ops.map((op) => SyncPushResult(
+        entityId: op.entityId, status: SyncPushStatus.rejected,
+        error: ApiError(code: code, message: 'Subscription is read-only', details: const {}),
+      )).toList();
+      await engine.syncNow();
+      final row = (await db.select(db.outboxEntries).get()).single;
+      expect(row.parked, isTrue);
+      expect(row.attemptCount, 0);
+      await engine.requeueParked('u1');
+      expect((await db.select(db.outboxEntries).get()).single.parked, isFalse);
+    });
+  }
+
   test('parked rows are excluded from later pushes', () async {
     await enqueue('u1', OutboxEntityType.vehicle, 'v1');
     api.pushHandler = (ops) => ops

@@ -1,3 +1,4 @@
+import 'widgets/admin_subscription_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../billing/providers.dart';
 import '../billing/play_billing_controller.dart';
@@ -64,7 +65,8 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
     final ended = gift != null && !gift.endsAt.isAfter(DateTime.now().toUtc());
     final current = ended
         ? 'free'
-        : subscription?.plan ?? license?.planId ?? user?.plan ?? 'free';
+        : (subscription?.managed == true ? license?.planId : null) ??
+              subscription?.plan ?? license?.planId ?? user?.plan ?? 'free';
     final currentName = switch (current) {
       'free' => 'Free',
       'lite' => 'Lite',
@@ -122,6 +124,7 @@ class _PricingScreenState extends ConsumerState<PricingScreen> {
                 ),
               ],
             ),
+            const AdminSubscriptionCard(),
             if (gift != null)
               Padding(
                 padding: EdgeInsets.only(top: t.space.s2),

@@ -5,7 +5,7 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
@@ -40,10 +40,9 @@ class ServiceDetailScreen extends ConsumerWidget {
             (ref.watch(driverOrganizationIdProvider) != null)) &&
         record != null &&
         vehicle != null &&
-        VehicleAccess.of(
-          vehicle,
-          currentUserId,
-        ).canEditRecord(record.createdBy);
+        ref
+            .read(vehicleAccessProvider(vehicle))
+            .canEditRecord(record.createdBy);
 
     return Scaffold(
       appBar: AppBar(

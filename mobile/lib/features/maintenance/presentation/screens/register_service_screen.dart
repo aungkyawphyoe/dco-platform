@@ -1,4 +1,4 @@
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/documents/presentation/widgets/log_attachments.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/core/analytics/analytics.dart';
@@ -549,7 +549,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       );
     }
 
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
     final canWrite = !_isEdit
         ? access.canCreate
         : access.canEditRecord(_recordCreatedBy) &&

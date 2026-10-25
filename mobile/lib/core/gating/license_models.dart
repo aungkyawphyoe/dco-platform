@@ -7,6 +7,11 @@ import 'package:flutter/foundation.dart';
 @immutable
 class EntitlementClaims {
   const EntitlementClaims({
+    this.billingManaged = false,
+    this.freeVehicleId,
+    this.organizationId,
+    this.organizationWritable = false,
+    this.organizationAccessEnd,
     required this.planId,
     required this.vehicleLimit,
     required this.sharingLimit,
@@ -40,6 +45,13 @@ class EntitlementClaims {
     }
     final periodEnd = payload['period_end'];
     return EntitlementClaims(
+      billingManaged: payload['billing_managed'] == true,
+      freeVehicleId: payload['free_vehicle_id'] as String?,
+      organizationId: payload['organization_id'] as String?,
+      organizationWritable: payload['organization_writable'] == true,
+      organizationAccessEnd: DateTime.tryParse(
+        payload['organization_access_end'] as String? ?? '',
+      ),
       planId: payload['plan_id'] as String? ?? 'free',
       vehicleLimit: (payload['vehicle_limit'] as num?)?.toInt(),
       sharingLimit: (payload['sharing_limit'] as num?)?.toInt(),
@@ -60,7 +72,28 @@ class EntitlementClaims {
   }
 
   /// `free` | `lite` | `standard` | `fleet`.
+  final bool billingManaged;
+  final String? freeVehicleId, organizationId;
+  final bool organizationWritable;
+  final DateTime? organizationAccessEnd;
   final String planId;
+
+  EntitlementClaims asFreeFallback() => EntitlementClaims(
+    planId: 'free',
+    vehicleLimit: 1,
+    sharingLimit: 1,
+    storageBytes: free.storageBytes,
+    aiTier: 'base',
+    features: const {},
+    periodEnd: null,
+    issuedAt: issuedAt,
+    expiresAt: DateTime.utc(2100),
+    billingManaged: billingManaged,
+    freeVehicleId: freeVehicleId,
+    organizationId: organizationId,
+    organizationWritable: organizationWritable,
+    organizationAccessEnd: organizationAccessEnd,
+  );
 
   /// `null` = unlimited; used for all local create checks.
   final int? vehicleLimit;

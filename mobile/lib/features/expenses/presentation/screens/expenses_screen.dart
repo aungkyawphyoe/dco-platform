@@ -5,7 +5,7 @@ import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -35,7 +35,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
         ref.watch(vehicleExpenseSummaryProvider).valueOrNull ??
         ExpenseSummary.empty;
     final currency = ref.watch(currencyProvider).code;
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
 
     return Scaffold(
       appBar: AppBar(

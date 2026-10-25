@@ -114,7 +114,7 @@ class LicenseController extends AsyncNotifier<EntitlementClaims> {
     if (generation != _generation || now == null) return;
     final claims = state.valueOrNull;
     if (claims != null && !now.isBefore(claims.expiresAt)) {
-      state = AsyncData(EntitlementClaims.free);
+      state = AsyncData(claims.asFreeFallback());
     }
   }
 

@@ -12,7 +12,7 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/features/documents/domain/document_failure.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -108,10 +108,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
               : activeVehicleProvider,
         )
         .valueOrNull;
-    final access = VehicleAccess.of(
-      vehicle,
-      ref.read(sessionControllerProvider).valueOrNull?.user.id,
-    );
+    final access = ref.read(vehicleAccessProvider(vehicle));
     if (!access.isOwner && ref.read(driverOrganizationIdProvider) == null) {
       return false;
     }
@@ -475,7 +472,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       );
     }
 
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
     final canWrite = widget.isEditing
         ? (access.canEditRecord(_createdBy) &&
               !(ref

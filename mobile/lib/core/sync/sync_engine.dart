@@ -246,7 +246,9 @@ class SyncEngine {
             result?.error?.message ?? result?.status.name ?? 'no_result';
         // Plan-limit rejections park immediately instead of burning
         // retries; siblings keep syncing (feature-gating §9).
-        final limitRejected = result?.error?.code == 'LIMIT_EXCEEDED';
+        final limitRejected = const {
+          'LIMIT_EXCEEDED', 'subscription_read_only', 'vehicle_read_only',
+        }.contains(result?.error?.code);
         await (_db.update(
           _db.outboxEntries,
         )..where((r) => r.id.equals(row.id))).write(

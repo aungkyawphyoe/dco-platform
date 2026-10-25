@@ -1,3 +1,4 @@
+import { assertPersonalVehicleWritable } from "../lib/subscription-access.js";
 import { effectiveSubscription } from "../lib/gifts.js";
 import { and, asc, desc, eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
@@ -75,6 +76,7 @@ export async function getOwnedVehicle(db: Db, userId: string, vehicleId: string,
   if (!row || row.userId !== userId) throw new AppError(404, "not_found", "Vehicle not found");
   const [organizationLink] = await db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId)).limit(1);
   if (organizationLink) throw new AppError(404, "not_found", "Vehicle is managed in Fleet mode");
+  await assertPersonalVehicleWritable(db, vehicleId);
   if (!includeArchived && row.archived) throw new AppError(404, "not_found", "Vehicle not found");
   return row;
 }

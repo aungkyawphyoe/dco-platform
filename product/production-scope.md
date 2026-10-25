@@ -10,6 +10,10 @@
 
 MVP is closed. [`product/mvp-scope.md`](mvp-scope.md) is the historical Phase 1 contract (what shipped); it no longer gates new work. This file is the source of truth for the production app. `docs/product-roadmap.md` and `product/frd/` must not contradict it.
 
+## Subscription administration — 24 October 2026
+
+[Subscription Management and Admin Pricing](frd/subscription-management.md) is approved for implementation across API, Admin, mobile, Fleet Portal, and public pricing. It supersedes older exclusions of admin subscription management and immutable catalog prices. Direct-paid personal/Fleet terms have seven-day grace; complimentary grants have none. Fleet terms belong to organizations. Existing organizations retain access pending explicit migration; new organizations require terms. Managed personal downgrades preserve records/shares and restrict editing to one locked vehicle. Existing promotional gift expiry retains its previous contract. Store prices/lifecycle remain provider-controlled. iOS checkout and local gateway integration remain future work.
+
 ## Approved mobile realignment — 18 October 2026
 
 The approved target is [Personal / Driver mobile realignment](frd/mobile-personal-driver-realignment-plan.md). It supersedes the earlier restricted Driver definition: shared mobile screens, full assigned-vehicle history and costs, all existing expense categories, account-isolated offline synchronization, admin-owned plans, and author-owned record corrections with admin locks/review. Separate accounts and logical organization isolation remain. This is an implementation target, not a claim that all capabilities have shipped.

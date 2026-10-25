@@ -22,12 +22,22 @@ class VehicleAccess {
   ///
   /// A missing vehicle or user yields no permissions (the read-only role), so
   /// screens degrade to hiding write affordances rather than guessing.
-  factory VehicleAccess.of(Vehicle? vehicle, String? currentUserId) {
-    if (vehicle == null || currentUserId == null) {
-      return const VehicleAccess._(role: VehicleRole.viewer, currentUserId: null);
+  factory VehicleAccess.of(
+    Vehicle? vehicle,
+    String? currentUserId, {
+    bool writable = true,
+  }) {
+    if (!writable || vehicle == null || currentUserId == null) {
+      return const VehicleAccess._(
+        role: VehicleRole.viewer,
+        currentUserId: null,
+      );
     }
     if (vehicle.userId == currentUserId) {
-      return VehicleAccess._(role: VehicleRole.owner, currentUserId: currentUserId);
+      return VehicleAccess._(
+        role: VehicleRole.owner,
+        currentUserId: currentUserId,
+      );
     }
     final role = vehicle.accessLevel == ShareAccessLevel.addEditOwn
         ? VehicleRole.contributor

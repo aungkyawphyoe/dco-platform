@@ -1,4 +1,5 @@
 "use client";
+import { SubscriptionNotice } from "@/components/billing/subscription-notice";
 
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -69,7 +70,7 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="min-w-0 flex-1 overflow-y-auto p-8">{children}</main>
+      <main className="min-w-0 flex-1 overflow-y-auto p-8">{org?.organization && <SubscriptionNotice id={org.organization.id} />}{children}</main>
     </div>
   );
 }

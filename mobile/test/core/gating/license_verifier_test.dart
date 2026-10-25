@@ -34,6 +34,27 @@ void main() {
     expect(claims.sharingLimit, 3);
   });
 
+  test(
+    'expired managed license preserves locked selection but removes premium access',
+    () async {
+      final minted = await mintLicense(
+        planId: 'standard',
+        vehicleLimit: 10,
+        issuedAt: fixedNow.subtract(const Duration(days: 2)),
+        expiresAt: fixedNow.subtract(const Duration(days: 1)),
+        extraPayload: {
+          'billing_managed': true,
+          'free_vehicle_id': 'locked-car',
+        },
+      );
+      final claims = await withKeyring([entryFor(minted)]).verify(minted.jwt);
+      expect(claims!.planId, 'free');
+      expect(claims.vehicleLimit, 1);
+      expect(claims.billingManaged, isTrue);
+      expect(claims.freeVehicleId, 'locked-car');
+    },
+  );
+
   test('unknown but well-formed plan_id is trusted (decision 6)', () async {
     final minted = await mintLicense(
       planId: 'quantum',

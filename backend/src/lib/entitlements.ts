@@ -10,6 +10,7 @@ export async function changeUserPlan(db: Db, userId: string, nextPlan: Plan) {
     const [user] = await tx.select().from(users).where(eq(users.id, userId)).limit(1).for("update");
     if (!user) throw new AppError(404, "not_found", "User not found");
 
+    if (user.billingManaged) throw new AppError(409, "subscription_managed", "Use subscription management to change this account plan");
     const target = shareLimits(nextPlan);
     const revoking =
       user.plan !== nextPlan && (target.perVehicle != null || target.total != null);

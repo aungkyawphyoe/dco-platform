@@ -14,7 +14,7 @@ import 'package:dco_mobile/features/dashboard/presentation/widgets/quick_actions
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/providers.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
@@ -189,7 +189,7 @@ class _PopulatedDashboard extends ConsumerWidget {
         ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
     final recent = history.take(DashboardScreen.recentActivityLimit).toList();
     final thresholds = ref.watch(reminderThresholdsProvider);
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
     final next = DueCalculator.nearest(
       items: plan,
       vehicleMileage: vehicle.mileage,

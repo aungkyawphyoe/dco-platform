@@ -12,7 +12,7 @@ import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
 import 'package:dco_mobile/features/expenses/domain/expense_failure.dart';
 import 'package:dco_mobile/features/expenses/domain/expense_validators.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/providers.dart';
@@ -426,7 +426,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
     final canWrite = widget.isEditing
         ? (access.canEditRecord(_createdBy) &&
               !(ref

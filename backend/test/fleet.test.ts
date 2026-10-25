@@ -1,3 +1,4 @@
+import { grantTestFleet } from "./helpers.js";
 import { describe, expect, it } from "vitest";
 import { createTestApp, testEnv, uuid } from "./helpers.js";
 
@@ -181,6 +182,7 @@ describe("Enterprise Fleet access", () => {
     });
     expect(blockedLogin.statusCode).toBe(403);
 
+    await grantTestFleet(app, platformAdmin, org.id);
     const activated = await app.inject({
       method: "PATCH",
       url: `/v1/admin/organizations/${org.id}/status`,
@@ -361,6 +363,7 @@ describe("Enterprise Fleet access", () => {
       payload: { name: "Ops Fleet", type: "taxi_fleet", admin_email: fleetOwner.email },
     });
     const orgId = created.json().id as string;
+    await grantTestFleet(app, platformAdmin, orgId);
     await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${orgId}/status`, headers: auth(platformAdmin), payload: { status: "active" } });
     const ownerFleetLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: fleetOwner.email, password: "password1", surface: "fleet" } });
     const ownerToken = ownerFleetLogin.json().access_token as string;
@@ -466,6 +469,7 @@ describe("Enterprise Fleet access", () => {
       payload: { name: "Used Cars", type: "showroom", admin_email: fleetOwner.email },
     });
     const orgId = created.json().id as string;
+    await grantTestFleet(app, platformAdmin, orgId);
     await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${orgId}/status`, headers: auth(platformAdmin), payload: { status: "active" } });
     const fleetLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: fleetOwner.email, password: "password1", surface: "fleet" } });
     const fleetToken = fleetLogin.json().access_token as string;
@@ -515,6 +519,7 @@ describe("Approved workshop warranty access", () => {
       payload: { name: "City Motors", type: "showroom", admin_email: fleetOwner.email },
     });
     const orgId = created.json().id as string;
+    await grantTestFleet(app, platformAdmin, orgId);
     await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${orgId}/status`, headers: auth(platformAdmin), payload: { status: "active" } });
     const fleetLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: fleetOwner.email, password: "password1", surface: "fleet" } });
     const fleetToken = fleetLogin.json().access_token as string;
@@ -675,6 +680,7 @@ describe("Driver provisioning", () => {
     expect(created.statusCode).toBe(201);
     const org = created.json();
 
+    await grantTestFleet(app, platformAdmin, org.id);
     await app.inject({
       method: "PATCH",
       url: `/v1/admin/organizations/${org.id}/status`,
@@ -807,6 +813,7 @@ describe("Driver surface realignment (WP1)", () => {
       payload: { name: `${label} Fleet`, type: "taxi_fleet", admin_email: fleetOwner.email },
     });
     const orgId = created.json().id as string;
+    await grantTestFleet(app, platformAdmin, orgId);
     await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${orgId}/status`, headers: auth(platformAdmin), payload: { status: "active" } });
     const ownerFleetLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: fleetOwner.email, password: "password1", surface: "fleet" } });
     const fleetToken = ownerFleetLogin.json().access_token as string;
@@ -1188,6 +1195,7 @@ describe("Fleet maintenance templates", () => {
     });
     expect(created.statusCode).toBe(201);
     const org = created.json();
+    await grantTestFleet(app, platformAdmin, org.id);
     const activated = await app.inject({
       method: "PATCH",
       url: `/v1/admin/organizations/${org.id}/status`,
@@ -1708,6 +1716,7 @@ describe("Admin-driven account provisioning (no invite emails)", () => {
     expect(linkedWithPassword.statusCode).toBe(400);
     expect(linkedWithPassword.json().error.code).toBe("admin_password_not_allowed");
 
+    await grantTestFleet(app, platformAdmin, org.id);
     await app.inject({
       method: "PATCH", url: `/v1/admin/organizations/${org.id}/status`, headers: auth(platformAdmin),
       payload: { status: "active" },

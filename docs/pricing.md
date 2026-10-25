@@ -1,5 +1,7 @@
 # AutoX Platform Pricing & Feature Reference
 
+**24 October 2026 subscription extension:** [Subscription Management and Admin Pricing](../product/frd/subscription-management.md) defines direct-paid and complimentary terms, grace, read-only expiry, per-organization migration, and editable catalog prices. It supersedes older indefinite admin-access assumptions for managed subscribers; store lifecycle and prices remain provider-controlled.
+
 **Version**: 1.0
 **Market**: Myanmar
 **Currency**: MMK (primary), USD (international)

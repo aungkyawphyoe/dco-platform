@@ -7,7 +7,7 @@ import 'package:dco_mobile/core/units/mileage_unit.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
-import 'package:dco_mobile/features/garage/domain/vehicle_access.dart';
+import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/features/stats/domain/fuel_stats_calculator.dart';
@@ -39,9 +39,9 @@ class _FuelStatsScreenState extends ConsumerState<FuelStatsScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      ref
-          .read(analyticsProvider)
-          .track(AnalyticsEvent.statsOpened, {'screen': 'fuel'});
+      ref.read(analyticsProvider).track(AnalyticsEvent.statsOpened, {
+        'screen': 'fuel',
+      });
     });
   }
 
@@ -55,9 +55,9 @@ class _FuelStatsScreenState extends ConsumerState<FuelStatsScreen> {
   }
 
   void _openDefinitions(FuelStats stats) {
-    ref
-        .read(analyticsProvider)
-        .track(AnalyticsEvent.statsDefinitionsOpened, {'screen': 'fuel'});
+    ref.read(analyticsProvider).track(AnalyticsEvent.statsDefinitionsOpened, {
+      'screen': 'fuel',
+    });
     final s = AppLocalizations.of(context)!;
     final entries = [
       s.statsDefPeriod,
@@ -94,7 +94,7 @@ class _FuelStatsScreenState extends ConsumerState<FuelStatsScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
-    final access = VehicleAccess.of(vehicle, ref.watch(currentUserIdProvider));
+    final access = ref.watch(vehicleAccessProvider(vehicle));
     final stats = ref.watch(fuelStatsProvider);
     final period = ref.watch(fuelStatsPeriodProvider);
     final currency = ref.watch(currencyProvider).code;

@@ -1,3 +1,5 @@
+import { billingRequest } from "../lib/subscription-access.js";
+import { assertOrganizationWritable } from "../lib/subscriptions.js";
 import { csvCell } from "../lib/fleet-analytics.js";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
@@ -137,6 +139,7 @@ async function activeAssignedVehicle(db: Db, orgId: string, userId: string, vehi
     eq(driverAssignments.status, "active"),
   )).limit(1);
   if (!assignment) throw new AppError(403, "not_assigned_to_vehicle", "Driver is not assigned to this vehicle");
+  if (billingRequest.getStore()?.write) await assertOrganizationWritable(db, orgId);
   return assignment;
 }
 
@@ -964,6 +967,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     if (body.odometer_km < Math.floor(reqNum(target.vehicle.mileage))) {
       throw new AppError(400, "odometer_regression", "Service odometer cannot be below the current vehicle mileage");
     }
+    await assertOrganizationWritable(app.db, target.orgId);
     const serviceId = newId();
     const record = await app.db.transaction(async (tx) => {
       const [created] = await tx.insert(serviceRecords).values({
