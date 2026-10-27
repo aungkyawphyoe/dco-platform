@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers.dart';
@@ -10,7 +9,7 @@ import 'core/gating/providers.dart';
 import 'core/router/app_router.dart';
 import 'core/sync/sync_engine.dart';
 import 'core/theme/dco_theme.dart';
-import 'core/theme/dco_tokens.dart';
+import 'core/widgets/dco_system_ui.dart';
 import 'core/widgets/dco_error_dialog.dart';
 import 'features/auth/presentation/session_controller.dart';
 import 'features/garage/providers.dart';
@@ -24,43 +23,6 @@ import 'generated/app_localizations.dart';
 bool _isOnline(List<ConnectivityResult>? results) {
   if (results == null || results.isEmpty) return true;
   return results.any((result) => result != ConnectivityResult.none);
-}
-
-/// Keeps the OS status/navigation bars in sync with the active theme.
-/// Lives inside `MaterialApp.router`'s builder so it reacts to live
-/// `platformBrightness` changes while the theme mode is "system".
-class _SystemUiOverlay extends StatelessWidget {
-  const _SystemUiOverlay({required this.themeMode, required this.child});
-
-  final ThemeMode themeMode;
-  final Widget? child;
-
-  @override
-  Widget build(BuildContext context) {
-    final platformDark =
-        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-    final isDark = switch (themeMode) {
-      ThemeMode.system => platformDark,
-      ThemeMode.dark => true,
-      ThemeMode.light => false,
-    };
-    final tokens = isDark
-        ? DcoTokens.garageMinimalDark
-        : DcoTokens.garageMinimalLight;
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
-        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-        systemNavigationBarColor: tokens.background.nav,
-        systemNavigationBarDividerColor: tokens.border.divider,
-        systemNavigationBarIconBrightness: isDark
-            ? Brightness.light
-            : Brightness.dark,
-      ),
-      child: child ?? const SizedBox.shrink(),
-    );
-  }
 }
 
 class DcoApp extends ConsumerStatefulWidget {
@@ -206,7 +168,7 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
       darkTheme: buildDcoTheme(Brightness.dark),
       themeMode: themeMode,
       builder: (context, child) =>
-          _SystemUiOverlay(themeMode: themeMode, child: child),
+          DcoSystemUi(themeMode: themeMode, child: child),
       routerConfig: router,
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

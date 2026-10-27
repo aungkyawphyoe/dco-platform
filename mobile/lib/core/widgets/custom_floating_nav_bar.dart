@@ -8,15 +8,13 @@ class CustomFloatingNavBar extends StatefulWidget {
     required this.currentIndex,
     required this.onTap,
     this.height = 64,
-    this.horizontalMargin = 20,
-    this.bottomMargin = 16,
+    this.bottomMargin = 0,
   });
 
   final List<CustomNavItem> items;
   final int currentIndex;
   final ValueChanged<int> onTap;
   final double height;
-  final double horizontalMargin;
   final double bottomMargin;
 
   @override
