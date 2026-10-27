@@ -300,10 +300,18 @@ describe("vehicle share sync propagation", () => {
     });
     const shareA = (listed.json().shares as Array<{ id: string; user_id: string }>)
       .find((s) => s.user_id === memberA.id)!;
+    const malformed = await app.inject({
+      method: "DELETE",
+      url: `/v1/vehicles/${vehicleId}/shares/${shareA.id}`,
+      headers: { ...auth(owner.token), "content-type": "application/json" },
+      payload: "{",
+    });
+    expect(malformed.statusCode).toBe(400);
+
     const revoked = await app.inject({
       method: "DELETE",
       url: `/v1/vehicles/${vehicleId}/shares/${shareA.id}`,
-      headers: auth(owner.token),
+      headers: { ...auth(owner.token), "content-type": "application/json", "content-length": "0" },
     });
     expect(revoked.statusCode).toBe(204);
 

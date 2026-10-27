@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
 import '../../../../core/widgets/dco_empty_state.dart';
+import '../../../../core/widgets/dco_error_dialog.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/entities/vehicle_share.dart';
 import '../../domain/repositories/vehicle_share_repository.dart';
@@ -45,12 +46,25 @@ class _ShareManagementScreenState extends ConsumerState<ShareManagementScreen>
 
   void _refresh() => ref.invalidate(vehicleSharesProvider(widget.vehicleId));
 
-  Future<void> _run(Future<void> Function() action) async {
-    if (_busy) return;
+  Future<bool> _run(Future<void> Function() action) async {
+    if (_busy || !mounted) return false;
     setState(() => _busy = true);
     try {
       await action();
+      if (!mounted) return false;
       _refresh();
+      return true;
+    } catch (_) {
+      if (mounted) {
+        final s = AppLocalizations.of(context)!;
+        await showDcoErrorDialog(
+          context,
+          title: s.error,
+          message: s.shareErrorGeneric,
+          actionLabel: s.ok,
+        );
+      }
+      return false;
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -120,10 +134,10 @@ class _ShareManagementScreenState extends ConsumerState<ShareManagementScreen>
       ),
     );
     if (confirmed != true) return;
-    await _run(
+    final succeeded = await _run(
       () => _repo.revokeShare(vehicleId: widget.vehicleId, shareId: share.id),
     );
-    if (!mounted) return;
+    if (!mounted || !succeeded) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(s.shareRevoked)));
@@ -131,10 +145,10 @@ class _ShareManagementScreenState extends ConsumerState<ShareManagementScreen>
 
   Future<void> _resend(ShareInvitation invite) async {
     final s = AppLocalizations.of(context)!;
-    await _run(
+    final succeeded = await _run(
       () => _repo.resendInvite(vehicleId: widget.vehicleId, invitation: invite),
     );
-    if (!mounted) return;
+    if (!mounted || !succeeded) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(s.shareInviteResent)));
@@ -142,10 +156,10 @@ class _ShareManagementScreenState extends ConsumerState<ShareManagementScreen>
 
   Future<void> _cancelInvite(ShareInvitation invite) async {
     final s = AppLocalizations.of(context)!;
-    await _run(
+    final succeeded = await _run(
       () => _repo.cancelInvite(vehicleId: widget.vehicleId, invitation: invite),
     );
-    if (!mounted) return;
+    if (!mounted || !succeeded) return;
     ScaffoldMessenger.of(
       context,
     ).showSnackBar(SnackBar(content: Text(s.shareInviteCancelled)));

@@ -206,93 +206,102 @@ class _DocumentTile extends ConsumerWidget {
             document.localFilePath!.endsWith('.jpeg') ||
             document.localFilePath!.endsWith('.png'));
 
-    return Material(
-      color: tokens.background.card,
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        boxShadow: tokens.shadows.card,
+      ),
+      child: Material(
+        color: tokens.background.card,
         borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.s3),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: _categoryColor(
-                    document.category,
-                    tokens,
-                  ).withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(tokens.radius.sm),
-                ),
-                child: isImage && document.localFilePath != null
-                    ? ClipRRect(
-                        borderRadius: BorderRadius.circular(tokens.radius.sm),
-                        child: Image.file(
-                          File(document.localFilePath!),
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(tokens.radius.md),
+          child: Padding(
+            padding: EdgeInsets.all(tokens.space.s3),
+            child: Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: _categoryColor(
+                      document.category,
+                      tokens,
+                    ).withValues(alpha: 0.16),
+                    shape: BoxShape.circle,
+                  ),
+                  child: isImage && document.localFilePath != null
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(tokens.radius.sm),
+                          child: Image.file(
+                            File(document.localFilePath!),
+                            width: 48,
+                            height: 48,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : Icon(
+                          _categoryIcon(document.category),
+                          color: _categoryColor(document.category, tokens),
+                          size: 24,
                         ),
-                      )
-                    : Icon(
-                        _categoryIcon(document.category),
-                        color: _categoryColor(document.category, tokens),
-                        size: 24,
-                      ),
-              ),
-              SizedBox(width: tokens.space.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      document.name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    if (!document.isSynced)
+                ),
+                SizedBox(width: tokens.space.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        uploadError == 'LIMIT_EXCEEDED'
-                            ? 'Waiting for storage space'
-                            : 'Pending upload',
-                        style: Theme.of(context).textTheme.bodySmall,
+                        document.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
-                    SizedBox(height: tokens.space.s1),
-                    Row(
-                      children: [
+                      if (!document.isSynced)
                         Text(
-                          _categoryLabel(document.category, s),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: tokens.text.caption),
+                          uploadError == 'LIMIT_EXCEEDED'
+                              ? 'Waiting for storage space'
+                              : 'Pending upload',
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        SizedBox(width: tokens.space.s2),
-                        Text('·', style: TextStyle(color: tokens.text.caption)),
-                        SizedBox(width: tokens.space.s2),
-                        Text(
-                          DateFormat.yMMMd().format(document.createdAt),
-                          style: Theme.of(context).textTheme.bodySmall
-                              ?.copyWith(color: tokens.text.caption),
-                        ),
-                      ],
-                    ),
-                  ],
+                      SizedBox(height: tokens.space.s1),
+                      Row(
+                        children: [
+                          Text(
+                            _categoryLabel(document.category, s),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: tokens.text.caption),
+                          ),
+                          SizedBox(width: tokens.space.s2),
+                          Text(
+                            '·',
+                            style: TextStyle(color: tokens.text.caption),
+                          ),
+                          SizedBox(width: tokens.space.s2),
+                          Text(
+                            DateFormat.yMMMd().format(document.createdAt),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: tokens.text.caption),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              if (!document.isSynced) ...[
+                if (!document.isSynced) ...[
+                  SizedBox(width: tokens.space.s2),
+                  Icon(
+                    Icons.cloud_upload_outlined,
+                    size: 16,
+                    color: tokens.feedback.queuedSync,
+                  ),
+                ],
                 SizedBox(width: tokens.space.s2),
-                Icon(
-                  Icons.cloud_upload_outlined,
-                  size: 16,
-                  color: tokens.feedback.queuedSync,
-                ),
+                Icon(Icons.chevron_right, color: tokens.icon.inactive),
               ],
-              SizedBox(width: tokens.space.s2),
-              Icon(Icons.chevron_right, color: tokens.icon.inactive),
-            ],
+            ),
           ),
         ),
       ),

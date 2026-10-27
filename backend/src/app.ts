@@ -47,6 +47,20 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
   app.decorate("mailer", deps.mailer);
   app.decorate("media", deps.media);
 
+  // Older mobile clients attach JSON Content-Type to bodyless DELETEs.
+  // Normalize only requests whose HTTP framing says there is no body;
+  // non-empty/chunked payloads must still go through normal JSON validation.
+  app.addHook("onRequest", async (request) => {
+    if (
+      request.method === "DELETE" &&
+      request.headers["content-type"]?.split(";")[0]?.trim().toLowerCase() === "application/json" &&
+      request.headers["transfer-encoding"] === undefined &&
+      (request.headers["content-length"] === undefined || request.headers["content-length"] === "0")
+    ) {
+      delete request.headers["content-type"];
+    }
+  });
+
   app.addHook("onSend", async (request, reply, payload) => {
     reply.header("X-Content-Type-Options", "nosniff").header("Referrer-Policy", "no-referrer");
     if (deps.env.APP_ENV === "prod") reply.header("Strict-Transport-Security", "max-age=31536000");
@@ -71,6 +85,13 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
     if (err instanceof ZodError) {
       return reply.code(422).send({
         error: { code: "validation", message: "Invalid request", details: { issues: err.issues } },
+      });
+    }
+    if (err instanceof Error && "code" in err && typeof err.code === "string" &&
+        err.code.startsWith("FST_ERR_CTP_") && "statusCode" in err &&
+        typeof err.statusCode === "number" && err.statusCode >= 400 && err.statusCode < 500) {
+      return reply.code(err.statusCode).send({
+        error: { code: "invalid_request_body", message: "Invalid request body", details: {} },
       });
     }
     app.log.error(err);

@@ -88,7 +88,7 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
               data: (items) {
                 final filtered = _applyFilters(items);
                 return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     _FilterBar(
                       types: types,

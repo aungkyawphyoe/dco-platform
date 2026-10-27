@@ -289,45 +289,56 @@ class _VehicleHero extends StatelessWidget {
             left: DcoLayout.cardPaddingLoose,
             right: DcoLayout.cardPaddingLoose,
             bottom: kTextTabBarHeight + tokens.space.s2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+            child: Row(
+              crossAxisAlignment: .start,
+              mainAxisSize: MainAxisSize.max,
               children: [
-                Row(
-                  children: [
-                    Flexible(child: _PlateChip(text: vehicle.licensePlate)),
-                    SizedBox(width: tokens.space.s2),
-                    Text(
-                      mileage,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.ibmPlexMono(
-                        fontSize: 12,
-                        color: tokens.text.secondary,
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Flexible(child: _PlateChip(text: vehicle.licensePlate)),
+                      SizedBox(width: tokens.space.s3),
+                      Padding(
+                        padding: EdgeInsets.only(left: tokens.space.s2),
+                        child: Text(
+                          mileage,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.ibmPlexMono(
+                            fontSize: 12,
+                            color: tokens.text.secondary,
+                          ),
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-                SizedBox(height: tokens.space.s2),
-                Row(
-                  children: [
-                    if (isActive)
-                      _HeroBadge(
-                        label: s.active,
-                        color: tokens.text.accent,
-                        background: tokens.background.navActive,
-                      ),
-                    if (isActive && vehicle.source == VehicleSource.shared)
-                      SizedBox(width: tokens.space.s2),
-                    if (vehicle.source == VehicleSource.shared)
-                      _HeroBadge(
-                        label: s.garageSharedBadge,
-                        color: tokens.status.infoFg,
-                        background: tokens.status.infoBg,
-                      ),
-                    const Spacer(),
-                    if (!isActive) _SetActiveChip(onTap: onSetActive),
-                  ],
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (isActive)
+                        _HeroBadge(
+                          label: s.active,
+                          color: tokens.text.accent,
+                          background: tokens.background.navActive,
+                        ),
+                      if (isActive && vehicle.source == VehicleSource.shared)
+                        SizedBox(width: tokens.space.s2),
+                      if (vehicle.source == VehicleSource.shared)
+                        _HeroBadge(
+                          label: s.garageSharedBadge,
+                          color: tokens.status.infoFg,
+                          background: tokens.status.infoBg,
+                        ),
+                      if (!isActive) _SetActiveChip(onTap: onSetActive),
+                    ],
+                  ),
                 ),
               ],
             ),

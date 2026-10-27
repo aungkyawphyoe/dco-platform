@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -94,6 +95,12 @@ ThemeData buildDcoTheme(Brightness brightness) {
       ),
     ),
     appBarTheme: AppBarTheme(
+      systemOverlayStyle: SystemUiOverlayStyle(
+        statusBarIconBrightness: brightness == Brightness.dark
+            ? Brightness.light
+            : Brightness.dark,
+        statusBarBrightness: brightness,
+      ),
       backgroundColor: tokens.background.primary,
       foregroundColor: tokens.text.primary,
       elevation: 0,

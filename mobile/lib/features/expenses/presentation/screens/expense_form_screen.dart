@@ -14,6 +14,7 @@ import 'package:dco_mobile/features/expenses/domain/expense_failure.dart';
 import 'package:dco_mobile/features/expenses/domain/expense_validators.dart';
 import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
@@ -627,33 +628,12 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              tokens.space.s4,
-              tokens.space.s3,
-              tokens.space.s4,
-              tokens.space.s4,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DcoButton(
-                    label: s.cancel,
-                    variant: DcoButtonVariant.secondary,
-                    onPressed: () => context.pop(),
-                  ),
-                ),
-                SizedBox(width: tokens.space.s3),
-                Expanded(
-                  child: DcoButton(
-                    key: const Key('expense-save'),
-                    label: s.save,
-                    onPressed: canWrite ? _save : null,
-                    loading: _saving,
-                  ),
-                ),
-              ],
-            ),
+          DcoStickyActions(
+            secondaryLabel: s.cancel,
+            onSecondary: () => context.pop(),
+            primaryLabel: s.save,
+            primaryKey: const Key('expense-save'),
+            onPrimary: () => canWrite ? _save : null,
           ),
         ],
       ),

@@ -15,6 +15,7 @@ import 'package:dco_mobile/features/fuel/domain/fuel_validators.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
 import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -539,33 +540,12 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                 ],
               ),
             ),
-            Padding(
-              padding: EdgeInsets.fromLTRB(
-                tokens.space.s5,
-                tokens.space.s3,
-                tokens.space.s5,
-                tokens.space.s5,
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: DcoButton(
-                      label: s.cancel,
-                      variant: DcoButtonVariant.secondary,
-                      onPressed: _cancelAttachments,
-                    ),
-                  ),
-                  SizedBox(width: tokens.space.s3),
-                  Expanded(
-                    child: DcoButton(
-                      key: const Key('fuel-log-save'),
-                      label: s.save,
-                      onPressed: canWrite ? _save : null,
-                      loading: _saving,
-                    ),
-                  ),
-                ],
-              ),
+            DcoStickyActions(
+              secondaryLabel: s.cancel,
+              onSecondary: () => context.pop(),
+              primaryLabel: s.save,
+              primaryKey: const Key('fuel-log-save'),
+              onPrimary: () => canWrite ? _save : null,
             ),
           ],
         ),
