@@ -294,7 +294,7 @@ class _GarageBottomBar extends StatelessWidget {
             DcoLayout.screenPadding,
             DcoLayout.rowGap,
             DcoLayout.screenPadding,
-            DcoLayout.rowGap,
+            0,
           ),
           child: canAddVehicle
               ? DcoButton(

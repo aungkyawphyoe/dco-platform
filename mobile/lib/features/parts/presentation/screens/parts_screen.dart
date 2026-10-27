@@ -109,53 +109,58 @@ class _PartTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final detail = part.detailLine;
-    return Material(
-      color: tokens.background.card,
-      borderRadius: BorderRadius.circular(tokens.radius.md),
-      child: InkWell(
-        onTap: onTap,
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(tokens.radius.lg),
+        boxShadow: tokens.shadows.card,
+      ),
+      child: Material(
+        color: tokens.background.card,
         borderRadius: BorderRadius.circular(tokens.radius.md),
-        child: Padding(
-          padding: EdgeInsets.all(tokens.space.s3),
-          child: Row(
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: tokens.chart.parts.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(tokens.radius.sm),
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(tokens.radius.md),
+          child: Padding(
+            padding: EdgeInsets.all(tokens.space.s3),
+            child: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: tokens.chart.parts.withValues(alpha: 0.16),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.settings_outlined,
+                    color: tokens.chart.parts,
+                    size: 22,
+                  ),
                 ),
-                child: Icon(
-                  Icons.settings_outlined,
-                  color: tokens.chart.parts,
-                  size: 22,
-                ),
-              ),
-              SizedBox(width: tokens.space.s3),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      part.name,
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    if (detail != null) ...[
-                      SizedBox(height: tokens.space.s1),
+                SizedBox(width: tokens.space.s3),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        detail,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: tokens.text.caption,
-                        ),
+                        part.name,
+                        style: Theme.of(context).textTheme.titleMedium,
                       ),
+                      if (detail != null) ...[
+                        SizedBox(height: tokens.space.s1),
+                        Text(
+                          detail,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(color: tokens.text.caption),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-              Icon(Icons.chevron_right, color: tokens.icon.inactive),
-            ],
+                Icon(Icons.chevron_right, color: tokens.icon.inactive),
+              ],
+            ),
           ),
         ),
       ),

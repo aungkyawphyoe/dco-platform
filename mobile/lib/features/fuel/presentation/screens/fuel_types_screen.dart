@@ -33,8 +33,15 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
         actions: [
           IconButton(
             tooltip: s.fuelTypesAddTooltip,
-            onPressed: vehicle == null ? null : () => context.push(AppRoutes.fuelTypeNew),
-            icon: Icon(Icons.add, color: vehicle == null ? tokens.icon.inactive : tokens.icon.active),
+            onPressed: vehicle == null
+                ? null
+                : () => context.push(AppRoutes.fuelTypeNew),
+            icon: Icon(
+              Icons.add,
+              color: vehicle == null
+                  ? tokens.icon.inactive
+                  : tokens.icon.active,
+            ),
           ),
         ],
       ),
@@ -44,10 +51,15 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
               body: s.fuelTypesNoActiveVehicleBody,
             )
           : catalog.when(
-              loading: () => Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-              error: (error, _) => DcoEmptyState(title: s.fuelTypesLoadError, body: '$error'),
+              loading: () => Center(
+                child: CircularProgressIndicator(color: tokens.text.accent),
+              ),
+              error: (error, _) =>
+                  DcoEmptyState(title: s.fuelTypesLoadError, body: '$error'),
               data: (items) {
-                final filtered = _kind == null ? items : items.where((item) => item.kind == _kind).toList();
+                final filtered = _kind == null
+                    ? items
+                    : items.where((item) => item.kind == _kind).toList();
                 return Column(
                   children: [
                     Padding(
@@ -59,18 +71,25 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
                       ),
                       child: Row(
                         children: [
-                          _KindChip(label: s.fuelTypesAll, selected: _kind == null, onTap: () => setState(() => _kind = null)),
+                          _KindChip(
+                            label: s.fuelTypesAll,
+                            selected: _kind == null,
+                            onTap: () => setState(() => _kind = null),
+                          ),
                           SizedBox(width: tokens.space.s2),
                           _KindChip(
                             label: s.fuelTypesLiquid,
                             selected: _kind == FuelCatalogKind.liquid,
-                            onTap: () => setState(() => _kind = FuelCatalogKind.liquid),
+                            onTap: () =>
+                                setState(() => _kind = FuelCatalogKind.liquid),
                           ),
                           SizedBox(width: tokens.space.s2),
                           _KindChip(
                             label: s.fuelTypesElectric,
                             selected: _kind == FuelCatalogKind.electric,
-                            onTap: () => setState(() => _kind = FuelCatalogKind.electric),
+                            onTap: () => setState(
+                              () => _kind = FuelCatalogKind.electric,
+                            ),
                           ),
                         ],
                       ),
@@ -81,7 +100,8 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
                               title: s.fuelTypesEmptyTitle,
                               body: s.fuelTypesEmptyBody,
                               actionLabel: s.fuelTypesAddFuelType,
-                              onAction: () => context.push(AppRoutes.fuelTypeNew),
+                              onAction: () =>
+                                  context.push(AppRoutes.fuelTypeNew),
                             )
                           : filtered.isEmpty
                           ? DcoEmptyState(
@@ -99,10 +119,14 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
                               itemBuilder: (context, index) {
                                 final type = filtered[index];
                                 return Padding(
-                                  padding: EdgeInsets.only(bottom: tokens.space.s3),
+                                  padding: EdgeInsets.only(
+                                    bottom: tokens.space.s3,
+                                  ),
                                   child: _FuelTypeTile(
                                     type: type,
-                                    onTap: () => context.push(AppRoutes.fuelTypeEdit(type.id)),
+                                    onTap: () => context.push(
+                                      AppRoutes.fuelTypeEdit(type.id),
+                                    ),
                                   ),
                                 );
                               },
@@ -117,7 +141,11 @@ class _FuelTypesScreenState extends ConsumerState<FuelTypesScreen> {
 }
 
 class _KindChip extends StatelessWidget {
-  const _KindChip({required this.label, required this.selected, required this.onTap});
+  const _KindChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
 
   final String label;
   final bool selected;
@@ -127,7 +155,9 @@ class _KindChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     return Material(
-      color: selected ? tokens.button.primary.background : tokens.background.input,
+      color: selected
+          ? tokens.button.primary.background
+          : tokens.background.input,
       borderRadius: BorderRadius.circular(tokens.radius.full),
       child: InkWell(
         onTap: onTap,
@@ -178,10 +208,12 @@ class _FuelTypeTile extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(tokens.radius.sm),
+                  shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  electric ? Icons.bolt_outlined : Icons.local_gas_station_outlined,
+                  electric
+                      ? Icons.bolt_outlined
+                      : Icons.local_gas_station_outlined,
                   color: color,
                   size: 22,
                 ),
@@ -191,11 +223,16 @@ class _FuelTypeTile extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(type.name, style: Theme.of(context).textTheme.titleMedium),
+                    Text(
+                      type.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
                     SizedBox(height: tokens.space.s1),
                     Text(
                       type.detailLine,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: tokens.text.caption,
+                      ),
                     ),
                   ],
                 ),

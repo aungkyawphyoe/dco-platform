@@ -8,6 +8,7 @@ import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart'
 import 'package:dco_mobile/features/fuel/domain/fuel_failure.dart';
 import 'package:dco_mobile/features/fuel/domain/fuel_validators.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -48,7 +49,9 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
       setState(() => _loading = false);
       return;
     }
-    final type = await ref.read(fuelRepositoryProvider).getFuelType(widget.fuelTypeId!);
+    final type = await ref
+        .read(fuelRepositoryProvider)
+        .getFuelType(widget.fuelTypeId!);
     if (!mounted) return;
     if (type != null) {
       _name.text = type.name;
@@ -80,14 +83,21 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
     if (vehicle == null) return;
-    final currentUserId =
-        ref.read(sessionControllerProvider).valueOrNull?.user.id;
+    final currentUserId = ref
+        .read(sessionControllerProvider)
+        .valueOrNull
+        ?.user
+        .id;
     if (currentUserId == null) return;
     setState(() => _saving = true);
     try {
       final repo = ref.read(fuelRepositoryProvider);
       if (widget.isEditing) {
-        await repo.updateFuelType(userId: currentUserId, fuelTypeId: widget.fuelTypeId!, draft: draft);
+        await repo.updateFuelType(
+          userId: currentUserId,
+          fuelTypeId: widget.fuelTypeId!,
+          draft: draft,
+        );
         ref.read(analyticsProvider).track(AnalyticsEvent.fuelTypeUpdated);
       } else {
         await repo.addFuelType(userId: currentUserId, draft: draft);
@@ -116,13 +126,23 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
     final tokens = context.tokens;
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: Text(widget.isEditing ? s.fuelTypeFormEditTitle : s.fuelTypeFormAddTitle)),
-        body: Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+        appBar: AppBar(
+          title: Text(
+            widget.isEditing ? s.fuelTypeFormEditTitle : s.fuelTypeFormAddTitle,
+          ),
+        ),
+        body: Center(
+          child: CircularProgressIndicator(color: tokens.text.accent),
+        ),
       );
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.isEditing ? s.fuelTypeFormEditTitle : s.fuelTypeFormAddTitle)),
+      appBar: AppBar(
+        title: Text(
+          widget.isEditing ? s.fuelTypeFormEditTitle : s.fuelTypeFormAddTitle,
+        ),
+      ),
       body: Column(
         children: [
           Expanded(
@@ -133,14 +153,19 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
                   key: const Key('fuel-type-name'),
                   label: s.fuelTypeFormName,
                   controller: _name,
-                  hint: _kind == FuelCatalogKind.electric ? s.fuelTypeFormNameHintElectric : s.fuelTypeFormNameHintPetrol,
+                  hint: _kind == FuelCatalogKind.electric
+                      ? s.fuelTypeFormNameHintElectric
+                      : s.fuelTypeFormNameHintPetrol,
                   errorText: _errors['name'],
                   maxLength: FuelTypeValidators.maxNameLength,
                   textInputAction: TextInputAction.done,
                   onChanged: (_) => setState(() => _errors['name'] = null),
                 ),
                 SizedBox(height: tokens.space.s4),
-                Text(s.fuelTypeFormKind, style: Theme.of(context).textTheme.labelLarge),
+                Text(
+                  s.fuelTypeFormKind,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
                 SizedBox(height: tokens.space.s2),
                 Wrap(
                   spacing: tokens.space.s2,
@@ -153,15 +178,24 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
                       showCheckmark: false,
                       selectedColor: tokens.button.primary.background,
                       labelStyle: TextStyle(
-                        color: selected ? tokens.text.onAccent : tokens.text.primary,
+                        color: selected
+                            ? tokens.text.onAccent
+                            : tokens.text.primary,
                       ),
                       backgroundColor: tokens.background.input,
-                      side: BorderSide(color: selected ? tokens.border.highlight : tokens.border.defaultColor),
+                      side: BorderSide(
+                        color: selected
+                            ? tokens.border.highlight
+                            : tokens.border.defaultColor,
+                      ),
                     );
                   }).toList(),
                 ),
                 SizedBox(height: tokens.space.s4),
-                Text(s.fuelTypeFormUnit, style: Theme.of(context).textTheme.labelLarge),
+                Text(
+                  s.fuelTypeFormUnit,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
                 SizedBox(height: tokens.space.s2),
                 Wrap(
                   spacing: tokens.space.s2,
@@ -177,47 +211,43 @@ class _FuelTypeFormScreenState extends ConsumerState<FuelTypeFormScreen> {
                       showCheckmark: false,
                       selectedColor: tokens.button.primary.background,
                       labelStyle: TextStyle(
-                        color: selected ? tokens.text.onAccent : tokens.text.primary,
+                        color: selected
+                            ? tokens.text.onAccent
+                            : tokens.text.primary,
                       ),
                       backgroundColor: tokens.background.input,
-                      side: BorderSide(color: selected ? tokens.border.highlight : tokens.border.defaultColor),
+                      side: BorderSide(
+                        color: selected
+                            ? tokens.border.highlight
+                            : tokens.border.defaultColor,
+                      ),
                     );
                   }).toList(),
                 ),
                 if (_errors['unit'] != null)
                   Padding(
                     padding: EdgeInsets.only(top: tokens.space.s2),
-                    child: Text(_errors['unit']!, style: TextStyle(color: tokens.status.dangerFg)),
+                    child: Text(
+                      _errors['unit']!,
+                      style: TextStyle(color: tokens.status.dangerFg),
+                    ),
                   ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
-                  Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+                  Text(
+                    _formError!,
+                    style: TextStyle(color: tokens.status.dangerFg),
+                  ),
                 ],
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(tokens.space.s5, tokens.space.s3, tokens.space.s5, tokens.space.s5),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DcoButton(
-                    label: s.cancel,
-                    variant: DcoButtonVariant.secondary,
-                    onPressed: () => context.pop(),
-                  ),
-                ),
-                SizedBox(width: tokens.space.s3),
-                Expanded(
-                  child: DcoButton(
-                    key: const Key('fuel-type-save'),
-                    label: s.save,
-                    onPressed: _save,
-                    loading: _saving,
-                  ),
-                ),
-              ],
-            ),
+          DcoStickyActions(
+            secondaryLabel: s.cancel,
+            onSecondary: () => context.pop(),
+            primaryLabel: s.save,
+            primaryKey: const Key('fuel-type-save'),
+            onPrimary: () => _save,
           ),
         ],
       ),

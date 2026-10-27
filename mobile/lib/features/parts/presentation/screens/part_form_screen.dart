@@ -6,6 +6,7 @@ import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:dco_mobile/features/parts/domain/entities/part.dart';
 import 'package:dco_mobile/features/parts/domain/part_failure.dart';
 import 'package:dco_mobile/features/parts/domain/part_validators.dart';
@@ -224,33 +225,12 @@ class _PartFormScreenState extends ConsumerState<PartFormScreen> {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              tokens.space.s5,
-              tokens.space.s3,
-              tokens.space.s5,
-              tokens.space.s5,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DcoButton(
-                    label: s.cancel,
-                    variant: DcoButtonVariant.secondary,
-                    onPressed: () => context.pop(),
-                  ),
-                ),
-                SizedBox(width: tokens.space.s3),
-                Expanded(
-                  child: DcoButton(
-                    key: const Key('part-save'),
-                    label: s.save,
-                    onPressed: canWrite ? _save : null,
-                    loading: _saving,
-                  ),
-                ),
-              ],
-            ),
+          DcoStickyActions(
+            secondaryLabel: s.cancel,
+            onSecondary: () => context.pop(),
+            primaryLabel: s.save,
+            primaryKey: const Key('part-save'),
+            onPrimary: () => canWrite ? _save : null,
           ),
         ],
       ),

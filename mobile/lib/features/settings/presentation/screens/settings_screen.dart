@@ -339,20 +339,16 @@ class SettingsScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                SizedBox(height: tokens.space.s2),
+                SizedBox(height: tokens.space.s4),
+                DcoButton(
+                  label: s.settingsSignOut,
+                  variant: DcoButtonVariant.destructive,
+                  onPressed: () =>
+                      ref.read(sessionControllerProvider.notifier).signOut(),
+                ),
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.all(tokens.space.s5),
-            child: DcoButton(
-              label: s.settingsSignOut,
-              variant: DcoButtonVariant.destructive,
-              onPressed: () =>
-                  ref.read(sessionControllerProvider.notifier).signOut(),
-            ),
-          ),
-          SizedBox(height: 70),
         ],
       ),
     );

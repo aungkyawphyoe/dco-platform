@@ -1,4 +1,3 @@
-import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
@@ -156,7 +155,7 @@ class _ExpensesScreenState extends ConsumerState<ExpensesScreen> {
                     if (access.canCreate)
                       Positioned(
                         right: 16,
-                        bottom: 90,
+                        bottom: 70,
                         child: SizedBox(
                           width: 150.0,
                           height: 56.0,

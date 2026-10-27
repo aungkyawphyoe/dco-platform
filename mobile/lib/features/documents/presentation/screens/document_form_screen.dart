@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dco_mobile/core/media/media_api.dart';
 
@@ -604,33 +605,11 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
               ],
             ),
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              tokens.space.s4,
-              tokens.space.s3,
-              tokens.space.s4,
-              tokens.space.s4,
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DcoButton(
-                    label: s.cancel,
-                    variant: DcoButtonVariant.secondary,
-                    onPressed: () => context.pop(),
-                  ),
-                ),
-                SizedBox(width: tokens.space.s3),
-                Expanded(
-                  child: DcoButton(
-                    key: const Key('document-save'),
-                    label: s.save,
-                    onPressed: canWrite ? _save : null,
-                    loading: _saving,
-                  ),
-                ),
-              ],
-            ),
+          DcoStickyActions(
+            secondaryLabel: s.cancel,
+            onSecondary: () => context.pop(),
+            primaryLabel: s.save,
+            onPrimary: () => canWrite ? _save : null,
           ),
         ],
       ),
