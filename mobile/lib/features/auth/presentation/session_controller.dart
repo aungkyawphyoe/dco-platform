@@ -79,7 +79,7 @@ class SessionController extends AsyncNotifier<Session?> {
     await ref.read(analyticsProvider).setUserId(session.user.id);
     await ref
         .read(entryPreferencesProvider.notifier)
-        .initializeAccountLanguage(session.user.id);
+        .initializeAccountPreferences(session.user.id);
     await ref.read(entryPreferencesProvider.notifier).complete();
     ref.read(newOwnerSetupProvider.notifier).state = isNew;
     ref
@@ -135,7 +135,22 @@ class SessionController extends AsyncNotifier<Session?> {
 
   Future<void> signOut() async {
     await _withAccountChange(() async {
+      final userId = state.valueOrNull?.user.id;
       await ref.read(authRepositoryProvider).signOut();
+      // Keep the account's appearance choice on the device so post-logout
+      // screens (splash, introduction, login) don't fall back to System.
+      if (userId != null) {
+        try {
+          final prefs = await ref
+              .read(preferencesRepositoryProvider)
+              .get(userId);
+          await ref
+              .read(entryPreferencesProvider.notifier)
+              .themeMode(prefs.themeMode.code);
+        } catch (_) {
+          // Preferences are best-effort; never block logout.
+        }
+      }
       ref.read(analyticsProvider).track(AnalyticsEvent.authSignedOut);
       await ref.read(analyticsProvider).setUserId(null);
       try {

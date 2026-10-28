@@ -5,9 +5,20 @@ import '../database/app_database.dart';
 import '../providers.dart';
 
 class EntryPreferences {
-  const EntryPreferences({required this.language, this.completed = false});
+  const EntryPreferences({
+    required this.language,
+    this.completed = false,
+    this.themeMode,
+  });
+
   final String language;
   final bool completed;
+
+  /// Last Light / Dark / System choice made on this device (`light`, `dark`,
+  /// `system`). Kept outside the account row so the splash, introduction and
+  /// auth screens use the same theme after logout. `null` until the user
+  /// chooses for the first time; callers fall back to `system`.
+  final String? themeMode;
 }
 
 final entryPreferencesProvider =
@@ -15,13 +26,20 @@ final entryPreferencesProvider =
       EntryPreferencesController.new,
     );
 
+/// Theme code read synchronously during bootstrap (before the async entry
+/// preferences settle). Keeps the first Flutter frame — the splash — on the
+/// saved appearance instead of System.
+final initialEntryThemeProvider = Provider<String?>((ref) => null);
+
 class EntryPreferencesController extends AsyncNotifier<EntryPreferences> {
   @override
   Future<EntryPreferences> build() async {
     final db = ref.read(appDatabaseProvider);
-    final rows = await (db.select(
-      db.appMeta,
-    )..where((r) => r.key.isIn(['entry.language', 'entry.completed']))).get();
+    final query = db.select(db.appMeta)
+      ..where(
+        (r) => r.key.isIn(['entry.language', 'entry.completed', 'entry.theme']),
+      );
+    final rows = await query.get();
     final values = {for (final row in rows) row.key: row.value};
     return EntryPreferences(
       language:
@@ -30,6 +48,7 @@ class EntryPreferencesController extends AsyncNotifier<EntryPreferences> {
               ? 'my'
               : 'en'),
       completed: values['entry.completed'] == 'true',
+      themeMode: values['entry.theme'],
     );
   }
 
@@ -55,7 +74,11 @@ class EntryPreferencesController extends AsyncNotifier<EntryPreferences> {
     final current = state.valueOrNull ?? await future;
     await _save('entry.language', value);
     state = AsyncData(
-      EntryPreferences(language: value, completed: current.completed),
+      EntryPreferences(
+        language: value,
+        completed: current.completed,
+        themeMode: current.themeMode,
+      ),
     );
   }
 
@@ -63,11 +86,31 @@ class EntryPreferencesController extends AsyncNotifier<EntryPreferences> {
     final current = state.valueOrNull ?? await future;
     await _save('entry.completed', 'true');
     state = AsyncData(
-      EntryPreferences(language: current.language, completed: true),
+      EntryPreferences(
+        language: current.language,
+        completed: true,
+        themeMode: current.themeMode,
+      ),
     );
   }
 
-  Future<void> initializeAccountLanguage(String userId) async {
+  /// Persists the device-wide appearance choice so it survives logout and
+  /// applies before a session exists (splash, introduction, login, signup).
+  Future<void> themeMode(String value) async {
+    final current = state.valueOrNull ?? await future;
+    await _save('entry.theme', value);
+    state = AsyncData(
+      EntryPreferences(
+        language: current.language,
+        completed: current.completed,
+        themeMode: value,
+      ),
+    );
+  }
+
+  /// Seeds a new account row with the device-wide entry choices so the app
+  /// keeps its current language and appearance right after signup.
+  Future<void> initializeAccountPreferences(String userId) async {
     final db = ref.read(appDatabaseProvider);
     final row = await (db.select(
       db.userProfiles,
@@ -80,6 +123,7 @@ class EntryPreferencesController extends AsyncNotifier<EntryPreferences> {
             UserProfilesCompanion.insert(
               userId: userId,
               language: Value(prefs.language),
+              themeMode: Value(prefs.themeMode ?? 'system'),
             ),
             mode: InsertMode.insertOrIgnore,
           );

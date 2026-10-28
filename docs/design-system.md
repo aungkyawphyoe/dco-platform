@@ -110,7 +110,7 @@ Both modes are **generated** from the two JSON files by [`tools/generate-theme.m
 
 ### Flutter
 
-Generated into `dco_tokens.g.dart` as `DcoTokens.garageMinimalDark` / `garageMinimalLight`; `buildDcoTheme(Brightness)` picks the set and `MaterialApp.router` gets `theme` + `darkTheme` + `themeMode` (Light / Dark / System from Settings → Appearance).  
+Generated into `dco_tokens.g.dart` as `DcoTokens.garageMinimalDark` / `garageMinimalLight`; `buildDcoTheme(Brightness)` picks the set and `MaterialApp.router` gets `theme` + `darkTheme` + `themeMode` (Light / Dark / System from Settings → Appearance). The signed-in account owns the preference; a device-wide copy (`entry.theme`) is kept for the splash, introduction and auth screens so logging out does not flip them back to System.  
 `ThemeData`:
 
 - `scaffoldBackgroundColor` → background.primary

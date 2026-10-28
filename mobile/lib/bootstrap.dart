@@ -9,6 +9,7 @@ import 'core/config/app_config.dart';
 import 'core/database/app_database.dart';
 import 'core/notifications/flutter_local_notification_client.dart';
 import 'core/providers.dart';
+import 'core/storage/entry_preferences.dart';
 import 'core/storage/secure_token_store.dart';
 
 Future<List<Override>> bootstrap() async {
@@ -24,7 +25,23 @@ Future<List<Override>> bootstrap() async {
     appDatabaseProvider.overrideWithValue(database),
     localNotificationClientProvider.overrideWithValue(notifications),
     analyticsProvider.overrideWithValue(analytics),
+    initialEntryThemeProvider.overrideWithValue(
+      await _readEntryTheme(database),
+    ),
   ];
+}
+
+/// Reads the device-wide appearance choice before `runApp` so the splash
+/// honors Light / Dark instead of briefly defaulting to System.
+Future<String?> _readEntryTheme(AppDatabase database) async {
+  try {
+    final row = await (database.select(
+      database.appMeta,
+    )..where((r) => r.key.equals('entry.theme'))).getSingleOrNull();
+    return row?.value;
+  } catch (_) {
+    return null;
+  }
 }
 
 /// Best-effort Firebase init. When the native config files are absent (a

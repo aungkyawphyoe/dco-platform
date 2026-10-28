@@ -19,7 +19,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   GoogleFonts.config.allowRuntimeFetching = false;
   test(
-    'entry language and completion persist independently of account profiles',
+    'entry language, theme and completion persist independently of account profiles',
     () async {
       final db = AppDatabase(NativeDatabase.memory());
       final container = ProviderContainer(
@@ -27,19 +27,23 @@ void main() {
       );
       await container.read(entryPreferencesProvider.future);
       await container.read(entryPreferencesProvider.notifier).language('my');
+      await container.read(entryPreferencesProvider.notifier).themeMode('light');
       await container.read(entryPreferencesProvider.notifier).complete();
       container.invalidate(entryPreferencesProvider);
       final restored = await container.read(entryPreferencesProvider.future);
       expect(restored.language, 'my');
+      expect(restored.themeMode, 'light');
       expect(restored.completed, true);
       await container
           .read(entryPreferencesProvider.notifier)
-          .initializeAccountLanguage('new-owner');
-      expect((await db.select(db.userProfiles).getSingle()).language, 'my');
+          .initializeAccountPreferences('new-owner');
+      final profile = await db.select(db.userProfiles).getSingle();
+      expect(profile.language, 'my');
+      expect(profile.themeMode, 'light');
       await container.read(entryPreferencesProvider.notifier).language('en');
       await container
           .read(entryPreferencesProvider.notifier)
-          .initializeAccountLanguage('new-owner');
+          .initializeAccountPreferences('new-owner');
       expect((await db.select(db.userProfiles).getSingle()).language, 'my');
       container.dispose();
       await db.close();

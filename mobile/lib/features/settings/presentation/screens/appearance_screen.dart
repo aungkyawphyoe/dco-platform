@@ -1,4 +1,5 @@
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/core/storage/entry_preferences.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
@@ -36,6 +37,9 @@ class AppearanceScreen extends ConsumerWidget {
                 .toList(),
             selected: prefs.themeMode,
             onSelected: (mode) {
+              // Device-wide copy first: it keeps the splash and the auth
+              // screens on the chosen theme after logout.
+              ref.read(entryPreferencesProvider.notifier).themeMode(mode.code);
               if (userId == null) return;
               ref.read(preferencesRepositoryProvider).save(
                 userId: userId,

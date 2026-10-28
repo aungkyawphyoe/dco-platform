@@ -39,9 +39,23 @@ final currencyProvider = Provider<AppCurrency>((ref) {
 });
 
 /// Light / Dark / System choice from Settings → Appearance (default: system).
+///
+/// The signed-in account's saved choice wins. Before a session exists (and
+/// right after logout) the device-wide entry choice is used so splash,
+/// introduction, login and signup match the theme the user last picked.
 final themeModeProvider = Provider<AppThemeMode>((ref) {
-  return ref.watch(userPreferencesProvider).valueOrNull?.themeMode ??
-      AppThemeMode.system;
+  final signedIn = ref.watch(sessionControllerProvider).valueOrNull != null;
+  final accountMode = signedIn
+      ? ref.watch(userPreferencesProvider).valueOrNull?.themeMode
+      : null;
+  if (accountMode != null) return accountMode;
+
+  final entryMode =
+      ref.watch(entryPreferencesProvider).valueOrNull?.themeMode ??
+      ref.watch(initialEntryThemeProvider);
+  return entryMode == null
+      ? AppThemeMode.system
+      : AppThemeMode.parse(entryMode);
 });
 
 /// Clamped reminder thresholds (soon days / soon distance) from user prefs.
