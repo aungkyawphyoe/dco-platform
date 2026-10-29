@@ -470,3 +470,12 @@ Mobile schema 24 persists the link list as JSON on its document rows. Saving a s
 `users.plan` remains the admin-assigned base plan. A live gift overlays Free only; a non-Free admin assignment takes precedence. Expiry never updates `users.plan`, deletes records, or revokes shares, and needs no scheduled job. Vehicle creation, new sharing, storage admission, `/me`, entitlement snapshots, and license issuance resolve effective grants at request time. A remaining live gift can resume if an admin independently resets the base plan to Free; promotion disable is not revocation.
 
 See [Mobile pricing and promotions](../product/frd/mobile-pricing-promotions.md) for eligibility and lifecycle rules.
+
+
+## Operational currency foundation (29 October 2026)
+
+Migration `0031_operational_currency.sql` adds `users.currency` (default MMK), nullable `organizations.currency`, and `currency_locked_at` on both scopes. Expenses, service records, fuel logs, and work orders store a supported currency code; vehicles store `purchase_currency`. Supported codes are MMK, USD, THB, and CNY. Service item amounts inherit the service currency. Derived expenses inherit their source event currency through a database trigger; stored event currencies cannot be changed on update.
+
+Existing operational amounts and retained analytics/transfer JSON snapshots are tagged MMK without changing amounts. Organization baseline initialization runs once, so new unselected fleets are not silently configured on subsequent boots. Existing analytics timezone and reporting settings are untouched in this additive slice.
+
+Lock storage is preparatory: first-write enforcement and legacy attribution are not yet implemented. Multi-currency selection, sync compatibility, client formatting, and totals must be completed before activation. See the [implementation plan](../docs/multi-currency-implementation-plan.md) and [FRD](../product/frd/multi-currency.md).

@@ -43,6 +43,7 @@ export function publicVehicle(row: VehicleRow, nextMaintenance: unknown = null) 
     mileage_unit: row.mileageUnit,
     purchase_date: dateOnly(row.purchaseDate),
     purchase_price: num(row.purchasePrice),
+    purchase_currency: row.purchaseCurrency,
     photo_media_id: row.photoMediaId,
     archived: row.archived,
     archived_at: iso(row.archivedAt),

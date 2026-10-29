@@ -43,6 +43,7 @@ export async function loadService(appDb: Db, id: string) {
     serviced_on: dateOnly(row.servicedOn),
     odometer: reqNum(row.odometer),
     total_cost: reqNum(row.totalCost),
+    currency: row.currency,
     workshop_name: row.workshopName,
     notes: row.notes,
     receipt_media_id: row.receiptMediaId,
@@ -85,6 +86,7 @@ export function publicFuelLog(row: typeof fuelLogs.$inferSelect) {
     unit: row.unit,
     logged_on: dateOnly(row.loggedOn),
     amount: reqNum(row.amount),
+    currency: row.currency,
     cost: reqNum(row.cost),
     odometer: row.odometer == null ? null : reqNum(row.odometer),
   };
@@ -121,6 +123,7 @@ export async function publicExpense(appDb: Db, id: string) {
     vehicle_id: row.vehicleId,
     category: row.category,
     amount: reqNum(row.amount),
+    currency: row.currency,
     incurred_on: dateOnly(row.incurredOn),
     notes: row.notes,
     receipt_media_id: row.receiptMediaId,

@@ -314,6 +314,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
         serviced_on: dateOnly(s.servicedOn),
         title: s.workshopName || "Service",
         total_cost: reqNum(s.totalCost),
+        currency: s.currency,
       })),
       next_maintenance: await nextMaintenance(app.db, row.id, reqNum(row.mileage)),
     };

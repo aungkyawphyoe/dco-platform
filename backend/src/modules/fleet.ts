@@ -1203,6 +1203,7 @@ function serializeWorkOrder(row: typeof workOrders.$inferSelect) {
     status: row.status,
     plan_item_id: row.planItemId,
     completion_cost: num(row.completionCost),
+    currency: row.currency,
     assigned_to: row.assignedTo,
     resolved_by: row.resolvedBy,
     resolved_at: iso(row.resolvedAt),

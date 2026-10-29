@@ -10335,6 +10335,11 @@ export interface components {
         /** @enum {string} */
         FuelType: "petrol" | "electric" | "hybrid_plugin";
         /**
+         * @description Currency of an operational monetary record. Historical amounts are never converted or relabeled.
+         * @enum {string}
+         */
+        OperationalCurrency: "MMK" | "USD" | "THB" | "CNY";
+        /**
          * @default car
          * @enum {string}
          */
@@ -10406,6 +10411,7 @@ export interface components {
             available: boolean;
         };
         Vehicle: {
+            purchase_currency?: components["schemas"]["OperationalCurrency"];
             /** Format: uuid */
             id: string;
             /** Format: uuid */
@@ -10485,6 +10491,7 @@ export interface components {
             next_maintenance?: components["schemas"]["NextMaintenance"];
         };
         ServiceRecordSummary: {
+            currency?: components["schemas"]["OperationalCurrency"];
             /** Format: uuid */
             id?: string;
             /** Format: date */
@@ -10543,6 +10550,7 @@ export interface components {
             fuel_type?: components["schemas"]["FuelType"];
         };
         ServiceRecord: {
+            currency?: components["schemas"]["OperationalCurrency"];
             readonly revision?: number;
             /** Format: uuid */
             readonly admin_corrected_by?: string | null;
@@ -10704,6 +10712,7 @@ export interface components {
             unit?: string;
         };
         FuelLog: {
+            currency?: components["schemas"]["OperationalCurrency"];
             readonly revision?: number;
             /** Format: uuid */
             readonly admin_corrected_by?: string | null;
@@ -10765,6 +10774,7 @@ export interface components {
             odometer?: number;
         };
         Expense: {
+            currency?: components["schemas"]["OperationalCurrency"];
             /** @enum {string|null} */
             readonly source_kind?: "service_record" | "fuel_log" | null;
             /** Format: uuid */

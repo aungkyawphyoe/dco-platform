@@ -5838,6 +5838,10 @@ components:
     FuelType:
       type: string
       enum: [petrol, electric, hybrid_plugin]
+    OperationalCurrency:
+      type: string
+      enum: [MMK, USD, THB, CNY]
+      description: Currency of an operational monetary record. Historical amounts are never converted or relabeled.
     VehicleClass:
       type: string
       enum: [car, motorcycle, truck, van, bus]
@@ -5964,6 +5968,8 @@ components:
       type: object
       required: [id, user_id, name, make, model, year, license_plate, fuel_type, vehicle_class, mileage, archived]
       properties:
+        purchase_currency:
+          $ref: '#/components/schemas/OperationalCurrency'
         id:
           type: string
           format: uuid
@@ -6118,6 +6124,8 @@ components:
     ServiceRecordSummary:
       type: object
       properties:
+        currency:
+          $ref: '#/components/schemas/OperationalCurrency'
         id:
           type: string
           format: uuid
@@ -6227,6 +6235,8 @@ components:
       type: object
       required: [id, vehicle_id, serviced_on, odometer, total_cost, items]
       properties:
+        currency:
+          $ref: '#/components/schemas/OperationalCurrency'
         revision: { type: integer, minimum: 1, readOnly: true }
         admin_corrected_by: { type: string, format: uuid, nullable: true, readOnly: true }
         id:
@@ -6513,6 +6523,8 @@ components:
       type: object
       required: [id, user_id, vehicle_id, kind, fuel_type_name, unit, logged_on, amount, cost]
       properties:
+        currency:
+          $ref: '#/components/schemas/OperationalCurrency'
         revision: { type: integer, minimum: 1, readOnly: true }
         admin_corrected_by: { type: string, format: uuid, nullable: true, readOnly: true }
         id:
@@ -6604,6 +6616,8 @@ components:
       type: object
       required: [id, vehicle_id, category, amount, incurred_on]
       properties:
+        currency:
+          $ref: '#/components/schemas/OperationalCurrency'
         source_kind: { type: string, enum: [service_record, fuel_log], nullable: true, readOnly: true }
         source_id: { type: string, format: uuid, nullable: true, readOnly: true }
         revision: { type: integer, minimum: 1, readOnly: true }

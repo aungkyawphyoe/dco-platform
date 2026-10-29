@@ -689,7 +689,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
         id: newId(), vehicleId, orgId, buyerUserId: buyer.id, transferredBy: actorId,
         warrantyInstanceId: warrantyId,
         vehicleSnapshot: { id: vehicle.id, name: vehicle.name, make: vehicle.make, model: vehicle.model, year: vehicle.year, plate: vehicle.licensePlate },
-        serviceSnapshot: history.map(row => ({ id: row.id, serviced_on: dateOnly(row.servicedOn), odometer: reqNum(row.odometer), total_cost: reqNum(row.totalCost), workshop_name: row.workshopName, notes: row.notes })),
+        serviceSnapshot: history.map(row => ({ id: row.id, serviced_on: dateOnly(row.servicedOn), odometer: reqNum(row.odometer), total_cost: reqNum(row.totalCost), currency: row.currency, workshop_name: row.workshopName, notes: row.notes })),
       }).returning();
       await tx.delete(organizationVehicles).where(eq(organizationVehicles.id, link.id));
       return { vehicle: updatedVehicle, audit: auditRow, warrantyId };
