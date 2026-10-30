@@ -229,7 +229,7 @@
   "suggestedItemsStartMileage": "စတင်မည့်မိုင်နှုန်း",
   "lengthUnitKm": "km",
   "planItemTileOverdue": "ရက်လွန်နေပြီ",
-  "planItemTileOverdueBy": "{count, plural, =1{# ရက်} other{# ရက်}} ရက်လွန်နေပြီ",
+  "planItemTileOverdueBy": "{count, plural, =1{1 ရက်} other{{count} ရက်}} ရက်လွန်နေပြီ",
   "planItemTileNextMileage": "နောက်ပြုလုပ်ရမည့် မိုင်နှုန်း - ",
   "planItemTileNextDate": "နောက်ပြုလုပ်ရမည့် ရက်စွဲ - ",
   "planItemTileNoDueDate": "ပြုလုပ်ရမည့်ရက် မသတ်မှတ်ရသေးပါ",

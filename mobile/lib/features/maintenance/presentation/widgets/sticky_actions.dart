@@ -32,7 +32,7 @@ class DcoStickyActions extends StatelessWidget {
           tokens.space.s4,
           tokens.space.s3,
           tokens.space.s4,
-          0,
+          tokens.space.s1,
         ),
         child: Row(
           children: [

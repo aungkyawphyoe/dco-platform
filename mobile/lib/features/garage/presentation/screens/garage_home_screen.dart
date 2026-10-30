@@ -128,20 +128,20 @@ class GarageHomeScreen extends ConsumerWidget {
                           },
                   ),
                 ),
-              if (personal && !embedded) ...[
-                SizedBox(height: DcoLayout.sectionGap),
-                _GarageLinkRow(
-                  icon: Icons.people_outline,
-                  label: s.drawerSharedWithMe,
-                  onTap: () => context.push(AppRoutes.sharedWithMe),
-                ),
-                SizedBox(height: tokens.space.s2),
-                _GarageLinkRow(
-                  icon: Icons.qr_code_scanner,
-                  label: s.sharedWithMeJoin,
-                  onTap: () => context.push(AppRoutes.vehicleShareJoin),
-                ),
-              ],
+              // if (personal && !embedded) ...[
+              //   SizedBox(height: DcoLayout.sectionGap),
+              //   _GarageLinkRow(
+              //     icon: Icons.people_outline,
+              //     label: s.drawerSharedWithMe,
+              //     onTap: () => context.push(AppRoutes.sharedWithMe),
+              //   ),
+              //   SizedBox(height: tokens.space.s2),
+              //   _GarageLinkRow(
+              //     icon: Icons.qr_code_scanner,
+              //     label: s.sharedWithMeJoin,
+              //     onTap: () => context.push(AppRoutes.vehicleShareJoin),
+              //   ),
+              // ],
             ],
           );
         },
@@ -295,11 +295,11 @@ class _GarageBottomBar extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            DcoLayout.screenPadding,
-            DcoLayout.rowGap,
-            DcoLayout.screenPadding,
-            0,
+          padding: EdgeInsets.fromLTRB(
+            tokens.space.s4,
+            tokens.space.s3,
+            tokens.space.s4,
+            tokens.space.s1,
           ),
           child: canAddVehicle
               ? DcoButton(

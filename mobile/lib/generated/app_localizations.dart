@@ -653,7 +653,7 @@ abstract class AppLocalizations {
   /// No description provided for @overdueBy.
   ///
   /// In en, this message translates to:
-  /// **'Overdue by {count, plural, =1{# day} other{# days}}'**
+  /// **'Overdue by {count, plural, =1{1 day} other{{count} days}}'**
   String overdueBy(num count);
 
   /// No description provided for @dueIn.
@@ -1523,7 +1523,7 @@ abstract class AppLocalizations {
   /// No description provided for @planItemTileOverdueBy.
   ///
   /// In en, this message translates to:
-  /// **'Overdue by {count, plural, =1{# day} other{# days}}'**
+  /// **'Overdue by {count, plural, =1{1 day} other{{count} days}}'**
   String planItemTileOverdueBy(num count);
 
   /// No description provided for @planItemTileNextMileage.

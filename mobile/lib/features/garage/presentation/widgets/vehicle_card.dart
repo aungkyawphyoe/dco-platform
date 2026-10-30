@@ -80,7 +80,7 @@ class VehicleCard extends StatelessWidget {
                         ConstrainedBox(
                           constraints: const BoxConstraints(minHeight: _minHit),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: Column(
@@ -143,8 +143,8 @@ class VehicleCard extends StatelessWidget {
                         ),
                         SizedBox(height: tokens.space.s3),
                         Wrap(
-                          spacing: tokens.space.s2,
-                          runSpacing: tokens.space.s1,
+                          spacing: tokens.space.s5,
+                          runSpacing: tokens.space.s3,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             _Odometer(
@@ -336,6 +336,8 @@ class _SetActiveButton extends StatelessWidget {
           child: Center(
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(
                 context,
               ).textTheme.labelLarge?.copyWith(color: tokens.text.link),

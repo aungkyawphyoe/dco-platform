@@ -785,8 +785,8 @@ class AppLocalizationsMy extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# ရက်',
-      one: '# ရက်',
+      other: '$count ရက်',
+      one: '1 ရက်',
     );
     return '$_temp0 ရက်လွန်နေပြီ';
   }
