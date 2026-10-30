@@ -2,7 +2,7 @@
 
 **Product:** AutoX Platform  
 **Date:** 29 October 2026  
-**Status:** Requirements agreed through grilling; implementation started (backend storage foundation only). Full feature and activation pending.  
+**Status:** Requirements agreed through grilling; backend storage, currency-state APIs, and write enforcement implemented locally. Client integration and activation pending.
 **Surfaces:** Mobile Personal and Driver, Fleet Portal, API, local storage/sync, and Web Admin support views.
 
 **Implementation plan:** [Phases, verification, and rollout](../../docs/multi-currency-implementation-plan.md).
@@ -56,7 +56,7 @@ Out of scope:
 
 Forms and detail views must make the currency unambiguous; symbols alone must not obscure whether an amount is USD, MMK, THB, or CNY. Language and distance/volume settings do not change currency.
 
-Fuel unit prices retain extra precision so quantity × unit price remains accurate. Round the calculated final cost to its currency's supported precision. Exact unit-price scale and rounding mode must be specified consistently in the implementation contract before coding; they were not selected in the grilling session. Existing stored values must not be rounded or rewritten by migration.
+Fuel unit prices retain extra precision so quantity × unit price remains accurate. Round the calculated final cost to its currency's supported precision. Implementation uses up to six decimal places for unit prices and decimal half-up rounding of final costs, with exact decimal arithmetic. Existing stored values must not be rounded or rewritten by migration.
 
 ## 5. Currency ownership and setup
 

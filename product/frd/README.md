@@ -61,7 +61,7 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 
 ### Currency selection — 29 October 2026
 
-[Currency Selection — Phase One](multi-currency.md) records the agreed USD/MMK/THB/CNY selection, lock lifecycle, historical currency preservation, totals, and offline conflict rules. **Implementation started; backend storage foundation only, feature not yet available.** It replaces operational currency-as-display-preference behavior when implemented; subscription pricing remains separate. See the [implementation plan](../../docs/multi-currency-implementation-plan.md) for sequencing, verification, and rollout.
+[Currency Selection — Phase One](multi-currency.md) records the agreed USD/MMK/THB/CNY selection, lock lifecycle, historical currency preservation, totals, and offline conflict rules. **Implementation started; backend currency settings and write enforcement implemented locally; client integration pending.** It replaces operational currency-as-display-preference behavior when implemented; subscription pricing remains separate. See the [implementation plan](../../docs/multi-currency-implementation-plan.md) for sequencing, verification, and rollout.
 
 ### Planned subscription and pricing administration — 24 October 2026
 

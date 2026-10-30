@@ -4,12 +4,13 @@ import { describe, expect, it } from 'vitest';
 import { applyInitSql } from '../src/db/migrate.js';
 
 const migration = readFileSync(new URL('../drizzle/0031_operational_currency.sql', import.meta.url), 'utf8');
+const enforcement = readFileSync(new URL('../drizzle/0032_currency_enforcement.sql', import.meta.url), 'utf8');
 const ids = Array.from({ length: 10 }, () => crypto.randomUUID());
 const [owner, buyer, vehicle, org, service, link, transfer, nextOrg, expense] = ids;
 
 async function legacyFixture() {
   const db = new PGlite();
-  await applyInitSql(async sql => { if (sql !== migration) await db.exec(sql); });
+  await applyInitSql(async sql => { if (sql !== migration && !sql.includes('CREATE TABLE IF NOT EXISTS operational_currency_control')) await db.exec(sql); });
   await db.exec(`
     INSERT INTO users(id,username,email) VALUES ('${owner}','owner','owner@example.test'), ('${buyer}','buyer','buyer@example.test');
     INSERT INTO vehicles(id,user_id,name,make,model,year,license_plate,fuel_type,mileage,purchase_price)
@@ -57,6 +58,23 @@ describe('operational currency migration', () => {
       expect((await db.query(`SELECT currency FROM users WHERE id='${owner}'`)).rows).toEqual([{ currency: 'CNY' }]);
       await expect(db.exec(`UPDATE expenses SET currency='EUR'`)).rejects.toThrow();
     } finally { await db.close(); }
+  });
+
+  it('backfills known locks and blocks activation on ambiguous transferred or deleted history',async()=>{
+    const db=await legacyFixture();try {
+      const deletedOwner=crypto.randomUUID();
+      await db.exec(`INSERT INTO users(id,username,email) VALUES('${deletedOwner}','deleted-owner','deleted-owner@example.test');
+        INSERT INTO change_log(user_id,entity_type,entity_id,op,payload) VALUES('${deletedOwner}','expense','${expense}','delete','{}');`);
+      await db.exec(migration);await db.exec(enforcement);
+      expect((await db.query(`SELECT currency_locked_at IS NOT NULL AS locked FROM organizations WHERE id='${org}'`)).rows).toEqual([{locked:true}]);
+      expect((await db.query(`SELECT currency_locked_at FROM users WHERE id='${buyer}'`)).rows).toEqual([{currency_locked_at:null}]);
+      const reviews=await db.query<{scope_id:string}>('SELECT scope_id FROM currency_migration_reviews WHERE resolved_at IS NULL');
+      expect(reviews.rows.map(row=>row.scope_id).sort()).toEqual([buyer,deletedOwner].sort());
+      await expect(db.exec('UPDATE operational_currency_control SET enabled=true')).rejects.toThrow('currency_migration_review_required');
+      await expect(db.exec(`UPDATE organizations SET currency='USD' WHERE id='${org}'`)).rejects.toThrow('currency_locked');
+      await db.exec(enforcement);
+      expect((await db.query('SELECT * FROM currency_migration_reviews')).rows).toHaveLength(2);
+    }finally {await db.close();}
   });
 
   it('derived accounting inherits source currency through create and historical corrections', async () => {

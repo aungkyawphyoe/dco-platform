@@ -1,3 +1,4 @@
+import { incomingCurrency, incomingServiceCurrency, lockCurrencyVehicle, effectiveVehicleCurrency } from '../lib/operational-currency.js';
 import { billingRequest } from "../lib/subscription-access.js";
 import { assertOrganizationWritable } from "../lib/subscriptions.js";
 import { csvCell } from "../lib/fleet-analytics.js";
@@ -151,6 +152,7 @@ async function listWorkshopWarrantyVehicles(db: Db, userId: string) {
   const result: Array<{
     orgId: string;
     organizationName: string;
+    currency: string | null;
     partnerId: string;
     partnerName: string;
     vehicle: typeof vehicles.$inferSelect;
@@ -195,6 +197,7 @@ async function listWorkshopWarrantyVehicles(db: Db, userId: string) {
           result.push({
             orgId: org.id,
             organizationName: org.name,
+            currency: await effectiveVehicleCurrency(db,vehicle.id),
             partnerId: membership.partner.id,
             partnerName: membership.partner.name,
             vehicle,
@@ -410,7 +413,9 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       throw new AppError(422, "invalid_fuel_type", "Fuel type does not match the vehicle powertrain");
     }
     const [row] = await app.db.transaction(async (tx) => {
+      await lockCurrencyVehicle(tx,body.vehicle_id,orgId);
       const [log] = await tx.insert(fuelLogs).values({
+        currency: await incomingCurrency(tx,request.body,[body.cost]),
         id: newId(), userId: actorId, vehicleId: body.vehicle_id, kind, fuelTypeId: fuelType.id,
         fuelTypeName: fuelType.name, unit: fuelType.unit, loggedOn: body.logged_on,
         amount: String(body.amount), cost: String(body.cost),
@@ -429,6 +434,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       logged_on: dateOnly(row.loggedOn),
       amount: reqNum(row.amount),
       cost: reqNum(row.cost),
+      currency: row.currency,
       odometer_km: body.odometer_km,
     };
     await recordChange(app.db, { userId: actorId, entityType: "fuel_log", entityId: row.id, op: "upsert", payload });
@@ -496,6 +502,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
         logged_on: dateOnly(row.loggedOn),
         amount: reqNum(row.amount),
         cost: reqNum(row.cost),
+      currency: row.currency,
       })),
     };
   });
@@ -663,6 +670,8 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       template = found;
     }
     const transfer = await app.db.transaction(async (tx) => {
+      const [lockedVehicle] = await tx.select().from(vehicles).where(eq(vehicles.id,vehicleId)).for('update');
+      if (!lockedVehicle || body.current_mileage_km < Math.floor(reqNum(lockedVehicle.mileage))) throw new AppError(409,'vehicle_changed','Vehicle mileage changed; refresh before transfer');
       const [lockedLink] = await tx.select().from(organizationVehicles).where(and(
         eq(organizationVehicles.id, link.id), eq(organizationVehicles.orgId, orgId),
       )).for("update");
@@ -932,6 +941,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     return {
       items: items.map((item) => ({
         organization_id: item.orgId,
+        currency: item.currency,
         workshop_id: item.partnerId,
         workshop_name: item.partnerName,
         vehicle: {
@@ -970,7 +980,14 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     await assertOrganizationWritable(app.db, target.orgId);
     const serviceId = newId();
     const record = await app.db.transaction(async (tx) => {
+      // A sold vehicle can retain its original fleet's warranty. Serialize with
+      // transfer, then recheck warranty access without requiring fleet ownership.
+      const [lockedVehicle] = await tx.select().from(vehicles).where(eq(vehicles.id,vehicleId)).for('update');
+      const eligible = await listWorkshopWarrantyVehicles(tx,userId);
+      if (!lockedVehicle || !eligible.some(item=>item.vehicle.id===vehicleId)) throw new AppError(404,'vehicle_not_assigned','Vehicle is no longer covered by an approved warranty');
+      if (body.odometer_km < Math.floor(reqNum(lockedVehicle.mileage))) throw new AppError(409,'vehicle_changed','Vehicle mileage changed; refresh before recording service');
       const [created] = await tx.insert(serviceRecords).values({
+        currency: await incomingServiceCurrency(tx,request.body),
         id: serviceId, vehicleId, servicedOn: body.serviced_on, odometer: String(body.odometer_km),
         totalCost: String(body.total_cost), workshopName: target.partnerName, notes: body.notes ?? null,
       }).returning();
@@ -991,6 +1008,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       serviced_on: dateOnly(record.created.servicedOn),
       odometer_km: body.odometer_km,
       total_cost: reqNum(record.created.totalCost),
+      currency: record.created.currency,
       workshop_name: target.partnerName,
       notes: record.created.notes,
       items: record.items.map((item) => ({ name: item.name, line_cost: num(item.lineCost) })),

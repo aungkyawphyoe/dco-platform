@@ -1,7 +1,7 @@
 # Currency Selection — Implementation Plan
 
 **Date:** 29 October 2026  
-**Status:** Implementation started — additive backend currency storage and read contracts implemented locally; feature activation remains pending.  
+**Status:** Backend storage, currency-state APIs, and write enforcement implemented locally. Client integration and activation remain pending (30 October 2026).
 **Requirements:** [Currency Selection FRD](../product/frd/multi-currency.md)
 
 ## 1. Delivery objective
@@ -180,9 +180,9 @@ Use the existing backend Vitest/PGlite test harness; add real PostgreSQL concurr
 
 | Order | Deliverable | Depends on | Status |
 |-------|-------------|------------|--------|
-| 0 | Field inventory and API contract | FRD | In progress — monetary storage/read inventory below; mutation/state contracts pending |
-| 1 | Schema and legacy migration | 0 | Partial — additive fields, MMK/snapshot backfill, source currency propagation; lock attribution pending |
-| 2 | Backend state and monetary invariants | 1 | Not started |
+| 0 | Field inventory and API contract | FRD | Backend contracts implemented; client integration follows in phases 3–6 |
+| 1 | Schema and legacy migration | 0 | Implemented locally; ambiguous legacy attribution blocks activation until reviewed |
+| 2 | Backend state and monetary invariants | 1 | Implemented locally; rollout disabled |
 | 3 | Fleet setup and forms | 2 | Not started |
 | 4 | Mobile persistence and conflict handling | 2 | Not started |
 | 5 | Mobile onboarding/settings/forms | 4 | Not started |
@@ -205,9 +205,9 @@ First slice, on `codex/currency-selection`:
 
 ### Remaining activation prerequisites
 
-The feature is **not ready for activation or production release**. Currency selectors/state endpoints are not implemented. Lock timestamps have storage only: historical lock attribution, first-write lock enforcement, and all mutation validation remain pending. No production data was migrated during development. No existing user choice is exposed for non-MMK yet.
+The feature is **not ready for activation or production release**. Backend currency state and enforcement are now implemented (see phase-two log below). Client selectors, offline recovery UI, and monetary reporting integration remain pending. No production data was migrated during development; rollout remains disabled.
 
-Before activation, complete legacy provenance reconciliation, all direct/sync/workshop/import write paths, server state endpoints and client compatibility checks, Fleet Portal setup, mobile Drift/outbox/onboarding/forms, all monetary aggregation/exclusion UI, and final integration tests. Existing client formatting and fleet analytics reporting settings still need replacement.
+Before activation, reconcile flagged legacy provenance, complete client compatibility checks, Fleet Portal setup, mobile Drift/outbox/onboarding/forms, all monetary aggregation/exclusion UI, and final integration tests. Existing monetary REST and sync writers are wired; inventory CSV imports currently carry no monetary fields. Existing client formatting and fleet analytics reporting settings still need replacement.
 
 ### Monetary field inventory
 
@@ -230,3 +230,33 @@ Before activation, complete legacy provenance reconciliation, all direct/sync/wo
 - Full backend Vitest suite passed: 29 files, 138 tests.
 - After strengthening linked-event currency protection, the affected migration/money tests passed again: 3 files, 8 tests; backend build passed again.
 - `git diff --check` passed. No production database or deployment was touched.
+
+
+## 9. Backend enforcement phase — 30 October 2026
+
+The foundation was committed as `cc8e916`. This phase adds:
+
+- `0032_currency_enforcement.sql`: server-side activation control, durable personal/fleet locks, atomic scope/currency checks, and migration-review records. Currency selection is disabled by default. Compatibility-mode MMK writes still establish locks so rollout cannot lose newly created history.
+- Legacy scopes with unambiguous monetary history are locked. Transferred buyer history and deleted personal monetary history with uncertain attribution are flagged instead of guessed. Unresolved reviews block activation. Retained organization change history preserves locks for deleted fleet costs.
+- `GET/PUT /me/currency`, `GET/PUT /organizations/:id/currency`, and authorized `GET /vehicles/:vehicleId/currency`. Updates require the expected current value; fleet updates require Fleet Admin on the portal audience. State includes default MMK, supported codes, lock state, activation state, and review status.
+- Email/social signup persists the chosen code (default MMK); an existing social login never overwrites it. Account and entitlement responses expose current currency metadata.
+- Monetary creation and cost edits validate the explicit intended currency before database decimal rounding. Missing currency returns 428 after activation; stale creation returns 409 with the current code; historical relabeling is rejected. Unchanged legacy fractional MMK values remain editable without conversion.
+- Personal/organization REST, both sync pipelines, purchase prices, driver/fleet service entry, work-order completion, and workshop service entry use the contract. Derived expenses retain source currency. Successful unrelated sync operations continue after a currency conflict.
+- Vehicle locking serializes fleet monetary creation and transfer. Work-order completion rechecks state under lock to prevent concurrent completion from creating multiple services. Warranty service remains valid after sale and uses the current owner currency, not the original warranty issuer's currency.
+- Updated OpenAPI and Web Admin/Fleet Portal generated API types.
+
+### Activation and rollout constraints
+
+`operational_currency_control.enabled` is a database-controlled cutover, not an end-user toggle. It remains false. Do not enable it until phases 3–7 are ready and all unresolved `currency_migration_reviews` have been reconciled from evidence. Resolution must record whether history was created in the scope or inherited; set an appropriate lock for proven monetary creation and mark the review resolved. Never clear an established lock.
+
+The activation trigger rejects unresolved review records and disallows disabling enforcement once enabled. If a release fails after activation, pause writes through deployment controls or deploy a compatible fix; never revert to an implementation that ignores currency. The trigger also serializes activation with monetary transactions.
+
+Reporting and UI are deliberately still pending: the old fleet analytics reporting-currency setting, mobile formatting, foreign-history exclusions, client caches, and draft recovery must be integrated before release. Backend enforcement completion does not mean multi-currency is available to users.
+
+### Validation
+
+Currency API tests cover disabled rollout, default MMK, precision, missing/stale codes, locks surviving deletion, zero-cost services, legacy fractions, purchase prices, shared contributors, inherited edits, personal/fleet sync, Fleet Admin-only setup, linked expenses, and work-order completion. Migration tests cover exact backfill, reboots, unresolved attribution, and durable locks. The existing workshop regression test now verifies THB service entry for a sold vehicle under its former fleet's warranty.
+
+The opt-in `currency-concurrency.test.ts` passed against a disposable real PostgreSQL instance: a pending currency correction blocks a stale first cost; a committed first cost blocks currency correction; ownership changes block stale submissions; rollback leaves no lock. The instance was stopped after testing. Run with `CURRENCY_TEST_DATABASE_URL` pointing only to a disposable test database; the normal suite skips this test without that variable.
+
+Final phase-two checks: backend build passed; full suite passed 146 tests in 30 files (the opt-in PostgreSQL test was skipped in that run and passed separately); Fleet Portal and Web Admin TypeScript checks passed. After the final malformed-input validation fix, the affected currency and personal-sync suites passed again (13 tests). `git diff --check` passed. No production migration or activation was performed.

@@ -1,3 +1,5 @@
+import { currencyPlugin } from './modules/currency.js';
+import { currencyDatabaseError } from './lib/operational-currency.js';
 import { billingRequest } from "./lib/subscription-access.js";
 import { subscriptionsPlugin } from "./modules/subscriptions.js";
 import { playBillingPlugin } from "./modules/play-billing.js";
@@ -76,6 +78,8 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
   await app.register(multipart, { limits: { fileSize: MEDIA_MAX_BYTES } });
 
   app.setErrorHandler((err, _request, reply) => {
+    const currencyError = currencyDatabaseError(err);
+    if (currencyError) return reply.code(currencyError.statusCode).send(errorBody(currencyError));
     if (err instanceof AppError) {
       if (typeof err.details.retry_after === "number") {
         reply.header("Retry-After", String(err.details.retry_after)).header("Cache-Control", "no-store");
@@ -107,6 +111,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       attachPublicRateLimits(v1);
       await attachAuth(v1);
       await v1.register(healthPlugin);
+      await v1.register(currencyPlugin);
       await v1.register(pricingPlugin);
       await v1.register(subscriptionsPlugin);
       await v1.register(promotionsPlugin);

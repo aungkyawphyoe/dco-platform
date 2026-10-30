@@ -1,3 +1,4 @@
+import { incomingCurrency } from '../lib/operational-currency.js';
 import { assertPersonalVehicleWritable } from "../lib/subscription-access.js";
 import { effectiveSubscription } from "../lib/gifts.js";
 import { and, asc, desc, eq } from "drizzle-orm";
@@ -149,6 +150,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     // tier — report them before the plan capacity check (403).
     await assertPlateVin(app.db, userId, body.license_plate, body.vin ?? null);
     await assertVehicleLimit(app.db, userId, (await effectiveSubscription(app.db, userId)).plan);
+    const purchaseCurrency = body.purchase_price != null ? await incomingCurrency(app.db,request.body,[body.purchase_price]) : "MMK";
     const [row] = await app.db
       .insert(vehicles)
       .values({
@@ -166,6 +168,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
         mileage: String(body.mileage),
         mileageUnit: body.mileage_unit ?? "mi",
         purchaseDate: body.purchase_date ?? null,
+        purchaseCurrency,
         purchasePrice: body.purchase_price != null ? String(body.purchase_price) : null,
         photoMediaId: body.photo_media_id ?? null,
       })
@@ -190,6 +193,10 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     const { vehicleId } = request.params as { vehicleId: string };
     const body = vehiclePatch.parse(request.body ?? {});
     const row = await getOwnedVehicle(app.db, request.authUser!.sub, vehicleId);
+    const raw = request.body as {purchase_currency?:string;currency?:string};
+    const purchaseCurrency = body.purchase_price != null || raw.purchase_currency !== undefined || raw.currency !== undefined
+      ? await incomingCurrency(app.db,request.body,[body.purchase_price],row.purchasePrice != null ? {currency:row.purchaseCurrency,amounts:[row.purchasePrice]} : undefined)
+      : row.purchaseCurrency;
     if (body.year !== undefined && !yearOk(body.year)) {
       throw new AppError(422, "invalid_year", "Year must be 1900 through next year");
     }
@@ -208,6 +215,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     const [updated] = await app.db
       .update(vehicles)
       .set({
+        purchaseCurrency,
         ...(body.name !== undefined ? { name: body.name } : {}),
         ...(body.nickname !== undefined ? { nickname: body.nickname } : {}),
         ...(body.make !== undefined ? { make: body.make } : {}),

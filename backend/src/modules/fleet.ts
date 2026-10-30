@@ -1,3 +1,4 @@
+import { incomingCurrency, incomingServiceCurrency, lockCurrencyVehicle } from '../lib/operational-currency.js';
 import { billingRequest } from "../lib/subscription-access.js";
 import { assertOrganizationWritable } from "../lib/subscriptions.js";
 import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
@@ -506,7 +507,9 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     }
     const serviceId = newId();
     const record = await app.db.transaction(async (tx) => {
+      await lockCurrencyVehicle(tx,vehicleId,orgId);
       const [created] = await tx.insert(serviceRecords).values({
+        currency: await incomingServiceCurrency(tx,request.body),
         id: serviceId, vehicleId, servicedOn: body.serviced_on, odometer: String(body.odometer), totalCost: String(body.total_cost),
         workshopName: body.workshop_name ?? null, notes: body.notes ?? null,
       }).returning();
@@ -526,6 +529,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       serviced_on: dateOnly(record.created.servicedOn),
       odometer: reqNum(record.created.odometer),
       total_cost: reqNum(record.created.totalCost),
+      currency: record.created.currency,
       workshop_name: record.created.workshopName,
       notes: record.created.notes,
       items: record.items.map((item) => ({ id: item.id, name: item.name, line_cost: num(item.lineCost) })),
@@ -695,7 +699,11 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const serviceId = newId();
     const servicedOn = new Date().toISOString().slice(0, 10);
     const result = await app.db.transaction(async (tx) => {
+      await lockCurrencyVehicle(tx,current.vehicleId,orgId);
+      const [lockedOrder] = await tx.select().from(workOrders).where(eq(workOrders.id,current.id)).for('update');
+      if (!lockedOrder || lockedOrder.status !== 'in_progress') throw new AppError(409,'work_order_changed','Work order was already completed or changed');
       const [createdService] = await tx.insert(serviceRecords).values({
+        currency: await incomingServiceCurrency(tx,request.body),
         id: serviceId,
         vehicleId: current.vehicleId,
         servicedOn,
@@ -721,6 +729,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         resolvedAt: new Date(),
         resolutionNotes: body.resolution_notes ?? null,
         completionCost: String(completionCost),
+        currency: createdService.currency,
         updatedAt: new Date(),
       }).where(eq(workOrders.id, current.id)).returning();
       if (current.planItemId) {
@@ -736,6 +745,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         serviced_on: dateOnly(result.service.servicedOn),
         odometer: reqNum(result.service.odometer),
         total_cost: reqNum(result.service.totalCost),
+        currency: result.service.currency,
         notes: result.service.notes,
         parts: result.parts.map((part) => ({ id: part.id, name: part.name, part_id: part.partId })),
       },
@@ -786,7 +796,9 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const [existing] = await app.db.select().from(serviceRecords).where(eq(serviceRecords.id, serviceId)).limit(1);
     if (existing) return reply.code(201).send({ id: existing.id, duplicate: true });
     const record = await app.db.transaction(async (tx) => {
+      await lockCurrencyVehicle(tx,vehicleId,orgId);
       const [created] = await tx.insert(serviceRecords).values({
+        currency: await incomingServiceCurrency(tx,request.body),
         id: serviceId,
         vehicleId,
         servicedOn: body.serviced_on,
@@ -815,6 +827,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       serviced_on: dateOnly(record.created.servicedOn),
       odometer: reqNum(record.created.odometer),
       total_cost: reqNum(record.created.totalCost),
+      currency: record.created.currency,
       notes: record.created.notes,
       items: record.items.map((item) => ({
         id: item.id, name: item.name, line_cost: num(item.lineCost), plan_item_id: item.planItemId,

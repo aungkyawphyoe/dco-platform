@@ -4,6 +4,241 @@
  */
 
 export interface paths {
+    "/me/currency": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read personal garage currency */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Authoritative state; clients cache it in their account scope. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrencyState"];
+                    };
+                };
+                /** @description Scope access is required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /**
+         * Confirm or correct personal garage currency
+         * @description Requires rollout activation. Personal owner or Fleet Admin only; fleet writes require the Fleet Portal audience. The first monetary event permanently locks the scope. expected_currency must match the current value (null for fleet setup).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CurrencyChange"];
+                };
+            };
+            responses: {
+                /** @description Saved currency state */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrencyState"];
+                    };
+                };
+                /** @description Owner or Fleet Admin access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Currency is locked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unsupported currency or invalid request */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vehicles/{vehicleId}/currency": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                vehicleId: string;
+            };
+            cookie?: never;
+        };
+        /** Read effective personal vehicle owner currency (including shared vehicles) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vehicleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Authoritative state; clients cache it in their account scope. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrencyState"];
+                    };
+                };
+                /** @description Scope access is required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/currency": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Read organization operational currency */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Authoritative state; clients cache it in their account scope. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrencyState"];
+                    };
+                };
+                /** @description Scope access is required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /**
+         * Confirm or correct organization operational currency
+         * @description Requires rollout activation. Personal owner or Fleet Admin only; fleet writes require the Fleet Portal audience. The first monetary event permanently locks the scope. expected_currency must match the current value (null for fleet setup).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CurrencyChange"];
+                };
+            };
+            responses: {
+                /** @description Saved currency state */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["CurrencyState"];
+                    };
+                };
+                /** @description Owner or Fleet Admin access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Currency is locked */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Unsupported currency or invalid request */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/admin/prices": {
         parameters: {
             query?: never;
@@ -1808,6 +2043,8 @@ export interface paths {
                     "application/json": components["schemas"]["AuthSocialFlow"] & {
                         /** @default false */
                         create_account?: boolean;
+                        /** @description Defaults to MMK for new accounts; ignored for existing accounts */
+                        currency?: components["schemas"]["OperationalCurrency"];
                     };
                 };
             };
@@ -2529,7 +2766,11 @@ export interface paths {
                                 };
                                 active_shares?: number;
                             };
-                            organization?: Record<string, never> | null;
+                            organization?: {
+                                /** @enum {string|null} */
+                                currency?: "MMK" | "USD" | "THB" | "CNY" | null;
+                                currency_locked?: boolean;
+                            } | null;
                             features?: {
                                 vehicle_sharing?: boolean;
                                 fleet?: boolean;
@@ -6962,6 +7203,7 @@ export interface paths {
                     "application/json": {
                         /** @enum {string} */
                         status: "in_progress" | "completed";
+                        currency?: components["schemas"]["OperationalCurrency"];
                         /** @description Required when status=completed (else 400 completion_cost_required) */
                         completion_cost?: number;
                         resolution_notes?: string;
@@ -8085,6 +8327,7 @@ export interface paths {
                         /** Format: date */
                         serviced_on: string;
                         odometer_km: number;
+                        currency?: components["schemas"]["OperationalCurrency"];
                         total_cost: number;
                         /** Format: uuid */
                         plan_item_id?: string | null;
@@ -8255,12 +8498,26 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description In-warranty vehicle list; buyer personal information is excluded */
+                /** @description In-warranty vehicles; currency is the current owner/fleet currency, which may differ from the warranty issuer. Buyer personal information is excluded. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": {
+                            items?: {
+                                /** @enum {string|null} */
+                                currency?: "MMK" | "USD" | "THB" | "CNY" | null;
+                                vehicle?: Record<string, never>;
+                                warranty?: Record<string, never>;
+                                /** Format: uuid */
+                                organization_id?: string;
+                                /** Format: uuid */
+                                workshop_id?: string;
+                                workshop_name?: string;
+                            }[];
+                        };
+                    };
                 };
                 403: components["responses"]["Error"];
             };
@@ -8294,7 +8551,19 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": Record<string, never>;
+                    "application/json": {
+                        /** @description Required after activation; use the current owner/fleet currency from the workshop vehicle list. */
+                        currency?: components["schemas"]["OperationalCurrency"];
+                        /** Format: date */
+                        serviced_on: string;
+                        odometer_km: number;
+                        total_cost: number;
+                        notes?: string;
+                        items: {
+                            name: string;
+                            line_cost?: number | null;
+                        }[];
+                    };
                 };
             };
             responses: {
@@ -10334,6 +10603,24 @@ export interface components {
         AccountStatus: "active" | "deactivated";
         /** @enum {string} */
         FuelType: "petrol" | "electric" | "hybrid_plugin";
+        CurrencyState: {
+            /** @enum {string|null} */
+            currency: "MMK" | "USD" | "THB" | "CNY" | null;
+            locked: boolean;
+            /** Format: date-time */
+            locked_at: string | null;
+            review_required: boolean;
+            /** @description Whether operational currency selection and strict writes are activated */
+            enabled: boolean;
+            /** @enum {string} */
+            default_currency: "MMK";
+            supported: components["schemas"]["OperationalCurrency"][];
+        };
+        CurrencyChange: {
+            currency: components["schemas"]["OperationalCurrency"];
+            /** @enum {string|null} */
+            expected_currency: "MMK" | "USD" | "THB" | "CNY" | null;
+        };
         /**
          * @description Currency of an operational monetary record. Historical amounts are never converted or relabeled.
          * @enum {string}
@@ -10355,6 +10642,8 @@ export interface components {
         /** @enum {string} */
         PartnerStatus: "draft" | "pending_verification" | "verified" | "rejected";
         SignupRequest: {
+            /** @description Defaults to MMK for new accounts; never changes an existing account on login. */
+            currency?: components["schemas"]["OperationalCurrency"];
             /** Format: email */
             email: string;
             password: string;
@@ -10379,6 +10668,8 @@ export interface components {
             user: components["schemas"]["User"];
         };
         User: {
+            currency?: components["schemas"]["OperationalCurrency"];
+            readonly currency_locked?: boolean;
             /** Format: uuid */
             id: string;
             /** @description Globally unique login identifier (backfilled from email local part for pre-existing accounts) */
@@ -10450,6 +10741,8 @@ export interface components {
             id: string;
         } & components["schemas"]["VehiclePatch"];
         VehiclePatch: {
+            /** @description Required with monetary entries after rollout activation. Historical edits retain their original currency. */
+            purchase_currency?: components["schemas"]["OperationalCurrency"];
             name?: string;
             nickname?: string;
             make?: string;
@@ -10590,6 +10883,8 @@ export interface components {
             name: string;
         };
         ServiceRecordWrite: {
+            /** @description Required with monetary entries after rollout activation. Historical edits retain their original currency. */
+            currency?: components["schemas"]["OperationalCurrency"];
             /** Format: uuid */
             id: string;
             /** Format: date */
@@ -10742,6 +11037,8 @@ export interface components {
             odometer?: number | null;
         };
         FuelLogWrite: {
+            /** @description Required with monetary entries after rollout activation. Historical edits retain their original currency. */
+            currency?: components["schemas"]["OperationalCurrency"];
             /** Format: uuid */
             id: string;
             /**
@@ -10759,6 +11056,8 @@ export interface components {
             odometer?: number;
         };
         FuelLogPatch: {
+            /** @description Required with monetary entries after rollout activation. Historical edits retain their original currency. */
+            currency?: components["schemas"]["OperationalCurrency"];
             /**
              * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
              * @default unknown
@@ -10801,6 +11100,8 @@ export interface components {
             parts?: components["schemas"]["ExpensePart"][];
         };
         ExpenseWrite: {
+            /** @description Required with monetary entries after rollout activation. Historical edits retain their original currency. */
+            currency?: components["schemas"]["OperationalCurrency"];
             /** Format: uuid */
             id: string;
             category: components["schemas"]["ExpenseCategory"];

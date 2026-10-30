@@ -1,3 +1,4 @@
+import { incomingCurrency } from '../lib/operational-currency.js';
 import { createHash } from "node:crypto";
 import { AsyncLocalStorage } from "node:async_hooks";
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
@@ -296,11 +297,55 @@ async function recordVehicleScopedChange(
       route.handler = async function(request, reply) {
         return app.db.transaction(async (tx) => transaction.run(tx as Db, async () => {
           await validatePersonalReferences(request);
+          await validateCurrencyRequest(request);
           return handler.call(this, request, reply);
         }));
       };
     });
   }
+  async function validateCurrencyRequest(request: FastifyRequest) {
+    if (!['POST','PATCH'].includes(request.method)) return;
+    const path = request.routeOptions.url ?? '';
+    const definitions = [
+      { resource: 'service-records', table: serviceRecords, param: 'serviceRecordId', key: 'total_cost', column: 'totalCost' },
+      { resource: 'fuel-logs', table: fuelLogs, param: 'fuelLogId', key: 'cost', column: 'cost' },
+      { resource: 'expenses', table: expenses, param: 'expenseId', key: 'amount', column: 'amount' },
+    ] as const;
+    const definition = definitions.find(item => path.split('/').includes(item.resource));
+    if (!definition) return;
+    if (request.method === 'POST') {
+      const vehicleId = (request.params as {vehicleId?:string}).vehicleId;
+      if (vehicleId) {
+        await db().select({id:vehicles.id}).from(vehicles).where(eq(vehicles.id,uuid.parse(vehicleId))).for('update');
+        await getAccessibleVehicle(db(),uid(request),vehicleId,'full');
+      }
+    }
+    const body = z.record(z.unknown()).parse(request.body ?? {});
+    const params = request.params as Record<string,string>;
+    const id = request.method === 'POST' ? body.id : params[definition.param];
+    const existing = typeof id === 'string' ? (await db().select().from(definition.table).where(eq(definition.table.id,uuid.parse(id))))[0] : undefined;
+    if (request.method === 'POST' && existing) return; // authorized idempotent replay
+    if (request.method === 'PATCH' && !existing) return;
+    if (request.method === 'PATCH' && existing) {
+      if (definition.resource === 'fuel-logs') await loadFuelLogFor(db(),uid(request),existing.id,'write');
+      else if (definition.resource === 'service-records') await loadServiceRecordFor(db(),uid(request),existing.id,'write');
+      else await loadExpenseFor(db(),uid(request),existing.id,'write');
+    }
+    if (request.method === 'PATCH' && body[definition.key] === undefined && body.currency === undefined && body.items === undefined) return;
+    const amounts: unknown[] = [body[definition.key]];
+    const previous: unknown[] = [existing ? (existing as unknown as Record<string,unknown>)[definition.column] : undefined];
+    if (definition.resource === 'service-records' && Array.isArray(body.items)) {
+      const oldItems = existing ? await db().select().from(serviceRecordItems).where(eq(serviceRecordItems.serviceRecordId,existing.id)) : [];
+      for (const item of body.items as { id?:string; name?:string; line_cost?:number }[]) {
+        z.record(z.unknown()).parse(item);
+        amounts.push(item.line_cost);
+        previous.push(oldItems.find(old => item.id ? old.id === item.id : old.name === item.name)?.lineCost);
+      }
+    }
+    const currency = await incomingCurrency(db(),body,amounts,existing ? {currency:existing.currency,amounts:previous} : undefined);
+    request.body = {...body,currency};
+  }
+
   async function validatePersonalReferences(request: FastifyRequest) {
     requirePersonalOwner(request);
     const params = request.params as Record<string, string>;
@@ -396,6 +441,7 @@ async function recordVehicleScopedChange(
           }
           const runHandler = async () => {
             await validateOrganizationRequest(request);
+            await validateCurrencyRequest(request);
             return handler.call(this, request, reply);
           };
           const result = approvedReview
@@ -679,6 +725,7 @@ async function recordVehicleScopedChange(
       throw new AppError(422, "mileage_decrease", "Service odometer cannot be below vehicle mileage");
     }
     await db().insert(serviceRecords).values({
+      currency: (request.body as {currency:string}).currency,
       id: body.id,
       vehicleId,
       servicedOn: body.serviced_on,
@@ -979,6 +1026,7 @@ async function recordVehicleScopedChange(
     const [row] = await db()
       .insert(fuelLogs)
       .values({
+        currency: (request.body as {currency:string}).currency,
         id: body.id,
         userId: reviewAuthor.getStore() ?? uid(request),
         vehicleId,
@@ -1250,6 +1298,7 @@ async function recordVehicleScopedChange(
     const [existing] = await db().select().from(expenses).where(eq(expenses.id, body.id)).limit(1);
     if (existing) { reply.code(201); return await publicExpense(db(), existing.id); }
     await db().insert(expenses).values({
+      currency: (request.body as {currency:string}).currency,
       id: body.id,
       vehicleId,
       category: body.category,

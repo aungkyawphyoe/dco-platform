@@ -13,6 +13,13 @@ info:
     also enforce account budgets. A 429 response includes Retry-After (seconds); clients must
     preserve sessions and wait before retrying. Limiter-store failure returns 503 with Retry-After.
     Policy thresholds and ingress requirements are documented in docs/public-api-rate-limits.md.
+    Operational currency is staged separately from subscription/payment currency. After activation,
+    monetary creation or cost updates require explicit currency (purchase_currency for purchases).
+    Missing currency returns 428 currency_required; stale creation returns 409 currency_mismatch
+    with current_currency in details; historical relabeling returns 409 currency_immutable.
+    MMK final costs use whole amounts; USD/THB/CNY use up to two decimals. No conversion occurs.
+    Unchanged legacy amounts are preserved. Currency conflicts roll back the operation and do not
+    prevent unrelated sync operations. Read currency state before setup or correction.
 servers:
   - url: http://localhost:8080/v1
     description: local
@@ -40,6 +47,98 @@ tags:
 security:
   - bearerAuth: []
 paths:
+  /me/currency:
+    get:
+      tags: [Me]
+      summary: Read personal garage currency
+      responses:
+        '200':
+          description: Authoritative state; clients cache it in their account scope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrencyState'
+        '403': {description: Scope access is required}
+    put:
+      tags: [Me]
+      summary: Confirm or correct personal garage currency
+      description: >
+        Requires rollout activation. Personal owner or Fleet Admin only; fleet writes
+        require the Fleet Portal audience. The first monetary event permanently locks
+        the scope. expected_currency must match the current value (null for fleet setup).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurrencyChange'
+      responses:
+        '200':
+          description: Saved currency state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrencyState'
+        '403': {description: Owner or Fleet Admin access required}
+        '409': {description: Currency is locked, stale, requires migration review, or rollout is disabled}
+        '422': {description: Unsupported currency or invalid request}
+  /vehicles/{vehicleId}/currency:
+    parameters:
+      - in: path
+        name: vehicleId
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Vehicles]
+      summary: Read effective personal vehicle owner currency (including shared vehicles)
+      responses:
+        '200':
+          description: Authoritative state; clients cache it in their account scope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrencyState'
+        '403': {description: Scope access is required}
+  /organizations/{id}/currency:
+    parameters:
+      - in: path
+        name: id
+        required: true
+        schema: {type: string, format: uuid}
+    get:
+      tags: [Fleet]
+      summary: Read organization operational currency
+      responses:
+        '200':
+          description: Authoritative state; clients cache it in their account scope.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrencyState'
+        '403': {description: Scope access is required}
+    put:
+      tags: [Fleet]
+      summary: Confirm or correct organization operational currency
+      description: >
+        Requires rollout activation. Personal owner or Fleet Admin only; fleet writes
+        require the Fleet Portal audience. The first monetary event permanently locks
+        the scope. expected_currency must match the current value (null for fleet setup).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CurrencyChange'
+      responses:
+        '200':
+          description: Saved currency state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrencyState'
+        '403': {description: Owner or Fleet Admin access required}
+        '409': {description: Currency is locked, stale, requires migration review, or rollout is disabled}
+        '422': {description: Unsupported currency or invalid request}
   /admin/prices:
     get:
       tags:
@@ -978,6 +1077,7 @@ paths:
                 - type: object
                   properties:
                     create_account: {type: boolean, default: false}
+                    currency: {$ref: '#/components/schemas/OperationalCurrency', description: Defaults to MMK for new accounts; ignored for existing accounts}
       responses:
         '429':
           $ref: '#/components/responses/RateLimited'
@@ -1348,6 +1448,9 @@ paths:
                   organization:
                     type: object
                     nullable: true
+                    properties:
+                      currency: {type: string, enum: [MMK, USD, THB, CNY, null], nullable: true}
+                      currency_locked: {type: boolean}
                   features:
                     type: object
                     properties:
@@ -3672,6 +3775,7 @@ paths:
               required: [status]
               properties:
                 status: {type: string, enum: [in_progress, completed]}
+                currency: {$ref: '#/components/schemas/OperationalCurrency'}
                 completion_cost:
                   type: number
                   minimum: 0
@@ -4146,6 +4250,7 @@ paths:
                 id: {type: string, format: uuid, description: Client UUID (idempotent create)}
                 serviced_on: {type: string, format: date}
                 odometer_km: {type: number, minimum: 0}
+                currency: {$ref: '#/components/schemas/OperationalCurrency'}
                 total_cost: {type: number, minimum: 0}
                 plan_item_id: {type: string, format: uuid, nullable: true}
                 name:
@@ -4222,7 +4327,24 @@ paths:
       tags: [Fleet]
       summary: Current verified workshop's vehicles under active approved warranty
       responses:
-        '200': {description: In-warranty vehicle list; buyer personal information is excluded}
+        '200':
+          description: In-warranty vehicles; currency is the current owner/fleet currency, which may differ from the warranty issuer. Buyer personal information is excluded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        currency: {type: string, enum: [MMK, USD, THB, CNY, null], nullable: true}
+                        vehicle: {type: object}
+                        warranty: {type: object}
+                        organization_id: {type: string, format: uuid}
+                        workshop_id: {type: string, format: uuid}
+                        workshop_name: {type: string}
         '403': {$ref: '#/components/responses/Error'}
   /workshops/{vehicleId}/service:
     post:
@@ -4234,7 +4356,27 @@ paths:
         required: true
         content:
           application/json:
-            schema: {type: object, required: [serviced_on, odometer_km, total_cost, items]}
+            schema:
+              type: object
+              required: [serviced_on, odometer_km, total_cost, items]
+              properties:
+                currency:
+                  allOf:
+                    - $ref: '#/components/schemas/OperationalCurrency'
+                  description: Required after activation; use the current owner/fleet currency from the workshop vehicle list.
+                serviced_on: {type: string, format: date}
+                odometer_km: {type: integer, minimum: 0}
+                total_cost: {type: number, minimum: 0}
+                notes: {type: string, maxLength: 2000}
+                items:
+                  type: array
+                  minItems: 1
+                  items:
+                    type: object
+                    required: [name]
+                    properties:
+                      name: {type: string, minLength: 1, maxLength: 100}
+                      line_cost: {type: number, minimum: 0, nullable: true}
       responses:
         '201': {description: Warranty service recorded}
         '403': {$ref: '#/components/responses/Error'}
@@ -5838,6 +5980,25 @@ components:
     FuelType:
       type: string
       enum: [petrol, electric, hybrid_plugin]
+    CurrencyState:
+      type: object
+      required: [currency, locked, locked_at, review_required, enabled, default_currency, supported]
+      properties:
+        currency: {type: string, enum: [MMK, USD, THB, CNY, null], nullable: true}
+        locked: {type: boolean}
+        locked_at: {type: string, format: date-time, nullable: true}
+        review_required: {type: boolean}
+        enabled: {type: boolean, description: Whether operational currency selection and strict writes are activated}
+        default_currency: {type: string, enum: [MMK]}
+        supported:
+          type: array
+          items: {$ref: '#/components/schemas/OperationalCurrency'}
+    CurrencyChange:
+      type: object
+      required: [currency, expected_currency]
+      properties:
+        currency: {$ref: '#/components/schemas/OperationalCurrency'}
+        expected_currency: {type: string, enum: [MMK, USD, THB, CNY, null], nullable: true}
     OperationalCurrency:
       type: string
       enum: [MMK, USD, THB, CNY]
@@ -5865,6 +6026,10 @@ components:
       type: object
       required: [email, password]
       properties:
+        currency:
+          allOf:
+            - $ref: '#/components/schemas/OperationalCurrency'
+          description: Defaults to MMK for new accounts; never changes an existing account on login.
         email:
           type: string
           format: email
@@ -5908,6 +6073,8 @@ components:
       type: object
       required: [id, username, role, plan, status, email_verified, must_change_password]
       properties:
+        currency: {$ref: '#/components/schemas/OperationalCurrency'}
+        currency_locked: {type: boolean, readOnly: true}
         id:
           type: string
           format: uuid
@@ -6043,6 +6210,10 @@ components:
     VehiclePatch:
       type: object
       properties:
+        purchase_currency:
+          allOf:
+            - $ref: '#/components/schemas/OperationalCurrency'
+          description: Required with monetary entries after rollout activation. Historical edits retain their original currency.
         name:
           type: string
         nickname:
@@ -6308,6 +6479,10 @@ components:
       type: object
       required: [id, serviced_on, odometer, total_cost, items]
       properties:
+        currency:
+          allOf:
+            - $ref: '#/components/schemas/OperationalCurrency'
+          description: Required with monetary entries after rollout activation. Historical edits retain their original currency.
         id:
           type: string
           format: uuid
@@ -6568,6 +6743,10 @@ components:
       type: object
       required: [id, fuel_type_id, logged_on, amount, cost]
       properties:
+        currency:
+          allOf:
+            - $ref: '#/components/schemas/OperationalCurrency'
+          description: Required with monetary entries after rollout activation. Historical edits retain their original currency.
         id:
           type: string
           format: uuid
@@ -6594,6 +6773,10 @@ components:
     FuelLogPatch:
       type: object
       properties:
+        currency:
+          allOf:
+            - $ref: '#/components/schemas/OperationalCurrency'
+          description: Required with monetary entries after rollout activation. Historical edits retain their original currency.
         fill_status:
           type: string
           enum: [full, partial, unknown]
@@ -6655,6 +6838,10 @@ components:
       type: object
       required: [id, category, amount, incurred_on]
       properties:
+        currency:
+          allOf:
+            - $ref: '#/components/schemas/OperationalCurrency'
+          description: Required with monetary entries after rollout activation. Historical edits retain their original currency.
         id:
           type: string
           format: uuid

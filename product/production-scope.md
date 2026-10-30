@@ -12,7 +12,7 @@ MVP is closed. [`product/mvp-scope.md`](mvp-scope.md) is the historical Phase 1 
 
 ## Planned operational currency selection — 29 October 2026
 
-[Currency Selection — Phase One](frd/multi-currency.md) records agreed requirements for USD/MMK/THB/CNY per personal garage and fleet, locking after the first monetary record, persistent record currencies, transfer history, and offline conflict handling. **Implementation started; backend storage foundation only, not activated.** On delivery it supersedes the legacy local-only currency display preference for operational vehicle costs. No automatic conversion or subscription pricing changes are included.
+[Currency Selection — Phase One](frd/multi-currency.md) records agreed requirements for USD/MMK/THB/CNY per personal garage and fleet, locking after the first monetary record, persistent record currencies, transfer history, and offline conflict handling. **Implementation started; backend currency settings and write enforcement implemented locally, not activated.** On delivery it supersedes the legacy local-only currency display preference for operational vehicle costs. No automatic conversion or subscription pricing changes are included.
 
 ## Subscription administration — 24 October 2026
 
