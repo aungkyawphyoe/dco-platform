@@ -1040,6 +1040,7 @@
   "statsDefTopCategory": "The category with the highest combined spend.",
   "statsDefMostExpensiveExpense": "The single most expensive expense in the period, with its date.",
   "statsDefDonutCategory": "Spend grouped by category; smaller groups combine into Other.",
+  "garageOwnedTab": "Owned",
   "garageSharedBadge": "Shared",
   "vehicleShareTooltip": "Share vehicle",
   "drawerShareVehicles": "Vehicle Sharing",

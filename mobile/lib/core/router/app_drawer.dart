@@ -110,12 +110,6 @@ class AppDrawer extends ConsumerWidget {
                         title: s.drawerSharedWithMe,
                         onTap: () => _navigate(context, AppRoutes.sharedWithMe),
                       ),
-                      _DrawerTile(
-                        icon: Icons.qr_code_scanner,
-                        title: s.drawerJoinShare,
-                        onTap: () =>
-                            _navigate(context, AppRoutes.vehicleShareJoin),
-                      ),
                     ],
                     // Fleet management lives on the Fleet Portal. Driver mode
                     // uses the personal four-tab shell — there is no mobile

@@ -86,7 +86,7 @@ Numbering follows the tldraw frame names.
 | 1 | Create Account | Unauthenticated | Out of this nav spec |
 | 2 | Login | Unauthenticated | Out of this nav spec |
 | 3 | Dashboard | Login success; Garage tab; picking a vehicle in My Garage | Empty variant: CTA **Register A Vehicle**, shimmer while local DB hydrates |
-| 4 | Garage Home (My Garage) | Header **garage** on 3 | List + add. Switching a card sets active vehicle and **pops back to 3** |
+| 4 | Garage Home (My Garage) | Header **garage** on 3 | Owned/Shared tabs appear only when shared vehicles exist; Shared reuses Shared with Me. Otherwise list + add. Switching a card sets active vehicle and **pops back to 3** |
 | 5 | Add/Edit Vehicle | `+` on 4 or Register on empty 3 | New: save → set active → Maintenance Plan (registration flow). Edit: save → 3 |
 | 6 | Maintenance | Maintenance tab | Upcoming / Scheduled / History. Stack: plan list, add item, suggested catalog, register service |
 | 7 | Expenses | Expenses tab | Month/total, by category, recent list |
@@ -95,7 +95,7 @@ Numbering follows the tldraw frame names.
 | 10 | Maintenance Plan | **Hamburger menu** → Maintenance Plan; after registering a vehicle | Moved from Maintenance tab. Suggested items filtered by fuel type. In the registration flow it shows an extra **Done** button → My Garage (4). |
 | 11 | Add Maintenance Item / Register Service | From 6 or from Hamburger → Maintenance Plan | Register service updates mileage and can complete plan items |
 | 12 | Vehicle Share Management | **Hamburger menu** → Sharing | Vehicle Shares tab: manage shares on your vehicles (code/QR, email invites, access levels).
-| 13 | Shared with Me | **Hamburger menu** → Sharing | View/manage shares you hold on other people's vehicles. |
+| 13 | Shared with Me | **Hamburger menu** → Shared with Me; My Garage → Shared tab | View shares and join a vehicle share. No separate Join Vehicle Share drawer entry. |
 | 14 | Insurance | **Hamburger menu** → Insurance | Moved from Garage. Vehicle insurance documents/status. |
 | 15 | Parts | **Hamburger menu** → Parts (also from Dashboard quick actions) | Per-vehicle parts catalog. |
 | 16 | Sync Status | **Hamburger menu** → Sync | Moved from Settings. Sync status indicator + manual sync. |

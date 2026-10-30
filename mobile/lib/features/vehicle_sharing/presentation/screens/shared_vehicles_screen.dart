@@ -18,7 +18,9 @@ import '../widgets/share_access_level.dart';
 
 /// Vehicles shared *with* the signed-in user (`GET /v1/vehicles/shared`).
 class SharedVehiclesScreen extends ConsumerWidget {
-  const SharedVehiclesScreen({super.key});
+  const SharedVehiclesScreen({super.key, this.embedded = false});
+
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,6 +28,55 @@ class SharedVehiclesScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final sharedAsync = ref.watch(sharedVehiclesProvider);
 
+    final content = sharedAsync.when(
+      loading: () =>
+          Center(child: CircularProgressIndicator(color: tokens.text.accent)),
+      error: (error, _) => DcoEmptyState(
+        title: s.error,
+        body: error.toString(),
+        actionLabel: s.retry,
+        onAction: () => ref.invalidate(sharedVehiclesProvider),
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return DcoEmptyState(
+            title: s.sharedWithMeEmpty,
+            body: s.sharedWithMeEmptyBody,
+            actionLabel: s.sharedWithMeJoin,
+            onAction: () => context.push(AppRoutes.vehicleShareJoin),
+          );
+        }
+        return RefreshIndicator(
+          color: tokens.text.accent,
+          onRefresh: () async => ref.invalidate(sharedVehiclesProvider),
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: EdgeInsets.all(tokens.space.s4),
+            itemCount: items.length,
+            separatorBuilder: (_, _) => SizedBox(height: tokens.space.s2),
+            itemBuilder: (context, index) => _Tile(vehicle: items[index]),
+          ),
+        );
+      },
+    );
+    if (embedded) {
+      return Column(
+        children: [
+          Align(
+            alignment: AlignmentDirectional.centerEnd,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: tokens.space.s4),
+              child: TextButton.icon(
+                icon: const Icon(Icons.qr_code_scanner),
+                label: Text(s.sharedWithMeJoin),
+                onPressed: () => context.push(AppRoutes.vehicleShareJoin),
+              ),
+            ),
+          ),
+          Expanded(child: content),
+        ],
+      );
+    }
     return Scaffold(
       appBar: AppBar(
         title: Text(s.sharedWithMeTitle),
@@ -37,37 +88,7 @@ class SharedVehiclesScreen extends ConsumerWidget {
           ),
         ],
       ),
-      body: sharedAsync.when(
-        loading: () =>
-            Center(child: CircularProgressIndicator(color: tokens.text.accent)),
-        error: (error, _) => DcoEmptyState(
-          title: s.error,
-          body: error.toString(),
-          actionLabel: s.retry,
-          onAction: () => ref.invalidate(sharedVehiclesProvider),
-        ),
-        data: (items) {
-          if (items.isEmpty) {
-            return DcoEmptyState(
-              title: s.sharedWithMeEmpty,
-              body: s.sharedWithMeEmptyBody,
-              actionLabel: s.sharedWithMeJoin,
-              onAction: () => context.push(AppRoutes.vehicleShareJoin),
-            );
-          }
-          return RefreshIndicator(
-            color: tokens.text.accent,
-            onRefresh: () async => ref.invalidate(sharedVehiclesProvider),
-            child: ListView.separated(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.all(tokens.space.s4),
-              itemCount: items.length,
-              separatorBuilder: (_, _) => SizedBox(height: tokens.space.s2),
-              itemBuilder: (context, index) => _Tile(vehicle: items[index]),
-            ),
-          );
-        },
-      ),
+      body: content,
     );
   }
 }
@@ -141,48 +162,55 @@ class _Tile extends ConsumerWidget {
                           color: tokens.text.tertiary,
                         ),
                       ),
+                      if (!isActive)
+                        TextButton(
+                          onPressed: () async {
+                            try {
+                              await ref.read(setActiveVehicleProvider)(
+                                vehicle.id,
+                              );
+                              ref
+                                  .read(analyticsProvider)
+                                  .track(AnalyticsEvent.vehicleSwitched);
+                            } catch (_) {
+                              if (context.mounted) {
+                                unawaited(
+                                  showDcoErrorDialog(
+                                    context,
+                                    title: s.garageSwitchFailed,
+                                    message: s.garageSwitchFailedBody,
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                            if (context.mounted) {
+                              context.go(AppRoutes.dashboard);
+                            }
+                          },
+                          style: TextButton.styleFrom(
+                            minimumSize: const Size(44, 44),
+                            padding: EdgeInsets.symmetric(
+                              horizontal: tokens.space.s2,
+                            ),
+                          ),
+                          child: Text(
+                            s.vehicleSetActive,
+                            style: TextStyle(
+                              color: tokens.text.link,
+                              fontSize: 12,
+                            ),
+                          ),
+                        )
+                      else
+                        _Badge(
+                          label: s.active,
+                          color: tokens.status.infoFg,
+                          background: tokens.status.infoBg,
+                        ),
                     ],
                   ),
                 ),
-                if (!isActive)
-                  TextButton(
-                    onPressed: () async {
-                      try {
-                        await ref.read(setActiveVehicleProvider)(vehicle.id);
-                        ref
-                            .read(analyticsProvider)
-                            .track(AnalyticsEvent.vehicleSwitched);
-                      } catch (_) {
-                        if (context.mounted) {
-                          unawaited(
-                            showDcoErrorDialog(
-                              context,
-                              title: s.garageSwitchFailed,
-                              message: s.garageSwitchFailedBody,
-                            ),
-                          );
-                        }
-                        return;
-                      }
-                      if (context.mounted) context.go(AppRoutes.dashboard);
-                    },
-                    style: TextButton.styleFrom(
-                      minimumSize: const Size(44, 44),
-                      padding: EdgeInsets.symmetric(
-                        horizontal: tokens.space.s2,
-                      ),
-                    ),
-                    child: Text(
-                      s.vehicleSetActive,
-                      style: TextStyle(color: tokens.text.link, fontSize: 12),
-                    ),
-                  )
-                else
-                  _Badge(
-                    label: s.active,
-                    color: tokens.status.infoFg,
-                    background: tokens.status.infoBg,
-                  ),
                 Icon(Icons.chevron_right, color: tokens.icon.inactive),
               ],
             ),

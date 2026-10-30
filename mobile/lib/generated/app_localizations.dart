@@ -6306,6 +6306,12 @@ abstract class AppLocalizations {
   /// **'Spend grouped by category; smaller groups combine into Other.'**
   String get statsDefDonutCategory;
 
+  /// No description provided for @garageOwnedTab.
+  ///
+  /// In en, this message translates to:
+  /// **'Owned'**
+  String get garageOwnedTab;
+
   /// No description provided for @garageSharedBadge.
   ///
   /// In en, this message translates to:

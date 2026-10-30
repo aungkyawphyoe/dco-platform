@@ -3362,6 +3362,9 @@ class AppLocalizationsMy extends AppLocalizations {
       'အမျိုးအစားအလိုက် စုစုပေါင်းထားသော သုံးစွဲမှု။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။';
 
   @override
+  String get garageOwnedTab => 'ကိုယ်ပိုင်';
+
+  @override
   String get garageSharedBadge => 'မျှဝေထားသည်';
 
   @override

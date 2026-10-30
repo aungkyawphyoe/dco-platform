@@ -3325,6 +3325,9 @@ class AppLocalizationsEn extends AppLocalizations {
       'Spend grouped by category; smaller groups combine into Other.';
 
   @override
+  String get garageOwnedTab => 'Owned';
+
+  @override
   String get garageSharedBadge => 'Shared';
 
   @override
