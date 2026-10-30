@@ -150,6 +150,7 @@ class OrganizationOutboxWriter extends OutboxWriter {
                 vehicleId: vehicleId as String,
                 category: service ? 'maintenance' : 'fuel',
                 amount: amount.toDouble(),
+                currency: Value(payload['currency'] as String? ?? 'MMK'),
                 incurredOn: DateTime.parse(date),
                 createdBy: Value(userId),
                 updatedAt: now,

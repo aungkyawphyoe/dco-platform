@@ -20,6 +20,37 @@ class ChangeApplier {
   final AppDatabase _db;
 
   Future<void> apply(SyncChange change, {required String userId}) async {
+    // A pull must not overwrite the local amount behind a recoverable conflict.
+    final conflicts =
+        await (_db.select(_db.outboxEntries)..where(
+              (r) =>
+                  r.userId.equals(userId) &
+                  r.parked.equals(true) &
+                  r.errorCode.like('currency_%'),
+            ))
+            .get();
+    final blockedIds = conflicts.map((r) => r.entityId).toSet();
+    if (blockedIds.contains(change.entityId) ||
+        blockedIds.contains(change.payload['source_id'])) {
+      return;
+    }
+    if (change.entityType == 'expense' && blockedIds.isNotEmpty) {
+      final linked =
+          await (_db.select(_db.outboxEntries)..where(
+                (r) =>
+                    r.userId.equals(userId) &
+                    r.entityId.equals(change.entityId),
+              ))
+              .get();
+      if (linked.any(
+        (r) => blockedIds.contains(
+          (jsonDecode(r.payload)
+              as Map<String, dynamic>)['_currency_parent_id'],
+        ),
+      )) {
+        return;
+      }
+    }
     switch (change.entityType) {
       case OutboxEntityType.vehicle:
         await _applyVehicle(change, userId);
@@ -109,6 +140,9 @@ class ChangeApplier {
         mileageUnit: Value(_str(payload['mileage_unit'], fallback: 'mi')),
         purchaseDate: Value(_dateN(payload['purchase_date'])),
         purchasePrice: Value(_dbl(payload['purchase_price'])),
+        purchaseCurrency: Value(
+          _str(payload['purchase_currency'], fallback: 'MMK'),
+        ),
         photoMediaId: Value(_strN(payload['photo_media_id'])),
         archived: Value(payload['archived'] as bool? ?? false),
         archivedAt: Value(_dt(payload['archived_at'])),
@@ -166,6 +200,14 @@ class ChangeApplier {
             : const Value.absent(),
         purchaseDate: payload.containsKey('purchase_date')
             ? Value(_dateN(payload['purchase_date']))
+            : const Value.absent(),
+        purchaseCurrency: payload.containsKey('purchase_currency')
+            ? Value(
+                _str(
+                  payload['purchase_currency'],
+                  fallback: existing.purchaseCurrency,
+                ),
+              )
             : const Value.absent(),
         purchasePrice: payload.containsKey('purchase_price')
             ? Value(_dbl(payload['purchase_price']))
@@ -259,6 +301,7 @@ class ChangeApplier {
             servicedOn: _date(payload['serviced_on']),
             odometer: _dbl(payload['odometer']) ?? 0,
             totalCost: _dbl(payload['total_cost']) ?? 0,
+            currency: Value(_str(payload['currency'], fallback: 'MMK')),
             workshopName: Value(_strN(payload['workshop_name'])),
             notes: Value(_strN(payload['notes'])),
             receiptLocalPath: Value(existing?.receiptLocalPath),
@@ -425,6 +468,7 @@ class ChangeApplier {
             loggedOn: _date(payload['logged_on']),
             amount: _dbl(payload['amount']) ?? 0,
             cost: _dbl(payload['cost']) ?? 0,
+            currency: Value(_str(payload['currency'], fallback: 'MMK')),
             odometer: Value(
               payload.containsKey('odometer')
                   ? _dbl(payload['odometer'])
@@ -463,6 +507,7 @@ class ChangeApplier {
               fallback: existing?.vehicleId ?? '',
             ),
             category: _str(payload['category'], fallback: 'other'),
+            currency: Value(_str(payload['currency'], fallback: 'MMK')),
             amount: _dbl(payload['amount']) ?? 0,
             incurredOn: _date(payload['incurred_on']),
             notes: Value(_strN(payload['notes'])),
@@ -642,8 +687,12 @@ class ChangeApplier {
     final id = _idOf(payload, change);
 
     if (change.op == SyncChangeOp.delete) {
-      final removed = await (_db.select(_db.documentRecords)..where((row) => row.id.equals(id))).getSingleOrNull();
-      if (removed?.mediaId != null) await detachLegacyDocumentMedia(_db, removed!.mediaId!);
+      final removed = await (_db.select(
+        _db.documentRecords,
+      )..where((row) => row.id.equals(id))).getSingleOrNull();
+      if (removed?.mediaId != null) {
+        await detachLegacyDocumentMedia(_db, removed!.mediaId!);
+      }
       await (_db.delete(
         _db.documentRecords,
       )..where((row) => row.id.equals(id))).go();

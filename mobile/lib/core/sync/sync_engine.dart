@@ -203,17 +203,36 @@ class SyncEngine {
     var pushedBatches = 0;
     while (true) {
       if (_pausedForAccountChange) return pushedBatches;
-      final rows =
+      final pending =
           await (_db.select(_db.outboxEntries)
-                ..where(
-                  (row) =>
-                      row.userId.equals(userId) &
-                      row.parked.equals(false) &
-                      row.attemptCount.isSmallerThanValue(_maxAttempts),
-                )
-                ..orderBy([(row) => OrderingTerm.asc(row.id)])
-                ..limit(_batchSize))
+                ..where((r) => r.userId.equals(userId))
+                ..orderBy([(r) => OrderingTerm.asc(r.id)]))
               .get();
+      final blocked = pending
+          .where((r) => r.parked)
+          .map((r) => r.entityId)
+          .toSet();
+      final pendingIds = pending.map((r) => r.entityId).toSet();
+      final parents = <String, String>{};
+      for (final row in pending) {
+        final parent =
+            (jsonDecode(row.payload)
+                as Map<String, dynamic>)['_currency_parent_id'];
+        if (parent is String) parents[row.entityId] = parent;
+      }
+      final seen = <String>{};
+      final rows = pending
+          .where((row) {
+            if (!seen.add('${row.entityType}:${row.entityId}')) return false;
+            final parent = parents[row.entityId];
+            // A derived expense waits for its source, including a rejected source.
+            return !row.parked &&
+                !blocked.contains(row.entityId) &&
+                row.attemptCount < _maxAttempts &&
+                !pendingIds.contains(parent);
+          })
+          .take(_batchSize)
+          .toList();
       if (rows.isEmpty) return pushedBatches;
 
       final operations = rows
@@ -246,23 +265,37 @@ class SyncEngine {
             result?.error?.message ?? result?.status.name ?? 'no_result';
         // Plan-limit rejections park immediately instead of burning
         // retries; siblings keep syncing (feature-gating §9).
+        final currencyRejected =
+            result?.error?.code.startsWith('currency_') == true;
         final limitRejected = const {
-          'LIMIT_EXCEEDED', 'subscription_read_only', 'vehicle_read_only',
+          'LIMIT_EXCEEDED',
+          'subscription_read_only',
+          'vehicle_read_only',
         }.contains(result?.error?.code);
         await (_db.update(
           _db.outboxEntries,
         )..where((r) => r.id.equals(row.id))).write(
           OutboxEntriesCompanion(
-            attemptCount: limitRejected
+            attemptCount: limitRejected || currencyRejected
                 ? Value(row.attemptCount)
                 : Value(row.attemptCount + 1),
             lastError: Value(reason),
-            parked: Value(limitRejected),
+            parked: Value(limitRejected || currencyRejected),
+            errorCode: Value(result?.error?.code),
+            errorDetails: Value(jsonEncode(result?.error?.details ?? {})),
           ),
         );
       }
       pushedBatches++;
-      if (ackedCount < rows.length) return pushedBatches;
+      // Parked conflicts must not starve later unrelated operations.
+      if (ackedCount < rows.length &&
+          (results.length < rows.length ||
+              results.any(
+                (r) =>
+                    !r.acked && r.error?.code.startsWith('currency_') != true,
+              ))) {
+        return pushedBatches;
+      }
     }
   }
 
@@ -270,8 +303,17 @@ class SyncEngine {
   /// a fresh license arrives so an upgraded plan retries them
   /// (feature-gating §9, "requeue after upgrade").
   Future<void> requeueParked(String userId) {
-    return (_db.update(_db.outboxEntries)
-          ..where((row) => row.userId.equals(userId) & row.parked.equals(true)))
+    return (_db.update(_db.outboxEntries)..where(
+          (row) =>
+              row.userId.equals(userId) &
+              row.parked.equals(true) &
+              (row.errorCode.isNull() |
+                  row.errorCode.isIn(const [
+                    'LIMIT_EXCEEDED',
+                    'subscription_read_only',
+                    'vehicle_read_only',
+                  ])),
+        ))
         .write(const OutboxEntriesCompanion(parked: Value(false)));
   }
 
@@ -330,8 +372,7 @@ class SyncEngine {
     var linked = 0;
     for (final row in rows) {
       if (_pausedForAccountChange) return linked;
-      if (_outbox.derivesExpenses &&
-          !await _canUploadRecord('service_record', row.id)) {
+      if (!await _canUploadRecord('service_record', row.id)) {
         continue;
       }
       final media = await _uploadFile(
@@ -369,8 +410,7 @@ class SyncEngine {
     var linked = 0;
     for (final row in rows) {
       if (_pausedForAccountChange) return linked;
-      if (_outbox.derivesExpenses &&
-          !await _canUploadRecord('expense', row.id)) {
+      if (!await _canUploadRecord('expense', row.id)) {
         continue;
       }
       final media = await _uploadFile(
@@ -407,8 +447,7 @@ class SyncEngine {
     var linked = 0;
     for (final row in rows) {
       if (_pausedForAccountChange) return linked;
-      if (_outbox.derivesExpenses &&
-          !await _canUploadRecord('document', row.id)) {
+      if (!await _canUploadRecord('document', row.id)) {
         continue;
       }
       final media = await _uploadFile(
@@ -429,6 +468,16 @@ class SyncEngine {
   }
 
   Future<bool> _canUploadRecord(String kind, String id) async {
+    final conflict =
+        await (_db.select(_db.outboxEntries)..where(
+              (r) =>
+                  r.entityType.equals(kind) &
+                  r.entityId.equals(id) &
+                  r.parked.equals(true) &
+                  r.errorCode.like('currency_%'),
+            ))
+            .get();
+    if (conflict.isNotEmpty) return false;
     final row = await (_db.select(
       _db.appMeta,
     )..where((r) => r.key.equals('org_record:$kind:$id'))).getSingleOrNull();
@@ -591,6 +640,7 @@ class SyncEngine {
     'mileage_unit': row.mileageUnit,
     'purchase_date': row.purchaseDate?.toIso8601String().split('T').first,
     'purchase_price': row.purchasePrice,
+    'purchase_currency': row.purchaseCurrency,
     'photo_media_id': row.photoMediaId,
   };
 
@@ -603,6 +653,7 @@ class SyncEngine {
     'serviced_on': row.servicedOn.toIso8601String().split('T').first,
     'odometer': row.odometer,
     'total_cost': row.totalCost,
+    'currency': row.currency,
     'workshop_name': row.workshopName,
     'notes': row.notes,
     'title': row.title,
@@ -632,6 +683,7 @@ class SyncEngine {
     'vehicle_id': row.vehicleId,
     'category': row.category,
     'amount': row.amount,
+    'currency': row.currency,
     'incurred_on': row.incurredOn.toIso8601String().split('T').first,
     'notes': row.notes,
     'receipt_media_id': row.receiptMediaId,

@@ -1,3 +1,5 @@
+import 'currency/currency_conflict_repository.dart';
+import 'currency/currency_sync_api.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -254,16 +256,52 @@ final connectivityProvider = StreamProvider<List<ConnectivityResult>>((ref) {
 
 final syncApiProvider = Provider<SyncApi>((ref) {
   final organizationId = ref.watch(driverOrganizationIdProvider);
-  if (organizationId != null) {
-    return OrganizationSyncApi(
-      ref.watch(dioProvider),
-      ref.watch(recordDatabaseProvider),
-      organizationId,
-      ref.watch(currentUserIdProvider)!,
-    );
-  }
-  return DioSyncApi(ref.watch(dioProvider));
+  final dio = ref.watch(dioProvider);
+  final db = ref.watch(recordDatabaseProvider);
+  final userId = ref.watch(currentUserIdProvider);
+  final delegate = organizationId == null
+      ? DioSyncApi(dio)
+      : OrganizationSyncApi(dio, db, organizationId, userId!);
+  return userId == null
+      ? delegate
+      : CurrencySyncApi(
+          delegate,
+          dio,
+          db,
+          userId,
+          organizationId: organizationId,
+        );
 });
+
+final currencyConflictRepositoryProvider =
+    Provider<CurrencyConflictRepository?>((ref) {
+      final userId = ref.watch(currentUserIdProvider);
+      if (userId == null) return null;
+      final orgId = ref.watch(driverOrganizationIdProvider);
+      final db = ref.watch(recordDatabaseProvider);
+      final dio = ref.watch(dioProvider);
+      return CurrencyConflictRepository(db, userId, (vehicleId) async {
+        if (ref.read(currentUserIdProvider) != userId ||
+            ref.read(driverOrganizationIdProvider) != orgId) {
+          throw StateError(
+            'Account changed. Reopen the draft in its original account.',
+          );
+        }
+        final path = orgId != null
+            ? '/organizations/$orgId/currency'
+            : vehicleId == null
+            ? '/me/currency'
+            : '/vehicles/$vehicleId/currency';
+        final response = await dio.get<Map<String, dynamic>>(path);
+        if (ref.read(currentUserIdProvider) != userId ||
+            ref.read(driverOrganizationIdProvider) != orgId) {
+          throw StateError(
+            'Account changed. Reopen the draft in its original account.',
+          );
+        }
+        return response.data!;
+      });
+    });
 
 final mediaApiProvider = Provider<MediaApi>((ref) {
   return DioMediaApi(ref.watch(dioProvider));

@@ -1,7 +1,7 @@
 # Currency Selection — Implementation Plan
 
 **Date:** 29 October 2026  
-**Status:** Backend storage, currency-state APIs, and write enforcement implemented locally. Fleet Portal setup, cost entry, and reporting integration implemented locally. Mobile integration, remaining aggregate surfaces, and activation remain pending (30 October 2026).
+**Status:** Backend storage, currency-state APIs, and write enforcement implemented locally. Fleet Portal setup, cost entry, and reporting integration implemented locally. Mobile persistence and conflict recovery are implemented locally; mobile UI, remaining aggregate surfaces, and activation remain pending (30 October 2026).
 **Requirements:** [Currency Selection FRD](../product/frd/multi-currency.md)
 
 ## 1. Delivery objective
@@ -183,8 +183,8 @@ Use the existing backend Vitest/PGlite test harness; add real PostgreSQL concurr
 | 0 | Field inventory and API contract | FRD | Backend contracts implemented; client integration follows in phases 3–6 |
 | 1 | Schema and legacy migration | 0 | Implemented locally; ambiguous legacy attribution blocks activation until reviewed |
 | 2 | Backend state and monetary invariants | 1 | Implemented locally; rollout disabled |
-| 3 | Fleet setup and forms | 2 | Not started |
-| 4 | Mobile persistence and conflict handling | 2 | Not started |
+| 3 | Fleet setup and forms | 2 | Implemented locally; rollout disabled |
+| 4 | Mobile persistence and conflict handling | 2 | Implemented locally; recovery UI follows in phase 5 |
 | 5 | Mobile onboarding/settings/forms | 4 | Not started |
 | 6 | All totals, history, exports, support views | 2–5 | Not started |
 | 7 | Integration, documentation, staged release | 0–6 | Not started |
@@ -275,3 +275,20 @@ Implemented locally:
 Validation: Fleet Portal TypeScript and changed-file ESLint passed; backend analytics and currency integration tests passed, including retained foreign-currency history and timezone-only updates. Backend build passed. No browser interaction test has been performed for this increment.
 
 Rollout remains disabled. Phase 4 mobile storage/domain/sync is next. Phase 6 still owns legacy dashboard/vehicle cost and lemon-threshold aggregates, consistent exact totals, and remaining cross-client formatting. Those surfaces must be completed before activation; this increment does not make the full feature release-ready.
+
+
+## 11. Mobile persistence and sync phase — 30 October 2026
+
+Implemented locally:
+
+- Drift v25 adds record currency to expenses, fuel logs, services and vehicle purchase history, plus structured outbox error codes/details. Legacy rows and queued monetary amounts retain their exact values and receive MMK. Drift code was regenerated with build_runner.
+- Domain entities, repository writes, pull application and receipt-upload follow-up writes preserve original currency. New drafts carry intended currency; historical edits retain their saved code.
+- Personal/organization sync caches authoritative currency and lock state in account-scoped AppMeta, including separate shared-vehicle state. Offline newly owned vehicles can use the owner's cached state; shared vehicles cannot inherit the viewer's currency.
+- Monetary creation records a local lock in the row/outbox transaction, including zero-cost services. Inherited-history edits do not create a recipient lock. The confirmed currency code is the backend's optimistic comparison token; no separate numeric currency revision is exposed by the API.
+- Currency rejections park without retry burn, retain original payload/error details, and allow unrelated operations to continue. License refresh/manual retry cannot release currency conflicts; later writes for the same entity remain ordered. Pulls and receipt follow-up writes cannot overwrite a conflicted draft.
+- Explicit recovery checks the scope online and requires a re-entered amount, plus service line amounts. It preserves the record UUID, resets the organization operation ID when present, and updates local rows/linked expenses atomically. Multiple queued edits require explicit review through the newest queue entry before superseding them. A queued deletion is retained for separate review rather than silently discarded.
+- Personal derived expenses wait for their source write; service plus derived expense creation now shares one local transaction.
+
+Validation: 76 targeted mobile tests passed across sync, account transition, monetary repositories and six new currency cases. Coverage includes a v24→v25 disk migration, shared/account isolation, immutable historical edits, stale pulls, retry parking, linked service/expense recovery, and reviewed multiple-edit supersession. Static analysis reports no errors; existing project warnings remain. No onboarding/conflict screen or device interaction test is included in this data-layer phase.
+
+Next: phase 5 mobile onboarding, settings, currency labels, amount validation and conflict UI. Phase 6 totals/exports and coordinated release checks remain outstanding. Rollout remains disabled.
