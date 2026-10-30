@@ -27,6 +27,7 @@ interface Review {
 const resources: Record<string, string> = { expense: "expenses", service_record: "service-records", fuel_log: "fuel-logs", document: "documents", part: "parts" };
 
 const labels: Record<string, string> = {
+  currency: "Original currency",
   name: "Name", category: "Category", amount: "Amount", cost: "Cost", total_cost: "Total cost",
   incurred_on: "Date", serviced_on: "Service date", logged_on: "Fuel date", odometer: "Odometer",
   workshop_name: "Workshop", notes: "Notes", fuel_type_name: "Fuel type", unit: "Unit",
@@ -72,6 +73,7 @@ export default function ReviewsPage() {
         ...(decision === "accept" ? { expected_revision: comparison?.record?.revision ?? null } : {}) });
       setComparison(null);
       await client.invalidateQueries({ queryKey: ["reviews", orgId] });
+      await client.invalidateQueries({ queryKey: ["fleet", "currency", orgId] });
     } catch (err) { setError(err instanceof Error ? err.message : "Unable to save decision"); }
     finally { setBusy(null); }
   }

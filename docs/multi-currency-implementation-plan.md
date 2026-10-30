@@ -1,7 +1,7 @@
 # Currency Selection — Implementation Plan
 
 **Date:** 29 October 2026  
-**Status:** Backend storage, currency-state APIs, and write enforcement implemented locally. Client integration and activation remain pending (30 October 2026).
+**Status:** Backend storage, currency-state APIs, and write enforcement implemented locally. Fleet Portal setup, cost entry, and reporting integration implemented locally. Mobile integration, remaining aggregate surfaces, and activation remain pending (30 October 2026).
 **Requirements:** [Currency Selection FRD](../product/frd/multi-currency.md)
 
 ## 1. Delivery objective
@@ -260,3 +260,18 @@ Currency API tests cover disabled rollout, default MMK, precision, missing/stale
 The opt-in `currency-concurrency.test.ts` passed against a disposable real PostgreSQL instance: a pending currency correction blocks a stale first cost; a committed first cost blocks currency correction; ownership changes block stale submissions; rollback leaves no lock. The instance was stopped after testing. Run with `CURRENCY_TEST_DATABASE_URL` pointing only to a disposable test database; the normal suite skips this test without that variable.
 
 Final phase-two checks: backend build passed; full suite passed 146 tests in 30 files (the opt-in PostgreSQL test was skipped in that run and passed separately); Fleet Portal and Web Admin TypeScript checks passed. After the final malformed-input validation fix, the affected currency and personal-sync suites passed again (13 tests). `git diff --check` passed. No production migration or activation was performed.
+
+
+## 10. Fleet Portal phase — 30 October 2026
+
+Implemented locally:
+
+- Fleet Admin setup with MMK preselected and explicit confirmation; shared read-only state for other roles; correction before the durable monetary lock.
+- Required work-order completion cost with captured intended currency, MMK/decimal validation, backend error display, and explicit clearing/re-entry after a currency mismatch. Failed submissions preserve cost and notes.
+- Original currency on completed work orders, service history, submission reviews, analytics details, and expense CSVs. Legacy fractional detail amounts are retained in display.
+- Analytics uses organization operational currency. The independent reporting selector is removed; admins can still edit timezone. Foreign-currency expense snapshots are excluded from totals and comparisons while remaining in details and exports, with an exclusion notice.
+- OpenAPI and both generated portal consumers updated.
+
+Validation: Fleet Portal TypeScript and changed-file ESLint passed; backend analytics and currency integration tests passed, including retained foreign-currency history and timezone-only updates. Backend build passed. No browser interaction test has been performed for this increment.
+
+Rollout remains disabled. Phase 4 mobile storage/domain/sync is next. Phase 6 still owns legacy dashboard/vehicle cost and lemon-threshold aggregates, consistent exact totals, and remaining cross-client formatting. Those surfaces must be completed before activation; this increment does not make the full feature release-ready.

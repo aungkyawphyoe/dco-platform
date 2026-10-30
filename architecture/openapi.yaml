@@ -5381,19 +5381,18 @@ paths:
                   timezone: {type: string}
     put:
       tags: [Fleet]
-      summary: Confirm reporting currency and timezone (admins only)
-      description: Existing amounts are not converted. Currency changes require a separate data migration.
+      summary: Update reporting timezone (admins only)
+      description: Reporting uses the organization operational currency. An optional currency is a compatibility guard and must match the organization; it never relabels amounts.
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [currency, timezone, confirm_existing_amounts]
+              required: [timezone]
               properties:
                 currency: {type: string, pattern: '^[A-Z]{3}$'}
                 timezone: {type: string, example: Asia/Yangon}
-                confirm_existing_amounts: {type: boolean, enum: [true]}
       responses:
         '200': {description: Reporting settings saved}
         '403': {description: Administrator role required}

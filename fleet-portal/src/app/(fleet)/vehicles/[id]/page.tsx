@@ -600,7 +600,7 @@ function ServiceHistorySection({ orgId, vehicleId }: { orgId: string | null; veh
                   ) : null}
                 </div>
                 <span className="shrink-0 font-mono text-sm text-ink">
-                  {money(record.total_cost, 2)}
+                  {record.total_cost.toLocaleString(undefined, { maximumFractionDigits: 20 })} {record.currency}
                 </span>
               </li>
             ))}

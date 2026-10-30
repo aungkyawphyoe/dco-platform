@@ -10251,8 +10251,8 @@ export interface paths {
             };
         };
         /**
-         * Confirm reporting currency and timezone (admins only)
-         * @description Existing amounts are not converted. Currency changes require a separate data migration.
+         * Update reporting timezone (admins only)
+         * @description Reporting uses the organization operational currency. An optional currency is a compatibility guard and must match the organization; it never relabels amounts.
          */
         put: {
             parameters: {
@@ -10266,11 +10266,9 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        currency: string;
+                        currency?: string;
                         /** @example Asia/Yangon */
                         timezone: string;
-                        /** @enum {boolean} */
-                        confirm_existing_amounts: true;
                     };
                 };
             };

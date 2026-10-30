@@ -1,7 +1,8 @@
 "use client";
+import { CurrencySettings } from "@/components/currency/currency-settings";
 import { SubscriptionNotice } from "@/components/billing/subscription-notice";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { Sidebar } from "@/components/layout/sidebar";
 import { useSession, useOrgRole } from "@/lib/auth/session-context";
@@ -11,6 +12,7 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
   const { ready, user, org, passwordChangeRequired } = useSession();
   const role = useOrgRole();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     if (ready && !user) router.replace("/login");
@@ -70,7 +72,7 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar />
-      <main className="min-w-0 flex-1 overflow-y-auto p-8">{org?.organization && <SubscriptionNotice id={org.organization.id} />}{children}</main>
+      <main className="min-w-0 flex-1 overflow-y-auto p-8">{org?.organization && <SubscriptionNotice id={org.organization.id} />}{pathname !== "/settings" && <CurrencySettings setupOnly />}{children}</main>
     </div>
   );
 }
