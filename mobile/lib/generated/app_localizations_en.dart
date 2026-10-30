@@ -294,8 +294,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# days',
-      one: '# day',
+      other: '$count days',
+      one: '1 day',
     );
     return 'Overdue by $_temp0';
   }
@@ -769,8 +769,8 @@ class AppLocalizationsEn extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# days',
-      one: '# day',
+      other: '$count days',
+      one: '1 day',
     );
     return 'Overdue by $_temp0';
   }
@@ -3323,6 +3323,9 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get statsDefDonutCategory =>
       'Spend grouped by category; smaller groups combine into Other.';
+
+  @override
+  String get garageOwnedTab => 'Owned';
 
   @override
   String get garageSharedBadge => 'Shared';

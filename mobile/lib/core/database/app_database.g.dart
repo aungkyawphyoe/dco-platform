@@ -256,6 +256,18 @@ class $VehicleRecordsTable extends VehicleRecords
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $VehicleRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _purchaseCurrencyMeta = const VerificationMeta(
+    'purchaseCurrency',
+  );
+  @override
+  late final GeneratedColumn<String> purchaseCurrency = GeneratedColumn<String>(
+    'purchase_currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('MMK'),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -499,6 +511,7 @@ class $VehicleRecordsTable extends VehicleRecords
   );
   @override
   List<GeneratedColumn> get $columns => [
+    purchaseCurrency,
     id,
     userId,
     name,
@@ -535,6 +548,15 @@ class $VehicleRecordsTable extends VehicleRecords
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('purchase_currency')) {
+      context.handle(
+        _purchaseCurrencyMeta,
+        purchaseCurrency.isAcceptableOrUnknown(
+          data['purchase_currency']!,
+          _purchaseCurrencyMeta,
+        ),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -719,6 +741,10 @@ class $VehicleRecordsTable extends VehicleRecords
   VehicleRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return VehicleRecord(
+      purchaseCurrency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}purchase_currency'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -821,6 +847,7 @@ class $VehicleRecordsTable extends VehicleRecords
 }
 
 class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
+  final String purchaseCurrency;
   final String id;
   final String userId;
   final String name;
@@ -845,6 +872,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   final String source;
   final String? permission;
   const VehicleRecord({
+    required this.purchaseCurrency,
     required this.id,
     required this.userId,
     required this.name,
@@ -872,6 +900,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['purchase_currency'] = Variable<String>(purchaseCurrency);
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
     map['name'] = Variable<String>(name);
@@ -918,6 +947,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
 
   VehicleRecordsCompanion toCompanion(bool nullToAbsent) {
     return VehicleRecordsCompanion(
+      purchaseCurrency: Value(purchaseCurrency),
       id: Value(id),
       userId: Value(userId),
       name: Value(name),
@@ -966,6 +996,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return VehicleRecord(
+      purchaseCurrency: serializer.fromJson<String>(json['purchaseCurrency']),
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
       name: serializer.fromJson<String>(json['name']),
@@ -995,6 +1026,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'purchaseCurrency': serializer.toJson<String>(purchaseCurrency),
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
       'name': serializer.toJson<String>(name),
@@ -1022,6 +1054,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   }
 
   VehicleRecord copyWith({
+    String? purchaseCurrency,
     String? id,
     String? userId,
     String? name,
@@ -1046,6 +1079,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
     String? source,
     Value<String?> permission = const Value.absent(),
   }) => VehicleRecord(
+    purchaseCurrency: purchaseCurrency ?? this.purchaseCurrency,
     id: id ?? this.id,
     userId: userId ?? this.userId,
     name: name ?? this.name,
@@ -1076,6 +1110,9 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   );
   VehicleRecord copyWithCompanion(VehicleRecordsCompanion data) {
     return VehicleRecord(
+      purchaseCurrency: data.purchaseCurrency.present
+          ? data.purchaseCurrency.value
+          : this.purchaseCurrency,
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
       name: data.name.present ? data.name.value : this.name,
@@ -1121,6 +1158,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   @override
   String toString() {
     return (StringBuffer('VehicleRecord(')
+          ..write('purchaseCurrency: $purchaseCurrency, ')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('name: $name, ')
@@ -1150,6 +1188,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
 
   @override
   int get hashCode => Object.hashAll([
+    purchaseCurrency,
     id,
     userId,
     name,
@@ -1178,6 +1217,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VehicleRecord &&
+          other.purchaseCurrency == this.purchaseCurrency &&
           other.id == this.id &&
           other.userId == this.userId &&
           other.name == this.name &&
@@ -1204,6 +1244,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
 }
 
 class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
+  final Value<String> purchaseCurrency;
   final Value<String> id;
   final Value<String> userId;
   final Value<String> name;
@@ -1229,6 +1270,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   final Value<String?> permission;
   final Value<int> rowid;
   const VehicleRecordsCompanion({
+    this.purchaseCurrency = const Value.absent(),
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
     this.name = const Value.absent(),
@@ -1255,6 +1297,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     this.rowid = const Value.absent(),
   });
   VehicleRecordsCompanion.insert({
+    this.purchaseCurrency = const Value.absent(),
     required String id,
     required String userId,
     required String name,
@@ -1291,6 +1334,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
        updatedAt = Value(updatedAt),
        createdAt = Value(createdAt);
   static Insertable<VehicleRecord> custom({
+    Expression<String>? purchaseCurrency,
     Expression<String>? id,
     Expression<String>? userId,
     Expression<String>? name,
@@ -1317,6 +1361,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (purchaseCurrency != null) 'purchase_currency': purchaseCurrency,
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
       if (name != null) 'name': name,
@@ -1345,6 +1390,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   }
 
   VehicleRecordsCompanion copyWith({
+    Value<String>? purchaseCurrency,
     Value<String>? id,
     Value<String>? userId,
     Value<String>? name,
@@ -1371,6 +1417,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     Value<int>? rowid,
   }) {
     return VehicleRecordsCompanion(
+      purchaseCurrency: purchaseCurrency ?? this.purchaseCurrency,
       id: id ?? this.id,
       userId: userId ?? this.userId,
       name: name ?? this.name,
@@ -1401,6 +1448,9 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (purchaseCurrency.present) {
+      map['purchase_currency'] = Variable<String>(purchaseCurrency.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -1479,6 +1529,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   @override
   String toString() {
     return (StringBuffer('VehicleRecordsCompanion(')
+          ..write('purchaseCurrency: $purchaseCurrency, ')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('name: $name, ')
@@ -2119,6 +2170,28 @@ class $OutboxEntriesTable extends OutboxEntries
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _errorCodeMeta = const VerificationMeta(
+    'errorCode',
+  );
+  @override
+  late final GeneratedColumn<String> errorCode = GeneratedColumn<String>(
+    'error_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _errorDetailsMeta = const VerificationMeta(
+    'errorDetails',
+  );
+  @override
+  late final GeneratedColumn<String> errorDetails = GeneratedColumn<String>(
+    'error_details',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _lastErrorMeta = const VerificationMeta(
     'lastError',
   );
@@ -2153,6 +2226,8 @@ class $OutboxEntriesTable extends OutboxEntries
     payload,
     clientTs,
     attemptCount,
+    errorCode,
+    errorDetails,
     lastError,
     parked,
   ];
@@ -2225,6 +2300,21 @@ class $OutboxEntriesTable extends OutboxEntries
         ),
       );
     }
+    if (data.containsKey('error_code')) {
+      context.handle(
+        _errorCodeMeta,
+        errorCode.isAcceptableOrUnknown(data['error_code']!, _errorCodeMeta),
+      );
+    }
+    if (data.containsKey('error_details')) {
+      context.handle(
+        _errorDetailsMeta,
+        errorDetails.isAcceptableOrUnknown(
+          data['error_details']!,
+          _errorDetailsMeta,
+        ),
+      );
+    }
     if (data.containsKey('last_error')) {
       context.handle(
         _lastErrorMeta,
@@ -2278,6 +2368,14 @@ class $OutboxEntriesTable extends OutboxEntries
         DriftSqlType.int,
         data['${effectivePrefix}attempt_count'],
       )!,
+      errorCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error_code'],
+      ),
+      errorDetails: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}error_details'],
+      ),
       lastError: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}last_error'],
@@ -2304,6 +2402,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
   final String payload;
   final DateTime clientTs;
   final int attemptCount;
+  final String? errorCode;
+  final String? errorDetails;
   final String? lastError;
 
   /// Parked by a server plan-limit rejection (`LIMIT_EXCEEDED`) — out of
@@ -2318,6 +2418,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     required this.payload,
     required this.clientTs,
     required this.attemptCount,
+    this.errorCode,
+    this.errorDetails,
     this.lastError,
     required this.parked,
   });
@@ -2332,6 +2434,12 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     map['payload'] = Variable<String>(payload);
     map['client_ts'] = Variable<DateTime>(clientTs);
     map['attempt_count'] = Variable<int>(attemptCount);
+    if (!nullToAbsent || errorCode != null) {
+      map['error_code'] = Variable<String>(errorCode);
+    }
+    if (!nullToAbsent || errorDetails != null) {
+      map['error_details'] = Variable<String>(errorDetails);
+    }
     if (!nullToAbsent || lastError != null) {
       map['last_error'] = Variable<String>(lastError);
     }
@@ -2349,6 +2457,12 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
       payload: Value(payload),
       clientTs: Value(clientTs),
       attemptCount: Value(attemptCount),
+      errorCode: errorCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorCode),
+      errorDetails: errorDetails == null && nullToAbsent
+          ? const Value.absent()
+          : Value(errorDetails),
       lastError: lastError == null && nullToAbsent
           ? const Value.absent()
           : Value(lastError),
@@ -2370,6 +2484,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
       payload: serializer.fromJson<String>(json['payload']),
       clientTs: serializer.fromJson<DateTime>(json['clientTs']),
       attemptCount: serializer.fromJson<int>(json['attemptCount']),
+      errorCode: serializer.fromJson<String?>(json['errorCode']),
+      errorDetails: serializer.fromJson<String?>(json['errorDetails']),
       lastError: serializer.fromJson<String?>(json['lastError']),
       parked: serializer.fromJson<bool>(json['parked']),
     );
@@ -2386,6 +2502,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
       'payload': serializer.toJson<String>(payload),
       'clientTs': serializer.toJson<DateTime>(clientTs),
       'attemptCount': serializer.toJson<int>(attemptCount),
+      'errorCode': serializer.toJson<String?>(errorCode),
+      'errorDetails': serializer.toJson<String?>(errorDetails),
       'lastError': serializer.toJson<String?>(lastError),
       'parked': serializer.toJson<bool>(parked),
     };
@@ -2400,6 +2518,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     String? payload,
     DateTime? clientTs,
     int? attemptCount,
+    Value<String?> errorCode = const Value.absent(),
+    Value<String?> errorDetails = const Value.absent(),
     Value<String?> lastError = const Value.absent(),
     bool? parked,
   }) => OutboxEntry(
@@ -2411,6 +2531,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     payload: payload ?? this.payload,
     clientTs: clientTs ?? this.clientTs,
     attemptCount: attemptCount ?? this.attemptCount,
+    errorCode: errorCode.present ? errorCode.value : this.errorCode,
+    errorDetails: errorDetails.present ? errorDetails.value : this.errorDetails,
     lastError: lastError.present ? lastError.value : this.lastError,
     parked: parked ?? this.parked,
   );
@@ -2428,6 +2550,10 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
       attemptCount: data.attemptCount.present
           ? data.attemptCount.value
           : this.attemptCount,
+      errorCode: data.errorCode.present ? data.errorCode.value : this.errorCode,
+      errorDetails: data.errorDetails.present
+          ? data.errorDetails.value
+          : this.errorDetails,
       lastError: data.lastError.present ? data.lastError.value : this.lastError,
       parked: data.parked.present ? data.parked.value : this.parked,
     );
@@ -2444,6 +2570,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
           ..write('payload: $payload, ')
           ..write('clientTs: $clientTs, ')
           ..write('attemptCount: $attemptCount, ')
+          ..write('errorCode: $errorCode, ')
+          ..write('errorDetails: $errorDetails, ')
           ..write('lastError: $lastError, ')
           ..write('parked: $parked')
           ..write(')'))
@@ -2460,6 +2588,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
     payload,
     clientTs,
     attemptCount,
+    errorCode,
+    errorDetails,
     lastError,
     parked,
   );
@@ -2475,6 +2605,8 @@ class OutboxEntry extends DataClass implements Insertable<OutboxEntry> {
           other.payload == this.payload &&
           other.clientTs == this.clientTs &&
           other.attemptCount == this.attemptCount &&
+          other.errorCode == this.errorCode &&
+          other.errorDetails == this.errorDetails &&
           other.lastError == this.lastError &&
           other.parked == this.parked);
 }
@@ -2488,6 +2620,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
   final Value<String> payload;
   final Value<DateTime> clientTs;
   final Value<int> attemptCount;
+  final Value<String?> errorCode;
+  final Value<String?> errorDetails;
   final Value<String?> lastError;
   final Value<bool> parked;
   const OutboxEntriesCompanion({
@@ -2499,6 +2633,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     this.payload = const Value.absent(),
     this.clientTs = const Value.absent(),
     this.attemptCount = const Value.absent(),
+    this.errorCode = const Value.absent(),
+    this.errorDetails = const Value.absent(),
     this.lastError = const Value.absent(),
     this.parked = const Value.absent(),
   });
@@ -2511,6 +2647,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     required String payload,
     required DateTime clientTs,
     this.attemptCount = const Value.absent(),
+    this.errorCode = const Value.absent(),
+    this.errorDetails = const Value.absent(),
     this.lastError = const Value.absent(),
     this.parked = const Value.absent(),
   }) : userId = Value(userId),
@@ -2528,6 +2666,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     Expression<String>? payload,
     Expression<DateTime>? clientTs,
     Expression<int>? attemptCount,
+    Expression<String>? errorCode,
+    Expression<String>? errorDetails,
     Expression<String>? lastError,
     Expression<bool>? parked,
   }) {
@@ -2540,6 +2680,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
       if (payload != null) 'payload': payload,
       if (clientTs != null) 'client_ts': clientTs,
       if (attemptCount != null) 'attempt_count': attemptCount,
+      if (errorCode != null) 'error_code': errorCode,
+      if (errorDetails != null) 'error_details': errorDetails,
       if (lastError != null) 'last_error': lastError,
       if (parked != null) 'parked': parked,
     });
@@ -2554,6 +2696,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     Value<String>? payload,
     Value<DateTime>? clientTs,
     Value<int>? attemptCount,
+    Value<String?>? errorCode,
+    Value<String?>? errorDetails,
     Value<String?>? lastError,
     Value<bool>? parked,
   }) {
@@ -2566,6 +2710,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
       payload: payload ?? this.payload,
       clientTs: clientTs ?? this.clientTs,
       attemptCount: attemptCount ?? this.attemptCount,
+      errorCode: errorCode ?? this.errorCode,
+      errorDetails: errorDetails ?? this.errorDetails,
       lastError: lastError ?? this.lastError,
       parked: parked ?? this.parked,
     );
@@ -2598,6 +2744,12 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
     if (attemptCount.present) {
       map['attempt_count'] = Variable<int>(attemptCount.value);
     }
+    if (errorCode.present) {
+      map['error_code'] = Variable<String>(errorCode.value);
+    }
+    if (errorDetails.present) {
+      map['error_details'] = Variable<String>(errorDetails.value);
+    }
     if (lastError.present) {
       map['last_error'] = Variable<String>(lastError.value);
     }
@@ -2618,6 +2770,8 @@ class OutboxEntriesCompanion extends UpdateCompanion<OutboxEntry> {
           ..write('payload: $payload, ')
           ..write('clientTs: $clientTs, ')
           ..write('attemptCount: $attemptCount, ')
+          ..write('errorCode: $errorCode, ')
+          ..write('errorDetails: $errorDetails, ')
           ..write('lastError: $lastError, ')
           ..write('parked: $parked')
           ..write(')'))
@@ -3408,6 +3562,18 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $ServiceRecordRowsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('MMK'),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -3547,6 +3713,7 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
   );
   @override
   List<GeneratedColumn> get $columns => [
+    currency,
     id,
     vehicleId,
     title,
@@ -3573,6 +3740,12 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -3682,6 +3855,10 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
   ServiceRecordRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ServiceRecordRow(
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -3745,6 +3922,7 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
 
 class ServiceRecordRow extends DataClass
     implements Insertable<ServiceRecordRow> {
+  final String currency;
   final String id;
   final String vehicleId;
   final String title;
@@ -3759,6 +3937,7 @@ class ServiceRecordRow extends DataClass
   final DateTime updatedAt;
   final DateTime createdAt;
   const ServiceRecordRow({
+    required this.currency,
     required this.id,
     required this.vehicleId,
     required this.title,
@@ -3776,6 +3955,7 @@ class ServiceRecordRow extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['currency'] = Variable<String>(currency);
     map['id'] = Variable<String>(id);
     map['vehicle_id'] = Variable<String>(vehicleId);
     map['title'] = Variable<String>(title);
@@ -3804,6 +3984,7 @@ class ServiceRecordRow extends DataClass
 
   ServiceRecordRowsCompanion toCompanion(bool nullToAbsent) {
     return ServiceRecordRowsCompanion(
+      currency: Value(currency),
       id: Value(id),
       vehicleId: Value(vehicleId),
       title: Value(title),
@@ -3836,6 +4017,7 @@ class ServiceRecordRow extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ServiceRecordRow(
+      currency: serializer.fromJson<String>(json['currency']),
       id: serializer.fromJson<String>(json['id']),
       vehicleId: serializer.fromJson<String>(json['vehicleId']),
       title: serializer.fromJson<String>(json['title']),
@@ -3855,6 +4037,7 @@ class ServiceRecordRow extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'currency': serializer.toJson<String>(currency),
       'id': serializer.toJson<String>(id),
       'vehicleId': serializer.toJson<String>(vehicleId),
       'title': serializer.toJson<String>(title),
@@ -3872,6 +4055,7 @@ class ServiceRecordRow extends DataClass
   }
 
   ServiceRecordRow copyWith({
+    String? currency,
     String? id,
     String? vehicleId,
     String? title,
@@ -3886,6 +4070,7 @@ class ServiceRecordRow extends DataClass
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => ServiceRecordRow(
+    currency: currency ?? this.currency,
     id: id ?? this.id,
     vehicleId: vehicleId ?? this.vehicleId,
     title: title ?? this.title,
@@ -3906,6 +4091,7 @@ class ServiceRecordRow extends DataClass
   );
   ServiceRecordRow copyWithCompanion(ServiceRecordRowsCompanion data) {
     return ServiceRecordRow(
+      currency: data.currency.present ? data.currency.value : this.currency,
       id: data.id.present ? data.id.value : this.id,
       vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
       title: data.title.present ? data.title.value : this.title,
@@ -3933,6 +4119,7 @@ class ServiceRecordRow extends DataClass
   @override
   String toString() {
     return (StringBuffer('ServiceRecordRow(')
+          ..write('currency: $currency, ')
           ..write('id: $id, ')
           ..write('vehicleId: $vehicleId, ')
           ..write('title: $title, ')
@@ -3952,6 +4139,7 @@ class ServiceRecordRow extends DataClass
 
   @override
   int get hashCode => Object.hash(
+    currency,
     id,
     vehicleId,
     title,
@@ -3970,6 +4158,7 @@ class ServiceRecordRow extends DataClass
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ServiceRecordRow &&
+          other.currency == this.currency &&
           other.id == this.id &&
           other.vehicleId == this.vehicleId &&
           other.title == this.title &&
@@ -3986,6 +4175,7 @@ class ServiceRecordRow extends DataClass
 }
 
 class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
+  final Value<String> currency;
   final Value<String> id;
   final Value<String> vehicleId;
   final Value<String> title;
@@ -4001,6 +4191,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ServiceRecordRowsCompanion({
+    this.currency = const Value.absent(),
     this.id = const Value.absent(),
     this.vehicleId = const Value.absent(),
     this.title = const Value.absent(),
@@ -4017,6 +4208,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     this.rowid = const Value.absent(),
   });
   ServiceRecordRowsCompanion.insert({
+    this.currency = const Value.absent(),
     required String id,
     required String vehicleId,
     required String title,
@@ -4040,6 +4232,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
        updatedAt = Value(updatedAt),
        createdAt = Value(createdAt);
   static Insertable<ServiceRecordRow> custom({
+    Expression<String>? currency,
     Expression<String>? id,
     Expression<String>? vehicleId,
     Expression<String>? title,
@@ -4056,6 +4249,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (currency != null) 'currency': currency,
       if (id != null) 'id': id,
       if (vehicleId != null) 'vehicle_id': vehicleId,
       if (title != null) 'title': title,
@@ -4074,6 +4268,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
   }
 
   ServiceRecordRowsCompanion copyWith({
+    Value<String>? currency,
     Value<String>? id,
     Value<String>? vehicleId,
     Value<String>? title,
@@ -4090,6 +4285,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     Value<int>? rowid,
   }) {
     return ServiceRecordRowsCompanion(
+      currency: currency ?? this.currency,
       id: id ?? this.id,
       vehicleId: vehicleId ?? this.vehicleId,
       title: title ?? this.title,
@@ -4110,6 +4306,9 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -4158,6 +4357,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
   @override
   String toString() {
     return (StringBuffer('ServiceRecordRowsCompanion(')
+          ..write('currency: $currency, ')
           ..write('id: $id, ')
           ..write('vehicleId: $vehicleId, ')
           ..write('title: $title, ')
@@ -5924,6 +6124,18 @@ class $FuelLogRecordsTable extends FuelLogRecords
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $FuelLogRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('MMK'),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -6069,6 +6281,7 @@ class $FuelLogRecordsTable extends FuelLogRecords
   );
   @override
   List<GeneratedColumn> get $columns => [
+    currency,
     id,
     userId,
     vehicleId,
@@ -6096,6 +6309,12 @@ class $FuelLogRecordsTable extends FuelLogRecords
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -6216,6 +6435,10 @@ class $FuelLogRecordsTable extends FuelLogRecords
   FuelLogRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return FuelLogRecord(
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -6282,6 +6505,7 @@ class $FuelLogRecordsTable extends FuelLogRecords
 }
 
 class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
+  final String currency;
   final String id;
   final String userId;
   final String vehicleId;
@@ -6297,6 +6521,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   final DateTime updatedAt;
   final DateTime createdAt;
   const FuelLogRecord({
+    required this.currency,
     required this.id,
     required this.userId,
     required this.vehicleId,
@@ -6315,6 +6540,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['currency'] = Variable<String>(currency);
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
     map['vehicle_id'] = Variable<String>(vehicleId);
@@ -6336,6 +6562,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
 
   FuelLogRecordsCompanion toCompanion(bool nullToAbsent) {
     return FuelLogRecordsCompanion(
+      currency: Value(currency),
       id: Value(id),
       userId: Value(userId),
       vehicleId: Value(vehicleId),
@@ -6361,6 +6588,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return FuelLogRecord(
+      currency: serializer.fromJson<String>(json['currency']),
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
       vehicleId: serializer.fromJson<String>(json['vehicleId']),
@@ -6381,6 +6609,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'currency': serializer.toJson<String>(currency),
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
       'vehicleId': serializer.toJson<String>(vehicleId),
@@ -6399,6 +6628,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   }
 
   FuelLogRecord copyWith({
+    String? currency,
     String? id,
     String? userId,
     String? vehicleId,
@@ -6414,6 +6644,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => FuelLogRecord(
+    currency: currency ?? this.currency,
     id: id ?? this.id,
     userId: userId ?? this.userId,
     vehicleId: vehicleId ?? this.vehicleId,
@@ -6431,6 +6662,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   );
   FuelLogRecord copyWithCompanion(FuelLogRecordsCompanion data) {
     return FuelLogRecord(
+      currency: data.currency.present ? data.currency.value : this.currency,
       id: data.id.present ? data.id.value : this.id,
       userId: data.userId.present ? data.userId.value : this.userId,
       vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
@@ -6457,6 +6689,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   @override
   String toString() {
     return (StringBuffer('FuelLogRecord(')
+          ..write('currency: $currency, ')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('vehicleId: $vehicleId, ')
@@ -6477,6 +6710,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
 
   @override
   int get hashCode => Object.hash(
+    currency,
     id,
     userId,
     vehicleId,
@@ -6496,6 +6730,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is FuelLogRecord &&
+          other.currency == this.currency &&
           other.id == this.id &&
           other.userId == this.userId &&
           other.vehicleId == this.vehicleId &&
@@ -6513,6 +6748,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
 }
 
 class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
+  final Value<String> currency;
   final Value<String> id;
   final Value<String> userId;
   final Value<String> vehicleId;
@@ -6529,6 +6765,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const FuelLogRecordsCompanion({
+    this.currency = const Value.absent(),
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
     this.vehicleId = const Value.absent(),
@@ -6546,6 +6783,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     this.rowid = const Value.absent(),
   });
   FuelLogRecordsCompanion.insert({
+    this.currency = const Value.absent(),
     required String id,
     required String userId,
     required String vehicleId,
@@ -6574,6 +6812,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
        updatedAt = Value(updatedAt),
        createdAt = Value(createdAt);
   static Insertable<FuelLogRecord> custom({
+    Expression<String>? currency,
     Expression<String>? id,
     Expression<String>? userId,
     Expression<String>? vehicleId,
@@ -6591,6 +6830,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (currency != null) 'currency': currency,
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
       if (vehicleId != null) 'vehicle_id': vehicleId,
@@ -6610,6 +6850,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
   }
 
   FuelLogRecordsCompanion copyWith({
+    Value<String>? currency,
     Value<String>? id,
     Value<String>? userId,
     Value<String>? vehicleId,
@@ -6627,6 +6868,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     Value<int>? rowid,
   }) {
     return FuelLogRecordsCompanion(
+      currency: currency ?? this.currency,
       id: id ?? this.id,
       userId: userId ?? this.userId,
       vehicleId: vehicleId ?? this.vehicleId,
@@ -6648,6 +6890,9 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -6699,6 +6944,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
   @override
   String toString() {
     return (StringBuffer('FuelLogRecordsCompanion(')
+          ..write('currency: $currency, ')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('vehicleId: $vehicleId, ')
@@ -6725,6 +6971,18 @@ class $ExpenseRecordsTable extends ExpenseRecords
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $ExpenseRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _currencyMeta = const VerificationMeta(
+    'currency',
+  );
+  @override
+  late final GeneratedColumn<String> currency = GeneratedColumn<String>(
+    'currency',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('MMK'),
+  );
   static const VerificationMeta _idMeta = const VerificationMeta('id');
   @override
   late final GeneratedColumn<String> id = GeneratedColumn<String>(
@@ -6842,6 +7100,7 @@ class $ExpenseRecordsTable extends ExpenseRecords
   );
   @override
   List<GeneratedColumn> get $columns => [
+    currency,
     id,
     vehicleId,
     category,
@@ -6866,6 +7125,12 @@ class $ExpenseRecordsTable extends ExpenseRecords
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('currency')) {
+      context.handle(
+        _currencyMeta,
+        currency.isAcceptableOrUnknown(data['currency']!, _currencyMeta),
+      );
+    }
     if (data.containsKey('id')) {
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     } else if (isInserting) {
@@ -6958,6 +7223,10 @@ class $ExpenseRecordsTable extends ExpenseRecords
   ExpenseRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return ExpenseRecord(
+      currency: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}currency'],
+      )!,
       id: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}id'],
@@ -7012,6 +7281,7 @@ class $ExpenseRecordsTable extends ExpenseRecords
 }
 
 class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
+  final String currency;
   final String id;
   final String vehicleId;
   final String category;
@@ -7024,6 +7294,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   final DateTime updatedAt;
   final DateTime createdAt;
   const ExpenseRecord({
+    required this.currency,
     required this.id,
     required this.vehicleId,
     required this.category,
@@ -7039,6 +7310,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['currency'] = Variable<String>(currency);
     map['id'] = Variable<String>(id);
     map['vehicle_id'] = Variable<String>(vehicleId);
     map['category'] = Variable<String>(category);
@@ -7063,6 +7335,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
 
   ExpenseRecordsCompanion toCompanion(bool nullToAbsent) {
     return ExpenseRecordsCompanion(
+      currency: Value(currency),
       id: Value(id),
       vehicleId: Value(vehicleId),
       category: Value(category),
@@ -7091,6 +7364,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return ExpenseRecord(
+      currency: serializer.fromJson<String>(json['currency']),
       id: serializer.fromJson<String>(json['id']),
       vehicleId: serializer.fromJson<String>(json['vehicleId']),
       category: serializer.fromJson<String>(json['category']),
@@ -7108,6 +7382,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'currency': serializer.toJson<String>(currency),
       'id': serializer.toJson<String>(id),
       'vehicleId': serializer.toJson<String>(vehicleId),
       'category': serializer.toJson<String>(category),
@@ -7123,6 +7398,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   }
 
   ExpenseRecord copyWith({
+    String? currency,
     String? id,
     String? vehicleId,
     String? category,
@@ -7135,6 +7411,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
     DateTime? updatedAt,
     DateTime? createdAt,
   }) => ExpenseRecord(
+    currency: currency ?? this.currency,
     id: id ?? this.id,
     vehicleId: vehicleId ?? this.vehicleId,
     category: category ?? this.category,
@@ -7153,6 +7430,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   );
   ExpenseRecord copyWithCompanion(ExpenseRecordsCompanion data) {
     return ExpenseRecord(
+      currency: data.currency.present ? data.currency.value : this.currency,
       id: data.id.present ? data.id.value : this.id,
       vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
       category: data.category.present ? data.category.value : this.category,
@@ -7176,6 +7454,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   @override
   String toString() {
     return (StringBuffer('ExpenseRecord(')
+          ..write('currency: $currency, ')
           ..write('id: $id, ')
           ..write('vehicleId: $vehicleId, ')
           ..write('category: $category, ')
@@ -7193,6 +7472,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
 
   @override
   int get hashCode => Object.hash(
+    currency,
     id,
     vehicleId,
     category,
@@ -7209,6 +7489,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is ExpenseRecord &&
+          other.currency == this.currency &&
           other.id == this.id &&
           other.vehicleId == this.vehicleId &&
           other.category == this.category &&
@@ -7223,6 +7504,7 @@ class ExpenseRecord extends DataClass implements Insertable<ExpenseRecord> {
 }
 
 class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
+  final Value<String> currency;
   final Value<String> id;
   final Value<String> vehicleId;
   final Value<String> category;
@@ -7236,6 +7518,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
   final Value<DateTime> createdAt;
   final Value<int> rowid;
   const ExpenseRecordsCompanion({
+    this.currency = const Value.absent(),
     this.id = const Value.absent(),
     this.vehicleId = const Value.absent(),
     this.category = const Value.absent(),
@@ -7250,6 +7533,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
     this.rowid = const Value.absent(),
   });
   ExpenseRecordsCompanion.insert({
+    this.currency = const Value.absent(),
     required String id,
     required String vehicleId,
     required String category,
@@ -7270,6 +7554,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
        updatedAt = Value(updatedAt),
        createdAt = Value(createdAt);
   static Insertable<ExpenseRecord> custom({
+    Expression<String>? currency,
     Expression<String>? id,
     Expression<String>? vehicleId,
     Expression<String>? category,
@@ -7284,6 +7569,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (currency != null) 'currency': currency,
       if (id != null) 'id': id,
       if (vehicleId != null) 'vehicle_id': vehicleId,
       if (category != null) 'category': category,
@@ -7300,6 +7586,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
   }
 
   ExpenseRecordsCompanion copyWith({
+    Value<String>? currency,
     Value<String>? id,
     Value<String>? vehicleId,
     Value<String>? category,
@@ -7314,6 +7601,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
     Value<int>? rowid,
   }) {
     return ExpenseRecordsCompanion(
+      currency: currency ?? this.currency,
       id: id ?? this.id,
       vehicleId: vehicleId ?? this.vehicleId,
       category: category ?? this.category,
@@ -7332,6 +7620,9 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (currency.present) {
+      map['currency'] = Variable<String>(currency.value);
+    }
     if (id.present) {
       map['id'] = Variable<String>(id.value);
     }
@@ -7374,6 +7665,7 @@ class ExpenseRecordsCompanion extends UpdateCompanion<ExpenseRecord> {
   @override
   String toString() {
     return (StringBuffer('ExpenseRecordsCompanion(')
+          ..write('currency: $currency, ')
           ..write('id: $id, ')
           ..write('vehicleId: $vehicleId, ')
           ..write('category: $category, ')
@@ -12408,6 +12700,7 @@ typedef $$AppMetaTableProcessedTableManager =
     >;
 typedef $$VehicleRecordsTableCreateCompanionBuilder =
     VehicleRecordsCompanion Function({
+      Value<String> purchaseCurrency,
       required String id,
       required String userId,
       required String name,
@@ -12435,6 +12728,7 @@ typedef $$VehicleRecordsTableCreateCompanionBuilder =
     });
 typedef $$VehicleRecordsTableUpdateCompanionBuilder =
     VehicleRecordsCompanion Function({
+      Value<String> purchaseCurrency,
       Value<String> id,
       Value<String> userId,
       Value<String> name,
@@ -12470,6 +12764,11 @@ class $$VehicleRecordsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get purchaseCurrency => $composableBuilder(
+    column: $table.purchaseCurrency,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -12595,6 +12894,11 @@ class $$VehicleRecordsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get purchaseCurrency => $composableBuilder(
+    column: $table.purchaseCurrency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -12720,6 +13024,11 @@ class $$VehicleRecordsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get purchaseCurrency => $composableBuilder(
+    column: $table.purchaseCurrency,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -12839,6 +13148,7 @@ class $$VehicleRecordsTableTableManager
               $$VehicleRecordsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String> purchaseCurrency = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> userId = const Value.absent(),
                 Value<String> name = const Value.absent(),
@@ -12864,6 +13174,7 @@ class $$VehicleRecordsTableTableManager
                 Value<String?> permission = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VehicleRecordsCompanion(
+                purchaseCurrency: purchaseCurrency,
                 id: id,
                 userId: userId,
                 name: name,
@@ -12891,6 +13202,7 @@ class $$VehicleRecordsTableTableManager
               ),
           createCompanionCallback:
               ({
+                Value<String> purchaseCurrency = const Value.absent(),
                 required String id,
                 required String userId,
                 required String name,
@@ -12916,6 +13228,7 @@ class $$VehicleRecordsTableTableManager
                 Value<String?> permission = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VehicleRecordsCompanion.insert(
+                purchaseCurrency: purchaseCurrency,
                 id: id,
                 userId: userId,
                 name: name,
@@ -13257,6 +13570,8 @@ typedef $$OutboxEntriesTableCreateCompanionBuilder =
       required String payload,
       required DateTime clientTs,
       Value<int> attemptCount,
+      Value<String?> errorCode,
+      Value<String?> errorDetails,
       Value<String?> lastError,
       Value<bool> parked,
     });
@@ -13270,6 +13585,8 @@ typedef $$OutboxEntriesTableUpdateCompanionBuilder =
       Value<String> payload,
       Value<DateTime> clientTs,
       Value<int> attemptCount,
+      Value<String?> errorCode,
+      Value<String?> errorDetails,
       Value<String?> lastError,
       Value<bool> parked,
     });
@@ -13320,6 +13637,16 @@ class $$OutboxEntriesTableFilterComposer
 
   ColumnFilters<int> get attemptCount => $composableBuilder(
     column: $table.attemptCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get errorCode => $composableBuilder(
+    column: $table.errorCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get errorDetails => $composableBuilder(
+    column: $table.errorDetails,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13383,6 +13710,16 @@ class $$OutboxEntriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get errorCode => $composableBuilder(
+    column: $table.errorCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get errorDetails => $composableBuilder(
+    column: $table.errorDetails,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get lastError => $composableBuilder(
     column: $table.lastError,
     builder: (column) => ColumnOrderings(column),
@@ -13428,6 +13765,14 @@ class $$OutboxEntriesTableAnnotationComposer
 
   GeneratedColumn<int> get attemptCount => $composableBuilder(
     column: $table.attemptCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get errorCode =>
+      $composableBuilder(column: $table.errorCode, builder: (column) => column);
+
+  GeneratedColumn<String> get errorDetails => $composableBuilder(
+    column: $table.errorDetails,
     builder: (column) => column,
   );
 
@@ -13477,6 +13822,8 @@ class $$OutboxEntriesTableTableManager
                 Value<String> payload = const Value.absent(),
                 Value<DateTime> clientTs = const Value.absent(),
                 Value<int> attemptCount = const Value.absent(),
+                Value<String?> errorCode = const Value.absent(),
+                Value<String?> errorDetails = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
                 Value<bool> parked = const Value.absent(),
               }) => OutboxEntriesCompanion(
@@ -13488,6 +13835,8 @@ class $$OutboxEntriesTableTableManager
                 payload: payload,
                 clientTs: clientTs,
                 attemptCount: attemptCount,
+                errorCode: errorCode,
+                errorDetails: errorDetails,
                 lastError: lastError,
                 parked: parked,
               ),
@@ -13501,6 +13850,8 @@ class $$OutboxEntriesTableTableManager
                 required String payload,
                 required DateTime clientTs,
                 Value<int> attemptCount = const Value.absent(),
+                Value<String?> errorCode = const Value.absent(),
+                Value<String?> errorDetails = const Value.absent(),
                 Value<String?> lastError = const Value.absent(),
                 Value<bool> parked = const Value.absent(),
               }) => OutboxEntriesCompanion.insert(
@@ -13512,6 +13863,8 @@ class $$OutboxEntriesTableTableManager
                 payload: payload,
                 clientTs: clientTs,
                 attemptCount: attemptCount,
+                errorCode: errorCode,
+                errorDetails: errorDetails,
                 lastError: lastError,
                 parked: parked,
               ),
@@ -13926,6 +14279,7 @@ typedef $$PlanItemRecordsTableProcessedTableManager =
     >;
 typedef $$ServiceRecordRowsTableCreateCompanionBuilder =
     ServiceRecordRowsCompanion Function({
+      Value<String> currency,
       required String id,
       required String vehicleId,
       required String title,
@@ -13943,6 +14297,7 @@ typedef $$ServiceRecordRowsTableCreateCompanionBuilder =
     });
 typedef $$ServiceRecordRowsTableUpdateCompanionBuilder =
     ServiceRecordRowsCompanion Function({
+      Value<String> currency,
       Value<String> id,
       Value<String> vehicleId,
       Value<String> title,
@@ -13968,6 +14323,11 @@ class $$ServiceRecordRowsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -14043,6 +14403,11 @@ class $$ServiceRecordRowsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -14118,6 +14483,9 @@ class $$ServiceRecordRowsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -14206,6 +14574,7 @@ class $$ServiceRecordRowsTableTableManager
               ),
           updateCompanionCallback:
               ({
+                Value<String> currency = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> vehicleId = const Value.absent(),
                 Value<String> title = const Value.absent(),
@@ -14221,6 +14590,7 @@ class $$ServiceRecordRowsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ServiceRecordRowsCompanion(
+                currency: currency,
                 id: id,
                 vehicleId: vehicleId,
                 title: title,
@@ -14238,6 +14608,7 @@ class $$ServiceRecordRowsTableTableManager
               ),
           createCompanionCallback:
               ({
+                Value<String> currency = const Value.absent(),
                 required String id,
                 required String vehicleId,
                 required String title,
@@ -14253,6 +14624,7 @@ class $$ServiceRecordRowsTableTableManager
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => ServiceRecordRowsCompanion.insert(
+                currency: currency,
                 id: id,
                 vehicleId: vehicleId,
                 title: title,
@@ -15302,6 +15674,7 @@ typedef $$FuelTypeRecordsTableProcessedTableManager =
     >;
 typedef $$FuelLogRecordsTableCreateCompanionBuilder =
     FuelLogRecordsCompanion Function({
+      Value<String> currency,
       required String id,
       required String userId,
       required String vehicleId,
@@ -15320,6 +15693,7 @@ typedef $$FuelLogRecordsTableCreateCompanionBuilder =
     });
 typedef $$FuelLogRecordsTableUpdateCompanionBuilder =
     FuelLogRecordsCompanion Function({
+      Value<String> currency,
       Value<String> id,
       Value<String> userId,
       Value<String> vehicleId,
@@ -15346,6 +15720,11 @@ class $$FuelLogRecordsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -15426,6 +15805,11 @@ class $$FuelLogRecordsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -15506,6 +15890,9 @@ class $$FuelLogRecordsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -15588,6 +15975,7 @@ class $$FuelLogRecordsTableTableManager
               $$FuelLogRecordsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String> currency = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> userId = const Value.absent(),
                 Value<String> vehicleId = const Value.absent(),
@@ -15604,6 +15992,7 @@ class $$FuelLogRecordsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FuelLogRecordsCompanion(
+                currency: currency,
                 id: id,
                 userId: userId,
                 vehicleId: vehicleId,
@@ -15622,6 +16011,7 @@ class $$FuelLogRecordsTableTableManager
               ),
           createCompanionCallback:
               ({
+                Value<String> currency = const Value.absent(),
                 required String id,
                 required String userId,
                 required String vehicleId,
@@ -15638,6 +16028,7 @@ class $$FuelLogRecordsTableTableManager
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => FuelLogRecordsCompanion.insert(
+                currency: currency,
                 id: id,
                 userId: userId,
                 vehicleId: vehicleId,
@@ -15690,6 +16081,7 @@ typedef $$FuelLogRecordsTableProcessedTableManager =
     >;
 typedef $$ExpenseRecordsTableCreateCompanionBuilder =
     ExpenseRecordsCompanion Function({
+      Value<String> currency,
       required String id,
       required String vehicleId,
       required String category,
@@ -15705,6 +16097,7 @@ typedef $$ExpenseRecordsTableCreateCompanionBuilder =
     });
 typedef $$ExpenseRecordsTableUpdateCompanionBuilder =
     ExpenseRecordsCompanion Function({
+      Value<String> currency,
       Value<String> id,
       Value<String> vehicleId,
       Value<String> category,
@@ -15728,6 +16121,11 @@ class $$ExpenseRecordsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnFilters(column),
@@ -15793,6 +16191,11 @@ class $$ExpenseRecordsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get currency => $composableBuilder(
+    column: $table.currency,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -15858,6 +16261,9 @@ class $$ExpenseRecordsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<String> get currency =>
+      $composableBuilder(column: $table.currency, builder: (column) => column);
+
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -15931,6 +16337,7 @@ class $$ExpenseRecordsTableTableManager
               $$ExpenseRecordsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<String> currency = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> vehicleId = const Value.absent(),
                 Value<String> category = const Value.absent(),
@@ -15944,6 +16351,7 @@ class $$ExpenseRecordsTableTableManager
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ExpenseRecordsCompanion(
+                currency: currency,
                 id: id,
                 vehicleId: vehicleId,
                 category: category,
@@ -15959,6 +16367,7 @@ class $$ExpenseRecordsTableTableManager
               ),
           createCompanionCallback:
               ({
+                Value<String> currency = const Value.absent(),
                 required String id,
                 required String vehicleId,
                 required String category,
@@ -15972,6 +16381,7 @@ class $$ExpenseRecordsTableTableManager
                 required DateTime createdAt,
                 Value<int> rowid = const Value.absent(),
               }) => ExpenseRecordsCompanion.insert(
+                currency: currency,
                 id: id,
                 vehicleId: vehicleId,
                 category: category,

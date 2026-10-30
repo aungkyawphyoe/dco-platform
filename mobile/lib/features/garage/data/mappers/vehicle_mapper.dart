@@ -19,6 +19,7 @@ Vehicle vehicleFromDrift(VehicleRecord row) {
     mileageUnit: MileageUnit.parse(row.mileageUnit),
     purchaseDate: row.purchaseDate,
     purchasePrice: row.purchasePrice,
+    purchaseCurrency: row.purchaseCurrency,
     photoLocalPath: row.photoLocalPath,
     photoMediaId: row.photoMediaId,
     archived: row.archived,

@@ -1,5 +1,7 @@
 "use client";
 
+import { Input } from "@dco/ui/components/input";
+import { useFleetCurrency, type Currency } from "@/lib/api/currency";
 import { useState } from "react";
 import { PageHeader } from "@dco/ui/components/page-header";
 import { Card } from "@dco/ui/components/card";
@@ -43,6 +45,7 @@ function WorkOrderCard({
       <p className="text-xs text-ink-faint">
         {order.reported_at ? formatDateTime(order.reported_at) : "Reported"}
       </p>
+      {order.completion_cost !== null && order.completion_cost !== undefined && <p className="mt-2 text-sm">Completion cost: {order.completion_cost.toLocaleString(undefined, { maximumFractionDigits: 20 })} {order.currency}</p>}
       {action ? <div className="mt-3">{action}</div> : null}
     </article>
   );
@@ -90,6 +93,11 @@ export default function WorkOrdersPage() {
   const { data: members } = useMembers(orgId);
   const { data: vehiclesData } = useVehicles(orgId);
   const updateOrder = useUpdateWorkOrder(orgId);
+  const currencyQuery = useFleetCurrency(orgId);
+  const currentCurrency = currencyQuery.data ? (currencyQuery.data.enabled ? currencyQuery.data.currency : "MMK") : null;
+  const [draftCurrency, setDraftCurrency] = useState<Currency | null>(null);
+  const [cost, setCost] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
   const [advance, setAdvance] = useState<{ id: string; next: string; assign?: boolean } | null>(
     null,
@@ -122,15 +130,33 @@ export default function WorkOrdersPage() {
 
   async function onAdvance() {
     if (!advance) return;
-    await updateOrder.mutateAsync({
-      id: advance.id,
-      status: advance.next,
-      ...(advance.assign && assignee ? { assigned_to: assignee } : {}),
-      ...(advance.next === "completed" && notes ? { resolution_notes: notes } : {}),
-    });
-    setAdvance(null);
-    setAssignee("");
-    setNotes("");
+    setError(null);
+    if (advance.next === "completed") {
+      if (!draftCurrency || currencyQuery.isError || draftCurrency !== currentCurrency) {
+        setError("Fleet currency is unavailable or has changed. Confirm the current currency and re-enter the cost.");
+        return;
+      }
+      const pattern = draftCurrency === "MMK" ? /^\d+$/ : /^\d+(?:\.\d{1,2})?$/;
+      if (!pattern.test(cost) || !Number.isFinite(Number(cost))) {
+        setError(draftCurrency === "MMK" ? "Enter a non-negative whole MMK amount." : "Enter a non-negative amount with at most two decimal places.");
+        return;
+      }
+    }
+    try {
+      await updateOrder.mutateAsync({
+        id: advance.id,
+        status: advance.next,
+        ...(advance.assign && assignee ? { assigned_to: assignee } : {}),
+        ...(advance.next === "completed" ? { completion_cost: Number(cost), currency: draftCurrency!, resolution_notes: notes || null } : {}),
+      });
+      setAdvance(null);
+      setAssignee("");
+      setNotes("");
+      setCost("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update work order.");
+      await currencyQuery.refetch();
+    }
   }
 
   function actionFor(order: WorkOrder) {
@@ -141,9 +167,10 @@ export default function WorkOrdersPage() {
         size="sm"
         variant={next === "in_progress" ? "primary" : "secondary"}
         className="w-full"
-        onClick={() =>
-          setAdvance({ id: order.id, next, assign: next === "in_progress" })
-        }
+        onClick={() => {
+          setCost(""); setNotes(""); setAssignee(""); setError(null); setDraftCurrency(currentCurrency);
+          setAdvance({ id: order.id, next, assign: next === "in_progress" });
+        }}
       >
         {next === "in_progress" ? "Start work" : "Mark completed"}
       </Button>
@@ -238,13 +265,19 @@ export default function WorkOrdersPage() {
             />
           ) : null}
           {advance?.next === "completed" ? (
+            <>
+            <Input label={`Completion cost (${draftCurrency ?? "currency not selected"})`} inputMode="decimal" value={cost} onChange={e => setCost(e.target.value)} />
+            <p className="text-xs">Enter the equivalent cost in {draftCurrency ?? "the fleet currency"}. No automatic conversion is applied. You may record the original amount in notes.</p>
+            {currentCurrency && currentCurrency !== draftCurrency && <Button variant="secondary" onClick={() => { setDraftCurrency(currentCurrency); setCost(""); setError(null); }}>Use {currentCurrency} and re-enter cost</Button>}
             <textarea
               className="min-h-20 rounded-md border border-line-strong bg-field p-3 text-sm text-ink"
               placeholder="Resolution notes (optional)"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
             />
+            </>
           ) : null}
+          {error && <p role="alert" className="text-danger">{error}</p>}
           <p className="text-xs text-ink-caption">
             Signed in as {user?.email} ({role ?? "—"})
           </p>

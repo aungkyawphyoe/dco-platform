@@ -34,6 +34,7 @@ function recordDate(r: ReportingRecord) {
 export function expenseRows(records: ReportingRecord[], p: Period) {
   return records.filter(r => r.kind === 'expense' && inside(recordDate(r), p)).map(r => ({
     id: r.id, vehicle_id: r.vehicle_id, date: recordDate(r), category: String(r.payload.category),
+    currency: r.payload.currency == null ? null : String(r.payload.currency),
     amount: num(r.payload.amount) ?? 0, description: String(r.payload.notes ?? r.payload.category ?? ''),
     entered_by: String(r.payload.entered_by ?? 'Unknown'),
     source_kind: r.payload.source_kind == null ? null : String(r.payload.source_kind),

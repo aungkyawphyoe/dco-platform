@@ -1,3 +1,4 @@
+import '../../core/currency/currency_store.dart';
 import '../../core/storage/entry_preferences.dart';
 import 'dart:ui';
 
@@ -31,6 +32,16 @@ final localeProvider = Provider<Locale>((ref) {
 final lengthUnitProvider = Provider<MileageUnit>((ref) {
   return ref.watch(userPreferencesProvider).valueOrNull?.lengthUnit ??
       MileageUnit.km;
+});
+
+/// The account/fleet selection, independent of the legacy display preference.
+/// recordDatabaseProvider selects the isolated organization database for drivers.
+final selectedCurrencyStateProvider = StreamProvider<Map<String, dynamic>?>((
+  ref,
+) {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return Stream.value(null);
+  return CurrencyStore(ref.watch(recordDatabaseProvider)).watch(userId);
 });
 
 final currencyProvider = Provider<AppCurrency>((ref) {

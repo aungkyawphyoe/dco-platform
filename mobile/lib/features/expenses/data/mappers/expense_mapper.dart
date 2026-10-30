@@ -3,12 +3,16 @@ import 'package:drift/drift.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/expense.dart';
 
-Expense expenseFromDrift(ExpenseRecord row, [List<ExpensePartRecord> parts = const []]) {
+Expense expenseFromDrift(
+  ExpenseRecord row, [
+  List<ExpensePartRecord> parts = const [],
+]) {
   return Expense(
     id: row.id,
     vehicleId: row.vehicleId,
     category: ExpenseCategory.parse(row.category),
     amount: row.amount,
+    currency: row.currency,
     incurredOn: row.incurredOn,
     notes: row.notes,
     receiptLocalPath: row.receiptLocalPath,
@@ -21,11 +25,7 @@ Expense expenseFromDrift(ExpenseRecord row, [List<ExpensePartRecord> parts = con
 }
 
 ExpenseAssignedPart expenseAssignedPartFromDrift(ExpensePartRecord row) {
-  return ExpenseAssignedPart(
-    id: row.id,
-    partId: row.partId,
-    name: row.name,
-  );
+  return ExpenseAssignedPart(id: row.id, partId: row.partId, name: row.name);
 }
 
 ExpenseRecordsCompanion expenseToCompanion(Expense expense) {
@@ -34,6 +34,7 @@ ExpenseRecordsCompanion expenseToCompanion(Expense expense) {
     vehicleId: expense.vehicleId,
     category: expense.category.storage,
     amount: expense.amount,
+    currency: Value(expense.currency),
     incurredOn: expense.incurredOn,
     notes: Value(expense.notes),
     receiptLocalPath: Value(expense.receiptLocalPath),

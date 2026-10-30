@@ -1,6 +1,8 @@
 import 'package:drift/drift.dart';
 
 class VehicleRecords extends Table {
+  TextColumn get purchaseCurrency =>
+      text().withDefault(const Constant('MMK'))();
   @override
   String get tableName => 'vehicles';
 
@@ -55,6 +57,8 @@ class OutboxEntries extends Table {
   TextColumn get payload => text()();
   DateTimeColumn get clientTs => dateTime()();
   IntColumn get attemptCount => integer().withDefault(const Constant(0))();
+  TextColumn get errorCode => text().nullable()();
+  TextColumn get errorDetails => text().nullable()();
   TextColumn get lastError => text().nullable()();
 
   /// Parked by a server plan-limit rejection (`LIMIT_EXCEEDED`) — out of
@@ -85,6 +89,7 @@ class PlanItemRecords extends Table {
 }
 
 class ServiceRecordRows extends Table {
+  TextColumn get currency => text().withDefault(const Constant('MMK'))();
   @override
   String get tableName => 'service_records';
 
@@ -169,6 +174,7 @@ class FuelTypeRecords extends Table {
 }
 
 class FuelLogRecords extends Table {
+  TextColumn get currency => text().withDefault(const Constant('MMK'))();
   @override
   String get tableName => 'fuel_logs';
 
@@ -192,6 +198,7 @@ class FuelLogRecords extends Table {
 }
 
 class ExpenseRecords extends Table {
+  TextColumn get currency => text().withDefault(const Constant('MMK'))();
   @override
   String get tableName => 'expenses';
 

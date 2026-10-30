@@ -123,6 +123,7 @@ export type ServiceRecordLine = {
 };
 
 export type VehicleServiceRecord = {
+  currency: "MMK" | "USD" | "THB" | "CNY";
   id: string;
   vehicle_id: string;
   serviced_on: string;
@@ -135,6 +136,8 @@ export type VehicleServiceRecord = {
 };
 
 export type WorkOrder = {
+  currency: "MMK" | "USD" | "THB" | "CNY";
+  completion_cost: number | null;
   id: string;
   org_id: string;
   vehicle_id: string;

@@ -96,6 +96,8 @@ export const plans = pgTable("plans", {
 });
 
 export const users = pgTable("users", {
+  currency: text("currency").notNull().default("MMK"),
+  currencyLockedAt: timestamp("currency_locked_at", { withTimezone: true }),
   id: uuid("id").primaryKey(),
   email: text("email").unique(),
   username: text("username").notNull().unique(),
@@ -136,6 +138,7 @@ export const vehicles = pgTable("vehicles", {
   mileage: numeric("mileage", { precision: 12, scale: 1 }).notNull(),
   mileageUnit: mileageUnitEnum("mileage_unit").notNull().default("mi"),
   purchaseDate: date("purchase_date"),
+  purchaseCurrency: text("purchase_currency").notNull().default("MMK"),
   purchasePrice: numeric("purchase_price", { precision: 12, scale: 2 }),
   photoMediaId: uuid("photo_media_id"),
   archived: boolean("archived").notNull().default(false),
@@ -230,6 +233,7 @@ export const planItems = pgTable("plan_items", {
 });
 
 export const serviceRecords = pgTable("service_records", {
+  currency: text("currency").notNull().default("MMK"),
   revision: integer("revision").notNull().default(1),
   adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
@@ -289,6 +293,7 @@ export const fuelTypes = pgTable("fuel_types", {
 });
 
 export const fuelLogs = pgTable("fuel_logs", {
+  currency: text("currency").notNull().default("MMK"),
   revision: integer("revision").notNull().default(1),
   adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
@@ -333,6 +338,7 @@ export const documentLinks = pgTable("document_links", {
 });
 
 export const expenses = pgTable("expenses", {
+  currency: text("currency").notNull().default("MMK"),
   sourceKind: text("source_kind"),
   sourceId: uuid("source_id"),
   revision: integer("revision").notNull().default(1),
@@ -473,6 +479,8 @@ export const vehicleShareInvitations = pgTable("vehicle_share_invitations", {
 });
 
 export const organizations = pgTable("organizations", {
+  currency: text("currency"),
+  currencyLockedAt: timestamp("currency_locked_at", { withTimezone: true }),
   billingMigrated: boolean("billing_migrated").notNull().default(true),
   id: uuid("id").primaryKey(),
   name: text("name").notNull(),
@@ -542,6 +550,7 @@ export const driverAssignments = pgTable("driver_assignments", {
 }));
 
 export const workOrders = pgTable("work_orders", {
+  currency: text("currency").notNull().default("MMK"),
   id: uuid("id").primaryKey(),
   orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
@@ -616,7 +625,7 @@ export const vehicleWarranties = pgTable("vehicle_warranties", {
 });
 
 export const transferredVehicles = pgTable("transferred_vehicles", {
-  serviceSnapshot: jsonb("service_snapshot").$type<Array<{ id: string; serviced_on: string | null; odometer: number; total_cost: number; workshop_name: string | null; notes: string | null }>>().notNull().default(sql`'[]'::jsonb`),
+  serviceSnapshot: jsonb("service_snapshot").$type<Array<{ id: string; serviced_on: string | null; odometer: number; total_cost: number; currency: string; workshop_name: string | null; notes: string | null }>>().notNull().default(sql`'[]'::jsonb`),
   vehicleSnapshot: jsonb("vehicle_snapshot").$type<Record<string, unknown>>(),
   id: uuid("id").primaryKey(),
   vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),

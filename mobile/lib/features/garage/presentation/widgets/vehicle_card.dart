@@ -62,9 +62,7 @@ class VehicleCard extends StatelessWidget {
           foregroundDecoration: BoxDecoration(
             borderRadius: BorderRadius.circular(tokens.radius.lg),
             border: Border.all(
-              color: isActive
-                  ? tokens.border.highlight
-                  : tokens.border.divider,
+              color: isActive ? tokens.border.highlight : tokens.border.divider,
               width: isActive ? 1.5 : 1,
             ),
           ),
@@ -80,16 +78,13 @@ class VehicleCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            minHeight: _minHit,
-                          ),
+                          constraints: const BoxConstraints(minHeight: _minHit),
                           child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Row(
@@ -97,9 +92,9 @@ class VehicleCard extends StatelessWidget {
                                         Flexible(
                                           child: Text(
                                             vehicle.displayName,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleMedium,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.titleMedium,
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -147,14 +142,14 @@ class VehicleCard extends StatelessWidget {
                           ),
                         ),
                         SizedBox(height: tokens.space.s3),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.center,
+                        Wrap(
+                          spacing: tokens.space.s5,
+                          runSpacing: tokens.space.s3,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            Expanded(
-                              child: _Odometer(
-                                mileage: vehicle.mileage,
-                                unit: lengthUnit,
-                              ),
+                            _Odometer(
+                              mileage: vehicle.mileage,
+                              unit: lengthUnit,
                             ),
                             if (isActive)
                               _ActiveChip(label: _sentenceCase(s.active))
@@ -299,10 +294,14 @@ class _ActiveChip extends StatelessWidget {
         children: [
           Icon(Icons.check, size: 18, color: tokens.icon.onAccent),
           SizedBox(width: tokens.space.s1),
-          Text(
-            label,
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: tokens.button.primary.text,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: tokens.button.primary.text,
+              ),
             ),
           ),
         ],
@@ -337,6 +336,8 @@ class _SetActiveButton extends StatelessWidget {
           child: Center(
             child: Text(
               label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: Theme.of(
                 context,
               ).textTheme.labelLarge?.copyWith(color: tokens.text.link),
@@ -370,10 +371,7 @@ class _VehicleMenu extends StatelessWidget {
         ),
         child: Icon(Icons.more_horiz, size: 18, color: tokens.icon.inactive),
       ),
-      constraints: const BoxConstraints(
-        minWidth: _minHit,
-        minHeight: _minHit,
-      ),
+      constraints: const BoxConstraints(minWidth: _minHit, minHeight: _minHit),
       padding: EdgeInsets.zero,
       onSelected: (action) {
         switch (action) {

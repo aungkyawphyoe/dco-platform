@@ -7,7 +7,7 @@ it('scopes reports and exports, locks currency, freezes transferred history, and
   const {app,db,client,headers,orgId,vehicleId,userId}=await analyticsFixture();
   try {
     const base=`/v1/organizations/${orgId}/analytics`, query='from=2026-01-01&to=2026-09-30';
-    expect((await app.inject({url:`${base}/report?${query}`,headers})).statusCode).toBe(409);
+    expect((await app.inject({url:`${base}/report?${query}`,headers})).statusCode).toBe(200);
     const save=await app.inject({method:'PUT',url:`${base}/settings`,headers,payload:{currency:'MMK',timezone:'Asia/Yangon',confirm_existing_amounts:true}});
     expect(save.statusCode,save.body).toBe(200);
     expect((await app.inject({method:'PUT',url:`${base}/settings`,headers,payload:{currency:'USD',timezone:'UTC',confirm_existing_amounts:true}})).statusCode).toBe(409);
@@ -43,5 +43,29 @@ it('persists full/partial tank status through shared organization record writes'
     expect(response.json().fill_status).toBe('partial');
     const snapshot=await client.query<{payload:{fill_status:string}}>('SELECT payload FROM analytics_records WHERE org_id=$1 AND kind=$2 AND id=$3',[orgId,'fuel_log',id]);
     expect(snapshot.rows[0].payload.fill_status).toBe('partial');
+  } finally {await app.close();await client.close();}
+},30000);
+
+
+it('uses organization currency and excludes foreign history without relabeling details or exports', async () => {
+  const {app,client,headers,orgId,vehicleId}=await analyticsFixture();
+  try {
+    const base=`/v1/organizations/${orgId}/analytics`, query='from=2026-01-01&to=2026-09-30';
+    // A retained historical snapshot can differ from the current fleet currency.
+    const foreignId=crypto.randomUUID();
+    await client.query(`INSERT INTO analytics_records(org_id,vehicle_id,kind,id,payload) VALUES($1,$2,'expense',$3,$4::jsonb)`,
+      [orgId,vehicleId,foreignId,JSON.stringify({amount:12.25,currency:'USD',incurred_on:'2026-09-25',category:'parking'})]);
+    const report=await app.inject({url:`${base}/report?${query}`,headers});
+    expect(report.json().currency).toBe('MMK');
+    expect(report.json().total_cost).toBe(1962000);
+    expect(report.json().warnings.join(' ')).toContain('1 expenses in other currencies');
+    const records=await app.inject({url:`${base}/records?${query}`,headers});
+    expect(records.json().items.find((r:{id:string})=>r.id===foreignId)).toMatchObject({amount:12.25,currency:'USD',included_in_total:false});
+    const csv=await app.inject({url:`${base}/export?${query}&kind=expenses`,headers});
+    expect(csv.body.split('\n').find(line=>line.includes(foreignId))).toContain('USD');
+    const save=await app.inject({method:'PUT',url:`${base}/settings`,headers,payload:{timezone:'Asia/Bangkok'}});
+    expect(save.statusCode,save.body).toBe(200);
+    expect(save.json()).toEqual({currency:'MMK',timezone:'Asia/Bangkok'});
+    expect((await app.inject({url:`${base}/settings`,headers})).json()).toEqual(save.json());
   } finally {await app.close();await client.close();}
 },30000);

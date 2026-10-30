@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { grantTestFleet } from "./helpers.js";
 import { describe, expect, it } from "vitest";
 import { createTestApp, testEnv, uuid } from "./helpers.js";
@@ -635,12 +636,18 @@ describe("Approved workshop warranty access", () => {
     });
     expect(future.statusCode).toBe(422);
 
+    await app.db.execute(sql`UPDATE operational_currency_control SET enabled=true`);
+    const currencyChoice = await app.inject({method:'PUT',url:'/v1/me/currency',headers:auth(buyer.token),payload:{currency:'THB',expected_currency:'MMK'}});
+    expect(currencyChoice.statusCode,currencyChoice.body).toBe(200);
+    const workshopCurrencies = await app.inject({method:'GET',url:'/v1/workshops/my-vehicles',headers:auth(workshopToken)});
+    expect(workshopCurrencies.json().items[0].currency).toBe('THB');
     const service = await app.inject({
       method: "POST", url: `/v1/workshops/${vehicleId}/service`, headers: auth(workshopToken),
-      payload: { serviced_on: "2026-09-20", odometer_km: 1500, total_cost: 240, notes: "Warranty service", items: [{ name: "Oil change", line_cost: 140 }, { name: "Filter", line_cost: 100 }] },
+      payload: { serviced_on: "2026-09-20", odometer_km: 1500, total_cost: 240, currency: "THB", notes: "Warranty service", items: [{ name: "Oil change", line_cost: 140 }, { name: "Filter", line_cost: 100 }] },
     });
     expect(service.statusCode).toBe(201);
     expect(service.json().workshop_name).toBe("Approved Garage");
+    expect(service.json().currency).toBe("THB");
     const buyerRecords = await app.inject({ method: "GET", url: `/v1/vehicles/${vehicleId}/service-records`, headers: auth(buyer.token) });
     expect(buyerRecords.statusCode).toBe(200);
     expect(buyerRecords.json().items).toHaveLength(1);

@@ -10,6 +10,10 @@
 
 MVP is closed. [`product/mvp-scope.md`](mvp-scope.md) is the historical Phase 1 contract (what shipped); it no longer gates new work. This file is the source of truth for the production app. `docs/product-roadmap.md` and `product/frd/` must not contradict it.
 
+## Planned operational currency selection — 29 October 2026
+
+[Currency Selection — Phase One](frd/multi-currency.md) records agreed requirements for USD/MMK/THB/CNY per personal garage and fleet, locking after the first monetary record, persistent record currencies, transfer history, and offline conflict handling. **Implementation started; backend currency settings and write enforcement implemented locally, not activated.** On delivery it supersedes the legacy local-only currency display preference for operational vehicle costs. No automatic conversion or subscription pricing changes are included.
+
 ## Subscription administration — 24 October 2026
 
 [Subscription Management and Admin Pricing](frd/subscription-management.md) is approved for implementation across API, Admin, mobile, Fleet Portal, and public pricing. It supersedes older exclusions of admin subscription management and immutable catalog prices. Direct-paid personal/Fleet terms have seven-day grace; complimentary grants have none. Fleet terms belong to organizations. Existing organizations retain access pending explicit migration; new organizations require terms. Managed personal downgrades preserve records/shares and restrict editing to one locked vehicle. Existing promotional gift expiry retains its previous contract. Store prices/lifecycle remain provider-controlled. iOS checkout and local gateway integration remain future work.

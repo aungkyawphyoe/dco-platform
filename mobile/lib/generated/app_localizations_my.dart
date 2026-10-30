@@ -785,8 +785,8 @@ class AppLocalizationsMy extends AppLocalizations {
     String _temp0 = intl.Intl.pluralLogic(
       count,
       locale: localeName,
-      other: '# ရက်',
-      one: '# ရက်',
+      other: '$count ရက်',
+      one: '1 ရက်',
     );
     return '$_temp0 ရက်လွန်နေပြီ';
   }
@@ -3360,6 +3360,9 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get statsDefDonutCategory =>
       'အမျိုးအစားအလိုက် စုစုပေါင်းထားသော သုံးစွဲမှု။ အုပ်စု အသေးများကို အခြား အတွင်း ပေါင်းသည်။';
+
+  @override
+  String get garageOwnedTab => 'ကိုယ်ပိုင်';
 
   @override
   String get garageSharedBadge => 'မျှဝေထားသည်';

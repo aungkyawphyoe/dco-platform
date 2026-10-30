@@ -1,3 +1,4 @@
+import '../../../../core/currency/currency_store.dart';
 import '../../../../core/database/document_links.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -403,6 +404,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     final title =
         _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
     final record = ServiceRecord(
+      currency: await CurrencyStore(
+        _db,
+      ).validateCreation(userId, draft.currency, vehicleId: vehicle.id),
       id: _uuid.v4(),
       vehicleId: vehicle.id,
       title: title,
@@ -419,6 +423,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     );
 
     await _db.transaction(() async {
+      await CurrencyStore(_db).markLocalCreation(userId, vehicleId: vehicle.id);
       await _db
           .into(_db.serviceRecordRows)
           .insert(
@@ -429,6 +434,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
               servicedOn: record.servicedOn,
               odometer: record.odometer,
               totalCost: record.totalCost,
+              currency: Value(record.currency),
               workshopName: Value(record.workshopName),
               notes: Value(record.notes),
               createdBy: Value(record.createdBy),
@@ -526,19 +532,21 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         op: OutboxOp.upsert,
         payload: record.toWriteJson(),
       );
+      // Auto-create expense for maintenance cost (skip if zero — e.g. mileage-only updates)
+      if (draft.totalCost > 0 && !_outbox.derivesExpenses) {
+        await _expenseRepository.add(
+          userId: userId,
+          vehicleId: vehicle.id,
+          draft: ExpenseDraft(
+            currency: record.currency,
+            currencyParentId: record.id,
+            category: ExpenseCategory.maintenance,
+            amount: draft.totalCost,
+            incurredOn: draft.servicedOn,
+          ),
+        );
+      }
     });
-    // Auto-create expense for maintenance cost (skip if zero — e.g. mileage-only updates)
-    if (draft.totalCost > 0 && !_outbox.derivesExpenses) {
-      await _expenseRepository.add(
-        userId: userId,
-        vehicleId: vehicle.id,
-        draft: ExpenseDraft(
-          category: ExpenseCategory.maintenance,
-          amount: draft.totalCost,
-          incurredOn: draft.servicedOn,
-        ),
-      );
-    }
     _sync?.requestSync();
     return record;
   }
@@ -589,6 +597,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
     final record = ServiceRecord(
       id: existing.id,
+      currency: existing.currency,
       vehicleId: existing.vehicleId,
       title: title,
       servicedOn: DueCalculator.dateOnly(draft.servicedOn),
@@ -614,6 +623,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           servicedOn: Value(record.servicedOn),
           odometer: Value(record.odometer),
           totalCost: Value(record.totalCost),
+          currency: Value(record.currency),
           workshopName: Value(record.workshopName),
           notes: Value(record.notes),
           updatedAt: Value(record.updatedAt),

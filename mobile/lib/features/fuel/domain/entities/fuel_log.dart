@@ -40,6 +40,7 @@ enum FuelLogKind {
 
 class FuelLog {
   const FuelLog({
+    this.currency = 'MMK',
     required this.id,
     required this.userId,
     required this.vehicleId,
@@ -56,6 +57,7 @@ class FuelLog {
     this.fillStatus = 'unknown',
   });
 
+  final String currency;
   final String id;
   final String userId;
   final String vehicleId;
@@ -81,6 +83,7 @@ class FuelLog {
   }
 
   Map<String, dynamic> toWriteJson() => {
+    'currency': currency,
     'id': id,
     'vehicle_id': vehicleId,
     'kind': kind.storage,
@@ -97,6 +100,7 @@ class FuelLog {
 
 class FuelLogDraft {
   const FuelLogDraft({
+    this.currency = 'MMK',
     required this.loggedOn,
     required this.fuelTypeId,
     required this.amount,
@@ -104,6 +108,8 @@ class FuelLogDraft {
     this.odometer,
     this.fillStatus = 'unknown',
   });
+
+  final String currency;
 
   final DateTime loggedOn;
   final String fuelTypeId;

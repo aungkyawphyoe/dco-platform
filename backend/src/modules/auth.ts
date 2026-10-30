@@ -1,3 +1,4 @@
+import { signupCurrency } from '../lib/operational-currency.js';
 import { effectiveSubscription } from "../lib/gifts.js";
 import { authLimit } from "./account-security.js";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
@@ -54,6 +55,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
         email,
         username,
         passwordHash,
+        currency: await signupCurrency(app.db,request.body),
         displayName: body.display_name ?? null,
         role: "owner",
         plan: "free",

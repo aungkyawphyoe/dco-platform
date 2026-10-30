@@ -33,7 +33,7 @@ import '../../features/fuel/presentation/screens/fuel_log_form_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_logs_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_type_form_screen.dart';
 import '../../features/fuel/presentation/screens/fuel_types_screen.dart';
-import '../../features/garage/presentation/screens/garage_home_screen.dart';
+import 'garage_overview_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_detail_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
 import '../../features/insurance/presentation/screens/insurance_screen.dart';
@@ -213,7 +213,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                   GoRoute(
                     path: 'garage',
                     parentNavigatorKey: rootNavigatorKey,
-                    builder: (context, state) => const GarageHomeScreen(),
+                    builder: (context, state) => const GarageOverviewScreen(),
                     routes: [
                       GoRoute(
                         path: 'new',

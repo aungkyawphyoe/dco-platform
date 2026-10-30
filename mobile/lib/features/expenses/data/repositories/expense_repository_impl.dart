@@ -1,3 +1,4 @@
+import '../../../../core/currency/currency_store.dart';
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -72,6 +73,9 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     final now = DateTime.now().toUtc();
     final expense = _fromDraft(
       id: _uuid.v4(),
+      currency: await CurrencyStore(
+        _db,
+      ).validateCreation(userId, draft.currency, vehicleId: vehicleId),
       vehicleId: vehicleId,
       draft: draft,
       createdAt: now,
@@ -80,6 +84,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     );
 
     await _db.transaction(() async {
+      await CurrencyStore(_db).markLocalCreation(userId, vehicleId: vehicleId);
       await _db.into(_db.expenseRecords).insert(expenseToCompanion(expense));
       await _insertParts(expense);
       await _outbox.enqueue(
@@ -87,7 +92,11 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         entityType: OutboxEntityType.expense,
         entityId: expense.id,
         op: OutboxOp.upsert,
-        payload: expense.toWriteJson(),
+        payload: {
+          ...expense.toWriteJson(),
+          if (draft.currencyParentId != null)
+            '_currency_parent_id': draft.currencyParentId,
+        },
       );
     });
     _sync?.requestSync();
@@ -106,6 +115,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
     final updated = _fromDraft(
       id: existing.id,
+      currency: existing.currency,
       vehicleId: existing.vehicleId,
       draft: draft,
       createdAt: existing.createdAt,
@@ -171,6 +181,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     required DateTime createdAt,
     required DateTime updatedAt,
     String? createdBy,
+    String currency = 'MMK',
   }) {
     final seen = <String>{};
     final parts = <ExpenseAssignedPart>[];
@@ -190,6 +201,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     }
 
     return Expense(
+      currency: currency,
       id: id,
       vehicleId: vehicleId,
       category: draft.category,

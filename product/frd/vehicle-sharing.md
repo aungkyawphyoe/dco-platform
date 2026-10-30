@@ -63,9 +63,9 @@ Enable users to:
   `share_access_level`, `share_code_panel`, and the five screens below
 - Routes: `/shares/shared-with-me`, `/shares/join?code=`, `/shares/accept?token=`,
   `/vehicles/:id/shares`, `/vehicles/:id/shares/new`
-- Drawer: **Shared with Me** and **Join Vehicle Share** replace the old family section
-- Garage: shared vehicles appear under a `shared` source with a "Shared with Me" entry tile;
-  the share action is on owned vehicles only
+- Drawer: **Shared with Me** remains. There is no separate **Join Vehicle Share** drawer entry; joining remains available inside Shared with Me.
+- My Garage shows **Owned** and **Shared** tabs only when the personal account has shared vehicles. Owned lists owned vehicles only; Shared reuses Shared with Me, including its join and active-vehicle actions. With no shared vehicles the normal garage list has no tabs. Driver assigned-vehicle lists remain unchanged.
+- Shared vehicles are reachable from both the drawer and My Garage → Shared. The share-management action remains on owned vehicles only.
 
 ## Web Owner (Next.js)
 

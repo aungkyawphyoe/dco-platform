@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
@@ -47,12 +48,55 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 24;
+  int get schemaVersion => 25;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
+      if (from < 25) {
+        // Tables created by older upgrade branches already include new columns.
+        if (from >= 2) {
+          await migrator.addColumn(
+            vehicleRecords,
+            vehicleRecords.purchaseCurrency,
+          );
+          await migrator.addColumn(outboxEntries, outboxEntries.errorCode);
+          await migrator.addColumn(outboxEntries, outboxEntries.errorDetails);
+        }
+        if (from >= 3) {
+          await migrator.addColumn(
+            serviceRecordRows,
+            serviceRecordRows.currency,
+          );
+        }
+        if (from >= 6) {
+          await migrator.addColumn(fuelLogRecords, fuelLogRecords.currency);
+        }
+        if (from >= 7) {
+          await migrator.addColumn(expenseRecords, expenseRecords.currency);
+        }
+        if (from >= 2) {
+          // Legacy queued amounts were entered in MMK. Never change their digits.
+          final queued = await customSelect(
+            'SELECT id, entity_type, payload FROM outbox_entries',
+          ).get();
+          for (final row in queued) {
+            final payload =
+                jsonDecode(row.read<String>('payload')) as Map<String, dynamic>;
+            final kind = row.read<String>('entity_type');
+            final key = kind == 'vehicle' ? 'purchase_currency' : 'currency';
+            if (['expense', 'fuel_log', 'service_record'].contains(kind) ||
+                (kind == 'vehicle' && payload['purchase_price'] != null)) {
+              payload.putIfAbsent(key, () => 'MMK');
+              await customStatement(
+                'UPDATE outbox_entries SET payload = ? WHERE id = ?',
+                [jsonEncode(payload), row.read<int>('id')],
+              );
+            }
+          }
+        }
+      }
       if (from >= 12 && from < 24) {
         await migrator.addColumn(documentRecords, documentRecords.linksJson);
       }

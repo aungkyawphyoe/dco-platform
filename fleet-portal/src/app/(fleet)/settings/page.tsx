@@ -1,4 +1,5 @@
 "use client";
+import { CurrencySettings } from "@/components/currency/currency-settings";
 
 import { useState } from "react";
 import { PageHeader } from "@dco/ui/components/page-header";
@@ -53,6 +54,7 @@ export default function SettingsPage() {
         description="Organization profile and lemon threshold configuration"
       />
 
+      <CurrencySettings />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="flex flex-col">
           <SectionHeading title="Organization">

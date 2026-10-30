@@ -1,3 +1,4 @@
+import { signupCurrency } from '../lib/operational-currency.js';
 import { createHash } from "node:crypto";
 import { and, eq, gt, isNull } from "drizzle-orm";
 import { createRemoteJWKSet, importPKCS8, jwtVerify, SignJWT } from "jose";
@@ -95,7 +96,7 @@ export const socialAuthPlugin: FastifyPluginAsync = async (app) => {
           if (collision) throw new AppError(409, "account_link_required", "Authenticate your existing account before linking this provider");
         }
         const id = newId();
-        [user] = await tx.insert(users).values({ id, email: claims.email ?? null, username: await generateUniqueUsername(tx as unknown as Db, claims.email ?? id), passwordHash: null, emailVerified: claims.verified, role: "owner", plan: "free" }).returning();
+        [user] = await tx.insert(users).values({ currency: await signupCurrency(tx as unknown as Db,request.body), id, email: claims.email ?? null, username: await generateUniqueUsername(tx as unknown as Db, claims.email ?? id), passwordHash: null, emailVerified: claims.verified, role: "owner", plan: "free" }).returning();
         await tx.insert(authIdentities).values({ id: newId(), userId: id, provider: flow.provider, subject: claims.subject });
         for (const ft of DEFAULT_FUEL_TYPES) await tx.insert(fuelTypes).values({ id: newId(), userId: id, name: ft.name, kind: ft.kind, unit: ft.unit });
       }

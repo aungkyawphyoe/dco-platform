@@ -59,6 +59,10 @@ Dashboard consumes Garage, Maintenance, Expenses, and Documents. Navigation: `do
 
 ## Next implementation
 
+### Currency selection — 29 October 2026
+
+[Currency Selection — Phase One](multi-currency.md) records the agreed USD/MMK/THB/CNY selection, lock lifecycle, historical currency preservation, totals, and offline conflict rules. **Implementation started; backend currency settings and write enforcement implemented locally; client integration pending.** It replaces operational currency-as-display-preference behavior when implemented; subscription pricing remains separate. See the [implementation plan](../../docs/multi-currency-implementation-plan.md) for sequencing, verification, and rollout.
+
 ### Planned subscription and pricing administration — 24 October 2026
 
 [Subscription Management and Admin Pricing](subscription-management.md) records the agreed requirements for subscription visibility, direct-paid terms, complimentary grants, expiry and renewal, per-organization migration, and editable catalog prices. **Implemented locally; deployment pending.** See its linked rollout notes for validation and deployment requirements. Google Play checkout already has a separate implementation described in [its release guide](../../docs/google-play-subscriptions.md); the older next-step summary below predates that work.

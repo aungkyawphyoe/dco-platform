@@ -50,8 +50,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Driver mode hides Shared with Me and Join with code',
-      (tester) async {
+  testWidgets('Driver mode hides Shared with Me and Join with code', (
+    tester,
+  ) async {
     await pumpDrawer(tester, driver: true);
     tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
     await tester.pumpAndSettle();
@@ -63,14 +64,16 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Personal mode still shows Shared with Me and Join with code',
-      (tester) async {
-    await pumpDrawer(tester, driver: false);
-    tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
-    await tester.pumpAndSettle();
+  testWidgets(
+    'Personal mode keeps Shared with Me without a separate Join entry',
+    (tester) async {
+      await pumpDrawer(tester, driver: false);
+      tester.state<ScaffoldState>(find.byType(Scaffold)).openDrawer();
+      await tester.pumpAndSettle();
 
-    expect(find.text('Shared with Me'), findsOneWidget);
-    expect(find.byIcon(Icons.qr_code_scanner), findsOneWidget);
-    expect(find.byIcon(Icons.people_outline), findsOneWidget);
-  });
+      expect(find.text('Shared with Me'), findsOneWidget);
+      expect(find.byIcon(Icons.qr_code_scanner), findsNothing);
+      expect(find.byIcon(Icons.people_outline), findsOneWidget);
+    },
+  );
 }

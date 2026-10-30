@@ -200,7 +200,7 @@ List<String> _dueLine(
       if (days > 0) parts.add(s.planItemTileOverdueBy(days));
     }
     if (parts.isEmpty) return [s.planItemTileOverdue];
-    return ['${s.planItemTileOverdue} ${s.planItemTileOverdueBy(0)}'];
+    return [parts.join(' . ')];
   }
   final lines = <String>[];
   if (item.nextDueMileage != null) {
