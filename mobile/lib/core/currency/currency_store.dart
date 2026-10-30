@@ -21,6 +21,17 @@ class CurrencyStore {
         : jsonDecode(row!.value!) as Map<String, dynamic>;
   }
 
+  Stream<Map<String, dynamic>?> watch(String userId, {String? vehicleId}) {
+    return (db.select(db.appMeta)
+          ..where((r) => r.key.equals(key(userId, vehicleId))))
+        .watchSingleOrNull()
+        .map(
+          (row) => row?.value == null
+              ? null
+              : jsonDecode(row!.value!) as Map<String, dynamic>,
+        );
+  }
+
   Future<void> save(
     String userId,
     Map<String, dynamic> state, {

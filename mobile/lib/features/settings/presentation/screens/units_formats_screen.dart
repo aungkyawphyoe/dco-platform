@@ -1,7 +1,5 @@
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
-import 'package:dco_mobile/core/units/mileage_unit.dart';
-import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:flutter/material.dart';
@@ -13,13 +11,25 @@ class UnitsFormatsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
-    final prefs = ref.watch(userPreferencesProvider).valueOrNull ?? UserPreferences.defaults;
-    final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
-
-    Future<void> save(UserPreferences next) async {
-      if (userId == null) return;
-      await ref.read(preferencesRepositoryProvider).save(userId: userId, preferences: next);
-    }
+    final prefs =
+        ref.watch(userPreferencesProvider).valueOrNull ??
+        UserPreferences.defaults;
+    final currencyState = ref.watch(selectedCurrencyStateProvider);
+    final isDriver = ref.watch(driverOrganizationIdProvider) != null;
+    final currencyLabel = currencyState.when(
+      loading: () => 'Loading currency…',
+      error: (_, _) => 'Unable to load currency',
+      data: (state) => state == null
+          ? 'Sync to load your selected currency'
+          : switch (state['currency']) {
+              'MMK' => 'Myanmar Kyat (MMK)',
+              'USD' => 'US Dollar (USD)',
+              'THB' => 'Thai Baht (THB)',
+              'CNY' => 'Chinese Yuan (CNY)',
+              null => 'Not selected',
+              _ => 'Unsupported currency',
+            },
+    );
 
     return Scaffold(
       appBar: AppBar(title: const Text('Unit and Format')),
@@ -29,21 +39,30 @@ class UnitsFormatsScreen extends ConsumerWidget {
           Text('Currency', style: Theme.of(context).textTheme.titleMedium),
           SizedBox(height: tokens.space.s2),
           Text(
-            'MMK shows whole kyat, and large amounts use K or M (25K, 23M).',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+            isDriver
+                ? 'Your fleet uses the currency selected by its Fleet Admin. Amounts are not automatically converted.'
+                : 'Your account uses the currency selected during setup. Amounts are not automatically converted.',
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
           ),
           SizedBox(height: tokens.space.s3),
           _DisplayTile(
             label: 'Currency',
-            value: prefs.currency.label,
+            value: currencyLabel,
             icon: Icons.attach_money,
           ),
           SizedBox(height: tokens.space.s6),
-          Text('Unit of length', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Unit of length',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           SizedBox(height: tokens.space.s2),
           Text(
             'Odometer, service intervals, and due mileage follow this unit.',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
           ),
           SizedBox(height: tokens.space.s3),
           _DisplayTile(
@@ -88,9 +107,9 @@ class _DisplayTile extends StatelessWidget {
         ),
         subtitle: Text(
           value,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: tokens.text.secondary,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
         ),
       ),
     );
