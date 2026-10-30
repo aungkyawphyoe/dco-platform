@@ -52,6 +52,7 @@ ServiceRecord serviceRecordFromDrift(
     servicedOn: row.servicedOn,
     odometer: row.odometer,
     totalCost: row.totalCost,
+    currency: row.currency,
     workshopName: row.workshopName,
     notes: row.notes,
     receiptLocalPath: row.receiptLocalPath,
@@ -74,9 +75,5 @@ ServiceLine serviceLineFromDrift(ServiceLineRecord row) {
 }
 
 AssignedPart assignedPartFromDrift(ServicePartRecord row) {
-  return AssignedPart(
-    id: row.id,
-    partId: row.partId,
-    name: row.name,
-  );
+  return AssignedPart(id: row.id, partId: row.partId, name: row.name);
 }

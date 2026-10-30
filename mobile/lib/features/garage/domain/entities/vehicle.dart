@@ -44,6 +44,7 @@ enum VehicleSource {
 
 class Vehicle {
   const Vehicle({
+    this.purchaseCurrency = 'MMK',
     required this.id,
     required this.userId,
     required this.name,
@@ -69,6 +70,7 @@ class Vehicle {
     this.accessLevel,
   });
 
+  final String purchaseCurrency;
   final String id;
   final String userId;
   final String name;
@@ -103,6 +105,7 @@ class Vehicle {
 
   /// Payload shape matches OpenAPI `VehicleWrite` for later sync push.
   Map<String, dynamic> toWriteJson() => {
+    'purchase_currency': purchaseCurrency,
     'id': id,
     'name': name,
     'nickname': nickname,
@@ -123,6 +126,7 @@ class Vehicle {
 
 class VehicleDraft {
   const VehicleDraft({
+    this.purchaseCurrency = 'MMK',
     required this.name,
     required this.make,
     required this.model,
@@ -138,6 +142,8 @@ class VehicleDraft {
     this.purchasePrice,
     this.photoLocalPath,
   });
+
+  final String purchaseCurrency;
 
   final String name;
   final String make;

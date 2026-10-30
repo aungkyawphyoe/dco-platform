@@ -39,6 +39,7 @@ class AssignedPart {
 
 class ServiceRecord {
   const ServiceRecord({
+    this.currency = 'MMK',
     required this.id,
     required this.vehicleId,
     required this.title,
@@ -56,6 +57,7 @@ class ServiceRecord {
     this.createdBy,
   });
 
+  final String currency;
   final String id;
   final String vehicleId;
   final String title;
@@ -73,6 +75,7 @@ class ServiceRecord {
   final DateTime createdAt;
 
   Map<String, dynamic> toWriteJson() => {
+    'currency': currency,
     'id': id,
     'vehicle_id': vehicleId,
     'serviced_on': servicedOn.toIso8601String().split('T').first,
@@ -89,11 +92,7 @@ class ServiceRecord {
 }
 
 class ServiceLineDraft {
-  const ServiceLineDraft({
-    required this.name,
-    this.planItemId,
-    this.lineCost,
-  });
+  const ServiceLineDraft({required this.name, this.planItemId, this.lineCost});
 
   final String name;
   final String? planItemId;
@@ -101,10 +100,7 @@ class ServiceLineDraft {
 }
 
 class AssignedPartDraft {
-  const AssignedPartDraft({
-    required this.partId,
-    required this.name,
-  });
+  const AssignedPartDraft({required this.partId, required this.name});
 
   final String partId;
   final String name;
@@ -112,6 +108,7 @@ class AssignedPartDraft {
 
 class ServiceRecordDraft {
   const ServiceRecordDraft({
+    this.currency = 'MMK',
     required this.servicedOn,
     required this.odometer,
     required this.totalCost,
@@ -121,6 +118,8 @@ class ServiceRecordDraft {
     this.notes,
     this.parts = const [],
   });
+
+  final String currency;
 
   final String? title;
   final DateTime servicedOn;

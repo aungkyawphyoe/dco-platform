@@ -46,10 +46,7 @@ class ExpenseAssignedPart {
 }
 
 class ExpenseAssignedPartDraft {
-  const ExpenseAssignedPartDraft({
-    required this.partId,
-    required this.name,
-  });
+  const ExpenseAssignedPartDraft({required this.partId, required this.name});
 
   final String partId;
   final String name;
@@ -57,6 +54,7 @@ class ExpenseAssignedPartDraft {
 
 class Expense {
   const Expense({
+    this.currency = 'MMK',
     required this.id,
     required this.vehicleId,
     required this.category,
@@ -71,6 +69,7 @@ class Expense {
     this.parts = const [],
   });
 
+  final String currency;
   final String id;
   final String vehicleId;
   final ExpenseCategory category;
@@ -84,7 +83,8 @@ class Expense {
   final DateTime updatedAt;
   final DateTime createdAt;
 
-  bool get hasReceipt => receiptLocalPath != null && receiptLocalPath!.isNotEmpty;
+  bool get hasReceipt =>
+      receiptLocalPath != null && receiptLocalPath!.isNotEmpty;
 
   String? get notesPreview {
     final value = notes?.trim();
@@ -95,6 +95,7 @@ class Expense {
   }
 
   Map<String, dynamic> toWriteJson() => {
+    'currency': currency,
     'id': id,
     'vehicle_id': vehicleId,
     'category': category.storage,
@@ -108,6 +109,8 @@ class Expense {
 
 class ExpenseDraft {
   const ExpenseDraft({
+    this.currencyParentId,
+    this.currency = 'MMK',
     required this.category,
     required this.amount,
     required this.incurredOn,
@@ -116,6 +119,9 @@ class ExpenseDraft {
     this.receiptMediaId,
     this.parts = const [],
   });
+
+  final String? currencyParentId;
+  final String currency;
 
   final ExpenseCategory category;
   final double amount;
@@ -151,21 +157,31 @@ class ExpenseSummary {
   final double total;
   final List<ExpenseCategoryTotal> byCategory;
 
-  factory ExpenseSummary.fromExpenses(List<Expense> items, {required DateTime now}) {
+  factory ExpenseSummary.fromExpenses(
+    List<Expense> items, {
+    required DateTime now,
+  }) {
     final monthStart = DateTime(now.year, now.month, 1);
     var thisMonth = 0.0;
     var total = 0.0;
-    final byCategory = {for (final category in ExpenseCategory.values) category: 0.0};
+    final byCategory = {
+      for (final category in ExpenseCategory.values) category: 0.0,
+    };
 
     for (final item in items) {
       total += item.amount;
-      final incurred = DateTime(item.incurredOn.year, item.incurredOn.month, item.incurredOn.day);
+      final incurred = DateTime(
+        item.incurredOn.year,
+        item.incurredOn.month,
+        item.incurredOn.day,
+      );
       if (!incurred.isBefore(monthStart) &&
           incurred.year == now.year &&
           incurred.month == now.month) {
         thisMonth += item.amount;
       }
-      byCategory[item.category] = (byCategory[item.category] ?? 0) + item.amount;
+      byCategory[item.category] =
+          (byCategory[item.category] ?? 0) + item.amount;
     }
 
     return ExpenseSummary(

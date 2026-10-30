@@ -1,3 +1,4 @@
+import '../../../../core/currency/currency_store.dart';
 import 'dart:async';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -38,31 +39,37 @@ class VehicleRepositoryImpl implements VehicleRepository {
       ..orderBy([(row) => OrderingTerm.desc(row.updatedAt)]);
 
     // Shared vehicles (active shares where current user is the sharee)
-    final sharedQuery = _db.select(_db.vehicleRecords).join([
-      innerJoin(
-        _db.vehicleShareRecords,
-        _db.vehicleShareRecords.vehicleId.equalsExp(_db.vehicleRecords.id),
-      ),
-    ])..where(
-        _db.vehicleShareRecords.userId.equals(userId) &
-        _db.vehicleShareRecords.status.equals('active') &
-        _db.vehicleRecords.archived.equals(false),
-      );
+    final sharedQuery =
+        _db.select(_db.vehicleRecords).join([
+          innerJoin(
+            _db.vehicleShareRecords,
+            _db.vehicleShareRecords.vehicleId.equalsExp(_db.vehicleRecords.id),
+          ),
+        ])..where(
+          _db.vehicleShareRecords.userId.equals(userId) &
+              _db.vehicleShareRecords.status.equals('active') &
+              _db.vehicleRecords.archived.equals(false),
+        );
 
     // Combine both streams using a StreamController
-    final ownedStream = ownedQuery.watch().map((rows) =>
-        rows.map((row) => vehicleFromDrift(row.copyWith(source: 'owned'))).toList());
+    final ownedStream = ownedQuery.watch().map(
+      (rows) => rows
+          .map((row) => vehicleFromDrift(row.copyWith(source: 'owned')))
+          .toList(),
+    );
 
-    final sharedStream = sharedQuery.watch().map((rows) => rows
-        .map((row) {
-          final vehicle = row.readTable(_db.vehicleRecords);
-          final share = row.readTable(_db.vehicleShareRecords);
-          return vehicleFromDrift(vehicle.copyWith(
+    final sharedStream = sharedQuery.watch().map(
+      (rows) => rows.map((row) {
+        final vehicle = row.readTable(_db.vehicleRecords);
+        final share = row.readTable(_db.vehicleShareRecords);
+        return vehicleFromDrift(
+          vehicle.copyWith(
             source: 'shared',
             permission: Value(share.accessLevel),
-          ));
-        })
-        .toList());
+          ),
+        );
+      }).toList(),
+    );
 
     // Track latest lists from each source
     final latestLists = <String, List<Vehicle>>{'owned': [], 'shared': []};
@@ -96,20 +103,22 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
   @override
   Stream<Vehicle?> watchActive(String userId) {
-    final query = _db.select(_db.vehicleRecords).join([
-      innerJoin(
-        _db.userProfiles,
-        _db.userProfiles.activeVehicleId.equalsExp(_db.vehicleRecords.id),
-      ),
-      leftOuterJoin(
-        _db.vehicleShareRecords,
-        _db.vehicleShareRecords.vehicleId.equalsExp(_db.vehicleRecords.id) &
-            _db.vehicleShareRecords.userId.equals(userId) &
-            _db.vehicleShareRecords.status.equals('active'),
-      ),
-    ])..where(
-        _db.userProfiles.userId.equals(userId) & _db.vehicleRecords.archived.equals(false),
-      );
+    final query =
+        _db.select(_db.vehicleRecords).join([
+          innerJoin(
+            _db.userProfiles,
+            _db.userProfiles.activeVehicleId.equalsExp(_db.vehicleRecords.id),
+          ),
+          leftOuterJoin(
+            _db.vehicleShareRecords,
+            _db.vehicleShareRecords.vehicleId.equalsExp(_db.vehicleRecords.id) &
+                _db.vehicleShareRecords.userId.equals(userId) &
+                _db.vehicleShareRecords.status.equals('active'),
+          ),
+        ])..where(
+          _db.userProfiles.userId.equals(userId) &
+              _db.vehicleRecords.archived.equals(false),
+        );
     return query.watch().map((rows) {
       if (rows.isEmpty) return null;
       return _withShare(rows.first, userId);
@@ -126,8 +135,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
               _db.vehicleShareRecords.userId.equals(userId) &
               _db.vehicleShareRecords.status.equals('active'),
         ),
-    ])
-      ..where(_db.vehicleRecords.id.equals(id));
+    ])..where(_db.vehicleRecords.id.equals(id));
     return query.watch().map((rows) {
       if (rows.isEmpty) return null;
       return _withShare(rows.first, userId);
@@ -142,10 +150,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
     if (userId == null) return vehicleFromDrift(vehicle);
     final share = row.readTableOrNull(_db.vehicleShareRecords);
     if (share == null) return vehicleFromDrift(vehicle);
-    return vehicleFromDrift(vehicle.copyWith(
-      source: 'shared',
-      permission: Value(share.accessLevel),
-    ));
+    return vehicleFromDrift(
+      vehicle.copyWith(source: 'shared', permission: Value(share.accessLevel)),
+    );
   }
 
   @override
@@ -166,6 +173,11 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
     final now = DateTime.now().toUtc();
     final vehicle = Vehicle(
+      purchaseCurrency: draft.purchasePrice == null
+          ? draft.purchaseCurrency
+          : await CurrencyStore(
+              _db,
+            ).validateCreation(userId, draft.purchaseCurrency),
       id: _uuid.v4(),
       userId: userId,
       name: draft.name.trim(),
@@ -188,6 +200,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
     );
 
     await _db.transaction(() async {
+      if (draft.purchasePrice != null) {
+        await CurrencyStore(_db).markLocalCreation(userId);
+      }
       await _db.into(_db.vehicleRecords).insert(_toCompanion(vehicle));
       final garage = await _countGarage(userId);
       if (garage == 1) {
@@ -226,6 +241,12 @@ class VehicleRepositoryImpl implements VehicleRepository {
     await _assertUniqueVin(vin: draft.vin, exceptId: vehicleId);
 
     final updated = Vehicle(
+      purchaseCurrency:
+          existing.purchasePrice == null && draft.purchasePrice != null
+          ? await CurrencyStore(
+              _db,
+            ).validateCreation(userId, draft.purchaseCurrency)
+          : existing.purchaseCurrency,
       id: existing.id,
       userId: existing.userId,
       name: draft.name.trim(),
@@ -249,6 +270,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
     );
 
     await _db.transaction(() async {
+      if (existing.purchasePrice == null && draft.purchasePrice != null) {
+        await CurrencyStore(_db).markLocalCreation(userId);
+      }
       await (_db.update(
         _db.vehicleRecords,
       )..where((row) => row.id.equals(vehicleId))).write(_toCompanion(updated));
@@ -264,7 +288,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
     return updated;
   }
 
-@override
+  @override
   Future<void> setActive({
     required String userId,
     required String vehicleId,
@@ -290,7 +314,9 @@ class VehicleRepositoryImpl implements VehicleRepository {
     }
     final now = DateTime.now().toUtc();
     await _db.transaction(() async {
-      await (_db.update(_db.vehicleRecords)..where((row) => row.id.equals(vehicleId))).write(
+      await (_db.update(
+        _db.vehicleRecords,
+      )..where((row) => row.id.equals(vehicleId))).write(
         VehicleRecordsCompanion(
           archived: const Value(true),
           archivedAt: Value(now),
@@ -301,11 +327,15 @@ class VehicleRepositoryImpl implements VehicleRepository {
         _db.userProfiles,
       )..where((row) => row.userId.equals(userId))).getSingleOrNull();
       if (profile?.activeVehicleId == vehicleId) {
-        final next = await (_db.select(_db.vehicleRecords)
-              ..where((row) => row.userId.equals(userId) & row.archived.equals(false))
-              ..orderBy([(row) => OrderingTerm.desc(row.updatedAt)])
-              ..limit(1))
-            .getSingleOrNull();
+        final next =
+            await (_db.select(_db.vehicleRecords)
+                  ..where(
+                    (row) =>
+                        row.userId.equals(userId) & row.archived.equals(false),
+                  )
+                  ..orderBy([(row) => OrderingTerm.desc(row.updatedAt)])
+                  ..limit(1))
+                .getSingleOrNull();
         await _upsertActive(userId, next?.id);
       }
       await _outbox.enqueue(
@@ -337,12 +367,19 @@ class VehicleRepositoryImpl implements VehicleRepository {
     }
   }
 
-  Future<void> _assertUniqueVin({required String? vin, String? exceptId}) async {
+  Future<void> _assertUniqueVin({
+    required String? vin,
+    String? exceptId,
+  }) async {
     final value = vin?.trim();
     if (value == null || value.isEmpty) return;
-    final matches = await (_db.select(
-      _db.vehicleRecords,
-    )..where((row) => row.archived.equals(false) & row.vin.lower().equals(value.toLowerCase()))).get();
+    final matches =
+        await (_db.select(_db.vehicleRecords)..where(
+              (row) =>
+                  row.archived.equals(false) &
+                  row.vin.lower().equals(value.toLowerCase()),
+            ))
+            .get();
     if (matches.any((row) => row.id != exceptId)) {
       throw const DuplicateVinFailure();
     }
@@ -353,7 +390,8 @@ class VehicleRepositoryImpl implements VehicleRepository {
     final query = _db.selectOnly(_db.vehicleRecords)
       ..addColumns([count])
       ..where(
-        _db.vehicleRecords.userId.equals(userId) & _db.vehicleRecords.archived.equals(false),
+        _db.vehicleRecords.userId.equals(userId) &
+            _db.vehicleRecords.archived.equals(false),
       );
     return query.map((row) => row.read(count) ?? 0).getSingle();
   }
@@ -386,6 +424,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
       mileageUnit: Value(vehicle.mileageUnit.name),
       purchaseDate: Value(vehicle.purchaseDate),
       purchasePrice: Value(vehicle.purchasePrice),
+      purchaseCurrency: Value(vehicle.purchaseCurrency),
       photoLocalPath: Value(vehicle.photoLocalPath),
       photoMediaId: Value(vehicle.photoMediaId),
       archived: Value(vehicle.archived),

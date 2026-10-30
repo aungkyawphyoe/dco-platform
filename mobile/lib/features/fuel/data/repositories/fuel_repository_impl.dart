@@ -1,3 +1,4 @@
+import '../../../../core/currency/currency_store.dart';
 import '../../../../core/database/document_links.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
@@ -255,6 +256,9 @@ class FuelRepositoryImpl implements FuelRepository {
 
     final now = DateTime.now().toUtc();
     final log = FuelLog(
+      currency: await CurrencyStore(
+        _db,
+      ).validateCreation(userId, draft.currency, vehicleId: vehicleId),
       id: _uuid.v4(),
       userId: userId,
       vehicleId: vehicleId,
@@ -272,6 +276,7 @@ class FuelRepositoryImpl implements FuelRepository {
     );
 
     await _db.transaction(() async {
+      await CurrencyStore(_db).markLocalCreation(userId, vehicleId: vehicleId);
       await _db.into(_db.fuelLogRecords).insert(fuelLogToCompanion(log));
       await _outbox.enqueue(
         userId: userId,
@@ -292,6 +297,8 @@ class FuelRepositoryImpl implements FuelRepository {
           userId: userId,
           vehicleId: vehicleId,
           draft: ExpenseDraft(
+            currency: log.currency,
+            currencyParentId: log.id,
             category: ExpenseCategory.fuel,
             amount: draft.cost,
             incurredOn: draft.loggedOn,
@@ -327,6 +334,7 @@ class FuelRepositoryImpl implements FuelRepository {
     _assertOdometer(vehicle, draft);
 
     final updated = FuelLog(
+      currency: existing.currency,
       id: existing.id,
       userId: existing.userId,
       vehicleId: existing.vehicleId,
