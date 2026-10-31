@@ -74,14 +74,22 @@ describe('admin billing', () => {
         expect(preview.statusCode,preview.body).toBe(200);expect(preview.json().starts_at).toBe(r.json().endsAt);
     });
 
-    it('permanently migrates legacy organizations and retains read-only access after revocation',async()=>{
+    it('automatically enforces Fleet terms even with a stale migration flag',async()=>{
         const o=await owner(),id=uuid();
         await ctx.db.insert(organizations).values({id,name:'Review fleet',type:'commercial',adminUserId:o.id,createdBy:o.id,billingMigrated:false,status:'active'});
         expect((await organizationBilling(ctx.db,id)).writable).toBe(true);
         const migrate=()=>ctx.app.inject({method:'POST',url:`/v1/admin/organizations/${id}/migrate-billing`,headers:admin});
         expect((await migrate()).statusCode).toBe(422);
         const grant=await ctx.app.inject({method:'POST',url:'/v1/admin/subscriptions',headers:admin,payload:{kind:'organization',id,request_id:uuid(),plan:'fleet',source:'complimentary',reason:'Contract review',starts_at:new Date().toISOString(),unit:'years',count:1}});
-        expect(grant.statusCode,grant.body).toBe(200);expect((await migrate()).statusCode).toBe(200);
+        expect(grant.statusCode,grant.body).toBe(200);
+        expect((await ctx.db.select().from(organizations).where(eq(organizations.id,id)))[0].billingMigrated).toBe(true);
+        expect(await organizationBilling(ctx.db,id)).toMatchObject({migrated:true,writable:true,status:'active'});
+        // Reproduce records from older deployments that failed to set the flag.
+        await ctx.db.update(organizations).set({billingMigrated:false}).where(eq(organizations.id,id));
+        expect(await organizationBilling(ctx.db,id)).toMatchObject({migrated:true,writable:true,status:'active'});
+        await ctx.db.update(subscriptionTerms).set({startsAt:new Date(Date.now()-2*DAY),endsAt:new Date(Date.now()-DAY)}).where(eq(subscriptionTerms.id,grant.json().id));
+        expect(await organizationBilling(ctx.db,id)).toMatchObject({migrated:true,writable:false,status:'read_only'});
+        await ctx.db.update(subscriptionTerms).set({startsAt:new Date(grant.json().startsAt),endsAt:new Date(grant.json().endsAt)}).where(eq(subscriptionTerms.id,grant.json().id));
         expect((await ctx.app.inject({method:'PATCH',url:`/v1/admin/subscriptions/${grant.json().id}`,headers:admin,payload:{version:1,action:'revoke',reason:'Review correction'}})).statusCode).toBe(200);
         expect(await organizationBilling(ctx.db,id)).toMatchObject({migrated:true,writable:false,status:'read_only'});
     });

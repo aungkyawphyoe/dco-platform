@@ -40,9 +40,12 @@ export async function organizationBilling(db: Db, id: string) {
     const [org] = await db.select().from(organizations).where(eq(organizations.id, id));
     if (!org)
         throw new AppError(404, 'organization_not_found', 'Organization not found');
-    const term = await activeAdminTerm(db, 'organization', id);
-    return { migrated: org.billingMigrated, writable: org.status === "active" && (!org.billingMigrated || !!term),
-        status: !org.billingMigrated ? 'awaiting_review' : term ? termStatus(term) : 'read_only', term };
+    const terms = await subscriberTerms(db, 'organization', id);
+    const term = terms.find(t => ['active', 'grace'].includes(termStatus(t))) ?? null;
+    // Recorded terms govern access even when an older deployment left the flag unset.
+    const migrated = org.billingMigrated || terms.length > 0;
+    return { migrated, writable: org.status === "active" && (!migrated || !!term),
+        status: term ? termStatus(term) : migrated ? 'read_only' : 'awaiting_review', term };
 }
 export async function assertOrganizationWritable(db: Db, id: string) {
     if (!(await organizationBilling(db, id)).writable)

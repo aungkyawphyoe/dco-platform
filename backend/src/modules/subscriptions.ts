@@ -165,6 +165,8 @@ export const subscriptionsPlugin: FastifyPluginAsync = async (app) => {
                 const [term] = await tx.insert(subscriptionTerms).values({ id: newId(), userId: b.kind === 'user' ? b.id : null, organizationId: b.kind === 'organization' ? b.id : null, plan: b.plan, source: b.source, startsAt: start, endsAt: end, payment: b.payment ? { ...b.payment, catalog_amount: catalog, catalog_version: price.priceVersion, period } : null, reason: b.reason, createdBy: req.authUser!.sub, requestId: b.request_id, requestFingerprint: sha256(JSON.stringify(b)) }).returning();
                 if (b.kind === 'user')
                     await tx.update(users).set({ billingManaged: true, plan: 'free' }).where(eq(users.id, b.id));
+                else
+                    await tx.update(organizations).set({ billingMigrated: true }).where(eq(organizations.id, b.id));
                 await tx.insert(auditEvents).values({ adminUserId: req.authUser!.sub, action: 'subscription.create', detail: { after: term } });
                 return publicTerm(term);
             });
