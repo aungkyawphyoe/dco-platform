@@ -1,4 +1,5 @@
 "use client";
+import { HistoryNavigation } from "@/components/billing/history-navigation";
 import { Subscriptions } from "@/components/billing/subscriptions";
 
 import { use, useState } from "react";
@@ -66,6 +67,7 @@ export default function UserProfilePage({
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [showProfileModal, setShowProfileModal] = useState(false);
   const [profileDraft, setProfileDraft] = useState({ display_name: "", contact_phone: "", address: "" });
+  const [section, setSection] = useState("overview");
   const [feedback, setFeedback] = useState<string | null>(null);
 
   if (isLoading) {
@@ -117,233 +119,238 @@ export default function UserProfilePage({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <Card className="flex flex-col">
-          <SectionHeading title="Account">
-            <UserStatusBadge status={user.status} />
-          </SectionHeading>
-          <div className="p-5">
-            <DataPlate
-              className=""
-              fields={[
-                { label: "Email", value: user.email },
-                { label: "Username", value: user.username ?? "—", mono: true },
-                { label: "Display name", value: user.display_name ?? "—" },
-                { label: "Contact phone", value: user.contact_phone ?? "—" },
-                { label: "Address", value: user.address ?? "—" },
-                { label: "Plan", value: <PlanBadge plan={user.plan} /> },
-                {
-                  label: "Member since",
-                  value: user.created_at ? formatDate(user.created_at) : "—",
-                  mono: true,
-                },
-                {
-                  label: "Documents",
-                  value: (user.documents_count ?? 0).toLocaleString(),
-                  mono: true,
-                },
-              ]}
-            />
-          </div>
-        </Card>
+      <HistoryNavigation label="User sections" value={section} onChange={setSection} options={[{value: 'overview', label: 'Overview'}, {value: 'subscriptions', label: 'Subscriptions'}]} />
+      <div hidden={section !== 'subscriptions'}><Subscriptions key={id} kind="user" id={id} /></div>
+      <div hidden={section !== 'overview'} className="space-y-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Card className="flex flex-col">
+            <SectionHeading title="Account">
+              <UserStatusBadge status={user.status} />
+            </SectionHeading>
+            <div className="p-5">
+              <DataPlate
+                className=""
+                fields={[
+                  { label: "Email", value: user.email },
+                  { label: "Username", value: user.username ?? "—", mono: true },
+                  { label: "Display name", value: user.display_name ?? "—" },
+                  { label: "Contact phone", value: user.contact_phone ?? "—" },
+                  { label: "Address", value: user.address ?? "—" },
+                  { label: "Plan", value: <PlanBadge plan={user.plan} /> },
+                  {
+                    label: "Member since",
+                    value: user.created_at ? formatDate(user.created_at) : "—",
+                    mono: true,
+                  },
+                  {
+                    label: "Documents",
+                    value: (user.documents_count ?? 0).toLocaleString(),
+                    mono: true,
+                  },
+                ]}
+              />
+            </div>
+          </Card>
 
-        <Card className="flex flex-col">
-          <SectionHeading title="Vehicles" count={user.vehicles?.length ?? 0} />
-          <div className="p-5">
-            {!user.vehicles?.length ? (
-              <p className="text-sm text-ink-caption">No vehicles.</p>
-            ) : (
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableHeadCell>Nickname</TableHeadCell>
-                    <TableHeadCell>Plate</TableHeadCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {user.vehicles.map((v) => (
-                    <TableRow key={v.id}>
-                      <TableCell>{v.nickname ?? "—"}</TableCell>
-                      <TableCell className="font-mono text-xs">
-                        {v.license_plate ?? "—"}
-                      </TableCell>
+          <Card className="flex flex-col">
+            <SectionHeading title="Vehicles" count={user.vehicles?.length ?? 0} />
+            <div className="p-5">
+              {!user.vehicles?.length ? (
+                <p className="text-sm text-ink-caption">No vehicles.</p>
+              ) : (
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeadCell>Nickname</TableHeadCell>
+                      <TableHeadCell>Plate</TableHeadCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-          </div>
-        </Card>
-      </div>
-
-      <Card className="flex flex-col">
-        <SectionHeading title="Account access">
-          <span className="text-xs text-gold">demo controls</span>
-        </SectionHeading>
-        <div className="flex flex-wrap items-end gap-3 p-5">
-          <Stat
-            label="Email verified"
-            mono={false}
-            value={
-              <Badge tone={user.email_verified ? "success" : "warning"}>
-                {user.email_verified ? "Yes" : "No"}
-              </Badge>
-            }
-          />
-          {!user.email_verified && (
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={updateAccess.isPending}
-              onClick={() =>
-                updateAccess.mutate(
-                  { id, email_verified: true },
-                  { onSuccess: () => setFeedback("Email marked as verified.") },
-                )
-              }
-            >
-              Mark email verified
-            </Button>
-          )}
-
-          <Stat
-            label="Must change password"
-            mono={false}
-            value={
-              <Badge tone={user.must_change_password ? "warning" : "success"}>
-                {user.must_change_password ? "Yes" : "No"}
-              </Badge>
-            }
-          />
-          {user.must_change_password && (
-            <Button
-              variant="secondary"
-              size="sm"
-              disabled={updateAccess.isPending}
-              onClick={() =>
-                updateAccess.mutate(
-                  { id, must_change_password: false },
-                  { onSuccess: () => setFeedback("Password-change requirement cleared.") },
-                )
-              }
-            >
-              Clear requirement
-            </Button>
-          )}
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => {
-              setNewPassword("");
-              setPasswordError(null);
-              setShowSetPasswordModal(true);
-            }}
-          >
-            Set password
-          </Button>
+                  </TableHead>
+                  <TableBody>
+                    {user.vehicles.map((v) => (
+                      <TableRow key={v.id}>
+                        <TableCell>{v.nickname ?? "—"}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {v.license_plate ?? "—"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </div>
+          </Card>
         </div>
-      </Card>
 
-      <Card className="flex flex-col">
-        <SectionHeading title="Actions" />
-        <div className="flex flex-wrap gap-3 p-5">
-          <Select
-            label="Plan"
-            options={[...PLAN_OPTIONS]}
-            value={user.plan ?? "free"}
-            disabled={updatePlan.isPending}
-            onChange={(v) =>
-              updatePlan.mutate(
-                { id, plan: v as Plan },
-                {
-                  onSuccess: () => setFeedback(`Plan changed to ${v}.`),
-                },
-              )
-            }
-          />
+        <Card className="flex flex-col">
+          <SectionHeading title="Account access">
+            <span className="text-xs text-gold">demo controls</span>
+          </SectionHeading>
+          <div className="flex flex-wrap items-end gap-3 p-5">
+            <Stat
+              label="Email verified"
+              mono={false}
+              value={
+                <Badge tone={user.email_verified ? "success" : "warning"}>
+                  {user.email_verified ? "Yes" : "No"}
+                </Badge>
+              }
+            />
+            {!user.email_verified && (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={updateAccess.isPending}
+                onClick={() =>
+                  updateAccess.mutate(
+                    { id, email_verified: true },
+                    { onSuccess: () => setFeedback("Email marked as verified.") },
+                  )
+                }
+              >
+                Mark email verified
+              </Button>
+            )}
 
-          <Select
-            label="Account role"
-            options={[
-              { value: "owner", label: "Owner" },
-              { value: "admin", label: "Admin" },
-            ]}
-            value={user.role ?? "owner"}
-            disabled={updateRole.isPending}
-            onChange={(v) =>
-              updateRole.mutate(
-                { id, role: v as "owner" | "admin" },
-                {
-                  onSuccess: () => setFeedback(`Account role changed to ${v}.`),
-                  onError: (err) =>
-                    setFeedback(err instanceof Error ? err.message : "Role change failed."),
-                },
-              )
-            }
-          />
+            <Stat
+              label="Must change password"
+              mono={false}
+              value={
+                <Badge tone={user.must_change_password ? "warning" : "success"}>
+                  {user.must_change_password ? "Yes" : "No"}
+                </Badge>
+              }
+            />
+            {user.must_change_password && (
+              <Button
+                variant="secondary"
+                size="sm"
+                disabled={updateAccess.isPending}
+                onClick={() =>
+                  updateAccess.mutate(
+                    { id, must_change_password: false },
+                    { onSuccess: () => setFeedback("Password-change requirement cleared.") },
+                  )
+                }
+              >
+                Clear requirement
+              </Button>
+            )}
 
-          <div className="self-end">
             <Button
               variant="secondary"
               size="sm"
               onClick={() => {
-                setProfileDraft({
-                  display_name: user.display_name ?? "",
-                  contact_phone: user.contact_phone ?? "",
-                  address: user.address ?? "",
-                });
-                setShowProfileModal(true);
+                setNewPassword("");
+                setPasswordError(null);
+                setShowSetPasswordModal(true);
               }}
             >
-              Edit profile
+              Set password
             </Button>
           </div>
+        </Card>
 
-          <Button
-            variant="secondary"
-            size="sm"
-            disabled={sendReset.isPending}
-            onClick={() =>
-              sendReset.mutate(id, {
-                onSuccess: () => setFeedback("Password reset email sent."),
-              })
-            }
-          >
-            Send password reset
-          </Button>
+        <Card className="flex flex-col">
+          <SectionHeading title="Actions" />
+          <div className="flex flex-wrap gap-3 p-5">
+            <Select
+              label="Plan"
+              options={[...PLAN_OPTIONS]}
+              value={user.plan ?? "free"}
+              disabled={updatePlan.isPending}
+              onChange={(v) =>
+                updatePlan.mutate(
+                  { id, plan: v as Plan },
+                  {
+                    onSuccess: () => setFeedback(`Plan changed to ${v}.`),
+                  },
+                )
+              }
+            />
 
-          {isDeactivated ? (
+            <Select
+              label="Account role"
+              options={[
+                { value: "owner", label: "Owner" },
+                { value: "admin", label: "Admin" },
+              ]}
+              value={user.role ?? "owner"}
+              disabled={updateRole.isPending}
+              onChange={(v) =>
+                updateRole.mutate(
+                  { id, role: v as "owner" | "admin" },
+                  {
+                    onSuccess: () => setFeedback(`Account role changed to ${v}.`),
+                    onError: (err) =>
+                      setFeedback(err instanceof Error ? err.message : "Role change failed."),
+                  },
+                )
+              }
+            />
+
+            <div className="self-end">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  setProfileDraft({
+                    display_name: user.display_name ?? "",
+                    contact_phone: user.contact_phone ?? "",
+                    address: user.address ?? "",
+                  });
+                  setShowProfileModal(true);
+                }}
+              >
+                Edit profile
+              </Button>
+            </div>
+
             <Button
-              variant="primary"
+              variant="secondary"
               size="sm"
-              disabled={reactivate.isPending}
-              onClick={() => setShowReactivateModal(true)}
+              disabled={sendReset.isPending}
+              onClick={() =>
+                sendReset.mutate(id, {
+                  onSuccess: () => setFeedback("Password reset email sent."),
+                })
+              }
             >
-              Reactivate account
+              Send password reset
             </Button>
-          ) : (
-            <>
+
+            {isDeactivated ? (
               <Button
-                variant="destructive"
+                variant="primary"
                 size="sm"
-                disabled={deactivate.isPending}
-                onClick={() => setShowDeactivateModal(true)}
+                disabled={reactivate.isPending}
+                onClick={() => setShowReactivateModal(true)}
               >
-                Deactivate account
+                Reactivate account
               </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                disabled={deleteUser.isPending}
-                onClick={() => setShowDeleteModal(true)}
-              >
-                Delete user
-              </Button>
-            </>
-          )}
-        </div>
-      </Card>
+            ) : (
+              <>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deactivate.isPending}
+                  onClick={() => setShowDeactivateModal(true)}
+                >
+                  Deactivate account
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  disabled={deleteUser.isPending}
+                  onClick={() => setShowDeleteModal(true)}
+                >
+                  Delete user
+                </Button>
+              </>
+            )}
+          </div>
+        </Card>
+
+      </div>
 
       <Modal
         open={showDeactivateModal}
@@ -500,7 +507,6 @@ export default function UserProfilePage({
           />
         </div>
       </Modal>
-      <Subscriptions kind="user" id={id} />
     </div>
   );
 }
