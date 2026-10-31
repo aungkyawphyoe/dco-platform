@@ -41,15 +41,6 @@ type Result = {
     plan: string;
     endsAt: string;
   }[];
-  legacy: {
-    id: string;
-    email: string;
-    plan: string;
-  }[];
-  awaiting_review: {
-    id: string;
-    name: string;
-  }[];
 };
 const isoToday = () => new Date().toISOString().slice(0, 16);
 function calculateEnd(start: string, unit: string, count: number) {
@@ -88,17 +79,13 @@ export function Subscriptions({
       ? "google_play"
       : view === "gifts"
       ? "gift"
-      : view === "legacy"
-      ? "legacy"
       : "";
   const descriptions: Record<string, string> = {
     history:
       "Direct payments and complimentary access. Open a record to review payments, adjust dates, or inspect its audit history.",
     play:
       "Verified Google Play records. Store dates and charges are read-only.",
-    gifts: "Access granted through promotions, with each gift’s expiry date.",
-    legacy:
-      "Personal assignments without a term and organizations awaiting billing migration."
+    gifts: "Access granted through promotions, with each gift’s expiry date."
   };
   const views = [
     { value: "history", label: "Subscription history" },
@@ -107,8 +94,7 @@ export function Subscriptions({
           { value: "play", label: "Google Play" },
           { value: "gifts", label: "Promotional gifts" }
         ]
-      : []),
-    { value: "legacy", label: "Legacy & review" }
+      : [])
   ];
   const [kind, setKind] = useState<string>(initialKind),
     [id, setId] = useState(initialId),
@@ -268,11 +254,6 @@ export function Subscriptions({
       setActionReason("");
       refresh();
     }
-  });
-  const migrate = useMutation({
-    mutationFn: (org: string) =>
-      apiPost(`/admin/organizations/${org}/migrate-billing`),
-    onSuccess: refresh
   });
   const history = useQuery({
     queryKey: ["subscription-history", selected?.id, selected?.version],
@@ -585,40 +566,36 @@ export function Subscriptions({
                   setOffset(0);
                 }}
               />
-              {view !== "legacy" && (
-                <Select
-                  label="Status"
-                  value={status}
-                  onChange={v => {
-                    setStatus(v);
-                    setOffset(0);
-                  }}
-                  options={[
-                    "",
-                    "active",
-                    "scheduled",
-                    ...(view !== "gifts" ? ["grace"] : []),
-                    "expired",
-                    ...(view === "history" ? ["revoked"] : [])
-                  ].map(value => ({ value, label: value || "All statuses" }))}
-                />
-              )}
-              {view !== "legacy" && (
-                <Select
-                  label="Plan"
-                  value={planFilter}
-                  onChange={v => {
-                    setPlanFilter(v);
-                    setOffset(0);
-                  }}
-                  options={[
-                    "",
-                    "lite",
-                    "standard",
-                    ...(view === "history" ? ["fleet"] : [])
-                  ].map(value => ({ value, label: value || "All plans" }))}
-                />
-              )}
+              <Select
+                label="Status"
+                value={status}
+                onChange={v => {
+                  setStatus(v);
+                  setOffset(0);
+                }}
+                options={[
+                  "",
+                  "active",
+                  "scheduled",
+                  ...(view !== "gifts" ? ["grace"] : []),
+                  "expired",
+                  ...(view === "history" ? ["revoked"] : [])
+                ].map(value => ({ value, label: value || "All statuses" }))}
+              />
+              <Select
+                label="Plan"
+                value={planFilter}
+                onChange={v => {
+                  setPlanFilter(v);
+                  setOffset(0);
+                }}
+                options={[
+                  "",
+                  "lite",
+                  "standard",
+                  ...(view === "history" ? ["fleet"] : [])
+                ].map(value => ({ value, label: value || "All plans" }))}
+              />
               {view === "history" && (
                 <Select
                   label="Source"
@@ -799,77 +776,6 @@ export function Subscriptions({
                     </tr>
                   ))}
                 </HistoryTable>
-              )}
-              {view === "legacy" && (
-                <div className="space-y-6 p-4 sm:p-6">
-                  <section>
-                    <h4 className="mb-3 font-display text-lg">
-                      Legacy personal assignments
-                    </h4>
-                    <HistoryTable
-                      headings={["Account", "Plan", "Term"]}
-                      empty={!query.data.legacy.length}
-                      emptyText="No legacy personal assignments on this page."
-                    >
-                      {query.data.legacy.map(u => (
-                        <tr key={u.id}>
-                          <td>
-                            <a
-                              className="text-link hover:underline"
-                              href={`/users/${u.id}`}
-                            >
-                              {u.email}
-                            </a>
-                          </td>
-                          <td className="capitalize">{u.plan}</td>
-                          <td>No term assigned</td>
-                        </tr>
-                      ))}
-                    </HistoryTable>
-                  </section>
-                  <section>
-                    <h4 className="mb-3 font-display text-lg">
-                      Organizations awaiting migration review
-                    </h4>
-                    {!query.data.awaiting_review.length && (
-                      <p className="text-sm text-ink-muted">
-                        No organizations awaiting review on this page.
-                      </p>
-                    )}
-                    {query.data.awaiting_review.map(o => (
-                      <div
-                        className="flex flex-wrap items-center justify-between gap-4 border-b border-line py-3"
-                        key={o.id}
-                      >
-                        <a
-                          className="text-link hover:underline"
-                          href={`/organizations/${o.id}`}
-                        >
-                          {o.name}
-                        </a>
-                        <Button
-                          variant="secondary"
-                          disabled={migrate.isPending}
-                          onClick={() => {
-                            if (
-                              window.confirm(
-                                "Confirm migration? Assigned terms will permanently govern access. Review dates first."
-                              )
-                            )
-                              migrate.mutate(o.id);
-                          }}
-                        >
-                          Confirm migration
-                        </Button>
-                      </div>
-                    ))}
-                    {migrate.error && (
-                      <p role="alert" className="text-danger">
-                        {migrate.error.message}
-                      </p>
-                    )}
-                  </section>
-                </div>
               )}
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line p-4">
                 <span className="text-sm text-ink-muted">

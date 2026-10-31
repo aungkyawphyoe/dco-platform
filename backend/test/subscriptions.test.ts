@@ -85,4 +85,39 @@ describe('admin billing', () => {
         expect((await ctx.app.inject({method:'PATCH',url:`/v1/admin/subscriptions/${grant.json().id}`,headers:admin,payload:{version:1,action:'revoke',reason:'Review correction'}})).statusCode).toBe(200);
         expect(await organizationBilling(ctx.db,id)).toMatchObject({migrated:true,writable:false,status:'read_only'});
     });
+    it('cleans pre-launch accounts once while preserving real access and stored records', async () => {
+        const legacy = await owner(), paid = await owner(), store = await owner();
+        await ctx.db.update(users).set({ plan: 'standard' }).where(eq(users.id, legacy.id));
+        const org = uuid(), activeOrg = uuid();
+        for (const id of [org, activeOrg]) await ctx.db.insert(organizations).values({ id, name: 'Test fleet', type: 'commercial', adminUserId: id === org ? legacy.id : paid.id, createdBy: legacy.id, billingMigrated: false, status: 'active' });
+        const vehicleId = uuid();
+        await ctx.db.insert(vehicles).values({ id: vehicleId, userId: legacy.id, name: 'Keep me', make: 'Toyota', model: 'Corolla', year: 2020, licensePlate: vehicleId.slice(0, 8), fuelType: 'petrol', mileage: '100' });
+        for (const [kind, id, plan] of [['user', paid.id, 'lite'], ['organization', activeOrg, 'fleet']]) {
+            const result = await ctx.app.inject({ method: 'POST', url: '/v1/admin/subscriptions', headers: admin, payload: { kind, id, plan, request_id: uuid(), source: 'complimentary', reason: 'Existing test access', starts_at: new Date().toISOString(), unit: 'years', count: 1 } });
+            expect(result.statusCode, result.body).toBe(200);
+        }
+        await ctx.db.insert(playSubscriptions).values({ purchaseToken: uuid(), userId: store.id, productId: 'standard', basePlanId: 'monthly', plan: 'standard', state: 'SUBSCRIPTION_STATE_ACTIVE', expiresAt: new Date(Date.now() + DAY), autoRenewing: true, acknowledged: true });
+        const termsBefore = await ctx.db.select().from(subscriptionTerms);
+        const storeBefore = await ctx.db.select().from(playSubscriptions);
+        // Simulate an existing deployment immediately before this migration.
+        await ctx.client.exec("DELETE FROM billing_migrations WHERE name = 'prelaunch_test_accounts'");
+        await applyInitSql(sql => ctx.client.exec(sql));
+        expect(await effectiveSubscription(ctx.db, legacy.id)).toMatchObject({ plan: 'free', user: { billingManaged: true } });
+        expect((await effectiveSubscription(ctx.db, paid.id)).plan).toBe('lite');
+        expect((await effectiveSubscription(ctx.db, store.id)).plan).toBe('standard');
+        expect(await organizationBilling(ctx.db, org)).toMatchObject({ migrated: true, writable: false, status: 'read_only' });
+        expect(await organizationBilling(ctx.db, activeOrg)).toMatchObject({ migrated: true, writable: true, status: 'active' });
+        expect(await ctx.db.select().from(subscriptionTerms)).toEqual(termsBefore);
+        expect(await ctx.db.select().from(playSubscriptions)).toEqual(storeBefore);
+        expect(await ctx.db.select().from(vehicles).where(eq(vehicles.id, vehicleId))).toHaveLength(1);
+        const list = await ctx.app.inject({ method: 'GET', url: '/v1/admin/subscriptions', headers: admin });
+        expect(list.json().legacy).toEqual([]);
+        expect(list.json().awaiting_review).toEqual([]);
+        // A restart must not repeat the one-time cleanup on later test fixtures.
+        const later = await owner();
+        await ctx.db.update(users).set({ plan: 'lite' }).where(eq(users.id, later.id));
+        await applyInitSql(sql => ctx.client.exec(sql));
+        expect((await effectiveSubscription(ctx.db, later.id)).plan).toBe('lite');
+    });
+
 });
