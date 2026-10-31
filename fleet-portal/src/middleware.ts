@@ -1,12 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { FLEET_REFRESH_COOKIE } from "@/lib/auth/cookies";
-
-function getPublicOrigin(request: NextRequest): string {
-  const proto = request.headers.get("x-forwarded-proto") || "https";
-  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
-  const cleanHost = host.replace(/:3000$/, "");
-  return `${proto}://${cleanHost}`;
-}
+import { getPublicOrigin } from "./lib/auth/public-origin";
 
 function normalizeRequestUrl(request: NextRequest): NextRequest {
   const publicOrigin = getPublicOrigin(request);
