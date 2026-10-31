@@ -1,11 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-
-function getPublicOrigin(request: NextRequest): string {
-  const proto = request.headers.get("x-forwarded-proto") || "https";
-  const host = request.headers.get("x-forwarded-host") || request.headers.get("host") || "";
-  const cleanHost = host.replace(/:3000$/, "");
-  return `${proto}://${cleanHost}`;
-}
+import { getPublicOrigin } from "./public-origin";
 
 /** Cookie-authenticated mutations must originate in this portal. */
 export function rejectCrossOrigin(request: NextRequest): NextResponse | null {
