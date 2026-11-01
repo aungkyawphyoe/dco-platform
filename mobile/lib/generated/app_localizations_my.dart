@@ -4146,4 +4146,12 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get playAndroidOnly =>
       'Google Play စာရင်းသွင်းမှုကို Android အက်ပ်တွင် ရနိုင်ပါသည်။ ဤပလက်ဖောင်းတွင် ဝယ်ယူ၍မရပါ။';
+
+  @override
+  String get authFlowExpired =>
+      'ဝင်ရောက်မှု သက်တမ်းကုန်သွားပါပြီ သို့မဟုတ် မပြီးမြောက်ပါ။ ပြန်စရန် ဝင်ရောက်ရန် ခလုတ်ကို နှိပ်ပါ။';
+
+  @override
+  String get authServiceUnavailable =>
+      'ဝင်ရောက်မှုဝန်ဆောင်မှုကို ယာယီ အသုံးမပြုနိုင်ပါ။ ခဏကြာလျှင် ပြန်ကြိုးစားပါ။';
 }

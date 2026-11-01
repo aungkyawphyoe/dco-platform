@@ -4109,4 +4109,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get playAndroidOnly =>
       'Google Play subscriptions are available in the Android app. Checkout is not available on this platform.';
+
+  @override
+  String get authFlowExpired =>
+      'Sign-in expired or did not complete. Tap the sign-in button to start again.';
+
+  @override
+  String get authServiceUnavailable =>
+      'The sign-in service is temporarily unavailable. Please try again later.';
 }

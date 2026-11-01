@@ -7685,6 +7685,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Google Play subscriptions are available in the Android app. Checkout is not available on this platform.'**
   String get playAndroidOnly;
+
+  /// No description provided for @authFlowExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in expired or did not complete. Tap the sign-in button to start again.'**
+  String get authFlowExpired;
+
+  /// No description provided for @authServiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The sign-in service is temporarily unavailable. Please try again later.'**
+  String get authServiceUnavailable;
 }
 
 class _AppLocalizationsDelegate

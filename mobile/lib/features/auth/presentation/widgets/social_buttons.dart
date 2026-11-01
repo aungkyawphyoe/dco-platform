@@ -22,6 +22,7 @@ class _SocialButtonsState extends ConsumerState<SocialButtons> {
   bool busy = false;
   String? error;
   Future<void> run(String provider) async {
+    if (busy) return;
     setState(() {
       busy = true;
       error = null;

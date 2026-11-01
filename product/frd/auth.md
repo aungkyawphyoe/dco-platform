@@ -74,3 +74,7 @@ Existing email/password login and sessions remain the baseline. Verification tok
 - Existing owner, driver, fleet, admin, and workshop authentication regressions pass.
 - No authentication provider migration, account merging, billing, passkeys, or MFA in this release.
 - HTTP shapes are implemented in OpenAPI alongside backend changes; the implementation plan contains proposals, not currently callable endpoints.
+
+## Tester feedback hardening — 1 November 2026
+
+Social sign-in preserves email/password entry when a provider is unavailable. Invalid/expired flows explain how to restart; unstructured server failures are distinguished from transport failures in English and Burmese. Browser cancellation stays quiet. Every retry starts a fresh flow and concurrent button submissions are ignored. Fixed stage/outcome/timing analytics respect the existing analytics configuration and exclude credentials, provider URLs, raw errors, and email addresses. Production Google client configuration and real-device acceptance remain pending; see `docs/tester-feedback-auth-baseline.md`.
