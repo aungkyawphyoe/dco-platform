@@ -1,7 +1,7 @@
 # Tester feedback implementation plan
 
 Date: 1 November 2026
-Status: Approved. Phase 0 investigation, Phase 1 client implementation, and Phase 2 sign-out confirmation are implemented; see [baseline and acceptance record](tester-feedback-auth-baseline.md). The production Google login blocker is resolved and user-tested sign-in succeeds. Client hardening is committed locally; release of those changes and the broader acceptance matrix remain open.
+Status: Approved. Phase 0 investigation, Phase 1 client implementation, Phase 2 sign-out confirmation, and Phase 3 post-login tour are implemented; see [baseline and acceptance record](tester-feedback-auth-baseline.md). The production Google login blocker is resolved and user-tested sign-in succeeds. Client hardening is committed locally; release of those changes and the broader acceptance matrix remain open.
 
 ## Purpose and evidence
 

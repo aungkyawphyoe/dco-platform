@@ -1657,6 +1657,88 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsSignOutFailed => 'အကောင့်မှ ထွက်၍ မရပါ။ ထပ်စမ်းကြည့်ပါ။';
 
   @override
+  String get settingsHelp => 'အကူအညီ';
+
+  @override
+  String get helpTitle => 'အကူအညီ';
+
+  @override
+  String get helpReplayTour => 'လမ်းညွှန်ကို ပြန်ကြည့်မည်';
+
+  @override
+  String get helpReplayTourBody => 'အဓိကနေရာများကို ထပ်မံလျှောက်ကြည့်ပါ။';
+
+  @override
+  String get tourOfferTitle => 'ပတ်ပတ်လည် ပြသမလား။';
+
+  @override
+  String get tourOfferBody =>
+      'သင့်ကားဂိုဒေါင်၊ ပြုပြင်ထိန်းသိမ်းမှု၊ အသုံးစရိတ်နှင့် ပြင်ဆင်ချက်များကို အမြန်လမ်းညွှန်ပြပါမည်။';
+
+  @override
+  String get tourShowMe => 'ပြသပါ';
+
+  @override
+  String get tourNotNow => 'နောက်မှ';
+
+  @override
+  String get tourSkip => 'ကျော်မည်';
+
+  @override
+  String get tourBack => 'နောက်သို့';
+
+  @override
+  String get tourNext => 'ရှေ့သို့';
+
+  @override
+  String get tourDone => 'ပြီးပါပြီ';
+
+  @override
+  String tourStepOf(int current, int total) {
+    return 'အဆင့် $current / $total';
+  }
+
+  @override
+  String get tourVehicleTitle => 'သင့်လက်ရှိယာဉ်';
+
+  @override
+  String get tourVehicleBody =>
+      'ဤကတ်သည် သင့်လက်ရှိယာဉ်ဖြစ်သည်။ ယာဉ်ပြောင်းရန် သို့မဟုတ် နောက်တစ်စီးထည့်ရန် အပေါ်ဘားမှ သင့်ကားဂိုဒေါင်ကို ဖွင့်ပါ။';
+
+  @override
+  String get tourVehicleEmptyBody =>
+      'ယာဉ်မရှိသေးပါ။ ပြုပြင်ထိန်းသိမ်းမှုနှင့် အသုံးစရိတ်များ စတင်မှတ်တမ်းတင်ရန် သင့်ပထမဆုံးယာဉ်ကို ထည့်ပါ။';
+
+  @override
+  String get tourVehicleDriverBody =>
+      'သင့်ထံ တာဝန်ပေးထားသော ယာဉ်များ ဤနေရာတွင် ပေါ်ပါမည်။ ယာဉ်တာဝန်ပေးမှုများကို သင့် Fleet အုပ်ချုပ်သူက စီမံပါသည်။';
+
+  @override
+  String get tourVehicleDriverEmptyBody =>
+      'ယာဉ် တာဝန်မပေးရသေးပါ။ သင့် Fleet အုပ်ချုပ်သူက ယာဉ်တာဝန်ပေးပြီးနောက် ပြုပြင်ထိန်းသိမ်းမှုနှင့် အသုံးစရိတ်များ ပေါ်လာပါမည်။';
+
+  @override
+  String get tourMaintenanceTitle => 'ပြုပြင်ထိန်းသိမ်းမှု';
+
+  @override
+  String get tourMaintenanceBody =>
+      'ပြုပြင်ထိန်းသိမ်းမှု တဘ်တွင် လက်ရှိယာဉ်၏ အစီအစဉ်နှင့် ဝန်ဆောင်မှုမှတ်တမ်းကို ပြပါသည်။';
+
+  @override
+  String get tourExpensesTitle => 'အသုံးစရိတ်များ';
+
+  @override
+  String get tourExpensesBody =>
+      'အသုံးစရိတ် တဘ်တွင် လက်ရှိယာဉ်၏ အသုံးစရိတ်နှင့် စုစုပေါင်းကို မှတ်တမ်းတင်ပါသည်။';
+
+  @override
+  String get tourSettingsTitle => 'ပြင်ဆင်ချက်နှင့် ချိတ်ဆက်မှု';
+
+  @override
+  String get tourSettingsBody =>
+      'ဦးစားပေးချက်များ ပြောင်းရန်၊ ချိတ်ဆက်မှုအခြေအနေ စစ်ရန်နှင့် Help မှ ဤလမ်းညွှန်ကို ပြန်ကြည့်ရန်။';
+
+  @override
   String get settingsSyncStatusFailed => 'ဒေတာ ချိတ်ဆက်မှု မအောင်မြင်ပါ';
 
   @override

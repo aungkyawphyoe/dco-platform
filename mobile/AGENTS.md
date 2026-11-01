@@ -238,6 +238,10 @@ mobile/
         data/
         domain/
         presentation/
+      onboarding/
+        data/
+        domain/
+        presentation/
   test/
     core/
     features/
@@ -247,7 +251,7 @@ mobile/
 
 ### What lives where
 
-- **`core/`** — theme, router, Dio, Drift schema, sync engine, media pipeline, local notification scheduler, primitive widgets, analytics. Shared infrastructure, not a dumping ground for feature screens.
+- **`core/`** — theme, router, Dio, Drift schema, sync engine, media pipeline, local notification scheduler, primitive widgets, analytics, shared onboarding tour target contracts. Shared infrastructure, not a dumping ground for feature screens.
 - **`features/<name>/domain/`** — entities, repository interfaces, use cases (pure Dart).
 - **`features/<name>/data/`** — Drift/Dio implementations, DTOs, mappers.
 - **`features/<name>/presentation/`** — screens, widgets, Riverpod notifiers.

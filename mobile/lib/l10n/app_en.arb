@@ -506,6 +506,40 @@
   "settingsSignOutConfirmTitle": "Sign out?",
   "settingsSignOutConfirmBody": "Pending changes stay on this device. They sync when you sign in to this account again, and another account on this phone cannot see them.",
   "settingsSignOutFailed": "Couldn't sign out. Try again.",
+  "settingsHelp": "Help",
+  "helpTitle": "Help",
+  "helpReplayTour": "Replay tour",
+  "helpReplayTourBody": "Walk through the main areas again.",
+  "tourOfferTitle": "Show me around?",
+  "tourOfferBody": "A quick tour of your garage, maintenance, expenses, and settings.",
+  "tourShowMe": "Show me around",
+  "tourNotNow": "Not now",
+  "tourSkip": "Skip",
+  "tourBack": "Back",
+  "tourNext": "Next",
+  "tourDone": "Done",
+  "tourStepOf": "Step {current} of {total}",
+  "@tourStepOf": {
+    "placeholders": {
+      "current": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "tourVehicleTitle": "Your active vehicle",
+  "tourVehicleBody": "This card is your active vehicle. Open your garage from the top bar to switch vehicles or add another.",
+  "tourVehicleEmptyBody": "No vehicle yet. Add your first vehicle to start tracking maintenance and expenses.",
+  "tourVehicleDriverBody": "Your assigned vehicles appear here. Your fleet admin manages assignments.",
+  "tourVehicleDriverEmptyBody": "No vehicle is assigned yet. Your fleet admin assigns vehicles; maintenance and expenses appear after that.",
+  "tourMaintenanceTitle": "Maintenance",
+  "tourMaintenanceBody": "The Maintenance tab shows the plan and service history for the active vehicle.",
+  "tourExpensesTitle": "Expenses",
+  "tourExpensesBody": "The Expenses tab tracks spending and totals for the active vehicle.",
+  "tourSettingsTitle": "Settings and sync",
+  "tourSettingsBody": "Change preferences, check sync status, and replay this tour from Help.",
   "settingsSyncStatusFailed": "Sync failed",
   "settingsSyncStatusSyncing": "Syncing...",
   "settingsSyncStatusJustSynced": "Just synced",

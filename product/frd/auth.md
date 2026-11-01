@@ -85,3 +85,14 @@ Social sign-in preserves email/password entry when a provider is unavailable. In
 - Confirming calls the existing session controller sign-out once. The action is disabled while it runs, so repeat taps cannot submit again.
 - Tokens are discarded and account transition proceeds as before. Queued writes and local records stay on the device, bound to the account; the dialog states that they sync after signing back in and that another account on the phone cannot see them. No network sync or cloud backup is promised.
 - Only user-requested sign-out is confirmed. Session expiry, account deletion, and required re-authentication transitions remain automatic.
+
+## Post-login tour — 1 November 2026
+
+The pre-login introduction remains unchanged and is marked handled per installation. A separate optional tour runs after authentication, once the Garage dashboard has loaded and blocking prompts are resolved or skipped.
+
+- The app offers **Show me around?** with **Show me around** and **Not now** instead of immediately covering the screen.
+- Four anchored hints cover the active vehicle (or its empty state), Maintenance, Expenses, and Settings/sync. Empty personal garages explain adding a vehicle without creating one; Drivers with no assignment are told that a fleet admin manages assignments.
+- Next, Back, Skip, and system Back always work. Back on the first step exits. The tour does not switch tabs, so tab stacks are preserved.
+- Dismissed/completed state is stored locally per account and tour version. It is not a sync entity, does not restart on launch or sign-out, and a new version is offered again.
+- Settings → Help → Replay tour starts an explicit replay from a stable Garage dashboard. Replay works after completion and does not re-arm the automatic offer.
+- Missing targets fall back to a centred card. The tour supports English/Burmese, both themes, large text, screen readers, and reduced motion.

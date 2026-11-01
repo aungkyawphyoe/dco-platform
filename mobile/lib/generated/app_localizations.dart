@@ -3140,6 +3140,150 @@ abstract class AppLocalizations {
   /// **'Couldn\'t sign out. Try again.'**
   String get settingsSignOutFailed;
 
+  /// No description provided for @settingsHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get settingsHelp;
+
+  /// No description provided for @helpTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Help'**
+  String get helpTitle;
+
+  /// No description provided for @helpReplayTour.
+  ///
+  /// In en, this message translates to:
+  /// **'Replay tour'**
+  String get helpReplayTour;
+
+  /// No description provided for @helpReplayTourBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Walk through the main areas again.'**
+  String get helpReplayTourBody;
+
+  /// No description provided for @tourOfferTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me around?'**
+  String get tourOfferTitle;
+
+  /// No description provided for @tourOfferBody.
+  ///
+  /// In en, this message translates to:
+  /// **'A quick tour of your garage, maintenance, expenses, and settings.'**
+  String get tourOfferBody;
+
+  /// No description provided for @tourShowMe.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me around'**
+  String get tourShowMe;
+
+  /// No description provided for @tourNotNow.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get tourNotNow;
+
+  /// No description provided for @tourSkip.
+  ///
+  /// In en, this message translates to:
+  /// **'Skip'**
+  String get tourSkip;
+
+  /// No description provided for @tourBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get tourBack;
+
+  /// No description provided for @tourNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get tourNext;
+
+  /// No description provided for @tourDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get tourDone;
+
+  /// No description provided for @tourStepOf.
+  ///
+  /// In en, this message translates to:
+  /// **'Step {current} of {total}'**
+  String tourStepOf(int current, int total);
+
+  /// No description provided for @tourVehicleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Your active vehicle'**
+  String get tourVehicleTitle;
+
+  /// No description provided for @tourVehicleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This card is your active vehicle. Open your garage from the top bar to switch vehicles or add another.'**
+  String get tourVehicleBody;
+
+  /// No description provided for @tourVehicleEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicle yet. Add your first vehicle to start tracking maintenance and expenses.'**
+  String get tourVehicleEmptyBody;
+
+  /// No description provided for @tourVehicleDriverBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Your assigned vehicles appear here. Your fleet admin manages assignments.'**
+  String get tourVehicleDriverBody;
+
+  /// No description provided for @tourVehicleDriverEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'No vehicle is assigned yet. Your fleet admin assigns vehicles; maintenance and expenses appear after that.'**
+  String get tourVehicleDriverEmptyBody;
+
+  /// No description provided for @tourMaintenanceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance'**
+  String get tourMaintenanceTitle;
+
+  /// No description provided for @tourMaintenanceBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Maintenance tab shows the plan and service history for the active vehicle.'**
+  String get tourMaintenanceBody;
+
+  /// No description provided for @tourExpensesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses'**
+  String get tourExpensesTitle;
+
+  /// No description provided for @tourExpensesBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The Expenses tab tracks spending and totals for the active vehicle.'**
+  String get tourExpensesBody;
+
+  /// No description provided for @tourSettingsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings and sync'**
+  String get tourSettingsTitle;
+
+  /// No description provided for @tourSettingsBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Change preferences, check sync status, and replay this tour from Help.'**
+  String get tourSettingsBody;
+
   /// No description provided for @settingsSyncStatusFailed.
   ///
   /// In en, this message translates to:

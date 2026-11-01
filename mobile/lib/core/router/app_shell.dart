@@ -2,9 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../features/onboarding/presentation/widgets/tour_overlay.dart';
 import '../../generated/app_localizations.dart';
-import 'app_drawer.dart';
+import '../onboarding/tour_targets.dart';
 import '../widgets/custom_floating_nav_bar.dart';
+import 'app_drawer.dart';
 
 /// Bottom shell. Four tabs in both modes — Driver mode is personal-mode
 /// parity (Confirmed Access Decisions 15–24): Garage / Maintenance / Expenses
@@ -45,16 +47,19 @@ class _AppShellState extends ConsumerState<AppShell> {
                     label: s.navMaintenance,
                     icon: Icons.build_outlined,
                     activeIcon: Icons.build,
+                    tourTarget: TourTarget.maintenance,
                   ),
                   CustomNavItem(
                     label: s.navExpenses,
                     icon: Icons.payments_outlined,
                     activeIcon: Icons.payments,
+                    tourTarget: TourTarget.expenses,
                   ),
                   CustomNavItem(
                     label: s.navSettings,
                     icon: Icons.settings_outlined,
                     activeIcon: Icons.settings,
+                    tourTarget: TourTarget.settings,
                   ),
                 ],
                 onTap: (index) {
@@ -66,6 +71,7 @@ class _AppShellState extends ConsumerState<AppShell> {
               ),
             ),
           ),
+          Positioned.fill(child: TourOverlay(currentBranch: currentBranch)),
         ],
       ),
     );

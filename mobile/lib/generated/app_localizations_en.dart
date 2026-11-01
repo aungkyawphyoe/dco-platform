@@ -1633,6 +1633,88 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSignOutFailed => 'Couldn\'t sign out. Try again.';
 
   @override
+  String get settingsHelp => 'Help';
+
+  @override
+  String get helpTitle => 'Help';
+
+  @override
+  String get helpReplayTour => 'Replay tour';
+
+  @override
+  String get helpReplayTourBody => 'Walk through the main areas again.';
+
+  @override
+  String get tourOfferTitle => 'Show me around?';
+
+  @override
+  String get tourOfferBody =>
+      'A quick tour of your garage, maintenance, expenses, and settings.';
+
+  @override
+  String get tourShowMe => 'Show me around';
+
+  @override
+  String get tourNotNow => 'Not now';
+
+  @override
+  String get tourSkip => 'Skip';
+
+  @override
+  String get tourBack => 'Back';
+
+  @override
+  String get tourNext => 'Next';
+
+  @override
+  String get tourDone => 'Done';
+
+  @override
+  String tourStepOf(int current, int total) {
+    return 'Step $current of $total';
+  }
+
+  @override
+  String get tourVehicleTitle => 'Your active vehicle';
+
+  @override
+  String get tourVehicleBody =>
+      'This card is your active vehicle. Open your garage from the top bar to switch vehicles or add another.';
+
+  @override
+  String get tourVehicleEmptyBody =>
+      'No vehicle yet. Add your first vehicle to start tracking maintenance and expenses.';
+
+  @override
+  String get tourVehicleDriverBody =>
+      'Your assigned vehicles appear here. Your fleet admin manages assignments.';
+
+  @override
+  String get tourVehicleDriverEmptyBody =>
+      'No vehicle is assigned yet. Your fleet admin assigns vehicles; maintenance and expenses appear after that.';
+
+  @override
+  String get tourMaintenanceTitle => 'Maintenance';
+
+  @override
+  String get tourMaintenanceBody =>
+      'The Maintenance tab shows the plan and service history for the active vehicle.';
+
+  @override
+  String get tourExpensesTitle => 'Expenses';
+
+  @override
+  String get tourExpensesBody =>
+      'The Expenses tab tracks spending and totals for the active vehicle.';
+
+  @override
+  String get tourSettingsTitle => 'Settings and sync';
+
+  @override
+  String get tourSettingsBody =>
+      'Change preferences, check sync status, and replay this tour from Help.';
+
+  @override
   String get settingsSyncStatusFailed => 'Sync failed';
 
   @override

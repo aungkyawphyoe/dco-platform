@@ -48,6 +48,7 @@ import '../../features/maintenance/presentation/screens/suggested_items_screen.d
 import '../../features/notifications/presentation/screens/notification_feed_screen.dart';
 import '../../features/notes/presentation/screens/note_form_screen.dart';
 import '../../features/notes/presentation/screens/notes_screen.dart';
+import '../../features/onboarding/presentation/screens/help_screen.dart';
 import '../../features/parts/presentation/screens/part_form_screen.dart';
 import '../../features/parts/presentation/screens/parts_screen.dart';
 import '../../features/profile/presentation/screens/profile_detail_screen.dart';
@@ -386,6 +387,11 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'appearance',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const AppearanceScreen(),
+                  ),
+                  GoRoute(
+                    path: 'help',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const HelpScreen(),
                   ),
                 ],
               ),

@@ -154,6 +154,24 @@ Driver-specific screens push on the active **tab** stacks (parity with personal 
 
 ---
 
+## Post-login tour
+
+Distinct from the pre-login introduction in `product/frd/auth.md`. The introduction runs before sign-in and is marked handled per installation; the tour runs after authentication and is stored per account.
+
+- After the dashboard has loaded on the Garage tab (active-vehicle stream resolved, first-vehicle and verification routing prompts dismissed), the shell offers a compact **Show me around?** card with **Show me around** and **Not now**. It never covers the screen before the user opts in.
+- Four anchored steps point at real controls: the active vehicle card or empty state, then the Maintenance, Expenses, and Settings bottom tabs. Copy explains settings and sync together.
+- Personal accounts with an empty garage are told to add their first vehicle; no vehicle or sample record is created. Drivers with no assignment are told that a fleet admin manages assignments, and vehicle creation is never offered.
+- Next, Back, Skip, and system Back are always available. Back on the first step exits the tour; the overlay never traps the user. Steps do not switch tabs, so existing tab stacks are preserved.
+- Dismissal and completion are stored locally in account-scoped AppMeta under a versioned key. The offer appears once per account and tour version and does not repeat on launch, sign-out, or transient loading. A new tour version is offered again.
+- Settings → Help → **Replay tour** starts an explicit replay from the Garage dashboard, regardless of stored progress. Replays do not re-arm the automatic offer.
+- Targets that are not currently laid out fall back to a centred card rather than failing. The presentation honours light/dark, English/Burmese, large text (scrollable hint card), and reduced motion (no animated overlay), and exposes the hint as a live-region semantic.
+
+Tour state is device-local. It is not a sync entity and does not affect account isolation.
+
+**Testing aid:** debug builds offer the tour on every launch so the flow can be exercised (`DCO_TOUR_ALWAYS`, on by default in debug; pass `--dart-define=DCO_TOUR_ALWAYS=false` to disable). Release builds always honour stored progress. Dismissing the offer still suppresses it for the rest of that run; restart the app or sign out and back in to see it again.
+
+---
+
 ## Route guards
 
 From `product/frd/auth.md`:

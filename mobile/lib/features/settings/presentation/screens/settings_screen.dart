@@ -335,6 +335,28 @@ class SettingsScreen extends ConsumerWidget {
                           onTap: () =>
                               context.push(AppRoutes.settingsAppearance),
                         ),
+                        Divider(
+                          height: 1,
+                          indent: 16,
+                          color: tokens.border.divider,
+                        ),
+                        ListTile(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              tokens.radius.lg,
+                            ),
+                          ),
+                          leading: Icon(
+                            Icons.help_outline,
+                            color: tokens.icon.inactive,
+                          ),
+                          title: Text(s.settingsHelp),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: tokens.icon.inactive,
+                          ),
+                          onTap: () => context.push(AppRoutes.settingsHelp),
+                        ),
                       ],
                     ),
                   ),

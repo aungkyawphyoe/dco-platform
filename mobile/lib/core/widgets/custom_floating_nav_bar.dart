@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/onboarding/tour_targets.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:flutter/material.dart';
 
@@ -73,18 +74,35 @@ class _CustomFloatingNavBarState extends State<CustomFloatingNavBar> {
                   children: [
                     for (var i = 0; i < items.length; i++) ...[
                       if (i > 0) const SizedBox(width: _itemSpacing),
-                      _NavItem(
-                        item: items[i],
-                        selected: selectedIndex == i,
-                        onTap: () => widget.onTap(i),
-                        barRadius: _radius,
-                        activeFill: activeFill,
-                        glowBorder: glowBorder,
-                        inactiveIcon: inactiveIcon,
-                        activeContent: activeContent,
-                        itemPadding: _itemPadding,
-                        gap: _gap,
-                      ),
+                      if (items[i].tourTarget != null)
+                        TourAnchor(
+                          target: items[i].tourTarget!,
+                          child: _NavItem(
+                            item: items[i],
+                            selected: selectedIndex == i,
+                            onTap: () => widget.onTap(i),
+                            barRadius: _radius,
+                            activeFill: activeFill,
+                            glowBorder: glowBorder,
+                            inactiveIcon: inactiveIcon,
+                            activeContent: activeContent,
+                            itemPadding: _itemPadding,
+                            gap: _gap,
+                          ),
+                        )
+                      else
+                        _NavItem(
+                          item: items[i],
+                          selected: selectedIndex == i,
+                          onTap: () => widget.onTap(i),
+                          barRadius: _radius,
+                          activeFill: activeFill,
+                          glowBorder: glowBorder,
+                          inactiveIcon: inactiveIcon,
+                          activeContent: activeContent,
+                          itemPadding: _itemPadding,
+                          gap: _gap,
+                        ),
                     ],
                   ],
                 ),
@@ -102,11 +120,15 @@ class CustomNavItem {
     required this.label,
     required this.icon,
     this.activeIcon,
+    this.tourTarget,
   });
 
   final String label;
   final IconData icon;
   final IconData? activeIcon;
+
+  /// Optional onboarding tour anchor for this control.
+  final TourTarget? tourTarget;
 }
 
 class _NavItem extends StatelessWidget {

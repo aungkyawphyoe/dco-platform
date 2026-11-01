@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
+import 'package:dco_mobile/core/onboarding/tour_targets.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -145,14 +146,17 @@ class DashboardScreen extends ConsumerWidget {
                   DcoEmptyState(title: s.dashboardLoadError, body: '$error'),
               data: (vehicle) {
                 if (vehicle == null) {
-                  return DcoEmptyState(
-                    title: s.dashboardEmptyTitle,
-                    body: s.dashboardEmptyBody,
-                    actionLabel: s.dashboardEmptyTitle,
-                    actionKey: const Key('register-vehicle-cta'),
-                    onAction: ref.watch(driverOrganizationIdProvider) == null
-                        ? () => context.push(AppRoutes.vehicleNew)
-                        : null,
+                  return TourAnchor(
+                    target: TourTarget.vehicle,
+                    child: DcoEmptyState(
+                      title: s.dashboardEmptyTitle,
+                      body: s.dashboardEmptyBody,
+                      actionLabel: s.dashboardEmptyTitle,
+                      actionKey: const Key('register-vehicle-cta'),
+                      onAction: ref.watch(driverOrganizationIdProvider) == null
+                          ? () => context.push(AppRoutes.vehicleNew)
+                          : null,
+                    ),
                   );
                 }
                 return _PopulatedDashboard(vehicle: vehicle);
@@ -200,86 +204,89 @@ class _PopulatedDashboard extends ConsumerWidget {
     return ListView(
       padding: EdgeInsets.all(tokens.space.s4),
       children: [
-        Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(tokens.radius.lg),
-            border: Border(
-              left: BorderSide(color: tokens.text.accent, width: 3),
-            ),
-            boxShadow: tokens.shadows.card,
-          ),
-          child: Material(
-            color: tokens.background.card,
-            borderRadius: BorderRadius.circular(tokens.radius.lg),
-            child: InkWell(
-              onTap: () => context.push(AppRoutes.vehicleDetail(vehicle.id)),
+        TourAnchor(
+          target: TourTarget.vehicle,
+          child: Container(
+            decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(tokens.radius.lg),
-              child: Padding(
-                padding: EdgeInsets.all(tokens.space.s4),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(tokens.radius.md),
-                      child: SizedBox(
-                        width: 88,
-                        height: 88,
-                        child: vehicle.photoLocalPath == null
-                            ? ColoredBox(
-                                color: tokens.background.input,
-                                child: Icon(
-                                  Icons.directions_car_outlined,
-                                  color: tokens.icon.inactive,
-                                ),
-                              )
-                            : Image.file(
-                                File(vehicle.photoLocalPath!),
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => ColoredBox(
+              border: Border(
+                left: BorderSide(color: tokens.text.accent, width: 3),
+              ),
+              boxShadow: tokens.shadows.card,
+            ),
+            child: Material(
+              color: tokens.background.card,
+              borderRadius: BorderRadius.circular(tokens.radius.lg),
+              child: InkWell(
+                onTap: () => context.push(AppRoutes.vehicleDetail(vehicle.id)),
+                borderRadius: BorderRadius.circular(tokens.radius.lg),
+                child: Padding(
+                  padding: EdgeInsets.all(tokens.space.s4),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(tokens.radius.md),
+                        child: SizedBox(
+                          width: 88,
+                          height: 88,
+                          child: vehicle.photoLocalPath == null
+                              ? ColoredBox(
                                   color: tokens.background.input,
                                   child: Icon(
                                     Icons.directions_car_outlined,
                                     color: tokens.icon.inactive,
                                   ),
+                                )
+                              : Image.file(
+                                  File(vehicle.photoLocalPath!),
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (_, __, ___) => ColoredBox(
+                                    color: tokens.background.input,
+                                    child: Icon(
+                                      Icons.directions_car_outlined,
+                                      color: tokens.icon.inactive,
+                                    ),
+                                  ),
                                 ),
-                              ),
+                        ),
                       ),
-                    ),
-                    SizedBox(width: tokens.space.s4),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            vehicle.yearMakeModel,
-                            style: Theme.of(context).textTheme.titleMedium,
-                          ),
-                          SizedBox(height: tokens.space.s1),
-                          Text(
-                            vehicle.licensePlate,
-                            style: GoogleFonts.ibmPlexMono(
-                              color: tokens.text.accent,
-                              fontSize: 13,
+                      SizedBox(width: tokens.space.s4),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              vehicle.yearMakeModel,
+                              style: Theme.of(context).textTheme.titleMedium,
                             ),
-                          ),
-                          SizedBox(height: tokens.space.s2),
-                          Text(
-                            mileage,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                          if (vehicle.vin != null) ...[
                             SizedBox(height: tokens.space.s1),
                             Text(
-                              vehicle.vin!,
+                              vehicle.licensePlate,
                               style: GoogleFonts.ibmPlexMono(
-                                color: tokens.text.caption,
-                                fontSize: 12,
+                                color: tokens.text.accent,
+                                fontSize: 13,
                               ),
                             ),
+                            SizedBox(height: tokens.space.s2),
+                            Text(
+                              mileage,
+                              style: Theme.of(context).textTheme.bodyMedium,
+                            ),
+                            if (vehicle.vin != null) ...[
+                              SizedBox(height: tokens.space.s1),
+                              Text(
+                                vehicle.vin!,
+                                style: GoogleFonts.ibmPlexMono(
+                                  color: tokens.text.caption,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
