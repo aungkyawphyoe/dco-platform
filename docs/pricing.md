@@ -1,5 +1,7 @@
 # AutoX Platform Pricing & Feature Reference
 
+> **Scope note — 1 November 2026.** This file is authoritative for plan names, prices, and numeric limits. Its feature matrix is the original product plan and still lists capabilities that are **not shipped** (AI assistant, PDF reports, receipt scanning, trips, insurance tracking, data import/export). For what the app actually does, use [`product/production-scope.md`](../product/production-scope.md). Do not copy unshipped rows into store copy — the reviewed Play listing is [`marketing/play-store/listing/`](../marketing/play-store/listing/README.md).
+
 **24 October 2026 subscription extension:** [Subscription Management and Admin Pricing](../product/frd/subscription-management.md) defines direct-paid and complimentary terms, grace, read-only expiry, per-organization migration, and editable catalog prices. It supersedes older indefinite admin-access assumptions for managed subscribers; store lifecycle and prices remain provider-controlled.
 
 **Version**: 1.0

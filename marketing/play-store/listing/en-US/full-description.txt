@@ -1,0 +1,55 @@
+AutoX is a digital garage for the vehicles you actually drive.
+
+One calm place for what your car needs next, what it has cost, and what you have already done — kept on your phone and ready when you are.
+
+YOUR GARAGE
+• Add a vehicle with plate, make, model, year, mileage and fuel type
+• Switch the active vehicle in one tap; every tab follows it
+• Archive a car without losing its service history
+
+MAINTENANCE AND REMINDERS
+• Build a maintenance plan from suggested items or your own
+• Set reminders by date and by mileage
+• Register a service with cost, parts and notes, and keep the full history
+
+FUEL AND CHARGING
+• Log refuels and charging sessions with litres or kWh, price and odometer
+• See consumption, cost trends and cost per distance in Fuel Stats
+
+EXPENSES, PARTS AND DOCUMENTS
+• Record spending by category and see monthly totals
+• Keep a parts list for each vehicle
+• Store documents, photos and PDFs against the right vehicle
+
+STATS
+• Fuel, maintenance and expense charts with year and month filters
+
+NOTES
+• A private notebook for plate numbers, workshop contacts, anything
+• Notes stay on your device and are never uploaded
+
+SHARING
+• Share a vehicle with a partner, family member or mechanic
+• They see the records you choose, and you can remove access at any time
+
+WORKS OFFLINE
+• Garage, maintenance, expenses, fuel logs, documents and notes work without a connection
+• Changes sync when you are back online; signing in needs a connection
+• Reminders are scheduled on your phone
+
+FOR PERSONAL OWNERS AND FLEET DRIVERS
+• The same screens serve a private garage and an assigned fleet vehicle
+• Drivers sign in with an account from their fleet admin and see their assigned vehicles
+
+LANGUAGES AND APPEARANCE
+• English and Burmese
+• Light, dark or system theme
+
+PLANS
+• Free: 1 vehicle, 1 active share, 50 MB document storage
+• Lite: 3 vehicles, 3 shares, 150 MB
+• Standard: 10 vehicles, unlimited shares, 500 MB
+• Fleet: unlimited vehicles and sharing, 5 GB (organizations)
+View and change your plan in Setting → Plans & subscriptions.
+
+Your records live on your device first, so the app keeps working when the signal does not.

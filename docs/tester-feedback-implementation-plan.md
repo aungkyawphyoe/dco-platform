@@ -1,7 +1,7 @@
 # Tester feedback implementation plan
 
 Date: 1 November 2026
-Status: Approved. Phase 0 investigation, Phase 1 client implementation, Phase 2 sign-out confirmation, and Phase 3 post-login tour are implemented; see [baseline and acceptance record](tester-feedback-auth-baseline.md). The production Google login blocker is resolved and user-tested sign-in succeeds. Client hardening is committed locally; release of those changes and the broader acceptance matrix remain open.
+Status: Approved. Phase 0 investigation, Phase 1 client implementation, Phase 2 sign-out confirmation, and Phase 3 post-login tour are implemented; Phase 4 listing copy is drafted and awaiting review. See [baseline and acceptance record](tester-feedback-auth-baseline.md). The production Google login blocker is resolved and user-tested sign-in succeeds. Client hardening is committed locally; release of those changes and the broader acceptance matrix remain open.
 
 ## Purpose and evidence
 
@@ -92,6 +92,12 @@ Primary integration points: app shell, dashboard, Settings, router, and localiza
 First eligible login offers the tour once; skip/completion survives restart; account switching does not share state; manual replay works. Empty garages, Driver assignments, delayed data, route changes, and interrupted tours do not crash or block normal use. Tests cover state transitions and representative target/navigation behavior; device checks cover accessibility and layout.
 
 ## Phase 4 — Review and improve the Play listing
+
+**Status (1 November 2026):** English and Burmese copy drafted in
+[`marketing/play-store/listing/`](../marketing/play-store/listing/README.md) with
+a limit validator and a claim-to-source map. Nothing is published. Outstanding:
+a diff against the live listing text, native Burmese review, and screenshot
+regeneration from the release being shipped.
 
 - Review the actual published text against features present in the tested release.
 - Draft short and full descriptions using clear, natural phrases around vehicle maintenance, service reminders, expense tracking, and fuel logs.
