@@ -1623,6 +1623,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSignOut => 'Sign out';
 
   @override
+  String get settingsSignOutConfirmTitle => 'Sign out?';
+
+  @override
+  String get settingsSignOutConfirmBody =>
+      'Pending changes stay on this device. They sync when you sign in to this account again, and another account on this phone cannot see them.';
+
+  @override
+  String get settingsSignOutFailed => 'Couldn\'t sign out. Try again.';
+
+  @override
   String get settingsSyncStatusFailed => 'Sync failed';
 
   @override

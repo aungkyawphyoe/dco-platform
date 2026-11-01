@@ -78,3 +78,10 @@ Existing email/password login and sessions remain the baseline. Verification tok
 ## Tester feedback hardening — 1 November 2026
 
 Social sign-in preserves email/password entry when a provider is unavailable. Invalid/expired flows explain how to restart; unstructured server failures are distinguished from transport failures in English and Burmese. Browser cancellation stays quiet. Every retry starts a fresh flow and concurrent button submissions are ignored. Fixed stage/outcome/timing analytics respect the existing analytics configuration and exclude credentials, provider URLs, raw errors, and email addresses. Production Google client configuration and start endpoint are verified; real-device acceptance remains pending; see `docs/tester-feedback-auth-baseline.md`.
+
+## Sign-out confirmation — 1 November 2026
+
+- Settings → Sign out opens a localized **Sign out?** dialog with Cancel and Sign out. Cancel, system Back, and dismissing the dialog leave the session untouched.
+- Confirming calls the existing session controller sign-out once. The action is disabled while it runs, so repeat taps cannot submit again.
+- Tokens are discarded and account transition proceeds as before. Queued writes and local records stay on the device, bound to the account; the dialog states that they sync after signing back in and that another account on the phone cannot see them. No network sync or cloud backup is promised.
+- Only user-requested sign-out is confirmed. Session expiry, account deletion, and required re-authentication transitions remain automatic.

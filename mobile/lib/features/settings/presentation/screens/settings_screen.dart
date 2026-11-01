@@ -4,9 +4,9 @@ import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/units/mileage_unit.dart';
 import 'package:dco_mobile/core/widgets/dco_avatar.dart';
-import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
+import 'package:dco_mobile/features/settings/presentation/widgets/sign_out_button.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -340,12 +340,7 @@ class SettingsScreen extends ConsumerWidget {
                   ),
                 ),
                 SizedBox(height: tokens.space.s4),
-                DcoButton(
-                  label: s.settingsSignOut,
-                  variant: DcoButtonVariant.destructive,
-                  onPressed: () =>
-                      ref.read(sessionControllerProvider.notifier).signOut(),
-                ),
+                const SignOutButton(),
               ],
             ),
           ),
