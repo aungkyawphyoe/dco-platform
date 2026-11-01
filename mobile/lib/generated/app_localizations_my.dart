@@ -1647,6 +1647,16 @@ class AppLocalizationsMy extends AppLocalizations {
   String get settingsSignOut => 'အကောင့်မှ ထွက်မည်';
 
   @override
+  String get settingsSignOutConfirmTitle => 'အကောင့်မှ ထွက်မည်လား။';
+
+  @override
+  String get settingsSignOutConfirmBody =>
+      'မချိတ်ဆက်ရသေးသော ပြောင်းလဲမှုများသည် ဤစက်ပစ္စည်းပေါ်တွင် ကျန်ရှိမည်ဖြစ်ပြီး ဤအကောင့်သို့ ပြန်လည်ဝင်ရောက်သည့်အခါ ချိတ်ဆက်ပါမည်။ ဤဖုန်းရှိ အခြားအကောင့်တစ်ခုမှ ၎င်းတို့ကို မမြင်နိုင်ပါ။';
+
+  @override
+  String get settingsSignOutFailed => 'အကောင့်မှ ထွက်၍ မရပါ။ ထပ်စမ်းကြည့်ပါ။';
+
+  @override
   String get settingsSyncStatusFailed => 'ဒေတာ ချိတ်ဆက်မှု မအောင်မြင်ပါ';
 
   @override
@@ -4146,4 +4156,12 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get playAndroidOnly =>
       'Google Play စာရင်းသွင်းမှုကို Android အက်ပ်တွင် ရနိုင်ပါသည်။ ဤပလက်ဖောင်းတွင် ဝယ်ယူ၍မရပါ။';
+
+  @override
+  String get authFlowExpired =>
+      'ဝင်ရောက်မှု သက်တမ်းကုန်သွားပါပြီ သို့မဟုတ် မပြီးမြောက်ပါ။ ပြန်စရန် ဝင်ရောက်ရန် ခလုတ်ကို နှိပ်ပါ။';
+
+  @override
+  String get authServiceUnavailable =>
+      'ဝင်ရောက်မှုဝန်ဆောင်မှုကို ယာယီ အသုံးမပြုနိုင်ပါ။ ခဏကြာလျှင် ပြန်ကြိုးစားပါ။';
 }

@@ -3122,6 +3122,24 @@ abstract class AppLocalizations {
   /// **'Sign out'**
   String get settingsSignOut;
 
+  /// No description provided for @settingsSignOutConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign out?'**
+  String get settingsSignOutConfirmTitle;
+
+  /// No description provided for @settingsSignOutConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending changes stay on this device. They sync when you sign in to this account again, and another account on this phone cannot see them.'**
+  String get settingsSignOutConfirmBody;
+
+  /// No description provided for @settingsSignOutFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn\'t sign out. Try again.'**
+  String get settingsSignOutFailed;
+
   /// No description provided for @settingsSyncStatusFailed.
   ///
   /// In en, this message translates to:
@@ -7685,6 +7703,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Google Play subscriptions are available in the Android app. Checkout is not available on this platform.'**
   String get playAndroidOnly;
+
+  /// No description provided for @authFlowExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in expired or did not complete. Tap the sign-in button to start again.'**
+  String get authFlowExpired;
+
+  /// No description provided for @authServiceUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'The sign-in service is temporarily unavailable. Please try again later.'**
+  String get authServiceUnavailable;
 }
 
 class _AppLocalizationsDelegate

@@ -91,7 +91,7 @@ Numbering follows the tldraw frame names.
 | 6 | Maintenance | Maintenance tab | Upcoming / Scheduled / History. Stack: plan list, add item, suggested catalog, register service |
 | 7 | Expenses | Expenses tab | Month/total, by category, recent list |
 | 8 | Documents | **Hamburger menu** → Documents | Moved from header on 7. Per-vault document management. |
-| 9 | Settings | Setting tab | Profile, account, Sign Out. Fleet context switch is in the conditional hamburger menu. |
+| 9 | Settings | Setting tab | Profile, account, Sign Out (asks for confirmation). Fleet context switch is in the conditional hamburger menu. |
 | 10 | Maintenance Plan | **Hamburger menu** → Maintenance Plan; after registering a vehicle | Moved from Maintenance tab. Suggested items filtered by fuel type. In the registration flow it shows an extra **Done** button → My Garage (4). |
 | 11 | Add Maintenance Item / Register Service | From 6 or from Hamburger → Maintenance Plan | Register service updates mileage and can complete plan items |
 | 12 | Vehicle Share Management | **Hamburger menu** → Sharing | Vehicle Shares tab: manage shares on your vehicles (code/QR, email invites, access levels).

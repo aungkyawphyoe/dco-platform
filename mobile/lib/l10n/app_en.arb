@@ -503,6 +503,9 @@
   "appearanceSystemHint": "System follows your device's light or dark setting.",
   "settingsRemindersSummary": "{days} days · {distance}",
   "settingsSignOut": "Sign out",
+  "settingsSignOutConfirmTitle": "Sign out?",
+  "settingsSignOutConfirmBody": "Pending changes stay on this device. They sync when you sign in to this account again, and another account on this phone cannot see them.",
+  "settingsSignOutFailed": "Couldn't sign out. Try again.",
   "settingsSyncStatusFailed": "Sync failed",
   "settingsSyncStatusSyncing": "Syncing...",
   "settingsSyncStatusJustSynced": "Just synced",
@@ -1324,5 +1327,7 @@
   },
   "playChoosePlan": "Choose a paid plan",
   "playDemoUnavailable": "Google Play checkout is unavailable in demo mode. Sign in with a real account in a billing-enabled Android build.",
-  "playAndroidOnly": "Google Play subscriptions are available in the Android app. Checkout is not available on this platform."
+  "playAndroidOnly": "Google Play subscriptions are available in the Android app. Checkout is not available on this platform.",
+  "authFlowExpired": "Sign-in expired or did not complete. Tap the sign-in button to start again.",
+  "authServiceUnavailable": "The sign-in service is temporarily unavailable. Please try again later."
 }

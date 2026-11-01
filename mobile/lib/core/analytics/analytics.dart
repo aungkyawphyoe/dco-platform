@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 enum AnalyticsEvent {
+  authSocialStage('auth_social_stage'),
   authSignedUp('auth_signed_up'),
   authSignedIn('auth_signed_in'),
   authSignedOut('auth_signed_out'),

@@ -1623,6 +1623,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsSignOut => 'Sign out';
 
   @override
+  String get settingsSignOutConfirmTitle => 'Sign out?';
+
+  @override
+  String get settingsSignOutConfirmBody =>
+      'Pending changes stay on this device. They sync when you sign in to this account again, and another account on this phone cannot see them.';
+
+  @override
+  String get settingsSignOutFailed => 'Couldn\'t sign out. Try again.';
+
+  @override
   String get settingsSyncStatusFailed => 'Sync failed';
 
   @override
@@ -4109,4 +4119,12 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get playAndroidOnly =>
       'Google Play subscriptions are available in the Android app. Checkout is not available on this platform.';
+
+  @override
+  String get authFlowExpired =>
+      'Sign-in expired or did not complete. Tap the sign-in button to start again.';
+
+  @override
+  String get authServiceUnavailable =>
+      'The sign-in service is temporarily unavailable. Please try again later.';
 }

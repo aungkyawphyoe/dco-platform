@@ -24,6 +24,8 @@ String authFeedback(BuildContext context, Object error) {
     'account_link_required' ||
     'identity_in_use' => s.authEmailTaken,
     'unauthorized' || 'reauth_required' => s.authRecentLogin,
+    'invalid_flow' => s.authFlowExpired,
+    'server_unavailable' => s.authServiceUnavailable,
     'network' => s.authNetworkError,
     'delivery_failed' => s.authDeliveryError,
     _ =>

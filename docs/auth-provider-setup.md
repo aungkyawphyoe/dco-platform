@@ -54,3 +54,7 @@ Schedule maintenance for expired transient data (retain at least 24 hours for op
 - [Flutter Web Auth 2](https://pub.dev/packages/flutter_web_auth_2)
 
 The new English/Burmese onboarding and auth messages are implemented. Burmese copy should receive native-language review before store submission; the pre-existing app also has untranslated messages outside this release.
+
+## Tester feedback investigation — 1 November 2026
+
+Production Google start initially returned `provider_not_configured`; the running container lacked both Google client environment variables. The user configured the web OAuth client and Azure credentials. Revision `dco-api-24739--0000046` is healthy and Google start now returns HTTP 200 with the correct callback and PKCE. See [baseline and acceptance record](tester-feedback-auth-baseline.md). Client diagnostics emit fixed social-auth stage/outcome categories and elapsed time through the existing analytics facade; no flow secrets or authorization URLs are logged. Invalid/expired flows have localized restart guidance. The user confirmed successful Google sign-in on 1 November 2026. Broader account/linking/cancellation scenarios remain pending; the local client-hardening changes have not yet been released to Play.
