@@ -33,14 +33,16 @@ This is a confirmed current production configuration failure. Without the tester
 - Add `auth_social_stage` events for provider start, browser return, completion, and linking, recording only fixed stage/outcome categories and elapsed milliseconds. Existing analytics configuration/opt-out applies. No URL, email, token, flow secret, raw error, or new persistent identifier is emitted. These stages do not claim that session installation succeeded.
 - Add injectable browser boundary and regression coverage for Google/Apple cancellation/retry, invalid callbacks, missing configuration, malformed responses, and localized failure messages.
 
-## Required production resolution
+## Production resolution — verified 1 November 2026
 
-1. User confirmed an existing OAuth client in project `autox-512507`. Google Cloud is open at the clients page but requires user sign-in before the client can be inspected. Verify that it is a **web application** OAuth client. Configure consent/audience for the intended testers.
-2. Register exactly `https://api.autoxmm.com/v1/auth/social/google/callback` as an authorized redirect URI. Check the deployed `PUBLIC_API_URL` value against this URL before activation.
-3. Store the client secret in Azure's secret store, bind it as `GOOGLE_CLIENT_SECRET`, and configure `GOOGLE_CLIENT_ID`. Do not paste the secret into chat, commit it, or put it in Flutter config.
-4. Follow the preserving REST PATCH procedure in `docs/azure-deploy.md`; do not use the documented unsafe Container App update shortcut. Preserve unrelated existing environment variables, secret references, ingress, and registry settings.
-5. Recheck `/auth/social/google/start`, printing only provider host and redirect URI (never secret/state/authorization URL). A successful start is necessary but not sufficient.
-6. Complete the device acceptance matrix below before claiming login resolved. Provider configuration and real-user consent are external dependencies; no production mutation has been performed in this implementation pass.
+- Google Auth Platform was initially unconfigured in `autox-512507`. The user completed setup and created a web OAuth client with the exact redirect `https://api.autoxmm.com/v1/auth/social/google/callback`.
+- Downloaded client JSON metadata was validated without displaying its secret.
+- Automatic approval review rejected the agent's proposed production update because authorization to transmit the secret was not explicit. No agent production mutation occurred. The user chose to configure Azure directly and confirmed completion.
+- Read-only verification confirms `GOOGLE_CLIENT_ID` is present and `GOOGLE_CLIENT_SECRET` references Azure secret `google-client-secret`.
+- Revision `dco-api-24739--0000046` is both latest and ready, provisioning `Succeeded`, running status `Running`. Image remains `dcoacr24739.azurecr.io/dco-api:v1.7.19`.
+- `/v1/health` and `/v1/ready` return HTTP 200.
+- `/v1/auth/social/google/start` now returns HTTP 200 with provider host `accounts.google.com`, the exact registered callback, `openid email profile` scopes, and PKCE `S256`. Flow and exchange-secret presence were checked without printing their values.
+- The original missing-configuration blocker is cleared. Successful start does not verify client-secret validity during token exchange or completion of real-user sign-in. Device acceptance below remains required.
 
 ## Acceptance evidence still required
 
@@ -48,7 +50,7 @@ Record build name/code, source commit, device/Android/browser versions, account 
 
 | Case | Required outcome | Status |
 | --- | --- | --- |
-| Google start in current production | Provider configured, correct redirect | Failed: missing configuration reproduced |
+| Google start in current production | Provider configured, correct redirect | Passed: HTTP 200, correct redirect and PKCE |
 | New Google account | Explicit account choice then dashboard/setup | Pending |
 | Existing linked Google account | Existing account/session, no duplicate | Pending |
 | Existing email account | Explicit authentication/linking | Pending |
@@ -57,11 +59,11 @@ Record build name/code, source commit, device/Android/browser versions, account 
 | Expired flow / background-resume / killed app | Recoverable fresh sign-in | Device check pending |
 | Apple and email/password regression | Existing behavior preserved | Real-provider check pending |
 
-Local automated tests are evidence for client behavior only, not real-provider acceptance. Device inspection initially could not start ADB inside the sandbox; no Play-installed app was exercised. Phase 0 is documented with unresolved historical evidence; Phase 1 client hardening is implemented, while production activation and real-device acceptance remain open.
+Local automated tests are evidence for client behavior only, not real-provider acceptance. Device inspection initially could not start ADB inside the sandbox; no Play-installed app was exercised. Phase 0 is documented with unresolved historical evidence; Phase 1 client hardening is implemented, production activation is verified and real-device acceptance remains open.
 
 ## Local validation
 
 - Authentication, analytics, and session regression run: **43 tests passed**. Existing UI tests printed missing bundled-font warnings but passed.
 - Full Flutter analysis: 43 findings initially, including one new constructor-style info that was corrected; the other 42 findings are in unchanged files.
 - Targeted analysis of changed Dart sources/tests: no issues found.
-- Production configuration was inspected read-only; no credentials were read and no deployment was performed.
+- Production configuration was inspected read-only; the user performed the deployment. OAuth JSON metadata was validated without displaying credentials.

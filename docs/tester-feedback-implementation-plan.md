@@ -1,7 +1,7 @@
 # Tester feedback implementation plan
 
 Date: 1 November 2026
-Status: Approved. Phase 0 investigation and Phase 1 client implementation started; see [baseline and acceptance record](tester-feedback-auth-baseline.md). Production Google configuration and real-device acceptance remain open.
+Status: Approved. Phase 0 investigation and Phase 1 client implementation started; see [baseline and acceptance record](tester-feedback-auth-baseline.md). Production Google configuration is verified; real-device acceptance remains open.
 
 ## Purpose and evidence
 
