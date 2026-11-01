@@ -90,8 +90,8 @@ void main() {
     expect(find.text('Continue with a social account'), findsOneWidget);
     expect(find.byType(SocialButtons), findsOneWidget);
     expect(find.byKey(const Key('social-google')), findsOneWidget);
-    expect(find.byKey(const Key('social-apple')), findsOneWidget);
-    expect(find.byType(SvgPicture), findsNWidgets(2));
+    expect(find.byKey(const Key('social-apple')), findsNothing);
+    expect(find.byType(SvgPicture), findsOneWidget);
     expect(find.byType(AuthTermsFooter), findsOneWidget);
     expect(
       find.textContaining('Terms of Service', findRichText: true),
@@ -121,7 +121,7 @@ void main() {
     expect(find.byKey(const Key('signup-submit')), findsOneWidget);
     expect(find.byType(AuthDivider), findsOneWidget);
     expect(find.byKey(const Key('social-google')), findsOneWidget);
-    expect(find.byKey(const Key('social-apple')), findsOneWidget);
+    expect(find.byKey(const Key('social-apple')), findsNothing);
     expect(find.byType(AuthTermsFooter), findsOneWidget);
     await capture(tester, key, 'signup');
     await tester.pumpWidget(const SizedBox());

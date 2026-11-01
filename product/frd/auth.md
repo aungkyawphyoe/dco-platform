@@ -96,3 +96,7 @@ The pre-login introduction remains unchanged and is marked handled per installat
 - Dismissed/completed state is stored locally per account and tour version. It is not a sync entity, does not restart on launch or sign-out, and a new version is offered again.
 - Settings → Help → Replay tour starts an explicit replay from a stable Garage dashboard. Replay works after completion and does not re-arm the automatic offer.
 - Missing targets fall back to a centred card. The tour supports English/Burmese, both themes, large text, screen readers, and reduced motion.
+
+## Provider visibility and legal links — 1 November 2026
+
+Apple sign-in/connect buttons are hidden at the user’s request until Apple Developer setup is ready. Google remains available; backend Apple support is retained. Authentication footers open `https://www.autoxmm.com/terms` and `https://www.autoxmm.com/privacy`. This supersedes the requirement to show both providers during this rollout.
