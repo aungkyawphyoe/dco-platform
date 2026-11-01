@@ -71,8 +71,8 @@ export default function FleetLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <main className="min-w-0 flex-1 overflow-y-auto p-8">{org?.organization && <SubscriptionNotice id={org.organization.id} />}{pathname !== "/settings" && <CurrencySettings setupOnly />}{children}</main>
+      <div className="w-16 shrink-0 md:w-auto"><Sidebar /></div>
+      <main className="min-w-0 flex-1 overflow-y-auto p-4 md:p-8">{org?.organization && <SubscriptionNotice id={org.organization.id} />}{pathname !== "/settings" && <CurrencySettings setupOnly />}{children}</main>
     </div>
   );
 }

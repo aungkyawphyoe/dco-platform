@@ -38,3 +38,16 @@ azd env set BOOTSTRAP_ADMIN_PASSWORD '<rotate-immediately>'
 ```
 
 ACS Email domain verification is manual after the Communication Service exists. Until then, local `MAIL_PROVIDER=stdout` is enough.
+
+## Pre-launch subscription cleanup
+
+Migration `0033_test_account_billing_cleanup.sql` runs once on backend startup
+(or with `npm run db:migrate`). It moves existing unmanaged personal test
+accounts to subscription-managed Free and completes billing migration for
+existing organizations. Active subscription terms, Google Play purchases, and
+promotional gifts continue to provide access. Organizations without an active
+term become read-only; account and vehicle records are retained.
+
+No admin review or manual SQL is needed. To give a test account paid access,
+record a direct or complimentary subscription in the admin portal. The migration
+has a completion marker so subsequent restarts do not repeat this cleanup.

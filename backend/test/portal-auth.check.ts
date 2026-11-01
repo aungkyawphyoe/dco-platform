@@ -138,3 +138,34 @@ it('blocks CSRF, path traversal, credential endpoints and oversized proxy bodies
   }
   expect(fetch).not.toHaveBeenCalled();
 });
+
+it.skipIf(process.env.PORTAL === 'fleet-portal')('preserves localhost origins without relaxing CSRF or production HTTPS', async () => {
+  const { NextRequest } = await import('next/server');
+  const { middleware } = await import('../../web/src/middleware');
+  const { rejectCrossOrigin } = await import('../../web/src/lib/auth/request-origin');
+  vi.stubEnv('NODE_ENV', 'development');
+  try {
+    for (const origin of ['http://localhost:3000', 'http://localhost:3100', 'http://127.0.0.1:3000', 'https://localhost:3000']) {
+      const headers = { host: new URL(origin).host, origin };
+      expect(middleware(new NextRequest(`${origin}/users`, { headers })).headers.get('location')).toBe(`${origin}/login`);
+      expect(rejectCrossOrigin(new NextRequest(`${origin}/api/auth/login`, { method: 'POST', headers }))).toBeNull();
+    }
+    for (const origin of ['', 'http://localhost:3001', 'https://evil.test']) {
+      const request = new NextRequest('http://localhost:3000/api/auth/login', { method: 'POST', headers: { host: 'localhost:3000', origin } });
+      expect(rejectCrossOrigin(request)?.status).toBe(403);
+    }
+    expect(rejectCrossOrigin(new NextRequest('http://localhost:3000/api/auth/login', { method: 'POST', headers: { host: 'localhost:3000', origin: 'http://localhost:3000', 'sec-fetch-site': 'cross-site' } }))?.status).toBe(403);
+    const localCsp = middleware(new NextRequest('http://localhost:3000/login', { headers: { host: 'localhost:3000' } })).headers.get('content-security-policy');
+    expect(localCsp).not.toContain('upgrade-insecure-requests');
+    expect(localCsp).toContain("frame-ancestors 'none'");
+
+    vi.stubEnv('NODE_ENV', 'production');
+    const headers = { host: 'internal:3000', 'x-forwarded-host': 'portal.test', 'x-forwarded-proto': 'https', origin: 'https://portal.test' };
+    expect(middleware(new NextRequest('http://internal:3000/users', { headers })).headers.get('location')).toBe('https://portal.test/login');
+    expect(rejectCrossOrigin(new NextRequest('http://internal:3000/api/auth/login', { method: 'POST', headers }))).toBeNull();
+    expect(rejectCrossOrigin(new NextRequest('http://internal:3000/api/auth/login', { method: 'POST', headers: { ...headers, origin: 'http://portal.test' } }))?.status).toBe(403);
+    const csp = middleware(new NextRequest('http://internal:3000/login', { headers })).headers.get('content-security-policy');
+    expect(csp).toContain('upgrade-insecure-requests');
+    expect(csp).not.toContain("'unsafe-eval'");
+  } finally { vi.unstubAllEnvs(); }
+});

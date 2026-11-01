@@ -123,11 +123,17 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    try {
-      setCollapsed(window.localStorage.getItem(STORAGE_KEY) === "1");
-    } catch {
-      // ignore storage access errors
-    }
+    const mobile = window.matchMedia("(max-width: 767px)");
+    const syncCollapsed = () => {
+      try {
+        setCollapsed(mobile.matches || window.localStorage.getItem(STORAGE_KEY) === "1");
+      } catch {
+        setCollapsed(mobile.matches);
+      }
+    };
+    syncCollapsed();
+    mobile.addEventListener("change", syncCollapsed);
+    return () => mobile.removeEventListener("change", syncCollapsed);
   }, []);
 
   function toggleCollapsed() {
@@ -149,8 +155,8 @@ export function Sidebar() {
 
   return (
     <aside
-      className={`relative flex h-full shrink-0 flex-col border-r border-line-subtle bg-panel transition-[width] duration-200 ${
-        collapsed ? "w-16" : "w-60"
+      className={`flex h-full shrink-0 flex-col border-r border-line-subtle bg-panel transition-[width] duration-200 ${
+        collapsed ? "relative w-16" : "absolute inset-y-0 left-0 z-40 w-60 shadow-xl md:relative md:shadow-none"
       }`}
     >
       <div
