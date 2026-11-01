@@ -42,15 +42,16 @@ This is a confirmed current production configuration failure. Without the tester
 - Revision `dco-api-24739--0000046` is both latest and ready, provisioning `Succeeded`, running status `Running`. Image remains `dcoacr24739.azurecr.io/dco-api:v1.7.19`.
 - `/v1/health` and `/v1/ready` return HTTP 200.
 - `/v1/auth/social/google/start` now returns HTTP 200 with provider host `accounts.google.com`, the exact registered callback, `openid email profile` scopes, and PKCE `S256`. Flow and exchange-secret presence were checked without printing their values.
-- The original missing-configuration blocker is cleared. Successful start does not verify client-secret validity during token exchange or completion of real-user sign-in. Device acceptance below remains required.
+- The original missing-configuration blocker is cleared. Successful start does not verify client-secret validity during token exchange or completion of real-user sign-in. The user subsequently confirmed “Sign in with google is working” on 1 November 2026 after being asked to test the Play-installed app. This establishes user-reported success for the tested path; account type, build, and device details were not supplied. The broader acceptance matrix remains open.
 
-## Acceptance evidence still required
+## Acceptance evidence
 
 Record build name/code, source commit, device/Android/browser versions, account scenario, timestamp with timezone, visible result, and sanitized stage outcome for each case:
 
 | Case | Required outcome | Status |
 | --- | --- | --- |
 | Google start in current production | Provider configured, correct redirect | Passed: HTTP 200, correct redirect and PKCE |
+| Google sign-in, account type unspecified | Successful sign-in | Passed: user confirmation, 1 November 2026 |
 | New Google account | Explicit account choice then dashboard/setup | Pending |
 | Existing linked Google account | Existing account/session, no duplicate | Pending |
 | Existing email account | Explicit authentication/linking | Pending |
@@ -59,7 +60,7 @@ Record build name/code, source commit, device/Android/browser versions, account 
 | Expired flow / background-resume / killed app | Recoverable fresh sign-in | Device check pending |
 | Apple and email/password regression | Existing behavior preserved | Real-provider check pending |
 
-Local automated tests are evidence for client behavior only, not real-provider acceptance. Device inspection initially could not start ADB inside the sandbox; no Play-installed app was exercised. Phase 0 is documented with unresolved historical evidence; Phase 1 client hardening is implemented, production activation is verified and real-device acceptance remains open.
+Local automated tests are evidence for client behavior only, not real-provider acceptance. Device inspection initially could not start ADB inside the sandbox; the agent did not exercise a Play-installed app directly. The user later reported successful Google sign-in. Phase 0 is documented with unresolved historical evidence; Phase 1 client hardening is implemented, production activation and the user-tested Google sign-in path are verified. The reported login blocker is resolved; broader device scenarios remain open. Client hardening is committed locally and has not been included in a new Play release.
 
 ## Local validation
 
