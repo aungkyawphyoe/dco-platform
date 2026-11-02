@@ -8045,6 +8045,306 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Showing saved suggestions. Refresh failed.'**
   String get suggestedItemsCached;
+
+  /// No description provided for @apiErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not connect. Check your connection and try again.'**
+  String get apiErrorNetwork;
+
+  /// No description provided for @apiErrorTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection timed out. Check your connection and try again.'**
+  String get apiErrorTimeout;
+
+  /// No description provided for @apiErrorSecureConnection.
+  ///
+  /// In en, this message translates to:
+  /// **'The connection could not be verified. Try again on a trusted network.'**
+  String get apiErrorSecureConnection;
+
+  /// No description provided for @apiErrorSessionExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session expired. Sign in again.'**
+  String get apiErrorSessionExpired;
+
+  /// No description provided for @apiErrorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You do not have access to do this.'**
+  String get apiErrorForbidden;
+
+  /// No description provided for @apiErrorNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'This item is no longer available.'**
+  String get apiErrorNotFound;
+
+  /// No description provided for @apiErrorConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This change conflicts with newer data. Refresh and try again.'**
+  String get apiErrorConflict;
+
+  /// No description provided for @apiErrorValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'Some details are invalid. Check them and try again.'**
+  String get apiErrorValidation;
+
+  /// No description provided for @apiErrorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many attempts. Wait a moment and try again.'**
+  String get apiErrorRateLimited;
+
+  /// No description provided for @apiErrorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'The service is temporarily unavailable. Try again shortly.'**
+  String get apiErrorServer;
+
+  /// No description provided for @apiErrorFileTooLarge.
+  ///
+  /// In en, this message translates to:
+  /// **'This file is too large. Choose a smaller file.'**
+  String get apiErrorFileTooLarge;
+
+  /// No description provided for @apiErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong. Try again.'**
+  String get apiErrorGeneric;
+
+  /// No description provided for @apiErrorAccountDeactivated.
+  ///
+  /// In en, this message translates to:
+  /// **'This account is deactivated. Contact support for help.'**
+  String get apiErrorAccountDeactivated;
+
+  /// No description provided for @apiErrorEmailVerificationRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Verify your email before continuing.'**
+  String get apiErrorEmailVerificationRequired;
+
+  /// No description provided for @apiErrorInvalidLink.
+  ///
+  /// In en, this message translates to:
+  /// **'This link is invalid or has expired. Request a new one.'**
+  String get apiErrorInvalidLink;
+
+  /// No description provided for @apiErrorCurrentPasswordIncorrect.
+  ///
+  /// In en, this message translates to:
+  /// **'Your current password is incorrect.'**
+  String get apiErrorCurrentPasswordIncorrect;
+
+  /// No description provided for @apiErrorEmailRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an email address to continue.'**
+  String get apiErrorEmailRequired;
+
+  /// No description provided for @apiErrorEmailMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'That email does not match this account.'**
+  String get apiErrorEmailMismatch;
+
+  /// No description provided for @apiErrorNoEmailOnAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'This account has no email address. Add one before continuing.'**
+  String get apiErrorNoEmailOnAccount;
+
+  /// No description provided for @apiErrorAlreadyVerified.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email is already verified.'**
+  String get apiErrorAlreadyVerified;
+
+  /// No description provided for @apiErrorPasswordChangeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Change your temporary password to continue.'**
+  String get apiErrorPasswordChangeRequired;
+
+  /// No description provided for @apiErrorPortalAccessRestricted.
+  ///
+  /// In en, this message translates to:
+  /// **'Driver accounts cannot use the Fleet Portal.'**
+  String get apiErrorPortalAccessRestricted;
+
+  /// No description provided for @apiErrorFleetAccessRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'An active Enterprise organization membership is required.'**
+  String get apiErrorFleetAccessRequired;
+
+  /// No description provided for @apiErrorPlanLimit.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan limit was reached. Upgrade to continue.'**
+  String get apiErrorPlanLimit;
+
+  /// No description provided for @apiErrorReadOnlyPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan makes this record read-only. Upgrade to edit it.'**
+  String get apiErrorReadOnlyPlan;
+
+  /// No description provided for @apiErrorInvalidCredentials.
+  ///
+  /// In en, this message translates to:
+  /// **'Your email, username, or password is incorrect.'**
+  String get apiErrorInvalidCredentials;
+
+  /// No description provided for @apiErrorEmailTaken.
+  ///
+  /// In en, this message translates to:
+  /// **'This email already has an account. Sign in or reset its password.'**
+  String get apiErrorEmailTaken;
+
+  /// No description provided for @apiErrorCodeInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'The code is incorrect, expired, or already used. Request a new code.'**
+  String get apiErrorCodeInvalid;
+
+  /// No description provided for @apiErrorProviderNotConfigured.
+  ///
+  /// In en, this message translates to:
+  /// **'This sign-in method is not available yet. Use email sign-in.'**
+  String get apiErrorProviderNotConfigured;
+
+  /// No description provided for @apiErrorFlowExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in expired or did not complete. Start again.'**
+  String get apiErrorFlowExpired;
+
+  /// No description provided for @apiErrorDeliveryFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'We could not send the email. Try again shortly.'**
+  String get apiErrorDeliveryFailed;
+
+  /// No description provided for @apiErrorDuplicatePlate.
+  ///
+  /// In en, this message translates to:
+  /// **'A vehicle with this plate already exists in your garage.'**
+  String get apiErrorDuplicatePlate;
+
+  /// No description provided for @apiErrorDuplicateVin.
+  ///
+  /// In en, this message translates to:
+  /// **'A vehicle with this VIN already exists.'**
+  String get apiErrorDuplicateVin;
+
+  /// No description provided for @apiErrorMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'Mileage cannot be lower than the last recorded value.'**
+  String get apiErrorMileage;
+
+  /// No description provided for @apiErrorCurrency.
+  ///
+  /// In en, this message translates to:
+  /// **'This amount uses a currency that is no longer available. Update it and try again.'**
+  String get apiErrorCurrency;
+
+  /// No description provided for @apiErrorVehicleNotAssigned.
+  ///
+  /// In en, this message translates to:
+  /// **'This vehicle is no longer assigned to you.'**
+  String get apiErrorVehicleNotAssigned;
+
+  /// No description provided for @apiErrorInvitation.
+  ///
+  /// In en, this message translates to:
+  /// **'This invitation is invalid, expired, or already used.'**
+  String get apiErrorInvitation;
+
+  /// No description provided for @apiErrorAccountLinkRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'An account with this email already exists. Sign in, then connect this sign-in method from Account connections.'**
+  String get apiErrorAccountLinkRequired;
+
+  /// No description provided for @syncErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not sync'**
+  String get syncErrorTitle;
+
+  /// No description provided for @syncErrorNetwork.
+  ///
+  /// In en, this message translates to:
+  /// **'You\'re offline or the connection is unstable. Your changes are saved on this device and will sync when you connect again.'**
+  String get syncErrorNetwork;
+
+  /// No description provided for @syncErrorSession.
+  ///
+  /// In en, this message translates to:
+  /// **'Your session expired. Sign in again to keep syncing. Your changes are saved on this device.'**
+  String get syncErrorSession;
+
+  /// No description provided for @syncErrorServer.
+  ///
+  /// In en, this message translates to:
+  /// **'The server is unavailable right now. Your changes are saved and will retry automatically.'**
+  String get syncErrorServer;
+
+  /// No description provided for @syncErrorRateLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Too many sync attempts. Your changes are saved and will retry shortly.'**
+  String get syncErrorRateLimited;
+
+  /// No description provided for @syncErrorPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Your plan limit was reached. Some changes are waiting until you upgrade.'**
+  String get syncErrorPlan;
+
+  /// No description provided for @syncErrorStorage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your storage is full. Free up space or upgrade to keep syncing.'**
+  String get syncErrorStorage;
+
+  /// No description provided for @syncErrorForbidden.
+  ///
+  /// In en, this message translates to:
+  /// **'You don\'t have permission to sync these changes. Check your account access.'**
+  String get syncErrorForbidden;
+
+  /// No description provided for @syncErrorConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'Some changes conflict with newer data. They are saved and will retry.'**
+  String get syncErrorConflict;
+
+  /// No description provided for @syncErrorValidation.
+  ///
+  /// In en, this message translates to:
+  /// **'The server could not accept some changes. They are saved and will retry.'**
+  String get syncErrorValidation;
+
+  /// No description provided for @syncErrorGeneric.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while syncing. Your changes are saved and will retry automatically.'**
+  String get syncErrorGeneric;
+
+  /// No description provided for @authLoadAccessFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to load account access. Check your connection and try again.'**
+  String get authLoadAccessFailed;
 }
 
 class _AppLocalizationsDelegate

@@ -4358,4 +4358,194 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get suggestedItemsCached =>
       'သိမ်းထားသော အကြံပြုချက်များကို ပြနေသည်။ ပြန်လည်ရယူမှု မအောင်မြင်ပါ။';
+
+  @override
+  String get apiErrorNetwork =>
+      'ချိတ်ဆက်၍ မရပါ။ အင်တာနက်ကို စစ်ဆေးပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorTimeout =>
+      'ချိတ်ဆက်မှု အချိန်ကျော်လွန်းသွားပါသည်။ အင်တာနက်ကို စစ်ဆေးပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorSecureConnection =>
+      'ချိတ်ဆက်မှုကို အတည်ပြုနိုင်မှု မရှိပါ။ ယုံကြည်ရသော ကွန်ရက်တွင် ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorSessionExpired =>
+      'အသုံးပြုချိန် ကုန်ဆုံးသွားပါပြီ။ ပြန်လည်အကောင့်ဝင်ပါ။';
+
+  @override
+  String get apiErrorForbidden => 'ဤလုပ်ဆောင်ချက်ကို လုပ်ဆောင်ခွင့် မရှိပါ။';
+
+  @override
+  String get apiErrorNotFound => 'ဤအရာ မရရှိတော့ပါ။';
+
+  @override
+  String get apiErrorConflict =>
+      'ဤပြောင်းလဲမှုသည် အချက်အလက်အသစ်နှင့် ကွဲလွဲနေသည်။ ပြန်လည်စတင်ပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorValidation =>
+      'အချက်အလက်အချို့ မမှန်ကန်ပါ။ စစ်ဆေးပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorRateLimited =>
+      'ကြိုးစားမှုများလွန်းပါသည်။ ခဏစောင့်ပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorServer =>
+      'ဝန်ဆောင်မှုကို ယာယီ အသုံးမပြုနိုင်ပါ။ ခဏကြာလျှင် ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorFileTooLarge =>
+      'ဤဖိုင်သည် အရမ်းကြီးပါသည်။ ဖိုင်ငယ်တစ်ခု ရွေးပါ။';
+
+  @override
+  String get apiErrorGeneric => 'တစ်ခုခု မှားယွင်းနေသည်။ ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorAccountDeactivated =>
+      'ဤအကောင့်ကို ပိတ်ထားပါသည်။ အကူအညီအတွက် ဆက်သွယ်ပါ။';
+
+  @override
+  String get apiErrorEmailVerificationRequired =>
+      'ဆက်လုပ်မီ အီးမေးလ်ကို အတည်ပြုပါ။';
+
+  @override
+  String get apiErrorInvalidLink =>
+      'ဤလင့်ခ် မမှန်ကန်ပါ သို့မဟုတ် သက်တမ်းကုန်ပါပြီ။ အသစ်တောင်းပါ။';
+
+  @override
+  String get apiErrorCurrentPasswordIncorrect => 'လက်ရှိစကားဝှက် မမှန်ပါ။';
+
+  @override
+  String get apiErrorEmailRequired => 'ဆက်လုပ်ရန် အီးမေးလ်လိပ်စာ ထည့်ပါ။';
+
+  @override
+  String get apiErrorEmailMismatch => 'ဤအီးမေးလ်သည် ဤအကောင့်နှင့် မကိုက်ညီပါ။';
+
+  @override
+  String get apiErrorNoEmailOnAccount =>
+      'ဤအကောင့်တွင် အီးမေးလ်မရှိပါ။ ဆက်လုပ်မီ ထည့်ပါ။';
+
+  @override
+  String get apiErrorAlreadyVerified => 'သင့်အီးမေးလ်ကို အတည်ပြုပြီးဖြစ်ပါသည်။';
+
+  @override
+  String get apiErrorPasswordChangeRequired =>
+      'ဆက်လုပ်ရန် ယာယီစကားဝှက်ကို ပြောင်းပါ။';
+
+  @override
+  String get apiErrorPortalAccessRestricted =>
+      'ယာဉ်မောင်းအကောင့်များသည် Fleet Portal ကို အသုံးမပြုနိုင်ပါ။';
+
+  @override
+  String get apiErrorFleetAccessRequired =>
+      'အသက်ဝင်သော Enterprise အဖွဲ့အစည်း အသင်းဝင်မှု လိုအပ်ပါသည်။';
+
+  @override
+  String get apiErrorPlanLimit =>
+      'သင့်အစီအစဉ် ကန့်သတ်ချက် ပြည့်သွားပါပြီ။ ဆက်လုပ်ရန် အဆင့်တိုးပါ။';
+
+  @override
+  String get apiErrorReadOnlyPlan =>
+      'သင့်အစီအစဉ်အရ ဤမှတ်တမ်းကို ဖတ်ရန်သာ ခွင့်ပြုသည်။ ပြင်ရန် အဆင့်တိုးပါ။';
+
+  @override
+  String get apiErrorInvalidCredentials =>
+      'အီးမေးလ်၊ အသုံးပြုသူအမည် သို့မဟုတ် စကားဝှက် မမှန်ပါ။';
+
+  @override
+  String get apiErrorEmailTaken =>
+      'ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးပါပြီ။ ဝင်ပါ သို့မဟုတ် စကားဝှက် ပြန်သတ်မှတ်ပါ။';
+
+  @override
+  String get apiErrorCodeInvalid =>
+      'ကုဒ် မမှန်ပါ၊ သက်တမ်းကုန်ပါပြီ သို့မဟုတ် အသုံးပြုပြီးပါပြီ။ ကုဒ်အသစ် တောင်းပါ။';
+
+  @override
+  String get apiErrorProviderNotConfigured =>
+      'ဤဝင်ရောက်မှုနည်းလမ်း မရရှိသေးပါ။ အီးမေးလ်ဖြင့် ဝင်ပါ။';
+
+  @override
+  String get apiErrorFlowExpired =>
+      'ဝင်ရောက်မှု သက်တမ်းကုန်သွားပါပြီ သို့မဟုတ် မပြီးမြောက်ပါ။ ပြန်စပါ။';
+
+  @override
+  String get apiErrorDeliveryFailed =>
+      'အီးမေးလ်ပို့၍ မရပါ။ ခဏကြာလျှင် ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorDuplicatePlate =>
+      'ဤနံပါတ်ပြားဖြင့် ယာဉ်သည် သင့်ကားဂိုဒေါင်တွင် ရှိပြီးဖြစ်ပါသည်။';
+
+  @override
+  String get apiErrorDuplicateVin => 'ဤ VIN ဖြင့် ယာဉ် ရှိပြီးဖြစ်ပါသည်။';
+
+  @override
+  String get apiErrorMileage =>
+      'မိုင်နှုန်းသည် နောက်ဆုံးမှတ်တမ်းထက် လျော့နည်းမဖြစ်ရပါ။';
+
+  @override
+  String get apiErrorCurrency =>
+      'ဤပမာဏသည် မရရှိတော့သော ငွေကြေးကို အသုံးပြုထားသည်။ ပြင်ဆင်ပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get apiErrorVehicleNotAssigned => 'ဤယာဉ်ကို သင့်အား တာဝန်မပေးတော့ပါ။';
+
+  @override
+  String get apiErrorInvitation =>
+      'ဤဖိတ်ကြားမှု မမှန်ကန်ပါ၊ သက်တမ်းကုန်ပါပြီ သို့မဟုတ် အသုံးပြုပြီးပါပြီ။';
+
+  @override
+  String get apiErrorAccountLinkRequired =>
+      'ဤအီးမေးလ်ဖြင့် အကောင့်ရှိပြီးဖြစ်ပါသည်။ ဝင်ပြီး Account connections မှ ဤဝင်ရောက်မှုနည်းလမ်းကို ချိတ်ဆက်ပါ။';
+
+  @override
+  String get syncErrorTitle => 'ချိန်ကိုက်၍ မရပါ';
+
+  @override
+  String get syncErrorNetwork =>
+      'အင်တာနက်မရှိပါ သို့မဟုတ် ချိတ်ဆက်မှု မတည်ငြိမ်ပါ။ သင့်ပြောင်းလဲမှုများကို ဤစက်တွင် သိမ်းထားပြီး ပြန်ချိတ်ဆက်လျှင် ချိန်ကိုက်ပါမည်။';
+
+  @override
+  String get syncErrorSession =>
+      'အသုံးပြုချိန် ကုန်ဆုံးသွားပါပြီ။ ဆက်လက်ချိန်ကိုက်ရန် ပြန်လည်အကောင့်ဝင်ပါ။ သင့်ပြောင်းလဲမှုများကို ဤစက်တွင် သိမ်းထားပါသည်။';
+
+  @override
+  String get syncErrorServer =>
+      'ဆာဗာကို ယခု အသုံးမပြုနိုင်ပါ။ သင့်ပြောင်းလဲမှုများကို သိမ်းထားပြီး အလိုအလျောက် ပြန်ကြိုးစားပါမည်။';
+
+  @override
+  String get syncErrorRateLimited =>
+      'ချိန်ကိုက်ရန် ကြိုးစားမှုများလွန်းပါသည်။ သင့်ပြောင်းလဲမှုများကို သိမ်းထားပြီး ခဏကြာလျှင် ပြန်ကြိုးစားပါမည်။';
+
+  @override
+  String get syncErrorPlan =>
+      'သင့်အစီအစဉ် ကန့်သတ်ချက် ပြည့်သွားပါပြီ။ အဆင့်တိုးမချင်း ပြောင်းလဲမှုအချို့ စောင့်ဆိုင်းနေပါသည်။';
+
+  @override
+  String get syncErrorStorage =>
+      'သင့်သိုလှောင်မှု ပြည့်နေပါသည်။ နေရာလွတ်ပါ သို့မဟုတ် ဆက်လက်ချိန်ကိုက်ရန် အဆင့်တိုးပါ။';
+
+  @override
+  String get syncErrorForbidden =>
+      'ဤပြောင်းလဲမှုများကို ချိန်ကိုက်ခွင့် မရှိပါ။ သင့်အကောင့်အသုံးပြုခွင့်ကို စစ်ဆေးပါ။';
+
+  @override
+  String get syncErrorConflict =>
+      'ပြောင်းလဲမှုအချို့သည် အချက်အလက်အသစ်နှင့် ကွဲလွဲနေသည်။ သိမ်းထားပြီး ပြန်ကြိုးစားပါမည်။';
+
+  @override
+  String get syncErrorValidation =>
+      'ဆာဗာက ပြောင်းလဲမှုအချို့ကို လက်မခံနိုင်ပါ။ သိမ်းထားပြီး ပြန်ကြိုးစားပါမည်။';
+
+  @override
+  String get syncErrorGeneric =>
+      'ချိန်ကိုက်စဉ် တစ်ခုခု မှားယွင်းသွားပါသည်။ သင့်ပြောင်းလဲမှုများကို သိမ်းထားပြီး အလိုအလျောက် ပြန်ကြိုးစားပါမည်။';
+
+  @override
+  String get authLoadAccessFailed =>
+      'အကောင့်အသုံးပြုခွင့်ကို မရယူနိုင်ပါ။ အင်တာနက်ကို စစ်ဆေးပြီး ပြန်ကြိုးစားပါ။';
 }

@@ -4317,4 +4317,195 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get suggestedItemsCached =>
       'Showing saved suggestions. Refresh failed.';
+
+  @override
+  String get apiErrorNetwork =>
+      'Could not connect. Check your connection and try again.';
+
+  @override
+  String get apiErrorTimeout =>
+      'The connection timed out. Check your connection and try again.';
+
+  @override
+  String get apiErrorSecureConnection =>
+      'The connection could not be verified. Try again on a trusted network.';
+
+  @override
+  String get apiErrorSessionExpired => 'Your session expired. Sign in again.';
+
+  @override
+  String get apiErrorForbidden => 'You do not have access to do this.';
+
+  @override
+  String get apiErrorNotFound => 'This item is no longer available.';
+
+  @override
+  String get apiErrorConflict =>
+      'This change conflicts with newer data. Refresh and try again.';
+
+  @override
+  String get apiErrorValidation =>
+      'Some details are invalid. Check them and try again.';
+
+  @override
+  String get apiErrorRateLimited =>
+      'Too many attempts. Wait a moment and try again.';
+
+  @override
+  String get apiErrorServer =>
+      'The service is temporarily unavailable. Try again shortly.';
+
+  @override
+  String get apiErrorFileTooLarge =>
+      'This file is too large. Choose a smaller file.';
+
+  @override
+  String get apiErrorGeneric => 'Something went wrong. Try again.';
+
+  @override
+  String get apiErrorAccountDeactivated =>
+      'This account is deactivated. Contact support for help.';
+
+  @override
+  String get apiErrorEmailVerificationRequired =>
+      'Verify your email before continuing.';
+
+  @override
+  String get apiErrorInvalidLink =>
+      'This link is invalid or has expired. Request a new one.';
+
+  @override
+  String get apiErrorCurrentPasswordIncorrect =>
+      'Your current password is incorrect.';
+
+  @override
+  String get apiErrorEmailRequired => 'Add an email address to continue.';
+
+  @override
+  String get apiErrorEmailMismatch => 'That email does not match this account.';
+
+  @override
+  String get apiErrorNoEmailOnAccount =>
+      'This account has no email address. Add one before continuing.';
+
+  @override
+  String get apiErrorAlreadyVerified => 'Your email is already verified.';
+
+  @override
+  String get apiErrorPasswordChangeRequired =>
+      'Change your temporary password to continue.';
+
+  @override
+  String get apiErrorPortalAccessRestricted =>
+      'Driver accounts cannot use the Fleet Portal.';
+
+  @override
+  String get apiErrorFleetAccessRequired =>
+      'An active Enterprise organization membership is required.';
+
+  @override
+  String get apiErrorPlanLimit =>
+      'Your plan limit was reached. Upgrade to continue.';
+
+  @override
+  String get apiErrorReadOnlyPlan =>
+      'Your plan makes this record read-only. Upgrade to edit it.';
+
+  @override
+  String get apiErrorInvalidCredentials =>
+      'Your email, username, or password is incorrect.';
+
+  @override
+  String get apiErrorEmailTaken =>
+      'This email already has an account. Sign in or reset its password.';
+
+  @override
+  String get apiErrorCodeInvalid =>
+      'The code is incorrect, expired, or already used. Request a new code.';
+
+  @override
+  String get apiErrorProviderNotConfigured =>
+      'This sign-in method is not available yet. Use email sign-in.';
+
+  @override
+  String get apiErrorFlowExpired =>
+      'Sign-in expired or did not complete. Start again.';
+
+  @override
+  String get apiErrorDeliveryFailed =>
+      'We could not send the email. Try again shortly.';
+
+  @override
+  String get apiErrorDuplicatePlate =>
+      'A vehicle with this plate already exists in your garage.';
+
+  @override
+  String get apiErrorDuplicateVin => 'A vehicle with this VIN already exists.';
+
+  @override
+  String get apiErrorMileage =>
+      'Mileage cannot be lower than the last recorded value.';
+
+  @override
+  String get apiErrorCurrency =>
+      'This amount uses a currency that is no longer available. Update it and try again.';
+
+  @override
+  String get apiErrorVehicleNotAssigned =>
+      'This vehicle is no longer assigned to you.';
+
+  @override
+  String get apiErrorInvitation =>
+      'This invitation is invalid, expired, or already used.';
+
+  @override
+  String get apiErrorAccountLinkRequired =>
+      'An account with this email already exists. Sign in, then connect this sign-in method from Account connections.';
+
+  @override
+  String get syncErrorTitle => 'Could not sync';
+
+  @override
+  String get syncErrorNetwork =>
+      'You\'re offline or the connection is unstable. Your changes are saved on this device and will sync when you connect again.';
+
+  @override
+  String get syncErrorSession =>
+      'Your session expired. Sign in again to keep syncing. Your changes are saved on this device.';
+
+  @override
+  String get syncErrorServer =>
+      'The server is unavailable right now. Your changes are saved and will retry automatically.';
+
+  @override
+  String get syncErrorRateLimited =>
+      'Too many sync attempts. Your changes are saved and will retry shortly.';
+
+  @override
+  String get syncErrorPlan =>
+      'Your plan limit was reached. Some changes are waiting until you upgrade.';
+
+  @override
+  String get syncErrorStorage =>
+      'Your storage is full. Free up space or upgrade to keep syncing.';
+
+  @override
+  String get syncErrorForbidden =>
+      'You don\'t have permission to sync these changes. Check your account access.';
+
+  @override
+  String get syncErrorConflict =>
+      'Some changes conflict with newer data. They are saved and will retry.';
+
+  @override
+  String get syncErrorValidation =>
+      'The server could not accept some changes. They are saved and will retry.';
+
+  @override
+  String get syncErrorGeneric =>
+      'Something went wrong while syncing. Your changes are saved and will retry automatically.';
+
+  @override
+  String get authLoadAccessFailed =>
+      'Unable to load account access. Check your connection and try again.';
 }
