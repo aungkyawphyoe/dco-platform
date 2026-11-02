@@ -75,6 +75,7 @@ abstract final class AppRoutes {
   // Vehicle sharing (per-vehicle invites + share code/QR)
   static const sharedWithMe = '/shares/shared-with-me';
   static const vehicleShareJoin = '/vehicle/share/join';
+  static const vehicleShareScan = '/vehicle/share/join/scan';
   static const vehicleShareAccept = '/vehicle/share/accept';
   static String vehicleShareManage(String id) => '/vehicle/$id/share';
   static String vehicleShareNew(String id) => '/vehicle/$id/share/new';

@@ -3723,6 +3723,32 @@ class AppLocalizationsMy extends AppLocalizations {
   String get shareJoinUnknownCode => 'စာလုံး ၈ လုံးပါ ကုဒ် မှန်ကန်စွာ ထည့်ပါ။';
 
   @override
+  String get shareScanQr => 'QR ကုဒ် စကင်ဖတ်မည်';
+
+  @override
+  String get shareScanTitle => 'မျှဝေကုဒ် စကင်ဖတ်မည်';
+
+  @override
+  String get shareScanHint => 'ယာဉ် မျှဝေမှု QR ကုဒ်ကို ကင်မရာဖြင့် ချိန်ပါ။';
+
+  @override
+  String get shareScanTorch => 'မီးလုံး';
+
+  @override
+  String get shareScanEnterManually => 'ကုဒ်ကို ကိုယ်တိုင် ထည့်မည်';
+
+  @override
+  String get shareScanPermission =>
+      'ကင်မရာ အသုံးပြုခွင့် ပိတ်ထားသည်။ ဆက်တင်တွင် ကင်မရာကို ခွင့်ပြုပြီး ထပ်ကြိုးစားပါ။';
+
+  @override
+  String get shareScanCameraError =>
+      'ကင်မရာ မစတင်နိုင်ပါ။ ကုဒ်ကို ကိုယ်တိုင် ထည့်ပါ။';
+
+  @override
+  String get shareScanInvalid => 'ဤကုဒ်သည် ယာဉ် မျှဝေမှု ကုဒ် မဟုတ်ပါ။';
+
+  @override
   String get sharedWithMeTitle => 'ကျွန်ုပ်နှင့် မျှဝေထားသည်';
 
   @override

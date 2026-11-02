@@ -7,6 +7,7 @@ import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../domain/entities/vehicle_share.dart';
+import '../../domain/share_invite_link.dart';
 
 /// The Code/QR half of vehicle sharing: current code, QR, copy/share,
 /// and regenerate.
@@ -58,7 +59,7 @@ class ShareCodePanel extends StatelessWidget {
       );
     }
 
-    final joinUrl = 'dco://vehicle/share/join?code=$code';
+    final joinUrl = ShareInviteLink(code).toUri().toString();
     return SingleChildScrollView(
       padding: EdgeInsets.all(tokens.space.s4),
       child: Column(
@@ -124,8 +125,9 @@ class ShareCodePanel extends StatelessWidget {
                     Expanded(
                       child: DcoButton(
                         label: s.share,
-                        onPressed: () =>
-                            SharePlus.instance.share(ShareParams(text: joinUrl)),
+                        onPressed: () => SharePlus.instance.share(
+                          ShareParams(text: joinUrl),
+                        ),
                       ),
                     ),
                   ],

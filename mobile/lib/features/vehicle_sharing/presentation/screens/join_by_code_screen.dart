@@ -9,15 +9,22 @@ import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
 import '../../../../core/widgets/dco_empty_state.dart';
 import '../../../../generated/app_localizations.dart';
+import '../../domain/share_invite_link.dart';
 import '../../providers.dart';
 import '../widgets/share_access_level.dart';
 
+/// Opens the camera scanner and returns the raw scanned payload, or null when
+/// the user backs out. Injected in tests so camera hardware is not needed.
+typedef ShareQrScanner = Future<String?> Function(BuildContext context);
+
 /// Code/QR join flow (`/vehicle/share/join?code=…`). The code may arrive
-/// pre-filled from a scanned QR; otherwise it is typed in.
+/// pre-filled from a scanned QR or deep link; otherwise it is typed in or
+/// scanned from inside this screen.
 class JoinByCodeScreen extends ConsumerStatefulWidget {
-  const JoinByCodeScreen({super.key, this.initialCode});
+  const JoinByCodeScreen({super.key, this.initialCode, this.scanQrCode});
 
   final String? initialCode;
+  final ShareQrScanner? scanQrCode;
 
   @override
   ConsumerState<JoinByCodeScreen> createState() => _JoinByCodeScreenState();
@@ -37,6 +44,21 @@ class _JoinByCodeScreenState extends ConsumerState<JoinByCodeScreen> {
   }
 
   @override
+  void didUpdateWidget(JoinByCodeScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // A second deep link arrives while this screen is already on the stack;
+    // GoRouter reuses the state, so the new code must replace the old one.
+    final code = widget.initialCode;
+    if (code != null && code != oldWidget.initialCode) {
+      _controller.value = TextEditingValue(
+        text: code,
+        selection: TextSelection.collapsed(offset: code.length),
+      );
+      _error = null;
+    }
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
     super.dispose();
@@ -47,6 +69,27 @@ class _JoinByCodeScreenState extends ConsumerState<JoinByCodeScreen> {
   bool get _ready => _code.length == 8;
 
   void _onChanged(String _) => setState(() => _error = null);
+
+  Future<String?> _pushScanner(BuildContext context) =>
+      context.push<String>(AppRoutes.vehicleShareScan);
+
+  Future<void> _scan() async {
+    final raw = await (widget.scanQrCode ?? _pushScanner)(context);
+    if (!mounted || raw == null) return;
+    final invite = ShareInviteLink.tryParse(raw);
+    if (invite == null) {
+      setState(() => _error = 'scan_invalid');
+      return;
+    }
+    setState(() {
+      _controller.value = TextEditingValue(
+        text: invite.code,
+        selection: TextSelection.collapsed(offset: invite.code.length),
+      );
+      _error = null;
+    });
+    FocusScope.of(context).unfocus();
+  }
 
   Future<void> _join() async {
     if (!_ready) {
@@ -73,6 +116,12 @@ class _JoinByCodeScreenState extends ConsumerState<JoinByCodeScreen> {
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
+    final errorText = switch (_error) {
+      null => null,
+      'invalid' => s.shareJoinUnknownCode,
+      'scan_invalid' => s.shareScanInvalid,
+      _ => s.shareJoinInvalid,
+    };
 
     if (_state == _JoinState.joined) {
       return Scaffold(
@@ -104,9 +153,9 @@ class _JoinByCodeScreenState extends ConsumerState<JoinByCodeScreen> {
                 children: [
                   Text(
                     s.shareJoinBody,
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: tokens.text.secondary,
+                    ),
                   ),
                   SizedBox(height: tokens.space.s4),
                   TextField(
@@ -135,12 +184,20 @@ class _JoinByCodeScreenState extends ConsumerState<JoinByCodeScreen> {
                   if (_error != null) ...[
                     SizedBox(height: tokens.space.s2),
                     Text(
-                      _error == 'invalid' ? s.shareJoinUnknownCode : s.shareJoinInvalid,
+                      errorText!,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
                         color: tokens.status.dangerFg,
                       ),
                     ),
                   ],
+                  SizedBox(height: tokens.space.s3),
+                  DcoButton(
+                    key: const Key('share-scan-qr'),
+                    label: s.shareScanQr,
+                    icon: Icons.qr_code_scanner,
+                    variant: DcoButtonVariant.secondary,
+                    onPressed: _state == _JoinState.working ? null : _scan,
+                  ),
                   SizedBox(height: tokens.space.s4),
                   _Preview(code: _code),
                   SizedBox(height: tokens.space.s4),
@@ -194,9 +251,16 @@ class _Preview extends ConsumerWidget {
                 value: value.vehicleNickname,
                 mono: false,
               ),
-              _Row(label: s.vehicleDetailPlate, value: value.licensePlate, mono: true),
+              _Row(
+                label: s.vehicleDetailPlate,
+                value: value.licensePlate,
+                mono: true,
+              ),
               if (value.ownerDisplayName != null)
-                _Row(label: s.shareJoinPreviewOwner, value: value.ownerDisplayName!),
+                _Row(
+                  label: s.shareJoinPreviewOwner,
+                  value: value.ownerDisplayName!,
+                ),
               Row(
                 children: [
                   Text(

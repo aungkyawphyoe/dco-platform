@@ -6948,6 +6948,54 @@ abstract class AppLocalizations {
   /// **'Enter a valid 8-character code first.'**
   String get shareJoinUnknownCode;
 
+  /// No description provided for @shareScanQr.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan QR code'**
+  String get shareScanQr;
+
+  /// No description provided for @shareScanTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Scan share code'**
+  String get shareScanTitle;
+
+  /// No description provided for @shareScanHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Point the camera at the vehicle share QR code.'**
+  String get shareScanHint;
+
+  /// No description provided for @shareScanTorch.
+  ///
+  /// In en, this message translates to:
+  /// **'Flashlight'**
+  String get shareScanTorch;
+
+  /// No description provided for @shareScanEnterManually.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter code instead'**
+  String get shareScanEnterManually;
+
+  /// No description provided for @shareScanPermission.
+  ///
+  /// In en, this message translates to:
+  /// **'Camera access is off. Allow camera access in Settings, then try again.'**
+  String get shareScanPermission;
+
+  /// No description provided for @shareScanCameraError.
+  ///
+  /// In en, this message translates to:
+  /// **'The camera could not start. Enter the code instead.'**
+  String get shareScanCameraError;
+
+  /// No description provided for @shareScanInvalid.
+  ///
+  /// In en, this message translates to:
+  /// **'That code is not a vehicle share code.'**
+  String get shareScanInvalid;
+
   /// No description provided for @sharedWithMeTitle.
   ///
   /// In en, this message translates to:

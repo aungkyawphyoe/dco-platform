@@ -3685,6 +3685,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shareJoinUnknownCode => 'Enter a valid 8-character code first.';
 
   @override
+  String get shareScanQr => 'Scan QR code';
+
+  @override
+  String get shareScanTitle => 'Scan share code';
+
+  @override
+  String get shareScanHint => 'Point the camera at the vehicle share QR code.';
+
+  @override
+  String get shareScanTorch => 'Flashlight';
+
+  @override
+  String get shareScanEnterManually => 'Enter code instead';
+
+  @override
+  String get shareScanPermission =>
+      'Camera access is off. Allow camera access in Settings, then try again.';
+
+  @override
+  String get shareScanCameraError =>
+      'The camera could not start. Enter the code instead.';
+
+  @override
+  String get shareScanInvalid => 'That code is not a vehicle share code.';
+
+  @override
   String get sharedWithMeTitle => 'Shared with Me';
 
   @override

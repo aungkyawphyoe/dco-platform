@@ -62,13 +62,16 @@ import '../../features/settings/presentation/screens/units_formats_screen.dart';
 import '../../features/stats/presentation/screens/expense_stats_screen.dart';
 import '../../features/stats/presentation/screens/fuel_stats_screen.dart';
 import '../../features/stats/presentation/screens/maintenance_stats_screen.dart';
+import '../../features/vehicle_sharing/domain/share_invite_link.dart';
 import '../../features/vehicle_sharing/presentation/screens/accept_invite_screen.dart';
 import '../../features/vehicle_sharing/presentation/screens/join_by_code_screen.dart';
+import '../../features/vehicle_sharing/presentation/screens/scan_share_qr_screen.dart';
 import '../../features/vehicle_sharing/presentation/screens/share_management_screen.dart';
 import '../../features/vehicle_sharing/presentation/screens/share_vehicle_screen.dart';
 import '../../features/vehicle_sharing/presentation/screens/shared_vehicles_screen.dart';
 import '../../features/sync/presentation/screens/sync_status_screen.dart';
 import 'app_shell.dart';
+import 'deep_links.dart';
 import 'routes.dart';
 import 'tab_switchers.dart';
 
@@ -88,6 +91,12 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     debugLogDiagnostics: kDebugMode,
     redirect: (context, state) {
+      // A QR scanned by the system camera opens `dco://vehicle/share/join`.
+      // Normalize it first so the usual sign-in/verification guards below
+      // apply to the join screen it maps to.
+      final deepLink = deepLinkLocation(state.uri);
+      if (deepLink != null) return deepLink;
+
       final session = ref.read(sessionControllerProvider);
       final location = state.matchedLocation;
       final onAuth = AppRoutes.authPaths.contains(location);
@@ -104,6 +113,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       final collaboration =
           location == AppRoutes.vehicleShareAccept ||
           location == AppRoutes.vehicleShareJoin ||
+          location == AppRoutes.vehicleShareScan ||
           RegExp(r'^/vehicle/[^/]+/share/new$').hasMatch(location);
       if (!signedIn) {
         if (collaboration) {
@@ -546,8 +556,18 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.vehicleShareJoin,
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) =>
-            JoinByCodeScreen(initialCode: state.uri.queryParameters['code']),
+        builder: (context, state) => JoinByCodeScreen(
+          initialCode: ShareInviteLink.tryParse(
+            state.uri.queryParameters['code'] ?? '',
+          )?.code,
+        ),
+        routes: [
+          GoRoute(
+            path: 'scan',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) => const ScanShareQrScreen(),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.vehicleShareAccept,
