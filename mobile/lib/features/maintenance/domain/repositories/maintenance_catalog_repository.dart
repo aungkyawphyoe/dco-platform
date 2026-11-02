@@ -1,13 +1,9 @@
-import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
-import 'package:dco_mobile/features/maintenance/domain/entities/suggested_plan_item.dart';
+import '../entities/suggested_plan_item.dart';
 
 abstract class MaintenanceCatalogRepository {
-  /// Fetch catalog items from the server and cache them locally.
+  /// Refresh only this vehicle's account-scoped local cache. Throws on failure.
   Future<void> fetchAndCache(String vehicleId);
 
-  /// Watch catalog items for a specific fuel type from local DB.
-  Stream<List<SuggestedPlanItem>> watchByFuelType(FuelType fuelType);
-
-  /// Get all cached catalog items.
-  Future<List<SuggestedPlanItem>> getAll();
+  /// Null means not cached; an empty list means a successful empty response.
+  Stream<List<SuggestedPlanItem>?> watchForVehicle(String vehicleId);
 }

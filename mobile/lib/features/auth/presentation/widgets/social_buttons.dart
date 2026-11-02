@@ -115,15 +115,6 @@ class _SocialButtonsState extends ConsumerState<SocialButtons> {
                 asset: 'assets/auth/google.svg',
                 onTap: busy ? null : () => run('google'),
               ),
-              SizedBox(width: tokens.space.s3),
-              _SocialTile(
-                key: const Key('social-apple'),
-                label: widget.connect ? s.authConnectApple : s.authApple,
-                showLabel: widget.connect,
-                asset: 'assets/auth/apple.svg',
-                monochrome: true,
-                onTap: busy ? null : () => run('apple'),
-              ),
             ],
           ),
         ),
@@ -139,26 +130,17 @@ class _SocialTile extends StatelessWidget {
     required this.asset,
     required this.onTap,
     this.showLabel = false,
-    this.monochrome = false,
   });
 
   final String label;
   final String asset;
   final VoidCallback? onTap;
   final bool showLabel;
-  final bool monochrome;
 
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
-    final icon = SvgPicture.asset(
-      asset,
-      width: 26,
-      height: 26,
-      colorFilter: monochrome
-          ? ColorFilter.mode(tokens.text.primary, BlendMode.srcIn)
-          : null,
-    );
+    final icon = SvgPicture.asset(asset, width: 26, height: 26);
     final radius = BorderRadius.circular(tokens.radius.md);
     return Semantics(
       button: true,

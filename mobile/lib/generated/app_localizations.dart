@@ -7859,6 +7859,192 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'The sign-in service is temporarily unavailable. Please try again later.'**
   String get authServiceUnavailable;
+
+  /// No description provided for @helpOfflineIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick answers, even when you are offline.'**
+  String get helpOfflineIntro;
+
+  /// No description provided for @helpFaqTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Common questions'**
+  String get helpFaqTitle;
+
+  /// No description provided for @helpLoginQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Why can’t I sign in?'**
+  String get helpLoginQuestion;
+
+  /// No description provided for @helpLoginAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Sign-in needs an internet connection. Check your connection and try again. If Google sign-in fails, restart it or use email and password if your account has a password. Use Forgot password to reset an existing password.'**
+  String get helpLoginAnswer;
+
+  /// No description provided for @helpVehicleQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I set up or switch vehicles?'**
+  String get helpVehicleQuestion;
+
+  /// No description provided for @helpVehicleAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Open My Garage from the vehicle selector on Garage. Add your vehicle there, or select another vehicle to see its records. Your plan determines how many vehicles you can add.'**
+  String get helpVehicleAnswer;
+
+  /// No description provided for @helpDriverVehicleAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Your organization assigns your vehicles. Use the vehicle selector to switch between assignments. If no vehicle appears, contact your fleet administrator. Vehicle details and maintenance plans are managed by your organization.'**
+  String get helpDriverVehicleAnswer;
+
+  /// No description provided for @helpMaintenanceQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'How do I record maintenance?'**
+  String get helpMaintenanceQuestion;
+
+  /// No description provided for @helpMaintenanceAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the correct vehicle, then open Maintenance to view its plan and history. Register a completed service with its date, mileage, and cost. Recording planned work updates the linked plan item. Drivers can log services, while their organization manages the plan.'**
+  String get helpMaintenanceAnswer;
+
+  /// No description provided for @helpExpensesQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Where do I track costs and fuel?'**
+  String get helpExpensesQuestion;
+
+  /// No description provided for @helpExpensesAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Expenses shows costs for the selected vehicle. Add an expense with its category, date, and amount. Use Refuel or Charge to record fuel quantity or charging energy. Check existing records before entering the same cost again.'**
+  String get helpExpensesAnswer;
+
+  /// No description provided for @helpSyncQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'What happens when I am offline?'**
+  String get helpSyncQuestion;
+
+  /// No description provided for @helpSyncAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'After signing in, core records can be used offline. Changes wait on this device until they sync. Reconnect and check Sync status; use the manual sync action if needed. Do not uninstall or clear app data while changes are waiting. Sign-in, account changes, and some online features still need a connection.'**
+  String get helpSyncAnswer;
+
+  /// No description provided for @helpNotesQuestion.
+  ///
+  /// In en, this message translates to:
+  /// **'Are my Notes backed up?'**
+  String get helpNotesQuestion;
+
+  /// No description provided for @helpNotesAnswer.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes are private to your account on this device. They do not sync or have a server backup. Uninstalling AutoX or clearing app data can remove them. Keep a separate copy of important notes before changing devices.'**
+  String get helpNotesAnswer;
+
+  /// No description provided for @helpSyncAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Open sync status'**
+  String get helpSyncAction;
+
+  /// No description provided for @helpFeedbackTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Send feedback'**
+  String get helpFeedbackTitle;
+
+  /// No description provided for @helpFeedbackIntro.
+  ///
+  /// In en, this message translates to:
+  /// **'Tell us what happened and what you expected. You can review the email before sending. Do not include passwords or private vehicle documents.'**
+  String get helpFeedbackIntro;
+
+  /// No description provided for @helpFeedbackMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Your feedback'**
+  String get helpFeedbackMessage;
+
+  /// No description provided for @helpFeedbackPlatform.
+  ///
+  /// In en, this message translates to:
+  /// **'Include platform information'**
+  String get helpFeedbackPlatform;
+
+  /// No description provided for @helpFeedbackEmail.
+  ///
+  /// In en, this message translates to:
+  /// **'Open email draft'**
+  String get helpFeedbackEmail;
+
+  /// No description provided for @helpFeedbackCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy feedback'**
+  String get helpFeedbackCopy;
+
+  /// No description provided for @helpFeedbackCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Feedback copied. Paste it into your preferred email app.'**
+  String get helpFeedbackCopied;
+
+  /// No description provided for @helpFeedbackUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open an email app. Copy your feedback and send it using your preferred email app.'**
+  String get helpFeedbackUnavailable;
+
+  /// No description provided for @helpFeedbackCopyFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not copy. Your feedback is still here; select and copy the text manually.'**
+  String get helpFeedbackCopyFailed;
+
+  /// No description provided for @helpFeedbackSubject.
+  ///
+  /// In en, this message translates to:
+  /// **'AutoX feedback'**
+  String get helpFeedbackSubject;
+
+  /// No description provided for @suggestedItemsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions unavailable'**
+  String get suggestedItemsUnavailable;
+
+  /// No description provided for @suggestedItemsRetryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the internet and let your vehicle sync, then retry. Your maintenance plan has not been changed.'**
+  String get suggestedItemsRetryBody;
+
+  /// No description provided for @suggestedItemsNoneAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggestions for this vehicle yet'**
+  String get suggestedItemsNoneAvailable;
+
+  /// No description provided for @suggestedItemsNoneAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The catalog currently has no suggestions for this vehicle. You can add maintenance items manually or retry later.'**
+  String get suggestedItemsNoneAvailableBody;
+
+  /// No description provided for @suggestedItemsCached.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing saved suggestions. Refresh failed.'**
+  String get suggestedItemsCached;
 }
 
 class _AppLocalizationsDelegate

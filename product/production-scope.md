@@ -109,3 +109,7 @@ Same deferrals as MVP out-of-scope, plus not in this slice:
 ## Document storage expansion — approved 20 October 2026
 
 The approved [Documents and Storage specification](frd/documents.md) extends production scope with account/organization storage quotas, service and fuel multi-attachments, personal license visibility in Documents, and restricted platform/fleet administration. Its permission and ownership decisions supersede earlier document rules. Implementation is in progress; specification approval is not completion.
+
+### Offline Help — tester feedback Phase 5
+
+Settings → Help provides localized, offline answers for login, vehicle setup, maintenance, expenses, sync, and local-only Notes, alongside tour replay. Personal and Driver users share the screen with scoped vehicle guidance. User-reviewed feedback email drafts and a copy fallback are supported; platform information is opt-in and feedback is never automatically submitted or synchronized. No support backend or additional monitoring SDK is introduced.

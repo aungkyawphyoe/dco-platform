@@ -4209,4 +4209,112 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authServiceUnavailable =>
       'The sign-in service is temporarily unavailable. Please try again later.';
+
+  @override
+  String get helpOfflineIntro => 'Quick answers, even when you are offline.';
+
+  @override
+  String get helpFaqTitle => 'Common questions';
+
+  @override
+  String get helpLoginQuestion => 'Why can’t I sign in?';
+
+  @override
+  String get helpLoginAnswer =>
+      'Sign-in needs an internet connection. Check your connection and try again. If Google sign-in fails, restart it or use email and password if your account has a password. Use Forgot password to reset an existing password.';
+
+  @override
+  String get helpVehicleQuestion => 'How do I set up or switch vehicles?';
+
+  @override
+  String get helpVehicleAnswer =>
+      'Open My Garage from the vehicle selector on Garage. Add your vehicle there, or select another vehicle to see its records. Your plan determines how many vehicles you can add.';
+
+  @override
+  String get helpDriverVehicleAnswer =>
+      'Your organization assigns your vehicles. Use the vehicle selector to switch between assignments. If no vehicle appears, contact your fleet administrator. Vehicle details and maintenance plans are managed by your organization.';
+
+  @override
+  String get helpMaintenanceQuestion => 'How do I record maintenance?';
+
+  @override
+  String get helpMaintenanceAnswer =>
+      'Choose the correct vehicle, then open Maintenance to view its plan and history. Register a completed service with its date, mileage, and cost. Recording planned work updates the linked plan item. Drivers can log services, while their organization manages the plan.';
+
+  @override
+  String get helpExpensesQuestion => 'Where do I track costs and fuel?';
+
+  @override
+  String get helpExpensesAnswer =>
+      'Expenses shows costs for the selected vehicle. Add an expense with its category, date, and amount. Use Refuel or Charge to record fuel quantity or charging energy. Check existing records before entering the same cost again.';
+
+  @override
+  String get helpSyncQuestion => 'What happens when I am offline?';
+
+  @override
+  String get helpSyncAnswer =>
+      'After signing in, core records can be used offline. Changes wait on this device until they sync. Reconnect and check Sync status; use the manual sync action if needed. Do not uninstall or clear app data while changes are waiting. Sign-in, account changes, and some online features still need a connection.';
+
+  @override
+  String get helpNotesQuestion => 'Are my Notes backed up?';
+
+  @override
+  String get helpNotesAnswer =>
+      'Notes are private to your account on this device. They do not sync or have a server backup. Uninstalling AutoX or clearing app data can remove them. Keep a separate copy of important notes before changing devices.';
+
+  @override
+  String get helpSyncAction => 'Open sync status';
+
+  @override
+  String get helpFeedbackTitle => 'Send feedback';
+
+  @override
+  String get helpFeedbackIntro =>
+      'Tell us what happened and what you expected. You can review the email before sending. Do not include passwords or private vehicle documents.';
+
+  @override
+  String get helpFeedbackMessage => 'Your feedback';
+
+  @override
+  String get helpFeedbackPlatform => 'Include platform information';
+
+  @override
+  String get helpFeedbackEmail => 'Open email draft';
+
+  @override
+  String get helpFeedbackCopy => 'Copy feedback';
+
+  @override
+  String get helpFeedbackCopied =>
+      'Feedback copied. Paste it into your preferred email app.';
+
+  @override
+  String get helpFeedbackUnavailable =>
+      'Could not open an email app. Copy your feedback and send it using your preferred email app.';
+
+  @override
+  String get helpFeedbackCopyFailed =>
+      'Could not copy. Your feedback is still here; select and copy the text manually.';
+
+  @override
+  String get helpFeedbackSubject => 'AutoX feedback';
+
+  @override
+  String get suggestedItemsUnavailable => 'Suggestions unavailable';
+
+  @override
+  String get suggestedItemsRetryBody =>
+      'Connect to the internet and let your vehicle sync, then retry. Your maintenance plan has not been changed.';
+
+  @override
+  String get suggestedItemsNoneAvailable =>
+      'No suggestions for this vehicle yet';
+
+  @override
+  String get suggestedItemsNoneAvailableBody =>
+      'The catalog currently has no suggestions for this vehicle. You can add maintenance items manually or retry later.';
+
+  @override
+  String get suggestedItemsCached =>
+      'Showing saved suggestions. Refresh failed.';
 }

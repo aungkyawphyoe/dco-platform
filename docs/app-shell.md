@@ -218,3 +218,9 @@ Flow: Login → Dashboard → Users (search → profile → deactivate / reactiv
 ### Personal plans and gifts
 
 Settings → **Plans & subscriptions** opens `/pricing`. Vehicle/share limit dialogs and personal storage-full state expose **View plans**. The screen shows the current personal plan, gift end time, and selectable Free/Lite/Standard price comparisons (monthly/annual). **Redeem a gift code** opens the dedicated `/pricing/redeem` screen for online redemption, verification, feedback, and retry. Browsing plans never changes the subscription. Driver mode hides and route-guards this screen. Paid checkout remains unavailable. See `product/frd/mobile-pricing-promotions.md`.
+
+## Offline Help and feedback
+
+Settings → Help retains Replay tour and adds six offline FAQs: sign-in, vehicle setup, maintenance, expenses/fuel, synchronization, and local-only Notes. Vehicle guidance follows the current Personal/Driver scope. The sync answer links to the existing sync status screen.
+
+Feedback to `support@autoxmm.com` is an ephemeral, editable message. Opening an email draft hands it to the user's mail app for review; AutoX does not send it. Platform information is excluded by default and only included through an explicit checkbox. Copy includes the recipient, subject, and the same message, providing an offline/no-mail-app fallback. Failed launching or copying preserves the typed message. No account records, documents, logs, or tokens are attached or sent to analytics. The draft is discarded when the Help screen is disposed. Broad crash monitoring and ticket infrastructure remain separate work.

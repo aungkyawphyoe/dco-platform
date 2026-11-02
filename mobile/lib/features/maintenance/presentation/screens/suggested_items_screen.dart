@@ -21,19 +21,15 @@ class SuggestedItemsScreen extends ConsumerStatefulWidget {
 }
 
 class _SuggestedItemsScreenState extends ConsumerState<SuggestedItemsScreen> {
-  bool _isRefreshing = false;
+  String? _selectionScope;
   final Set<String> _selectedCatalogKeys = {};
 
   Future<void> _onRefresh() async {
-    final vehicle = ref.read(activeVehicleProvider).valueOrNull;
-    if (vehicle == null) return;
-    setState(() => _isRefreshing = true);
     try {
-      await ref
-          .read(maintenanceCatalogRepositoryProvider)
-          .fetchAndCache(vehicle.id);
-    } finally {
-      if (mounted) setState(() => _isRefreshing = false);
+      ref.invalidate(maintenanceCatalogRefreshProvider);
+      await ref.read(maintenanceCatalogRefreshProvider.future);
+    } catch (_) {
+      // The refresh provider exposes the failure and leaves cached data intact.
     }
   }
 
@@ -180,13 +176,14 @@ class _SuggestedItemsScreenState extends ConsumerState<SuggestedItemsScreen> {
                                     'condition_fraction': conditionFraction,
                                   },
                                 );
-                                if (mounted) {
+                                if (mounted && context.mounted) {
                                   Navigator.pop(context);
                                   setState(() => _selectedCatalogKeys.clear());
                                 }
                               } finally {
-                                if (mounted)
+                                if (mounted && context.mounted) {
                                   setModalState(() => isLoading = false);
+                                }
                               }
                             },
                       style: FilledButton.styleFrom(
@@ -223,21 +220,66 @@ class _SuggestedItemsScreenState extends ConsumerState<SuggestedItemsScreen> {
     );
   }
 
+  Widget _status(String title, String body) {
+    final s = AppLocalizations.of(context)!;
+    return RefreshIndicator(
+      onRefresh: _onRefresh,
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.all(context.tokens.space.s4),
+        children: [
+          DcoEmptyState(title: title, body: body),
+          Center(
+            child: TextButton.icon(
+              onPressed: () {
+                final vehicle = ref.read(activeVehicleProvider).asData?.value;
+                final userId = ref.read(currentUserIdProvider);
+                if (vehicle != null && userId != null) {
+                  final scope = (userId: userId, vehicleId: vehicle.id);
+                  ref.invalidate(suggestedItemsProvider(scope));
+                  ref.invalidate(suggestedVehiclePlanProvider(scope));
+                }
+                _onRefresh();
+              },
+              icon: const Icon(Icons.refresh),
+              label: Text(s.retry),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
-    final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
-    final plan = ref.watch(maintenancePlanProvider).valueOrNull ?? const [];
+    final vehicle = ref.watch(activeVehicleProvider).asData?.value;
+    final userId = ref.watch(currentUserIdProvider);
+    final scope = (userId: userId ?? '', vehicleId: vehicle?.id ?? '');
+    final selectionScope = '${scope.userId}/${scope.vehicleId}';
+    if (_selectionScope != selectionScope) {
+      _selectionScope = selectionScope;
+      _selectedCatalogKeys.clear();
+    }
+    final planAsync = ref.watch(suggestedVehiclePlanProvider(scope));
+    final plan = planAsync.asData?.value;
     final lengthUnit = ref.watch(lengthUnitProvider);
-    final existing = plan
+    final existing = (plan ?? const [])
+        .where((item) => item.vehicleId == scope.vehicleId)
         .map((item) => item.catalogKey)
         .whereType<String>()
         .toSet();
-    final suggestionsAsync = ref.watch(suggestedItemsProvider);
+    final suggestionsAsync = ref.watch(suggestedItemsProvider(scope));
+    final refresh = ref.watch(maintenanceCatalogRefreshProvider);
+    final available =
+        (suggestionsAsync.asData?.value ?? const <SuggestedPlanItem>[])
+            .where((item) => !existing.contains(item.catalogKey))
+            .toList();
+    _selectedCatalogKeys.retainAll(available.map((item) => item.catalogKey));
 
     final selectedCount = _selectedCatalogKeys.length;
-    final showFab = selectedCount > 0;
+    final showFab = selectedCount > 0 && plan != null;
 
     return Scaffold(
       appBar: AppBar(
@@ -264,7 +306,7 @@ class _SuggestedItemsScreenState extends ConsumerState<SuggestedItemsScreen> {
               backgroundColor: tokens.button.primary.background,
               foregroundColor: tokens.text.onAccent,
               onPressed: () {
-                final suggestions = suggestionsAsync.valueOrNull ?? [];
+                final suggestions = available;
                 final selectedItems = suggestions
                     .where(
                       (item) => _selectedCatalogKeys.contains(item.catalogKey),
@@ -287,20 +329,38 @@ class _SuggestedItemsScreenState extends ConsumerState<SuggestedItemsScreen> {
               title: s.maintenanceNoActiveVehicle,
               body: s.suggestedItemsNoActiveVehicleBody,
             )
+          : planAsync.hasError || suggestionsAsync.hasError
+          ? _status(s.suggestedItemsUnavailable, s.suggestedItemsRetryBody)
+          : plan == null || suggestionsAsync.isLoading
+          ? const Center(child: CircularProgressIndicator())
           : suggestionsAsync.when(
+              skipLoadingOnReload: false,
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (_, __) => DcoEmptyState(
-                title: 'Unable to load suggestions',
-                body: 'Pull to retry.',
+              error: (_, _) => _status(
+                s.suggestedItemsUnavailable,
+                s.suggestedItemsRetryBody,
               ),
               data: (suggestions) {
-                final filtered = suggestions
-                    .where((item) => !existing.contains(item.catalogKey))
-                    .toList();
+                if (suggestions == null) {
+                  if (refresh.isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  return _status(
+                    s.suggestedItemsUnavailable,
+                    s.suggestedItemsRetryBody,
+                  );
+                }
+                if (suggestions.isEmpty) {
+                  return _status(
+                    s.suggestedItemsNoneAvailable,
+                    s.suggestedItemsNoneAvailableBody,
+                  );
+                }
+                final filtered = available;
                 if (filtered.isEmpty) {
-                  return DcoEmptyState(
-                    title: s.suggestedItemsAllAdded,
-                    body: s.suggestedItemsAllAddedBody,
+                  return _status(
+                    s.suggestedItemsAllAdded,
+                    s.suggestedItemsAllAddedBody,
                   );
                 }
                 return RefreshIndicator(
@@ -312,15 +372,29 @@ class _SuggestedItemsScreenState extends ConsumerState<SuggestedItemsScreen> {
                       tokens.space.s4,
                       tokens.space.s5 + 80, // Space for FAB
                     ),
+                    physics: const AlwaysScrollableScrollPhysics(),
                     itemCount: filtered.length + 1, // +1 for select all header
                     itemBuilder: (context, index) {
                       if (index == 0) {
                         // Select all header
-                        return _SelectAllHeader(
-                          selectedCount: selectedCount,
-                          totalCount: filtered.length,
-                          onTap: () => _selectAll(filtered),
-                          tokens: tokens,
+                        return Column(
+                          children: [
+                            if (refresh.hasError ||
+                                refresh.asData?.value == false)
+                              ListTile(
+                                title: Text(s.suggestedItemsCached),
+                                trailing: TextButton(
+                                  onPressed: _onRefresh,
+                                  child: Text(s.retry),
+                                ),
+                              ),
+                            _SelectAllHeader(
+                              selectedCount: selectedCount,
+                              totalCount: filtered.length,
+                              onTap: () => _selectAll(filtered),
+                              tokens: tokens,
+                            ),
+                          ],
                         );
                       }
                       final item = filtered[index - 1];

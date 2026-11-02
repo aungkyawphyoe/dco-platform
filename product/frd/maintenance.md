@@ -156,6 +156,9 @@ Behavior
 
 - Next due date and/or next due mileage are computed from the last completed service of that item, or from the vehicle's current mileage and an optional tracking-start override
 - Suggested catalog is filtered by the active vehicle's fuel type and vehicle class (production: catalog rows are vehicle-class-aware with optional lifecycle narrowing — see [`fleet-maintenance-templates.md`](fleet-maintenance-templates.md))
+- Suggested catalog caches are isolated by signed-in account and vehicle. Added suggestions are excluded using only that vehicle’s plan catalog keys; switching accounts or vehicles clears pending selections.
+- Refresh suggestions after a successful sync so a newly created local vehicle can load its catalog after upload. Failed requests preserve that scope’s offline cache.
+- Distinguish an unavailable catalog, a successfully loaded empty catalog, and a non-empty catalog whose items are all added. Each empty/error state supports retry; loading must not show “All suggested items added.”
 - Disable hides the item from Upcoming/Scheduled without deleting history
 - Completing a reminder offers to open Register Service with the item pre-selected
 

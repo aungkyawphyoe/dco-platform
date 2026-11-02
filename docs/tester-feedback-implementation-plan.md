@@ -1,7 +1,7 @@
 # Tester feedback implementation plan
 
 Date: 1 November 2026
-Status: Approved. Phase 0 investigation, Phase 1 client implementation, Phase 2 sign-out confirmation, and Phase 3 post-login tour are implemented; Phase 4 listing copy is drafted and awaiting review. See [baseline and acceptance record](tester-feedback-auth-baseline.md). The production Google login blocker is resolved and user-tested sign-in succeeds. Client hardening is committed locally; release of those changes and the broader acceptance matrix remain open.
+Status: Approved. Phase 0 investigation, Phase 1 client implementation, Phase 2 sign-out confirmation, and Phase 3 post-login tour are implemented; Phase 4 is completed per user confirmation; Phase 5 offline Help and user-reviewed feedback drafts are implemented. See [baseline and acceptance record](tester-feedback-auth-baseline.md). The production Google login blocker is resolved and user-tested sign-in succeeds. Client hardening is committed locally; release of those changes and the broader acceptance matrix remain open.
 
 ## Purpose and evidence
 
@@ -93,11 +93,8 @@ First eligible login offers the tour once; skip/completion survives restart; acc
 
 ## Phase 4 — Review and improve the Play listing
 
-**Status (1 November 2026):** English and Burmese copy drafted in
-[`marketing/play-store/listing/`](../marketing/play-store/listing/README.md) with
-a limit validator and a claim-to-source map. Nothing is published. Outstanding:
-a diff against the live listing text, native Burmese review, and screenshot
-regeneration from the release being shipped.
+**Status (1 November 2026):** Completed per user confirmation. English and Burmese artifacts are in
+[`marketing/play-store/listing/`](../marketing/play-store/listing/README.md), with a limit validator and a claim-to-source map. Publication status was not independently rechecked in Phase 5.
 
 - Review the actual published text against features present in the tested release.
 - Draft short and full descriptions using clear, natural phrases around vehicle maintenance, service reminders, expense tracking, and fuel logs.
@@ -109,6 +106,8 @@ regeneration from the release being shipped.
 Acceptance: claims checked against the release, current store limits validated, spelling/localization reviewed, and final copy ready for Play Console. Do not claim keyword ranking improvements without evidence.
 
 ## Phase 5 — Focused follow-up work
+
+Implementation: existing Help screen expanded with English/Burmese offline FAQs and Personal/Driver vehicle guidance; existing sync screen linked directly. Feedback uses an editable mail draft and copy fallback with opt-in platform only. No new monitoring SDK is selected: auth stage diagnostics and existing sync status remain the evidence sources. Feedback uses the user-confirmed public support address `support@autoxmm.com`; forwarding is managed outside the app. Native Burmese review and mail-client testing on devices remain release checks. Focused Help, feedback, and tour tests cover encoding, failed mail launch, draft preservation, opt-in platform information, account-aware guidance, and narrow English/Burmese layouts in both themes.
 
 Include a small offline Help screen with the tour replay and FAQs for login, vehicle setup, maintenance, expenses, sync, and local-only Notes. Keep answers short and consistent with shipped behavior.
 
