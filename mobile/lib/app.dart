@@ -18,6 +18,7 @@ import 'features/notifications/presentation/reminder_sync_controller.dart';
 import 'features/pricing/billing/providers.dart';
 import 'features/settings/domain/entities/user_preferences.dart';
 import 'features/settings/providers.dart';
+import 'features/sync/presentation/sync_error_messages.dart';
 import 'generated/app_localizations.dart';
 
 bool _isOnline(List<ConnectivityResult>? results) {
@@ -73,7 +74,13 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
     final state = status.valueOrNull;
     if (state == null || !state.hasError) return;
 
-    final message = state.message ?? 'Your changes will retry automatically.';
+    final navigatorContext = rootNavigatorKey.currentContext;
+    if (navigatorContext == null || !mounted) return;
+    final strings = AppLocalizations.of(navigatorContext);
+    if (strings == null) return;
+
+    final code = state.errorCode ?? 'unknown';
+    final message = syncErrorMessage(strings, code);
     final last = _lastSyncDialog;
     final cooldown = const Duration(minutes: 1);
     final alreadyShown =
@@ -83,15 +90,13 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
     if (alreadyShown) return;
     _lastSyncDialog = (message: message, at: DateTime.now());
 
-    final navigatorContext = rootNavigatorKey.currentContext;
-    if (navigatorContext == null || !mounted) return;
     unawaited(
       showDcoErrorDialog(
         navigatorContext,
-        title: 'Sync failed',
+        title: strings.syncErrorTitle,
         message: message,
-        actionLabel: 'Retry',
-        onAction: () => ref.read(syncEngineProvider).syncNow(),
+        actionLabel: strings.retry,
+        onAction: () => ref.read(syncEngineProvider).syncNow(force: true),
       ),
     );
   }

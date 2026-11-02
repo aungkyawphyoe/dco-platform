@@ -23,12 +23,20 @@ class SyncState {
     this.phase = SyncPhase.idle,
     this.lastSyncedAt,
     this.message,
+    this.errorCode,
     this.autoSyncEnabled = true,
   });
 
   final SyncPhase phase;
   final DateTime? lastSyncedAt;
+
+  /// Legacy human-readable detail. UI must localize [errorCode] instead of
+  /// showing this text, which may contain server/developer wording.
   final String? message;
+
+  /// Stable code from the failed API call (for example `network` or
+  /// `server`). Presentation maps it to a localized message.
+  final String? errorCode;
   final bool autoSyncEnabled;
 
   bool get hasError => phase == SyncPhase.error;
@@ -37,12 +45,14 @@ class SyncState {
     SyncPhase? phase,
     DateTime? lastSyncedAt,
     String? message,
+    String? errorCode,
     bool? autoSyncEnabled,
   }) {
     return SyncState(
       phase: phase ?? this.phase,
       lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
-      message: message,
+      message: message ?? this.message,
+      errorCode: errorCode ?? this.errorCode,
       autoSyncEnabled: autoSyncEnabled ?? this.autoSyncEnabled,
     );
   }
@@ -171,6 +181,7 @@ class SyncEngine {
           phase: SyncPhase.error,
           lastSyncedAt: _state.lastSyncedAt,
           message: error.message,
+          errorCode: error.code,
         ),
       );
     } catch (_) {
@@ -181,6 +192,7 @@ class SyncEngine {
           phase: SyncPhase.error,
           lastSyncedAt: _state.lastSyncedAt,
           message: 'Sync failed',
+          errorCode: 'unknown',
         ),
       );
     } finally {

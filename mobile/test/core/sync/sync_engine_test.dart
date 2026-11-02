@@ -251,6 +251,7 @@ void main() {
     await engine.syncNow();
 
     expect(engine.state.hasError, true);
+    expect(engine.state.errorCode, 'network');
     final rows = await db.select(db.outboxEntries).get();
     expect(rows, hasLength(1));
   });

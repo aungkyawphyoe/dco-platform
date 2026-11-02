@@ -2,9 +2,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/sync/sync_engine.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
+import 'package:dco_mobile/core/widgets/dco_alert_box.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../sync_error_messages.dart';
 
 class SyncStatusScreen extends ConsumerWidget {
   const SyncStatusScreen({super.key});
@@ -39,6 +42,22 @@ class SyncStatusScreen extends ConsumerWidget {
             tokens: tokens,
             s: s,
           ),
+          if (syncState.hasError) ...[
+            SizedBox(height: tokens.space.s3),
+            DcoAlertBox(
+              key: const Key('sync-error-alert'),
+              title: s.syncErrorTitle,
+              message: syncErrorMessage(s, syncState.errorCode),
+              actionLabel: isSyncing ? null : s.retry,
+              onAction: isSyncing
+                  ? null
+                  : () async {
+                      await ref.read(syncEngineProvider).syncNow(force: true);
+                      ref.invalidate(pendingOutboxCountProvider);
+                      ref.invalidate(parkedOutboxCountProvider);
+                    },
+            ),
+          ],
           SizedBox(height: tokens.space.s4),
 
           if (reviews.isNotEmpty) ...[
@@ -310,7 +329,7 @@ class _StatusHeroCard extends StatelessWidget {
   String _heroSubtitle(AppLocalizations s) {
     if (isSyncing) return s.syncAutoSyncDescription;
     if (syncState.hasError) {
-      return syncState.message ?? s.syncDefaultError;
+      return syncErrorMessage(s, syncState.errorCode);
     }
     return s.syncNoPendingItems;
   }
