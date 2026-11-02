@@ -215,6 +215,10 @@ Behavior
 
 ## Join by code (Code/QR flow)
 
+- The join screen scans the shared QR with the device camera; a scanned
+  `dco://vehicle/share/join?code=…` payload fills the code field. The same URI
+  opens the app from the system camera (deep link) and lands on the join screen,
+  after sign-in and email verification when needed.
 - `GET /v1/vehicles/shares/:code` previews vehicle nickname, plate, owner display name, access
   level, and expiry before joining
 - The vehicle owner cannot join their own vehicle (`409 owner_cannot_join`)
@@ -395,7 +399,7 @@ Events
 - Expiring shares / time-boxed access
 - Share-level read-only audit trail
 - Sharing a single document or note without the vehicle
-- Native universal links for `dco://` deep links (currently GoRouter paths only)
+- HTTPS universal links for vehicle shares (the `dco://` custom scheme is registered)
 - Per-share notification preferences
 
 ---

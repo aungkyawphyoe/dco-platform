@@ -173,13 +173,22 @@ GoRouter paths (no native deep-link plugin — approved decision):
 | Path | Screen |
 |------|--------|
 | `/shares/shared-with-me` | Shared with Me list |
-| `/shares/join` (`?code=`) | Join by code, with preview |
-| `/shares/accept` (`?token=`) | Accept / decline email invitation |
-| `/vehicles/:id/shares` | Owner share management |
-| `/vehicles/:id/shares/new` | Invite by email or show Code/QR |
+| `/vehicle/share/join` (`?code=`) | Join by code, with preview |
+| `/vehicle/share/join/scan` | In-app QR scanner |
+| `/vehicle/share/accept` (`?token=`) | Accept / decline email invitation |
+| `/vehicle/:id/share` | Owner share management |
+| `/vehicle/:id/share/new` | Invite by email or show Code/QR |
 
 Deep links emitted by the backend: `dco://vehicle/share/join?code=…` and
-`dco://vehicle/share/accept?token=…`.
+`dco://vehicle/share/accept?token=…`. The `dco` scheme (host `vehicle`, paths
+under `/share`) is registered with Flutter's built-in deep-link handler in
+`AndroidManifest.xml` and `Info.plist` — still no deep-link plugin.
+`core/router/deep_links.dart` rewrites the incoming URI to its GoRouter path
+before the auth redirect runs, so a link opened while signed out is queued in
+`pendingCollaborationProvider` and resumes after sign-in and email verification.
+The join screen also scans the same QR payload in-app with `mobile_scanner`;
+both paths share `ShareInviteLink`, which accepts the link or a bare 8-character
+code.
 
 ---
 
