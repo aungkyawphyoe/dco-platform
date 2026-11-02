@@ -8,6 +8,7 @@ import '../../../../core/storage/entry_preferences.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../account_security_providers.dart';
 import '../session_controller.dart';
+import '../widgets/auth_error_label.dart';
 import '../widgets/auth_feedback.dart';
 
 class EmailVerificationScreen extends ConsumerStatefulWidget {
@@ -140,10 +141,7 @@ class _EmailVerificationScreenState
             if (error != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 12),
-                child: Text(
-                  error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
-                ),
+                child: AuthErrorLabel(message: error),
               ),
             if (correcting) ...[
               TextField(

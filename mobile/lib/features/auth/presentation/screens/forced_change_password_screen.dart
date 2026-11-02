@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,13 +5,14 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
-import '../../../../core/widgets/dco_error_dialog.dart';
 import '../../../../core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 
 import '../../domain/auth_failure.dart';
 import '../../domain/auth_validators.dart';
 import '../session_controller.dart';
+import '../widgets/auth_error_label.dart';
+import '../widgets/auth_feedback.dart';
 
 /// Forced password change screen shown when must_change_password=true.
 /// Used for driver accounts and fleet admin temporary passwords.
@@ -45,39 +44,37 @@ class _ForcedChangePasswordScreenState
   }
 
   Future<void> _submit() async {
-    final s = AppLocalizations.of(context)!;
     setState(() {
       _currentError = AuthValidators.password(_current.text);
       _newError = AuthValidators.password(_new.text);
       _confirmError = AuthValidators.confirmPassword(_confirm.text, _new.text);
       _formError = null;
     });
-    if (_currentError != null || _newError != null || _confirmError != null) return;
+    if (_currentError != null || _newError != null || _confirmError != null) {
+      return;
+    }
 
     setState(() => _submitting = true);
     try {
-      await ref.read(sessionControllerProvider.notifier).changePassword(
-        currentPassword: _current.text,
-        newPassword: _new.text,
-      );
+      await ref
+          .read(sessionControllerProvider.notifier)
+          .changePassword(
+            currentPassword: _current.text,
+            newPassword: _new.text,
+          );
       if (mounted) {
         context.go(AppRoutes.dashboard);
       }
     } catch (failure) {
-      final message =
-          failure is AuthFailure ? failure.message : s.somethingWentWrongTryAgain;
-      if (mounted) {
-        setState(() => _formError = message);
-        unawaited(
-          showDcoErrorDialog(
-            context,
-            title: s.passwordChangeFailed,
-            message: message,
-            actionLabel: failure is NetworkAuthFailure ? s.retry : s.ok,
-            onAction: failure is NetworkAuthFailure ? () => _submit() : null,
-          ),
-        );
-      }
+      if (!mounted) return;
+      final message = authFeedback(context, failure);
+      setState(() {
+        if (failure is ApiAuthFailure && failure.code == 'invalid_password') {
+          _currentError = message;
+        } else {
+          _formError = message;
+        }
+      });
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -95,9 +92,9 @@ class _ForcedChangePasswordScreenState
           children: [
             Text(
               s.forcedPasswordChangeBody,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: tokens.text.secondary,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
             ),
             SizedBox(height: tokens.space.s5),
             DcoTextField(
@@ -132,7 +129,7 @@ class _ForcedChangePasswordScreenState
             ),
             SizedBox(height: tokens.space.s5),
             if (_formError != null) ...[
-              Text(_formError!, style: TextStyle(color: tokens.status.dangerFg)),
+              AuthErrorLabel(message: _formError),
               SizedBox(height: tokens.space.s3),
             ],
             DcoButton(

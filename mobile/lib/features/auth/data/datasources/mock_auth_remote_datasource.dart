@@ -11,7 +11,11 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
   static const _uuid = Uuid();
   final Map<String, _MockAccount> _accounts = {};
   @override
-  Future<Session> login({required String email, required String password, String? surface}) async {
+  Future<Session> login({
+    required String email,
+    required String password,
+    String? surface,
+  }) async {
     await Future<void>.delayed(const Duration(milliseconds: 200));
     final key = email.trim().toLowerCase();
     final existing = _accounts[key];
@@ -36,7 +40,12 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
     if (_accounts.containsKey(key)) {
       throw const EmailTakenFailure();
     }
-    return _issue(email: key, password: password, displayName: displayName, verified: false);
+    return _issue(
+      email: key,
+      password: password,
+      displayName: displayName,
+      verified: false,
+    );
   }
 
   @override
@@ -59,9 +68,15 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
   Future<void> forgotPassword({required String email}) async {}
 
   @override
-  Future<void> resetPassword({required String token, required String password}) async {
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+  }) async {
     if (token.isEmpty || password.length < 8) {
-      throw const UnknownAuthFailure('Reset link expired or already used');
+      throw const ApiAuthFailure(
+        'invalid_token',
+        'Reset link expired or already used',
+      );
     }
   }
 
@@ -69,7 +84,10 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
   Future<void> resendVerification() async {}
 
   @override
-  Future<void> changePassword({required String currentPassword, required String newPassword}) async {
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
     // Mock: just succeed
     await Future<void>.delayed(const Duration(milliseconds: 100));
   }
@@ -82,7 +100,10 @@ class MockAuthRemoteDataSource implements AuthRemoteDataSource {
   }) {
     // Derive username from email local part
     final localPart = email.split('@').first;
-    final username = localPart.toLowerCase().replaceAll(RegExp(r'[^a-z0-9._]'), '_');
+    final username = localPart.toLowerCase().replaceAll(
+      RegExp(r'[^a-z0-9._]'),
+      '_',
+    );
     final account = _MockAccount(
       user: User(
         id: _uuid.v4(),

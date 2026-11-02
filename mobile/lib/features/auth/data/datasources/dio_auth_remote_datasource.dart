@@ -11,7 +11,11 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
   final Dio _dio;
 
   @override
-  Future<Session> login({required String email, required String password, String? surface}) {
+  Future<Session> login({
+    required String email,
+    required String password,
+    String? surface,
+  }) {
     return _session('POST', '/auth/login', {
       'email': email.trim().toLowerCase(),
       'password': password,
@@ -28,7 +32,8 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
     return _session('POST', '/auth/signup', {
       'email': email.trim().toLowerCase(),
       'password': password,
-      if (displayName != null && displayName.isNotEmpty) 'display_name': displayName,
+      if (displayName != null && displayName.isNotEmpty)
+        'display_name': displayName,
     });
   }
 
@@ -48,7 +53,10 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> resetPassword({required String token, required String password}) {
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+  }) {
     return _empty('POST', '/auth/reset-password', {
       'token': token,
       'password': password,
@@ -56,17 +64,25 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> resendVerification() => _empty('POST', '/auth/resend-verification');
+  Future<void> resendVerification() =>
+      _empty('POST', '/auth/resend-verification');
 
   @override
-  Future<void> changePassword({required String currentPassword, required String newPassword}) {
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
     return _empty('POST', '/auth/change-password', {
       'current_password': currentPassword,
       'new_password': newPassword,
     });
   }
 
-  Future<Session> _session(String method, String path, Map<String, dynamic> data) async {
+  Future<Session> _session(
+    String method,
+    String path,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final response = await _dio.request<Map<String, dynamic>>(
         path,
@@ -79,7 +95,11 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
     }
   }
 
-  Future<void> _empty(String method, String path, [Map<String, dynamic>? data]) async {
+  Future<void> _empty(
+    String method,
+    String path, [
+    Map<String, dynamic>? data,
+  ]) async {
     try {
       await _dio.request<void>(
         path,
@@ -92,10 +112,6 @@ class DioAuthRemoteDataSource implements AuthRemoteDataSource {
   }
 
   AuthFailure _toFailure(DioException error) {
-    final mapped = mapDioError(error);
-    if (mapped.code == 'network') {
-      return NetworkAuthFailure(mapped.message);
-    }
-    return mapStatusToAuthFailure(mapped.statusCode, mapped.message);
+    return authFailureFromApiError(mapDioError(error));
   }
 }

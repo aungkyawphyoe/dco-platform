@@ -8,6 +8,7 @@ import '../../../../core/theme/dco_tokens.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../account_security_providers.dart';
 import '../session_controller.dart';
+import 'auth_error_label.dart';
 import 'auth_feedback.dart';
 
 class SocialButtons extends ConsumerStatefulWidget {
@@ -95,10 +96,7 @@ class _SocialButtonsState extends ConsumerState<SocialButtons> {
         if (error != null && error!.isNotEmpty)
           Padding(
             padding: EdgeInsets.symmetric(vertical: tokens.space.s3),
-            child: Text(
-              error!,
-              style: TextStyle(color: tokens.status.dangerFg),
-            ),
+            child: AuthErrorLabel(message: error),
           ),
         if (busy) ...[
           LinearProgressIndicator(minHeight: 2),

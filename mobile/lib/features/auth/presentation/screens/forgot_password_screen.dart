@@ -8,6 +8,7 @@ import '../../../../core/theme/dco_tokens.dart';
 import '../../../../core/widgets/dco_button.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../account_security_providers.dart';
+import '../widgets/auth_error_label.dart';
 import '../widgets/auth_feedback.dart';
 import '../widgets/auth_scaffold.dart';
 import '../widgets/auth_text_field.dart';
@@ -104,10 +105,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       ),
       children: [
         if (error != null) ...[
-          Text(
-            error!,
-            style: TextStyle(color: tokens.status.dangerFg),
-          ),
+          AuthErrorLabel(message: error),
           SizedBox(height: tokens.space.s3),
         ],
         if (done)

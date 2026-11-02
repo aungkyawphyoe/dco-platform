@@ -6,6 +6,7 @@ import '../../../../core/storage/entry_preferences.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../account_security_providers.dart';
 import '../session_controller.dart';
+import '../widgets/auth_error_label.dart';
 import '../widgets/auth_feedback.dart';
 import '../widgets/social_buttons.dart';
 
@@ -76,11 +77,7 @@ class _AccountConnectionsScreenState
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            if (error != null)
-              Text(
-                error!,
-                style: TextStyle(color: Theme.of(context).colorScheme.error),
-              ),
+            if (error != null) AuthErrorLabel(message: error),
             if (info.hasError)
               TextButton(
                 onPressed: () => ref.invalidate(connectionsProvider),
