@@ -4298,4 +4298,23 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpFeedbackSubject => 'AutoX feedback';
+
+  @override
+  String get suggestedItemsUnavailable => 'Suggestions unavailable';
+
+  @override
+  String get suggestedItemsRetryBody =>
+      'Connect to the internet and let your vehicle sync, then retry. Your maintenance plan has not been changed.';
+
+  @override
+  String get suggestedItemsNoneAvailable =>
+      'No suggestions for this vehicle yet';
+
+  @override
+  String get suggestedItemsNoneAvailableBody =>
+      'The catalog currently has no suggestions for this vehicle. You can add maintenance items manually or retry later.';
+
+  @override
+  String get suggestedItemsCached =>
+      'Showing saved suggestions. Refresh failed.';
 }

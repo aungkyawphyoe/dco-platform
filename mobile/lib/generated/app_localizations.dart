@@ -8015,6 +8015,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'AutoX feedback'**
   String get helpFeedbackSubject;
+
+  /// No description provided for @suggestedItemsUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Suggestions unavailable'**
+  String get suggestedItemsUnavailable;
+
+  /// No description provided for @suggestedItemsRetryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to the internet and let your vehicle sync, then retry. Your maintenance plan has not been changed.'**
+  String get suggestedItemsRetryBody;
+
+  /// No description provided for @suggestedItemsNoneAvailable.
+  ///
+  /// In en, this message translates to:
+  /// **'No suggestions for this vehicle yet'**
+  String get suggestedItemsNoneAvailable;
+
+  /// No description provided for @suggestedItemsNoneAvailableBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The catalog currently has no suggestions for this vehicle. You can add maintenance items manually or retry later.'**
+  String get suggestedItemsNoneAvailableBody;
+
+  /// No description provided for @suggestedItemsCached.
+  ///
+  /// In en, this message translates to:
+  /// **'Showing saved suggestions. Refresh failed.'**
+  String get suggestedItemsCached;
 }
 
 class _AppLocalizationsDelegate

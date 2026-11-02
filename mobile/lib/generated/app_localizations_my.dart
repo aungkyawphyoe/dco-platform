@@ -4339,4 +4339,23 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get helpFeedbackSubject => 'AutoX အကြံပြုချက်';
+
+  @override
+  String get suggestedItemsUnavailable => 'အကြံပြုချက်များ မရရှိနိုင်ပါ';
+
+  @override
+  String get suggestedItemsRetryBody =>
+      'အင်တာနက်ချိတ်ဆက်ပြီး ယာဉ်ချိန်ကိုက်မှု ပြီးလျှင် ပြန်ကြိုးစားပါ။ သင့်ပြုပြင်ထိန်းသိမ်းမှုအစီအစဉ်ကို မပြောင်းလဲထားပါ။';
+
+  @override
+  String get suggestedItemsNoneAvailable =>
+      'ဤယာဉ်အတွက် အကြံပြုချက်များ မရှိသေးပါ';
+
+  @override
+  String get suggestedItemsNoneAvailableBody =>
+      'လက်ရှိစာရင်းတွင် ဤယာဉ်အတွက် အကြံပြုချက်များမရှိပါ။ ပြုပြင်ထိန်းသိမ်းမှုများကို ကိုယ်တိုင်ထည့်နိုင်သည် သို့မဟုတ် နောက်မှပြန်ကြိုးစားပါ။';
+
+  @override
+  String get suggestedItemsCached =>
+      'သိမ်းထားသော အကြံပြုချက်များကို ပြနေသည်။ ပြန်လည်ရယူမှု မအောင်မြင်ပါ။';
 }

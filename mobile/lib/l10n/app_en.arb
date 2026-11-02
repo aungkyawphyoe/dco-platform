@@ -1389,5 +1389,10 @@
   "helpFeedbackCopied": "Feedback copied. Paste it into your preferred email app.",
   "helpFeedbackUnavailable": "Could not open an email app. Copy your feedback and send it using your preferred email app.",
   "helpFeedbackCopyFailed": "Could not copy. Your feedback is still here; select and copy the text manually.",
-  "helpFeedbackSubject": "AutoX feedback"
+  "helpFeedbackSubject": "AutoX feedback",
+  "suggestedItemsUnavailable": "Suggestions unavailable",
+  "suggestedItemsRetryBody": "Connect to the internet and let your vehicle sync, then retry. Your maintenance plan has not been changed.",
+  "suggestedItemsNoneAvailable": "No suggestions for this vehicle yet",
+  "suggestedItemsNoneAvailableBody": "The catalog currently has no suggestions for this vehicle. You can add maintenance items manually or retry later.",
+  "suggestedItemsCached": "Showing saved suggestions. Refresh failed."
 }
