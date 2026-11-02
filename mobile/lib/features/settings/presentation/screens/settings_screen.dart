@@ -363,6 +363,7 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 SizedBox(height: tokens.space.s4),
                 const SignOutButton(),
+                SizedBox(height: tokens.space.s7),
               ],
             ),
           ),
