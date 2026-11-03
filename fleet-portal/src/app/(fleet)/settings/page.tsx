@@ -1,5 +1,6 @@
 "use client";
 import { CurrencySettings } from "@/components/currency/currency-settings";
+import { SubscriptionNotice } from "@/components/billing/subscription-notice";
 
 import { useState } from "react";
 import { PageHeader } from "@dco/ui/components/page-header";
@@ -51,10 +52,9 @@ export default function SettingsPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Organization settings"
-        description="Organization profile and lemon threshold configuration"
+        description="Organization profile, subscription, currency, and cost thresholds"
       />
 
-      <CurrencySettings />
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card className="flex flex-col">
           <SectionHeading title="Organization">
@@ -76,7 +76,7 @@ export default function SettingsPage() {
               ]}
             />
             <p className="mt-5 text-xs text-ink-caption">
-              Contact details are managed by AutoX Admin for this MVP.
+              Contact AutoX administration to update organization details.
             </p>
           </div>
         </Card>
@@ -138,6 +138,8 @@ export default function SettingsPage() {
           </div>
         </Card>
       </div>
+      {organization && <SubscriptionNotice id={organization.id} />}
+      <CurrencySettings />
     </div>
   );
 }

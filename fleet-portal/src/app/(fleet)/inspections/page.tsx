@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@dco/ui/components/page-header";
 import { Card } from "@dco/ui/components/card";
 import { Badge } from "@dco/ui/components/badge";
@@ -36,6 +36,10 @@ export default function InspectionsPage() {
   const [name, setName] = useState("");
   const [itemsText, setItemsText] = useState("Tires\nLights\nBrakes");
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "center" });
+  }, [inspections]);
 
   const runs = inspections?.items ?? [];
   const completed = runs.filter((r) => r.status === "completed").length;
@@ -103,6 +107,7 @@ export default function InspectionsPage() {
                     return (
                       <li
                         key={inspection.id}
+                        id={`inspection-${inspection.id}`}
                         className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0"
                       >
                         <div className="min-w-0">

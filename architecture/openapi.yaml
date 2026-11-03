@@ -4071,6 +4071,19 @@ paths:
         - $ref: '#/components/parameters/vehicleId'
       responses:
         '200': {description: Vehicle cost metrics}
+  /organizations/{id}/analytics/attention:
+    get:
+      tags: [Fleet]
+      summary: Organization action queue and current fleet status
+      description: Admin and manager access. Critical work orders and expired registration/insurance are urgent. Maintenance is overdue at its date or mileage threshold, upcoming within 30 days or 500 km. Work orders without updates for 3 days are stalled. Inspection failures require severity review. Uses the organization's reporting timezone.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Prioritized actions, fleet counts, reporting date and alert coverage limitations}
+        '403': {description: Organization admin or manager access required}
   /organizations/{id}/analytics/fleet:
     get:
       tags: [Fleet]

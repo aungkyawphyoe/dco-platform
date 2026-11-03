@@ -77,7 +77,7 @@ export function VehicleDocuments({ orgId, vehicleId }: { orgId: string; vehicleI
       anchor.click(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
   }
-  return <Card>
+  return <Card id="documents">
     <SectionHeading title="Documents" count={docs.data?.items.length}>
       <Button size="sm" disabled={busy} onClick={() => { setError(null); setDraft({ id: crypto.randomUUID(), name: "", category: "other", notes: "", expiry: "" }); }}>Add document</Button>
     </SectionHeading>

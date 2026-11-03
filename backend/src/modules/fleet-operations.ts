@@ -1,12 +1,15 @@
 import { incomingCurrency, incomingServiceCurrency, lockCurrencyVehicle, effectiveVehicleCurrency } from '../lib/operational-currency.js';
 import { billingRequest } from "../lib/subscription-access.js";
 import { assertOrganizationWritable } from "../lib/subscriptions.js";
+import { maintenanceState, workOrderStalled, type AttentionItem } from "../lib/fleet-attention.js";
+import { reportingToday } from "../lib/fleet-analytics.js";
 import { csvCell } from "../lib/fleet-analytics.js";
 import { and, desc, eq, inArray } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
 import {
+  documents,
   driverAssignments,
   expenses,
   fuelLogs,
@@ -761,6 +764,67 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     )).limit(1);
     if (!link) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
     return calculateVehicleCost(app.db, vehicleId);
+  });
+
+  app.get("/organizations/:id/analytics/attention", async (request) => {
+    requireFleetPortal(request);
+    const orgId = uuid.parse((request.params as { id: string }).id);
+    const { organization, membership } = await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
+    const now = new Date();
+    const settings = organization.settings as { analytics?: { timezone?: string } } | null;
+    const timezone = settings?.analytics?.timezone ?? "UTC";
+    const today = reportingToday(timezone, now);
+    const fleet = await app.db.select({ vehicle: vehicles, link: organizationVehicles }).from(organizationVehicles)
+      .innerJoin(vehicles, eq(vehicles.id, organizationVehicles.vehicleId)).where(eq(organizationVehicles.orgId, orgId));
+    const ids = fleet.map(row => row.vehicle.id);
+    const [plans, docs, orders, checks, assignments] = await Promise.all([
+      ids.length ? app.db.select().from(planItems).where(and(inArray(planItems.vehicleId, ids), eq(planItems.enabled, true))) : [],
+      ids.length && membership.role === "org_admin" ? app.db.select().from(documents).where(inArray(documents.vehicleId, ids)) : [],
+      app.db.select().from(workOrders).where(and(eq(workOrders.orgId, orgId), inArray(workOrders.status, ["reported", "in_progress"]))),
+      app.db.select().from(inspections).where(and(eq(inspections.orgId, orgId), inArray(inspections.status, ["completed", "failed"]))).orderBy(desc(inspections.completedAt), desc(inspections.createdAt)),
+      app.db.select().from(driverAssignments).where(and(eq(driverAssignments.orgId, orgId), eq(driverAssignments.status, "active"))),
+    ]);
+    const items: AttentionItem[] = [];
+    const byId = new Map(fleet.map(row => [row.vehicle.id, row.vehicle]));
+    function add(vehicleId: string, item: Omit<AttentionItem, "vehicle_id" | "vehicle" | "plate">) {
+      const vehicle = byId.get(vehicleId);
+      if (vehicle) items.push({ ...item, vehicle_id: vehicleId, vehicle: vehicle.name, plate: vehicle.licensePlate ?? "" });
+    }
+    for (const doc of docs) {
+      if (["registration", "insurance"].includes(doc.category) && doc.expiresOn && doc.expiresOn < today)
+        add(doc.vehicleId, { id: doc.id, group: "urgent", title: `Expired ${doc.category}`, detail: `${doc.name} expired ${doc.expiresOn}`, href: `/vehicles/${doc.vehicleId}#documents` });
+    }
+    const overdueVehicles = new Set<string>();
+    for (const plan of plans) {
+      const vehicle = byId.get(plan.vehicleId);
+      const remaining = plan.nextDueMileage === null || !vehicle ? null : reqNum(plan.nextDueMileage) - reqNum(vehicle.mileage);
+      const due = dateOnly(plan.nextDueOn);
+      const group = maintenanceState(today, due, remaining);
+      if (!group) continue;
+      if (group === "overdue") overdueVehicles.add(plan.vehicleId);
+      add(plan.vehicleId, { id: plan.id, group, title: plan.name,
+        detail: [due ? `Due ${due}` : null, remaining !== null ? (remaining <= 0 ? `${Math.abs(remaining).toLocaleString()} km past due` : `${remaining.toLocaleString()} km remaining`) : null].filter(Boolean).join("; "), href: `/vehicles/${plan.vehicleId}` });
+    }
+    for (const order of orders) {
+      const group = order.urgency === "critical" ? "urgent" : workOrderStalled(now, order.updatedAt) ? "stalled" : order.status === "reported" ? "review" : null;
+      if (group) add(order.vehicleId, { id: order.id, group, title: order.urgency === "critical" ? "Critical defect" : group === "stalled" ? "Stalled work order" : "Work order awaiting action", detail: `${order.description} — updated ${reportingToday(timezone, order.updatedAt)}`, href: `/work-orders#order-${order.id}` });
+    }
+    // Inspection results have no severity or resolution field. Use the latest completed check per vehicle/template as a review signal.
+    const seen = new Set<string>();
+    for (const check of checks) {
+      const key = `${check.vehicleId}:${check.templateId}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (check.status === "failed") add(check.vehicleId, { id: check.id, group: "review", title: "Failed inspection: assess severity", detail: check.notes ?? "Review failed items and decide whether this vehicle can operate.", href: `/inspections#inspection-${check.id}` });
+    }
+    const priority = { urgent: 0, overdue: 1, stalled: 2, review: 3, upcoming: 4 };
+    const actions = items.filter(item => item.group !== "upcoming" || !overdueVehicles.has(item.vehicle_id))
+      .sort((a, b) => priority[a.group] - priority[b.group] || a.vehicle.localeCompare(b.vehicle) || a.id.localeCompare(b.id));
+    return { today, timezone, generated_at: now.toISOString(), vehicle_count: fleet.length,
+      assigned_vehicles: new Set(assignments.filter(a => byId.has(a.vehicleId)).map(a => a.vehicleId)).size,
+      open_work_orders: orders.filter(o => byId.has(o.vehicleId)).length,
+      maintenance_vehicles: fleet.filter(row => row.link.status === "maintenance").length, items: actions,
+      limitations: ["Inspection severity is not recorded. Failed inspections need a manager’s assessment.", "Promised completion dates are not recorded. Work orders are stalled after 3 days without an update.", membership.role === "org_admin" ? "Document alerts cover uploaded registration and insurance with expiry dates; missing documents are not assessed." : "Document alerts are available to organization admins only."] };
   });
 
   app.get("/organizations/:id/analytics/fleet", async (request) => {

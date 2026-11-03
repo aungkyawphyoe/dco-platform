@@ -2,7 +2,7 @@
 
 import { Input } from "@dco/ui/components/input";
 import { useFleetCurrency, type Currency } from "@/lib/api/currency";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { PageHeader } from "@dco/ui/components/page-header";
 import { Card } from "@dco/ui/components/card";
 import { Badge } from "@dco/ui/components/badge";
@@ -77,7 +77,7 @@ function PipelineColumn({
           {emptyText}
         </p>
       ) : (
-        orders.map((order) => <div key={order.id}>{renderCard(order)}</div>)
+        orders.map((order) => <div key={order.id} id={`order-${order.id}`} className="scroll-mt-6">{renderCard(order)}</div>)
       )}
     </section>
   );
@@ -104,6 +104,10 @@ export default function WorkOrdersPage() {
   );
   const [assignee, setAssignee] = useState("");
   const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "center" });
+  }, [data]);
 
   const orders = data?.items ?? [];
   const vehicles = vehiclesData?.items ?? [];

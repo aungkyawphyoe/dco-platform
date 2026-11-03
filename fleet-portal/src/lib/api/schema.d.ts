@@ -7870,6 +7870,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{id}/analytics/attention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Organization action queue and current fleet status
+         * @description Admin and manager access. Critical work orders and expired registration/insurance are urgent. Maintenance is overdue at its date or mileage threshold, upcoming within 30 days or 500 km. Work orders without updates for 3 days are stalled. Inspection failures require severity review. Uses the organization's reporting timezone.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Prioritized actions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Organization admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{id}/analytics/fleet": {
         parameters: {
             query?: never;
