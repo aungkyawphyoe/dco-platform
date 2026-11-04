@@ -129,6 +129,9 @@ async function applyOp(app: FastifyInstance, auth: string, op: Op): Promise<"app
   if (op.entity_type === "plan_item" && op.op === "delete") {
     return finish(await call("DELETE", `/plan-items/${op.entity_id}`));
   }
+  if (op.entity_type === "service_record" && op.op === "delete") {
+    return finish(await call("DELETE", `/service-records/${op.entity_id}`));
+  }
   if (op.entity_type === "service_record" && op.op === "upsert") {
     return upsert(`/service-records/${op.entity_id}`, `/vehicles/${vehicleId}/service-records`);
   }

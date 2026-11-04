@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import '../../../../core/database/app_database.dart';
-import '../../../garage/domain/entities/vehicle.dart';
 import '../../domain/entities/suggested_plan_item.dart';
 import '../../domain/repositories/maintenance_catalog_repository.dart';
 
@@ -15,17 +14,19 @@ class MaintenanceCatalogRepositoryImpl implements MaintenanceCatalogRepository {
     required AppDatabase db,
     required Dio dio,
     required this.userId,
+    this.organizationId,
   }) : _db = db,
        _dio = dio;
 
   final AppDatabase _db;
   final Dio _dio;
   final String userId;
+  final String? organizationId;
   final _requests = <String, int>{};
 
   // Versioned cache intentionally ignores the legacy global fuel-type table.
   String _key(String vehicleId) =>
-      'maintenance_catalog.v2:${jsonEncode([userId, vehicleId])}';
+      'maintenance_catalog.v3:${jsonEncode([userId, vehicleId])}';
 
   @override
   Future<void> fetchAndCache(String vehicleId) async {
@@ -33,7 +34,9 @@ class MaintenanceCatalogRepositoryImpl implements MaintenanceCatalogRepository {
     final generation = (_requests[vehicleId] ?? 0) + 1;
     _requests[vehicleId] = generation;
     final response = await _dio.get<Map<String, dynamic>>(
-      '/vehicles/$vehicleId/suggested-plan-items',
+      organizationId == null
+          ? '/vehicles/$vehicleId/suggested-plan-items'
+          : '/drivers/vehicles/$vehicleId/suggested-plan-items',
     );
     final items = response.data?['items'];
     if (items is! List) {
@@ -66,15 +69,6 @@ class MaintenanceCatalogRepositoryImpl implements MaintenanceCatalogRepository {
         (item) => SuggestedPlanItem(
           catalogKey: item['catalog_key'] as String,
           name: item['name'] as String,
-          intervalDays: item['interval_days'] as int?,
-          intervalDistance: (item['interval_distance'] as num?)?.toDouble(),
-          fuelTypes: {
-            switch (item['fuel_type']) {
-              'electric' => FuelType.electric,
-              'hybrid_plugin' => FuelType.hybridPlugin,
-              _ => FuelType.petrol,
-            },
-          },
         ),
       )
       .toList();

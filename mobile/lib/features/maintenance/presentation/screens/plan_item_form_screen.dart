@@ -12,13 +12,19 @@ import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class PlanItemFormScreen extends ConsumerStatefulWidget {
-  const PlanItemFormScreen({super.key, this.planItemId});
+  const PlanItemFormScreen({
+    super.key,
+    this.planItemId,
+    this.initialName,
+    this.catalogKey,
+  });
 
   final String? planItemId;
+  final String? initialName;
+  final String? catalogKey;
 
   bool get isEditing => planItemId != null;
 
@@ -33,6 +39,8 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
   final _notes = TextEditingController();
   final _intervalCount = TextEditingController();
   final _intervalDistance = TextEditingController();
+  final _warningDays = TextEditingController();
+  final _warningDistance = TextEditingController();
   final _errors = <String, String?>{};
 
   bool _enabled = true;
@@ -50,6 +58,13 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
   }
 
   Future<void> _hydrate() async {
+    _name.text = widget.initialName ?? '';
+    final warnings = ref.read(reminderThresholdsProvider);
+    final lengthUnit = ref.read(lengthUnitProvider);
+    _warningDays.text = '${warnings.soonDays}';
+    _warningDistance.text = lengthUnit
+        .toDisplay(warnings.soonDistanceMiles)
+        .toStringAsFixed(0);
     if (widget.planItemId == null) {
       setState(() => _loading = false);
       return;
@@ -71,7 +86,15 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
       if (item.nextDueMileage != null) {
         _mileage.text = MileageFormat.input(item.nextDueMileage!, length);
       }
-      if (item.intervalDays != null) {
+      if (item.warningDays != null) _warningDays.text = '${item.warningDays}';
+      if (item.warningDistance != null)
+        _warningDistance.text = length
+            .toDisplay(item.warningDistance!)
+            .toStringAsFixed(1);
+      if (item.timeCount != null && item.timeUnit != null) {
+        _intervalCount.text = '${item.timeCount}';
+        _unit = TimeIntervalUnit.values.byName(item.timeUnit!);
+      } else if (item.intervalDays != null) {
         final decoded = TimeIntervalUnit.fromDays(item.intervalDays!);
         _intervalCount.text = '${decoded.value}';
         _unit = decoded.unit;
@@ -88,6 +111,8 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
 
   @override
   void dispose() {
+    _warningDays.dispose();
+    _warningDistance.dispose();
     _name.dispose();
     _date.dispose();
     _mileage.dispose();
@@ -118,6 +143,15 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
 
     setState(() {
       _errors
+        ..['warningDays'] = _dateValue == null
+            ? null
+            : int.tryParse(_warningDays.text) == null ||
+                  (int.tryParse(_warningDays.text) ?? -1) < 0
+            ? 'Enter zero or a positive whole number'
+            : null
+        ..['warningDistance'] = _mileage.text.trim().isEmpty
+            ? null
+            : PlanItemValidators.mileage(_warningDistance.text, required: true)
         ..['name'] = PlanItemValidators.name(_name.text)
         ..['interval'] = _recurring
             ? PlanItemValidators.intervalCount(_intervalCount.text)
@@ -146,12 +180,21 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
     return PlanItemDraft(
       name: _name.text,
       recurring: _recurring,
+      timeCount: _recurring ? intervalCount : null,
+      timeUnit: _recurring && intervalCount != null ? _unit.name : null,
+      warningDays: _dateValue == null ? null : int.tryParse(_warningDays.text),
+      warningDistance: mileage == null
+          ? null
+          : length.toStorage(
+              PlanItemValidators.parseMileage(_warningDistance.text)!,
+            ),
       intervalDays: intervalDays,
       intervalDistance: intervalDistance,
       date: _dateValue,
       mileage: mileage,
       notes: _notes.text,
       enabled: _enabled,
+      catalogKey: widget.catalogKey,
     );
   }
 
@@ -180,7 +223,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
             .read(analyticsProvider)
             .track(AnalyticsEvent.maintenancePlanItemAdded);
       }
-      if (mounted) context.pop();
+      if (mounted) Navigator.of(context).pop();
     } on MaintenanceFailure catch (failure) {
       if (mounted) setState(() => _formError = failure.message);
     } finally {
@@ -438,9 +481,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                 Column(
                   children: [
                     DcoTextField(
-                      label: _recurring
-                          ? s.planItemFormDate
-                          : s.planItemFormDateRequired,
+                      label: s.planItemFormDate,
                       controller: _date,
                       hint: 'dd/mm/yyyy',
                       readOnly: true,
@@ -453,9 +494,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                     ),
                     SizedBox(height: tokens.space.s4),
                     DcoTextField(
-                      label: _recurring
-                          ? s.planItemFormMileage
-                          : s.planItemFormMileageRequired,
+                      label: s.planItemFormMileage,
                       controller: _mileage,
                       hint: '*** $unit',
                       errorText: _errors['mileage'],
@@ -478,6 +517,26 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                   ],
                 ),
                 SizedBox(height: tokens.space.s4),
+                if (_dateValue != null) ...[
+                  DcoTextField(
+                    label: s.planWarningDays,
+                    controller: _warningDays,
+                    errorText: _errors['warningDays'],
+                    keyboardType: TextInputType.number,
+                  ),
+                  SizedBox(height: tokens.space.s4),
+                ],
+                if (_mileage.text.trim().isNotEmpty) ...[
+                  DcoTextField(
+                    label: '${s.planWarningDistance} ($unit)',
+                    controller: _warningDistance,
+                    errorText: _errors['warningDistance'],
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                  ),
+                  SizedBox(height: tokens.space.s4),
+                ],
                 DcoTextField(
                   label: s.planItemFormNotes,
                   controller: _notes,
@@ -497,31 +556,13 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
           ),
           DcoStickyActions(
             secondaryLabel: s.cancel,
-            onSecondary: () => context.pop(),
+            onSecondary: () => Navigator.of(context).pop(),
             primaryLabel: s.save,
             onPrimary: _save,
             primaryLoading: _saving,
             primaryKey: const Key('plan-item-save'),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  const _SectionLabel(this.label);
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return Text(
-      label,
-      style: Theme.of(context).textTheme.labelLarge?.copyWith(
-        fontWeight: FontWeight.w600,
-        color: tokens.text.primary,
       ),
     );
   }

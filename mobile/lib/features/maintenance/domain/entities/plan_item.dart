@@ -6,6 +6,15 @@ class PlanItem {
     required this.enabled,
     required this.updatedAt,
     required this.createdAt,
+    this.baselineDueOn,
+    this.baselineDueMileage,
+    this.manualOn,
+    this.manualServiceId,
+    this.baselineEnabled = true,
+    this.timeCount,
+    this.timeUnit,
+    this.warningDays,
+    this.warningDistance,
     this.intervalDays,
     this.intervalDistance,
     this.nextDueMileage,
@@ -18,6 +27,15 @@ class PlanItem {
   final String id;
   final String vehicleId;
   final String name;
+  final DateTime? baselineDueOn;
+  final double? baselineDueMileage;
+  final DateTime? manualOn;
+  final String? manualServiceId;
+  final bool baselineEnabled;
+  final int? timeCount;
+  final String? timeUnit;
+  final int? warningDays;
+  final double? warningDistance;
   final int? intervalDays;
   final double? intervalDistance;
   final double? nextDueMileage;
@@ -30,11 +48,16 @@ class PlanItem {
   final DateTime createdAt;
 
   bool get recurring =>
+      (timeCount != null && timeCount! > 0) ||
       (intervalDays != null && intervalDays! > 0) ||
       (intervalDistance != null && intervalDistance! > 0);
 
   PlanItem copyWith({
     String? name,
+    int? timeCount,
+    String? timeUnit,
+    int? warningDays,
+    double? warningDistance,
     int? intervalDays,
     double? intervalDistance,
     double? nextDueMileage,
@@ -52,11 +75,24 @@ class PlanItem {
       id: id,
       vehicleId: vehicleId,
       name: name ?? this.name,
-      intervalDays: clearIntervalDays ? null : intervalDays ?? this.intervalDays,
+      baselineDueOn: baselineDueOn,
+      baselineDueMileage: baselineDueMileage,
+      manualOn: manualOn,
+      manualServiceId: manualServiceId,
+      baselineEnabled: baselineEnabled,
+      timeCount: timeCount ?? this.timeCount,
+      timeUnit: timeUnit ?? this.timeUnit,
+      warningDays: warningDays ?? this.warningDays,
+      warningDistance: warningDistance ?? this.warningDistance,
+      intervalDays: clearIntervalDays
+          ? null
+          : intervalDays ?? this.intervalDays,
       intervalDistance: clearIntervalDistance
           ? null
           : intervalDistance ?? this.intervalDistance,
-      nextDueMileage: clearNextDueMileage ? null : nextDueMileage ?? this.nextDueMileage,
+      nextDueMileage: clearNextDueMileage
+          ? null
+          : nextDueMileage ?? this.nextDueMileage,
       nextDueOn: clearNextDueOn ? null : nextDueOn ?? this.nextDueOn,
       enabled: enabled ?? this.enabled,
       notes: clearNotes ? null : notes ?? this.notes,
@@ -71,6 +107,15 @@ class PlanItem {
     'id': id,
     'vehicle_id': vehicleId,
     'name': name,
+    'baseline_due_on': baselineDueOn?.toIso8601String().split('T').first,
+    'baseline_due_mileage': baselineDueMileage,
+    'manual_on': manualOn?.toIso8601String().split('T').first,
+    'manual_service_id': manualServiceId,
+    'baseline_enabled': baselineEnabled,
+    'time_count': timeCount,
+    'time_unit': timeUnit,
+    'warning_days': warningDays,
+    'warning_distance': warningDistance,
     'interval_days': intervalDays,
     'interval_distance': intervalDistance,
     'next_due_mileage': nextDueMileage,
@@ -86,6 +131,10 @@ class PlanItemDraft {
   const PlanItemDraft({
     required this.name,
     required this.recurring,
+    this.timeCount,
+    this.timeUnit,
+    this.warningDays,
+    this.warningDistance,
     this.intervalDays,
     this.intervalDistance,
     this.date,
@@ -97,6 +146,10 @@ class PlanItemDraft {
 
   final String name;
   final bool recurring;
+  final int? timeCount;
+  final String? timeUnit;
+  final int? warningDays;
+  final double? warningDistance;
   final int? intervalDays;
   final double? intervalDistance;
   final DateTime? date;

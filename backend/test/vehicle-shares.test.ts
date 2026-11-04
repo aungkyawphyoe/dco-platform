@@ -80,7 +80,7 @@ describe("vehicle share sync propagation", () => {
       method: "POST",
       url: `/v1/vehicles/${vehicleId}/plan-items`,
       headers: auth(owner.token),
-      payload: { id: planItemId, name: "Oil change", interval_days: 180 },
+      payload: { next_due_on: "2027-01-01", next_due_mileage: 15000, id: planItemId, name: "Oil change", interval_days: 180 },
     });
     expect(planItem.statusCode).toBe(201);
 
@@ -546,7 +546,7 @@ describe("vehicle share sync propagation", () => {
     const ownerPlanItemId = uuid();
     expect((await app.inject({
       method: "POST", url: `/v1/vehicles/${vehicleId}/plan-items`, headers: auth(owner.token),
-      payload: { id: ownerPlanItemId, name: "Oil change", interval_days: 180 },
+      payload: { next_due_on: "2027-01-01", next_due_mileage: 15000, id: ownerPlanItemId, name: "Oil change", interval_days: 180 },
     })).statusCode).toBe(201);
 
     const ownerServiceId = uuid();

@@ -20,6 +20,15 @@ export function publicPlan(row: typeof planItems.$inferSelect) {
     vehicle_id: row.vehicleId,
     name: row.name,
     interval_days: row.intervalDays,
+    baseline_due_on: row.baselineDueOn,
+    baseline_due_mileage: num(row.baselineDueMileage),
+    baseline_enabled: row.baselineEnabled,
+    manual_on: row.manualOn,
+    manual_service_id: row.manualServiceId,
+    time_count: row.timeCount,
+    time_unit: row.timeUnit,
+    warning_days: row.warningDays,
+    warning_distance: num(row.warningDistance),
     interval_distance: num(row.intervalDistance),
     next_due_mileage: num(row.nextDueMileage),
     next_due_on: dateOnly(row.nextDueOn),
@@ -41,7 +50,7 @@ export async function loadService(appDb: Db, id: string) {
     admin_corrected_by: row.adminCorrectedBy,
     vehicle_id: row.vehicleId,
     serviced_on: dateOnly(row.servicedOn),
-    odometer: reqNum(row.odometer),
+    odometer: num(row.odometer),
     total_cost: reqNum(row.totalCost),
     currency: row.currency,
     workshop_name: row.workshopName,
@@ -88,7 +97,7 @@ export function publicFuelLog(row: typeof fuelLogs.$inferSelect) {
     amount: reqNum(row.amount),
     currency: row.currency,
     cost: reqNum(row.cost),
-    odometer: row.odometer == null ? null : reqNum(row.odometer),
+    odometer: row.odometer == null ? null : num(row.odometer),
   };
 }
 

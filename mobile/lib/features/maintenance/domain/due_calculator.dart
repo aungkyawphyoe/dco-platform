@@ -63,22 +63,18 @@ class DueThresholds {
 
 /// Pure due-date / due-mileage math. Upcoming = overdue or due-soon.
 abstract final class DueCalculator {
-  static DateTime dateOnly(DateTime value) => DateTime(value.year, value.month, value.day);
+  static DateTime dateOnly(DateTime value) =>
+      DateTime(value.year, value.month, value.day);
 
   static NextDue fromDraft({
     required PlanItemDraft draft,
     required DateTime now,
     required double currentMileage,
   }) {
-    if (draft.recurring) {
-      final startDate = draft.date ?? dateOnly(now);
-      final startMiles = draft.mileage ?? currentMileage;
-      return NextDue(
-        on: draft.intervalDays != null ? addDays(startDate, draft.intervalDays!) : null,
-        mileage: draft.intervalDistance != null ? startMiles + draft.intervalDistance! : null,
-      );
-    }
-    return NextDue(on: draft.date == null ? null : dateOnly(draft.date!), mileage: draft.mileage);
+    return NextDue(
+      on: draft.date == null ? null : dateOnly(draft.date!),
+      mileage: draft.mileage,
+    );
   }
 
   static NextDue afterService({
@@ -90,12 +86,33 @@ abstract final class DueCalculator {
       return const NextDue();
     }
     return NextDue(
-      on: item.intervalDays != null ? addDays(dateOnly(servicedOn), item.intervalDays!) : null,
-      mileage: item.intervalDistance != null ? odometer + item.intervalDistance! : null,
+      on: item.timeCount != null && item.timeUnit != null
+          ? addCalendar(servicedOn, item.timeCount!, item.timeUnit!)
+          : item.intervalDays != null
+          ? addDays(dateOnly(servicedOn), item.intervalDays!)
+          : null,
+      mileage: item.intervalDistance != null
+          ? odometer + item.intervalDistance!
+          : null,
     );
   }
 
-  static DateTime addDays(DateTime start, int days) => dateOnly(start).add(Duration(days: days));
+  static DateTime addCalendar(DateTime start, int count, String unit) {
+    if (unit == 'days') return addDays(start, count);
+    final month = DateTime(
+      start.year,
+      start.month + count * (unit == 'years' ? 12 : 1),
+    );
+    final lastDay = DateTime(month.year, month.month + 1, 0).day;
+    return DateTime(
+      month.year,
+      month.month,
+      start.day > lastDay ? lastDay : start.day,
+    );
+  }
+
+  static DateTime addDays(DateTime start, int days) =>
+      dateOnly(start).add(Duration(days: days));
 
   static PlanUrgency urgency({
     required PlanItem item,
@@ -114,14 +131,16 @@ abstract final class DueCalculator {
     if (dueOn != null) {
       if (!dueOn.isAfter(today)) {
         overdue = true;
-      } else if (dueOn.difference(today).inDays <= thresholds.soonDays) {
+      } else if (dueOn.difference(today).inDays <=
+          (item.warningDays ?? thresholds.soonDays)) {
         dueSoon = true;
       }
     }
     if (dueMiles != null) {
       if (vehicleMileage >= dueMiles) {
         overdue = true;
-      } else if (dueMiles - vehicleMileage <= thresholds.soonDistanceMiles) {
+      } else if (dueMiles - vehicleMileage <=
+          (item.warningDistance ?? thresholds.soonDistanceMiles)) {
         dueSoon = true;
       }
     }
@@ -139,7 +158,9 @@ abstract final class DueCalculator {
     final days = item.nextDueOn == null
         ? 1 << 20
         : dateOnly(item.nextDueOn!).difference(today).inDays;
-    final miles = item.nextDueMileage == null ? 1 << 20 : (item.nextDueMileage! - mileage).round();
+    final miles = item.nextDueMileage == null
+        ? 1 << 20
+        : (item.nextDueMileage! - mileage).round();
     return days < miles ? days : miles;
   }
 
@@ -150,16 +171,26 @@ abstract final class DueCalculator {
     DateTime now,
     DueThresholds thresholds,
   ) {
-    final urgencyDelta = urgency(
-      item: a,
-      vehicleMileage: mileage,
-      now: now,
-      thresholds: thresholds,
-    ).index.compareTo(
-      urgency(item: b, vehicleMileage: mileage, now: now, thresholds: thresholds).index,
-    );
+    final urgencyDelta =
+        urgency(
+          item: a,
+          vehicleMileage: mileage,
+          now: now,
+          thresholds: thresholds,
+        ).index.compareTo(
+          urgency(
+            item: b,
+            vehicleMileage: mileage,
+            now: now,
+            thresholds: thresholds,
+          ).index,
+        );
     if (urgencyDelta != 0) return urgencyDelta;
-    return remainingScore(a, mileage, now).compareTo(remainingScore(b, mileage, now));
+    return remainingScore(
+      a,
+      mileage,
+      now,
+    ).compareTo(remainingScore(b, mileage, now));
   }
 
   static PlanItem? nearest({
@@ -181,11 +212,17 @@ abstract final class DueCalculator {
         )
         .toList();
     if (visible.isEmpty) return null;
-    visible.sort((a, b) => compareSoonest(a, b, vehicleMileage, now, thresholds));
+    visible.sort(
+      (a, b) => compareSoonest(a, b, vehicleMileage, now, thresholds),
+    );
     return visible.first;
   }
 
-  static String intervalLabel({int? intervalDays, double? intervalDistance, String unit = 'mi'}) {
+  static String intervalLabel({
+    int? intervalDays,
+    double? intervalDistance,
+    String unit = 'mi',
+  }) {
     final parts = <String>[];
     if (intervalDays != null && intervalDays > 0) {
       final decoded = TimeIntervalUnit.fromDays(intervalDays);

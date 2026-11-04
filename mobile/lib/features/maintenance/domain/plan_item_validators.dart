@@ -6,23 +6,30 @@ abstract final class PlanItemValidators {
   static String? name(String value) {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return 'Name is required';
-    if (trimmed.length > maxNameLength) return 'Name must be $maxNameLength characters or fewer';
+    if (trimmed.length > maxNameLength)
+      return 'Name must be $maxNameLength characters or fewer';
     return null;
   }
 
   static String? schedule({
     required bool recurring,
     int? intervalDays,
+    int? timeCount,
+    String? timeUnit,
     double? intervalDistance,
     DateTime? date,
     double? mileage,
   }) {
     if (recurring) {
-      final hasTime = intervalDays != null && intervalDays > 0;
+      final hasTime = (timeCount ?? intervalDays ?? 0) > 0;
+      if ((timeCount == null) != (timeUnit == null))
+        return 'Choose a time count and unit together';
       final hasDistance = intervalDistance != null && intervalDistance > 0;
       if (!hasTime && !hasDistance) {
         return 'Set a time interval, a mileage interval, or both';
       }
+      if (hasTime && date == null) return 'Set the first due date';
+      if (hasDistance && mileage == null) return 'Set the first due mileage';
       return null;
     }
     if (date == null && mileage == null) {
@@ -35,7 +42,8 @@ abstract final class PlanItemValidators {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return required ? 'Mileage is required' : null;
     final parsed = double.tryParse(trimmed.replaceAll(',', ''));
-    if (parsed == null || parsed < 0) return 'Enter a valid mileage';
+    if (parsed == null || !parsed.isFinite || parsed < 0)
+      return 'Enter a valid mileage';
     return null;
   }
 
@@ -49,7 +57,8 @@ abstract final class PlanItemValidators {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return null;
     final parsed = int.tryParse(trimmed);
-    if (parsed == null || parsed <= 0) return 'Enter a whole number greater than 0';
+    if (parsed == null || parsed <= 0)
+      return 'Enter a whole number greater than 0';
     return null;
   }
 
@@ -70,7 +79,8 @@ abstract final class ServiceRecordValidators {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return 'Mileage is required';
     final parsed = double.tryParse(trimmed.replaceAll(',', ''));
-    if (parsed == null || parsed < 0) return 'Enter a valid mileage';
+    if (parsed == null || !parsed.isFinite || parsed < 0)
+      return 'Enter a valid mileage';
     return null;
   }
 
@@ -83,7 +93,8 @@ abstract final class ServiceRecordValidators {
     final trimmed = value.trim();
     if (trimmed.isEmpty) return 'Total is required';
     final parsed = double.tryParse(trimmed.replaceAll(',', ''));
-    if (parsed == null || parsed < 0) return 'Enter a valid amount';
+    if (parsed == null || !parsed.isFinite || parsed < 0)
+      return 'Enter a valid amount';
     return null;
   }
 

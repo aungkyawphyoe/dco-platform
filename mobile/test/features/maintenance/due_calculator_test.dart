@@ -32,7 +32,46 @@ void main() {
   group('DueCalculator', () {
     final now = DateTime(2026, 8, 19);
 
-    test('recurring next due uses tracking start plus intervals', () {
+    test('calendar repeats clamp month ends and leap years', () {
+      expect(
+        DueCalculator.addCalendar(DateTime(2026, 1, 31), 1, 'months'),
+        DateTime(2026, 2, 28),
+      );
+      expect(
+        DueCalculator.addCalendar(DateTime(2028, 2, 29), 1, 'years'),
+        DateTime(2029, 2, 28),
+      );
+      expect(
+        DueCalculator.addCalendar(DateTime(2026, 1, 15), 6, 'months'),
+        DateTime(2026, 7, 15),
+      );
+    });
+
+    test('per-reminder warnings override the global thresholds', () {
+      final item = _item(
+        nextDueOn: DateTime(2026, 9, 1),
+      ).copyWith(warningDays: 2);
+      expect(
+        DueCalculator.urgency(
+          item: item,
+          vehicleMileage: 0,
+          now: DateTime(2026, 8, 20),
+          thresholds: DueThresholds.defaults,
+        ),
+        PlanUrgency.scheduled,
+      );
+      expect(
+        DueCalculator.urgency(
+          item: item,
+          vehicleMileage: 0,
+          now: DateTime(2026, 8, 31),
+          thresholds: DueThresholds.defaults,
+        ),
+        PlanUrgency.dueSoon,
+      );
+    });
+
+    test('recurring first due uses explicit targets', () {
       final due = DueCalculator.fromDraft(
         draft: PlanItemDraft(
           name: 'Oil',
@@ -45,8 +84,8 @@ void main() {
         now: now,
         currentMileage: 12000,
       );
-      expect(due.on, DateTime(2027, 1, 1));
-      expect(due.mileage, 25000);
+      expect(due.on, DateTime(2026, 1, 1));
+      expect(due.mileage, 10000);
     });
 
     test('active next due uses the date and mileage as-is', () {
@@ -148,10 +187,16 @@ void main() {
       final low = DueThresholds.fromValues(soonDays: 1, soonDistanceKm: 10);
       expect(low.soonDays, DueThresholds.minDays);
       expect(low.soonDistanceKm, DueThresholds.minKm);
-      final high = DueThresholds.fromValues(soonDays: 900, soonDistanceKm: 9999);
+      final high = DueThresholds.fromValues(
+        soonDays: 900,
+        soonDistanceKm: 9999,
+      );
       expect(high.soonDays, DueThresholds.maxDays);
       expect(high.soonDistanceKm, DueThresholds.maxKm);
-      final snapped = DueThresholds.fromValues(soonDays: 30, soonDistanceKm: 540);
+      final snapped = DueThresholds.fromValues(
+        soonDays: 30,
+        soonDistanceKm: 540,
+      );
       expect(snapped.soonDistanceKm, 500);
       final valid = DueThresholds.fromValues(soonDays: 30, soonDistanceKm: 500);
       expect(valid, DueThresholds.defaults);
@@ -190,7 +235,11 @@ void main() {
     test('nearest prefers overdue over a later scheduled item', () {
       final next = DueCalculator.nearest(
         items: [
-          _item(id: 'routine', name: 'Routine', nextDueOn: DateTime(2027, 1, 1)),
+          _item(
+            id: 'routine',
+            name: 'Routine',
+            nextDueOn: DateTime(2027, 1, 1),
+          ),
           _item(id: 'oil', name: 'Oil Change', nextDueOn: DateTime(2026, 8, 1)),
         ],
         vehicleMileage: 10000,
@@ -227,13 +276,42 @@ void main() {
     });
 
     test('recurring needs a time or distance interval', () {
+      expect(PlanItemValidators.schedule(recurring: true), isNotNull);
       expect(
-        PlanItemValidators.schedule(recurring: true),
+        PlanItemValidators.schedule(
+          recurring: true,
+          intervalDays: 365,
+          date: DateTime(2027),
+        ),
+        isNull,
+      );
+    });
+
+    test('each repeat interval requires its matching first due target', () {
+      expect(
+        PlanItemValidators.schedule(recurring: true, intervalDays: 30),
         isNotNull,
       );
       expect(
-        PlanItemValidators.schedule(recurring: true, intervalDays: 365),
+        PlanItemValidators.schedule(recurring: true, intervalDistance: 5000),
+        isNotNull,
+      );
+      expect(
+        PlanItemValidators.schedule(
+          recurring: true,
+          intervalDistance: 5000,
+          mileage: 33000,
+        ),
         isNull,
+      );
+      expect(
+        PlanItemValidators.schedule(
+          recurring: true,
+          intervalDays: 30,
+          intervalDistance: 5000,
+          date: DateTime(2027),
+        ),
+        isNotNull,
       );
     });
 

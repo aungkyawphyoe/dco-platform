@@ -430,6 +430,7 @@ final maintenanceCatalogRepositoryProvider =
         db: ref.watch(recordDatabaseProvider),
         dio: ref.watch(dioProvider),
         userId: ref.watch(currentUserIdProvider) ?? '',
+        organizationId: ref.watch(driverOrganizationIdProvider),
       );
     });
 

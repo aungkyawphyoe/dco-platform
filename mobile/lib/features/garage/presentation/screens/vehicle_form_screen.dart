@@ -201,9 +201,6 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       final previousActiveId = ref.read(activeVehicleProvider).valueOrNull?.id;
       final vehicle = await repo.add(userId: userId, draft: draft);
       ref.read(analyticsProvider).track(AnalyticsEvent.vehicleAdded);
-      await ref
-          .read(maintenanceRepositoryProvider)
-          .ensureDefaultPlan(userId: userId, vehicle: vehicle);
       if (previousActiveId != null && previousActiveId != vehicle.id) {
         try {
           await ref.read(setActiveVehicleProvider)(vehicle.id);

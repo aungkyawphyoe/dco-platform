@@ -62,7 +62,7 @@ class ServiceRecord {
   final String vehicleId;
   final String title;
   final DateTime servicedOn;
-  final double odometer;
+  final double? odometer;
   final double totalCost;
   final String? workshopName;
   final String? notes;
@@ -123,7 +123,7 @@ class ServiceRecordDraft {
 
   final String? title;
   final DateTime servicedOn;
-  final double odometer;
+  final double? odometer;
   final double totalCost;
   final String? workshopName;
   final String? notes;

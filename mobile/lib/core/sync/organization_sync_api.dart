@@ -4,6 +4,7 @@ import 'package:dio/dio.dart';
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 import '../database/app_database.dart';
+import '../units/mileage_unit.dart';
 import '../network/auth_interceptor.dart';
 import 'outbox_models.dart';
 import 'outbox_writer.dart';
@@ -176,6 +177,33 @@ class OrganizationSyncApi implements SyncApi {
   final String userId;
   String get base => '/organizations/$organizationId';
 
+  Map<String, dynamic> _distancePayload(
+    String kind,
+    Map<String, dynamic> payload, {
+    required bool toServer,
+  }) {
+    // Fleet APIs use km; shared mobile repositories store miles.
+    final fields = switch (kind) {
+      'vehicle' => ['mileage'],
+      'plan_item' => [
+        'interval_distance',
+        'next_due_mileage',
+        'baseline_due_mileage',
+        'warning_distance',
+      ],
+      'service_record' || 'fuel_log' => ['odometer'],
+      _ => <String>[],
+    };
+    return {
+      ...payload,
+      for (final field in fields)
+        if (payload[field] is num)
+          field: toServer
+              ? MileageUnit.km.toDisplay((payload[field] as num).toDouble())
+              : MileageUnit.km.toStorage((payload[field] as num).toDouble()),
+    };
+  }
+
   Future<String> _vehicleId(SyncOperationDto operation) async {
     if (operation.payload['vehicle_id'] is String) {
       return operation.payload['vehicle_id'] as String;
@@ -205,8 +233,11 @@ class OrganizationSyncApi implements SyncApi {
           results.addAll(await DioSyncApi(dio).push([operation]));
           continue;
         }
-        final data = {...operation.payload}
-          ..removeWhere((key, _) => key.startsWith('_'));
+        final data = _distancePayload(
+          operation.entityType,
+          operation.payload,
+          toServer: true,
+        )..removeWhere((key, _) => key.startsWith('_'));
         final submitted = {
           'operation_id': operation.payload['_operation_id'],
           'entity_type': operation.entityType,
@@ -336,7 +367,16 @@ class OrganizationSyncApi implements SyncApi {
       final vehicleIds = (data['assigned_vehicle_ids'] as List).cast<String>();
       final changes = (data['changes'] as List)
           .cast<Map<String, dynamic>>()
-          .map(SyncChange.fromJson)
+          .map(
+            (row) => SyncChange.fromJson({
+              ...row,
+              'payload': _distancePayload(
+                row['entity_type'] as String,
+                Map<String, dynamic>.from(row['payload'] as Map? ?? {}),
+                toServer: false,
+              ),
+            }),
+          )
           .toList();
       await db.transaction(() async {
         if (data['bootstrap'] == true) {

@@ -475,7 +475,7 @@ void main() {
                 vehicleId: 'vehicle-$user',
                 title: 'Service',
                 servicedOn: now,
-                odometer: 10,
+                odometer: const Value(10.0),
                 totalCost: 10,
                 receiptLocalPath: Value(file.path),
                 updatedAt: now,

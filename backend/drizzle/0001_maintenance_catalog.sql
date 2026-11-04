@@ -12,6 +12,9 @@ CREATE TABLE IF NOT EXISTS maintenance_catalog (
 );
 
 -- Seed the 11 default maintenance catalog items (interval_distance in km)
+-- The names-only reset retires these legacy seeds permanently.
+DO $$ BEGIN
+IF to_regclass('maintenance_migrations') IS NULL THEN
 INSERT INTO maintenance_catalog (id, catalog_key, name, interval_days, interval_distance, fuel_types, sort_order, enabled) VALUES
   ('a1000000-0000-0000-0000-000000000001', 'oil_change',          'Oil Change',          365,    24140,  ARRAY['petrol','hybrid_plugin'], 1,  true),
   ('a1000000-0000-0000-0000-000000000002', 'air_filter_cabin',    'Air Filter (Cabin)',  365,    24140,  ARRAY['petrol','electric','hybrid_plugin'], 2,  true),
@@ -25,3 +28,6 @@ INSERT INTO maintenance_catalog (id, catalog_key, name, interval_days, interval_
   ('a1000000-0000-0000-0000-000000000010', 'air_conditioning',    'Air Conditioning',    365,    NULL,   ARRAY['petrol','electric','hybrid_plugin'], 10, true),
   ('a1000000-0000-0000-0000-000000000011', 'rotate_tires',        'Rotate Tires',        365,    9656,   ARRAY['petrol','electric','hybrid_plugin'], 11, true)
 ON CONFLICT (catalog_key) DO NOTHING;
+
+END IF;
+END $$;

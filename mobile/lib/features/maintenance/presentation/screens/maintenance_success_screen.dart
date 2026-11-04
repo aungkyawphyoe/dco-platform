@@ -25,7 +25,9 @@ class MaintenanceSuccessScreen extends ConsumerWidget {
     final currency = ref.watch(currencyProvider).code;
 
     final money = MoneyFormat.labeled(record.totalCost, currency);
-    final odometer = MileageFormat.labeled(record.odometer, lengthUnit);
+    final odometer = record.odometer == null
+        ? '—'
+        : MileageFormat.labeled(record.odometer!, lengthUnit);
     final date = DateFormat.yMMMd().format(record.servicedOn);
 
     return Scaffold(
@@ -57,11 +59,13 @@ class MaintenanceSuccessScreen extends ConsumerWidget {
                             height: 72,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: tokens.status.successFg
-                                  .withValues(alpha: 0.12),
+                              color: tokens.status.successFg.withValues(
+                                alpha: 0.12,
+                              ),
                               border: Border.all(
-                                color: tokens.status.successFg
-                                    .withValues(alpha: 0.3),
+                                color: tokens.status.successFg.withValues(
+                                  alpha: 0.3,
+                                ),
                                 width: 2,
                               ),
                             ),
@@ -80,11 +84,11 @@ class MaintenanceSuccessScreen extends ConsumerWidget {
                           SizedBox(height: tokens.space.s2),
                           Text(
                             s.registerSuccessSubtitle,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: tokens.text.secondary,
-                                      height: 1.5,
-                                    ),
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(
+                                  color: tokens.text.secondary,
+                                  height: 1.5,
+                                ),
                             textAlign: TextAlign.center,
                           ),
                         ],
@@ -133,16 +137,15 @@ class MaintenanceSuccessScreen extends ConsumerWidget {
                                 ? '—'
                                 : MoneyFormat.labeled(item.lineCost!, currency);
                             return Padding(
-                              padding:
-                                  EdgeInsets.only(bottom: tokens.space.s2),
+                              padding: EdgeInsets.only(bottom: tokens.space.s2),
                               child: Row(
                                 children: [
                                   Expanded(
                                     child: Text(
                                       item.name,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodyMedium,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
                                     ),
                                   ),
                                   Text(
@@ -165,12 +168,12 @@ class MaintenanceSuccessScreen extends ConsumerWidget {
                             SizedBox(height: tokens.space.s2),
                             ...record.parts.map(
                               (part) => Padding(
-                                padding:
-                                    EdgeInsets.only(bottom: tokens.space.s2),
+                                padding: EdgeInsets.only(
+                                  bottom: tokens.space.s2,
+                                ),
                                 child: Text(
                                   part.name,
-                                  style:
-                                      Theme.of(context).textTheme.bodyMedium,
+                                  style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               ),
                             ),
@@ -183,14 +186,11 @@ class MaintenanceSuccessScreen extends ConsumerWidget {
                             children: [
                               Text(
                                 s.serviceDetailTotal,
-                                style:
-                                    Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleMedium,
                               ),
                               Text(
                                 money,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleMedium
+                                style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(
                                       color: tokens.text.accent,
                                       fontWeight: FontWeight.w600,
@@ -208,9 +208,7 @@ class MaintenanceSuccessScreen extends ConsumerWidget {
                             SizedBox(height: tokens.space.s1),
                             Text(
                               record.notes!,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(color: tokens.text.secondary),
                             ),
                           ],
@@ -250,16 +248,10 @@ class MaintenanceSuccessScreen extends ConsumerWidget {
         children: [
           SizedBox(
             width: 110,
-            child: Text(
-              label,
-              style: Theme.of(context).textTheme.labelLarge,
-            ),
+            child: Text(label, style: Theme.of(context).textTheme.labelLarge),
           ),
           Expanded(
-            child: Text(
-              value,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            child: Text(value, style: Theme.of(context).textTheme.bodyMedium),
           ),
         ],
       ),

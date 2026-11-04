@@ -63,9 +63,7 @@ class ServiceDetailScreen extends ConsumerWidget {
             : null,
         title: Text(s.serviceDetailTitle),
         actions: [
-          if (canEdit &&
-              currentUserId != null &&
-              ref.watch(driverOrganizationIdProvider) != null)
+          if (canEdit && currentUserId != null)
             DeleteRecordAction(
               onDelete: () => ref
                   .read(maintenanceRepositoryProvider)
@@ -105,7 +103,9 @@ class ServiceDetailScreen extends ConsumerWidget {
               ? null
               : ref.watch(userNameProvider(record.createdBy!));
           final money = MoneyFormat.labeled(record.totalCost, currency);
-          final odometer = MileageFormat.labeled(record.odometer, lengthUnit);
+          final odometer = record.odometer == null
+              ? '—'
+              : MileageFormat.labeled(record.odometer!, lengthUnit);
           return ListView(
             padding: EdgeInsets.all(tokens.space.s5),
             children: [

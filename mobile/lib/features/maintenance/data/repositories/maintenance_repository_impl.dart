@@ -14,11 +14,9 @@ import '../../domain/entities/service_record.dart';
 import '../../domain/maintenance_failure.dart';
 import '../../domain/plan_item_validators.dart';
 import '../../domain/repositories/maintenance_repository.dart';
-import '../../domain/suggested_catalog.dart';
 import '../mappers/maintenance_mapper.dart';
 import '../../../expenses/domain/repositories/expense_repository.dart';
 import '../../../expenses/domain/entities/expense.dart';
-import '../../domain/entities/suggested_plan_item.dart';
 
 // Private fields with public constructor names.
 // ignore_for_file: prefer_initializing_formals
@@ -47,11 +45,6 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     required String userId,
     required String serviceRecordId,
   }) async {
-    if (!_outbox.derivesExpenses) {
-      throw StateError(
-        'Record deletion is not available in this account context.',
-      );
-    }
     final record = await getServiceRecord(serviceRecordId);
     if (record == null) return;
     await _db.transaction(() async {
@@ -72,6 +65,11 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       await (_db.delete(
         _db.serviceRecordRows,
       )..where((r) => r.id.equals(serviceRecordId))).go();
+      if (!_outbox.derivesExpenses &&
+          await _expenseRepository.getById(record.id) != null) {
+        await _expenseRepository.delete(userId: userId, expenseId: record.id);
+      }
+      await _recalculateReminders(record.vehicleId);
     });
     _sync?.requestSync();
   }
@@ -135,24 +133,6 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
   }
 
   @override
-  Future<void> ensureDefaultPlan({
-    required String userId,
-    required Vehicle vehicle,
-  }) async {
-    if (await hasPlan(vehicle.id)) return;
-    await addPlanItem(
-      userId: userId,
-      vehicle: vehicle,
-      draft: DefaultPlanItems.mileageUpdateDraft(),
-    );
-    await addPlanItem(
-      userId: userId,
-      vehicle: vehicle,
-      draft: DefaultPlanItems.routineDraft(),
-    );
-  }
-
-  @override
   Future<PlanItem> addPlanItem({
     required String userId,
     required Vehicle vehicle,
@@ -166,9 +146,16 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       currentMileage: vehicle.mileage,
     );
     final item = PlanItem(
+      baselineDueOn: due.on,
+      baselineDueMileage: due.mileage,
+      baselineEnabled: draft.enabled,
       id: _uuid.v4(),
       vehicleId: vehicle.id,
       name: draft.name.trim(),
+      timeCount: draft.recurring ? draft.timeCount : null,
+      timeUnit: draft.recurring ? draft.timeUnit : null,
+      warningDays: draft.warningDays,
+      warningDistance: draft.warningDistance,
       intervalDays: draft.recurring ? draft.intervalDays : null,
       intervalDistance: draft.recurring ? draft.intervalDistance : null,
       nextDueMileage: due.mileage,
@@ -181,6 +168,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       createdAt: now,
     );
     await _db.transaction(() async {
+      await _assertUniqueCatalogReminder(item);
       await _db.into(_db.planItemRecords).insert(planItemToCompanion(item));
       await _outbox.enqueue(
         userId: userId,
@@ -212,10 +200,25 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       now: now,
       currentMileage: vehicle.mileage,
     );
+    final history = await watchHistory(vehicle.id).first;
+    final previous = history
+        .where(
+          (record) => record.items.any((line) => line.planItemId == planItemId),
+        )
+        .firstOrNull;
     final updated = PlanItem(
+      baselineDueOn: due.on,
+      baselineDueMileage: due.mileage,
+      baselineEnabled: draft.enabled,
+      manualOn: DueCalculator.dateOnly(now),
+      manualServiceId: previous?.id,
       id: existing.id,
       vehicleId: existing.vehicleId,
       name: draft.name.trim(),
+      timeCount: draft.recurring ? draft.timeCount : null,
+      timeUnit: draft.recurring ? draft.timeUnit : null,
+      warningDays: draft.warningDays,
+      warningDistance: draft.warningDistance,
       intervalDays: draft.recurring ? draft.intervalDays : null,
       intervalDistance: draft.recurring ? draft.intervalDistance : null,
       nextDueMileage: due.mileage,
@@ -228,6 +231,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       createdAt: existing.createdAt,
     );
     await _db.transaction(() async {
+      await _assertUniqueCatalogReminder(updated);
       await (_db.update(_db.planItemRecords)
             ..where((row) => row.id.equals(planItemId)))
           .write(planItemToCompanion(updated));
@@ -244,138 +248,17 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
   }
 
   @override
-  Future<void> addSuggestedItems({
-    required String userId,
-    required Vehicle vehicle,
-    required List<SuggestedPlanItem> suggestions,
-    required DateTime trackingStartDate,
-    required double trackingStartMileage,
-    double? conditionFraction,
-  }) async {
-    final now = DateTime.now().toUtc();
-    final dateOnlyStart = DueCalculator.dateOnly(trackingStartDate);
-
-    // Check which items already exist to avoid duplicates
-    final existingKeys = <String>{};
-    for (final suggestion in suggestions) {
-      final existing =
-          await (_db.select(_db.planItemRecords)..where(
-                (row) =>
-                    row.vehicleId.equals(vehicle.id) &
-                    row.catalogKey.equals(suggestion.catalogKey),
-              ))
-              .get();
-      if (existing.isNotEmpty) {
-        existingKeys.add(suggestion.catalogKey);
-      }
-    }
-
-    final itemsToAdd = suggestions
-        .where((s) => !existingKeys.contains(s.catalogKey))
-        .toList();
-
-    if (itemsToAdd.isEmpty) return;
-
-    await _db.transaction(() async {
-      for (final suggestion in itemsToAdd) {
-        double? intervalDays;
-        double? intervalDistance;
-
-        if (suggestion.recurring) {
-          intervalDays = suggestion.intervalDays?.toDouble();
-          intervalDistance = suggestion.intervalDistance;
-
-          // Apply condition fraction if provided (e.g., 0.5 = half interval for used cars)
-          if (conditionFraction != null &&
-              conditionFraction > 0 &&
-              conditionFraction < 1) {
-            if (intervalDays != null) {
-              intervalDays = intervalDays * conditionFraction;
-            }
-            if (intervalDistance != null) {
-              intervalDistance = intervalDistance * conditionFraction;
-            }
-          }
-        }
-
-        final due = NextDue(
-          on: intervalDays != null
-              ? DueCalculator.addDays(dateOnlyStart, intervalDays.round())
-              : null,
-          mileage: intervalDistance != null
-              ? trackingStartMileage + intervalDistance!
-              : null,
-        );
-
-        final item = PlanItem(
-          id: _uuid.v4(),
-          vehicleId: vehicle.id,
-          name: suggestion.name,
-          intervalDays: intervalDays?.round(),
-          intervalDistance: intervalDistance,
-          nextDueMileage: due.mileage,
-          nextDueOn: due.on,
-          enabled: true,
-          notes: null,
-          catalogKey: suggestion.catalogKey,
-          createdBy: userId,
-          updatedAt: now,
-          createdAt: now,
-        );
-        await _db.into(_db.planItemRecords).insert(planItemToCompanion(item));
-        await _outbox.enqueue(
-          userId: userId,
-          entityType: OutboxEntityType.planItem,
-          entityId: item.id,
-          op: OutboxOp.upsert,
-          payload: item.toWriteJson(),
-        );
-      }
-    });
-    _sync?.requestSync();
-  }
-
-  @override
-  Future<void> addSuggestedItem({
-    required String userId,
-    required Vehicle vehicle,
-    required SuggestedPlanItem suggestion,
-  }) async {
-    final existing =
-        await (_db.select(_db.planItemRecords)..where(
-              (row) =>
-                  row.vehicleId.equals(vehicle.id) &
-                  row.catalogKey.equals(suggestion.catalogKey),
-            ))
-            .get();
-    if (existing.isNotEmpty) return;
-    await addPlanItem(
-      userId: userId,
-      vehicle: vehicle,
-      draft: PlanItemDraft(
-        name: suggestion.name,
-        recurring: suggestion.recurring,
-        intervalDays: suggestion.intervalDays,
-        intervalDistance: suggestion.intervalDistance,
-        catalogKey: suggestion.catalogKey,
-      ),
-    );
-  }
-
-  @override
   Future<ServiceRecord> registerService({
     required String userId,
     required Vehicle vehicle,
     required ServiceRecordDraft draft,
   }) async {
+    await _validateServiceLinks(vehicle.id, draft);
     if (draft.items.isEmpty) {
       throw const MaintenanceValidationFailure('Add at least one service');
     }
-    if (draft.odometer < 0) {
+    if (draft.odometer != null && draft.odometer! < 0) {
       throw const MaintenanceValidationFailure('Enter a valid mileage');
-    }
-    if (!_outbox.derivesExpenses && draft.odometer < vehicle.mileage) {
-      throw const MileageDecreaseFailure();
     }
     if (draft.totalCost < 0) {
       throw const MaintenanceValidationFailure('Enter a valid amount');
@@ -433,7 +316,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
               vehicleId: record.vehicleId,
               title: record.title,
               servicedOn: record.servicedOn,
-              odometer: record.odometer,
+              odometer: Value(record.odometer),
               totalCost: record.totalCost,
               currency: Value(record.currency),
               workshopName: Value(record.workshopName),
@@ -469,12 +352,12 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
             );
       }
 
-      if (draft.odometer > vehicle.mileage) {
+      if (draft.odometer != null && draft.odometer! > vehicle.mileage) {
         await (_db.update(
           _db.vehicleRecords,
         )..where((row) => row.id.equals(vehicle.id))).write(
           VehicleRecordsCompanion(
-            mileage: Value(draft.odometer),
+            mileage: Value(draft.odometer!),
             updatedAt: Value(now),
           ),
         );
@@ -487,44 +370,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         );
       }
 
-      final completedIds = lines
-          .map((line) => line.planItemId)
-          .whereType<String>()
-          .toSet();
-      for (final planItemId in completedIds) {
-        final item = await getPlanItem(planItemId);
-        if (item == null || item.vehicleId != vehicle.id) continue;
-        final next = DueCalculator.afterService(
-          item: item,
-          servicedOn: record.servicedOn,
-          odometer: record.odometer,
-        );
-        final updated = PlanItem(
-          id: item.id,
-          vehicleId: item.vehicleId,
-          name: item.name,
-          intervalDays: item.intervalDays,
-          intervalDistance: item.intervalDistance,
-          nextDueMileage: next.mileage,
-          nextDueOn: next.on,
-          enabled: item.recurring,
-          notes: item.notes,
-          catalogKey: item.catalogKey,
-          createdBy: item.createdBy,
-          updatedAt: now,
-          createdAt: item.createdAt,
-        );
-        await (_db.update(_db.planItemRecords)
-              ..where((row) => row.id.equals(item.id)))
-            .write(planItemToCompanion(updated));
-        await _outbox.enqueue(
-          userId: userId,
-          entityType: OutboxEntityType.planItem,
-          entityId: updated.id,
-          op: OutboxOp.upsert,
-          payload: updated.toWriteJson(),
-        );
-      }
+      await _recalculateReminders(vehicle.id);
 
       await _outbox.enqueue(
         userId: userId,
@@ -559,10 +405,11 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     required String serviceRecordId,
     required ServiceRecordDraft draft,
   }) async {
+    await _validateServiceLinks(vehicle.id, draft);
     if (draft.items.isEmpty) {
       throw const MaintenanceValidationFailure('Add at least one service');
     }
-    if (draft.odometer < 0) {
+    if (draft.odometer != null && draft.odometer! < 0) {
       throw const MaintenanceValidationFailure('Enter a valid mileage');
     }
     if (draft.totalCost < 0) {
@@ -662,12 +509,12 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
             );
       }
 
-      if (draft.odometer > vehicle.mileage) {
+      if (draft.odometer != null && draft.odometer! > vehicle.mileage) {
         await (_db.update(
           _db.vehicleRecords,
         )..where((row) => row.id.equals(vehicle.id))).write(
           VehicleRecordsCompanion(
-            mileage: Value(draft.odometer),
+            mileage: Value(draft.odometer!),
             updatedAt: Value(now),
           ),
         );
@@ -680,6 +527,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         );
       }
 
+      await _recalculateReminders(vehicle.id);
       await _outbox.enqueue(
         userId: userId,
         entityType: OutboxEntityType.serviceRecord,
@@ -735,11 +583,110 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         .toList();
   }
 
+  Future<void> _validateServiceLinks(
+    String vehicleId,
+    ServiceRecordDraft draft,
+  ) async {
+    for (final id
+        in draft.items
+            .map((item) => item.planItemId)
+            .whereType<String>()
+            .toSet()) {
+      final plan = await getPlanItem(id);
+      if (plan == null || plan.vehicleId != vehicleId) {
+        throw const MaintenanceValidationFailure(
+          'Select a reminder belonging to this vehicle',
+        );
+      }
+      if (plan.intervalDistance != null && draft.odometer == null) {
+        throw const MaintenanceValidationFailure(
+          'Mileage is required for a distance repeat',
+        );
+      }
+    }
+  }
+
+  Future<void> _recalculateReminders(String vehicleId) async {
+    final plans = await watchPlan(vehicleId).first;
+    final history = await watchHistory(vehicleId).first;
+    for (final plan in plans) {
+      final matches =
+          history
+              .where(
+                (record) =>
+                    record.items.any((line) => line.planItemId == plan.id),
+              )
+              .toList()
+            ..sort((a, b) {
+              final date = b.servicedOn.compareTo(a.servicedOn);
+              if (date != 0) return date;
+              final mileage = (b.odometer ?? -1).compareTo(a.odometer ?? -1);
+              return mileage != 0 ? mileage : b.id.compareTo(a.id);
+            });
+      final last = matches.firstOrNull;
+      final manual =
+          last != null &&
+          plan.manualOn != null &&
+          (last.servicedOn.isBefore(plan.manualOn!) ||
+              last.id == plan.manualServiceId);
+      final next = last == null || manual
+          ? NextDue(on: plan.baselineDueOn, mileage: plan.baselineDueMileage)
+          : DueCalculator.afterService(
+              item: plan,
+              servicedOn: last.servicedOn,
+              odometer: last.odometer ?? 0,
+            );
+      final hasReplacement =
+          plan.catalogKey != null &&
+          plans.any(
+            (other) =>
+                other.id != plan.id &&
+                other.catalogKey == plan.catalogKey &&
+                other.enabled,
+          );
+      final enabled =
+          !hasReplacement &&
+          (last == null || manual
+              ? plan.baselineEnabled
+              : plan.recurring && plan.baselineEnabled);
+      await (_db.update(
+        _db.planItemRecords,
+      )..where((row) => row.id.equals(plan.id))).write(
+        PlanItemRecordsCompanion(
+          nextDueOn: Value(next.on),
+          nextDueMileage: Value(next.mileage),
+          enabled: Value(enabled),
+          updatedAt: Value(DateTime.now().toUtc()),
+        ),
+      );
+    }
+  }
+
+  Future<void> _assertUniqueCatalogReminder(PlanItem item) async {
+    final key = item.catalogKey;
+    if (!item.enabled || key == null) return;
+    final existing =
+        await (_db.select(_db.planItemRecords)..where(
+              (row) =>
+                  row.vehicleId.equals(item.vehicleId) &
+                  row.catalogKey.equals(key) &
+                  row.enabled.equals(true),
+            ))
+            .get();
+    if (existing.any((row) => row.id != item.id)) {
+      throw const MaintenanceValidationFailure(
+        'This service already has an active reminder. Edit the existing reminder.',
+      );
+    }
+  }
+
   void _assertDraft(PlanItemDraft draft) {
     final nameError = PlanItemValidators.name(draft.name);
     if (nameError != null) throw MaintenanceValidationFailure(nameError);
     final scheduleError = PlanItemValidators.schedule(
       recurring: draft.recurring,
+      timeCount: draft.timeCount,
+      timeUnit: draft.timeUnit,
       intervalDays: draft.intervalDays,
       intervalDistance: draft.intervalDistance,
       date: draft.date,

@@ -137,10 +137,9 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       _date.text = DateFormat.yMMMd().format(record.servicedOn);
       _mileagePrefill = true;
       _itemPrefill = true;
-      _mileage.text = MileageFormat.input(
-        record.odometer,
-        ref.read(lengthUnitProvider),
-      );
+      _mileage.text = record.odometer == null
+          ? ''
+          : MileageFormat.input(record.odometer!, ref.read(lengthUnitProvider));
       _notes.text = record.notes ?? '';
       _total.text = _formatAmount(record.totalCost);
       _totalTouched = true;
@@ -211,15 +210,6 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     }
   }
 
-  String? _mileageBelowMinError(Vehicle vehicle, MileageUnit unit) {
-    if (_isEdit || ref.read(driverOrganizationIdProvider) != null) return null;
-    final parsed = PlanItemValidators.parseMileage(_mileage.text);
-    if (parsed != null && parsed < unit.toDisplay(vehicle.mileage)) {
-      return AppLocalizations.of(context)!.maintenanceMileageDecrease;
-    }
-    return null;
-  }
-
   ServiceRecordDraft? _draftOrNull() {
     final parsed = PlanItemValidators.parseMileage(_mileage.text);
     final odometer = parsed == null
@@ -237,22 +227,25 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
           ),
         )
         .toList();
-    final vehicle = ref.read(activeVehicleProvider).valueOrNull;
-    final lengthUnit = ref.read(lengthUnitProvider);
-
     setState(() {
       _errors
         ..['date'] = ServiceRecordValidators.date(_servicedOn)
-        ..['mileage'] =
-            ServiceRecordValidators.odometer(_mileage.text) ??
-            (vehicle == null
-                ? null
-                : _mileageBelowMinError(vehicle, lengthUnit))
+        ..['mileage'] = PlanItemValidators.mileage(
+          _mileage.text,
+          required:
+              (ref.read(maintenancePlanProvider).valueOrNull ??
+                      const <PlanItem>[])
+                  .any(
+                    (plan) =>
+                        plan.intervalDistance != null &&
+                        items.any((line) => line.planItemId == plan.id),
+                  ),
+        )
         ..['items'] = ServiceRecordValidators.items(items)
         ..['total'] = ServiceRecordValidators.totalCost(total.toString());
       _formError = _errors['items'];
     });
-    if (_errors.values.any((error) => error != null) || odometer == null) {
+    if (_errors.values.any((error) => error != null)) {
       return null;
     }
 
@@ -350,20 +343,41 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   }
 
   Future<void> _openAddService(Vehicle vehicle, List<PlanItem> plan) async {
-    final now = DateTime.now();
-    final lengthUnit = ref.read(lengthUnitProvider);
-    final thresholds = ref.read(reminderThresholdsProvider);
-    final available = plan.where((item) {
-      if (!item.enabled) return false;
-      if (_lines.any((line) => line.planItemId == item.id)) return false;
-      final urgency = DueCalculator.urgency(
-        item: item,
-        vehicleMileage: vehicle.mileage,
-        now: now,
-        thresholds: thresholds,
-      );
-      return urgency != PlanUrgency.hidden;
-    }).toList();
+    final scope = (
+      userId: ref.read(currentUserIdProvider) ?? '',
+      vehicleId: vehicle.id,
+    );
+    final catalog = ref.read(suggestedItemsProvider(scope)).asData?.value ?? [];
+    final available =
+        <({String name, PlanItem? plan})>[
+              for (final suggestion in catalog)
+                (
+                  name: suggestion.name,
+                  plan: plan
+                      .where(
+                        (item) =>
+                            item.enabled &&
+                            item.catalogKey == suggestion.catalogKey,
+                      )
+                      .firstOrNull,
+                ),
+              for (final item in plan.where(
+                (item) =>
+                    item.enabled &&
+                    !catalog.any(
+                      (suggestion) => suggestion.catalogKey == item.catalogKey,
+                    ),
+              ))
+                (name: item.name, plan: item),
+            ]
+            .where(
+              (item) => !_lines.any(
+                (line) => item.plan != null
+                    ? line.planItemId == item.plan!.id
+                    : line.name == item.name,
+              ),
+            )
+            .toList();
     final custom = TextEditingController();
     await showModalBottomSheet<void>(
       context: context,
@@ -406,19 +420,12 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                           ListTile(
                             contentPadding: EdgeInsets.zero,
                             title: Text(item.name),
-                            subtitle: Text(
-                              DueCalculator.intervalLabel(
-                                intervalDays: item.intervalDays,
-                                intervalDistance: item.intervalDistance == null
-                                    ? null
-                                    : lengthUnit.toDisplay(
-                                        item.intervalDistance!,
-                                      ),
-                                unit: lengthUnit.label,
-                              ),
-                            ),
                             onTap: () {
-                              _addLine(item);
+                              if (item.plan != null) {
+                                _addLine(item.plan!);
+                              } else {
+                                _addCustomLine(item.name);
+                              }
                               Navigator.pop(context);
                             },
                           ),
@@ -531,6 +538,13 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan =
         ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
+    ref.watch(maintenanceCatalogRefreshProvider);
+    ref.watch(
+      suggestedItemsProvider((
+        userId: ref.watch(currentUserIdProvider) ?? '',
+        vehicleId: vehicle?.id ?? '',
+      )),
+    );
     ref.watch(vehiclePartsProvider);
     if (vehicle != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -622,10 +636,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                     ),
                     onChanged: (_) {
                       setState(() {
-                        _errors['mileage'] = _mileageBelowMinError(
-                          vehicle,
-                          lengthUnit,
-                        );
+                        _errors['mileage'] = null;
                       });
                     },
                   ),

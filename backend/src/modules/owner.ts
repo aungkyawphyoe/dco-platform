@@ -1,3 +1,4 @@
+import { saveReminderBaseline, recalculateReminders } from "../lib/reminder-schedule.js";
 import { incomingCurrency } from '../lib/operational-currency.js';
 import { createHash } from "node:crypto";
 import { AsyncLocalStorage } from "node:async_hooks";
@@ -298,7 +299,20 @@ async function recordVehicleScopedChange(
         return app.db.transaction(async (tx) => transaction.run(tx as Db, async () => {
           await validatePersonalReferences(request);
           await validateCurrencyRequest(request);
-          return handler.call(this, request, reply);
+          const params = request.params as { vehicleId?: string; serviceRecordId?: string };
+          let scheduleVehicle = route.url.includes("service-records") ? params.vehicleId : undefined;
+          if (route.url.includes("service-records") && params.serviceRecordId) {
+            const [record] = await db().select().from(serviceRecords).where(eq(serviceRecords.id, params.serviceRecordId));
+            scheduleVehicle = record?.vehicleId;
+          }
+          if (scheduleVehicle) await db().execute(sql`UPDATE plan_items SET baseline_due_on=next_due_on,
+            baseline_due_mileage=next_due_mileage,baseline_enabled=enabled WHERE vehicle_id=${scheduleVehicle}
+            AND baseline_due_on IS NULL AND baseline_due_mileage IS NULL AND manual_on IS NULL`);
+          const result = await handler.call(this, request, reply);
+          if (scheduleVehicle) for (const row of await recalculateReminders(db(), scheduleVehicle)) {
+            await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: scheduleVehicle, entityType: "plan_item", entityId: row.id, op: "upsert", payload: publicPlan(row) });
+          }
+          return result;
         }));
       };
     });
@@ -454,22 +468,7 @@ async function recordVehicleScopedChange(
                 vehicle_id: params.vehicleId, expected_revision: request.headers["if-match"] ?? null } });
           }
           if (scheduleVehicle) {
-            const plans = await db().select().from(planItems).where(eq(planItems.vehicleId, scheduleVehicle));
-            for (const plan of plans) {
-              const [last] = await db().select({ servicedOn: serviceRecords.servicedOn, odometer: serviceRecords.odometer })
-                .from(serviceRecordItems).innerJoin(serviceRecords, eq(serviceRecords.id, serviceRecordItems.serviceRecordId))
-                .where(and(eq(serviceRecordItems.planItemId, plan.id), eq(serviceRecords.vehicleId, scheduleVehicle)))
-                .orderBy(desc(serviceRecords.servicedOn), desc(serviceRecords.odometer), desc(serviceRecords.id)).limit(1);
-              if (last) {
-                await db().update(planItems).set({
-                  nextDueOn: plan.intervalDays ? new Date(Date.parse(last.servicedOn) + plan.intervalDays * 86400000).toISOString().slice(0, 10) : null,
-                  nextDueMileage: plan.intervalDistance ? String(Number(last.odometer) + Number(plan.intervalDistance)) : null,
-                }).where(eq(planItems.id, plan.id));
-              } else {
-                await db().execute(sql`update plan_items p set next_due_on = b.next_due_on, next_due_mileage = b.next_due_mileage
-                  from plan_schedule_baselines b where p.id = b.plan_item_id and p.id = ${plan.id}`);
-              }
-            }
+            await recalculateReminders(db(), scheduleVehicle);
           }
           if (approvedReview) await db().update(organizationReviews).set({ status: "accepted", reviewedBy: uid(request) }).where(eq(organizationReviews.id, approvedReview.id));
           if (operationId) await db().update(organizationOperations).set({ statusCode: reply.statusCode, result: result ?? null }).where(eq(organizationOperations.id, String(operationId)));
@@ -552,20 +551,36 @@ async function recordVehicleScopedChange(
       .object({
         id: uuid,
         name: z.string().min(1).max(80),
-        interval_days: z.number().int().optional().nullable(),
-        interval_distance: z.number().optional().nullable(),
-        next_due_on: z.string().optional().nullable(),
-        next_due_mileage: z.number().optional().nullable(),
+        interval_days: z.number().int().positive().optional().nullable(),
+        time_count: z.number().int().positive().nullable().optional(),
+        time_unit: z.enum(["days", "months", "years"]).nullable().optional(),
+        warning_days: z.number().int().min(0).nullable().optional(),
+        warning_distance: z.number().min(0).nullable().optional(),
+        interval_distance: z.number().positive().optional().nullable(),
+        next_due_on: z.string().date().optional().nullable(),
+        next_due_mileage: z.number().nonnegative().optional().nullable(),
         notes: z.string().optional().nullable(),
         catalog_key: z.string().optional().nullable(),
         enabled: z.boolean().optional(),
       })
       .parse(request.body);
-    if (!body.interval_days && !body.interval_distance && body.next_due_on == null && body.next_due_mileage == null) {
+    if (Boolean(body.time_count) !== Boolean(body.time_unit)) throw new AppError(422, "invalid_interval", "Choose a time count and unit together");
+    if ((body.time_count || body.interval_days) && body.next_due_on == null) throw new AppError(422, "invalid_interval", "Set the first due date");
+    if (body.interval_distance && body.next_due_mileage == null) throw new AppError(422, "invalid_interval", "Set the first due mileage");
+    if (body.next_due_on == null && body.next_due_mileage == null) {
       throw new AppError(422, "invalid_interval", "Provide a time interval, a distance interval, or both");
     }
     const [existing] = await db().select().from(planItems).where(eq(planItems.id, body.id)).limit(1);
     if (existing) { reply.code(201); return publicPlan(existing); }
+    await db().select().from(vehicles).where(eq(vehicles.id, vehicleId)).for("update");
+    if (body.catalog_key) {
+      const [catalog] = await db().select().from(maintenanceCatalog).where(and(eq(maintenanceCatalog.catalogKey, body.catalog_key), eq(maintenanceCatalog.enabled, true), isNull(maintenanceCatalog.orgId)));
+      if (!catalog) throw new AppError(422, "invalid_catalog_item", "Select an available service item");
+    }
+    if (body.catalog_key && body.enabled !== false) {
+      const [duplicate] = await db().select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, body.catalog_key), eq(planItems.enabled, true)));
+      if (duplicate) throw new AppError(409, "reminder_exists", "This service already has an active reminder");
+    }
     const computed = dueFrom(body.interval_days, body.interval_distance, reqNum(vehicle.mileage));
     const due = {
       nextDueOn: body.next_due_on ?? computed.nextDueOn,
@@ -577,6 +592,8 @@ async function recordVehicleScopedChange(
         id: body.id,
         vehicleId,
         name: body.name,
+        timeCount: body.time_count ?? null, timeUnit: body.time_unit ?? null,
+        warningDays: body.warning_days ?? null, warningDistance: body.warning_distance == null ? null : String(body.warning_distance),
         intervalDays: body.interval_days ?? null,
         intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null,
         nextDueOn: due.nextDueOn,
@@ -587,7 +604,9 @@ async function recordVehicleScopedChange(
         createdBy: reviewAuthor.getStore() ?? uid(request),
       })
       .returning();
-    const payload = publicPlan(row);
+    await saveReminderBaseline(db(), row.id, false);
+    const [saved] = await db().select().from(planItems).where(eq(planItems.id, row.id));
+    const payload = publicPlan(saved);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "plan_item", entityId: row.id, op: "upsert", payload });
     reply.code(201); return payload;
   });
@@ -595,27 +614,11 @@ async function recordVehicleScopedChange(
   app.get("/vehicles/:vehicleId/suggested-plan-items", async (request) => {
     await guard(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only");
-    const rows = await db()
-      .select()
-      .from(maintenanceCatalog)
-      .where(and(
-        sql`${vehicle.fuelType} = ANY(${maintenanceCatalog.fuelTypes})`,
-        eq(maintenanceCatalog.enabled, true),
-        eq(maintenanceCatalog.vehicleClass, vehicle.vehicleClass),
-        isNull(maintenanceCatalog.orgId),
-      ))
-      .orderBy(maintenanceCatalog.sortOrder);
-    return {
-      items: rows.map((row) => ({
-        catalog_key: row.catalogKey,
-        name: row.name,
-        interval_days: row.intervalDays,
-        interval_distance: row.intervalDistance != null ? Number(row.intervalDistance) : null,
-        vehicle_class: row.vehicleClass,
-        fuel_type: vehicle.fuelType,
-      })),
-    };
+    await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only");
+    const rows = await db().select().from(maintenanceCatalog)
+      .where(and(eq(maintenanceCatalog.enabled, true), isNull(maintenanceCatalog.orgId)))
+      .orderBy(maintenanceCatalog.sortOrder, maintenanceCatalog.name);
+    return { items: rows.map((row) => ({ catalog_key: row.catalogKey, name: row.name })) };
   });
 
   app.patch("/plan-items/:planItemId", async (request) => {
@@ -626,17 +629,39 @@ async function recordVehicleScopedChange(
     const body = z
       .object({
         name: z.string().optional(),
-        interval_days: z.number().int().nullable().optional(),
-        interval_distance: z.number().nullable().optional(),
-        next_due_on: z.string().nullable().optional(),
-        next_due_mileage: z.number().nullable().optional(),
+        interval_days: z.number().int().positive().nullable().optional(),
+        time_count: z.number().int().positive().nullable().optional(),
+        time_unit: z.enum(["days", "months", "years"]).nullable().optional(),
+        warning_days: z.number().int().min(0).nullable().optional(),
+        warning_distance: z.number().min(0).nullable().optional(),
+        interval_distance: z.number().positive().nullable().optional(),
+        next_due_on: z.string().date().nullable().optional(),
+        next_due_mileage: z.number().nonnegative().nullable().optional(),
         notes: z.string().optional().nullable(),
         enabled: z.boolean().optional(),
       })
       .parse(request.body ?? {});
+    const [current] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).for("update");
+    const timeCount = body.time_count === undefined ? current.timeCount : body.time_count;
+    const timeUnit = body.time_unit === undefined ? current.timeUnit : body.time_unit;
+    const days = body.interval_days === undefined ? current.intervalDays : body.interval_days;
+    const distance = body.interval_distance === undefined ? current.intervalDistance : body.interval_distance;
+    const dueOn = body.next_due_on === undefined ? current.nextDueOn : body.next_due_on;
+    const dueMileage = body.next_due_mileage === undefined ? current.nextDueMileage : body.next_due_mileage;
+    if (Boolean(timeCount) !== Boolean(timeUnit) || ((timeCount || days) && dueOn == null) || (distance && dueMileage == null) || (dueOn == null && dueMileage == null)) {
+      throw new AppError(422, "invalid_interval", "Set a first due target for each repeat interval");
+    }
+    if ((body.enabled ?? current.enabled) && current.catalogKey) {
+      const duplicates = await db().select().from(planItems).where(and(eq(planItems.vehicleId, current.vehicleId), eq(planItems.catalogKey, current.catalogKey), eq(planItems.enabled, true)));
+      if (duplicates.some(item => item.id !== current.id)) throw new AppError(409, "reminder_exists", "This service already has an active reminder");
+    }
     const [updated] = await db()
       .update(planItems)
       .set({
+        ...(body.time_count !== undefined ? { timeCount: body.time_count } : {}),
+        ...(body.time_unit !== undefined ? { timeUnit: body.time_unit } : {}),
+        ...(body.warning_days !== undefined ? { warningDays: body.warning_days } : {}),
+        ...(body.warning_distance !== undefined ? { warningDistance: body.warning_distance == null ? null : String(body.warning_distance) } : {}),
         ...(body.name !== undefined ? { name: body.name } : {}),
         ...(body.interval_days !== undefined ? { intervalDays: body.interval_days } : {}),
         ...(body.interval_distance !== undefined
@@ -651,7 +676,9 @@ async function recordVehicleScopedChange(
       })
       .where(eq(planItems.id, planItemId))
       .returning();
-    const payload = publicPlan(updated);
+    await saveReminderBaseline(db(), updated.id, true);
+    const [saved] = await db().select().from(planItems).where(eq(planItems.id, updated.id));
+    const payload = publicPlan(saved);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: updated.vehicleId, entityType: "plan_item", entityId: updated.id, op: "upsert", payload });
     return payload;
   });
@@ -668,16 +695,20 @@ async function recordVehicleScopedChange(
     reply.code(204); return null;
   });
 
-  if (organizationScoped) {
+  {
     app.delete("/service-records/:serviceRecordId", async (request, reply) => {
+      await guard(request);
       const { serviceRecordId } = request.params as { serviceRecordId: string };
+      const existing = await loadService(db(), serviceRecordId);
+      if (!existing) { reply.code(204); return null; }
       await loadServiceRecordFor(db(), uid(request), serviceRecordId, "write");
       await db().delete(serviceRecordItems).where(eq(serviceRecordItems.serviceRecordId, serviceRecordId));
       await db().delete(serviceRecordParts).where(eq(serviceRecordParts.serviceRecordId, serviceRecordId));
       await db().delete(serviceRecords).where(eq(serviceRecords.id, serviceRecordId));
+      await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: existing.vehicle_id, entityType: "service_record", entityId: serviceRecordId, op: "delete", payload: { id: serviceRecordId } });
       reply.code(204); return null;
     });
-    app.delete("/fuel-logs/:fuelLogId", async (request, reply) => {
+    if (organizationScoped) app.delete("/fuel-logs/:fuelLogId", async (request, reply) => {
       const { fuelLogId } = request.params as { fuelLogId: string };
       await loadFuelLogFor(db(), uid(request), fuelLogId, "write");
       await db().delete(fuelLogs).where(eq(fuelLogs.id, fuelLogId));
@@ -688,7 +719,7 @@ async function recordVehicleScopedChange(
   const serviceBody = z.object({
     id: uuid,
     serviced_on: z.string(),
-    odometer: z.number().min(0),
+    odometer: z.number().min(0).nullable().optional(),
     total_cost: z.number().min(0),
     workshop_name: z.string().optional().nullable(),
     notes: z.string().optional().nullable(),
@@ -696,6 +727,7 @@ async function recordVehicleScopedChange(
     items: z.array(z.object({
       id: uuid.optional(),
       plan_item_id: uuid.optional().nullable(),
+      catalog_key: z.string().optional().nullable(),
       name: z.string(),
       line_cost: z.number().optional().nullable(),
     })).min(1).max(100),
@@ -719,17 +751,25 @@ async function recordVehicleScopedChange(
     const { vehicleId } = request.params as { vehicleId: string };
     const vehicle = await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = serviceBody.parse(request.body);
+    for (const item of body.items) {
+      if (item.catalog_key && !item.plan_item_id) {
+        const [matching] = await db().select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, item.catalog_key), eq(planItems.enabled, true)));
+        item.plan_item_id = matching?.id ?? null;
+      }
+    }
+    for (const item of body.items) if (item.plan_item_id) {
+      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, item.plan_item_id), eq(planItems.vehicleId, vehicleId)));
+      if (!plan) throw new AppError(422, "invalid_plan_item", "Reminder must belong to this vehicle");
+      if (plan.intervalDistance && body.odometer == null) throw new AppError(422, "odometer_required", "Distance repetition requires the service odometer reading");
+    }
     const [existing] = await db().select().from(serviceRecords).where(eq(serviceRecords.id, body.id)).limit(1);
     if (existing) { reply.code(201); return await loadService(db(), existing.id); }
-    if (!organizationScoped && body.odometer < reqNum(vehicle.mileage)) {
-      throw new AppError(422, "mileage_decrease", "Service odometer cannot be below vehicle mileage");
-    }
     await db().insert(serviceRecords).values({
       currency: (request.body as {currency:string}).currency,
       id: body.id,
       vehicleId,
       servicedOn: body.serviced_on,
-      odometer: String(body.odometer),
+      odometer: body.odometer == null ? null : String(body.odometer),
       totalCost: String(body.total_cost),
       workshopName: body.workshop_name ?? null,
       notes: body.notes ?? null,
@@ -747,7 +787,7 @@ async function recordVehicleScopedChange(
       if (item.plan_item_id) {
         const [plan] = await db().select().from(planItems).where(eq(planItems.id, item.plan_item_id)).limit(1);
         if (plan) {
-          const due = dueFrom(plan.intervalDays, num(plan.intervalDistance), body.odometer);
+          const due = dueFrom(plan.intervalDays, num(plan.intervalDistance), body.odometer ?? 0, body.serviced_on, plan.timeCount, plan.timeUnit);
           await db()
             .update(planItems)
             .set({
@@ -766,7 +806,7 @@ async function recordVehicleScopedChange(
         name: part.name,
       });
     }
-    if (body.odometer > reqNum(vehicle.mileage)) {
+    if (body.odometer != null && body.odometer > reqNum(vehicle.mileage)) {
       await db().update(vehicles).set({ mileage: String(body.odometer), updatedAt: new Date() }).where(eq(vehicles.id, vehicleId));
       await fanOutVehicleChange(db(), { vehicleId, entityType: "vehicle", entityId: vehicleId, op: "upsert", payload: { id: vehicleId, mileage: body.odometer, name: vehicle.name } });
     }
@@ -793,12 +833,18 @@ async function recordVehicleScopedChange(
     if (!existing) throw new AppError(404, "not_found", "Service record not found");
     await loadServiceRecordFor(db(), uid(request), serviceRecordId, "write");
     const body = serviceBody.partial().parse(request.body ?? {});
+    for (const item of body.items ?? existing.items) if (item.plan_item_id) {
+      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, item.plan_item_id), eq(planItems.vehicleId, existing.vehicle_id)));
+      if (!plan) throw new AppError(422, "invalid_plan_item", "Reminder must belong to this vehicle");
+      const mileage = body.odometer !== undefined ? body.odometer : existing.odometer;
+      if (plan.intervalDistance && mileage == null) throw new AppError(422, "odometer_required", "Distance repetition requires the service odometer reading");
+    }
     await db()
       .update(serviceRecords)
       .set({
         currency: (request.body as {currency?: string}).currency,
         ...(body.serviced_on ? { servicedOn: body.serviced_on } : {}),
-        ...(body.odometer !== undefined ? { odometer: String(body.odometer) } : {}),
+        ...(body.odometer !== undefined ? { odometer: body.odometer == null ? null : String(body.odometer) } : {}),
         ...(body.total_cost !== undefined ? { totalCost: String(body.total_cost) } : {}),
         ...(body.workshop_name !== undefined ? { workshopName: body.workshop_name } : {}),
         ...(body.notes !== undefined ? { notes: body.notes } : {}),

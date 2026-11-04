@@ -677,73 +677,34 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     id: row.id,
     catalog_key: row.catalogKey,
     name: row.name,
-    interval_days: row.intervalDays,
-    interval_distance: row.intervalDistance != null ? Number(row.intervalDistance) : null,
-    fuel_types: row.fuelTypes,
-    vehicle_class: row.vehicleClass,
-    lifecycle_template: row.lifecycleTemplate,
-    sort_order: row.sortOrder,
     enabled: row.enabled,
     created_at: row.createdAt.toISOString(),
     updated_at: row.updatedAt.toISOString(),
   });
 
-  app.get("/admin/maintenance-catalog", async (request) => {
-    const query = z.object({
-      vehicle_class: z.enum(["car", "motorcycle", "truck", "van", "bus"]).optional(),
-      fuel_type: z.enum(["petrol", "electric", "hybrid_plugin"]).optional(),
-    }).parse(request.query ?? {});
-    const rows = await app.db.select().from(maintenanceCatalog).where(isNull(maintenanceCatalog.orgId));
-    const filtered = rows.filter((row) =>
-      (!query.vehicle_class || row.vehicleClass === query.vehicle_class)
-      && (!query.fuel_type || row.fuelTypes.includes(query.fuel_type)),
-    );
-    filtered.sort((a, b) =>
-      a.vehicleClass.localeCompare(b.vehicleClass)
-      || (a.lifecycleTemplate ?? "").localeCompare(b.lifecycleTemplate ?? "")
-      || a.sortOrder - b.sortOrder
-      || a.name.localeCompare(b.name),
-    );
-    return { items: filtered.map(publicCatalogItem) };
+  app.get("/admin/maintenance-catalog", async () => {
+    const rows = await app.db.select().from(maintenanceCatalog)
+      .where(isNull(maintenanceCatalog.orgId))
+      .orderBy(maintenanceCatalog.sortOrder, maintenanceCatalog.name);
+    return { items: rows.map(publicCatalogItem) };
   });
 
+  const catalogWrite = z.object({
+    name: z.string().trim().min(1).max(80),
+    enabled: z.boolean().optional(),
+  }).strict();
+
   app.post("/admin/maintenance-catalog", async (request, reply) => {
-    const body = z
-      .object({
-        name: z.string().min(1).max(80),
-        interval_days: z.number().int().positive().optional().nullable(),
-        interval_distance: z.number().positive().optional().nullable(),
-        fuel_types: z.array(z.enum(["petrol", "electric", "hybrid_plugin"])).min(1),
-        vehicle_class: z.enum(["car", "motorcycle", "truck", "van", "bus"]).optional(),
-        lifecycle_template: z.enum(["showroom", "taxi_fleet", "rental", "commercial"]).optional().nullable(),
-        sort_order: z.number().int().optional(),
-        enabled: z.boolean().optional(),
-      })
-      .parse(request.body);
-
+    const body = catalogWrite.parse(request.body);
     const catalogKey = slugify(body.name);
-    const [existing] = await app.db
-      .select()
-      .from(maintenanceCatalog)
-      .where(eq(maintenanceCatalog.catalogKey, catalogKey))
-      .limit(1);
+    const [existing] = await app.db.select().from(maintenanceCatalog)
+      .where(eq(maintenanceCatalog.catalogKey, catalogKey)).limit(1);
     if (existing) throw new AppError(409, "key_taken", "Catalog key already exists (auto-generated from name)");
-
-    const [row] = await app.db
-      .insert(maintenanceCatalog)
-      .values({
-        id: newId(),
-        catalogKey,
-        name: body.name,
-        intervalDays: body.interval_days ?? null,
-        intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null,
-        fuelTypes: body.fuel_types,
-        vehicleClass: body.vehicle_class ?? "car",
-        lifecycleTemplate: body.lifecycle_template ?? null,
-        sortOrder: body.sort_order ?? 0,
-        enabled: body.enabled ?? true,
-      })
-      .returning();
+    const [row] = await app.db.insert(maintenanceCatalog).values({
+      id: newId(), catalogKey, name: body.name,
+      fuelTypes: ["petrol", "electric", "hybrid_plugin"],
+      enabled: body.enabled ?? true,
+    }).returning();
     await audit(app, request.authUser!.sub, "catalog.create", { catalogKey: row.catalogKey });
     return reply.code(201).send(publicCatalogItem(row));
   });
@@ -751,35 +712,14 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
   app.patch("/admin/maintenance-catalog/:itemId", async (request) => {
     const { itemId } = request.params as { itemId: string };
     await loadGlobalCatalogItem(itemId);
-    const body = z
-      .object({
-        name: z.string().min(1).max(80).optional(),
-        interval_days: z.number().int().positive().optional().nullable(),
-        interval_distance: z.number().positive().optional().nullable(),
-        fuel_types: z.array(z.enum(["petrol", "electric", "hybrid_plugin"])).min(1).optional(),
-        vehicle_class: z.enum(["car", "motorcycle", "truck", "van", "bus"]).optional(),
-        lifecycle_template: z.enum(["showroom", "taxi_fleet", "rental", "commercial"]).optional().nullable(),
-        sort_order: z.number().int().optional(),
-        enabled: z.boolean().optional(),
-      })
-      .parse(request.body ?? {});
-    const [updated] = await app.db
-      .update(maintenanceCatalog)
-      .set({
-        ...(body.name !== undefined ? { name: body.name } : {}),
-        ...(body.interval_days !== undefined ? { intervalDays: body.interval_days } : {}),
-        ...(body.interval_distance !== undefined
-          ? { intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null }
-          : {}),
-        ...(body.fuel_types !== undefined ? { fuelTypes: body.fuel_types } : {}),
-        ...(body.vehicle_class !== undefined ? { vehicleClass: body.vehicle_class } : {}),
-        ...(body.lifecycle_template !== undefined ? { lifecycleTemplate: body.lifecycle_template } : {}),
-        ...(body.sort_order !== undefined ? { sortOrder: body.sort_order } : {}),
-        ...(body.enabled !== undefined ? { enabled: body.enabled } : {}),
-        updatedAt: new Date(),
-      })
-      .where(eq(maintenanceCatalog.id, itemId))
-      .returning();
+    const body = catalogWrite.partial().parse(request.body ?? {});
+    const [updated] = await app.db.update(maintenanceCatalog).set({
+      ...(body.name !== undefined ? { name: body.name } : {}),
+      ...(body.enabled !== undefined ? { enabled: body.enabled } : {}),
+      intervalDays: null,
+      intervalDistance: null,
+      updatedAt: new Date(),
+    }).where(eq(maintenanceCatalog.id, itemId)).returning();
     await audit(app, request.authUser!.sub, "catalog.update", { catalogKey: updated.catalogKey });
     return publicCatalogItem(updated);
   });

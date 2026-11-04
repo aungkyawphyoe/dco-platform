@@ -234,9 +234,15 @@ double? _progress(PlanItem item, Vehicle vehicle, DateTime now) {
   }
   double? daysFrac;
   if (item.nextDueOn != null &&
-      item.intervalDays != null &&
-      item.intervalDays! > 0) {
-    final start = item.nextDueOn!.subtract(Duration(days: item.intervalDays!));
+      (item.timeCount != null ||
+          (item.intervalDays != null && item.intervalDays! > 0))) {
+    final start = item.timeCount != null && item.timeUnit != null
+        ? DueCalculator.addCalendar(
+            item.nextDueOn!,
+            -item.timeCount!,
+            item.timeUnit!,
+          )
+        : item.nextDueOn!.subtract(Duration(days: item.intervalDays!));
     final span = item.nextDueOn!.difference(start).inDays.toDouble();
     if (span > 0) {
       daysFrac = (DueCalculator.dateOnly(now).difference(start).inDays / span)
@@ -296,7 +302,9 @@ class HistoryTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final tokens = context.tokens;
     final money = MoneyFormat.labeled(record.totalCost, currency);
-    final odometer = MileageFormat.labeled(record.odometer, lengthUnit);
+    final odometer = record.odometer == null
+        ? '—'
+        : MileageFormat.labeled(record.odometer!, lengthUnit);
     final workshop = record.workshopName;
     return Padding(
       padding: EdgeInsets.fromLTRB(

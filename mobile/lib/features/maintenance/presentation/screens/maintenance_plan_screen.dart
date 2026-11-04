@@ -1,10 +1,6 @@
-import 'dart:async';
-
-import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
-import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
@@ -14,6 +10,7 @@ import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'plan_item_form_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,20 +25,6 @@ class MaintenancePlanScreen extends ConsumerStatefulWidget {
 }
 
 class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
-  final _seededVehicleIds = <String>{};
-
-  void _seedDefaults(Vehicle vehicle) {
-    // Only the owner manages the maintenance plan; sharees never write to it.
-    final access = ref.read(vehicleAccessProvider(vehicle));
-    if (!access.canManagePlan) return;
-    if (!_seededVehicleIds.add(vehicle.id)) return;
-    unawaited(
-      ref
-          .read(maintenanceRepositoryProvider)
-          .ensureDefaultPlan(userId: vehicle.userId, vehicle: vehicle),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
@@ -84,7 +67,6 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
                     data: (items) {
                       final access = ref.watch(vehicleAccessProvider(vehicle));
                       if (items.isEmpty) {
-                        _seedDefaults(vehicle);
                         return DcoEmptyState(
                           title: s.maintenancePlanEmptyTitle,
                           body: s.maintenancePlanEmptyBody,
@@ -130,7 +112,16 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
               ref.watch(vehicleAccessProvider(vehicle)).canManagePlan)
             DcoStickyActions(
               secondaryLabel: s.maintenancePlanAddItem,
-              onSecondary: () => context.push(AppRoutes.maintenancePlanNew),
+              onSecondary: () => showModalBottomSheet<void>(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                backgroundColor: tokens.background.card,
+                builder: (context) => const FractionallySizedBox(
+                  heightFactor: 0.95,
+                  child: PlanItemFormScreen(),
+                ),
+              ),
               primaryLabel: s.maintenancePlanAddSuggested,
               onPrimary: () => context.push(AppRoutes.maintenanceSuggested),
             ),

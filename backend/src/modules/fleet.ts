@@ -1,3 +1,4 @@
+import { saveReminderBaseline, recalculateReminders } from "../lib/reminder-schedule.js";
 import { credentialBody, expiryStatus, saveCredentials } from "../lib/driver-credentials.js";
 import { incomingCurrency, incomingServiceCurrency, lockCurrencyVehicle } from '../lib/operational-currency.js';
 import { billingRequest } from "../lib/subscription-access.js";
@@ -28,7 +29,7 @@ import {
 import type { Db } from "../db/client.js";
 import { newId } from "../lib/crypto.js";
 import { provisionOwnerAccount } from "../lib/account-provisioning.js";
-import { dueFrom, templateSetRows } from "../lib/catalog.js";
+import { dueFrom } from "../lib/catalog.js";
 import { slugify } from "../lib/slug.js";
 import { dateOnly, iso, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
@@ -121,7 +122,6 @@ function serializeOrganizationVehicle(row: typeof organizationVehicles.$inferSel
     status: row.status,
     revenue_label: row.revenueLabel,
     assigned_driver_id: assignedDriver ?? null,
-    maintenance_template_class: row.maintenanceTemplateClass,
     added_at: iso(row.addedAt),
   };
 }
@@ -548,7 +548,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       id: record.created.id,
       vehicle_id: vehicleId,
       serviced_on: dateOnly(record.created.servicedOn),
-      odometer: reqNum(record.created.odometer),
+      odometer: num(record.created.odometer),
       total_cost: reqNum(record.created.totalCost),
       currency: record.created.currency,
       workshop_name: record.created.workshopName,
@@ -582,7 +582,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         id: row.id,
         vehicle_id: row.vehicleId,
         serviced_on: dateOnly(row.servicedOn),
-        odometer: reqNum(row.odometer),
+        odometer: num(row.odometer),
         total_cost: reqNum(row.totalCost),
         workshop_name: row.workshopName,
         notes: row.notes,
@@ -607,6 +607,84 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const rows = await app.db.select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
     return { items: rows.map(publicPlan) };
   });
+
+  app.get("/organizations/:id/maintenance-catalog", async (request) => {
+    requireFleetPortal(request);
+    const orgId = uuid.parse((request.params as { id: string }).id);
+    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager", "org_mechanic"]);
+    const rows = await app.db.select().from(maintenanceCatalog)
+      .where(and(isNull(maintenanceCatalog.orgId), eq(maintenanceCatalog.enabled, true)))
+      .orderBy(maintenanceCatalog.sortOrder, maintenanceCatalog.name);
+    return { items: rows.map(row => ({ catalog_key: row.catalogKey, name: row.name })) };
+  });
+
+  const reminderBody = z.object({
+    id: uuid,
+    name: z.string().trim().min(1).max(80),
+    catalog_key: z.string().nullable().optional(),
+    interval_days: z.number().int().positive().nullable(),
+    time_count: z.number().int().positive().nullable().optional(),
+    time_unit: z.enum(["days", "months", "years"]).nullable().optional(),
+    warning_days: z.number().int().min(0).nullable().optional(),
+    warning_distance: z.number().min(0).nullable().optional(),
+    interval_distance: z.number().positive().nullable(),
+    next_due_on: z.string().date().nullable(),
+    next_due_mileage: z.number().nonnegative().nullable(),
+    enabled: z.boolean(),
+  }).strict().superRefine((body, context) => {
+    if (body.next_due_on === null && body.next_due_mileage === null)
+      context.addIssue({ code: "custom", message: "Set a due date or mileage" });
+    if (Boolean(body.time_count) !== Boolean(body.time_unit))
+      context.addIssue({ code: "custom", message: "Choose a time count and unit together" });
+    if ((body.interval_days !== null || body.time_count) && body.next_due_on === null)
+      context.addIssue({ code: "custom", message: "Time repetition requires a first due date" });
+    if (body.interval_distance !== null && body.next_due_mileage === null)
+      context.addIssue({ code: "custom", message: "Distance repetition requires a first due mileage" });
+  });
+
+  for (const method of ["POST", "PUT"] as const) {
+    app.route({ method, url: "/organizations/:id/vehicles/:vehicleId/plan-items", handler: async (request, reply) => {
+      requireFleetPortal(request);
+      const { id, vehicleId } = request.params as { id: string; vehicleId: string };
+      const orgId = uuid.parse(id);
+      await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
+      const body = reminderBody.parse(request.body);
+      const row = await app.db.transaction(async tx => {
+        const [vehicle] = await tx.select().from(organizationVehicles)
+          .where(and(eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId))).for("update");
+        if (!vehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
+        const [existing] = await tx.select().from(planItems).where(eq(planItems.id, body.id));
+        if (existing && existing.vehicleId !== vehicleId) throw new AppError(404, "not_found", "Reminder not found");
+        if (method === "PUT" && !existing) throw new AppError(404, "not_found", "Reminder not found");
+        if (method === "POST" && existing) return existing;
+        if (body.catalog_key) {
+          if (body.catalog_key !== existing?.catalogKey) {
+            const [catalog] = await tx.select().from(maintenanceCatalog).where(and(
+              eq(maintenanceCatalog.catalogKey, body.catalog_key), isNull(maintenanceCatalog.orgId), eq(maintenanceCatalog.enabled, true)));
+            if (!catalog) throw new AppError(422, "invalid_catalog_item", "Select an available service item");
+          }
+          const [duplicate] = await tx.select().from(planItems).where(and(
+            eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, body.catalog_key), eq(planItems.enabled, true)));
+          if (body.enabled && duplicate && duplicate.id !== body.id)
+            throw new AppError(409, "reminder_exists", "This service already has an active reminder");
+        }
+        const values = { name: body.name, catalogKey: body.catalog_key ?? null,
+          intervalDays: body.interval_days, timeCount: body.time_count ?? null, timeUnit: body.time_unit ?? null,
+          warningDays: body.warning_days ?? null, warningDistance: body.warning_distance == null ? null : String(body.warning_distance), intervalDistance: body.interval_distance === null ? null : String(body.interval_distance),
+          nextDueOn: body.next_due_on, nextDueMileage: body.next_due_mileage === null ? null : String(body.next_due_mileage), enabled: body.enabled };
+        const [saved] = existing
+          ? await tx.update(planItems).set(values).where(eq(planItems.id, body.id)).returning()
+          : await tx.insert(planItems).values({ ...values, id: body.id, vehicleId, createdBy: uid(request) }).returning();
+        await tx.execute(sql`INSERT INTO plan_schedule_baselines(plan_item_id,next_due_on,next_due_mileage)
+          VALUES (${saved.id},${saved.nextDueOn},${saved.nextDueMileage}) ON CONFLICT (plan_item_id)
+          DO UPDATE SET next_due_on=excluded.next_due_on,next_due_mileage=excluded.next_due_mileage`);
+        await saveReminderBaseline(tx as Db, saved.id, Boolean(existing));
+        const [withBaseline] = await tx.select().from(planItems).where(eq(planItems.id, saved.id));
+        return withBaseline;
+      });
+      return reply.code(method === "POST" ? 201 : 200).send(publicPlan(row));
+    }});
+  }
 
   app.post("/organizations/:id/work-orders", async (request, reply) => {
     requireFleetClient(request);
@@ -754,7 +832,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         updatedAt: new Date(),
       }).where(eq(workOrders.id, current.id)).returning();
       if (current.planItemId) {
-        await advancePlanItemForLog(tx, current.vehicleId, current.planItemId, current.odometerKm);
+        await advancePlanItemForLog(tx, current.vehicleId, current.planItemId, current.odometerKm, servicedOn);
       }
       return { service: createdService, parts: createdParts, workOrder: updatedWo };
     });
@@ -838,7 +916,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       }).returning();
       await tx.update(vehicles).set({ mileage: String(body.odometer_km), updatedAt: new Date() }).where(eq(vehicles.id, vehicleId));
       if (body.plan_item_id) {
-        await advancePlanItemForLog(tx, vehicleId, body.plan_item_id, body.odometer_km);
+        await advancePlanItemForLog(tx, vehicleId, body.plan_item_id, body.odometer_km, body.serviced_on);
       }
       return { created, items: [item] };
     });
@@ -846,7 +924,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       id: record.created.id,
       vehicle_id: vehicleId,
       serviced_on: dateOnly(record.created.servicedOn),
-      odometer: reqNum(record.created.odometer),
+      odometer: num(record.created.odometer),
       total_cost: reqNum(record.created.totalCost),
       currency: record.created.currency,
       notes: record.created.notes,
@@ -857,261 +935,6 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     await recordChange(app.db, { userId: actorId, entityType: "service_record", entityId: serviceId, op: "upsert", payload });
     return reply.code(201).send(payload);
   });
-
-  // ── Maintenance templates (vehicle-class, org copies of platform globals) ──
-
-  function serializeTemplate(row: typeof maintenanceCatalog.$inferSelect) {
-    return {
-      id: row.id,
-      catalog_key: row.catalogKey,
-      name: row.name,
-      interval_days: row.intervalDays,
-      interval_distance: num(row.intervalDistance),
-      fuel_types: row.fuelTypes,
-      vehicle_class: row.vehicleClass,
-      lifecycle_template: row.lifecycleTemplate,
-      sort_order: row.sortOrder,
-      enabled: row.enabled,
-      source: row.orgId ? "org" : "global",
-      created_at: iso(row.createdAt),
-      updated_at: iso(row.updatedAt),
-    };
-  }
-
-  async function loadOrgVehicle(orgId: string, vehicleId: string) {
-    const [link] = await app.db.select().from(organizationVehicles).where(and(
-      eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId),
-    )).limit(1);
-    if (!link) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
-    const [vehicle] = await app.db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
-    if (!vehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
-    return { link, vehicle };
-  }
-
-  function orgTemplateRows(orgId: string) {
-    return app.db.select().from(maintenanceCatalog).where(or(
-      isNull(maintenanceCatalog.orgId), eq(maintenanceCatalog.orgId, orgId),
-    ));
-  }
-
-  async function loadOrgTemplate(orgId: string, itemId: string) {
-    const [row] = await app.db.select().from(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId)).limit(1);
-    if (!row) throw new AppError(404, "template_not_found", "Template not found");
-    if (row.orgId == null) {
-      throw new AppError(403, "global_template_readonly", "Global templates are read-only for organizations; copy it to customize");
-    }
-    if (row.orgId !== orgId) throw new AppError(404, "template_not_found", "Template not found");
-    return row;
-  }
-
-  app.get("/organizations/:id/maintenance-templates", async (request) => {
-    requireFleetPortal(request);
-    const orgId = uuid.parse((request.params as { id: string }).id);
-    await getOrganizationAccess(app.db, uid(request), orgId);
-    const query = z.object({
-      vehicle_class: vehicleClass.optional(),
-      lifecycle_template: lifecycleTemplate.optional(),
-      fuel_type: fuelTypesEnum.optional(),
-    }).parse(request.query ?? {});
-    const rows = await orgTemplateRows(orgId);
-    const filtered = rows.filter((row) =>
-      (!query.vehicle_class || row.vehicleClass === query.vehicle_class)
-      && (!query.lifecycle_template || row.lifecycleTemplate === query.lifecycle_template)
-      && (!query.fuel_type || row.fuelTypes.includes(query.fuel_type)),
-    );
-    filtered.sort((a, b) =>
-      a.vehicleClass.localeCompare(b.vehicleClass)
-      || (a.lifecycleTemplate ?? "").localeCompare(b.lifecycleTemplate ?? "")
-      || a.sortOrder - b.sortOrder
-      || a.name.localeCompare(b.name),
-    );
-    return { items: filtered.map(serializeTemplate) };
-  });
-
-  app.post("/organizations/:id/maintenance-templates", async (request, reply) => {
-    requireFleetPortal(request);
-    const orgId = uuid.parse((request.params as { id: string }).id);
-    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
-    const body = z.object({
-      name: z.string().min(1).max(80).optional(),
-      interval_days: z.number().int().positive().optional().nullable(),
-      interval_distance: z.number().positive().optional().nullable(),
-      fuel_types: z.array(fuelTypesEnum).min(1).optional(),
-      vehicle_class: vehicleClass.optional(),
-      lifecycle_template: lifecycleTemplate.optional().nullable(),
-      sort_order: z.number().int().optional(),
-      enabled: z.boolean().optional(),
-      source_template_id: uuid.optional(),
-    }).parse(request.body ?? {});
-
-    let base: {
-      name: string; intervalDays: number | null; intervalDistance: string | null;
-      fuelTypes: string[]; vehicleClass: string; lifecycleTemplate: string | null;
-      sortOrder: number; enabled: boolean;
-    };
-    if (body.source_template_id) {
-      const [source] = await app.db.select().from(maintenanceCatalog).where(and(
-        eq(maintenanceCatalog.id, body.source_template_id), isNull(maintenanceCatalog.orgId),
-      )).limit(1);
-      if (!source) throw new AppError(404, "template_not_found", "Global template not found");
-      base = {
-        name: source.name, intervalDays: source.intervalDays, intervalDistance: source.intervalDistance,
-        fuelTypes: source.fuelTypes, vehicleClass: source.vehicleClass,
-        lifecycleTemplate: source.lifecycleTemplate, sortOrder: source.sortOrder, enabled: source.enabled,
-      };
-    } else {
-      if (!body.name || !body.fuel_types) {
-        throw new AppError(422, "invalid_template", "name and fuel_types are required when not copying a global template");
-      }
-      base = {
-        name: body.name, intervalDays: body.interval_days ?? null,
-        intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null,
-        fuelTypes: body.fuel_types, vehicleClass: body.vehicle_class ?? "car",
-        lifecycleTemplate: body.lifecycle_template ?? null,
-        sortOrder: body.sort_order ?? 0, enabled: body.enabled ?? true,
-      };
-    }
-    const name = body.name ?? base.name;
-    const catalogKey = `${slugify(name)}__${newId().replaceAll("-", "").slice(0, 5)}`;
-    const [row] = await app.db.insert(maintenanceCatalog).values({
-      id: newId(),
-      catalogKey,
-      name,
-      intervalDays: body.interval_days !== undefined ? body.interval_days : base.intervalDays,
-      intervalDistance: body.interval_distance !== undefined
-        ? (body.interval_distance != null ? String(body.interval_distance) : null)
-        : base.intervalDistance,
-      fuelTypes: body.fuel_types ?? base.fuelTypes,
-      vehicleClass: body.vehicle_class ?? base.vehicleClass,
-      lifecycleTemplate: body.lifecycle_template !== undefined ? body.lifecycle_template : base.lifecycleTemplate,
-      sortOrder: body.sort_order ?? base.sortOrder,
-      enabled: body.enabled ?? base.enabled,
-      orgId,
-    }).returning();
-    return reply.code(201).send(serializeTemplate(row));
-  });
-
-  app.patch("/organizations/:id/maintenance-templates/:itemId", async (request) => {
-    requireFleetPortal(request);
-    const { id: rawOrgId, itemId } = request.params as { id: string; itemId: string };
-    const orgId = uuid.parse(rawOrgId);
-    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
-    await loadOrgTemplate(orgId, itemId);
-    const body = z.object({
-      name: z.string().min(1).max(80).optional(),
-      interval_days: z.number().int().positive().optional().nullable(),
-      interval_distance: z.number().positive().optional().nullable(),
-      fuel_types: z.array(fuelTypesEnum).min(1).optional(),
-      vehicle_class: vehicleClass.optional(),
-      lifecycle_template: lifecycleTemplate.optional().nullable(),
-      sort_order: z.number().int().optional(),
-      enabled: z.boolean().optional(),
-    }).parse(request.body ?? {});
-    const [updated] = await app.db.update(maintenanceCatalog).set({
-      ...(body.name !== undefined ? { name: body.name } : {}),
-      ...(body.interval_days !== undefined ? { intervalDays: body.interval_days } : {}),
-      ...(body.interval_distance !== undefined
-        ? { intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null }
-        : {}),
-      ...(body.fuel_types !== undefined ? { fuelTypes: body.fuel_types } : {}),
-      ...(body.vehicle_class !== undefined ? { vehicleClass: body.vehicle_class } : {}),
-      ...(body.lifecycle_template !== undefined ? { lifecycleTemplate: body.lifecycle_template } : {}),
-      ...(body.sort_order !== undefined ? { sortOrder: body.sort_order } : {}),
-      ...(body.enabled !== undefined ? { enabled: body.enabled } : {}),
-      updatedAt: new Date(),
-    }).where(eq(maintenanceCatalog.id, itemId)).returning();
-    return serializeTemplate(updated);
-  });
-
-  app.delete("/organizations/:id/maintenance-templates/:itemId", async (request, reply) => {
-    requireFleetPortal(request);
-    const { id: rawOrgId, itemId } = request.params as { id: string; itemId: string };
-    const orgId = uuid.parse(rawOrgId);
-    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
-    await loadOrgTemplate(orgId, itemId);
-    await app.db.delete(maintenanceCatalog).where(eq(maintenanceCatalog.id, itemId));
-    return reply.code(204).send();
-  });
-
-  app.put("/organizations/:id/vehicles/:vehicleId/maintenance-template", async (request) => {
-    requireFleetPortal(request);
-    const { id: rawOrgId, vehicleId } = request.params as { id: string; vehicleId: string };
-    const orgId = uuid.parse(rawOrgId);
-    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
-    const { link, vehicle } = await loadOrgVehicle(orgId, vehicleId);
-    const body = z.object({ vehicle_class: vehicleClass.nullable() }).parse(request.body);
-    if (body.vehicle_class === null) {
-      const [updated] = await app.db.update(organizationVehicles)
-        .set({ maintenanceTemplateClass: null, updatedAt: new Date() })
-        .where(eq(organizationVehicles.id, link.id)).returning();
-      return { maintenance_template_class: updated.maintenanceTemplateClass };
-    }
-    if (body.vehicle_class !== vehicle.vehicleClass) {
-      throw new AppError(400, "template_mismatch", "Template set class must match this vehicle's class");
-    }
-    const [updated] = await app.db.update(organizationVehicles)
-      .set({ maintenanceTemplateClass: body.vehicle_class, updatedAt: new Date() })
-      .where(eq(organizationVehicles.id, link.id)).returning();
-    return { maintenance_template_class: updated.maintenanceTemplateClass };
-  });
-
-  app.post("/organizations/:id/vehicles/:vehicleId/maintenance-template/generate", async (request) => {
-    requireFleetPortal(request);
-    const { id: rawOrgId, vehicleId } = request.params as { id: string; vehicleId: string };
-    const orgId = uuid.parse(rawOrgId);
-    const actorId = uid(request);
-    await getOrganizationAccess(app.db, actorId, orgId, ["org_admin", "org_manager", "org_mechanic"]);
-    const { link, vehicle } = await loadOrgVehicle(orgId, vehicleId);
-    if (!link.maintenanceTemplateClass) {
-      throw new AppError(400, "template_not_assigned", "Assign a maintenance set before generating a plan");
-    }
-    const body = z.object({ item_ids: z.array(uuid).min(1) }).parse(request.body ?? {});
-    const rows = await orgTemplateRows(orgId);
-    const set = templateSetRows(rows, {
-      vehicleClass: link.maintenanceTemplateClass,
-      lifecycleTemplate: link.lifecycleTemplate,
-      fuelType: vehicle.fuelType,
-      orgId,
-    });
-    const setById = new Map(set.map((row) => [row.id, row]));
-    const selected = body.item_ids.map((id) => {
-      const row = setById.get(id);
-      if (!row) {
-        throw new AppError(422, "invalid_selection", "Selected item is not part of the assigned maintenance set");
-      }
-      return row;
-    });
-    const existing = await app.db.select({ name: planItems.name }).from(planItems)
-      .where(eq(planItems.vehicleId, vehicleId));
-    const existingNames = new Set(existing.map((row) => row.name.trim().toLowerCase()));
-    let created = 0;
-    let skipped = 0;
-    for (const item of selected) {
-      if (existingNames.has(item.name.trim().toLowerCase())) {
-        skipped += 1;
-        continue;
-      }
-      const due = dueFrom(item.intervalDays, num(item.intervalDistance), reqNum(vehicle.mileage));
-      await app.db.insert(planItems).values({
-        id: newId(),
-        vehicleId,
-        name: item.name,
-        intervalDays: item.intervalDays,
-        intervalDistance: item.intervalDistance,
-        nextDueOn: due.nextDueOn,
-        nextDueMileage: due.nextDueMileage != null ? String(due.nextDueMileage) : null,
-        notes: null,
-        catalogKey: item.catalogKey,
-        enabled: true,
-        createdBy: actorId,
-      });
-      existingNames.add(item.name.trim().toLowerCase());
-      created += 1;
-    }
-    return { created, skipped };
-  });
-
-  // ── Driver plan views (owner or fleet surface; active assignment required) ──
 
   async function requireDriverAssignment(vehicleId: string, userId: string) {
     const [assignment] = await app.db.select().from(driverAssignments).where(and(
@@ -1153,7 +976,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         id: row.id,
         vehicle_id: row.vehicleId,
         serviced_on: dateOnly(row.servicedOn),
-        odometer: reqNum(row.odometer),
+        odometer: num(row.odometer),
         total_cost: reqNum(row.totalCost),
         workshop_name: row.workshopName,
         notes: row.notes,
@@ -1169,25 +992,11 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   app.get("/drivers/vehicles/:vehicleId/suggested-plan-items", async (request) => {
     requireFleetClient(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    const assignment = await requireDriverAssignment(vehicleId, uid(request));
-    const { link, vehicle } = await loadOrgVehicle(assignment.orgId, vehicleId);
-    if (!link.maintenanceTemplateClass) return { items: [] };
-    const rows = await orgTemplateRows(assignment.orgId);
-    const set = templateSetRows(rows, {
-      vehicleClass: link.maintenanceTemplateClass,
-      lifecycleTemplate: link.lifecycleTemplate,
-      fuelType: vehicle.fuelType,
-      orgId: assignment.orgId,
-    });
-    return {
-      items: set.map((row) => ({
-        catalog_key: row.catalogKey,
-        name: row.name,
-        interval_days: row.intervalDays,
-        interval_distance: num(row.intervalDistance),
-        vehicle_class: row.vehicleClass,
-      })),
-    };
+    await requireDriverAssignment(vehicleId, uid(request));
+    const rows = await app.db.select().from(maintenanceCatalog)
+      .where(and(eq(maintenanceCatalog.enabled, true), isNull(maintenanceCatalog.orgId)))
+      .orderBy(maintenanceCatalog.sortOrder, maintenanceCatalog.name);
+    return { items: rows.map((row) => ({ catalog_key: row.catalogKey, name: row.name })) };
   });
 };
 
@@ -1209,17 +1018,10 @@ async function advancePlanItemForLog(
   vehicleId: string,
   planItemId: string,
   odometerKm: number,
+  servicedOn: string,
 ) {
-  const [planItem] = await tx.select().from(planItems).where(and(
-    eq(planItems.id, planItemId), eq(planItems.vehicleId, vehicleId),
-  )).limit(1);
-  if (!planItem) return null;
-  const due = dueFrom(planItem.intervalDays, num(planItem.intervalDistance), odometerKm);
-  const [updated] = await tx.update(planItems).set({
-    ...(due.nextDueOn !== null ? { nextDueOn: due.nextDueOn } : {}),
-    ...(due.nextDueMileage !== null ? { nextDueMileage: String(due.nextDueMileage) } : {}),
-  }).where(eq(planItems.id, planItemId)).returning();
-  return updated ?? null;
+  const rows = await recalculateReminders(tx as Db, vehicleId);
+  return rows.find(row => row.id === planItemId) ?? null;
 }
 
 function serializeWorkOrder(row: typeof workOrders.$inferSelect) {

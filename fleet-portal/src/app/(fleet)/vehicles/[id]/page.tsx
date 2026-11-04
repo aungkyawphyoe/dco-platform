@@ -1,22 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { ReminderSetup } from "@/components/vehicles/reminder-setup";
 import { VehicleDocuments } from "@/components/vehicles/vehicle-documents";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { Card } from "@dco/ui/components/card";
 import { Badge } from "@dco/ui/components/badge";
-import { Button } from "@dco/ui/components/button";
-import { Select } from "@dco/ui/components/select";
-import { Modal } from "@dco/ui/components/modal";
 import { Skeleton } from "@dco/ui/components/skeleton";
 import { EmptyState } from "@dco/ui/components/empty-state";
 import { DataPlate } from "@dco/ui/components/data-plate";
 import { SectionHeading } from "@dco/ui/components/section-heading";
 import {
-  useAssignVehicleTemplate,
-  useGenerateMaintenancePlan,
-  useMaintenanceTemplates,
   useVehicleAnalytics,
   useVehiclePlanItems,
   useVehicleServiceRecords,
@@ -24,9 +19,6 @@ import {
 } from "@/lib/api/hooks";
 import type {
   FleetVehicle,
-  FuelType,
-  MaintenanceTemplate,
-  VehicleClass,
   VehiclePlanItem,
 } from "@/lib/api/types";
 import {
@@ -59,17 +51,6 @@ function vehicleStatusTone(status: string): "success" | "warning" | "danger" | "
   return "info";
 }
 
-/// "15,000 km or 365 days" — the interval this row is checked on.
-function intervalSummary(t: {
-  interval_days?: number | null;
-  interval_distance?: number | null;
-}) {
-  const parts: string[] = [];
-  if (t.interval_distance) parts.push(`${t.interval_distance.toLocaleString()} km`);
-  if (t.interval_days) parts.push(`${t.interval_days} ${t.interval_days === 1 ? "day" : "days"}`);
-  return parts.length ? parts.join(" or ") : "no interval set";
-}
-
 // ── Due state ───────────────────────────────────────────────────────────────
 
 type Tone = "danger" | "warning" | "success" | "neutral";
@@ -91,10 +72,10 @@ function planDueTone(item: VehiclePlanItem, mileage: number): Tone {
       mileage >= item.next_due_mileage);
   if (overdue) return "danger";
   const soon =
-    (dueOn !== null && dueOn.getTime() - Date.now() < 14 * 24 * 60 * 60 * 1000) ||
+    (dueOn !== null && dueOn.getTime() - Date.now() < (item.warning_days ?? 30) * 24 * 60 * 60 * 1000) ||
     (item.next_due_mileage !== null &&
       item.next_due_mileage !== undefined &&
-      mileage >= item.next_due_mileage - 500);
+      mileage >= item.next_due_mileage - (item.warning_distance ?? 500));
   return soon ? "warning" : "success";
 }
 
@@ -109,32 +90,6 @@ function planDueLabel(item: VehiclePlanItem, mileage: number): { label: string; 
           ? "Disabled"
           : "Scheduled";
   return { label, tone };
-}
-
-/// The template set for a class: enabled rows matching class + fuel and a
-/// compatible lifecycle (NULL rows always match), deduped by name with the org
-/// copy winning — mirrors the backend templateSetRows().
-function templateSet(
-  all: MaintenanceTemplate[],
-  vehicle: FleetVehicle,
-  cls: string,
-): MaintenanceTemplate[] {
-  const matching = all.filter(
-    (t) =>
-      t.enabled &&
-      t.vehicle_class === cls &&
-      t.fuel_types.includes(vehicle.fuel_type as FuelType) &&
-      (!t.lifecycle_template || t.lifecycle_template === vehicle.lifecycle_template),
-  );
-  const byName = new Map<string, MaintenanceTemplate>();
-  for (const t of matching) {
-    const key = t.name.trim().toLowerCase();
-    const current = byName.get(key);
-    if (!current || (current.source === "global" && t.source === "org")) byName.set(key, t);
-  }
-  return [...byName.values()].sort(
-    (a, b) => a.sort_order - b.sort_order || a.name.localeCompare(b.name),
-  );
 }
 
 // ── Identity plate ──────────────────────────────────────────────────────────
@@ -197,7 +152,7 @@ function ConditionStrip({ items, mileage }: { items: VehiclePlanItem[]; mileage:
   if (items.length === 0) {
     return (
       <p className="mt-4 max-w-md text-sm text-ink-caption">
-        No maintenance plan yet. Assign this vehicle&apos;s template set and generate the plan to
+        No maintenance reminders yet. Add the services this vehicle needs to
         start tracking due intervals.
       </p>
     );
@@ -330,236 +285,6 @@ function CostPanel({
   );
 }
 
-// ── Template set editor (setup + change) ────────────────────────────────────
-
-function TemplateSetEditor({
-  orgId,
-  vehicle,
-  templates,
-  planItems,
-  onDone,
-}: {
-  orgId: string | null;
-  vehicle: FleetVehicle;
-  templates: MaintenanceTemplate[];
-  planItems: VehiclePlanItem[];
-  onDone?: () => void;
-}) {
-  const assignTemplate = useAssignVehicleTemplate(orgId);
-  const generatePlan = useGenerateMaintenancePlan(orgId);
-
-  const vehicleClass = (vehicle.vehicle_class ?? "car") as VehicleClass;
-  const assignedClass = vehicle.maintenance_template_class ?? null;
-
-  const [selectedClass, setSelectedClass] = useState<string>(assignedClass ?? "");
-  const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [confirmGenerate, setConfirmGenerate] = useState(false);
-  const [generateResult, setGenerateResult] = useState<{ created: number; skipped: number } | null>(
-    null,
-  );
-
-  const setForClass = useMemo(
-    () => (cls: string) => templateSet(templates, vehicle, cls),
-    [templates, vehicle],
-  );
-
-  const classOptions = useMemo(() => {
-    const present = new Set(templates.filter((t) => t.enabled).map((t) => t.vehicle_class));
-    return vehicleClassOptions
-      .filter((o) => present.has(o.value))
-      .map((o) => ({ ...o, count: setForClass(o.value).length }));
-  }, [templates, setForClass]);
-
-  const setItems = useMemo(() => setForClass(vehicleClass), [setForClass, vehicleClass]);
-
-  const existingNames = useMemo(
-    () => new Set(planItems.map((item) => item.name.trim().toLowerCase())),
-    [planItems],
-  );
-
-  // Reset the checklist to "all checked" whenever the set or the plan changes.
-  const checklistKey = `${setItems.map((i) => i.id).join(",")}|${[...existingNames]
-    .sort()
-    .join(",")}`;
-  useEffect(() => {
-    setSelectedItems(new Set(setItems.map((i) => i.id)));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checklistKey]);
-
-  useEffect(() => {
-    setSelectedClass(assignedClass ?? "");
-  }, [assignedClass]);
-
-  const selectableSelected = setItems.filter(
-    (item) => selectedItems.has(item.id) && !existingNames.has(item.name.trim().toLowerCase()),
-  ).length;
-
-  async function onAssign() {
-    if (!selectedClass) return;
-    setActionError(null);
-    setGenerateResult(null);
-    try {
-      await assignTemplate.mutateAsync({
-        vehicleId: vehicle.id,
-        vehicleClass: selectedClass as VehicleClass,
-      });
-    } catch (error) {
-      setActionError(error instanceof Error ? error.message : "Failed to assign template set");
-    }
-  }
-
-  async function onClear() {
-    setActionError(null);
-    setGenerateResult(null);
-    try {
-      await assignTemplate.mutateAsync({ vehicleId: vehicle.id, vehicleClass: null });
-    } catch (error) {
-      setActionError(error instanceof Error ? error.message : "Failed to clear template set");
-    }
-  }
-
-  async function onGenerate() {
-    setActionError(null);
-    try {
-      const result = await generatePlan.mutateAsync({
-        vehicleId: vehicle.id,
-        itemIds: [...selectedItems],
-      });
-      setGenerateResult(result);
-      setConfirmGenerate(false);
-      onDone?.();
-    } catch (error) {
-      setActionError(error instanceof Error ? error.message : "Failed to generate plan");
-      setConfirmGenerate(false);
-    }
-  }
-
-  function toggleItem(id: string) {
-    setSelectedItems((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  return (
-    <div className="flex flex-col gap-5">
-      <div>
-        <div className="flex flex-wrap items-end gap-3">
-          <Select
-            label="Template set"
-            options={classOptions.map((o) => ({
-              value: o.value,
-              label: `${o.label} (${o.count} ${o.count === 1 ? "item" : "items"})`,
-              disabled: o.value !== vehicleClass,
-            }))}
-            placeholder="Choose a template set…"
-            value={selectedClass}
-            onChange={setSelectedClass}
-            className="w-full sm:w-72"
-          />
-          <Button
-            className="h-11"
-            disabled={!selectedClass || selectedClass !== vehicleClass || assignTemplate.isPending}
-            onClick={() => void onAssign()}
-          >
-            Assign
-          </Button>
-          {assignedClass ? (
-            <Button
-              variant="secondary"
-              className="h-11"
-              disabled={assignTemplate.isPending}
-              onClick={() => void onClear()}
-            >
-              Clear
-            </Button>
-          ) : null}
-        </div>
-        <p className="mt-2 max-w-lg text-xs text-ink-caption">
-          Only the {classLabel(vehicleClass)} set applies to this vehicle. Other vehicle classes are
-          shown for reference and cannot be assigned here.
-        </p>
-      </div>
-
-      {assignedClass ? (
-        <div>
-          <p className="text-sm font-medium text-ink">Items in this set</p>
-          <p className="mt-0.5 text-xs text-ink-caption">
-            Everything is selected by default. Clear a checkbox to skip that item for now.
-          </p>
-          {setItems.length === 0 ? (
-            <p className="mt-3 text-sm text-ink-caption">
-              No enabled catalog items match this vehicle&apos;s class, lifecycle, and fuel.
-            </p>
-          ) : (
-            <ul className="mt-3 divide-y divide-line-subtle border-y border-line-subtle">
-              {setItems.map((item) => {
-                const already = existingNames.has(item.name.trim().toLowerCase());
-                return (
-                  <li key={item.id} className="flex items-center gap-3 py-2.5">
-                    <input
-                      type="checkbox"
-                      aria-label={`Include ${item.name}`}
-                      checked={selectedItems.has(item.id)}
-                      disabled={already}
-                      onChange={() => toggleItem(item.id)}
-                      className="size-4 accent-[var(--accent)]"
-                    />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm text-ink">{item.name}</p>
-                      <p className="mt-0.5 text-xs text-ink-caption">{intervalSummary(item)}</p>
-                    </div>
-                    {already ? <Badge tone="neutral">Already in plan</Badge> : null}
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-ink-caption">
-              <span className="font-mono text-ink">{selectableSelected}</span> selected and ready to
-              add
-            </p>
-            <Button
-              disabled={selectableSelected === 0 || generatePlan.isPending}
-              onClick={() => setConfirmGenerate(true)}
-            >
-              Generate plan
-            </Button>
-          </div>
-        </div>
-      ) : null}
-
-      {generateResult ? (
-        <p className="rounded-md bg-success-dim px-3 py-2 text-sm text-success">
-          {generateResult.created} item{generateResult.created === 1 ? "" : "s"} added,{" "}
-          {generateResult.skipped} skipped because they were already in the plan.
-        </p>
-      ) : null}
-      {actionError ? (
-        <p className="rounded-md bg-danger-dim px-3 py-2 text-sm text-danger">{actionError}</p>
-      ) : null}
-
-      <Modal
-        open={confirmGenerate}
-        onClose={() => setConfirmGenerate(false)}
-        title="Generate maintenance plan"
-        confirmLabel="Generate plan"
-        loading={generatePlan.isPending}
-        onSubmit={() => void onGenerate()}
-      >
-        <p>
-          Add the {selectableSelected} selected item{selectableSelected === 1 ? "" : "s"} to this
-          vehicle&apos;s plan? Items already in the plan are skipped, so this is safe to run again.
-        </p>
-      </Modal>
-    </div>
-  );
-}
-
 // ── Working surfaces ────────────────────────────────────────────────────────
 
 function ServiceHistorySection({ orgId, vehicleId }: { orgId: string | null; vehicleId: string }) {
@@ -614,117 +339,6 @@ function ServiceHistorySection({ orgId, vehicleId }: { orgId: string | null; veh
   );
 }
 
-function MaintenancePlanSection({
-  orgId,
-  vehicle,
-  templates,
-  planItems,
-  canManage,
-}: {
-  orgId: string | null;
-  vehicle: FleetVehicle;
-  templates: MaintenanceTemplate[];
-  planItems: VehiclePlanItem[];
-  canManage: boolean;
-}) {
-  const [manageOpen, setManageOpen] = useState(false);
-  const assignedClass = vehicle.maintenance_template_class ?? null;
-  const assignedCount = assignedClass
-    ? templateSet(templates, vehicle, assignedClass).length
-    : 0;
-
-  const sorted = [...planItems].sort((a, b) => {
-    const aOverdue = planDueTone(a, vehicle.mileage) === "danger" ? 0 : 1;
-    const bOverdue = planDueTone(b, vehicle.mileage) === "danger" ? 0 : 1;
-    if (aOverdue !== bOverdue) return aOverdue - bOverdue;
-    return a.name.localeCompare(b.name);
-  });
-
-  return (
-    <>
-      <Card className="flex h-full flex-col">
-        <SectionHeading title="Maintenance plan" count={planItems.length}>
-          <div className="flex items-center gap-2 text-xs">
-            <span className="text-ink-caption">Template set</span>
-            <span className="text-ink">
-              {assignedClass ? `${classLabel(assignedClass)} (${assignedCount})` : "Not assigned"}
-            </span>
-            {canManage ? (
-              <button
-                type="button"
-                onClick={() => setManageOpen(true)}
-                className="font-display text-xs font-semibold text-gold hover:underline"
-              >
-                Change
-              </button>
-            ) : null}
-          </div>
-        </SectionHeading>
-
-        <div className="flex-1 p-5">
-          {planItems.length === 0 ? (
-            <EmptyState
-              title="No plan items yet"
-              description={
-                canManage
-                  ? "Set up the maintenance template above, then generate the plan to fill this list."
-                  : "Nothing has been generated yet. Maintenance setup requires the Org Admin or Manager role."
-              }
-            />
-          ) : (
-            <ul className="divide-y divide-line-subtle">
-              {sorted.map((item) => {
-                const due = planDueLabel(item, vehicle.mileage);
-                const dueParts = [
-                  item.next_due_on ? formatDate(item.next_due_on) : null,
-                  item.next_due_mileage ? `${item.next_due_mileage.toLocaleString()} km` : null,
-                ].filter(Boolean);
-                return (
-                  <li
-                    key={item.id}
-                    className="flex items-center justify-between gap-4 py-3 first:pt-0 last:pb-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-ink">{item.name}</p>
-                      <p className="mt-1 text-xs text-ink-caption">
-                        {intervalSummary(item)}
-                        {dueParts.length ? (
-                          <>
-                            <span className="mx-1.5 text-ink-faint">/</span>
-                            Due {dueParts.join(" or ")}
-                          </>
-                        ) : null}
-                      </p>
-                    </div>
-                    <Badge tone={due.tone}>{due.label}</Badge>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      </Card>
-
-      <Modal
-        open={manageOpen}
-        onClose={() => setManageOpen(false)}
-        title="Maintenance template set"
-        confirmLabel="Done"
-        onSubmit={() => setManageOpen(false)}
-      >
-        <div className="max-h-[60vh] overflow-y-auto pr-1">
-          <TemplateSetEditor
-            orgId={orgId}
-            vehicle={vehicle}
-            templates={templates}
-            planItems={planItems}
-          />
-        </div>
-      </Modal>
-    </>
-  );
-}
-
 // ── Page ────────────────────────────────────────────────────────────────────
 
 export default function VehicleDetailPage() {
@@ -736,12 +350,10 @@ export default function VehicleDetailPage() {
   const canManage = role === "org_admin" || role === "org_manager";
 
   const { data: vehicles, isLoading } = useVehicles(orgId);
-  const { data: templatesData } = useMaintenanceTemplates(orgId);
   const { data: planData } = useVehiclePlanItems(orgId, vehicleId);
   const { data: analytics, isLoading: analyticsLoading } = useVehicleAnalytics(orgId, vehicleId);
 
   const vehicle = vehicles?.items.find((v) => v.id === vehicleId);
-  const templates = useMemo(() => templatesData?.items ?? [], [templatesData]);
   const planItems = useMemo(() => planData?.items ?? [], [planData]);
 
   if (isLoading) {
@@ -777,7 +389,6 @@ export default function VehicleDetailPage() {
     );
   }
 
-  const showSetup = canManage && planItems.length === 0;
 
   return (
     <div className="flex flex-col gap-6">
@@ -816,24 +427,6 @@ export default function VehicleDetailPage() {
       <VehicleDataPlate vehicle={vehicle} />
       {orgId && role === "org_admin" && <VehicleDocuments key={`${orgId}:${vehicle.id}`} orgId={orgId} vehicleId={vehicle.id} />}
 
-      {showSetup ? (
-        <section className="rounded-lg border border-line-strong bg-card p-5 sm:p-6">
-          <h2 className="font-display text-lg font-semibold text-ink">Set up maintenance</h2>
-          <p className="mt-1 max-w-2xl text-sm text-ink-caption">
-            Assign this vehicle&apos;s maintenance template set, choose the items it needs, and
-            generate its first plan. You can change the set later from the maintenance plan.
-          </p>
-          <div className="mt-5">
-            <TemplateSetEditor
-              orgId={orgId}
-              vehicle={vehicle}
-              templates={templates}
-              planItems={planItems}
-            />
-          </div>
-        </section>
-      ) : null}
-
       <section className="rounded-lg border border-line-subtle bg-panel">
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] lg:divide-x lg:divide-line">
           <div className="p-5">
@@ -852,13 +445,7 @@ export default function VehicleDetailPage() {
           <ServiceHistorySection orgId={orgId} vehicleId={vehicle.id} />
         </div>
         <div className="lg:col-span-2">
-          <MaintenancePlanSection
-            orgId={orgId}
-            vehicle={vehicle}
-            templates={templates}
-            planItems={planItems}
-            canManage={canManage}
-          />
+          <ReminderSetup orgId={orgId} vehicleId={vehicle.id} items={planItems} canManage={canManage} />
         </div>
       </div>
     </div>

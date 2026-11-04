@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/core/sync/organization_sync_api.dart';
@@ -21,6 +22,103 @@ void main() {
     writer = OrganizationOutboxWriter(db);
   });
   tearDown(() => db.close());
+
+  test(
+    'fleet kilometer thresholds and service mileage round-trip through canonical storage',
+    () async {
+      final dio = Dio();
+      Map<String, dynamic>? submitted;
+      dio.interceptors.add(
+        InterceptorsWrapper(
+          onRequest: (options, handler) {
+            if (options.path.endsWith('/sync/push')) {
+              submitted = Map<String, dynamic>.from(
+                ((options.data as Map)['operations'] as List).single['payload']
+                    as Map,
+              );
+              handler.resolve(
+                Response(
+                  requestOptions: options,
+                  data: {
+                    'results': [
+                      {'entity_id': 'service', 'status': 'applied'},
+                    ],
+                  },
+                ),
+              );
+            } else {
+              handler.resolve(
+                Response(
+                  requestOptions: options,
+                  data: options.path.endsWith('/reviews')
+                      ? {'items': <Object>[]}
+                      : {
+                          'cursor': '1',
+                          'assigned_vehicle_ids': <String>[],
+                          'changes': [
+                            {
+                              'entity_type': 'plan_item',
+                              'entity_id': 'plan',
+                              'op': 'upsert',
+                              'server_ts': '2026-01-01T00:00:00Z',
+                              'payload': {
+                                'next_due_mileage': 33000,
+                                'interval_distance': 5000,
+                                'warning_distance': 500,
+                              },
+                            },
+                          ],
+                        },
+                ),
+              );
+            }
+          },
+        ),
+      );
+      final api = OrganizationSyncApi(dio, db, 'org', 'driver');
+      final page = await api.pull('');
+      final stored = page.changes.single.payload['next_due_mileage'] as double;
+      expect(MileageUnit.km.toDisplay(stored), closeTo(33000, 0.001));
+      await api.push([
+        SyncOperationDto(
+          entityType: 'service_record',
+          entityId: 'service',
+          op: 'upsert',
+          payload: {'vehicle_id': 'vehicle', 'odometer': stored},
+          clientTs: DateTime(2026),
+        ),
+      ]);
+      expect(submitted!['odometer'] as double, closeTo(33000, 0.001));
+    },
+  );
+
+  test('fleet cache upgrade normalizes old kilometers without converting pending logs twice', () async {
+    final directory = await Directory.systemTemp.createTemp('fleet-distance-upgrade');
+    final file = File('${directory.path}/fleet.sqlite');
+    var legacy = AppDatabase.scoped('dco_org_upgrade', executor: NativeDatabase(file));
+    try {
+      final applier = ChangeApplier(legacy);
+      Future<void> apply(String kind, String id, Map<String,dynamic> payload) => applier.apply(
+        SyncChange(entityType:kind,entityId:id,op:SyncChangeOp.upsert,payload:payload,serverTs:DateTime.utc(2026)), userId:'driver');
+      await apply('vehicle','vehicle',{'id':'vehicle','user_id':'driver','name':'Motorcycle','mileage':1609.344,'mileage_unit':'km'});
+      for (final id in ['remote','pending']) {
+        await apply('service_record',id,{'id':id,'vehicle_id':'vehicle','odometer':id=='remote'?804.672:500.0,'total_cost':42.0,'serviced_on':'2026-01-01','items':<Object>[]});
+      }
+      await OrganizationOutboxWriter(legacy).enqueue(userId:'driver',entityType:'service_record',entityId:'pending',op:OutboxOp.upsert,
+        payload:{'vehicle_id':'vehicle','odometer':500.0});
+      await legacy.customStatement('PRAGMA user_version=26');
+      await legacy.close();
+      legacy = AppDatabase.scoped('dco_org_upgrade', executor: NativeDatabase(file));
+      expect((await legacy.select(legacy.vehicleRecords).getSingle()).mileage, closeTo(1000,0.001));
+      final services = await legacy.select(legacy.serviceRecordRows).get();
+      expect(services.firstWhere((row)=>row.id=='remote').odometer, closeTo(500,0.001));
+      expect(services.firstWhere((row)=>row.id=='pending').odometer, 500);
+      expect(services.every((row)=>row.totalCost==42), isTrue);
+    } finally {
+      await legacy.close();
+      await directory.delete(recursive:true);
+    }
+  });
 
   Future<void> enqueue(
     Map<String, dynamic> payload, {

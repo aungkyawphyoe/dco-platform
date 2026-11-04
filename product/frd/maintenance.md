@@ -1,5 +1,66 @@
 # Maintenance Module
 
+## Simplified reminders and flexible service logging — approved 4 November 2026
+
+Status is approved for implementation. This section supersedes conflicting catalog, template, plan setup, and service logging requirements below and in `fleet-maintenance-templates.md`. Approval records the product contract. Implementation is ready for manual acceptance testing. The one-time development catalog reset and reminder-rule schema updates are applied to the local development database. The owner is handling manual testing.
+
+### Catalog and scope
+
+- Platform admins manage a shared names-only service catalog. Remove catalog mileage and time defaults from API schemas and admin forms.
+- Show the full suggested catalog for every vehicle, without vehicle-class, lifecycle, or fuel filtering. Every item follows the same behavior, including Mileage Update.
+- Seed Air Conditioning, Air Filter, Battery, Belts, Brake Fluid, Brake Pads, Car Wash, Fuel Filter, Lights, Mileage Update, New Tires, Oil Change, Oil Filter, Schedule Maintenance, Suspension/Shock Absorbers, Tires - Alignment/Balancing, Tires - Pressure, and Tire - Rotation.
+- Remove reusable fleet interval templates, class assignment, and template-based plan generation. Fleet managers configure reminders per vehicle.
+- Custom service names belong to the vehicle. They do not become shared catalog suggestions.
+- Removing a catalog suggestion preserves existing reminders, their names, and service history. Existing reminders remain selectable during service logging.
+
+### Reminder setup and permissions
+
+- Offer Create Custom Service Item and Add Suggested Item. Selecting a suggestion opens a bottom sheet with its name filled in. Use the bottom-sheet setup flow in mobile and Fleet Portal.
+- Require at least one explicit first due target, expressed as an odometer reading, a date, or both. Users select which suggested items to add.
+- Support one-time reminders and optional repetition. A distance repeat requires a first due odometer reading. A time repeat requires a first due date.
+- Store targets separately from repeat intervals. Both date and distance targets use whichever is reached first.
+- Time repeats support days, calendar months, and calendar years. Clamp to the destination month's last valid day when needed.
+- Configure distance and date advance warnings per reminder. Prefill from the owner's existing reminder settings and allow overrides. Show warnings only for the corresponding enabled target. Either warning can make a reminder upcoming.
+- Allow at most one active reminder per catalog item per vehicle. Selecting an already active item during setup opens it for editing. Separately named custom reminders can have independent schedules.
+- Personal owners manage their reminders and log services. Fleet managers manage fleet reminders. Fleet drivers can log planned, unplanned, and custom services.
+
+### Completed-service logging
+
+- Display the full suggested catalog, existing vehicle reminders, and custom-name entry in the registration sheet. Selecting a planned catalog item from either entry point resolves to the same reminder by catalog ID.
+- Select existing custom reminders explicitly. A newly typed service name records a history-only item and does not match a reminder by text similarity.
+- Support multiple completed items in one visit with one service date, odometer reading, and total cost. Update each selected matching reminder independently.
+- Logging an item without a matching reminder creates service history without creating a reminder.
+- Require the actual service odometer reading when any selected matching reminder repeats by distance. Date-only reminders and history-only services may be logged without mileage.
+- Complete a matching one-time reminder. Recalculate a matching recurring reminder from the actual service date and odometer reading using its configured repeat intervals.
+- Use the service date to determine the most recent matching service. Entering an older service must not replace a schedule established by a newer service.
+- Corrections and deletions recalculate affected reminders from remaining matching history. If no matching history remains, restore the explicit setup baseline. Reopen a one-time reminder when its completing service is deleted and no remaining service completes it.
+- Preserve manually edited next-due targets when older service records are corrected or deleted. A newly completed service resumes recurrence from its actual date and mileage.
+
+### Data contract and development reset
+
+The vehicle reminder contract must represent vehicle identity, catalog identity or a vehicle-local custom name, first due targets, current next due targets, optional distance repetition, optional time repetition with its calendar unit, per-reminder warning values, and completion state. Preserve the setup baseline and manual edits sufficiently to apply the recalculation rules above. Service visits must link their selected items to the appropriate catalog items and reminders.
+
+Existing development maintenance catalog, template, reminder, and service-log data may be discarded and the new catalog seeded. There are no production users requiring migration of these records. Limit the reset to maintenance data and its dependent records.
+
+### Acceptance criteria
+
+- [ ] Admin catalog endpoints and forms contain service names without interval defaults.
+- [ ] Every vehicle can access the complete seeded catalog with uniform item behavior.
+- [ ] Suggested-item selection opens a prefilled bottom sheet requiring at least one manual due target.
+- [ ] One-time and recurring reminders support distance, date, or both, with either target making them due.
+- [ ] Repeat rules require corresponding first targets and preserve calendar units.
+- [ ] Reminder warnings default from owner settings and can be overridden per reminder.
+- [ ] Duplicate active catalog reminders open the existing reminder for editing.
+- [ ] Fleet setup works per vehicle and permissions enforce manager setup and driver logging.
+- [ ] A service visit supports multiple planned, unplanned, and custom items with a shared total cost.
+- [ ] Catalog-ID matching updates planned items regardless of where they were selected.
+- [ ] Recurring distance services require actual mileage and calculate from that reading.
+- [ ] Older entries, corrections, deletions, one-time completion, and manual target edits follow the rules above.
+- [ ] Removing catalog suggestions preserves existing reminders and history.
+- [x] Development maintenance data is reset and the approved catalog seeded.
+
+---
+
 ## Driver maintenance parity — approved 18 October 2026
 
 Drivers use the shared completed-service form, with planned and unplanned logging. Only Fleet Admin manages plans. Planned-service corrections/deletions recalculate due dates from the remaining history and restore the admin baseline when none remains. Ordinary logging needs no approval. Report Issue is a separate workflow.

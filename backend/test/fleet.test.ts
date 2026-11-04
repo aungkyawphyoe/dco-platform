@@ -924,7 +924,7 @@ describe("Driver surface realignment (WP1)", () => {
     const id = uuid();
     const planId = uuid();
     const plan = await app.inject({ method: "POST", url: `${base}/vehicles/${vehicleId}/plan-items`, headers: auth(fleetToken),
-      payload: { id: planId, name: "Oil", interval_days: 30, interval_distance: 1000 } });
+      payload: { next_due_on: "2027-01-01", next_due_mileage: 15000, id: planId, name: "Oil", interval_days: 30, interval_distance: 1000 } });
     expect(plan.statusCode).toBe(201);
     const baseline = plan.json();
     const created = await app.inject({ method: "POST", url: `${base}/vehicles/${vehicleId}/service-records`, headers: auth(driver.token),
@@ -987,8 +987,8 @@ describe("Driver surface realignment (WP1)", () => {
     expect(locked.statusCode).toBe(409);
     expect(locked.json().error.code).toBe("admin_corrected");
     expect((await app.inject({ method: "GET", url: `/v1/organizations/${uuid()}/records/vehicles/${vehicleId}/expenses`, headers: auth(first.token) })).statusCode).toBe(403);
-    expect((await app.inject({ method: "POST", url: `${base}/vehicles/${vehicleId}/plan-items`, headers: auth(first.token), payload: { id: uuid(), name: "Oil", interval_days: 90 } })).statusCode).toBe(403);
-    expect((await app.inject({ method: "POST", url: `${base}/vehicles/${vehicleId}/plan-items`, headers: auth(fleetToken), payload: { id: uuid(), name: "Oil", interval_days: 90 } })).statusCode).toBe(201);
+    expect((await app.inject({ method: "POST", url: `${base}/vehicles/${vehicleId}/plan-items`, headers: auth(first.token), payload: { next_due_on: "2027-01-01", next_due_mileage: 15000, id: uuid(), name: "Oil", interval_days: 90 } })).statusCode).toBe(403);
+    expect((await app.inject({ method: "POST", url: `${base}/vehicles/${vehicleId}/plan-items`, headers: auth(fleetToken), payload: { next_due_on: "2027-01-01", next_due_mileage: 15000, id: uuid(), name: "Oil", interval_days: 90 } })).statusCode).toBe(201);
     const snapshot = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/sync/changes?cursor=`, headers: auth(first.token) });
     expect(snapshot.statusCode).toBe(200);
     expect(snapshot.json().assigned_vehicle_ids).toEqual([vehicleId]);
@@ -1099,7 +1099,7 @@ describe("Driver surface realignment (WP1)", () => {
     });
     const planItem = await app.inject({
       method: "POST", url: `/v1/organizations/${orgId}/records/vehicles/${vehicleId}/plan-items`, headers: auth(fleetToken),
-      payload: { id: uuid(), name: "Oil change", interval_days: 90, interval_distance: 10000 },
+      payload: { next_due_on: "2027-01-01", next_due_mileage: 15000, id: uuid(), name: "Oil change", interval_days: 90, interval_distance: 10000 },
     });
     expect(planItem.statusCode).toBe(201);
     const planItemId = planItem.json().id as string;
@@ -1185,508 +1185,49 @@ describe("Driver surface realignment (WP1)", () => {
   });
 });
 
-describe("Fleet maintenance templates", () => {
-  it("lists global and org templates, snapshots plans once, and gates driver plan access", async () => {
-    const { app } = await createTestApp();
-    const platformAdmin = await adminToken(app);
-    const fleetOwner = await signup(app, "tpl-owner");
-    const driverAEmail = `tpl-driver-a-${uuid()}@test.local`;
-    const driverBEmail = `tpl-driver-b-${uuid()}@test.local`;
-    const personalOwner = await signup(app, "tpl-personal");
-
-    const created = await app.inject({
-      method: "POST",
-      url: "/v1/admin/organizations",
-      headers: auth(platformAdmin),
-      payload: { name: "Template Fleet", type: "taxi_fleet", admin_email: fleetOwner.email },
-    });
-    expect(created.statusCode).toBe(201);
-    const org = created.json();
-    await grantTestFleet(app, platformAdmin, org.id);
-    const activated = await app.inject({
-      method: "PATCH",
-      url: `/v1/admin/organizations/${org.id}/status`,
-      headers: auth(platformAdmin),
-      payload: { status: "active" },
-    });
-    expect(activated.statusCode).toBe(200);
-
-    const fleetLogin = await app.inject({
-      method: "POST",
-      url: "/v1/auth/login",
-      payload: { email: fleetOwner.email, password: "password1", surface: "fleet" },
-    });
-    expect(fleetLogin.statusCode).toBe(200);
-    const fleetToken = fleetLogin.json().access_token as string;
-
-    // Global template list: 11 car + 10 motorcycle + 14 truck + 12 van.
-    const list = await app.inject({
-      method: "GET",
-      url: `/v1/organizations/${org.id}/maintenance-templates`,
-      headers: auth(fleetToken),
-    });
-    expect(list.statusCode).toBe(200);
-    expect(list.json().items).toHaveLength(47);
-    expect(list.json().items.every((item: { source: string }) => item.source === "global")).toBe(true);
-
-    const truckList = await app.inject({
-      method: "GET",
-      url: `/v1/organizations/${org.id}/maintenance-templates?vehicle_class=truck`,
-      headers: auth(fleetToken),
-    });
-    expect(truckList.json().items).toHaveLength(14);
-    expect(truckList.json().items.every((item: { vehicle_class: string }) => item.vehicle_class === "truck")).toBe(true);
-
-    const electricList = await app.inject({
-      method: "GET",
-      url: `/v1/organizations/${org.id}/maintenance-templates?fuel_type=electric`,
-      headers: auth(fleetToken),
-    });
-    expect(electricList.json().items.length).toBeGreaterThan(0);
-    expect(
-      electricList.json().items.every((item: { fuel_types: string[] }) => item.fuel_types.includes("electric")),
-    ).toBe(true);
-
-    // Vehicle setup: petrol car in a taxi fleet, with driver A assigned.
-    const vehicleId = uuid();
-    const addedVehicle = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/vehicles`,
-      headers: auth(fleetToken),
-      payload: {
-        id: vehicleId, name: "Taxi T1", make: "Toyota", model: "Camry", year: 2022,
-        license_plate: `TPL${vehicleId.slice(0, 4)}`, vin: vehicleId.replaceAll("-", "").slice(0, 17),
-        fuel_type: "petrol", mileage: 100, lifecycle_template: "taxi_fleet",
-      },
-    });
-    expect(addedVehicle.statusCode).toBe(201);
-    expect(addedVehicle.json().vehicle_class).toBe("car");
-
-    const addDriverA = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/members`,
-      headers: auth(fleetToken),
-      payload: { email: driverAEmail, role: "org_driver", temporary_password: "TempPass123" },
-    });
-    expect(addDriverA.statusCode).toBe(201);
-    const driverAId = addDriverA.json().user_id as string;
-    const assignA = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/assignments`,
-      headers: auth(fleetToken),
-      payload: { vehicle_id: vehicleId, driver_id: driverAId },
-    });
-    expect(assignA.statusCode).toBe(201);
-
-    // A truck set must not attach to a car (class-level match rule).
-    const mismatched = await app.inject({
-      method: "PUT",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
-      headers: auth(fleetToken),
-      payload: { vehicle_class: "truck" },
-    });
-    expect(mismatched.statusCode).toBe(400);
-    expect(mismatched.json().error.code).toBe("template_mismatch");
-
-    // Assign the vehicle's own class set (the only selectable option).
-    const oilId = list.json().items.find((item: { catalog_key: string }) => item.catalog_key === "oil_change").id;
-    const assignedCar = await app.inject({
-      method: "PUT",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
-      headers: auth(fleetToken),
-      payload: { vehicle_class: "car" },
-    });
-    expect(assignedCar.statusCode).toBe(200);
-    expect(assignedCar.json().maintenance_template_class).toBe("car");
-
-    const patchGlobal = await app.inject({
-      method: "PATCH",
-      url: `/v1/organizations/${org.id}/maintenance-templates/${oilId}`,
-      headers: auth(fleetToken),
-      payload: { interval_days: 180 },
-    });
-    expect(patchGlobal.statusCode).toBe(403);
-    expect(patchGlobal.json().error.code).toBe("global_template_readonly");
-    const deleteGlobal = await app.inject({
-      method: "DELETE",
-      url: `/v1/organizations/${org.id}/maintenance-templates/${oilId}`,
-      headers: auth(fleetToken),
-    });
-    expect(deleteGlobal.statusCode).toBe(403);
-
-    // Org copy of a global template, with a per-fleet interval override.
-    const copyResponse = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/maintenance-templates`,
-      headers: auth(fleetToken),
-      payload: { source_template_id: oilId, interval_distance: 8000 },
-    });
-    expect(copyResponse.statusCode).toBe(201);
-    const copy = copyResponse.json();
-    expect(copy.source).toBe("org");
-    expect(copy.name).toBe("Oil Change");
-    expect(copy.vehicle_class).toBe("car");
-    expect(copy.interval_distance).toBe(8000);
-    expect(copy.catalog_key).toMatch(/^oil_change__[a-z0-9]{5}$/);
-
-    const patchedCopy = await app.inject({
-      method: "PATCH",
-      url: `/v1/organizations/${org.id}/maintenance-templates/${copy.id}`,
-      headers: auth(fleetToken),
-      payload: { interval_days: 180 },
-    });
-    expect(patchedCopy.statusCode).toBe(200);
-    expect(patchedCopy.json().interval_days).toBe(180);
-
-    const listWithCopy = await app.inject({
-      method: "GET",
-      url: `/v1/organizations/${org.id}/maintenance-templates`,
-      headers: auth(fleetToken),
-    });
-    const copyInList = listWithCopy.json().items.find((item: { id: string }) => item.id === copy.id);
-    expect(copyInList.source).toBe("org");
-
-    // The car/petrol taxi set: dedupe by name with the org copy winning → 11 items.
-    const carSet = (() => {
-      const byName = new Map<string, { id: string; source: string }>();
-      for (const item of listWithCopy.json().items as {
-        id: string; source: string; enabled: boolean; vehicle_class: string;
-        fuel_types: string[]; lifecycle_template: string | null; name: string;
-      }[]) {
-        if (!item.enabled || item.vehicle_class !== "car" || !item.fuel_types.includes("petrol")) continue;
-        if (item.lifecycle_template != null && item.lifecycle_template !== "taxi_fleet") continue;
-        const key = item.name.trim().toLowerCase();
-        const current = byName.get(key);
-        if (!current || (current.source === "global" && item.source === "org")) byName.set(key, item);
-      }
-      return [...byName.values()];
-    })();
-    expect(carSet).toHaveLength(11);
-    const setIds = carSet.map((item) => item.id);
-
-    // Generation without an assignment is rejected.
-    const noTemplateVehicleId = uuid();
-    const secondVehicle = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/vehicles`,
-      headers: auth(fleetToken),
-      payload: {
-        id: noTemplateVehicleId, name: "Taxi T2", make: "Toyota", model: "Corolla", year: 2021,
-        license_plate: `TPX${noTemplateVehicleId.slice(0, 4)}`, vin: noTemplateVehicleId.replaceAll("-", "").slice(0, 17),
-        fuel_type: "petrol", mileage: 50, lifecycle_template: "taxi_fleet",
-      },
-    });
-    expect(secondVehicle.statusCode).toBe(201);
-    const generateUnassigned = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/vehicles/${noTemplateVehicleId}/maintenance-template/generate`,
-      headers: auth(fleetToken),
-    });
-    expect(generateUnassigned.statusCode).toBe(400);
-    expect(generateUnassigned.json().error.code).toBe("template_not_assigned");
-
-    // Selection must belong to the assigned set.
-    const invalidSelection = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template/generate`,
-      headers: auth(fleetToken),
-      payload: { item_ids: [uuid()] },
-    });
-    expect(invalidSelection.statusCode).toBe(422);
-    expect(invalidSelection.json().error.code).toBe("invalid_selection");
-
-    // Snapshot only the selected items, then the rest (skip existing names).
-    const generated = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template/generate`,
-      headers: auth(fleetToken),
-      payload: { item_ids: setIds.slice(0, 3) },
-    });
-    expect(generated.statusCode).toBe(200);
-    expect(generated.json()).toEqual({ created: 3, skipped: 0 });
-
-    const generatedRest = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template/generate`,
-      headers: auth(fleetToken),
-      payload: { item_ids: setIds },
-    });
-    expect(generatedRest.statusCode).toBe(200);
-    expect(generatedRest.json()).toEqual({ created: 8, skipped: 3 });
-
-    const regenerate = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template/generate`,
-      headers: auth(fleetToken),
-      payload: { item_ids: setIds },
-    });
-    expect(regenerate.statusCode).toBe(200);
-    expect(regenerate.json()).toEqual({ created: 0, skipped: 11 });
-
-    // Driver A (owner-audience token) reads the snapshot plan and may extend it.
-    const driverALogin = await app.inject({
-      method: "POST",
-      url: "/v1/auth/login",
-      payload: { email: driverAEmail, password: "TempPass123" },
-    });
-    expect(driverALogin.statusCode).toBe(200);
-    const tempDriverAToken = driverALogin.json().access_token as string;
-    const changePwA = await app.inject({
-      method: "POST",
-      url: "/v1/auth/change-password",
-      headers: auth(tempDriverAToken),
-      payload: { current_password: "TempPass123", new_password: "password1" },
-    });
-    expect(changePwA.statusCode).toBe(204);
-    const driverARelogin = await app.inject({
-      method: "POST",
-      url: "/v1/auth/login",
-      payload: { email: driverAEmail, password: "password1" },
-    });
-    expect(driverARelogin.statusCode).toBe(200);
-    const driverToken = driverARelogin.json().access_token as string;
-
-    const driverPlan = await app.inject({
-      method: "GET",
-      url: `/v1/drivers/vehicles/${vehicleId}/plan-items`,
-      headers: auth(driverToken),
-    });
-    expect(driverPlan.statusCode).toBe(200);
-    expect(driverPlan.json().items).toHaveLength(11);
-    const oilItem = driverPlan.json().items.find((item: { name: string }) => item.name === "Oil Change");
-    expect(oilItem.interval_distance).toBe(8000);
-    expect(oilItem.next_due_mileage).toBe(8100);
-
-    const extraId = uuid();
-    const addExtra = await app.inject({
-      method: "POST",
-      url: `/v1/drivers/vehicles/${vehicleId}/plan-items`,
-      headers: auth(driverToken),
-      payload: { id: extraId, name: "Extra Check", interval_days: 30 },
-    });
-    expect(addExtra.statusCode).toBe(403);
-    const addExtraAgain = await app.inject({
-      method: "POST",
-      url: `/v1/drivers/vehicles/${vehicleId}/plan-items`,
-      headers: auth(driverToken),
-      payload: { id: extraId, name: "Extra Check", interval_days: 30 },
-    });
-    expect(addExtraAgain.statusCode).toBe(403);
-    const driverPlanAfter = await app.inject({
-      method: "GET",
-      url: `/v1/drivers/vehicles/${vehicleId}/plan-items`,
-      headers: auth(driverToken),
-    });
-    expect(driverPlanAfter.json().items).toHaveLength(11);
-
-    const addExtraNoInterval = await app.inject({
-      method: "POST",
-      url: `/v1/drivers/vehicles/${vehicleId}/plan-items`,
-      headers: auth(driverToken),
-      payload: { id: uuid(), name: "No Interval" },
-    });
-    expect(addExtraNoInterval.statusCode).toBe(403);
-    expect(addExtraNoInterval.json().error.code).toBe("plan_managed_by_admin");
-
-    // Suggested items derive from the assigned template set only (org copy wins by name).
-    const driverSuggested = await app.inject({
-      method: "GET",
-      url: `/v1/drivers/vehicles/${vehicleId}/suggested-plan-items`,
-      headers: auth(driverToken),
-    });
-    expect(driverSuggested.statusCode).toBe(200);
-    expect(driverSuggested.json().items).toHaveLength(11);
-    expect(
-      driverSuggested.json().items.every((item: { vehicle_class: string }) => item.vehicle_class === "car"),
-    ).toBe(true);
-    expect(
-      driverSuggested.json().items.filter((item: { name: string }) => item.name === "Oil Change"),
-    ).toHaveLength(1);
-    const suggestedOil = driverSuggested.json().items.find((item: { name: string }) => item.name === "Oil Change");
-    expect(suggestedOil.interval_days).toBe(180);
-
-    // No assignment on another vehicle → denied; portal routes reject owner surface.
-    const unassignedVehicle = await app.inject({
-      method: "GET",
-      url: `/v1/drivers/vehicles/${uuid()}/suggested-plan-items`,
-      headers: auth(driverToken),
-    });
-    expect(unassignedVehicle.statusCode).toBe(403);
-    expect(unassignedVehicle.json().error.code).toBe("driver_not_assigned");
-    const portalFromOwnerSurface = await app.inject({
-      method: "GET",
-      url: `/v1/organizations/${org.id}/maintenance-templates`,
-      headers: auth(driverToken),
-    });
-    expect(portalFromOwnerSurface.statusCode).toBe(403);
-
-    // Driver B on a vehicle without a template sees an empty suggestion list.
-    const addDriverB = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/members`,
-      headers: auth(fleetToken),
-      payload: { email: driverBEmail, role: "org_driver", temporary_password: "TempPass123" },
-    });
-    expect(addDriverB.statusCode).toBe(201);
-    const driverBId = addDriverB.json().user_id as string;
-    const assignB = await app.inject({
-      method: "POST",
-      url: `/v1/organizations/${org.id}/assignments`,
-      headers: auth(fleetToken),
-      payload: { vehicle_id: noTemplateVehicleId, driver_id: driverBId },
-    });
-    expect(assignB.statusCode).toBe(201);
-    const driverBTempLogin = await app.inject({
-      method: "POST",
-      url: "/v1/auth/login",
-      payload: { email: driverBEmail, password: "TempPass123" },
-    });
-    expect(driverBTempLogin.statusCode).toBe(200);
-    const changePwB = await app.inject({
-      method: "POST",
-      url: "/v1/auth/change-password",
-      headers: auth(driverBTempLogin.json().access_token as string),
-      payload: { current_password: "TempPass123", new_password: "password1" },
-    });
-    expect(changePwB.statusCode).toBe(204);
-    const driverBLogin = await app.inject({
-      method: "POST",
-      url: "/v1/auth/login",
-      payload: { email: driverBEmail, password: "password1" },
-    });
-    expect(driverBLogin.statusCode).toBe(200);
-    const driverBToken = driverBLogin.json().access_token as string;
-    const emptySuggested = await app.inject({
-      method: "GET",
-      url: `/v1/drivers/vehicles/${noTemplateVehicleId}/suggested-plan-items`,
-      headers: auth(driverBToken),
-    });
-    expect(emptySuggested.statusCode).toBe(200);
-    expect(emptySuggested.json().items).toHaveLength(0);
-    const crossVehicle = await app.inject({
-      method: "GET",
-      url: `/v1/drivers/vehicles/${vehicleId}/plan-items`,
-      headers: auth(driverBToken),
-    });
-    expect(crossVehicle.statusCode).toBe(403);
-    expect(crossVehicle.json().error.code).toBe("driver_not_assigned");
-
-    // Vehicle class can be corrected from the portal.
-    const reclass = await app.inject({
-      method: "PATCH",
-      url: `/v1/organizations/${org.id}/vehicles/${noTemplateVehicleId}`,
-      headers: auth(fleetToken),
-      payload: { status: "available", vehicle_class: "van" },
-    });
-    expect(reclass.statusCode).toBe(200);
-    expect(reclass.json().vehicle_class).toBe("van");
-
-    // Admin catalog: create/patch global rows with the new fields; org copies stay invisible.
-    const spark = await app.inject({
-      method: "POST",
-      url: "/v1/admin/maintenance-catalog",
-      headers: auth(platformAdmin),
-      payload: { name: "Spark Plug", fuel_types: ["petrol"], vehicle_class: "motorcycle", interval_days: 90 },
-    });
-    expect(spark.statusCode).toBe(201);
-    expect(spark.json().vehicle_class).toBe("motorcycle");
-    const sparkPatched = await app.inject({
-      method: "PATCH",
-      url: `/v1/admin/maintenance-catalog/${spark.json().id}`,
-      headers: auth(platformAdmin),
-      payload: { lifecycle_template: "rental" },
-    });
-    expect(sparkPatched.statusCode).toBe(200);
-    expect(sparkPatched.json().lifecycle_template).toBe("rental");
-
-    const adminList = await app.inject({
-      method: "GET",
-      url: "/v1/admin/maintenance-catalog",
-      headers: auth(platformAdmin),
-    });
-    expect(adminList.json().items).toHaveLength(48);
-    expect(
-      adminList.json().items.some((item: { id: string }) => item.id === copy.id),
-    ).toBe(false);
-    const adminMotorcycles = await app.inject({
-      method: "GET",
-      url: "/v1/admin/maintenance-catalog?vehicle_class=motorcycle",
-      headers: auth(platformAdmin),
-    });
-    expect(adminMotorcycles.json().items).toHaveLength(11);
-    const adminElectric = await app.inject({
-      method: "GET",
-      url: "/v1/admin/maintenance-catalog?fuel_type=electric",
-      headers: auth(platformAdmin),
-    });
-    expect(adminElectric.json().items.length).toBeGreaterThan(0);
-    for (const item of adminElectric.json().items) {
-      expect(item.fuel_types).toContain("electric");
-    }
-    const adminClasses = adminList.json().items.map(
-      (item: { vehicle_class: string }) => item.vehicle_class,
-    );
-    expect(adminClasses).toEqual([...adminClasses].sort());
-    const adminPatchCopy = await app.inject({
-      method: "PATCH",
-      url: `/v1/admin/maintenance-catalog/${copy.id}`,
-      headers: auth(platformAdmin),
-      payload: { enabled: false },
-    });
-    expect(adminPatchCopy.statusCode).toBe(403);
-    expect(adminPatchCopy.json().error.code).toBe("org_copy_readonly");
-
-    // Personal owner: defaults to car class and only ever sees the car catalog.
-    const personalVehicleId = uuid();
-    const personalVehicle = await app.inject({
-      method: "POST",
-      url: "/v1/vehicles",
-      headers: auth(personalOwner.token),
-      payload: {
-        id: personalVehicleId, name: "My Car", make: "Honda", model: "Fit", year: 2020,
-        license_plate: `PRC${personalVehicleId.slice(0, 4)}`, vin: personalVehicleId.replaceAll("-", "").slice(0, 17),
-        fuel_type: "petrol", mileage: 5000,
-      },
-    });
-    expect(personalVehicle.statusCode).toBe(201);
-    expect(personalVehicle.json().vehicle_class).toBe("car");
-    const personalSuggested = await app.inject({
-      method: "GET",
-      url: `/v1/vehicles/${personalVehicleId}/suggested-plan-items`,
-      headers: auth(personalOwner.token),
-    });
-    expect(personalSuggested.statusCode).toBe(200);
-    expect(personalSuggested.json().items).toHaveLength(11);
-    expect(
-      personalSuggested.json().items.every((item: { vehicle_class: string }) => item.vehicle_class === "car"),
-    ).toBe(true);
-
-    // Cleanup: clear the assignment, re-assign, then the org copy can be deleted
-    // (class-level assignment no longer blocks deleting a copy).
-    const cleared = await app.inject({
-      method: "PUT",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
-      headers: auth(fleetToken),
-      payload: { vehicle_class: null },
-    });
-    expect(cleared.statusCode).toBe(200);
-    expect(cleared.json().maintenance_template_class).toBeNull();
-    const reassignGlobal = await app.inject({
-      method: "PUT",
-      url: `/v1/organizations/${org.id}/vehicles/${vehicleId}/maintenance-template`,
-      headers: auth(fleetToken),
-      payload: { vehicle_class: "car" },
-    });
-    expect(reassignGlobal.statusCode).toBe(200);
-    expect(reassignGlobal.json().maintenance_template_class).toBe("car");
-    const deleteCopy = await app.inject({
-      method: "DELETE",
-      url: `/v1/organizations/${org.id}/maintenance-templates/${copy.id}`,
-      headers: auth(fleetToken),
-    });
-    expect(deleteCopy.statusCode).toBe(204);
-
-    await app.close();
+describe("Per-vehicle reminder setup", () => {
+  it("saves explicit targets, edits reminders and rejects duplicate or invalid setup", async () => {
+    const { app, client } = await createTestApp();
+    try {
+      const admin = await adminToken(app);
+      const owner = await signup(app, "reminder-manager");
+      const created = await app.inject({ method: "POST", url: "/v1/admin/organizations", headers: auth(admin),
+        payload: { name: "Reminder Fleet", type: "taxi_fleet", admin_email: owner.email } });
+      expect(created.statusCode).toBe(201);
+      const orgId = created.json().id;
+      await grantTestFleet(app, admin, orgId);
+      await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${orgId}/status`, headers: auth(admin), payload: { status: "active" } });
+      const login = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: owner.email, password: "password1", surface: "fleet" } });
+      const headers = auth(login.json().access_token);
+      const vehicleId = uuid();
+      const vehicle = await app.inject({ method: "POST", url: `/v1/organizations/${orgId}/vehicles`, headers,
+        payload: { id: vehicleId, name: "Motorcycle", make: "Honda", model: "Wave", year: 2021,
+          license_plate: `SET${vehicleId.slice(0,4)}`, vin: vehicleId.replaceAll("-", "").slice(0,17), fuel_type: "petrol", mileage: 32000, lifecycle_template: "taxi_fleet" } });
+      expect(vehicle.statusCode).toBe(201);
+      const catalog = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/maintenance-catalog`, headers });
+      expect(catalog.statusCode).toBe(200);
+      expect(catalog.json().items).toHaveLength(18);
+      const url = `/v1/organizations/${orgId}/vehicles/${vehicleId}/plan-items`;
+      const payload = { id: uuid(), name: "Oil Change", catalog_key: "oil_change", interval_days: null,
+        interval_distance: 5000, next_due_on: null, next_due_mileage: 33000, enabled: true };
+      const saved = await app.inject({ method: "POST", url, headers, payload });
+      expect(saved.statusCode).toBe(201);
+      expect(saved.json()).toMatchObject({ next_due_mileage: 33000, interval_distance: 5000 });
+      expect((await app.inject({ method: "POST", url, headers, payload })).statusCode).toBe(201);
+      expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid() } })).statusCode).toBe(409);
+      expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), next_due_mileage: null } })).statusCode).toBe(422);
+      expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), interval_distance: -1 } })).statusCode).toBe(422);
+      expect((await app.inject({ method: "POST", url, headers: auth(owner.token), payload })).statusCode).toBe(403);
+      const updated = await app.inject({ method: "PUT", url, headers, payload: { ...payload, next_due_mileage: 34000 } });
+      expect(updated.statusCode).toBe(200);
+      expect(updated.json().next_due_mileage).toBe(34000);
+      const baseline = await client.query<{ next_due_mileage: string }>("SELECT next_due_mileage FROM plan_schedule_baselines WHERE plan_item_id=$1", [payload.id]);
+      expect(Number(baseline.rows[0].next_due_mileage)).toBe(34000);
+      const custom = await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), name: "Fork oil", catalog_key: null, interval_distance: null } });
+      expect(custom.statusCode).toBe(201);
+      const changes = await client.query("SELECT * FROM organization_changes WHERE entity_type='plan_item' AND entity_id=$1", [payload.id]);
+      expect(changes.rows.length).toBeGreaterThan(0);
+    } finally { await app.close(); }
   });
 });
 

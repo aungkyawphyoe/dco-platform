@@ -61,7 +61,7 @@ final suggestedVehiclePlanProvider = StreamProvider.autoDispose
 final maintenanceCatalogRefreshProvider = FutureProvider<bool>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
   final vehicle = ref.watch(activeVehicleProvider).asData?.value;
-  final organization = ref.watch(driverOrganizationIdProvider);
+  ref.watch(driverOrganizationIdProvider);
   ref.listen(syncStatusProvider, (previous, next) {
     final completed = next.asData?.value;
     if (completed?.phase == SyncPhase.idle &&
@@ -70,7 +70,7 @@ final maintenanceCatalogRefreshProvider = FutureProvider<bool>((ref) async {
       ref.invalidateSelf();
     }
   });
-  if (userId == null || vehicle == null || organization != null) return true;
+  if (userId == null || vehicle == null) return true;
   final repository = ref.watch(maintenanceCatalogRepositoryProvider);
   try {
     await repository.fetchAndCache(vehicle.id);

@@ -38,22 +38,47 @@ class AppDatabase extends _$AppDatabase {
   /// executor or [driftDatabase] with a distinct name — so no two instances
   /// ever share a QueryExecutor. Drift's warning is keyed on the class, not
   /// the executor, so it would fire on every driver login; opt out here.
+  final bool _organizationScope;
+
   AppDatabase([QueryExecutor? executor])
-    : super(executor ?? driftDatabase(name: 'dco_owner')) {
+    : _organizationScope = false,
+      super(executor ?? driftDatabase(name: 'dco_owner')) {
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   }
 
-  AppDatabase.scoped(String name) : super(driftDatabase(name: name)) {
+  AppDatabase.scoped(String name, {QueryExecutor? executor})
+    : _organizationScope = name.startsWith('dco_org_'),
+      super(executor ?? driftDatabase(name: name)) {
     driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
   }
 
   @override
-  int get schemaVersion => 26;
+  int get schemaVersion => 27;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
+      if (from >= 2 && from < 27) {
+        final existing = (await customSelect(
+          'PRAGMA table_info(plan_items)',
+        ).get()).map((row) => row.read<String>('name')).toSet();
+        for (final (name, column) in [
+          ('baseline_due_on', planItemRecords.baselineDueOn),
+          ('baseline_due_mileage', planItemRecords.baselineDueMileage),
+          ('manual_on', planItemRecords.manualOn),
+          ('manual_service_id', planItemRecords.manualServiceId),
+          ('baseline_enabled', planItemRecords.baselineEnabled),
+          ('time_count', planItemRecords.timeCount),
+          ('time_unit', planItemRecords.timeUnit),
+          ('warning_days', planItemRecords.warningDays),
+          ('warning_distance', planItemRecords.warningDistance),
+        ]) {
+          if (!existing.contains(name))
+            await migrator.addColumn(planItemRecords, column);
+        }
+      }
+
       if (from < 25) {
         // Tables created by older upgrade branches already include new columns.
         if (from >= 2) {
@@ -217,6 +242,26 @@ class AppDatabase extends _$AppDatabase {
       if (from < 22) {
         // Gating: outbox rows parked by a LIMIT_EXCEEDED rejection (§9).
         await migrator.addColumn(outboxEntries, outboxEntries.parked);
+      }
+      if (from >= 2 && from < 27) {
+        await migrator.alterTable(TableMigration(serviceRecordRows));
+        if (_organizationScope) {
+          // Older fleet pulls cached wire kilometers directly. Pending logs are
+          // already canonical and must keep the driver's entered measurements.
+          await customStatement('UPDATE vehicles SET mileage=mileage/1.609344');
+          await customStatement(
+            "UPDATE service_records SET odometer=odometer/1.609344 WHERE id NOT IN (SELECT entity_id FROM outbox_entries WHERE entity_type='service_record')",
+          );
+          await customStatement(
+            "UPDATE fuel_logs SET odometer=odometer/1.609344 WHERE id NOT IN (SELECT entity_id FROM outbox_entries WHERE entity_type='fuel_log')",
+          );
+          await customStatement(
+            'UPDATE plan_items SET interval_distance=interval_distance/1.609344,next_due_mileage=next_due_mileage/1.609344,baseline_due_mileage=baseline_due_mileage/1.609344,warning_distance=warning_distance/1.609344',
+          );
+          await customStatement(
+            "UPDATE app_meta SET value='' WHERE key LIKE 'sync_cursor:%'",
+          );
+        }
       }
     },
   );

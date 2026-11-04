@@ -105,6 +105,12 @@ abstract final class ReminderPlanner {
       return [for (final phase in ReminderPhase.values) _cancel(item, phase)];
     }
 
+    thresholds = DueThresholds(
+      soonDays: item.warningDays ?? thresholds.soonDays,
+      soonDistanceKm: item.warningDistance == null
+          ? thresholds.soonDistanceKm
+          : item.warningDistance! * 1.609344,
+    );
     final mileageHit = ReminderPolicy.mileageDueSoon(
       nextDueMileage: item.nextDueMileage,
       vehicleMileage: vehicle.mileage,
@@ -165,10 +171,22 @@ abstract final class ReminderPlanner {
     if (dueHit) {
       return [
         _alreadyFired(scheduled[(item.id, phase)], cycle, now)
-            ? _action(item, phase, ReminderActionKind.recordFeedOnly, cycle,
-                fireAt: now, dueReason: _reason(dateHit, mileageHit))
-            : _action(item, phase, ReminderActionKind.showNow, cycle,
-                fireAt: now, dueReason: _reason(dateHit, mileageHit)),
+            ? _action(
+                item,
+                phase,
+                ReminderActionKind.recordFeedOnly,
+                cycle,
+                fireAt: now,
+                dueReason: _reason(dateHit, mileageHit),
+              )
+            : _action(
+                item,
+                phase,
+                ReminderActionKind.showNow,
+                cycle,
+                fireAt: now,
+                dueReason: _reason(dateHit, mileageHit),
+              ),
       ];
     }
 
@@ -200,7 +218,13 @@ abstract final class ReminderPlanner {
 
     if (upcomingAt.isAfter(now)) {
       return [
-        _action(item, phase, ReminderActionKind.schedule, cycle, fireAt: upcomingAt),
+        _action(
+          item,
+          phase,
+          ReminderActionKind.schedule,
+          cycle,
+          fireAt: upcomingAt,
+        ),
       ];
     }
 
@@ -210,10 +234,22 @@ abstract final class ReminderPlanner {
 
     return [
       _alreadyFired(scheduled[(item.id, phase)], cycle, now)
-          ? _action(item, phase, ReminderActionKind.recordFeedOnly, cycle,
-              fireAt: now, dueReason: NotificationDueReason.date)
-          : _action(item, phase, ReminderActionKind.showNow, cycle,
-              fireAt: now, dueReason: NotificationDueReason.date),
+          ? _action(
+              item,
+              phase,
+              ReminderActionKind.recordFeedOnly,
+              cycle,
+              fireAt: now,
+              dueReason: NotificationDueReason.date,
+            )
+          : _action(
+              item,
+              phase,
+              ReminderActionKind.showNow,
+              cycle,
+              fireAt: now,
+              dueReason: NotificationDueReason.date,
+            ),
     ];
   }
 

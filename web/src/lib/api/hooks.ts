@@ -343,18 +343,10 @@ export const LIFECYCLE_TEMPLATE_LABELS: Record<
   commercial: "Commercial",
 };
 
-export function useCatalogItems(vehicleClass?: string, fuelType?: string) {
+export function useCatalogItems() {
   return useQuery({
-    queryKey: ["admin", "catalog", vehicleClass ?? "all", fuelType ?? "all"],
-    queryFn: () => {
-      const params = new URLSearchParams();
-      if (vehicleClass) params.set("vehicle_class", vehicleClass);
-      if (fuelType) params.set("fuel_type", fuelType);
-      const qs = params.toString();
-      return apiGet<{ items?: CatalogItem[] }>(
-        `/admin/maintenance-catalog${qs ? `?${qs}` : ""}`,
-      );
-    },
+    queryKey: ["admin", "catalog"],
+    queryFn: () => apiGet<{ items?: CatalogItem[] }>("/admin/maintenance-catalog"),
   });
 }
 
@@ -372,7 +364,7 @@ export function useCreateCatalogItem() {
 export function useUpdateCatalogItem() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, ...body }: CatalogItemWrite & { id: string }) =>
+    mutationFn: ({ id, ...body }: components["schemas"]["MaintenanceCatalogItemPatch"] & { id: string }) =>
       apiPatch<CatalogItem>(`/admin/maintenance-catalog/${id}`, body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["admin", "catalog"] });

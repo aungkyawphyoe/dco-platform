@@ -92,7 +92,7 @@ void main() {
         final queued = await disk.select(disk.outboxEntries).getSingle();
         expect(jsonDecode(queued.payload)['currency'], 'MMK');
         expect(jsonDecode(queued.payload)['amount'], 12.5);
-        expect(disk.schemaVersion, 26);
+        expect(disk.schemaVersion, 27);
       } finally {
         await disk.close();
         await dir.delete(recursive: true);

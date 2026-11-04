@@ -98,6 +98,18 @@ abstract class AppLocalizations {
     Locale('my'),
   ];
 
+  /// No description provided for @planWarningDays.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind this many days before due'**
+  String get planWarningDays;
+
+  /// No description provided for @planWarningDistance.
+  ///
+  /// In en, this message translates to:
+  /// **'Remind this distance before due'**
+  String get planWarningDistance;
+
   /// No description provided for @appTitle.
   ///
   /// In en, this message translates to:
@@ -1397,13 +1409,13 @@ abstract class AppLocalizations {
   /// No description provided for @planItemFormOverrideStart.
   ///
   /// In en, this message translates to:
-  /// **'Override Tracking Start'**
+  /// **'Next due'**
   String get planItemFormOverrideStart;
 
   /// No description provided for @planItemFormOverrideHelper.
   ///
   /// In en, this message translates to:
-  /// **'The highest value out of this or your most recent service will prevail.'**
+  /// **'Set at least one due target. Each repeat interval requires its corresponding first due target.'**
   String get planItemFormOverrideHelper;
 
   /// No description provided for @planItemFormTrackingStart.

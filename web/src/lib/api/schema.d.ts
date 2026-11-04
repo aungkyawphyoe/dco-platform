@@ -5227,14 +5227,11 @@ export interface paths {
         };
         /**
          * List platform-global maintenance catalog items (org copies excluded)
-         * @description Items are sorted by vehicle class, then lifecycle, then sort order, then name.
+         * @description Shared service names sorted by display order and name.
          */
         get: {
             parameters: {
-                query?: {
-                    vehicle_class?: components["schemas"]["VehicleClass"];
-                    fuel_type?: components["schemas"]["FuelType"];
-                };
+                query?: never;
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -5335,7 +5332,7 @@ export interface paths {
             };
             requestBody?: {
                 content: {
-                    "application/json": components["schemas"]["MaintenanceCatalogItemWrite"];
+                    "application/json": components["schemas"]["MaintenanceCatalogItemPatch"];
                 };
             };
             responses: {
@@ -6738,26 +6735,17 @@ export interface paths {
         };
         trace?: never;
     };
-    "/organizations/{id}/maintenance-templates": {
+    "/organizations/{id}/maintenance-catalog": {
         parameters: {
             query?: never;
             header?: never;
-            path: {
-                id: string;
-            };
+            path?: never;
             cookie?: never;
         };
-        /**
-         * Global templates plus this organization's copies
-         * @description A "template" is the set of matching rows (class + lifecycle + fuel); rows are listed individually with a source marker. Org copies override global rows of the same name in set derivations.
-         */
+        /** Shared suggested service names for per-vehicle reminder setup */
         get: {
             parameters: {
-                query?: {
-                    vehicle_class?: components["schemas"]["VehicleClass"];
-                    lifecycle_template?: components["schemas"]["LifecycleTemplate"];
-                    fuel_type?: components["schemas"]["FuelType"];
-                };
+                query?: never;
                 header?: never;
                 path: {
                     id: string;
@@ -6766,268 +6754,22 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Template rows */
+                /** @description Suggested service names */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
                         "application/json": {
-                            items: components["schemas"]["MaintenanceTemplate"][];
+                            items: components["schemas"]["SuggestedPlanItem"][];
                         };
                     };
                 };
                 403: components["responses"]["Error"];
             };
         };
-        put?: never;
-        /**
-         * Create an organization template copy
-         * @description With source_template_id, clones a global row (fields overridable); otherwise name + fuel_types are required. Catalog key is suffixed to stay globally unique.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        name?: string;
-                        interval_days?: number | null;
-                        interval_distance?: number | null;
-                        fuel_types?: ("petrol" | "electric" | "hybrid_plugin")[];
-                        vehicle_class?: components["schemas"]["VehicleClass"];
-                        lifecycle_template?: components["schemas"]["LifecycleTemplate"] | null;
-                        sort_order?: number;
-                        enabled?: boolean;
-                        /** Format: uuid */
-                        source_template_id?: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Created org copy */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["MaintenanceTemplate"];
-                    };
-                };
-                403: components["responses"]["Error"];
-                404: components["responses"]["Error"];
-                422: components["responses"]["Error"];
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/organizations/{id}/maintenance-templates/{itemId}": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                itemId: string;
-            };
-            cookie?: never;
-        };
-        get?: never;
         put?: never;
         post?: never;
-        /** Delete an org copy (global → 403; assigned to a vehicle → 409) */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    itemId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Deleted */
-                204: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                403: components["responses"]["Error"];
-                404: components["responses"]["Error"];
-                409: components["responses"]["Error"];
-            };
-        };
-        options?: never;
-        head?: never;
-        /** Update an organization template copy (global rows → 403) */
-        patch: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    itemId: string;
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        name?: string;
-                        interval_days?: number | null;
-                        interval_distance?: number | null;
-                        fuel_types?: ("petrol" | "electric" | "hybrid_plugin")[];
-                        vehicle_class?: components["schemas"]["VehicleClass"];
-                        lifecycle_template?: components["schemas"]["LifecycleTemplate"] | null;
-                        sort_order?: number;
-                        enabled?: boolean;
-                    };
-                };
-            };
-            responses: {
-                /** @description Updated */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["MaintenanceTemplate"];
-                    };
-                };
-                403: components["responses"]["Error"];
-                404: components["responses"]["Error"];
-            };
-        };
-        trace?: never;
-    };
-    "/organizations/{id}/vehicles/{vehicleId}/maintenance-template": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                vehicleId: components["parameters"]["vehicleId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        /**
-         * Assign or clear a maintenance template set (by class) on a vehicle
-         * @description The assigned set is identified by its vehicle class and must equal the vehicle's class; it anchors the matching template set used for plan generation and driver suggestions. null clears the assignment.
-         */
-        put: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    vehicleId: components["parameters"]["vehicleId"];
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        vehicle_class: components["schemas"]["VehicleClass"] | null;
-                    };
-                };
-            };
-            responses: {
-                /** @description Assignment updated */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            maintenance_template_class: components["schemas"]["VehicleClass"] | null;
-                        };
-                    };
-                };
-                /** @description template_mismatch */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["ErrorBody"];
-                    };
-                };
-                403: components["responses"]["Error"];
-                404: components["responses"]["Error"];
-            };
-        };
-        post?: never;
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/organizations/{id}/vehicles/{vehicleId}/maintenance-template/generate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-                vehicleId: components["parameters"]["vehicleId"];
-            };
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Snapshot selected template items into plan items
-         * @description Creates plan_items for the given catalog item ids, which must belong to the vehicle's assigned template set (class + lifecycle + fuel), with due dates from the vehicle's current mileage; names already present (case-insensitive) are skipped. Idempotent by design.
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                    vehicleId: components["parameters"]["vehicleId"];
-                };
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        item_ids: string[];
-                    };
-                };
-            };
-            responses: {
-                /** @description Snapshot counts */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            created: number;
-                            skipped: number;
-                        };
-                    };
-                };
-                400: components["responses"]["Error"];
-                403: components["responses"]["Error"];
-                404: components["responses"]["Error"];
-                422: components["responses"]["Error"];
-            };
-        };
         delete?: never;
         options?: never;
         head?: never;
@@ -7069,8 +6811,70 @@ export interface paths {
                 404: components["responses"]["Error"];
             };
         };
-        put?: never;
-        post?: never;
+        /** Update a vehicle reminder (admin/manager) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FleetReminderWrite"];
+                };
+            };
+            responses: {
+                /** @description Saved reminder */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlanItem"];
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+                409: components["responses"]["Error"];
+                422: components["responses"]["Error"];
+            };
+        };
+        /** Create a vehicle reminder (admin/manager) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["FleetReminderWrite"];
+                };
+            };
+            responses: {
+                /** @description Saved reminder */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PlanItem"];
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
+                409: components["responses"]["Error"];
+                422: components["responses"]["Error"];
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -11048,6 +10852,19 @@ export interface components {
             /** Format: uuid */
             vehicle_id: string;
             name: string;
+            time_count?: number | null;
+            /** @enum {string|null} */
+            time_unit?: "days" | "months" | "years" | null;
+            warning_days?: number | null;
+            warning_distance?: number | null;
+            /** Format: date */
+            readonly baseline_due_on?: string | null;
+            readonly baseline_due_mileage?: number | null;
+            readonly baseline_enabled?: boolean;
+            /** Format: date */
+            readonly manual_on?: string | null;
+            /** Format: uuid */
+            readonly manual_service_id?: string | null;
             interval_days?: number | null;
             /** @description Interval distance in kilometers (km) */
             interval_distance?: number | null;
@@ -11067,6 +10884,19 @@ export interface components {
             /** Format: uuid */
             id: string;
             name: string;
+            time_count?: number | null;
+            /** @enum {string|null} */
+            time_unit?: "days" | "months" | "years" | null;
+            warning_days?: number | null;
+            warning_distance?: number | null;
+            /** Format: date */
+            readonly baseline_due_on?: string | null;
+            readonly baseline_due_mileage?: number | null;
+            readonly baseline_enabled?: boolean;
+            /** Format: date */
+            readonly manual_on?: string | null;
+            /** Format: uuid */
+            readonly manual_service_id?: string | null;
             interval_days?: number;
             /** @description Interval distance in kilometers (km) */
             interval_distance?: number;
@@ -11077,20 +10907,46 @@ export interface components {
         };
         PlanItemPatch: {
             name?: string;
+            time_count?: number | null;
+            /** @enum {string|null} */
+            time_unit?: "days" | "months" | "years" | null;
+            warning_days?: number | null;
+            warning_distance?: number | null;
+            /** Format: date */
+            readonly baseline_due_on?: string | null;
+            readonly baseline_due_mileage?: number | null;
+            readonly baseline_enabled?: boolean;
+            /** Format: date */
+            readonly manual_on?: string | null;
+            /** Format: uuid */
+            readonly manual_service_id?: string | null;
             interval_days?: number | null;
             /** @description Interval distance in kilometers (km) */
             interval_distance?: number | null;
             notes?: string;
             enabled?: boolean;
         };
+        /** @description At least one first due target is required. Each repeat interval requires its corresponding first target. PUT requires the full reminder body. */
+        FleetReminderWrite: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            catalog_key?: string | null;
+            time_count?: number | null;
+            /** @enum {string|null} */
+            time_unit?: "days" | "months" | "years" | null;
+            warning_days?: number | null;
+            warning_distance?: number | null;
+            interval_days: number | null;
+            interval_distance: number | null;
+            /** Format: date */
+            next_due_on: string | null;
+            next_due_mileage: number | null;
+            enabled: boolean;
+        };
         SuggestedPlanItem: {
-            catalog_key?: string;
-            name?: string;
-            interval_days?: number | null;
-            /** @description Interval distance in kilometers (km) */
-            interval_distance?: number | null;
-            vehicle_class?: components["schemas"]["VehicleClass"];
-            fuel_type?: components["schemas"]["FuelType"];
+            catalog_key: string;
+            name: string;
         };
         ServiceRecord: {
             currency?: components["schemas"]["OperationalCurrency"];
@@ -11103,7 +10959,7 @@ export interface components {
             vehicle_id: string;
             /** Format: date */
             serviced_on: string;
-            odometer: number;
+            odometer?: number | null;
             total_cost: number;
             workshop_name?: string | null;
             notes?: string | null;
@@ -11139,7 +10995,7 @@ export interface components {
             id: string;
             /** Format: date */
             serviced_on: string;
-            odometer: number;
+            odometer?: number | null;
             total_cost: number;
             workshop_name?: string;
             notes?: string;
@@ -11597,13 +11453,6 @@ export interface components {
             id: string;
             catalog_key: string;
             name: string;
-            interval_days?: number | null;
-            /** @description Interval distance in kilometers (km) */
-            interval_distance?: number | null;
-            fuel_types: ("petrol" | "electric" | "hybrid_plugin")[];
-            vehicle_class: components["schemas"]["VehicleClass"];
-            lifecycle_template?: components["schemas"]["LifecycleTemplate"] | null;
-            sort_order: number;
             enabled: boolean;
             /** Format: date-time */
             created_at: string;
@@ -11612,21 +11461,11 @@ export interface components {
         };
         MaintenanceCatalogItemWrite: {
             name: string;
-            interval_days?: number | null;
-            /** @description Interval distance in kilometers (km) */
-            interval_distance?: number | null;
-            fuel_types: ("petrol" | "electric" | "hybrid_plugin")[];
-            vehicle_class?: components["schemas"]["VehicleClass"];
-            lifecycle_template?: components["schemas"]["LifecycleTemplate"] | null;
-            sort_order?: number;
             enabled?: boolean;
         };
-        MaintenanceTemplate: components["schemas"]["MaintenanceCatalogItem"] & {
-            /**
-             * @description global = platform-seeded row (read-only for orgs); org = organization-owned copy (customizable)
-             * @enum {string}
-             */
-            source: "global" | "org";
+        MaintenanceCatalogItemPatch: {
+            name?: string;
+            enabled?: boolean;
         };
         /** @enum {string} */
         ShareAccessLevel: "view" | "add_edit_own";

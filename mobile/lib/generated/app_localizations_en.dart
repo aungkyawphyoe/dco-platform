@@ -9,6 +9,12 @@ class AppLocalizationsEn extends AppLocalizations {
   AppLocalizationsEn([String locale = 'en']) : super(locale);
 
   @override
+  String get planWarningDays => 'Remind this many days before due';
+
+  @override
+  String get planWarningDistance => 'Remind this distance before due';
+
+  @override
   String get appTitle => 'AutoX';
 
   @override
@@ -694,11 +700,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planItemFormEveryMileage => 'Every (mileage)';
 
   @override
-  String get planItemFormOverrideStart => 'Override Tracking Start';
+  String get planItemFormOverrideStart => 'Next due';
 
   @override
   String get planItemFormOverrideHelper =>
-      'The highest value out of this or your most recent service will prevail.';
+      'Set at least one due target. Each repeat interval requires its corresponding first due target.';
 
   @override
   String get planItemFormTrackingStart => 'Tracking Start';

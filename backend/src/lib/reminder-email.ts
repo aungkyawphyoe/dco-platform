@@ -39,12 +39,14 @@ export type ReminderEmailCandidate = {
   dueOn: string | null;
   dueMileage: number | null;
   leadDays: number;
+  leadDistance?: number | null;
 };
 
 export function reminderEmailKind(candidate: ReminderEmailCandidate, today: string): ReminderEmailKind | null {
   const dueByDate = candidate.dueOn != null && candidate.dueOn <= today;
   const dueByMileage = candidate.dueMileage != null && candidate.dueMileage <= candidate.mileage;
   if (dueByDate || dueByMileage) return "due";
+  if (candidate.dueMileage != null && candidate.leadDistance != null && candidate.dueMileage - candidate.mileage <= candidate.leadDistance) return "upcoming";
   if (candidate.dueOn != null && today >= addDays(candidate.dueOn, -candidate.leadDays)) {
     return "upcoming";
   }
@@ -123,7 +125,7 @@ export async function scanReminderEmails(input: {
     .select({
       userId: users.id,
       recipient: users.email,
-      leadDays: users.emailReminderLeadDays,
+      leadDays: sql<number>`coalesce(${planItems.warningDays}, ${users.emailReminderLeadDays})`,
       vehicleId: vehicles.id,
       vehicleName: vehicles.name,
       vehicleNickname: vehicles.nickname,
@@ -133,6 +135,7 @@ export async function scanReminderEmails(input: {
       itemName: planItems.name,
       dueOn: planItems.nextDueOn,
       dueMileage: planItems.nextDueMileage,
+      leadDistance: planItems.warningDistance,
     })
     .from(users)
     .innerJoin(vehicles, eq(vehicles.userId, users.id))
@@ -170,6 +173,7 @@ export async function scanReminderEmails(input: {
       dueOn,
       dueMileage,
       leadDays: row.leadDays,
+      leadDistance: row.leadDistance == null ? null : Number(row.leadDistance),
     };
     const kind = reminderEmailKind(candidate, today);
     if (!kind) continue;

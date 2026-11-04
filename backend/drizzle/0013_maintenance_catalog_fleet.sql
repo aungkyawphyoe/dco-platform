@@ -37,6 +37,9 @@ CREATE INDEX IF NOT EXISTS maintenance_catalog_class_idx ON maintenance_catalog(
 CREATE INDEX IF NOT EXISTS maintenance_catalog_org_idx ON maintenance_catalog(org_id);
 ALTER TABLE organization_vehicles ADD COLUMN IF NOT EXISTS maintenance_template_id uuid REFERENCES maintenance_catalog(id) ON DELETE set null;
 
+-- The names-only reset retires these legacy seeds permanently.
+DO $$ BEGIN
+IF to_regclass('maintenance_migrations') IS NULL THEN
 -- 3. Motorcycle defaults (org_id NULL, lifecycle_template NULL)
 INSERT INTO maintenance_catalog (id, catalog_key, name, interval_days, interval_distance, fuel_types, vehicle_class, sort_order, enabled) VALUES
   ('b1000000-0000-0000-0000-000000000001', 'motorcycle_engine_oil_change',   'Engine Oil Change',       180,  5000,  ARRAY['petrol'],                                'motorcycle', 1,  true),
@@ -84,3 +87,6 @@ INSERT INTO maintenance_catalog (id, catalog_key, name, interval_days, interval_
   ('d1000000-0000-0000-0000-000000000011', 'van_air_conditioning',           'Air Conditioning',       365,  NULL,  ARRAY['petrol','electric','hybrid_plugin'], 'van', 11, true),
   ('d1000000-0000-0000-0000-000000000012', 'van_wash',                       'Wash',                   14,   NULL,  ARRAY['petrol','electric','hybrid_plugin'], 'van', 12, true)
 ON CONFLICT (catalog_key) DO NOTHING;
+
+END IF;
+END $$;

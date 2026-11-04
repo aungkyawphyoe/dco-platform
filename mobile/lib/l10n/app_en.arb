@@ -1,4 +1,6 @@
 {
+  "planWarningDays": "Remind this many days before due",
+  "planWarningDistance": "Remind this distance before due",
   "appTitle": "AutoX",
   "ok": "OK",
   "cancel": "Cancel",
@@ -215,8 +217,8 @@
   "planItemFormRepeatEvery": "Repeat every",
   "planItemFormUnit": "Unit",
   "planItemFormEveryMileage": "Every (mileage)",
-  "planItemFormOverrideStart": "Override Tracking Start",
-  "planItemFormOverrideHelper": "The highest value out of this or your most recent service will prevail.",
+  "planItemFormOverrideStart": "Next due",
+  "planItemFormOverrideHelper": "Set at least one due target. Each repeat interval requires its corresponding first due target.",
   "planItemFormTrackingStart": "Tracking Start",
   "planItemFormTrackingStartHelper": "When to begin tracking this item. The first due date/mileage is calculated from here.",
   "planItemFormDate": "Date",

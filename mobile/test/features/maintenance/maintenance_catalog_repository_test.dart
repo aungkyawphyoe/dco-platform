@@ -17,11 +17,37 @@ void main() {
   });
   MaintenanceCatalogRepositoryImpl repo(String user) =>
       MaintenanceCatalogRepositoryImpl(db: db, dio: dio, userId: user);
-  Map<String, Object> item(String key) => {
-    'catalog_key': key,
-    'name': key,
-    'fuel_type': 'petrol',
-  };
+  Map<String, Object> item(String key) => {'catalog_key': key, 'name': key};
+
+  test('suggestions ignore legacy interval and fuel defaults', () async {
+    dio.interceptors.add(
+      InterceptorsWrapper(
+        onRequest: (options, handler) {
+          handler.resolve(
+            Response(
+              requestOptions: options,
+              data: {
+                'items': [
+                  {
+                    ...item('oil'),
+                    'interval_days': 365,
+                    'interval_distance': 15000,
+                    'fuel_type': 'petrol',
+                  },
+                ],
+              },
+            ),
+          );
+        },
+      ),
+    );
+    final repository = repo('owner');
+    await repository.fetchAndCache('vehicle');
+    final suggestion =
+        (await repository.watchForVehicle('vehicle').first)!.single;
+    expect(suggestion.name, 'oil');
+    expect(suggestion.catalogKey, 'oil');
+  });
 
   test(
     'catalogs are isolated by account and vehicle, including successful empty responses',

@@ -490,22 +490,6 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
             child: ListView(
               padding: EdgeInsets.all(tokens.space.s5),
               children: [
-                if (widget.isEditing)
-                  DropdownButtonFormField<String>(
-                    value: currency,
-                    decoration: const InputDecoration(
-                      labelText: 'Record currency',
-                    ),
-                    items: operationalCurrencies
-                        .map(
-                          (code) =>
-                              DropdownMenuItem(value: code, child: Text(code)),
-                        )
-                        .toList(),
-                    onChanged: (value) =>
-                        setState(() => _recordCurrency = value),
-                  ),
-
                 Text(
                   vehicle.displayName,
                   style: Theme.of(

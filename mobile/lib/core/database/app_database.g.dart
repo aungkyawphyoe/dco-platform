@@ -2814,6 +2814,110 @@ class $PlanItemRecordsTable extends PlanItemRecords
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _baselineDueOnMeta = const VerificationMeta(
+    'baselineDueOn',
+  );
+  @override
+  late final GeneratedColumn<DateTime> baselineDueOn =
+      GeneratedColumn<DateTime>(
+        'baseline_due_on',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _baselineDueMileageMeta =
+      const VerificationMeta('baselineDueMileage');
+  @override
+  late final GeneratedColumn<double> baselineDueMileage =
+      GeneratedColumn<double>(
+        'baseline_due_mileage',
+        aliasedName,
+        true,
+        type: DriftSqlType.double,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _manualOnMeta = const VerificationMeta(
+    'manualOn',
+  );
+  @override
+  late final GeneratedColumn<DateTime> manualOn = GeneratedColumn<DateTime>(
+    'manual_on',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _manualServiceIdMeta = const VerificationMeta(
+    'manualServiceId',
+  );
+  @override
+  late final GeneratedColumn<String> manualServiceId = GeneratedColumn<String>(
+    'manual_service_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _baselineEnabledMeta = const VerificationMeta(
+    'baselineEnabled',
+  );
+  @override
+  late final GeneratedColumn<bool> baselineEnabled = GeneratedColumn<bool>(
+    'baseline_enabled',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("baseline_enabled" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _timeCountMeta = const VerificationMeta(
+    'timeCount',
+  );
+  @override
+  late final GeneratedColumn<int> timeCount = GeneratedColumn<int>(
+    'time_count',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _timeUnitMeta = const VerificationMeta(
+    'timeUnit',
+  );
+  @override
+  late final GeneratedColumn<String> timeUnit = GeneratedColumn<String>(
+    'time_unit',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _warningDaysMeta = const VerificationMeta(
+    'warningDays',
+  );
+  @override
+  late final GeneratedColumn<int> warningDays = GeneratedColumn<int>(
+    'warning_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _warningDistanceMeta = const VerificationMeta(
+    'warningDistance',
+  );
+  @override
+  late final GeneratedColumn<double> warningDistance = GeneratedColumn<double>(
+    'warning_distance',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _intervalDaysMeta = const VerificationMeta(
     'intervalDays',
   );
@@ -2931,6 +3035,15 @@ class $PlanItemRecordsTable extends PlanItemRecords
     id,
     vehicleId,
     name,
+    baselineDueOn,
+    baselineDueMileage,
+    manualOn,
+    manualServiceId,
+    baselineEnabled,
+    timeCount,
+    timeUnit,
+    warningDays,
+    warningDistance,
     intervalDays,
     intervalDistance,
     nextDueMileage,
@@ -2974,6 +3087,78 @@ class $PlanItemRecordsTable extends PlanItemRecords
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('baseline_due_on')) {
+      context.handle(
+        _baselineDueOnMeta,
+        baselineDueOn.isAcceptableOrUnknown(
+          data['baseline_due_on']!,
+          _baselineDueOnMeta,
+        ),
+      );
+    }
+    if (data.containsKey('baseline_due_mileage')) {
+      context.handle(
+        _baselineDueMileageMeta,
+        baselineDueMileage.isAcceptableOrUnknown(
+          data['baseline_due_mileage']!,
+          _baselineDueMileageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('manual_on')) {
+      context.handle(
+        _manualOnMeta,
+        manualOn.isAcceptableOrUnknown(data['manual_on']!, _manualOnMeta),
+      );
+    }
+    if (data.containsKey('manual_service_id')) {
+      context.handle(
+        _manualServiceIdMeta,
+        manualServiceId.isAcceptableOrUnknown(
+          data['manual_service_id']!,
+          _manualServiceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('baseline_enabled')) {
+      context.handle(
+        _baselineEnabledMeta,
+        baselineEnabled.isAcceptableOrUnknown(
+          data['baseline_enabled']!,
+          _baselineEnabledMeta,
+        ),
+      );
+    }
+    if (data.containsKey('time_count')) {
+      context.handle(
+        _timeCountMeta,
+        timeCount.isAcceptableOrUnknown(data['time_count']!, _timeCountMeta),
+      );
+    }
+    if (data.containsKey('time_unit')) {
+      context.handle(
+        _timeUnitMeta,
+        timeUnit.isAcceptableOrUnknown(data['time_unit']!, _timeUnitMeta),
+      );
+    }
+    if (data.containsKey('warning_days')) {
+      context.handle(
+        _warningDaysMeta,
+        warningDays.isAcceptableOrUnknown(
+          data['warning_days']!,
+          _warningDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('warning_distance')) {
+      context.handle(
+        _warningDistanceMeta,
+        warningDistance.isAcceptableOrUnknown(
+          data['warning_distance']!,
+          _warningDistanceMeta,
+        ),
+      );
     }
     if (data.containsKey('interval_days')) {
       context.handle(
@@ -3069,6 +3254,42 @@ class $PlanItemRecordsTable extends PlanItemRecords
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      baselineDueOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}baseline_due_on'],
+      ),
+      baselineDueMileage: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}baseline_due_mileage'],
+      ),
+      manualOn: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}manual_on'],
+      ),
+      manualServiceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}manual_service_id'],
+      ),
+      baselineEnabled: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}baseline_enabled'],
+      )!,
+      timeCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}time_count'],
+      ),
+      timeUnit: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}time_unit'],
+      ),
+      warningDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}warning_days'],
+      ),
+      warningDistance: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}warning_distance'],
+      ),
       intervalDays: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}interval_days'],
@@ -3122,6 +3343,15 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
   final String id;
   final String vehicleId;
   final String name;
+  final DateTime? baselineDueOn;
+  final double? baselineDueMileage;
+  final DateTime? manualOn;
+  final String? manualServiceId;
+  final bool baselineEnabled;
+  final int? timeCount;
+  final String? timeUnit;
+  final int? warningDays;
+  final double? warningDistance;
   final int? intervalDays;
   final double? intervalDistance;
   final double? nextDueMileage;
@@ -3136,6 +3366,15 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     required this.id,
     required this.vehicleId,
     required this.name,
+    this.baselineDueOn,
+    this.baselineDueMileage,
+    this.manualOn,
+    this.manualServiceId,
+    required this.baselineEnabled,
+    this.timeCount,
+    this.timeUnit,
+    this.warningDays,
+    this.warningDistance,
     this.intervalDays,
     this.intervalDistance,
     this.nextDueMileage,
@@ -3153,6 +3392,31 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     map['id'] = Variable<String>(id);
     map['vehicle_id'] = Variable<String>(vehicleId);
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || baselineDueOn != null) {
+      map['baseline_due_on'] = Variable<DateTime>(baselineDueOn);
+    }
+    if (!nullToAbsent || baselineDueMileage != null) {
+      map['baseline_due_mileage'] = Variable<double>(baselineDueMileage);
+    }
+    if (!nullToAbsent || manualOn != null) {
+      map['manual_on'] = Variable<DateTime>(manualOn);
+    }
+    if (!nullToAbsent || manualServiceId != null) {
+      map['manual_service_id'] = Variable<String>(manualServiceId);
+    }
+    map['baseline_enabled'] = Variable<bool>(baselineEnabled);
+    if (!nullToAbsent || timeCount != null) {
+      map['time_count'] = Variable<int>(timeCount);
+    }
+    if (!nullToAbsent || timeUnit != null) {
+      map['time_unit'] = Variable<String>(timeUnit);
+    }
+    if (!nullToAbsent || warningDays != null) {
+      map['warning_days'] = Variable<int>(warningDays);
+    }
+    if (!nullToAbsent || warningDistance != null) {
+      map['warning_distance'] = Variable<double>(warningDistance);
+    }
     if (!nullToAbsent || intervalDays != null) {
       map['interval_days'] = Variable<int>(intervalDays);
     }
@@ -3185,6 +3449,31 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       id: Value(id),
       vehicleId: Value(vehicleId),
       name: Value(name),
+      baselineDueOn: baselineDueOn == null && nullToAbsent
+          ? const Value.absent()
+          : Value(baselineDueOn),
+      baselineDueMileage: baselineDueMileage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(baselineDueMileage),
+      manualOn: manualOn == null && nullToAbsent
+          ? const Value.absent()
+          : Value(manualOn),
+      manualServiceId: manualServiceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(manualServiceId),
+      baselineEnabled: Value(baselineEnabled),
+      timeCount: timeCount == null && nullToAbsent
+          ? const Value.absent()
+          : Value(timeCount),
+      timeUnit: timeUnit == null && nullToAbsent
+          ? const Value.absent()
+          : Value(timeUnit),
+      warningDays: warningDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(warningDays),
+      warningDistance: warningDistance == null && nullToAbsent
+          ? const Value.absent()
+          : Value(warningDistance),
       intervalDays: intervalDays == null && nullToAbsent
           ? const Value.absent()
           : Value(intervalDays),
@@ -3221,6 +3510,17 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       id: serializer.fromJson<String>(json['id']),
       vehicleId: serializer.fromJson<String>(json['vehicleId']),
       name: serializer.fromJson<String>(json['name']),
+      baselineDueOn: serializer.fromJson<DateTime?>(json['baselineDueOn']),
+      baselineDueMileage: serializer.fromJson<double?>(
+        json['baselineDueMileage'],
+      ),
+      manualOn: serializer.fromJson<DateTime?>(json['manualOn']),
+      manualServiceId: serializer.fromJson<String?>(json['manualServiceId']),
+      baselineEnabled: serializer.fromJson<bool>(json['baselineEnabled']),
+      timeCount: serializer.fromJson<int?>(json['timeCount']),
+      timeUnit: serializer.fromJson<String?>(json['timeUnit']),
+      warningDays: serializer.fromJson<int?>(json['warningDays']),
+      warningDistance: serializer.fromJson<double?>(json['warningDistance']),
       intervalDays: serializer.fromJson<int?>(json['intervalDays']),
       intervalDistance: serializer.fromJson<double?>(json['intervalDistance']),
       nextDueMileage: serializer.fromJson<double?>(json['nextDueMileage']),
@@ -3240,6 +3540,15 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       'id': serializer.toJson<String>(id),
       'vehicleId': serializer.toJson<String>(vehicleId),
       'name': serializer.toJson<String>(name),
+      'baselineDueOn': serializer.toJson<DateTime?>(baselineDueOn),
+      'baselineDueMileage': serializer.toJson<double?>(baselineDueMileage),
+      'manualOn': serializer.toJson<DateTime?>(manualOn),
+      'manualServiceId': serializer.toJson<String?>(manualServiceId),
+      'baselineEnabled': serializer.toJson<bool>(baselineEnabled),
+      'timeCount': serializer.toJson<int?>(timeCount),
+      'timeUnit': serializer.toJson<String?>(timeUnit),
+      'warningDays': serializer.toJson<int?>(warningDays),
+      'warningDistance': serializer.toJson<double?>(warningDistance),
       'intervalDays': serializer.toJson<int?>(intervalDays),
       'intervalDistance': serializer.toJson<double?>(intervalDistance),
       'nextDueMileage': serializer.toJson<double?>(nextDueMileage),
@@ -3257,6 +3566,15 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     String? id,
     String? vehicleId,
     String? name,
+    Value<DateTime?> baselineDueOn = const Value.absent(),
+    Value<double?> baselineDueMileage = const Value.absent(),
+    Value<DateTime?> manualOn = const Value.absent(),
+    Value<String?> manualServiceId = const Value.absent(),
+    bool? baselineEnabled,
+    Value<int?> timeCount = const Value.absent(),
+    Value<String?> timeUnit = const Value.absent(),
+    Value<int?> warningDays = const Value.absent(),
+    Value<double?> warningDistance = const Value.absent(),
     Value<int?> intervalDays = const Value.absent(),
     Value<double?> intervalDistance = const Value.absent(),
     Value<double?> nextDueMileage = const Value.absent(),
@@ -3271,6 +3589,23 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     id: id ?? this.id,
     vehicleId: vehicleId ?? this.vehicleId,
     name: name ?? this.name,
+    baselineDueOn: baselineDueOn.present
+        ? baselineDueOn.value
+        : this.baselineDueOn,
+    baselineDueMileage: baselineDueMileage.present
+        ? baselineDueMileage.value
+        : this.baselineDueMileage,
+    manualOn: manualOn.present ? manualOn.value : this.manualOn,
+    manualServiceId: manualServiceId.present
+        ? manualServiceId.value
+        : this.manualServiceId,
+    baselineEnabled: baselineEnabled ?? this.baselineEnabled,
+    timeCount: timeCount.present ? timeCount.value : this.timeCount,
+    timeUnit: timeUnit.present ? timeUnit.value : this.timeUnit,
+    warningDays: warningDays.present ? warningDays.value : this.warningDays,
+    warningDistance: warningDistance.present
+        ? warningDistance.value
+        : this.warningDistance,
     intervalDays: intervalDays.present ? intervalDays.value : this.intervalDays,
     intervalDistance: intervalDistance.present
         ? intervalDistance.value
@@ -3291,6 +3626,27 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       id: data.id.present ? data.id.value : this.id,
       vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
       name: data.name.present ? data.name.value : this.name,
+      baselineDueOn: data.baselineDueOn.present
+          ? data.baselineDueOn.value
+          : this.baselineDueOn,
+      baselineDueMileage: data.baselineDueMileage.present
+          ? data.baselineDueMileage.value
+          : this.baselineDueMileage,
+      manualOn: data.manualOn.present ? data.manualOn.value : this.manualOn,
+      manualServiceId: data.manualServiceId.present
+          ? data.manualServiceId.value
+          : this.manualServiceId,
+      baselineEnabled: data.baselineEnabled.present
+          ? data.baselineEnabled.value
+          : this.baselineEnabled,
+      timeCount: data.timeCount.present ? data.timeCount.value : this.timeCount,
+      timeUnit: data.timeUnit.present ? data.timeUnit.value : this.timeUnit,
+      warningDays: data.warningDays.present
+          ? data.warningDays.value
+          : this.warningDays,
+      warningDistance: data.warningDistance.present
+          ? data.warningDistance.value
+          : this.warningDistance,
       intervalDays: data.intervalDays.present
           ? data.intervalDays.value
           : this.intervalDays,
@@ -3318,6 +3674,15 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
           ..write('id: $id, ')
           ..write('vehicleId: $vehicleId, ')
           ..write('name: $name, ')
+          ..write('baselineDueOn: $baselineDueOn, ')
+          ..write('baselineDueMileage: $baselineDueMileage, ')
+          ..write('manualOn: $manualOn, ')
+          ..write('manualServiceId: $manualServiceId, ')
+          ..write('baselineEnabled: $baselineEnabled, ')
+          ..write('timeCount: $timeCount, ')
+          ..write('timeUnit: $timeUnit, ')
+          ..write('warningDays: $warningDays, ')
+          ..write('warningDistance: $warningDistance, ')
           ..write('intervalDays: $intervalDays, ')
           ..write('intervalDistance: $intervalDistance, ')
           ..write('nextDueMileage: $nextDueMileage, ')
@@ -3333,10 +3698,19 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
   }
 
   @override
-  int get hashCode => Object.hash(
+  int get hashCode => Object.hashAll([
     id,
     vehicleId,
     name,
+    baselineDueOn,
+    baselineDueMileage,
+    manualOn,
+    manualServiceId,
+    baselineEnabled,
+    timeCount,
+    timeUnit,
+    warningDays,
+    warningDistance,
     intervalDays,
     intervalDistance,
     nextDueMileage,
@@ -3347,7 +3721,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     createdBy,
     updatedAt,
     createdAt,
-  );
+  ]);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3355,6 +3729,15 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
           other.id == this.id &&
           other.vehicleId == this.vehicleId &&
           other.name == this.name &&
+          other.baselineDueOn == this.baselineDueOn &&
+          other.baselineDueMileage == this.baselineDueMileage &&
+          other.manualOn == this.manualOn &&
+          other.manualServiceId == this.manualServiceId &&
+          other.baselineEnabled == this.baselineEnabled &&
+          other.timeCount == this.timeCount &&
+          other.timeUnit == this.timeUnit &&
+          other.warningDays == this.warningDays &&
+          other.warningDistance == this.warningDistance &&
           other.intervalDays == this.intervalDays &&
           other.intervalDistance == this.intervalDistance &&
           other.nextDueMileage == this.nextDueMileage &&
@@ -3371,6 +3754,15 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
   final Value<String> id;
   final Value<String> vehicleId;
   final Value<String> name;
+  final Value<DateTime?> baselineDueOn;
+  final Value<double?> baselineDueMileage;
+  final Value<DateTime?> manualOn;
+  final Value<String?> manualServiceId;
+  final Value<bool> baselineEnabled;
+  final Value<int?> timeCount;
+  final Value<String?> timeUnit;
+  final Value<int?> warningDays;
+  final Value<double?> warningDistance;
   final Value<int?> intervalDays;
   final Value<double?> intervalDistance;
   final Value<double?> nextDueMileage;
@@ -3386,6 +3778,15 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     this.id = const Value.absent(),
     this.vehicleId = const Value.absent(),
     this.name = const Value.absent(),
+    this.baselineDueOn = const Value.absent(),
+    this.baselineDueMileage = const Value.absent(),
+    this.manualOn = const Value.absent(),
+    this.manualServiceId = const Value.absent(),
+    this.baselineEnabled = const Value.absent(),
+    this.timeCount = const Value.absent(),
+    this.timeUnit = const Value.absent(),
+    this.warningDays = const Value.absent(),
+    this.warningDistance = const Value.absent(),
     this.intervalDays = const Value.absent(),
     this.intervalDistance = const Value.absent(),
     this.nextDueMileage = const Value.absent(),
@@ -3402,6 +3803,15 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     required String id,
     required String vehicleId,
     required String name,
+    this.baselineDueOn = const Value.absent(),
+    this.baselineDueMileage = const Value.absent(),
+    this.manualOn = const Value.absent(),
+    this.manualServiceId = const Value.absent(),
+    this.baselineEnabled = const Value.absent(),
+    this.timeCount = const Value.absent(),
+    this.timeUnit = const Value.absent(),
+    this.warningDays = const Value.absent(),
+    this.warningDistance = const Value.absent(),
     this.intervalDays = const Value.absent(),
     this.intervalDistance = const Value.absent(),
     this.nextDueMileage = const Value.absent(),
@@ -3422,6 +3832,15 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     Expression<String>? id,
     Expression<String>? vehicleId,
     Expression<String>? name,
+    Expression<DateTime>? baselineDueOn,
+    Expression<double>? baselineDueMileage,
+    Expression<DateTime>? manualOn,
+    Expression<String>? manualServiceId,
+    Expression<bool>? baselineEnabled,
+    Expression<int>? timeCount,
+    Expression<String>? timeUnit,
+    Expression<int>? warningDays,
+    Expression<double>? warningDistance,
     Expression<int>? intervalDays,
     Expression<double>? intervalDistance,
     Expression<double>? nextDueMileage,
@@ -3438,6 +3857,16 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
       if (id != null) 'id': id,
       if (vehicleId != null) 'vehicle_id': vehicleId,
       if (name != null) 'name': name,
+      if (baselineDueOn != null) 'baseline_due_on': baselineDueOn,
+      if (baselineDueMileage != null)
+        'baseline_due_mileage': baselineDueMileage,
+      if (manualOn != null) 'manual_on': manualOn,
+      if (manualServiceId != null) 'manual_service_id': manualServiceId,
+      if (baselineEnabled != null) 'baseline_enabled': baselineEnabled,
+      if (timeCount != null) 'time_count': timeCount,
+      if (timeUnit != null) 'time_unit': timeUnit,
+      if (warningDays != null) 'warning_days': warningDays,
+      if (warningDistance != null) 'warning_distance': warningDistance,
       if (intervalDays != null) 'interval_days': intervalDays,
       if (intervalDistance != null) 'interval_distance': intervalDistance,
       if (nextDueMileage != null) 'next_due_mileage': nextDueMileage,
@@ -3456,6 +3885,15 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     Value<String>? id,
     Value<String>? vehicleId,
     Value<String>? name,
+    Value<DateTime?>? baselineDueOn,
+    Value<double?>? baselineDueMileage,
+    Value<DateTime?>? manualOn,
+    Value<String?>? manualServiceId,
+    Value<bool>? baselineEnabled,
+    Value<int?>? timeCount,
+    Value<String?>? timeUnit,
+    Value<int?>? warningDays,
+    Value<double?>? warningDistance,
     Value<int?>? intervalDays,
     Value<double?>? intervalDistance,
     Value<double?>? nextDueMileage,
@@ -3472,6 +3910,15 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
       id: id ?? this.id,
       vehicleId: vehicleId ?? this.vehicleId,
       name: name ?? this.name,
+      baselineDueOn: baselineDueOn ?? this.baselineDueOn,
+      baselineDueMileage: baselineDueMileage ?? this.baselineDueMileage,
+      manualOn: manualOn ?? this.manualOn,
+      manualServiceId: manualServiceId ?? this.manualServiceId,
+      baselineEnabled: baselineEnabled ?? this.baselineEnabled,
+      timeCount: timeCount ?? this.timeCount,
+      timeUnit: timeUnit ?? this.timeUnit,
+      warningDays: warningDays ?? this.warningDays,
+      warningDistance: warningDistance ?? this.warningDistance,
       intervalDays: intervalDays ?? this.intervalDays,
       intervalDistance: intervalDistance ?? this.intervalDistance,
       nextDueMileage: nextDueMileage ?? this.nextDueMileage,
@@ -3497,6 +3944,33 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     }
     if (name.present) {
       map['name'] = Variable<String>(name.value);
+    }
+    if (baselineDueOn.present) {
+      map['baseline_due_on'] = Variable<DateTime>(baselineDueOn.value);
+    }
+    if (baselineDueMileage.present) {
+      map['baseline_due_mileage'] = Variable<double>(baselineDueMileage.value);
+    }
+    if (manualOn.present) {
+      map['manual_on'] = Variable<DateTime>(manualOn.value);
+    }
+    if (manualServiceId.present) {
+      map['manual_service_id'] = Variable<String>(manualServiceId.value);
+    }
+    if (baselineEnabled.present) {
+      map['baseline_enabled'] = Variable<bool>(baselineEnabled.value);
+    }
+    if (timeCount.present) {
+      map['time_count'] = Variable<int>(timeCount.value);
+    }
+    if (timeUnit.present) {
+      map['time_unit'] = Variable<String>(timeUnit.value);
+    }
+    if (warningDays.present) {
+      map['warning_days'] = Variable<int>(warningDays.value);
+    }
+    if (warningDistance.present) {
+      map['warning_distance'] = Variable<double>(warningDistance.value);
     }
     if (intervalDays.present) {
       map['interval_days'] = Variable<int>(intervalDays.value);
@@ -3540,6 +4014,15 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
           ..write('id: $id, ')
           ..write('vehicleId: $vehicleId, ')
           ..write('name: $name, ')
+          ..write('baselineDueOn: $baselineDueOn, ')
+          ..write('baselineDueMileage: $baselineDueMileage, ')
+          ..write('manualOn: $manualOn, ')
+          ..write('manualServiceId: $manualServiceId, ')
+          ..write('baselineEnabled: $baselineEnabled, ')
+          ..write('timeCount: $timeCount, ')
+          ..write('timeUnit: $timeUnit, ')
+          ..write('warningDays: $warningDays, ')
+          ..write('warningDistance: $warningDistance, ')
           ..write('intervalDays: $intervalDays, ')
           ..write('intervalDistance: $intervalDistance, ')
           ..write('nextDueMileage: $nextDueMileage, ')
@@ -3621,9 +4104,9 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
   late final GeneratedColumn<double> odometer = GeneratedColumn<double>(
     'odometer',
     aliasedName,
-    false,
+    true,
     type: DriftSqlType.double,
-    requiredDuringInsert: true,
+    requiredDuringInsert: false,
   );
   static const VerificationMeta _totalCostMeta = const VerificationMeta(
     'totalCost',
@@ -3780,8 +4263,6 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
         _odometerMeta,
         odometer.isAcceptableOrUnknown(data['odometer']!, _odometerMeta),
       );
-    } else if (isInserting) {
-      context.missing(_odometerMeta);
     }
     if (data.containsKey('total_cost')) {
       context.handle(
@@ -3878,7 +4359,7 @@ class $ServiceRecordRowsTable extends ServiceRecordRows
       odometer: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}odometer'],
-      )!,
+      ),
       totalCost: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}total_cost'],
@@ -3927,7 +4408,7 @@ class ServiceRecordRow extends DataClass
   final String vehicleId;
   final String title;
   final DateTime servicedOn;
-  final double odometer;
+  final double? odometer;
   final double totalCost;
   final String? workshopName;
   final String? notes;
@@ -3942,7 +4423,7 @@ class ServiceRecordRow extends DataClass
     required this.vehicleId,
     required this.title,
     required this.servicedOn,
-    required this.odometer,
+    this.odometer,
     required this.totalCost,
     this.workshopName,
     this.notes,
@@ -3960,7 +4441,9 @@ class ServiceRecordRow extends DataClass
     map['vehicle_id'] = Variable<String>(vehicleId);
     map['title'] = Variable<String>(title);
     map['serviced_on'] = Variable<DateTime>(servicedOn);
-    map['odometer'] = Variable<double>(odometer);
+    if (!nullToAbsent || odometer != null) {
+      map['odometer'] = Variable<double>(odometer);
+    }
     map['total_cost'] = Variable<double>(totalCost);
     if (!nullToAbsent || workshopName != null) {
       map['workshop_name'] = Variable<String>(workshopName);
@@ -3989,7 +4472,9 @@ class ServiceRecordRow extends DataClass
       vehicleId: Value(vehicleId),
       title: Value(title),
       servicedOn: Value(servicedOn),
-      odometer: Value(odometer),
+      odometer: odometer == null && nullToAbsent
+          ? const Value.absent()
+          : Value(odometer),
       totalCost: Value(totalCost),
       workshopName: workshopName == null && nullToAbsent
           ? const Value.absent()
@@ -4022,7 +4507,7 @@ class ServiceRecordRow extends DataClass
       vehicleId: serializer.fromJson<String>(json['vehicleId']),
       title: serializer.fromJson<String>(json['title']),
       servicedOn: serializer.fromJson<DateTime>(json['servicedOn']),
-      odometer: serializer.fromJson<double>(json['odometer']),
+      odometer: serializer.fromJson<double?>(json['odometer']),
       totalCost: serializer.fromJson<double>(json['totalCost']),
       workshopName: serializer.fromJson<String?>(json['workshopName']),
       notes: serializer.fromJson<String?>(json['notes']),
@@ -4042,7 +4527,7 @@ class ServiceRecordRow extends DataClass
       'vehicleId': serializer.toJson<String>(vehicleId),
       'title': serializer.toJson<String>(title),
       'servicedOn': serializer.toJson<DateTime>(servicedOn),
-      'odometer': serializer.toJson<double>(odometer),
+      'odometer': serializer.toJson<double?>(odometer),
       'totalCost': serializer.toJson<double>(totalCost),
       'workshopName': serializer.toJson<String?>(workshopName),
       'notes': serializer.toJson<String?>(notes),
@@ -4060,7 +4545,7 @@ class ServiceRecordRow extends DataClass
     String? vehicleId,
     String? title,
     DateTime? servicedOn,
-    double? odometer,
+    Value<double?> odometer = const Value.absent(),
     double? totalCost,
     Value<String?> workshopName = const Value.absent(),
     Value<String?> notes = const Value.absent(),
@@ -4075,7 +4560,7 @@ class ServiceRecordRow extends DataClass
     vehicleId: vehicleId ?? this.vehicleId,
     title: title ?? this.title,
     servicedOn: servicedOn ?? this.servicedOn,
-    odometer: odometer ?? this.odometer,
+    odometer: odometer.present ? odometer.value : this.odometer,
     totalCost: totalCost ?? this.totalCost,
     workshopName: workshopName.present ? workshopName.value : this.workshopName,
     notes: notes.present ? notes.value : this.notes,
@@ -4180,7 +4665,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
   final Value<String> vehicleId;
   final Value<String> title;
   final Value<DateTime> servicedOn;
-  final Value<double> odometer;
+  final Value<double?> odometer;
   final Value<double> totalCost;
   final Value<String?> workshopName;
   final Value<String?> notes;
@@ -4213,7 +4698,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     required String vehicleId,
     required String title,
     required DateTime servicedOn,
-    required double odometer,
+    this.odometer = const Value.absent(),
     required double totalCost,
     this.workshopName = const Value.absent(),
     this.notes = const Value.absent(),
@@ -4227,7 +4712,6 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
        vehicleId = Value(vehicleId),
        title = Value(title),
        servicedOn = Value(servicedOn),
-       odometer = Value(odometer),
        totalCost = Value(totalCost),
        updatedAt = Value(updatedAt),
        createdAt = Value(createdAt);
@@ -4273,7 +4757,7 @@ class ServiceRecordRowsCompanion extends UpdateCompanion<ServiceRecordRow> {
     Value<String>? vehicleId,
     Value<String>? title,
     Value<DateTime>? servicedOn,
-    Value<double>? odometer,
+    Value<double?>? odometer,
     Value<double>? totalCost,
     Value<String?>? workshopName,
     Value<String?>? notes,
@@ -13692,6 +14176,15 @@ typedef $$PlanItemRecordsTableCreateCompanionBuilder =
       required String id,
       required String vehicleId,
       required String name,
+      Value<DateTime?> baselineDueOn,
+      Value<double?> baselineDueMileage,
+      Value<DateTime?> manualOn,
+      Value<String?> manualServiceId,
+      Value<bool> baselineEnabled,
+      Value<int?> timeCount,
+      Value<String?> timeUnit,
+      Value<int?> warningDays,
+      Value<double?> warningDistance,
       Value<int?> intervalDays,
       Value<double?> intervalDistance,
       Value<double?> nextDueMileage,
@@ -13709,6 +14202,15 @@ typedef $$PlanItemRecordsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> vehicleId,
       Value<String> name,
+      Value<DateTime?> baselineDueOn,
+      Value<double?> baselineDueMileage,
+      Value<DateTime?> manualOn,
+      Value<String?> manualServiceId,
+      Value<bool> baselineEnabled,
+      Value<int?> timeCount,
+      Value<String?> timeUnit,
+      Value<int?> warningDays,
+      Value<double?> warningDistance,
       Value<int?> intervalDays,
       Value<double?> intervalDistance,
       Value<double?> nextDueMileage,
@@ -13743,6 +14245,51 @@ class $$PlanItemRecordsTableFilterComposer
 
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get baselineDueOn => $composableBuilder(
+    column: $table.baselineDueOn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get baselineDueMileage => $composableBuilder(
+    column: $table.baselineDueMileage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get manualOn => $composableBuilder(
+    column: $table.manualOn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get manualServiceId => $composableBuilder(
+    column: $table.manualServiceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get baselineEnabled => $composableBuilder(
+    column: $table.baselineEnabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get timeCount => $composableBuilder(
+    column: $table.timeCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get timeUnit => $composableBuilder(
+    column: $table.timeUnit,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get warningDays => $composableBuilder(
+    column: $table.warningDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get warningDistance => $composableBuilder(
+    column: $table.warningDistance,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -13821,6 +14368,51 @@ class $$PlanItemRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<DateTime> get baselineDueOn => $composableBuilder(
+    column: $table.baselineDueOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get baselineDueMileage => $composableBuilder(
+    column: $table.baselineDueMileage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get manualOn => $composableBuilder(
+    column: $table.manualOn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get manualServiceId => $composableBuilder(
+    column: $table.manualServiceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get baselineEnabled => $composableBuilder(
+    column: $table.baselineEnabled,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get timeCount => $composableBuilder(
+    column: $table.timeCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get timeUnit => $composableBuilder(
+    column: $table.timeUnit,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get warningDays => $composableBuilder(
+    column: $table.warningDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get warningDistance => $composableBuilder(
+    column: $table.warningDistance,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get intervalDays => $composableBuilder(
     column: $table.intervalDays,
     builder: (column) => ColumnOrderings(column),
@@ -13889,6 +14481,45 @@ class $$PlanItemRecordsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get baselineDueOn => $composableBuilder(
+    column: $table.baselineDueOn,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get baselineDueMileage => $composableBuilder(
+    column: $table.baselineDueMileage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get manualOn =>
+      $composableBuilder(column: $table.manualOn, builder: (column) => column);
+
+  GeneratedColumn<String> get manualServiceId => $composableBuilder(
+    column: $table.manualServiceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get baselineEnabled => $composableBuilder(
+    column: $table.baselineEnabled,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get timeCount =>
+      $composableBuilder(column: $table.timeCount, builder: (column) => column);
+
+  GeneratedColumn<String> get timeUnit =>
+      $composableBuilder(column: $table.timeUnit, builder: (column) => column);
+
+  GeneratedColumn<int> get warningDays => $composableBuilder(
+    column: $table.warningDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get warningDistance => $composableBuilder(
+    column: $table.warningDistance,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get intervalDays => $composableBuilder(
     column: $table.intervalDays,
@@ -13969,6 +14600,15 @@ class $$PlanItemRecordsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> vehicleId = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<DateTime?> baselineDueOn = const Value.absent(),
+                Value<double?> baselineDueMileage = const Value.absent(),
+                Value<DateTime?> manualOn = const Value.absent(),
+                Value<String?> manualServiceId = const Value.absent(),
+                Value<bool> baselineEnabled = const Value.absent(),
+                Value<int?> timeCount = const Value.absent(),
+                Value<String?> timeUnit = const Value.absent(),
+                Value<int?> warningDays = const Value.absent(),
+                Value<double?> warningDistance = const Value.absent(),
                 Value<int?> intervalDays = const Value.absent(),
                 Value<double?> intervalDistance = const Value.absent(),
                 Value<double?> nextDueMileage = const Value.absent(),
@@ -13984,6 +14624,15 @@ class $$PlanItemRecordsTableTableManager
                 id: id,
                 vehicleId: vehicleId,
                 name: name,
+                baselineDueOn: baselineDueOn,
+                baselineDueMileage: baselineDueMileage,
+                manualOn: manualOn,
+                manualServiceId: manualServiceId,
+                baselineEnabled: baselineEnabled,
+                timeCount: timeCount,
+                timeUnit: timeUnit,
+                warningDays: warningDays,
+                warningDistance: warningDistance,
                 intervalDays: intervalDays,
                 intervalDistance: intervalDistance,
                 nextDueMileage: nextDueMileage,
@@ -14001,6 +14650,15 @@ class $$PlanItemRecordsTableTableManager
                 required String id,
                 required String vehicleId,
                 required String name,
+                Value<DateTime?> baselineDueOn = const Value.absent(),
+                Value<double?> baselineDueMileage = const Value.absent(),
+                Value<DateTime?> manualOn = const Value.absent(),
+                Value<String?> manualServiceId = const Value.absent(),
+                Value<bool> baselineEnabled = const Value.absent(),
+                Value<int?> timeCount = const Value.absent(),
+                Value<String?> timeUnit = const Value.absent(),
+                Value<int?> warningDays = const Value.absent(),
+                Value<double?> warningDistance = const Value.absent(),
                 Value<int?> intervalDays = const Value.absent(),
                 Value<double?> intervalDistance = const Value.absent(),
                 Value<double?> nextDueMileage = const Value.absent(),
@@ -14016,6 +14674,15 @@ class $$PlanItemRecordsTableTableManager
                 id: id,
                 vehicleId: vehicleId,
                 name: name,
+                baselineDueOn: baselineDueOn,
+                baselineDueMileage: baselineDueMileage,
+                manualOn: manualOn,
+                manualServiceId: manualServiceId,
+                baselineEnabled: baselineEnabled,
+                timeCount: timeCount,
+                timeUnit: timeUnit,
+                warningDays: warningDays,
+                warningDistance: warningDistance,
                 intervalDays: intervalDays,
                 intervalDistance: intervalDistance,
                 nextDueMileage: nextDueMileage,
@@ -14069,7 +14736,7 @@ typedef $$ServiceRecordRowsTableCreateCompanionBuilder =
       required String vehicleId,
       required String title,
       required DateTime servicedOn,
-      required double odometer,
+      Value<double?> odometer,
       required double totalCost,
       Value<String?> workshopName,
       Value<String?> notes,
@@ -14087,7 +14754,7 @@ typedef $$ServiceRecordRowsTableUpdateCompanionBuilder =
       Value<String> vehicleId,
       Value<String> title,
       Value<DateTime> servicedOn,
-      Value<double> odometer,
+      Value<double?> odometer,
       Value<double> totalCost,
       Value<String?> workshopName,
       Value<String?> notes,
@@ -14364,7 +15031,7 @@ class $$ServiceRecordRowsTableTableManager
                 Value<String> vehicleId = const Value.absent(),
                 Value<String> title = const Value.absent(),
                 Value<DateTime> servicedOn = const Value.absent(),
-                Value<double> odometer = const Value.absent(),
+                Value<double?> odometer = const Value.absent(),
                 Value<double> totalCost = const Value.absent(),
                 Value<String?> workshopName = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
@@ -14398,7 +15065,7 @@ class $$ServiceRecordRowsTableTableManager
                 required String vehicleId,
                 required String title,
                 required DateTime servicedOn,
-                required double odometer,
+                Value<double?> odometer = const Value.absent(),
                 required double totalCost,
                 Value<String?> workshopName = const Value.absent(),
                 Value<String?> notes = const Value.absent(),

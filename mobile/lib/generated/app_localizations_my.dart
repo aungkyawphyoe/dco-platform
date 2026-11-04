@@ -9,6 +9,13 @@ class AppLocalizationsMy extends AppLocalizations {
   AppLocalizationsMy([String locale = 'my']) : super(locale);
 
   @override
+  String get planWarningDays => 'သတ်မှတ်ရက်မတိုင်မီ သတိပေးမည့် ရက်အရေအတွက်';
+
+  @override
+  String get planWarningDistance =>
+      'သတ်မှတ်မိုင်နှုန်းမတိုင်မီ သတိပေးမည့် အကွာအဝေး';
+
+  @override
   String get appTitle => 'AutoX';
 
   @override
@@ -708,12 +715,11 @@ class AppLocalizationsMy extends AppLocalizations {
   String get planItemFormEveryMileage => 'မိုင်နှုန်းအလိုက် (မိုင်တိုင်း)';
 
   @override
-  String get planItemFormOverrideStart =>
-      'စတင် စောင့်ကြည့်မည့် ကိန်းဂဏန်းကို ပြောင်းလဲမည်';
+  String get planItemFormOverrideStart => 'နောက်တစ်ကြိမ် ပြုလုပ်ရန်';
 
   @override
   String get planItemFormOverrideHelper =>
-      'ဒီတန်ဖိုး သို့မဟုတ် နောက်ဆုံးပြုပြင်ထားသည့် မိုင်နှုန်းအနက် ပိုများသောတန်ဖိုးကို အသုံးပြုပါမည်။';
+      'သတ်မှတ်ရက် သို့မဟုတ် မိုင်နှုန်း အနည်းဆုံးတစ်ခု ထည့်ပါ။ ထပ်မံပြုလုပ်မည့် ကာလအတွက် ပထမသတ်မှတ်ချက် ထည့်ပါ။';
 
   @override
   String get planItemFormTrackingStart => 'စတင် စောင့်ကြည့်မည်';

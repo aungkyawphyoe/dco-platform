@@ -73,6 +73,16 @@ class PlanItemRecords extends Table {
   TextColumn get id => text()();
   TextColumn get vehicleId => text()();
   TextColumn get name => text()();
+  DateTimeColumn get baselineDueOn => dateTime().nullable()();
+  RealColumn get baselineDueMileage => real().nullable()();
+  DateTimeColumn get manualOn => dateTime().nullable()();
+  TextColumn get manualServiceId => text().nullable()();
+  BoolColumn get baselineEnabled =>
+      boolean().withDefault(const Constant(true))();
+  IntColumn get timeCount => integer().nullable()();
+  TextColumn get timeUnit => text().nullable()();
+  IntColumn get warningDays => integer().nullable()();
+  RealColumn get warningDistance => real().nullable()();
   IntColumn get intervalDays => integer().nullable()();
   RealColumn get intervalDistance => real().nullable()();
   RealColumn get nextDueMileage => real().nullable()();
@@ -97,7 +107,7 @@ class ServiceRecordRows extends Table {
   TextColumn get vehicleId => text()();
   TextColumn get title => text()();
   DateTimeColumn get servicedOn => dateTime()();
-  RealColumn get odometer => real()();
+  RealColumn get odometer => real().nullable()();
   RealColumn get totalCost => real()();
   TextColumn get workshopName => text().nullable()();
   TextColumn get notes => text().nullable()();

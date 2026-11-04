@@ -8,6 +8,7 @@ import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/suggested_plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/repositories/maintenance_catalog_repository.dart';
 import 'package:dco_mobile/features/maintenance/presentation/screens/suggested_items_screen.dart';
+import 'package:dco_mobile/features/maintenance/presentation/screens/plan_item_form_screen.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -31,12 +32,7 @@ Vehicle vehicle(String id, String user) => Vehicle(
   updatedAt: DateTime(2026),
   createdAt: DateTime(2026),
 );
-const suggestion = SuggestedPlanItem(
-  catalogKey: 'oil',
-  name: 'Oil change',
-  fuelTypes: {FuelType.petrol},
-  intervalDays: 365,
-);
+const suggestion = SuggestedPlanItem(catalogKey: 'oil', name: 'Oil change');
 final user = StateProvider<String>((ref) => 'a');
 final sync = StateProvider<SyncState>((ref) => SyncState.initial);
 
@@ -154,7 +150,7 @@ void main() {
       await pump(tester, [suggestion], secondPlan: bPlan.stream);
       final context = tester.element(find.byType(SuggestedItemsScreen));
       final s = AppLocalizations.of(context)!;
-      expect(find.text(s.suggestedItemsAllAdded), findsOneWidget);
+      expect(find.text('Oil change'), findsOneWidget);
       final container = ProviderScope.containerOf(context);
       container.read(user.notifier).state = 'b';
       await tester.pump();
@@ -166,6 +162,32 @@ void main() {
       expect(find.text(s.suggestedItemsAllAdded), findsNothing);
     },
   );
+
+  testWidgets('suggestion opens a prefilled sheet and requires manual setup', (
+    tester,
+  ) async {
+    await pump(tester, [suggestion]);
+    final context = tester.element(find.byType(SuggestedItemsScreen));
+    final container = ProviderScope.containerOf(context);
+    container.read(user.notifier).state = 'b';
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Oil change'));
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsOneWidget);
+    expect(find.byType(PlanItemFormScreen), findsOneWidget);
+    final fields = tester.widgetList<TextField>(find.byType(TextField));
+    expect(
+      fields.any((field) => field.controller?.text == 'Oil change'),
+      isTrue,
+    );
+    await tester.tap(find.byKey(const Key('plan-item-save')));
+    await tester.pumpAndSettle();
+    expect(find.byType(PlanItemFormScreen), findsOneWidget);
+    final s = AppLocalizations.of(context)!;
+    await tester.tap(find.text(s.cancel));
+    await tester.pumpAndSettle();
+    expect(find.byType(PlanItemFormScreen), findsNothing);
+  });
 
   for (final cached in [false, true]) {
     testWidgets(

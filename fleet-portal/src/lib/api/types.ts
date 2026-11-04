@@ -44,7 +44,6 @@ export type FleetVehicle = {
   status: string;
   revenue_label: string | null;
   assigned_driver_id: string | null;
-  maintenance_template_class?: VehicleClass | null;
   added_at: string | null;
 };
 
@@ -73,41 +72,14 @@ export const fuelTypeOptions: { value: FuelType; label: string }[] = [
   { value: "hybrid_plugin", label: "Hybrid" },
 ];
 
-export type MaintenanceTemplate = {
-  id: string;
-  catalog_key: string;
-  name: string;
-  interval_days: number | null;
-  interval_distance: number | null;
-  fuel_types: FuelType[];
-  vehicle_class: VehicleClass;
-  lifecycle_template: LifecycleTemplate | null;
-  sort_order: number;
-  enabled: boolean;
-  source: "global" | "org";
-  created_at: string;
-  updated_at: string;
-};
-
-export type MaintenanceTemplateWrite = {
-  name?: string;
-  interval_days?: number | null;
-  interval_distance?: number | null;
-  fuel_types?: FuelType[];
-  vehicle_class?: VehicleClass;
-  lifecycle_template?: LifecycleTemplate | null;
-  sort_order?: number;
-  enabled?: boolean;
-  source_template_id?: string;
-};
-
-export type TemplateAssignment = { maintenance_template_class: VehicleClass | null };
-export type GeneratePlanResult = { created: number; skipped: number };
-
 export type VehiclePlanItem = {
   id: string;
   vehicle_id: string;
   name: string;
+  time_count?: number | null;
+  time_unit?: "days" | "months" | "years" | null;
+  warning_days?: number | null;
+  warning_distance?: number | null;
   interval_days?: number | null;
   interval_distance?: number | null;
   next_due_mileage?: number | null;

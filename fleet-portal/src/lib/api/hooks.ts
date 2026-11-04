@@ -7,20 +7,15 @@ import type {
   Assignment,
   FleetAnalytics,
   FleetVehicle,
-  GeneratePlanResult,
   ImportJob,
   Inspection,
   InspectionTemplate,
   InviteMemberResult,
   LemonReport,
-  MaintenanceTemplate,
-  MaintenanceTemplateWrite,
   OrgContext,
   OrgMember,
   OrgWorkshop,
-  TemplateAssignment,
   TransferredVehicle,
-  VehicleClass,
   VehicleCostMetrics,
   VehicleCreateInput,
   VehiclePlanItem,
@@ -452,106 +447,6 @@ export function useUpdateLemonThreshold(orgId: string | null) {
   });
 }
 
-// ── Maintenance templates ──
-
-export type TemplateFilters = {
-  vehicle_class?: string;
-  lifecycle_template?: string;
-  fuel_type?: string;
-};
-
-export function useMaintenanceTemplates(orgId: string | null, filters?: TemplateFilters) {
-  const params = new URLSearchParams();
-  if (filters?.vehicle_class) params.set("vehicle_class", filters.vehicle_class);
-  if (filters?.lifecycle_template) params.set("lifecycle_template", filters.lifecycle_template);
-  if (filters?.fuel_type) params.set("fuel_type", filters.fuel_type);
-  const qs = params.toString();
-  const queryKey: (string | null)[] = [
-    "fleet",
-    "maintenance-templates",
-    orgId,
-    filters?.vehicle_class ?? "",
-    filters?.lifecycle_template ?? "",
-    filters?.fuel_type ?? "",
-  ];
-  return useQuery({
-    queryKey,
-    queryFn: () =>
-      apiGet<{ items: MaintenanceTemplate[] }>(
-        orgPath(orgId, `/maintenance-templates${qs ? `?${qs}` : ""}`),
-      ),
-    enabled: Boolean(orgId),
-  });
-}
-
-export function useCreateMaintenanceTemplate(orgId: string | null) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (body: MaintenanceTemplateWrite) =>
-      apiPost<MaintenanceTemplate>(orgPath(orgId, "/maintenance-templates"), body),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["fleet", "maintenance-templates", orgId] });
-    },
-  });
-}
-
-export function useUpdateMaintenanceTemplate(orgId: string | null) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, body }: { id: string; body: MaintenanceTemplateWrite }) =>
-      apiPatch<MaintenanceTemplate>(orgPath(orgId, `/maintenance-templates/${id}`), body),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["fleet", "maintenance-templates", orgId] });
-    },
-  });
-}
-
-export function useDeleteMaintenanceTemplate(orgId: string | null) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (id: string) => apiDelete(orgPath(orgId, `/maintenance-templates/${id}`)),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["fleet", "maintenance-templates", orgId] });
-      qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
-    },
-  });
-}
-
-export function useAssignVehicleTemplate(orgId: string | null) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({
-      vehicleId,
-      vehicleClass,
-    }: {
-      vehicleId: string;
-      vehicleClass: VehicleClass | null;
-    }) =>
-      apiPut<TemplateAssignment>(
-        orgPath(orgId, `/vehicles/${vehicleId}/maintenance-template`),
-        { vehicle_class: vehicleClass },
-      ),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
-    },
-  });
-}
-
-export function useGenerateMaintenancePlan(orgId: string | null) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ vehicleId, itemIds }: { vehicleId: string; itemIds: string[] }) =>
-      apiPost<GeneratePlanResult>(
-        orgPath(orgId, `/vehicles/${vehicleId}/maintenance-template/generate`),
-        { item_ids: itemIds },
-      ),
-    onSuccess: (_result, { vehicleId }) => {
-      qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
-      qc.invalidateQueries({ queryKey: ["fleet", "vehicle-plan", orgId, vehicleId] });
-    },
-  });
-}
-
 // ── Vehicle detail: service history + maintenance plan (read-only) ──
 
 export function useVehicleServiceRecords(orgId: string | null, vehicleId: string | null) {
@@ -573,5 +468,40 @@ export function useVehiclePlanItems(orgId: string | null, vehicleId: string | nu
         orgPath(orgId, `/vehicles/${vehicleId}/plan-items`),
       ),
     enabled: Boolean(orgId && vehicleId),
+  });
+}
+
+export type SuggestedService = { catalog_key: string; name: string };
+export type ReminderWrite = {
+  id: string;
+  name: string;
+  catalog_key: string | null;
+  time_count?: number | null;
+  time_unit?: "days" | "months" | "years" | null;
+  warning_days?: number | null;
+  warning_distance?: number | null;
+  interval_days: number | null;
+  interval_distance: number | null;
+  next_due_on: string | null;
+  next_due_mileage: number | null;
+  enabled: boolean;
+};
+
+export function useServiceCatalog(orgId: string | null) {
+  return useQuery({
+    queryKey: ["fleet", "service-catalog", orgId],
+    queryFn: () => apiGet<{ items: SuggestedService[] }>(orgPath(orgId, "/maintenance-catalog")),
+    enabled: Boolean(orgId),
+  });
+}
+
+export function useSaveReminder(orgId: string | null, vehicleId: string) {
+  const cache = useQueryClient();
+  return useMutation({
+    mutationFn: ({ body, editing }: { body: ReminderWrite; editing: boolean }) =>
+      editing
+        ? apiPut<VehiclePlanItem>(orgPath(orgId, `/vehicles/${vehicleId}/plan-items`), body)
+        : apiPost<VehiclePlanItem>(orgPath(orgId, `/vehicles/${vehicleId}/plan-items`), body),
+    onSuccess: () => cache.invalidateQueries({ queryKey: ["fleet", "vehicle-plan", orgId, vehicleId] }),
   });
 }

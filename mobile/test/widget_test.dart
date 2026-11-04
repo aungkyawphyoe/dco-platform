@@ -131,9 +131,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Maintenance Plan'), findsOneWidget);
-    expect(find.text('No plan items yet'), findsNothing);
-    expect(find.text('Mileage Update'), findsOneWidget);
-    expect(find.text('Routine'), findsOneWidget);
+    expect(find.text('No plan items yet'), findsOneWidget);
+    expect(find.text('Mileage Update'), findsNothing);
+    expect(find.text('Routine'), findsNothing);
     expect(find.byKey(const Key('maintenance-plan-done')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('maintenance-plan-done')));
@@ -150,9 +150,9 @@ void main() {
     container.read(goRouterProvider).push(AppRoutes.maintenancePlan);
     await tester.pumpAndSettle();
 
-    expect(find.text('No plan items yet'), findsNothing);
-    expect(find.text('Mileage Update'), findsOneWidget);
-    expect(find.text('Routine'), findsOneWidget);
+    expect(find.text('No plan items yet'), findsOneWidget);
+    expect(find.text('Mileage Update'), findsNothing);
+    expect(find.text('Routine'), findsNothing);
     expect(find.byKey(const Key('maintenance-plan-done')), findsNothing);
 
     await tester.pumpWidget(const SizedBox.shrink());
