@@ -3143,7 +3143,7 @@ abstract class AppLocalizations {
   /// No description provided for @settingsSignOutConfirmBody.
   ///
   /// In en, this message translates to:
-  /// **'Pending changes stay on this device. They sync when you sign in to this account again, and another account on this phone cannot see them.'**
+  /// **'Your changes will sync first. Then all app data, cached files, and preferences will be removed from this device. You can download synced records after signing in again. Local-only Notes will be permanently deleted.'**
   String get settingsSignOutConfirmBody;
 
   /// No description provided for @settingsSignOutFailed.
@@ -8405,6 +8405,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unable to load account access. Check your connection and try again.'**
   String get authLoadAccessFailed;
+
+  /// No description provided for @settingsSyncBeforeLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Sync required before logout'**
+  String get settingsSyncBeforeLogout;
+
+  /// No description provided for @settingsLogoutPendingSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{changes} changes and {uploads} uploads have not synced. Retry syncing before logging out. If a change cannot be synced, you can explicitly discard it. Discarded data cannot be restored.'**
+  String settingsLogoutPendingSummary(int changes, int uploads);
+
+  /// No description provided for @settingsDiscardAndLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes and log out'**
+  String get settingsDiscardAndLogout;
+
+  /// No description provided for @settingsDiscardLogoutBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Permanently discard all unsynced changes and uploads, delete local-only Notes, and clear every app preference on this device? Synced server records will remain available.'**
+  String get settingsDiscardLogoutBody;
+
+  /// No description provided for @settingsClearLocalData.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear local data'**
+  String get settingsClearLocalData;
+
+  /// No description provided for @settingsAccountLockedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This device still holds data from the previous account. Sign in to that same account to finish syncing, or explicitly discard the local data before using another account.'**
+  String get settingsAccountLockedBody;
 }
 
 class _AppLocalizationsDelegate

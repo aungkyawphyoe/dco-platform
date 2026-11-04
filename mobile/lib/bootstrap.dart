@@ -1,3 +1,7 @@
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'core/storage/account_lifecycle.dart';
+import 'core/gating/license_store.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -18,8 +22,27 @@ Future<List<Override>> bootstrap() async {
   final database = AppDatabase();
   final notifications = FlutterLocalNotificationClient();
   await notifications.initialize();
+  late final AccountLifecycle lifecycle;
+  final support = await getApplicationSupportDirectory();
+  lifecycle = AccountLifecycle(
+    primary: database,
+    tokens: tokenStore,
+    notifications: notifications,
+    journal: FileLifecycleJournal(
+      File('${support.path}/account-lifecycle.json'),
+    ),
+    clearSecrets: () => SecureLicenseStore().clearAll(),
+    cleanFiles: cleanAccountFiles,
+    discoverDatabases: () => lifecycle.openInactiveDatabases(),
+  );
+  try {
+    await lifecycle.initialize();
+  } catch (_) {
+    /* The session gate retries incomplete cleanup. */
+  }
   final analytics = await _initAnalytics(config);
   return [
+    accountLifecycleProvider.overrideWithValue(lifecycle),
     appConfigProvider.overrideWithValue(config),
     tokenStoreProvider.overrideWithValue(tokenStore),
     appDatabaseProvider.overrideWithValue(database),

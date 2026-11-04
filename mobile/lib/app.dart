@@ -1,3 +1,4 @@
+import 'core/storage/account_lifecycle.dart';
 import 'dart:async';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -71,6 +72,7 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
   }
 
   void _onSyncStatus(AsyncValue<SyncState> status) {
+    if (ref.read(accountTransitionProvider)) return;
     final state = status.valueOrNull;
     if (state == null || !state.hasError) return;
 
@@ -103,6 +105,7 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    final transitioning = ref.watch(accountTransitionProvider);
     final router = ref.watch(goRouterProvider);
     ref.watch(reminderSyncControllerProvider);
     // Warm the feature gate (license + active counts) so the first
@@ -154,8 +157,24 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
       theme: buildDcoTheme(Brightness.light),
       darkTheme: buildDcoTheme(Brightness.dark),
       themeMode: themeMode,
-      builder: (context, child) =>
-          DcoSystemUi(themeMode: themeMode, child: child),
+      builder: (context, child) => DcoSystemUi(
+        themeMode: themeMode,
+        child: Stack(
+          children: [
+            if (child != null)
+              AbsorbPointer(absorbing: transitioning, child: child),
+            if (transitioning)
+              Positioned.fill(
+                child: ColoredBox(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.scrim.withValues(alpha: 0.6),
+                  child: const Center(child: CircularProgressIndicator()),
+                ),
+              ),
+          ],
+        ),
+      ),
       routerConfig: router,
       locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,

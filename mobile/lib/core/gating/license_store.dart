@@ -8,6 +8,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 /// Keys are scoped per user: a different account on the same phone must
 /// not inherit the previous account's license (same rule as the outbox).
 abstract class LicenseStore {
+  Future<void> clearAll();
+
   Future<String?> readLicense(String userId);
 
   Future<void> writeLicense(String userId, String license);
@@ -21,13 +23,16 @@ abstract class LicenseStore {
 
 class SecureLicenseStore implements LicenseStore {
   SecureLicenseStore({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage();
+    : _storage = storage ?? const FlutterSecureStorage();
 
   static String licenseKey(String userId) => 'dco.license.$userId';
 
   static String maxSeenKey(String userId) => 'dco.license.max_seen.$userId';
 
   final FlutterSecureStorage _storage;
+
+  @override
+  Future<void> clearAll() => _storage.deleteAll();
 
   @override
   Future<String?> readLicense(String userId) =>
@@ -49,8 +54,10 @@ class SecureLicenseStore implements LicenseStore {
   }
 
   @override
-  Future<void> writeMaxSeen(String userId, DateTime time) =>
-      _storage.write(key: maxSeenKey(userId), value: time.toUtc().toIso8601String());
+  Future<void> writeMaxSeen(String userId, DateTime time) => _storage.write(
+    key: maxSeenKey(userId),
+    value: time.toUtc().toIso8601String(),
+  );
 }
 
 /// In-memory store for widget/unit tests — mirrors `MemoryTokenStore`.
@@ -58,6 +65,12 @@ class SecureLicenseStore implements LicenseStore {
 class MemoryLicenseStore implements LicenseStore {
   final _licenses = <String, String>{};
   final _maxSeen = <String, DateTime>{};
+
+  @override
+  Future<void> clearAll() async {
+    _licenses.clear();
+    _maxSeen.clear();
+  }
 
   @override
   Future<String?> readLicense(String userId) async => _licenses[userId];

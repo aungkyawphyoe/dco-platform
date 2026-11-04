@@ -16,7 +16,8 @@ class AppearanceScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final tokens = context.tokens;
     final prefs =
-        ref.watch(userPreferencesProvider).valueOrNull ?? UserPreferences.defaults;
+        ref.watch(userPreferencesProvider).valueOrNull ??
+        UserPreferences.defaults;
     final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
 
     final s = AppLocalizations.of(context)!;
@@ -37,22 +38,23 @@ class AppearanceScreen extends ConsumerWidget {
                 .toList(),
             selected: prefs.themeMode,
             onSelected: (mode) {
-              // Device-wide copy first: it keeps the splash and the auth
-              // screens on the chosen theme after logout.
+              // The entry screens share this choice until logout resets it.
               ref.read(entryPreferencesProvider.notifier).themeMode(mode.code);
               if (userId == null) return;
-              ref.read(preferencesRepositoryProvider).save(
-                userId: userId,
-                preferences: prefs.copyWith(themeMode: mode),
-              );
+              ref
+                  .read(preferencesRepositoryProvider)
+                  .save(
+                    userId: userId,
+                    preferences: prefs.copyWith(themeMode: mode),
+                  );
             },
           ),
           SizedBox(height: tokens.space.s3),
           Text(
             s.appearanceSystemHint,
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: tokens.text.caption,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
           ),
         ],
       ),

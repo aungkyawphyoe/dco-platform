@@ -6,6 +6,8 @@ import '../../generated/app_localizations.dart';
 String localizedApiError(AppLocalizations strings, String? code) {
   return switch (code) {
     null || '' || 'unknown' => strings.apiErrorGeneric,
+    'account_locked' ||
+    'cleanup_incomplete' => strings.settingsAccountLockedBody,
     'network' ||
     'connection_error' ||
     'connection_closed' ||

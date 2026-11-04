@@ -6,7 +6,8 @@ import 'api_error.dart';
 // Private fields with public constructor names.
 // ignore_for_file: prefer_initializing_formals
 
-typedef RefreshTokens = Future<({String accessToken, String refreshToken})?> Function();
+typedef RefreshTokens =
+    Future<({String accessToken, String refreshToken})?> Function();
 
 class AuthInterceptor extends Interceptor {
   AuthInterceptor({
@@ -25,9 +26,15 @@ class AuthInterceptor extends Interceptor {
   bool _shouldSkip(RequestOptions options) {
     final base = Uri.parse(options.baseUrl);
     final target = options.uri;
-    if (target.scheme != base.scheme || target.host != base.host || target.port != base.port) return true;
+    if (target.scheme != base.scheme ||
+        target.host != base.host ||
+        target.port != base.port) {
+      return true;
+    }
     final basePath = base.path.replaceFirst(RegExp(r'/$'), '');
-    return _skipAuthPaths.any((path) => target.path == '$basePath$path' || target.path == path);
+    return _skipAuthPaths.any(
+      (path) => target.path == '$basePath$path' || target.path == path,
+    );
   }
 
   @override
@@ -35,10 +42,15 @@ class AuthInterceptor extends Interceptor {
     RequestOptions options,
     RequestInterceptorHandler handler,
   ) async {
+    options.extra['account_generation'] = _tokenStore.generation;
     final base = Uri.parse(options.baseUrl);
     final target = options.uri;
-    if (target.scheme != base.scheme || target.host != base.host || target.port != base.port) {
-      options.headers.removeWhere((key, _) => key.toLowerCase() == 'authorization');
+    if (target.scheme != base.scheme ||
+        target.host != base.host ||
+        target.port != base.port) {
+      options.headers.removeWhere(
+        (key, _) => key.toLowerCase() == 'authorization',
+      );
     }
     if (!_shouldSkip(options)) {
       final token = await _tokenStore.readAccessToken();
@@ -49,11 +61,36 @@ class AuthInterceptor extends Interceptor {
     handler.next(options);
   }
 
+  bool _stale(RequestOptions options) {
+    final generation = options.extra['account_generation'];
+    return generation != null && generation != _tokenStore.generation;
+  }
+
+  DioException _accountChanged(RequestOptions options) => DioException(
+    requestOptions: options,
+    type: DioExceptionType.cancel,
+    message: 'Account changed',
+  );
+
+  @override
+  void onResponse(Response response, ResponseInterceptorHandler handler) {
+    if (_stale(response.requestOptions)) {
+      handler.reject(_accountChanged(response.requestOptions));
+      return;
+    }
+    handler.next(response);
+  }
+
   @override
   Future<void> onError(
     DioException err,
     ErrorInterceptorHandler handler,
   ) async {
+    if (_stale(err.requestOptions)) {
+      handler.next(_accountChanged(err.requestOptions));
+      return;
+    }
+
     if (err.response?.statusCode != 401 || _shouldSkip(err.requestOptions)) {
       handler.next(err);
       return;
@@ -65,6 +102,10 @@ class AuthInterceptor extends Interceptor {
     _refreshing = true;
     try {
       final pair = await _refreshTokens();
+      if (_stale(err.requestOptions)) {
+        handler.next(_accountChanged(err.requestOptions));
+        return;
+      }
       if (pair == null) {
         handler.next(err);
         return;
@@ -80,6 +121,8 @@ class AuthInterceptor extends Interceptor {
       handler.resolve(response);
     } on DioException catch (refreshError) {
       handler.next(refreshError);
+    } catch (_) {
+      handler.next(err);
     } finally {
       _refreshing = false;
     }
@@ -131,14 +174,35 @@ ApiError _mapStatus(int? statusCode) {
     );
   }
   return switch (statusCode) {
-    400 => const ApiError(code: 'validation', message: 'The request was invalid'),
-    401 => const ApiError(code: 'unauthenticated', message: 'Session expired. Sign in again'),
-    403 => const ApiError(code: 'forbidden', message: 'You do not have access to this'),
+    400 => const ApiError(
+      code: 'validation',
+      message: 'The request was invalid',
+    ),
+    401 => const ApiError(
+      code: 'unauthenticated',
+      message: 'Session expired. Sign in again',
+    ),
+    403 => const ApiError(
+      code: 'forbidden',
+      message: 'You do not have access to this',
+    ),
     404 => const ApiError(code: 'not_found', message: 'Not found'),
-    409 => const ApiError(code: 'conflict', message: 'That change conflicts with a newer one'),
-    413 => const ApiError(code: 'media_too_large', message: 'File exceeds the 15MB limit'),
-    422 => const ApiError(code: 'validation', message: 'Some details need fixing'),
-    429 => const ApiError(code: 'rate_limited', message: 'Too many attempts. Try again shortly'),
+    409 => const ApiError(
+      code: 'conflict',
+      message: 'That change conflicts with a newer one',
+    ),
+    413 => const ApiError(
+      code: 'media_too_large',
+      message: 'File exceeds the 15MB limit',
+    ),
+    422 => const ApiError(
+      code: 'validation',
+      message: 'Some details need fixing',
+    ),
+    429 => const ApiError(
+      code: 'rate_limited',
+      message: 'Too many attempts. Try again shortly',
+    ),
     _ => ApiError(
       code: 'unknown',
       message: 'Something went wrong',

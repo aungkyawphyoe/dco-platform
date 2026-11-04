@@ -1,3 +1,4 @@
+import 'storage/account_lifecycle.dart';
 import 'entities/driving_license.dart';
 import 'currency/currency_conflict_repository.dart';
 import 'currency/currency_sync_api.dart';
@@ -88,18 +89,32 @@ final driverOrganizationIdProvider = Provider<String?>((ref) {
   return organization?.isDriver == true ? organization!.id : null;
 });
 
+final accountLifecycleProvider = Provider<AccountLifecycle>((ref) {
+  return AccountLifecycle(
+    primary: ref.watch(appDatabaseProvider),
+    tokens: ref.watch(tokenStoreProvider),
+    notifications: ref.watch(localNotificationClientProvider),
+    journal: MemoryLifecycleJournal(),
+    clearSecrets: () => ref.read(licenseStoreProvider).clearAll(),
+  );
+});
+
 final organizationDatabaseProvider = Provider.family<AppDatabase, String>((
   ref,
   scope,
 ) {
   final db = AppDatabase.scoped('dco_org_$scope');
+  final lifecycle = ref.read(accountLifecycleProvider);
+  lifecycle.register(db, 'dco_org_$scope');
   ref.onDispose(() {
+    lifecycle.unregister(db);
     unawaited(db.close());
   });
   return db;
 });
 
 final recordDatabaseProvider = Provider<AppDatabase>((ref) {
+  ref.watch(accountEpochProvider);
   final organizationId = ref.watch(driverOrganizationIdProvider);
   final userId = ref.watch(currentUserIdProvider);
   if (organizationId == null || userId == null) {
@@ -170,12 +185,14 @@ final localNotificationClientProvider = Provider<LocalNotificationClient>((
 });
 
 final dioProvider = Provider<Dio>((ref) {
+  ref.watch(accountEpochProvider);
   final config = ref.watch(appConfigProvider);
   final tokens = ref.watch(tokenStoreProvider);
   final client = DioClient(
     config: config,
     tokenStore: tokens,
     refreshTokens: () async {
+      final generation = tokens.generation;
       final refresh = await tokens.readRefreshToken();
       if (refresh == null) return null;
       final bare = Dio(
@@ -193,7 +210,12 @@ final dioProvider = Provider<Dio>((ref) {
           data: {'refresh_token': refresh},
         );
         final session = Session.fromJson(response.data!);
+        if (tokens.generation != generation ||
+            await tokens.readRefreshToken() != refresh) {
+          return null;
+        }
         await tokens.writeSession(
+          expectedGeneration: generation,
           accessToken: session.accessToken,
           refreshToken: session.refreshToken,
           userJson: jsonEncode(session.user.toJson()),
@@ -219,13 +241,36 @@ final dioProvider = Provider<Dio>((ref) {
             error.response?.statusCode == 503) {
           rethrow;
         }
-        if (error.response?.statusCode == 401) {
-          await tokens.clear();
+        if (error.response?.statusCode == 401 &&
+            tokens.generation == generation &&
+            await tokens.readRefreshToken() == refresh) {
+          final cached = await tokens.readUserJson();
+          if (cached != null) {
+            final userId = (jsonDecode(cached) as Map)['id'] as String?;
+            if (userId != null) {
+              try {
+                await ref.read(accountLifecycleProvider).lock(userId);
+              } catch (_) {
+                /* The session gate stays locked in memory. */
+              }
+            }
+          }
+          try {
+            await tokens.clear();
+          } finally {
+            unawaited(
+              ref
+                  .read(sessionControllerProvider.notifier)
+                  .sessionExpired()
+                  .catchError((Object _) {}),
+            );
+          }
         }
         return null;
       }
     },
   );
+  ref.onDispose(() => client.dio.close(force: true));
   return client.dio;
 });
 

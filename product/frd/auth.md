@@ -13,7 +13,7 @@ Existing email/password login and sessions remain the baseline. Verification tok
 - Apply the selected language immediately to onboarding, authentication, validation, and recovery copy. Remember it locally before a session exists.
 - The introduction is three swipeable illustrated screens: digital garage and documents; maintenance history and reminders; fuel, expenses, and stats. Each screen shows one illustration.
 - Each screen has a short headline and caption, uses existing light/dark tokens, and supports accessible text scaling and illustration semantics. Motion is scroll-linked parallax with a staggered entrance and a Skip / page-indicator / Continue row; reduced-motion settings disable animation. The illustration sits on a soft stage in dark mode.
-- The introduction is skippable; Skip and Get started both land on Sign in, which offers account creation. Completing, skipping, or choosing Sign in marks introduction handled for this installation; logout does not reset it. No repeated tour on upgrades. Reinstallation behavior must account for OS backup restoration.
+- The introduction is skippable; Skip and Get started both land on Sign in, which offers account creation. Completing, skipping, or choosing Sign in marks introduction handled until local data is cleared. Logout resets it. Reinstallation must start signed out even when secure credentials survive uninstall.
 - After login, use the existing user's saved language preference when available; otherwise retain the pre-login choice. New users inherit the selected language. Language switching remains available before login and in Settings.
 - Fleet drivers use Sign in and existing role-based routing. There is no public Owner/Driver registration selector.
 
@@ -68,7 +68,7 @@ Existing email/password login and sessions remain the baseline. Verification tok
 ## Acceptance and scope boundaries
 
 - Both platforms pass real Google/Apple sign-in, linking, cancellation, and relaunch tests.
-- Both languages cover the entire new flow; existing saved preferences and theme choices survive account transitions.
+- Both languages cover the entire new flow; logout clears all saved app preferences, including language and theme choices.
 - Expired/replayed/wrong-purpose codes and unverified collaboration attempts are rejected by the API.
 - Existing unverified users retain existing shares; concurrent identity linking and email correction cannot steal or merge accounts.
 - Existing owner, driver, fleet, admin, and workshop authentication regressions pass.
@@ -83,7 +83,11 @@ Social sign-in preserves email/password entry when a provider is unavailable. In
 
 - Settings → Sign out opens a localized **Sign out?** dialog with Cancel and Sign out. Cancel, system Back, and dismissing the dialog leave the session untouched.
 - Confirming calls the existing session controller sign-out once. The action is disabled while it runs, so repeat taps cannot submit again.
-- Tokens are discarded and account transition proceeds as before. Queued writes and local records stay on the device, bound to the account; the dialog states that they sync after signing back in and that another account on the phone cannot see them. No network sync or cloud backup is promised.
+- The existing confirmation warns that local data, files, all app preferences, and local-only Notes are deleted; synced records can be restored from the server. Notes cannot be restored.
+- Normal sign-out first syncs pending writes and uploads. Failed sync blocks logout with Retry or Cancel; permanently rejected or unrecoverable work may be explicitly discarded only after a second confirmation showing the pending change/upload counts.
+- Cleanup removes user rows from personal and fleet databases, queued uploads, managed files and caches, credentials, licenses, and notifications. A durable cleanup marker blocks another login and retries cleanup on launch if any step fails.
+- Session expiry retains local data locked to the original account. Only that account can reauthenticate until cleanup succeeds. Account switching must complete the same logout process. Requests from an old session cannot restore credentials or update the next account.
+- A fresh installation clears surviving secure credentials before restoring a session.
 - Only user-requested sign-out is confirmed. Session expiry, account deletion, and required re-authentication transitions remain automatic.
 
 ## Post-login tour — 1 November 2026
@@ -93,7 +97,7 @@ The pre-login introduction remains unchanged and is marked handled per installat
 - The app offers **Show me around?** with **Show me around** and **Not now** instead of immediately covering the screen.
 - Four anchored hints cover the active vehicle (or its empty state), Maintenance, Expenses, and Settings/sync. Empty personal garages explain adding a vehicle without creating one; Drivers with no assignment are told that a fleet admin manages assignments.
 - Next, Back, Skip, and system Back always work. Back on the first step exits. The tour does not switch tabs, so tab stacks are preserved.
-- Dismissed/completed state is stored locally per account and tour version. It is not a sync entity, does not restart on launch or sign-out, and a new version is offered again.
+- Dismissed/completed state is stored locally per account and tour version. It is not a sync entity and does not restart on launch. Logout clears it along with every app preference; a new version is offered again.
 - Settings → Help → Replay tour starts an explicit replay from a stable Garage dashboard. Replay works after completion and does not re-arm the automatic offer.
 - Missing targets fall back to a centred card. The tour supports English/Burmese, both themes, large text, screen readers, and reduced motion.
 

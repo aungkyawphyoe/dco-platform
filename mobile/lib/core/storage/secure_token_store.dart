@@ -4,7 +4,13 @@ import 'token_store.dart';
 
 class SecureTokenStore implements TokenStore {
   SecureTokenStore({FlutterSecureStorage? storage})
-      : _storage = storage ?? const FlutterSecureStorage(iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device));
+    : _storage =
+          storage ??
+          const FlutterSecureStorage(
+            iOptions: IOSOptions(
+              accessibility: KeychainAccessibility.first_unlock_this_device,
+            ),
+          );
 
   static const _accessKey = 'dco.access_token';
   static const _refreshKey = 'dco.refresh_token';
@@ -12,30 +18,50 @@ class SecureTokenStore implements TokenStore {
 
   final FlutterSecureStorage _storage;
 
+  int _generation = 0;
+  Future<void> _pending = Future.value();
   @override
-  Future<String?> readAccessToken() => _storage.read(key: _accessKey);
+  int get generation => _generation;
+
+  Future<T> _serialized<T>(Future<T> Function() operation) {
+    final result = _pending.then((_) => operation());
+    _pending = result.then<void>((_) {}, onError: (Object _) {});
+    return result;
+  }
 
   @override
-  Future<String?> readRefreshToken() => _storage.read(key: _refreshKey);
-
+  Future<String?> readAccessToken() =>
+      _serialized(() => _storage.read(key: _accessKey));
   @override
-  Future<String?> readUserJson() => _storage.read(key: _userKey);
+  Future<String?> readRefreshToken() =>
+      _serialized(() => _storage.read(key: _refreshKey));
+  @override
+  Future<String?> readUserJson() =>
+      _serialized(() => _storage.read(key: _userKey));
 
   @override
   Future<void> writeSession({
     required String accessToken,
     required String refreshToken,
     required String userJson,
-  }) async {
-    await _storage.write(key: _accessKey, value: accessToken);
-    await _storage.write(key: _refreshKey, value: refreshToken);
-    await _storage.write(key: _userKey, value: userJson);
+    int? expectedGeneration,
+  }) {
+    final expected = expectedGeneration ?? generation;
+    return _serialized(() async {
+      if (expected != generation) throw StateError('Account changed');
+      await _storage.write(key: _accessKey, value: accessToken);
+      await _storage.write(key: _refreshKey, value: refreshToken);
+      await _storage.write(key: _userKey, value: userJson);
+    });
   }
 
   @override
-  Future<void> clear() async {
-    await _storage.delete(key: _accessKey);
-    await _storage.delete(key: _refreshKey);
-    await _storage.delete(key: _userKey);
+  Future<void> clear() {
+    _generation++;
+    return _serialized(() async {
+      await _storage.delete(key: _accessKey);
+      await _storage.delete(key: _refreshKey);
+      await _storage.delete(key: _userKey);
+    });
   }
 }

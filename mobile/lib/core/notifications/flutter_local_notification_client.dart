@@ -74,11 +74,14 @@ class FlutterLocalNotificationClient implements LocalNotificationClient {
       await _plugin.initialize(
         settings: settings,
         onDidReceiveNotificationResponse: _onTap,
-        onDidReceiveBackgroundNotificationResponse: dcoNotificationTapBackground,
+        onDidReceiveBackgroundNotificationResponse:
+            dcoNotificationTapBackground,
       );
 
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       await android?.createNotificationChannel(
         const AndroidNotificationChannel(
           _channelId,
@@ -105,13 +108,17 @@ class FlutterLocalNotificationClient implements LocalNotificationClient {
   Future<bool> get notificationsAllowed async {
     if (!_available) return false;
     try {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       if (android != null) {
         return await android.areNotificationsEnabled() ?? false;
       }
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
       final options = await ios?.checkPermissions();
       if (options != null) return options.isEnabled;
       return true;
@@ -124,21 +131,35 @@ class FlutterLocalNotificationClient implements LocalNotificationClient {
   Future<bool> requestPermissionIfNeeded() async {
     if (!_available) return false;
     try {
-      final android = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
+      final android = _plugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >();
       if (android != null) {
         return await android.requestNotificationsPermission() ?? false;
       }
-      final ios = _plugin.resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin>();
+      final ios = _plugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >();
       if (ios != null) {
-        return await ios.requestPermissions(alert: true, badge: true, sound: true) ??
+        return await ios.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            ) ??
             false;
       }
-      final macos = _plugin.resolvePlatformSpecificImplementation<
-          MacOSFlutterLocalNotificationsPlugin>();
+      final macos = _plugin
+          .resolvePlatformSpecificImplementation<
+            MacOSFlutterLocalNotificationsPlugin
+          >();
       if (macos != null) {
-        return await macos.requestPermissions(alert: true, badge: true, sound: true) ??
+        return await macos.requestPermissions(
+              alert: true,
+              badge: true,
+              sound: true,
+            ) ??
             false;
       }
       return true;
@@ -204,6 +225,12 @@ class FlutterLocalNotificationClient implements LocalNotificationClient {
     } catch (error) {
       debugPrint('Failed to schedule local notification: $error');
     }
+  }
+
+  @override
+  Future<void> cancelAll() async {
+    if (_available) await _plugin.cancelAll();
+    _launchPayload = null;
   }
 
   @override

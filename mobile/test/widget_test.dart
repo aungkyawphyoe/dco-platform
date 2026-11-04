@@ -77,6 +77,9 @@ void main() {
       );
       await container.read(sessionControllerProvider.notifier).signOut();
       await tester.pumpAndSettle();
+      expect(find.text('A home for your car'), findsOneWidget);
+      await tester.tap(find.text('Skip'));
+      await tester.pumpAndSettle();
       expect(find.byType(LoginScreen), findsOneWidget);
       await tester.enterText(find.byType(TextField).at(0), 'owner@example.com');
       await tester.enterText(find.byType(TextField).at(1), 'wrong-password');

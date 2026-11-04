@@ -1633,7 +1633,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsSignOutConfirmBody =>
-      'Pending changes stay on this device. They sync when you sign in to this account again, and another account on this phone cannot see them.';
+      'Your changes will sync first. Then all app data, cached files, and preferences will be removed from this device. You can download synced records after signing in again. Local-only Notes will be permanently deleted.';
 
   @override
   String get settingsSignOutFailed => 'Couldn\'t sign out. Try again.';
@@ -4540,4 +4540,26 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authLoadAccessFailed =>
       'Unable to load account access. Check your connection and try again.';
+
+  @override
+  String get settingsSyncBeforeLogout => 'Sync required before logout';
+
+  @override
+  String settingsLogoutPendingSummary(int changes, int uploads) {
+    return '$changes changes and $uploads uploads have not synced. Retry syncing before logging out. If a change cannot be synced, you can explicitly discard it. Discarded data cannot be restored.';
+  }
+
+  @override
+  String get settingsDiscardAndLogout => 'Discard changes and log out';
+
+  @override
+  String get settingsDiscardLogoutBody =>
+      'Permanently discard all unsynced changes and uploads, delete local-only Notes, and clear every app preference on this device? Synced server records will remain available.';
+
+  @override
+  String get settingsClearLocalData => 'Clear local data';
+
+  @override
+  String get settingsAccountLockedBody =>
+      'This device still holds data from the previous account. Sign in to that same account to finish syncing, or explicitly discard the local data before using another account.';
 }

@@ -18,10 +18,16 @@ class SyncAccountCoordinator {
     await Future.wait(_engines.toList().map((e) => e.pauseForAccountChange()));
   }
 
-  void resume() {
+  Future<void> flush() async {
+    for (final engine in _engines.toList()) {
+      await engine.flushForAccountChange();
+    }
+  }
+
+  void resume({bool sync = true}) {
     _paused = false;
     for (final engine in _engines.toList()) {
-      engine.resumeAfterAccountChange();
+      engine.resumeAfterAccountChange(sync: sync);
     }
   }
 }

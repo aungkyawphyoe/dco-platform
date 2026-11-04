@@ -1657,7 +1657,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get settingsSignOutConfirmBody =>
-      'မချိတ်ဆက်ရသေးသော ပြောင်းလဲမှုများသည် ဤစက်ပစ္စည်းပေါ်တွင် ကျန်ရှိမည်ဖြစ်ပြီး ဤအကောင့်သို့ ပြန်လည်ဝင်ရောက်သည့်အခါ ချိတ်ဆက်ပါမည်။ ဤဖုန်းရှိ အခြားအကောင့်တစ်ခုမှ ၎င်းတို့ကို မမြင်နိုင်ပါ။';
+      'အပြောင်းအလဲများကို ဦးစွာ ဆင့်ခ်လုပ်မည်။ ထို့နောက် ဤစက်ရှိ အက်ပ်ဒေတာ၊ ဖိုင်များနှင့် စိတ်ကြိုက်ဆက်တင်အားလုံးကို ဖယ်ရှားမည်။ ပြန်ဝင်သည့်အခါ ဆာဗာရှိဒေတာကို ပြန်ရယူနိုင်သည်။ စက်တွင်းသာသိမ်းထားသော မှတ်စုများကို အပြီးတိုင်ဖျက်မည်။';
 
   @override
   String get settingsSignOutFailed => 'အကောင့်မှ ထွက်၍ မရပါ။ ထပ်စမ်းကြည့်ပါ။';
@@ -4580,4 +4580,26 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get authLoadAccessFailed =>
       'အကောင့်အသုံးပြုခွင့်ကို မရယူနိုင်ပါ။ အင်တာနက်ကို စစ်ဆေးပြီး ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get settingsSyncBeforeLogout => 'မထွက်မီ ဆင့်ခ်လုပ်ရန် လိုအပ်သည်';
+
+  @override
+  String settingsLogoutPendingSummary(int changes, int uploads) {
+    return 'အပြောင်းအလဲ $changes ခုနှင့် အပ်လုဒ် $uploads ခု မပြီးသေးပါ။ ထပ်မံဆင့်ခ်လုပ်ပါ။ ဆင့်ခ်မလုပ်နိုင်သော ဒေတာကို အတည်ပြုပြီး စွန့်ပစ်နိုင်သည်။ စွန့်ပစ်ထားသောဒေတာကို ပြန်မရနိုင်ပါ။';
+  }
+
+  @override
+  String get settingsDiscardAndLogout => 'ဒေတာကို စွန့်ပစ်ပြီး ထွက်မည်';
+
+  @override
+  String get settingsDiscardLogoutBody =>
+      'ဆင့်ခ်မလုပ်ရသေးသော ဒေတာ၊ အပ်လုဒ်များ၊ စက်တွင်းမှတ်စုများနှင့် အက်ပ်ဆက်တင်အားလုံးကို အပြီးတိုင်ဖျက်မလား။ ဆာဗာပေါ်ရှိ ဒေတာကို ပြန်ရယူနိုင်သည်။';
+
+  @override
+  String get settingsClearLocalData => 'စက်တွင်းဒေတာကို ဖျက်မည်';
+
+  @override
+  String get settingsAccountLockedBody =>
+      'ဤစက်တွင် ယခင်အကောင့်၏ ဒေတာရှိနေသေးသည်။ ထိုအကောင့်ဖြင့် ပြန်ဝင်ပြီး ဆင့်ခ်လုပ်ပါ၊ သို့မဟုတ် အခြားအကောင့်သုံးရန် စက်တွင်းဒေတာကို အတည်ပြုစွန့်ပစ်ပါ။';
 }

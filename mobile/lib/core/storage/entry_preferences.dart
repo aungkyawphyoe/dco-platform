@@ -16,7 +16,7 @@ class EntryPreferences {
 
   /// Last Light / Dark / System choice made on this device (`light`, `dark`,
   /// `system`). Kept outside the account row so the splash, introduction and
-  /// auth screens use the same theme after logout. `null` until the user
+  /// auth screens use the same theme before login. Logout clears it. `null` until the user
   /// chooses for the first time; callers fall back to `system`.
   final String? themeMode;
 }
@@ -94,8 +94,7 @@ class EntryPreferencesController extends AsyncNotifier<EntryPreferences> {
     );
   }
 
-  /// Persists the device-wide appearance choice so it survives logout and
-  /// applies before a session exists (splash, introduction, login, signup).
+  /// Persists the entry appearance until logout clears all app preferences.
   Future<void> themeMode(String value) async {
     final current = state.valueOrNull ?? await future;
     await _save('entry.theme', value);

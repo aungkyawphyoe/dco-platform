@@ -26,6 +26,8 @@ abstract class LocalNotificationClient {
 
   Future<void> cancel(int id);
 
+  Future<void> cancelAll();
+
   Future<List<int>> pendingIds();
 
   Future<String?> consumeLaunchPayload();
@@ -42,6 +44,12 @@ class NoopLocalNotificationClient implements LocalNotificationClient {
 
   @override
   Stream<String> get taps => const Stream.empty();
+
+  @override
+  Future<void> cancelAll() async {
+    shown.clear();
+    scheduled.clear();
+  }
 
   @override
   Future<void> initialize() async {}

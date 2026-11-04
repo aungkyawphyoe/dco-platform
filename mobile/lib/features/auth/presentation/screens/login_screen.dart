@@ -1,3 +1,5 @@
+import '../../../../core/storage/account_lifecycle.dart';
+import '../../../settings/presentation/widgets/sign_out_button.dart';
 import '../widgets/auth_divider.dart';
 import '../widgets/auth_error_label.dart';
 import '../widgets/auth_feedback.dart';
@@ -79,6 +81,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         onLink: () => context.go(AppRoutes.signup),
       ),
       children: [
+        if (ref.watch(accountLockProvider) != null ||
+            ref.watch(accountCleanupPendingProvider)) ...[
+          Text(s.settingsAccountLockedBody),
+          const SizedBox(height: 12),
+          const SignOutButton(recovery: true),
+          const SizedBox(height: 16),
+        ],
         AuthTextField(
           label: s.identifierLabel,
           controller: _identifier,

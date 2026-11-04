@@ -1,3 +1,5 @@
+import 'package:flutter/painting.dart';
+import '../../../core/storage/account_lifecycle.dart';
 import '../account_security_providers.dart';
 import 'dart:convert';
 import '../../../core/storage/entry_preferences.dart';
@@ -6,35 +8,85 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics.dart';
 import '../../../core/providers.dart';
-import '../../vehicle_sharing/providers.dart';
 import '../domain/auth_failure.dart';
 import '../domain/entities/session.dart';
 
 class SessionController extends AsyncNotifier<Session?> {
   bool _changingAccount = false;
+  bool _restoring = true;
+
+  Future<void> _awaitRestore() async {
+    if (!_restoring) return;
+    try {
+      await future;
+    } catch (_) {
+      /* Reauthentication can recover a failed restore. */
+    }
+  }
+
   Future<T> _withAccountChange<T>(Future<T> Function() change) async {
     if (_changingAccount) {
       throw const UnknownAuthFailure('Sign-in is already in progress');
     }
     _changingAccount = true;
+    ref.read(accountTransitionProvider.notifier).state = true;
     final coordinator = ref.read(syncAccountCoordinatorProvider);
+    var resumeSync = true;
     try {
       await coordinator.pause();
       return await change();
+    } on LogoutSyncFailure {
+      resumeSync = false;
+      rethrow;
     } finally {
       _changingAccount = false;
-      coordinator.resume();
+      ref.read(accountTransitionProvider.notifier).state = false;
+      coordinator.resume(sync: resumeSync);
     }
   }
 
   @override
   Future<Session?> build() async {
-    final session = await ref.read(authRepositoryProvider).restoreSession();
-    if (session != null) {
-      await ref.read(analyticsProvider).setUserId(session.user.id);
-      await ref.read(entryPreferencesProvider.notifier).complete();
+    try {
+      final lifecycle = ref.read(accountLifecycleProvider);
+      try {
+        await lifecycle.initialize();
+      } finally {
+        _publishLifecycle();
+      }
+      final cached = await ref.read(tokenStoreProvider).readUserJson();
+      Session? session;
+      try {
+        session = await ref.read(authRepositoryProvider).restoreSession();
+      } catch (_) {
+        if (cached != null) {
+          final owner = (jsonDecode(cached) as Map)['id'] as String?;
+          if (owner != null) await lifecycle.lock(owner);
+        }
+        _publishLifecycle();
+        rethrow;
+      }
+      if (session == null && cached != null) {
+        final owner = (jsonDecode(cached) as Map)['id'] as String?;
+        if (owner != null) await lifecycle.lock(owner);
+        _publishLifecycle();
+      }
+      if (session != null &&
+          lifecycle.lockedUserId != null &&
+          lifecycle.lockedUserId != session.user.id) {
+        await ref.read(authRepositoryProvider).signOut();
+        return null;
+      }
+      if (session != null) {
+        await lifecycle.lock(session.user.id);
+        _publishLifecycle();
+        await ref.read(analyticsProvider).setUserId(session.user.id);
+        await ref.read(entryPreferencesProvider.notifier).complete();
+      }
+      return session;
+    } finally {
+      _restoring = false;
     }
-    return session;
   }
 
   Future<void> signIn({
@@ -42,6 +94,19 @@ class SessionController extends AsyncNotifier<Session?> {
     required String password,
     String? surface,
   }) async {
+    await _awaitRestore();
+    final lifecycle = ref.read(accountLifecycleProvider);
+    if (lifecycle.cleanupPending) {
+      throw const ApiAuthFailure(
+        'cleanup_incomplete',
+        'Finish clearing local data before signing in',
+      );
+    }
+    final current = state.valueOrNull;
+    if (current != null &&
+        current.user.email.toLowerCase() != email.trim().toLowerCase()) {
+      await signOut();
+    }
     await _withAccountChange(() async {
       state = const AsyncLoading();
       state = await AsyncValue.guard(() async {
@@ -61,6 +126,15 @@ class SessionController extends AsyncNotifier<Session?> {
     required String password,
     String? displayName,
   }) async {
+    await _awaitRestore();
+    if (ref.read(accountLifecycleProvider).cleanupPending) {
+      throw const ApiAuthFailure('cleanup_incomplete');
+    }
+    if (state.valueOrNull == null &&
+        ref.read(accountLifecycleProvider).lockedUserId != null) {
+      throw const ApiAuthFailure('account_locked');
+    }
+    if (state.valueOrNull != null) await signOut();
     await _withAccountChange(() async {
       state = const AsyncLoading();
       state = await AsyncValue.guard(() async {
@@ -76,6 +150,18 @@ class SessionController extends AsyncNotifier<Session?> {
   }
 
   Future<void> _prepare(Session session, bool isNew) async {
+    final lifecycle = ref.read(accountLifecycleProvider);
+    final owner = lifecycle.lockedUserId;
+    if (lifecycle.cleanupPending ||
+        (owner != null && owner != session.user.id)) {
+      await ref.read(authRepositoryProvider).signOut();
+      throw const ApiAuthFailure(
+        'account_locked',
+        'Sign in to the previous account to finish syncing and clearing this device',
+      );
+    }
+    await lifecycle.lock(session.user.id);
+    _publishLifecycle();
     await ref.read(analyticsProvider).setUserId(session.user.id);
     await ref
         .read(entryPreferencesProvider.notifier)
@@ -93,6 +179,15 @@ class SessionController extends AsyncNotifier<Session?> {
   }
 
   Future<void> acceptSocialSession(Map<String, dynamic> response) async {
+    await _awaitRestore();
+    if (ref.read(accountLifecycleProvider).cleanupPending) {
+      throw const ApiAuthFailure('cleanup_incomplete');
+    }
+    final incoming = Session.fromJson(response);
+    if (state.valueOrNull != null &&
+        state.valueOrNull!.user.id != incoming.user.id) {
+      await signOut();
+    }
     await _withAccountChange(() async {
       final session = Session.fromJson(response);
       await ref
@@ -108,6 +203,7 @@ class SessionController extends AsyncNotifier<Session?> {
   }
 
   Future<void> refreshAccount() async {
+    final generation = ref.read(tokenStoreProvider).generation;
     final current = state.valueOrNull;
     if (current == null) return;
     final data = await ref.read(accountSecurityProvider).profile();
@@ -126,6 +222,7 @@ class SessionController extends AsyncNotifier<Session?> {
     await ref
         .read(tokenStoreProvider)
         .writeSession(
+          expectedGeneration: generation,
           accessToken: session.accessToken,
           refreshToken: session.refreshToken,
           userJson: jsonEncode(user.toJson()),
@@ -133,34 +230,69 @@ class SessionController extends AsyncNotifier<Session?> {
     state = AsyncData(session);
   }
 
-  Future<void> signOut() async {
-    await _withAccountChange(() async {
-      final userId = state.valueOrNull?.user.id;
-      await ref.read(authRepositoryProvider).signOut();
-      // Keep the account's appearance choice on the device so post-logout
-      // screens (splash, introduction, login) don't fall back to System.
-      if (userId != null) {
-        try {
-          final prefs = await ref
-              .read(preferencesRepositoryProvider)
-              .get(userId);
-          await ref
-              .read(entryPreferencesProvider.notifier)
-              .themeMode(prefs.themeMode.code);
-        } catch (_) {
-          // Preferences are best-effort; never block logout.
-        }
-      }
-      ref.read(analyticsProvider).track(AnalyticsEvent.authSignedOut);
-      await ref.read(analyticsProvider).setUserId(null);
-      try {
-        await ref.read(vehicleShareRepositoryProvider).clearCache();
-      } catch (_) {}
-      ref.read(postAuthRouteProvider.notifier).state = null;
-      ref.read(newOwnerSetupProvider.notifier).state = false;
-      ref.read(pendingSocialLinkProvider.notifier).state = null;
-      ref.read(pendingCollaborationProvider.notifier).state = null;
+  void _publishLifecycle() {
+    final lifecycle = ref.read(accountLifecycleProvider);
+    ref.read(accountLockProvider.notifier).state = lifecycle.lockedUserId;
+    ref.read(accountCleanupPendingProvider.notifier).state =
+        lifecycle.cleanupPending;
+  }
+
+  Future<void> sessionExpired() async {
+    final lifecycle = ref.read(accountLifecycleProvider);
+    final current = state.valueOrNull;
+    try {
+      if (current != null) await lifecycle.lock(current.user.id);
+    } finally {
+      final paused = ref.read(syncAccountCoordinatorProvider).pause();
       state = const AsyncData(null);
+      _publishLifecycle();
+      await paused;
+    }
+  }
+
+  Future<void> signOut({bool discardUnsynced = false}) async {
+    await _awaitRestore();
+    await _withAccountChange(() async {
+      final lifecycle = ref.read(accountLifecycleProvider);
+      final userId = state.valueOrNull?.user.id ?? lifecycle.lockedUserId;
+      if (userId != null) await lifecycle.lock(userId);
+      _publishLifecycle();
+      if (!discardUnsynced) {
+        var pending = await lifecycle.pending();
+        if (!pending.isEmpty && state.valueOrNull != null) {
+          await ref.read(syncAccountCoordinatorProvider).flush();
+          pending = await lifecycle.pending();
+        }
+        if (!pending.isEmpty) throw LogoutSyncFailure(pending);
+      }
+      // The pending marker must be durable before credentials or rows disappear.
+      lifecycle.cleanupPending = true;
+      await lifecycle.journal.write({
+        'installed': true,
+        'locked_user_id': userId,
+        'cleanup_pending': true,
+      });
+      _publishLifecycle();
+      try {
+        await ref.read(authRepositoryProvider).signOut();
+        state = const AsyncData(null);
+        await lifecycle.purge();
+        ref.invalidate(organizationDatabaseProvider);
+        PaintingBinding.instance.imageCache.clear();
+        PaintingBinding.instance.imageCache.clearLiveImages();
+        await ref.read(analyticsProvider).setUserId(null);
+        ref.read(analyticsProvider).track(AnalyticsEvent.authSignedOut);
+        ref.invalidate(entryPreferencesProvider);
+        await ref.read(entryPreferencesProvider.future);
+        ref.read(postAuthRouteProvider.notifier).state = null;
+        ref.read(newOwnerSetupProvider.notifier).state = false;
+        ref.read(pendingSocialLinkProvider.notifier).state = null;
+        ref.read(pendingCollaborationProvider.notifier).state = null;
+      } finally {
+        ref.read(accountEpochProvider.notifier).state++;
+        state = const AsyncData(null);
+        _publishLifecycle();
+      }
     });
   }
 
@@ -197,12 +329,14 @@ class SessionController extends AsyncNotifier<Session?> {
   void clearDrivingLicenseFor(String userId) {
     final current = state.valueOrNull;
     if (current == null || current.user.id != userId) return;
-    state = AsyncData(current.copyWithUser(current.user.copyWith(clearDrivingLicense: true)));
+    state = AsyncData(
+      current.copyWithUser(current.user.copyWith(clearDrivingLicense: true)),
+    );
   }
 
   void updateUser(User user) {
     final current = state.valueOrNull;
-    if (current == null) return;
+    if (current == null || current.user.id != user.id) return;
     state = AsyncData(current.copyWithUser(user));
   }
 

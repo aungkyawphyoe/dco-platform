@@ -1,3 +1,4 @@
+import '../../core/storage/account_lifecycle.dart';
 import '../garage/providers.dart';
 import '../../core/currency/currency_store.dart';
 import '../../core/storage/entry_preferences.dart';
@@ -66,8 +67,8 @@ final currencyProvider = Provider<AppCurrency>((ref) {
 /// Light / Dark / System choice from Settings → Appearance (default: system).
 ///
 /// The signed-in account's saved choice wins. Before a session exists (and
-/// right after logout) the device-wide entry choice is used so splash,
-/// introduction, login and signup match the theme the user last picked.
+/// before login) the entry choice applies. Logout clears that choice and
+/// returns these screens to the system appearance.
 final themeModeProvider = Provider<AppThemeMode>((ref) {
   final signedIn = ref.watch(sessionControllerProvider).valueOrNull != null;
   final accountMode = signedIn
@@ -77,7 +78,9 @@ final themeModeProvider = Provider<AppThemeMode>((ref) {
 
   final entryMode =
       ref.watch(entryPreferencesProvider).valueOrNull?.themeMode ??
-      ref.watch(initialEntryThemeProvider);
+      (ref.watch(accountEpochProvider) == 0
+          ? ref.watch(initialEntryThemeProvider)
+          : null);
   return entryMode == null
       ? AppThemeMode.system
       : AppThemeMode.parse(entryMode);

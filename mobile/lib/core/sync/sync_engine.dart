@@ -134,9 +134,19 @@ class SyncEngine {
     _queuedAfterRun = false;
   }
 
-  void resumeAfterAccountChange() {
+  Future<void> flushForAccountChange() async {
+    await pauseForAccountChange();
     _pausedForAccountChange = false;
-    if (_currentUser() != null) unawaited(syncNow());
+    try {
+      await syncNow(force: true);
+    } finally {
+      await pauseForAccountChange();
+    }
+  }
+
+  void resumeAfterAccountChange({bool sync = true}) {
+    _pausedForAccountChange = false;
+    if (sync && _currentUser() != null) unawaited(syncNow());
   }
 
   void requestSync() {

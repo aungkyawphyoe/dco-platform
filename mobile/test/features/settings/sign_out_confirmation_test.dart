@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/storage/account_lifecycle.dart';
 import 'dart:async';
 
 import 'package:dco_mobile/core/providers.dart';
@@ -14,7 +15,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class _FakeSessionController extends SessionController {
-  _FakeSessionController({this.gate});
+  _FakeSessionController({this.gate, this.failure});
+  final LogoutSyncFailure? failure;
+  bool discarded = false;
 
   final Completer<void>? gate;
   int signOutCalls = 0;
@@ -23,8 +26,10 @@ class _FakeSessionController extends SessionController {
   Future<Session?> build() async => null;
 
   @override
-  Future<void> signOut() async {
+  Future<void> signOut({bool discardUnsynced = false}) async {
     signOutCalls++;
+    discarded = discardUnsynced;
+    if (failure != null && !discardUnsynced) throw failure!;
     if (gate != null) await gate!.future;
   }
 }
@@ -153,5 +158,39 @@ void main() {
 
     expect(controller.signOutCalls, 1);
     expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+  testWidgets('discard requires a second explicit confirmation', (
+    tester,
+  ) async {
+    controller = _FakeSessionController(
+      failure: LogoutSyncFailure(
+        PendingAccountData(['expense', 'upload'], canDiscard: true),
+      ),
+    );
+    await pump(tester);
+    final s = localizations(tester);
+    await openDialog(tester);
+    await tester.tap(
+      find.descendant(
+        of: find.byType(AlertDialog),
+        matching: find.text(s.settingsSignOut),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text(s.settingsSyncBeforeLogout), findsOneWidget);
+    await tester.tap(find.text(s.settingsDiscardAndLogout));
+    await tester.pumpAndSettle();
+    expect(controller.discarded, false);
+    await tester.tap(
+      find
+          .descendant(
+            of: find.byType(AlertDialog),
+            matching: find.text(s.settingsDiscardAndLogout),
+          )
+          .last,
+    );
+    await tester.pumpAndSettle();
+    expect(controller.discarded, true);
+    expect(controller.signOutCalls, 2);
   });
 }

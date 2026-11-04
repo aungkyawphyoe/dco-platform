@@ -1,3 +1,4 @@
+import '../storage/account_lifecycle.dart';
 import '../../features/pricing/presentation/gift_redemption_screen.dart';
 import '../../features/pricing/presentation/pricing_screen.dart';
 import '../providers.dart';
@@ -79,12 +80,13 @@ import 'tab_switchers.dart';
 final rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 final goRouterProvider = Provider<GoRouter>((ref) {
+  ref.watch(accountEpochProvider);
   final refresh = ValueNotifier<int>(0);
   ref.listen(sessionControllerProvider, (_, _) => refresh.value++);
   ref.listen(entitlementsProvider, (_, _) => refresh.value++);
   ref.onDispose(refresh.dispose);
 
-  return GoRouter(
+  final router = GoRouter(
     navigatorKey: rootNavigatorKey,
     initialLocation: AppRoutes.splash,
     refreshListenable: refresh,
@@ -654,4 +656,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
       ),
     ],
   );
+  ref.onDispose(router.dispose);
+  return router;
 });

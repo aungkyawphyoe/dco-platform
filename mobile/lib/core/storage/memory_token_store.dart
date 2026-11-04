@@ -1,6 +1,10 @@
 import 'token_store.dart';
 
 class MemoryTokenStore implements TokenStore {
+  int _generation = 0;
+  @override
+  int get generation => _generation;
+
   String? _access;
   String? _refresh;
   String? _userJson;
@@ -19,7 +23,11 @@ class MemoryTokenStore implements TokenStore {
     required String accessToken,
     required String refreshToken,
     required String userJson,
+    int? expectedGeneration,
   }) async {
+    if (expectedGeneration != null && expectedGeneration != generation) {
+      throw StateError('Account changed');
+    }
     _access = accessToken;
     _refresh = refreshToken;
     _userJson = userJson;
@@ -27,6 +35,7 @@ class MemoryTokenStore implements TokenStore {
 
   @override
   Future<void> clear() async {
+    _generation++;
     _access = null;
     _refresh = null;
     _userJson = null;

@@ -291,7 +291,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
       if (!mounted) return;
       setState(() {
         _receiptPath = dest.path;
-        _receiptMediaId = const Uuid().v4();
+        _receiptMediaId = null;
         _formError = null;
       });
     } catch (_) {

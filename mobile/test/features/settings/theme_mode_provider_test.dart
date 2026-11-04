@@ -34,7 +34,7 @@ class _SignedInSession extends SessionController {
 
 void main() {
   test(
-    'signed-out theme follows the device entry choice after logout',
+    'signed-out theme follows the current entry choice before login',
     () async {
       final db = AppDatabase(NativeDatabase.memory());
       addTearDown(db.close);
@@ -50,7 +50,7 @@ void main() {
       await container.read(sessionControllerProvider.future);
       expect(container.read(themeModeProvider), AppThemeMode.system);
 
-      // Settings → Appearance writes the device choice; it must survive logout.
+      // Entry preferences apply until an explicit logout clears them.
       await container
           .read(entryPreferencesProvider.notifier)
           .themeMode('light');

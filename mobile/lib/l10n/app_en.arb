@@ -506,7 +506,7 @@
   "settingsRemindersSummary": "{days} days · {distance}",
   "settingsSignOut": "Sign out",
   "settingsSignOutConfirmTitle": "Sign out?",
-  "settingsSignOutConfirmBody": "Pending changes stay on this device. They sync when you sign in to this account again, and another account on this phone cannot see them.",
+  "settingsSignOutConfirmBody": "Your changes will sync first. Then all app data, cached files, and preferences will be removed from this device. You can download synced records after signing in again. Local-only Notes will be permanently deleted.",
   "settingsSignOutFailed": "Couldn't sign out. Try again.",
   "settingsHelp": "Help",
   "helpTitle": "Help",
@@ -1454,5 +1454,21 @@
   "syncErrorConflict": "Some changes conflict with newer data. They are saved and will retry.",
   "syncErrorValidation": "The server could not accept some changes. They are saved and will retry.",
   "syncErrorGeneric": "Something went wrong while syncing. Your changes are saved and will retry automatically.",
-  "authLoadAccessFailed": "Unable to load account access. Check your connection and try again."
+  "authLoadAccessFailed": "Unable to load account access. Check your connection and try again.",
+  "settingsSyncBeforeLogout": "Sync required before logout",
+  "settingsLogoutPendingSummary": "{changes} changes and {uploads} uploads have not synced. Retry syncing before logging out. If a change cannot be synced, you can explicitly discard it. Discarded data cannot be restored.",
+  "settingsDiscardAndLogout": "Discard changes and log out",
+  "settingsDiscardLogoutBody": "Permanently discard all unsynced changes and uploads, delete local-only Notes, and clear every app preference on this device? Synced server records will remain available.",
+  "settingsClearLocalData": "Clear local data",
+  "settingsAccountLockedBody": "This device still holds data from the previous account. Sign in to that same account to finish syncing, or explicitly discard the local data before using another account.",
+  "@settingsLogoutPendingSummary": {
+    "placeholders": {
+      "changes": {
+        "type": "int"
+      },
+      "uploads": {
+        "type": "int"
+      }
+    }
+  }
 }

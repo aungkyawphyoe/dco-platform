@@ -21,11 +21,12 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Session?> restoreSession() async {
+    final generation = _tokenStore.generation;
     final refresh = await _tokenStore.readRefreshToken();
     if (refresh == null || refresh.isEmpty) return null;
     try {
       final session = await _remote.refresh(refreshToken: refresh);
-      await _persist(session);
+      await _persist(session, generation);
       return session;
     } on RateLimitedFailure {
       // A temporary throttle is not a revoked session. Keep credentials for retry.
@@ -33,6 +34,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on ServiceUnavailableFailure {
       rethrow;
     } on AuthFailure {
+      if (_tokenStore.generation != generation) return null;
       final cached = await _tokenStore.readUserJson();
       if (refresh.startsWith('mock_refresh_') && cached != null) {
         final user = User.fromJson(jsonDecode(cached) as Map<String, dynamic>);
@@ -42,15 +44,24 @@ class AuthRepositoryImpl implements AuthRepository {
           user: user,
         );
       }
-      await _tokenStore.clear();
+      if (_tokenStore.generation == generation) await _tokenStore.clear();
       return null;
     }
   }
 
   @override
-  Future<Session> signIn({required String email, required String password, String? surface}) async {
-    final session = await _remote.login(email: email, password: password, surface: surface);
-    await _persist(session);
+  Future<Session> signIn({
+    required String email,
+    required String password,
+    String? surface,
+  }) async {
+    final generation = _tokenStore.generation;
+    final session = await _remote.login(
+      email: email,
+      password: password,
+      surface: surface,
+    );
+    await _persist(session, generation);
     return session;
   }
 
@@ -60,12 +71,13 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
     String? displayName,
   }) async {
+    final generation = _tokenStore.generation;
     final session = await _remote.signup(
       email: email,
       password: password,
       displayName: displayName,
     );
-    await _persist(session);
+    await _persist(session, generation);
     return session;
   }
 
@@ -85,7 +97,10 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<void> resetPassword({required String token, required String password}) {
+  Future<void> resetPassword({
+    required String token,
+    required String password,
+  }) {
     return _remote.resetPassword(token: token, password: password);
   }
 
@@ -93,12 +108,19 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> resendVerification() => _remote.resendVerification();
 
   @override
-  Future<void> changePassword({required String currentPassword, required String newPassword}) {
-    return _remote.changePassword(currentPassword: currentPassword, newPassword: newPassword);
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) {
+    return _remote.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
   }
 
-  Future<void> _persist(Session session) {
+  Future<void> _persist(Session session, int generation) {
     return _tokenStore.writeSession(
+      expectedGeneration: generation,
       accessToken: session.accessToken,
       refreshToken: session.refreshToken,
       userJson: jsonEncode(session.user.toJson()),
