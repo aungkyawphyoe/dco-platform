@@ -108,7 +108,7 @@ class AssignedPartDraft {
 
 class ServiceRecordDraft {
   const ServiceRecordDraft({
-    this.currency = 'MMK',
+    this.currency,
     required this.servicedOn,
     required this.odometer,
     required this.totalCost,
@@ -119,7 +119,7 @@ class ServiceRecordDraft {
     this.parts = const [],
   });
 
-  final String currency;
+  final String? currency;
 
   final String? title;
   final DateTime servicedOn;

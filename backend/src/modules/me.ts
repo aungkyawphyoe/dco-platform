@@ -55,7 +55,7 @@ export const mePlugin: FastifyPluginAsync = async (app) => {
       organization: organization && organizationMembership ? {
         id: organization.id,
         currency: organization.currency,
-        currency_locked: organization.currencyLockedAt !== null,
+        currency_locked: false,
         type: organization.type,
         plan: organization.plan,
         status: organizationMembership.membership.status === "active" ? organization.status : "suspended",

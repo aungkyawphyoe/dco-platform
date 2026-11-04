@@ -72,10 +72,10 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     _assertDraft(draft);
     final now = DateTime.now().toUtc();
     final expense = _fromDraft(
-      id: _uuid.v4(),
+      id: draft.currencyParentId ?? _uuid.v4(),
       currency: await CurrencyStore(
         _db,
-      ).validateCreation(userId, draft.currency, vehicleId: vehicleId),
+      ).validateCreation(userId, draft.currency ?? 'MMK', vehicleId: vehicleId),
       vehicleId: vehicleId,
       draft: draft,
       createdAt: now,
@@ -84,7 +84,6 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     );
 
     await _db.transaction(() async {
-      await CurrencyStore(_db).markLocalCreation(userId, vehicleId: vehicleId);
       await _db.into(_db.expenseRecords).insert(expenseToCompanion(expense));
       await _insertParts(expense);
       await _outbox.enqueue(
@@ -115,7 +114,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
 
     final updated = _fromDraft(
       id: existing.id,
-      currency: existing.currency,
+      currency: draft.currency ?? existing.currency,
       vehicleId: existing.vehicleId,
       draft: draft,
       createdAt: existing.createdAt,

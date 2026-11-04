@@ -3,22 +3,20 @@ import 'package:dco_mobile/core/widgets/license_delete_button.dart';
 
 import 'package:dco_mobile/core/entities/driving_license.dart';
 import 'package:dco_mobile/core/providers.dart';
-import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
-import 'package:dco_mobile/features/profile/presentation/widgets/license_photo_card.dart';
+import 'package:dco_mobile/features/vehicle_sharing/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 /// Profile edit form: name, contact phone, address, profile photo, driving
-/// license (number, expiry, photos), and account deletion.
+/// license (number and expiry), and account deletion.
 class ProfileFormScreen extends ConsumerStatefulWidget {
   const ProfileFormScreen({super.key});
 
@@ -50,6 +48,13 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     _expiryDateController = TextEditingController(
       text: license?.expiryDate?.toIso8601String().split('T').first ?? '',
     );
+    ref.listenManual(myDrivingLicenseProvider, (_, next) {
+      next.whenData((saved) {
+        _licenseNumberController.text = saved?.licenseNumber ?? '';
+        _expiryDateController.text =
+            saved?.expiryDate?.toIso8601String().split('T').first ?? '';
+      });
+    }, fireImmediately: true);
   }
 
   @override
@@ -119,80 +124,41 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     }
   }
 
-  Future<void> _captureLicensePhoto(String side) async {
-    final current = ref.read(sessionControllerProvider).valueOrNull?.user.drivingLicense;
-    if (side == 'back' && current?.frontMediaId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Add the front of your license first.')));
+  Future<void> _saveLicense() async {
+    final number = _licenseNumberController.text.trim();
+    final requiredFields = ref.read(driverOrganizationIdProvider) != null;
+    if (requiredFields &&
+        (number.isEmpty || _expiryDateController.text.isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Fleet drivers must enter both license fields.'),
+        ),
+      );
       return;
     }
-    final capturedPath = await GoRouter.of(
-      context,
-    ).push<String>(AppRoutes.licenseCapture, extra: side);
-    if (capturedPath == null || capturedPath.isEmpty) return;
-
-    try {
-      final bytes = await File(capturedPath).readAsBytes();
-      final repo = ref.read(licenseRepositoryProvider);
-      final mediaId = await repo.uploadLicensePhoto(side, bytes);
-
-      final user = ref.read(sessionControllerProvider).valueOrNull?.user;
-      final license = user?.drivingLicense;
-
-      final String frontMediaId = side == 'front'
-          ? mediaId
-          : license?.frontMediaId ?? '';
-      final String backMediaId = side == 'back'
-          ? mediaId
-          : license?.backMediaId ?? '';
-
-      await repo.upsertLicense(
-        licenseNumber: _licenseNumberController.text.trim().isEmpty
-            ? null
-            : _licenseNumberController.text.trim(),
-        expiryDate: _expiryDateController.text.trim(),
-        frontMediaId: frontMediaId,
-        backMediaId: backMediaId,
+    if (number.isNotEmpty && !RegExp(r'^[A-Za-z0-9]{1,50}$').hasMatch(number)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Use up to 50 letters and numbers.')),
       );
-
-      if (mounted) {
-        await _refreshSession();
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              side == 'front'
-                  ? AppLocalizations.of(context)!.profileLicenseFrontSaved
-                  : AppLocalizations.of(context)!.profileLicenseBackSaved,
-            ),
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('$e')));
-      }
+      return;
     }
-  }
-
-  Future<void> _saveLicense() async {
     setState(() => _licenseSaving = true);
     try {
       final repo = ref.read(licenseRepositoryProvider);
-      final user = ref.read(sessionControllerProvider).valueOrNull?.user;
-      final license = user?.drivingLicense;
-
-      await repo.upsertLicense(
-        licenseNumber: _licenseNumberController.text.trim(),
+      final saved = await repo.upsertLicense(
+        licenseNumber: number.isEmpty ? null : number,
         expiryDate: _expiryDateController.text.trim(),
-        frontMediaId: license?.frontMediaId,
-        backMediaId: license?.backMediaId,
       );
 
       if (mounted) {
-        await _refreshSession();
-        if (!mounted) return;
+        final user = ref.read(sessionControllerProvider).valueOrNull?.user;
+        if (user != null && user.id == saved.userId) {
+          ref
+              .read(sessionControllerProvider.notifier)
+              .updateUser(user.copyWith(drivingLicense: saved));
+          ref.invalidate(userDetailProvider(user.id));
+        }
+        ref.invalidate(myDrivingLicenseProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(AppLocalizations.of(context)!.profileLicenseSaved),
@@ -210,17 +176,6 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     }
   }
 
-  Future<void> _refreshSession() async {
-    final user = await ref.read(profileRepositoryProvider).get();
-    DrivingLicense? license;
-    try {
-      license = await ref.read(licenseRepositoryProvider).getMyLicense();
-    } catch (_) {}
-    ref
-        .read(sessionControllerProvider.notifier)
-        .updateUser(user.copyWith(drivingLicense: license, clearDrivingLicense: license == null));
-  }
-
   Future<void> _pickExpiryDate() async {
     final now = DateTime.now();
     final initialDate = _expiryDateController.text.isNotEmpty
@@ -229,8 +184,12 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     final picked = await showDatePicker(
       context: context,
       initialDate: initialDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365 * 20)),
+      firstDate: DateTime(initialDate.year < 1900 ? initialDate.year : 1900),
+      lastDate: DateTime(
+        initialDate.year > 2200 ? initialDate.year : 2200,
+        12,
+        31,
+      ),
     );
     if (picked != null) {
       _expiryDateController.text = picked.toIso8601String().split('T').first;
@@ -301,7 +260,8 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final user = ref.watch(sessionControllerProvider).valueOrNull?.user;
-    final license = user?.drivingLicense;
+    final credential = ref.watch(myDrivingLicenseProvider);
+    final license = credential.valueOrNull;
 
     return Scaffold(
       appBar: AppBar(
@@ -438,20 +398,33 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
               ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
             ),
           SizedBox(height: tokens.space.s5),
-          _DrivingLicenseSection(
-            license: license,
-            tokens: tokens,
-            numberController: _licenseNumberController,
-            expiryController: _expiryDateController,
-            onCapturePhoto: _captureLicensePhoto,
-            onPickExpiry: _pickExpiryDate,
-            onSaveLicense: _saveLicense,
-            saving: _licenseSaving,
-          ),
-          if (license != null) LicenseDeleteButton(onDeleted: () {
-            _licenseNumberController.clear();
-            _expiryDateController.clear();
-          }),
+          if (credential.hasError)
+            TextButton(
+              onPressed: () => ref.invalidate(myDrivingLicenseProvider),
+              child: const Text('Retry loading license details'),
+            )
+          else if (credential.isLoading)
+            const LinearProgressIndicator()
+          else
+            _DrivingLicenseSection(
+              license: license,
+              requiredFields: ref.watch(driverOrganizationIdProvider) != null,
+              tokens: tokens,
+              numberController: _licenseNumberController,
+              expiryController: _expiryDateController,
+              onPickExpiry: _pickExpiryDate,
+              onSaveLicense: _saveLicense,
+              saving: _licenseSaving,
+            ),
+          if (license != null &&
+              ref.watch(driverOrganizationIdProvider) == null)
+            LicenseDeleteButton(
+              onDeleted: () {
+                ref.invalidate(myDrivingLicenseProvider);
+                _licenseNumberController.clear();
+                _expiryDateController.clear();
+              },
+            ),
           SizedBox(height: tokens.space.s7),
           DcoButton(
             label: s.profileDeleteAccount,
@@ -468,20 +441,20 @@ class _ProfileFormScreenState extends ConsumerState<ProfileFormScreen> {
 class _DrivingLicenseSection extends StatelessWidget {
   const _DrivingLicenseSection({
     required this.license,
+    required this.requiredFields,
     required this.tokens,
     required this.numberController,
     required this.expiryController,
-    required this.onCapturePhoto,
     required this.onPickExpiry,
     required this.onSaveLicense,
     required this.saving,
   });
 
   final DrivingLicense? license;
+  final bool requiredFields;
   final DcoTokens tokens;
   final TextEditingController numberController;
   final TextEditingController expiryController;
-  final LicensePhotoCaptureCallback onCapturePhoto;
   final VoidCallback onPickExpiry;
   final VoidCallback onSaveLicense;
   final bool saving;
@@ -505,11 +478,6 @@ class _DrivingLicenseSection extends StatelessWidget {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           SizedBox(height: tokens.space.s3),
-          LicensePhotoCard(
-            frontMediaId: license?.frontMediaId,
-            backMediaId: license?.backMediaId,
-            onCapture: onCapturePhoto,
-          ),
           SizedBox(height: tokens.space.s3),
           DcoTextField(
             label: s.profileLicenseNumber,
@@ -518,7 +486,9 @@ class _DrivingLicenseSection extends StatelessWidget {
           ),
           SizedBox(height: tokens.space.s3),
           DcoTextField(
-            label: '${s.profileLicenseExpiry} (${s.optional})',
+            label: requiredFields
+                ? s.profileLicenseExpiry
+                : '${s.profileLicenseExpiry} (${s.optional})',
             controller: expiryController,
             hint: s.profileLicenseExpiryHint,
             readOnly: true,

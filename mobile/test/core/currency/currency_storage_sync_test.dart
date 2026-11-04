@@ -92,7 +92,7 @@ void main() {
         final queued = await disk.select(disk.outboxEntries).getSingle();
         expect(jsonDecode(queued.payload)['currency'], 'MMK');
         expect(jsonDecode(queued.payload)['amount'], 12.5);
-        expect(disk.schemaVersion, 25);
+        expect(disk.schemaVersion, 26);
       } finally {
         await disk.close();
         await dir.delete(recursive: true);
@@ -101,7 +101,7 @@ void main() {
   );
 
   test(
-    'scope cache isolates users and shared vehicle currency; local writes lock atomically',
+    'scope cache isolates users and shared vehicle currency; historical edits preserve unspecified currency',
     () async {
       final store = CurrencyStore(db);
       await store.save('u1', state('USD'));
@@ -135,7 +135,6 @@ void main() {
         )['currency'],
         'THB',
       );
-      expect(await store.hasLocalLock('u1', vehicleId: 'v1'), isTrue);
       // Owner currency may change after transfer; historical edits retain THB.
       await store.save('u1', state('CNY'), vehicleId: 'v1');
       final updated = await repo.update(

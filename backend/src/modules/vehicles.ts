@@ -295,6 +295,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     const row = await getAccessibleVehicle(app.db, request.authUser!.sub, vehicleId, "drive_only");
+    const [displayOwner] = await app.db.select({currency:users.currency}).from(users).where(eq(users.id,row.allowMemberCurrency ? request.authUser!.sub : row.userId));
     const expenseRows = await app.db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
     const now = new Date();
     const monthPrefix = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
@@ -313,7 +314,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
       ownership: {
         total_spent: total,
         this_month_spent: thisMonth,
-        currency: "USD",
+        currency: (row.allowMemberCurrency ? null : row.baseCurrency) ?? displayOwner.currency,
         services_count: svc.length,
         documents_count: docs.length,
       },

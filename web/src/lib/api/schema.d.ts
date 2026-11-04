@@ -41,7 +41,7 @@ export interface paths {
         };
         /**
          * Confirm or correct personal garage currency
-         * @description Requires rollout activation. Personal owner or Fleet Admin only; fleet writes require the Fleet Portal audience. The first monetary event permanently locks the scope. expected_currency must match the current value (null for fleet setup).
+         * @description Personal owners and fleet administrators can change their preference at any time. Pass the current selection as expected_currency to detect concurrent changes. Set relabel_history to update existing log tags without changing numerical amounts.
          */
         put: {
             parameters: {
@@ -72,7 +72,7 @@ export interface paths {
                     };
                     content?: never;
                 };
-                /** @description Currency is locked */
+                /** @description The selection has changed since it was read */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -134,7 +134,163 @@ export interface paths {
                 };
             };
         };
-        put?: never;
+        /** Set base currency and member override policy */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    vehicleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VehicleCurrencyPolicy"];
+                };
+            };
+            responses: {
+                /** @description Saved vehicle currency policy */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Vehicle owner or fleet administrator required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/vehicles/{vehicleId}/currency": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                vehicleId: string;
+            };
+            cookie?: never;
+        };
+        /** Read effective fleet vehicle currency for this member */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Effective currency and vehicle policy */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        /** Set base currency and member override policy */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["VehicleCurrencyPolicy"];
+                };
+            };
+            responses: {
+                /** @description Saved vehicle currency policy */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Vehicle owner or fleet administrator required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/vehicles/{vehicleId}/currency/member": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                vehicleId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Choose a personal display currency within this fleet */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        currency: components["schemas"]["OperationalCurrency"];
+                    };
+                };
+            };
+            responses: {
+                /** @description Saved member preference */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Vehicle access and member overrides required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;
@@ -183,7 +339,7 @@ export interface paths {
         };
         /**
          * Confirm or correct organization operational currency
-         * @description Requires rollout activation. Personal owner or Fleet Admin only; fleet writes require the Fleet Portal audience. The first monetary event permanently locks the scope. expected_currency must match the current value (null for fleet setup).
+         * @description Personal owners and fleet administrators can change their preference at any time. Pass the current selection as expected_currency to detect concurrent changes. Set relabel_history to update existing log tags without changing numerical amounts.
          */
         put: {
             parameters: {
@@ -216,7 +372,7 @@ export interface paths {
                     };
                     content?: never;
                 };
-                /** @description Currency is locked */
+                /** @description The selection has changed since it was read */
                 409: {
                     headers: {
                         [name: string]: unknown;
@@ -2767,8 +2923,7 @@ export interface paths {
                                 active_shares?: number;
                             };
                             organization?: {
-                                /** @enum {string|null} */
-                                currency?: "MMK" | "USD" | "THB" | "CNY" | null;
+                                currency?: string | null;
                                 currency_locked?: boolean;
                             } | null;
                             features?: {
@@ -4290,7 +4445,7 @@ export interface paths {
                         /** Format: binary */
                         file: string;
                         /** @enum {string} */
-                        purpose: "vehicle_photo" | "document" | "service_receipt" | "expense_receipt" | "driving_license";
+                        purpose: "vehicle_photo" | "document" | "service_receipt" | "expense_receipt";
                         /**
                          * Format: uuid
                          * @description Required for documents and receipts; determines the owning storage pool. Omit for personal licenses.
@@ -5656,6 +5811,112 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{id}/members/{userId}/license": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update an active fleet driver's credentials as an administrator or manager */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    userId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        license_number?: string;
+                        /** Format: date */
+                        license_expiry_date?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Saved expiry date and status */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Both credential fields are required for fleet drivers */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update personal profile and optional text-based driver credentials */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        display_name?: string;
+                        contact_phone?: string | null;
+                        address?: string | null;
+                        /** Format: uuid */
+                        active_vehicle_id?: string | null;
+                        license_number?: string | null;
+                        /** Format: date */
+                        license_expiry_date?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Saved user profile */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid profile or incomplete driver credentials */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
     "/users/me/license": {
         parameters: {
             query?: never;
@@ -5697,17 +5958,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         license_number?: string | null;
-                        issuing_country?: string | null;
-                        /** @description Optional YYYY-MM-DD; when supplied, must be in the future */
-                        expiry_date?: string | null;
-                        categories?: string | null;
-                        /**
-                         * Format: uuid
-                         * @description Required on first save; omission preserves the current front image. Cannot be null.
-                         */
-                        front_media_id?: string;
-                        /** Format: uuid */
-                        back_media_id?: string | null;
+                        /** Format: date */
+                        license_expiry_date?: string | null;
                     };
                 };
             };
@@ -5725,7 +5977,7 @@ export interface paths {
             };
         };
         post?: never;
-        /** Permanently delete the caller's driving license and queue its images for cleanup */
+        /** Permanently delete the caller's driving license details */
         delete: {
             parameters: {
                 query?: never;
@@ -5745,55 +5997,6 @@ export interface paths {
                 401: components["responses"]["Error"];
             };
         };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/users/me/license/media": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /** Upload driving license photo */
-        post: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "multipart/form-data": {
-                        /** @enum {string} */
-                        side: "front" | "back";
-                        /** Format: binary */
-                        file: string;
-                    };
-                };
-            };
-            responses: {
-                /** @description Uploaded */
-                201: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** Format: uuid */
-                            media_id?: string;
-                        };
-                    };
-                };
-                400: components["responses"]["Error"];
-            };
-        };
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -7870,6 +8073,52 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{id}/analytics/attention": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Organization action queue and current fleet status
+         * @description Admin and manager access. Critical work orders and expired registration/insurance are urgent. Maintenance is overdue at its date or mileage threshold, upcoming within 30 days or 500 km. Work orders without updates for 3 days are stalled. Inspection failures require severity review. Uses the organization's reporting timezone.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Prioritized actions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Organization admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{id}/analytics/fleet": {
         parameters: {
             query?: never;
@@ -8506,8 +8755,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             items?: {
-                                /** @enum {string|null} */
-                                currency?: "MMK" | "USD" | "THB" | "CNY" | null;
+                                currency?: string | null;
                                 vehicle?: Record<string, never>;
                                 warranty?: Record<string, never>;
                                 /** Format: uuid */
@@ -10602,8 +10850,7 @@ export interface components {
         /** @enum {string} */
         FuelType: "petrol" | "electric" | "hybrid_plugin";
         CurrencyState: {
-            /** @enum {string|null} */
-            currency: "MMK" | "USD" | "THB" | "CNY" | null;
+            currency: string | null;
             locked: boolean;
             /** Format: date-time */
             locked_at: string | null;
@@ -10614,16 +10861,18 @@ export interface components {
             default_currency: "MMK";
             supported: components["schemas"]["OperationalCurrency"][];
         };
+        VehicleCurrencyPolicy: {
+            base_currency: string | null;
+            allow_member_currency: boolean;
+        };
         CurrencyChange: {
             currency: components["schemas"]["OperationalCurrency"];
-            /** @enum {string|null} */
-            expected_currency: "MMK" | "USD" | "THB" | "CNY" | null;
+            /** @default false */
+            relabel_history: boolean;
+            expected_currency: string | null;
         };
-        /**
-         * @description Currency of an operational monetary record. Historical amounts are never converted or relabeled.
-         * @enum {string}
-         */
-        OperationalCurrency: "MMK" | "USD" | "THB" | "CNY";
+        /** @description Currency of an operational monetary record. Historical labels can be edited without converting amounts. */
+        OperationalCurrency: string;
         /**
          * @default car
          * @enum {string}
@@ -10640,6 +10889,9 @@ export interface components {
         /** @enum {string} */
         PartnerStatus: "draft" | "pending_verification" | "verified" | "rejected";
         SignupRequest: {
+            license_number?: string | null;
+            /** Format: date */
+            license_expiry_date?: string | null;
             /** @description Defaults to MMK for new accounts; never changes an existing account on login. */
             currency?: components["schemas"]["OperationalCurrency"];
             /** Format: email */
@@ -11466,14 +11718,8 @@ export interface components {
             /** Format: uuid */
             user_id?: string;
             license_number?: string | null;
-            issuing_country?: string | null;
             /** Format: date */
-            expiry_date?: string | null;
-            categories?: string | null;
-            /** Format: uuid */
-            front_media_id?: string | null;
-            /** Format: uuid */
-            back_media_id?: string | null;
+            license_expiry_date?: string | null;
             /** Format: date-time */
             created_at?: string;
             /** Format: date-time */

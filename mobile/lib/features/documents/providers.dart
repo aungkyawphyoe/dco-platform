@@ -1,6 +1,4 @@
 import 'dart:convert';
-import 'package:dco_mobile/core/entities/driving_license.dart';
-import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:drift/drift.dart';
 import 'package:dco_mobile/core/providers.dart';
@@ -64,37 +62,3 @@ final documentStorageProvider = StreamProvider<Map<String, dynamic>?>((ref) {
         : jsonDecode(row!.value!) as Map<String, dynamic>,
   );
 });
-
-final personalDocumentLicenseProvider =
-    StreamProvider.autoDispose<DrivingLicense?>((ref) {
-      final db = ref.watch(appDatabaseProvider);
-      ref.watch(sessionControllerProvider);
-      var cancelled = false;
-      ref.onDispose(() => cancelled = true);
-      final repository = ref.watch(licenseRepositoryProvider);
-      const key = 'personal_document_license';
-      Future<void>(() async {
-        try {
-          final license = await repository.getMyLicense();
-          if (cancelled) return;
-          await db
-              .into(db.appMeta)
-              .insertOnConflictUpdate(
-                AppMetaCompanion.insert(
-                  key: key,
-                  value: Value(jsonEncode(license?.toJson())),
-                ),
-              );
-        } catch (_) {
-          /* Preserve the account-scoped cache while offline. */
-        }
-      });
-      return (db.select(
-        db.appMeta,
-      )..where((r) => r.key.equals(key))).watchSingleOrNull().map((row) {
-        final json = row?.value == null ? null : jsonDecode(row!.value!);
-        return json is Map<String, dynamic>
-            ? DrivingLicense.fromJson(json)
-            : null;
-      });
-    });

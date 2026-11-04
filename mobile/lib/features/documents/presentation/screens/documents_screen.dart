@@ -1,6 +1,4 @@
-import 'package:dco_mobile/core/widgets/license_delete_button.dart';
 import 'dart:io';
-import 'package:dco_mobile/features/profile/presentation/widgets/license_flip_card.dart';
 
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
@@ -25,7 +23,6 @@ class DocumentsScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final documents = ref.watch(vehicleDocumentsProvider);
-    final license = ref.watch(personalDocumentLicenseProvider).valueOrNull;
     final usage = ref.watch(documentStorageProvider).valueOrNull;
     final access = ref.watch(vehicleAccessProvider(vehicle));
 
@@ -77,28 +74,6 @@ class DocumentsScreen extends ConsumerWidget {
             TextButton(
               onPressed: () => context.push(AppRoutes.pricing),
               child: Text(AppLocalizations.of(context)!.pricingViewPlans),
-            ),
-          if (license?.frontMediaId != null)
-            ExpansionTile(
-              title: const Text('Personal Documents'),
-              subtitle: const Text('Driving license · Private'),
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(tokens.space.s4),
-                  child: LicenseFlipCard(
-                    frontMediaId: license!.frontMediaId,
-                    backMediaId: license.backMediaId,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () async {
-                    await context.push(AppRoutes.profileEdit);
-                    ref.invalidate(personalDocumentLicenseProvider);
-                  },
-                  child: const Text('Manage driving license'),
-                ),
-                const LicenseDeleteButton(),
-              ],
             ),
           Expanded(
             child: vehicle == null

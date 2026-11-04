@@ -200,9 +200,6 @@ class VehicleRepositoryImpl implements VehicleRepository {
     );
 
     await _db.transaction(() async {
-      if (draft.purchasePrice != null) {
-        await CurrencyStore(_db).markLocalCreation(userId);
-      }
       await _db.into(_db.vehicleRecords).insert(_toCompanion(vehicle));
       final garage = await _countGarage(userId);
       if (garage == 1) {
@@ -270,9 +267,6 @@ class VehicleRepositoryImpl implements VehicleRepository {
     );
 
     await _db.transaction(() async {
-      if (existing.purchasePrice == null && draft.purchasePrice != null) {
-        await CurrencyStore(_db).markLocalCreation(userId);
-      }
       await (_db.update(
         _db.vehicleRecords,
       )..where((row) => row.id.equals(vehicleId))).write(_toCompanion(updated));

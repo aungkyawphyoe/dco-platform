@@ -1,3 +1,4 @@
+import { credentialFields, saveCredentials } from "../lib/driver-credentials.js";
 import { signupCurrency } from '../lib/operational-currency.js';
 import { effectiveSubscription } from "../lib/gifts.js";
 import { authLimit } from "./account-security.js";
@@ -25,6 +26,7 @@ import { generateUniqueUsername } from "../lib/username.js";
 import { bearer } from "../types.js";
 
 const signupBody = z.object({
+  ...credentialFields,
   email: z.string().email().max(254),
   password: z.string().min(8),
   display_name: z.string().optional(),
@@ -48,21 +50,25 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     const passwordHash = await hashPassword(body.password);
     const emailVerification = app.env.EMAIL_VERIFICATION === "on" || app.env.AUTH_CODES_ENABLED === "on";
     const username = await generateUniqueUsername(app.db, email);
-    const [user] = await app.db
-      .insert(users)
-      .values({
-        id,
-        email,
-        username,
-        passwordHash,
-        currency: await signupCurrency(app.db,request.body),
-        displayName: body.display_name ?? null,
-        role: "owner",
-        plan: "free",
-        // Disabling delivery must never count as proof of address ownership.
-        emailVerified: false,
-      })
-      .returning();
+    const user = await app.db.transaction(async tx => {
+      const [registered] = await tx
+        .insert(users)
+        .values({
+          id,
+          email,
+          username,
+          passwordHash,
+          currency: await signupCurrency(tx,request.body),
+          displayName: body.display_name ?? null,
+          role: "owner",
+          plan: "free",
+          // Disabling delivery must never count as proof of address ownership.
+          emailVerified: false,
+        })
+        .returning();
+      if (body.license_number != null || body.license_expiry_date != null) await saveCredentials(tx,id,body);
+      return registered;
+    });
     for (const ft of DEFAULT_FUEL_TYPES) {
       await app.db.insert(fuelTypes).values({
         id: newId(),

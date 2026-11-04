@@ -1,3 +1,4 @@
+import { credentialBody, expiryStatus, saveCredentials } from "../lib/driver-credentials.js";
 import { incomingCurrency, incomingServiceCurrency, lockCurrencyVehicle } from '../lib/operational-currency.js';
 import { billingRequest } from "../lib/subscription-access.js";
 import { assertOrganizationWritable } from "../lib/subscriptions.js";
@@ -5,6 +6,7 @@ import { and, desc, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import {
+  drivingLicenses,
   driverAssignments,
   maintenanceCatalog,
   organizationMembers,
@@ -114,6 +116,7 @@ function serializeMember(row: typeof organizationMembers.$inferSelect, user: typ
 function serializeOrganizationVehicle(row: typeof organizationVehicles.$inferSelect, vehicle: typeof vehicles.$inferSelect, assignedDriver?: string | null) {
   return {
     ...publicVehicle(vehicle),
+    base_currency: vehicle.baseCurrency,
     lifecycle_template: row.lifecycleTemplate,
     status: row.status,
     revenue_label: row.revenueLabel,
@@ -178,11 +181,29 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
-    const rows = await app.db.select({ membership: organizationMembers, user: users })
-      .from(organizationMembers)
-      .innerJoin(users, eq(organizationMembers.userId, users.id))
-      .where(eq(organizationMembers.orgId, orgId));
-    return { items: rows.map((row) => serializeMember(row.membership, row.user)) };
+    const rows = await app.db.select({membership:organizationMembers,user:users,expiry:drivingLicenses.expiryDate})
+      .from(organizationMembers).innerJoin(users,eq(organizationMembers.userId,users.id))
+      .leftJoin(drivingLicenses,eq(drivingLicenses.userId,users.id))
+      .where(eq(organizationMembers.orgId,orgId));
+    return {items:rows.map(row=>({...serializeMember(row.membership,row.user),
+      ...(row.membership.role === "org_driver" ? {license_expiry_date:row.expiry, license_status:expiryStatus(row.expiry)} : {})}))};
+  });
+
+  app.put("/organizations/:id/members/:userId/license", async request => {
+    requireFleetPortal(request);
+    const {id,userId}=z.object({id:uuid,userId:uuid}).parse(request.params);
+    const actor=uid(request);
+    await assertPasswordChangeClear(app.db,actor);
+    const body=credentialBody.parse(request.body);
+    return app.db.transaction(async tx=>{
+      await getOrganizationAccess(tx,actor,id,["org_admin","org_manager"]);
+      const [driver]=await tx.select().from(organizationMembers).where(and(
+        eq(organizationMembers.orgId,id),eq(organizationMembers.userId,userId),
+        eq(organizationMembers.role,"org_driver"),eq(organizationMembers.status,"active"))).for("update");
+      if (!driver) throw new AppError(404,"not_found","Active fleet driver not found");
+      const saved=await saveCredentials(tx,userId,body);
+      return {license_expiry_date:saved.license_expiry_date,license_status:expiryStatus(saved.license_expiry_date)};
+    });
   });
 
   app.post("/organizations/:id/members", async (request, reply) => {

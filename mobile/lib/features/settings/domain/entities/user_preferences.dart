@@ -21,14 +21,16 @@ enum AppLanguage {
   }
 }
 
-enum AppCurrency {
-  mmk;
-
-  String get code => 'MMK';
-
-  String get label => 'Myanmar Kyat (MMK)';
-
-  static AppCurrency parse(String value) => AppCurrency.mmk;
+class AppCurrency {
+  const AppCurrency(this.code);
+  static const mmk = AppCurrency('MMK');
+  final String code;
+  String get label => code;
+  @override
+  bool operator ==(Object other) => other is AppCurrency && other.code == code;
+  @override
+  int get hashCode => code.hashCode;
+  static AppCurrency parse(String value) => AppCurrency(value.toUpperCase());
 }
 
 enum AppThemeMode {

@@ -55,7 +55,6 @@ import '../../features/profile/presentation/screens/profile_detail_screen.dart';
 import '../../features/profile/presentation/screens/profile_form_screen.dart';
 import '../../features/settings/presentation/screens/appearance_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
-import '../../features/settings/presentation/screens/license_capture_screen.dart';
 import '../../features/settings/presentation/screens/reminders_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/settings/presentation/screens/units_formats_screen.dart';
@@ -652,11 +651,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) =>
             ProfileDetailScreen(userId: state.pathParameters['id']!),
-      ),
-      GoRoute(
-        path: AppRoutes.licenseCapture,
-        parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const LicenseCaptureScreen(),
       ),
     ],
   );

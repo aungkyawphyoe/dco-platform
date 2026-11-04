@@ -34,9 +34,9 @@ it.skipIf(!url)('serializes currency changes, first costs, and ownership changes
     expect((await admin.query('SELECT currency_locked_at FROM users WHERE id=$1',[owner])).rows[0].currency_locked_at).toBeNull();
     await first.query('BEGIN');await insert(first,'THB');await second.query('BEGIN');
     const change=second.query("UPDATE users SET currency='USD' WHERE id=$1",[owner]).then(()=>null,error=>error as Error);
-    await blocked();await first.query('COMMIT');expect((await change)?.message).toContain('currency_locked');await second.query('ROLLBACK');
+    await blocked();await first.query('COMMIT');expect(await change).toBeNull();await second.query('COMMIT');
     await admin.query('DELETE FROM expenses');
-    expect((await admin.query('SELECT currency_locked_at FROM users WHERE id=$1',[owner])).rows[0].currency_locked_at).not.toBeNull();
+    expect((await admin.query('SELECT currency_locked_at FROM users WHERE id=$1',[owner])).rows[0].currency_locked_at).toBeNull();
     await first.query('BEGIN');await first.query('UPDATE vehicles SET user_id=$1 WHERE id=$2',[buyer,vehicle]);await second.query('BEGIN');
     const transfer=insert(second,'THB').then(()=>null,error=>error as Error);
     await blocked();await first.query('COMMIT');expect((await transfer)?.message).toContain('currency_mismatch');await second.query('ROLLBACK');

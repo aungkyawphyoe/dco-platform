@@ -94,7 +94,7 @@ export default function WorkOrdersPage() {
   const { data: vehiclesData } = useVehicles(orgId);
   const updateOrder = useUpdateWorkOrder(orgId);
   const currencyQuery = useFleetCurrency(orgId);
-  const currentCurrency = currencyQuery.data ? (currencyQuery.data.enabled ? currencyQuery.data.currency : "MMK") : null;
+  const fleetCurrency = currencyQuery.data ? (currencyQuery.data.enabled ? currencyQuery.data.currency : "MMK") : null;
   const [draftCurrency, setDraftCurrency] = useState<Currency | null>(null);
   const [cost, setCost] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -111,6 +111,8 @@ export default function WorkOrdersPage() {
 
   const orders = data?.items ?? [];
   const vehicles = vehiclesData?.items ?? [];
+  const currencyFor = (order?: WorkOrder) => vehicles.find(v => v.id === order?.vehicle_id)?.base_currency ?? fleetCurrency;
+  const currentCurrency = currencyFor(orders.find(o => o.id === advance?.id));
   const mechanics =
     members?.items.filter((m) => ["org_manager", "org_mechanic"].includes(m.role)) ?? [];
 
@@ -172,7 +174,7 @@ export default function WorkOrdersPage() {
         variant={next === "in_progress" ? "primary" : "secondary"}
         className="w-full"
         onClick={() => {
-          setCost(""); setNotes(""); setAssignee(""); setError(null); setDraftCurrency(currentCurrency);
+          setCost(""); setNotes(""); setAssignee(""); setError(null); setDraftCurrency(currencyFor(order));
           setAdvance({ id: order.id, next, assign: next === "in_progress" });
         }}
       >

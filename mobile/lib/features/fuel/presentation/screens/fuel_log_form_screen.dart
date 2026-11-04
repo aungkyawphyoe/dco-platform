@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/currency/currency_store.dart';
 import 'package:dco_mobile/features/documents/presentation/widgets/log_attachments.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/core/analytics/analytics.dart';
@@ -73,6 +74,7 @@ class FuelLogForm extends ConsumerStatefulWidget {
 }
 
 class _FuelLogFormState extends ConsumerState<FuelLogForm> {
+  String? _recordCurrency;
   final _attachments = GlobalKey<LogAttachmentsState>();
   bool _allowPop = false;
   Future<void> _cancelAttachments() async {
@@ -118,6 +120,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     if (widget.logId != null) {
       final log = await ref.read(fuelRepositoryProvider).getLog(widget.logId!);
       if (log != null && mounted) {
+        _recordCurrency = log.currency;
         _createdBy = log.userId;
         _fillStatus = log.fillStatus;
         _loggedOn = log.loggedOn;
@@ -125,10 +128,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         _fuelTypeId = log.fuelTypeId;
         _fuelTypeLabel.text = log.fuelTypeName;
         _amount.text = _formatNumber(log.amount);
-        _cost.text = MoneyFormat.input(
-          log.cost,
-          ref.read(currencyProvider).code,
-        );
+        _cost.text = MoneyFormat.input(log.cost, log.currency);
         if (log.odometer != null) {
           final display = ref.read(lengthUnitProvider).toDisplay(log.odometer!);
           _odometer.text = _formatNumber(display);
@@ -177,6 +177,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     if (_errors.values.any((error) => error != null)) return null;
     final odometerDisplay = FuelLogValidators.parseOdometer(_odometer.text);
     return FuelLogDraft(
+      currency: _recordCurrency ?? ref.read(currencyProvider).code,
       fillStatus: widget.kind == FuelLogKind.charge ? 'unknown' : _fillStatus,
       loggedOn: _loggedOn,
       fuelTypeId: _fuelTypeId!,
@@ -344,7 +345,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final types = ref.watch(matchingFuelTypesProvider);
-    final currency = ref.watch(currencyProvider).code;
+    final currency = _recordCurrency ?? ref.watch(currencyProvider).code;
     final lengthUnit = ref.watch(lengthUnitProvider);
     FuelCatalogType? selected;
     for (final type in types) {

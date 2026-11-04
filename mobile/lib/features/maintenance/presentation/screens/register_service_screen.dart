@@ -47,6 +47,7 @@ class RegisterServiceScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
+  String? _recordCurrency;
   final _attachments = GlobalKey<LogAttachmentsState>();
   bool _allowPop = false;
   Future<void> _cancelAttachments() async {
@@ -129,6 +130,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
       return;
     }
     setState(() {
+      _recordCurrency = record.currency;
       _recordCreatedBy = record.createdBy;
       _title.text = record.title;
       _servicedOn = record.servicedOn;
@@ -255,6 +257,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     }
 
     return ServiceRecordDraft(
+      currency: _isEdit ? null : ref.read(currencyProvider).code,
       title: _title.text,
       servicedOn: _servicedOn,
       odometer: odometer,
@@ -524,7 +527,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
-    final currency = ref.watch(currencyProvider).code;
+    final currency = _recordCurrency ?? ref.watch(currencyProvider).code;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final plan =
         ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];

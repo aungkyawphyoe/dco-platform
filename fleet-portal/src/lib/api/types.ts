@@ -13,6 +13,8 @@ export type OrgContext = {
 };
 
 export type OrgMember = {
+  license_expiry_date?: string | null;
+  license_status?: "valid" | "expired" | "expiring_soon" | null;
   status: "active" | "deactivated";
   user_id: string;
   email: string;
@@ -26,6 +28,7 @@ export type InviteMemberResult = OrgMember & {
 };
 
 export type FleetVehicle = {
+  base_currency?: string | null;
   id: string;
   name: string;
   make: string;
@@ -123,7 +126,7 @@ export type ServiceRecordLine = {
 };
 
 export type VehicleServiceRecord = {
-  currency: "MMK" | "USD" | "THB" | "CNY";
+  currency: string;
   id: string;
   vehicle_id: string;
   serviced_on: string;
@@ -136,7 +139,7 @@ export type VehicleServiceRecord = {
 };
 
 export type WorkOrder = {
-  currency: "MMK" | "USD" | "THB" | "CNY";
+  currency: string;
   completion_cost: number | null;
   id: string;
   org_id: string;

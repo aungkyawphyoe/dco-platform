@@ -796,6 +796,7 @@ async function recordVehicleScopedChange(
     await db()
       .update(serviceRecords)
       .set({
+        currency: (request.body as {currency?: string}).currency,
         ...(body.serviced_on ? { servicedOn: body.serviced_on } : {}),
         ...(body.odometer !== undefined ? { odometer: String(body.odometer) } : {}),
         ...(body.total_cost !== undefined ? { totalCost: String(body.total_cost) } : {}),
@@ -1084,6 +1085,7 @@ async function recordVehicleScopedChange(
     const [updated] = await db()
       .update(fuelLogs)
       .set({
+        currency: (request.body as {currency?: string}).currency,
         ...(body.logged_on ? { loggedOn: body.logged_on } : {}),
         ...(body.amount !== undefined ? { amount: String(body.amount) } : {}),
         ...(body.cost !== undefined ? { cost: String(body.cost) } : {}),
@@ -1354,6 +1356,7 @@ async function recordVehicleScopedChange(
     await db()
       .update(expenses)
       .set({
+        currency: (request.body as {currency?: string}).currency,
         ...(body.category ? { category: body.category } : {}),
         ...(body.amount !== undefined ? { amount: String(body.amount) } : {}),
         ...(body.incurred_on ? { incurredOn: body.incurred_on } : {}),

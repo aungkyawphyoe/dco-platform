@@ -1,4 +1,5 @@
 "use client";
+import { useFleetCurrency } from "@/lib/api/currency";
 import { CurrencySettings } from "@/components/currency/currency-settings";
 import { SubscriptionNotice } from "@/components/billing/subscription-notice";
 
@@ -18,6 +19,7 @@ import { useOrgId, useOrgRole, useSession } from "@/lib/auth/session-context";
 export default function SettingsPage() {
   const { org } = useSession();
   const orgId = useOrgId();
+  const currency = useFleetCurrency(orgId).data?.currency ?? "—";
   const role = useOrgRole();
   const isAdmin = role === "org_admin";
   const { data: lemons } = useLemons(orgId);
@@ -87,7 +89,7 @@ export default function SettingsPage() {
             <p className="text-sm text-ink">
               Current threshold:{" "}
               <span className="font-mono text-ink">
-                {lemons ? `${lemons.threshold_cost_per_km.toFixed(3)} MMK/km` : "—"}
+                {lemons ? `${lemons.threshold_cost_per_km.toFixed(3)} ${currency}/km` : "—"}
               </span>
             </p>
             <p className="mt-1 text-xs text-ink-caption">
@@ -100,13 +102,13 @@ export default function SettingsPage() {
                   label="Mode"
                   options={[
                     { value: "multiplier", label: "Multiplier of fleet average" },
-                    { value: "absolute", label: "Absolute MMK/km" },
+                    { value: "absolute", label: `Absolute ${currency}/km` },
                   ]}
                   value={mode}
                   onChange={(v) => setMode(v as "multiplier" | "absolute")}
                 />
                 <Input
-                  label={mode === "multiplier" ? "Multiplier" : "Cost per km (MMK)"}
+                  label={mode === "multiplier" ? "Multiplier" : `Cost per km (${currency})`}
                   type="number"
                   step={mode === "multiplier" ? "0.1" : "0.001"}
                   min={mode === "multiplier" ? 1 : 0}

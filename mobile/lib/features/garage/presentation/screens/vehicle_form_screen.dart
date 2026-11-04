@@ -134,6 +134,10 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
     }
     final unit = ref.read(lengthUnitProvider);
     return VehicleDraft(
+      purchaseCurrency:
+          ref.read(selectedCurrencyStateProvider).valueOrNull?['currency']
+              as String? ??
+          'MMK',
       name: _name.text,
       make: _make.text,
       model: _model.text,

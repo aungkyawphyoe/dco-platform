@@ -2,7 +2,7 @@
 
 **Product:** AutoX Platform  
 **Date:** 29 October 2026  
-**Status:** Requirements agreed through grilling; backend storage, currency-state APIs, and write enforcement implemented locally. Client integration and activation pending.
+**Status:** Historical phase-one design. The flexible-currency feature supersedes the lock rules and four-code limit below. Account owners and fleet admins can change display currency after costs have been recorded, optionally relabel existing logs, and configure vehicle-level currency or member overrides. Historical log edits can change both the amount and the tag.
 **Surfaces:** Mobile Personal and Driver, Fleet Portal, API, local storage/sync, and Web Admin support views.
 
 **Implementation plan:** [Phases, verification, and rollout](../../docs/multi-currency-implementation-plan.md).

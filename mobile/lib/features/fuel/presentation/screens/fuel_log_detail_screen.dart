@@ -119,6 +119,8 @@ class FuelLogDetailScreen extends ConsumerWidget {
                 s.fuelLogDetailCost,
                 MoneyFormat.labeled(log.cost, currency),
               ),
+              if (log.currency != currency)
+                _kv(context, 'Recorded currency', log.currency),
               _kv(context, s.loggedBy, nameAsync.valueOrNull ?? '—'),
             ],
           );

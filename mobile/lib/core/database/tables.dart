@@ -299,11 +299,7 @@ class DrivingLicenseRecords extends Table {
   TextColumn get id => text()();
   TextColumn get userId => text()();
   TextColumn get licenseNumber => text().nullable()();
-  TextColumn get issuingCountry => text().nullable()();
   DateTimeColumn get expiryDate => dateTime()();
-  TextColumn get categories => text().nullable()();
-  TextColumn get frontMediaId => text().nullable()();
-  TextColumn get backMediaId => text().nullable()();
   DateTimeColumn get createdAt => dateTime()();
   DateTimeColumn get updatedAt => dateTime()();
   TextColumn get syncedAt => text().nullable()();

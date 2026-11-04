@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/currency/currency_store.dart';
 import 'dart:io';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
@@ -39,6 +40,7 @@ class ExpenseFormScreen extends ConsumerStatefulWidget {
 }
 
 class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
+  String? _recordCurrency;
   final _categoryLabel = TextEditingController();
   final _amount = TextEditingController();
   final _date = TextEditingController();
@@ -69,13 +71,11 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
           .read(expenseRepositoryProvider)
           .getById(widget.expenseId!);
       if (expense != null && mounted) {
+        _recordCurrency = expense.currency;
         _createdBy = expense.createdBy;
         _category = expense.category;
         _categoryLabel.text = expense.category.label;
-        _amount.text = MoneyFormat.input(
-          expense.amount,
-          ref.read(currencyProvider).code,
-        );
+        _amount.text = MoneyFormat.input(expense.amount, expense.currency);
         _incurredOn = expense.incurredOn;
         _date.text = DateFormat.yMMMd().format(expense.incurredOn);
         _notes.text = expense.notes ?? '';
@@ -118,6 +118,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     });
     if (_errors.values.any((error) => error != null)) return null;
     return ExpenseDraft(
+      currency: _recordCurrency ?? ref.read(currencyProvider).code,
       category: _category!,
       amount: ExpenseValidators.parseDecimal(_amount.text)!,
       incurredOn: _incurredOn,
@@ -437,7 +438,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                       .valueOrNull ??
                   (ref.read(driverOrganizationIdProvider) != null)))
         : access.canCreate;
-    final currency = ref.watch(currencyProvider).code;
+    final currency = _recordCurrency ?? ref.watch(currencyProvider).code;
     ref.watch(vehiclePartsProvider);
 
     if (_loading) {
@@ -489,6 +490,22 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
             child: ListView(
               padding: EdgeInsets.all(tokens.space.s5),
               children: [
+                if (widget.isEditing)
+                  DropdownButtonFormField<String>(
+                    value: currency,
+                    decoration: const InputDecoration(
+                      labelText: 'Record currency',
+                    ),
+                    items: operationalCurrencies
+                        .map(
+                          (code) =>
+                              DropdownMenuItem(value: code, child: Text(code)),
+                        )
+                        .toList(),
+                    onChanged: (value) =>
+                        setState(() => _recordCurrency = value),
+                  ),
+
                 Text(
                   vehicle.displayName,
                   style: Theme.of(

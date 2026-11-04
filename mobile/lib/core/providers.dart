@@ -1,3 +1,4 @@
+import 'entities/driving_license.dart';
 import 'currency/currency_conflict_repository.dart';
 import 'currency/currency_sync_api.dart';
 import 'dart:async';
@@ -288,7 +289,9 @@ final currencyConflictRepositoryProvider =
           );
         }
         final path = orgId != null
-            ? '/organizations/$orgId/currency'
+            ? (vehicleId == null
+                  ? '/organizations/$orgId/currency'
+                  : '/organizations/$orgId/vehicles/$vehicleId/currency')
             : vehicleId == null
             ? '/me/currency'
             : '/vehicles/$vehicleId/currency';
@@ -395,6 +398,13 @@ final licenseRepositoryProvider = Provider<LicenseRepository>((ref) {
     return MockLicenseRepository();
   }
   return LicenseRepositoryImpl(ref.watch(dioProvider));
+});
+
+final myDrivingLicenseProvider = FutureProvider.autoDispose<DrivingLicense?>((
+  ref,
+) {
+  if (ref.watch(currentUserIdProvider) == null) return null;
+  return ref.watch(licenseRepositoryProvider).getMyLicense();
 });
 
 final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {

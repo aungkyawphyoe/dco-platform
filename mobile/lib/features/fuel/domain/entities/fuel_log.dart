@@ -100,7 +100,7 @@ class FuelLog {
 
 class FuelLogDraft {
   const FuelLogDraft({
-    this.currency = 'MMK',
+    this.currency,
     required this.loggedOn,
     required this.fuelTypeId,
     required this.amount,
@@ -109,7 +109,7 @@ class FuelLogDraft {
     this.fillStatus = 'unknown',
   });
 
-  final String currency;
+  final String? currency;
 
   final DateTime loggedOn;
   final String fuelTypeId;

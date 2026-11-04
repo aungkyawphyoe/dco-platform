@@ -20,7 +20,7 @@ export function publicUser(row: UserRow) {
     email_verified: row.emailVerified,
     must_change_password: row.mustChangePassword,
     currency: row.currency,
-    currency_locked: row.currencyLockedAt !== null,
+    currency_locked: false,
     active_vehicle_id: row.activeVehicleId,
     vehicle_limit: vehicleLimit(row.plan),
     created_at: iso(row.createdAt),

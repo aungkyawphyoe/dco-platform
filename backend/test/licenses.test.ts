@@ -1,6 +1,11 @@
+import { readFileSync } from "node:fs";
+import { storeWithQuota } from "../src/lib/storage.js";
+import { buildApp } from "../src/app.js";
+import { createMailer } from "../src/lib/mail.js";
 import { describe, expect, it } from "vitest";
 import { createTestApp, testEnv, uuid } from "./helpers.js";
-import { storeWithQuota, storageUsage } from "../src/lib/storage.js";
+import { signAccess } from "../src/lib/crypto.js";
+import { expiryStatus } from "../src/lib/driver-credentials.js";
 
 async function signup(app: { inject: Function }, label: string) {
   const email = `${label}-${uuid()}@test.local`;
@@ -50,19 +55,14 @@ describe("driving licenses (standalone module)", () => {
     const missing = await app.inject({ method: "GET", url: "/v1/users/me/license", headers: auth(owner.token) });
     expect(missing.statusCode).toBe(404);
 
-    const missingFront = await app.inject({ method: "PUT", url: "/v1/users/me/license", headers: auth(owner.token), payload: {} });
-    expect(missingFront.statusCode).toBe(422);
-    const front = await storeWithQuota(db, app.media, { id: uuid(), owner: { userId: owner.id }, purpose: "license_front", bytes: Buffer.from([255,216,255]), contentType: "image/jpeg" });
+    expect((await app.inject({method:'POST',url:'/v1/users/me/license/media',headers:auth(owner.token)})).statusCode).toBe(404);
     const created = await app.inject({
       method: "PUT",
       url: "/v1/users/me/license",
       headers: auth(owner.token),
       payload: {
-        front_media_id: front.id,
         license_number: "AB123456",
-        issuing_country: "US",
-        expiry_date: "2030-05-20",
-        categories: "B,C",
+        license_expiry_date: "2030-05-20",
       },
     });
     expect(created.statusCode).toBe(200);
@@ -71,38 +71,92 @@ describe("driving licenses (standalone module)", () => {
     const read = await app.inject({ method: "GET", url: "/v1/users/me/license", headers: auth(owner.token) });
     expect(read.statusCode).toBe(200);
     expect(read.json().license_number).toBe("AB123456");
-    expect(read.json().expiry_date).toBe("2030-05-20");
+    expect(read.json().license_expiry_date).toBe("2030-05-20");
 
     const updated = await app.inject({
       method: "PUT",
       url: "/v1/users/me/license",
       headers: auth(owner.token),
-      payload: { license_number: "XY987654", issuing_country: "US", expiry_date: "2031-01-01", categories: "B" },
+      payload: { license_number: "XY987654", license_expiry_date: "2031-01-01" },
     });
     expect(updated.statusCode).toBe(200);
     expect(updated.json().id).toBe(licenseId);
     expect(updated.json().license_number).toBe("XY987654");
 
-    const noExpiry = await app.inject({ method: "PUT", url: "/v1/users/me/license", headers: auth(owner.token), payload: { expiry_date: null } });
+    const noExpiry = await app.inject({ method: "PUT", url: "/v1/users/me/license", headers: auth(owner.token), payload: { license_expiry_date: null } });
     expect(noExpiry.statusCode).toBe(200);
-    expect(noExpiry.json().expiry_date).toBeNull();
-    const impossibleDate = await app.inject({ method: "PUT", url: "/v1/users/me/license", headers: auth(owner.token), payload: { expiry_date: "2030-02-30" } });
-    expect(impossibleDate.statusCode).toBe(400);
+    expect(noExpiry.json().license_expiry_date).toBeNull();
+    const impossibleDate = await app.inject({ method: "PUT", url: "/v1/users/me/license", headers: auth(owner.token), payload: { license_expiry_date: "2030-02-30" } });
+    expect(impossibleDate.statusCode).toBe(422);
 
     const expired = await app.inject({
       method: "PUT",
       url: "/v1/users/me/license",
       headers: auth(owner.token),
-      payload: { expiry_date: "2020-01-01" },
+      payload: { license_expiry_date: "2020-01-01" },
     });
-    expect(expired.statusCode).toBe(400);
-    const replacement = await storeWithQuota(db, app.media, { id: uuid(), owner: { userId: owner.id }, purpose: "license_front", bytes: Buffer.from([255,216,255,0]), contentType: "image/jpeg" });
-    const replaced = await app.inject({ method: "PUT", url: "/v1/users/me/license", headers: auth(owner.token), payload: { front_media_id: replacement.id } });
-    expect(replaced.statusCode, replaced.body).toBe(200);
-    expect((await storageUsage(db, { userId: owner.id })).used_bytes).toBe(4);
+    expect(expired.statusCode).toBe(200);
+    expect(expiryStatus(expired.json().license_expiry_date)).toBe('expired');
+    const invalid=await app.inject({method:'PUT',url:'/v1/users/me/license',headers:auth(owner.token),payload:{license_number:'bad-number'}});
+    expect(invalid.statusCode).toBe(422);
+    expect((await app.inject({method:'PATCH',url:'/v1/users/me/profile',headers:auth(owner.token),payload:{license_number:'XY123',license_expiry_date:'2030-01-02'}})).statusCode).toBe(200);
+    expect((await app.inject({method:'GET',url:'/v1/users/me/license',headers:auth(owner.token)})).json()).toMatchObject({license_number:'XY123',license_expiry_date:'2030-01-02'});
     expect((await app.inject({ method: "DELETE", url: "/v1/users/me/license", headers: auth(owner.token) })).statusCode).toBe(204);
-    expect((await storageUsage(db, { userId: owner.id })).used_bytes).toBe(0);
     expect((await app.inject({ method: "GET", url: "/v1/users/me/license", headers: auth(owner.token) })).statusCode).toBe(404);
+  });
+
+  it("retires both linked and orphaned photos while retaining credentials and unrelated media", async()=>{
+    const {app,db,client}=await createTestApp();
+    const owner=await signup(app,"legacy-driver");
+    const store=app.media;
+    await client.exec("ALTER TABLE media_objects DROP CONSTRAINT no_license_image_uploads");
+    const add=(purpose:string)=>storeWithQuota(db,store,{id:uuid(),owner:{userId:owner.id},purpose,bytes:Buffer.from([1]),contentType:"image/jpeg"});
+    const linked=await add("license_front"), orphan=await add("driving_license"), avatar=await add("profile_photo");
+    await client.exec("ALTER TABLE driving_licenses RENAME COLUMN license_expiry_date TO expiry_date; ALTER TABLE driving_licenses ADD COLUMN front_media_id uuid, ADD COLUMN back_media_id uuid, ADD COLUMN issuing_country text, ADD COLUMN categories text;");
+    await client.query("INSERT INTO driving_licenses(id,user_id,license_number,expiry_date,front_media_id) VALUES($1,$2,'AB123','2030-01-02',$3)",[uuid(),owner.id,linked.id]);
+    const migration=readFileSync(new URL("../drizzle/0035_retire_license_images.sql",import.meta.url),"utf8");
+    await client.exec(migration);await client.exec(migration);
+    expect((await client.query("SELECT license_number,license_expiry_date::text FROM driving_licenses")).rows).toEqual([{license_number:"AB123",license_expiry_date:"2030-01-02"}]);
+    const token=store.signDownload(linked.id).token;
+    expect((await app.inject({url:`/v1/media/${linked.id}/content?token=${token}`})).statusCode).toBe(404);
+    await app.close();
+    const restarted=await buildApp({env:testEnv,db,media:store,mailer:createMailer(testEnv)});
+    try {
+      await restarted.ready();
+      for(const photo of [linked,orphan]) await expect(store.get(photo.blobKey)).rejects.toThrow();
+      expect(await store.get(avatar.blobKey)).toEqual(Buffer.from([1]));
+      expect((await client.query("SELECT media_id FROM media_cleanup")).rows).toEqual([]);
+    } finally {await restarted.close();await client.close();}
+  });
+  it("requires both credentials for fleet drivers and marks the 30-day boundary", async()=>{
+    const {app,client}=await createTestApp();
+    try {
+      const driver=await signup(app,"fleet-driver");
+      const org=uuid();
+      await client.query("INSERT INTO organizations(id,name,type,admin_user_id,created_by) VALUES($1,'Fleet','commercial',$2,$2)",[org,driver.id]);
+      await client.query("INSERT INTO organization_members(id,org_id,user_id,role) VALUES($1,$2,$3,'org_driver')",[uuid(),org,driver.id]);
+      const put=(payload:object)=>app.inject({method:"PUT",url:"/v1/users/me/license",headers:auth(driver.token),payload});
+      expect((await put({license_number:"ABC123"})).statusCode).toBe(422);
+      expect((await put({license_number:"ABC123",license_expiry_date:"2030-01-01"})).statusCode).toBe(200);
+      expect((await put({license_expiry_date:null})).statusCode).toBe(422);
+      expect((await app.inject({method:"DELETE",url:"/v1/users/me/license",headers:auth(driver.token)})).statusCode).toBe(422);
+      const manager=await signup(app,"fleet-manager");
+      await client.query("INSERT INTO organization_members(id,org_id,user_id,role) VALUES($1,$2,$3,'org_manager')",[uuid(),org,manager.id]);
+      await client.query("UPDATE organizations SET billing_migrated=false,status='active' WHERE id=$1",[org]);
+      const fleetToken=await signAccess(testEnv,{sub:manager.id,role:'owner',plan:'free',aud:testEnv.JWT_FLEET_AUD});
+      const managerHeaders=auth(fleetToken.token);
+      const path=`/v1/organizations/${org}/members/${driver.id}/license`;
+      const saved=await app.inject({method:'PUT',url:path,headers:managerHeaders,payload:{license_expiry_date:'2020-01-01'}});
+      expect(saved.statusCode,saved.body).toBe(200);
+      expect(saved.json()).toEqual({license_expiry_date:'2020-01-01',license_status:'expired'});
+      const members=await app.inject({url:`/v1/organizations/${org}/members`,headers:managerHeaders});
+      expect(members.json().items.find((m:{user_id:string})=>m.user_id===driver.id)).toMatchObject({license_expiry_date:'2020-01-01',license_status:'expired'});
+      expect(members.body).not.toContain('ABC123');
+      expect((await app.inject({method:'PUT',url:path,headers:auth(driver.token),payload:{license_expiry_date:'2030-01-01'}})).statusCode).toBe(403);
+      for(const [days,status] of [[-1,"expired"],[0,"expiring_soon"],[30,"expiring_soon"],[31,"valid"]] as const){
+        expect(expiryStatus(new Date(Date.now()+days*86400000).toISOString().slice(0,10))).toBe(status);
+      }
+    } finally {await app.close();await client.close();}
   });
 
   it("keeps licenses private even with an active vehicle share", async () => {
@@ -120,13 +174,12 @@ describe("driving licenses (standalone module)", () => {
     });
 
     const vehicleId = await createVehicle(app, owner.token, "LIC");
-    const front = await storeWithQuota(db, app.media, { id: uuid(), owner: { userId: owner.id }, purpose: "license_front", bytes: Buffer.from([255,216,255]), contentType: "image/jpeg" });
 
     await app.inject({
       method: "PUT",
       url: "/v1/users/me/license",
       headers: auth(owner.token),
-      payload: { front_media_id: front.id, license_number: "SH123456", issuing_country: "US", expiry_date: "2032-09-09" },
+      payload: { license_number: "SH123456", license_expiry_date: "2032-09-09" },
     });
 
     const strangerRead = await app.inject({

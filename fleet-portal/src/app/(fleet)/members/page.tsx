@@ -1,5 +1,6 @@
 "use client";
 
+import { apiPut } from "@/lib/api/client";
 import { useState } from "react";
 import { PageHeader } from "@dco/ui/components/page-header";
 import { Card } from "@dco/ui/components/card";
@@ -37,10 +38,14 @@ export default function MembersPage() {
   const { user } = useSession();
   const isAdmin = role === "org_admin";
 
-  const { data, isLoading } = useMembers(orgId);
+  const { data, isLoading, refetch } = useMembers(orgId);
   const invite = useInviteMember(orgId);
   const updateMember = useUpdateMember(orgId);
 
+  const [editing, setEditing] = useState<{id:string; name:string} | null>(null);
+  const [expiry,setExpiry] = useState("");
+  const [number,setNumber] = useState("");
+  const [saving,setSaving] = useState(false);
   const [showInvite, setShowInvite] = useState(false);
   const [email, setEmail] = useState("");
   const [memberRole, setMemberRole] = useState("org_driver");
@@ -131,6 +136,7 @@ export default function MembersPage() {
             <TableHead>
               <TableRow>
                 <TableHeadCell>Member</TableHeadCell>
+                <TableHeadCell>Driving license</TableHeadCell>
                 <TableHeadCell>Role</TableHeadCell>
                 <TableHeadCell />
               </TableRow>
@@ -146,6 +152,16 @@ export default function MembersPage() {
                       ) : null}
                     </p>
                     <p className="text-xs text-ink-caption">{member.email}</p>
+                  </TableCell>
+                  <TableCell>
+                    {member.role === "org_driver" ? <>
+                      <Badge tone={member.license_status === "expired" ? "danger" : member.license_status === "expiring_soon" ? "warning" : "neutral"}>
+                        {member.license_status === "expired" ? "Expired" : member.license_status === "expiring_soon" ? "Expires within 30 days" : member.license_status === "valid" ? "Valid" : "Missing credentials"}
+                      </Badge>
+                      <Button size="sm" variant="secondary" onClick={()=>{
+                        setEditing({id:member.user_id,name:member.email});setExpiry(member.license_expiry_date ?? "");setNumber("");setError(null);
+                      }}>{member.license_expiry_date ?? "Enter details"}</Button>
+                    </> : "—"}
                   </TableCell>
                   <TableCell>
                     {isAdmin && member.role !== "org_admin" ? (
@@ -185,6 +201,24 @@ export default function MembersPage() {
           </Table>
         )}
       </Card>
+
+      <Modal open={!!editing} onClose={()=>setEditing(null)} title="Driver credentials" confirmLabel={saving ? "Saving…" : "Save"}
+        onConfirm={async()=>{
+          if (!editing || saving) return;
+          setError(null);
+          if (!expiry || (number && !/^[A-Za-z0-9]{1,50}$/.test(number))) {setError("Enter a date and use only letters and numbers for the license number.");return;}
+          setSaving(true);
+          try {
+            await apiPut(`/organizations/${orgId}/members/${editing.id}/license`,{license_expiry_date:expiry,...(number ? {license_number:number} : {})});
+            await refetch(); setEditing(null); setNumber("");
+          } catch (err) {setError(err instanceof Error ? err.message : "Could not save credentials");}
+          finally {setSaving(false);}
+        }}>
+        <p>{editing?.name}</p>
+        <Input label="Driving license number" value={number} maxLength={50} hint="Leave blank to keep the existing number." onChange={e=>setNumber(e.target.value.trim())}/>
+        <Input label="Driving license expiry date" type="date" value={expiry} onChange={e=>setExpiry(e.target.value)}/>
+        {error && <p role="alert">{error}</p>}
+      </Modal>
 
       <Modal
         open={showInvite}

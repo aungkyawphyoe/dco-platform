@@ -104,4 +104,6 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(readSql("0031_operational_currency.sql"));
   await exec(readSql("0032_currency_enforcement.sql"));
   await exec(readSql("0033_test_account_billing_cleanup.sql"));
+  await exec(readSql("0034_flexible_currency.sql"));
+  await exec(readSql("0035_retire_license_images.sql"));
 }

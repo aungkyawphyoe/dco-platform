@@ -9,12 +9,11 @@ import 'package:dco_mobile/core/widgets/dco_avatar.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/domain/entities/session.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
-import 'package:dco_mobile/features/profile/presentation/widgets/license_flip_card.dart';
 import 'package:dco_mobile/features/vehicle_sharing/domain/entities/user_detail.dart';
 import 'package:dco_mobile/features/vehicle_sharing/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 
-/// Read-only profile detail: license hero card (flip front/back), profile
+/// Read-only profile detail: license credentials, profile
 /// image with user name, phone number, and address. Editing lives on the
 /// profile edit screen (`/profile/edit`), reachable from the app bar.
 class ProfileDetailScreen extends ConsumerWidget {
@@ -80,8 +79,6 @@ class ProfileDetailScreen extends ConsumerWidget {
       tokens,
       detailAsync: detailAsync,
       selfUser: sessionUser,
-      fallbackFrontMediaId: sessionUser.drivingLicense?.frontMediaId,
-      fallbackBackMediaId: sessionUser.drivingLicense?.backMediaId,
       name: sessionUser.displayName ?? sessionUser.email,
       photoMediaId: sessionUser.profilePhotoMediaId,
       phone: sessionUser.contactPhone,
@@ -118,8 +115,6 @@ class ProfileDetailScreen extends ConsumerWidget {
           tokens,
           detailAsync: detailAsync,
           selfUser: null,
-          fallbackFrontMediaId: null,
-          fallbackBackMediaId: null,
           name: detail.displayName ?? detail.email,
           photoMediaId: detail.profilePhotoMediaId,
           phone: detail.contactPhone,
@@ -137,8 +132,6 @@ class ProfileDetailScreen extends ConsumerWidget {
     DcoTokens tokens, {
     required AsyncValue<UserDetail?> detailAsync,
     required User? selfUser,
-    required String? fallbackFrontMediaId,
-    required String? fallbackBackMediaId,
     required String name,
     required String? photoMediaId,
     required String? phone,
@@ -150,15 +143,27 @@ class ProfileDetailScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _licenseSection(
-            context,
-            ref,
-            s,
-            tokens,
-            detailAsync,
-            fallbackFrontMediaId,
-            fallbackBackMediaId,
-          ),
+          if ((selfUser == null
+                  ? null
+                  : ref.watch(myDrivingLicenseProvider).valueOrNull)
+              case final license?) ...[
+            Text(
+              s.profileLicenseSection,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            Text('${s.profileLicenseNumber}: ${license.licenseNumber ?? "—"}'),
+            Text(
+              '${s.profileLicenseExpiry}: ${license.expiryDate?.toIso8601String().split("T").first ?? "—"}',
+            ),
+            if (license.expiryDate != null)
+              Chip(
+                label: Text(switch (license.status.storage) {
+                  'expired' => s.userDetailLicenseExpired,
+                  'expiring_soon' => s.userDetailLicenseExpiringSoon,
+                  _ => s.userDetailLicenseValid,
+                }),
+              ),
+          ],
           SizedBox(height: tokens.space.s4),
           Row(
             children: [
@@ -243,62 +248,6 @@ class ProfileDetailScreen extends ConsumerWidget {
             SizedBox(height: tokens.space.s5),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _licenseSection(
-    BuildContext context,
-    WidgetRef ref,
-    AppLocalizations s,
-    DcoTokens tokens,
-    AsyncValue<UserDetail?> detailAsync,
-    String? fallbackFrontMediaId,
-    String? fallbackBackMediaId,
-  ) {
-    bool hasFallback() =>
-        fallbackFrontMediaId != null || fallbackBackMediaId != null;
-
-    return detailAsync.when(
-      loading: () => hasFallback()
-          ? LicenseFlipCard(
-              frontMediaId: fallbackFrontMediaId,
-              backMediaId: fallbackBackMediaId,
-            )
-          : _licenseSkeleton(context, tokens),
-      error: (error, _) => hasFallback()
-          ? LicenseFlipCard(
-              frontMediaId: fallbackFrontMediaId,
-              backMediaId: fallbackBackMediaId,
-            )
-          : _errorState(
-              context,
-              s,
-              tokens,
-              error,
-              () => ref.invalidate(userDetailProvider(userId)),
-            ),
-      data: (detail) {
-        final license = detail?.drivingLicense;
-        return LicenseFlipCard(
-          frontMediaId: license?.frontMediaId,
-          backMediaId: license?.backMediaId,
-        );
-      },
-    );
-  }
-
-  Widget _licenseSkeleton(BuildContext context, DcoTokens tokens) {
-    return Container(
-      decoration: BoxDecoration(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.md),
-        border: Border.all(color: tokens.border.defaultColor),
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: AspectRatio(
-        aspectRatio: LicenseFlipCard.aspectRatio,
-        child: ColoredBox(color: tokens.background.skeleton),
       ),
     );
   }

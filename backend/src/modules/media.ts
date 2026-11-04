@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import type { FastifyPluginAsync } from "fastify";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull } from "drizzle-orm";
 import { mediaObjects, mediaCleanup, documents, expenses, serviceRecords, vehicles, organizationVehicles, driverAssignments } from "../db/schema.js";
 import { AppError } from "../lib/errors.js";
 import { recordChange } from "../lib/dbx.js";
@@ -23,6 +23,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
   }
   async function assertPersonalMedia(mediaId: string) {
     const [media] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId));
+    if (media?.purpose === "retired_license") throw new AppError(404,"not_found","Media not found");
     if (media?.ownerOrgId) throw new AppError(403, "organization_media", "Use authenticated organization media access");
     for (const ref of await mediaVehicles(mediaId)) {
       const [link] = await app.db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, ref.vehicleId));
@@ -48,7 +49,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     }
     if (!allowed) throw new AppError(404, "not_found", "Media not found");
     const [row] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId));
-    if (!row) throw new AppError(404, "not_found", "Media not found");
+    if (!row || row.purpose === "retired_license") throw new AppError(404, "not_found", "Media not found");
     return reply.header("Cache-Control", "private, no-store").type(row.contentType).send(await app.media.get(row.blobKey));
   });
 
@@ -61,7 +62,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     const purpose = fields.purpose?.value;
     if (!id) throw new AppError(422, "missing_id", "id is required");
     z.string().uuid().parse(id);
-    const mediaPurpose = z.enum(["vehicle_photo", "document", "service_receipt", "expense_receipt", "driving_license"]).parse(purpose);
+    const mediaPurpose = z.enum(["vehicle_photo", "document", "service_receipt", "expense_receipt"]).parse(purpose);
     const vehicleId = fields.vehicle_id?.value;
     let orgId: string | null = null;
     let ownerId = request.authUser!.sub;
@@ -86,7 +87,6 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
         if (vehicle.userId !== ownerId) throw new AppError(403, "insufficient_permission", "Only the vehicle owner can upload documents");
       }
     } else requireOwner(request);
-    if (mediaPurpose === "driving_license" && vehicleId) throw new AppError(422, "invalid_scope", "Driving licenses are personal");
     if (["document", "service_receipt", "expense_receipt"].includes(mediaPurpose) && !vehicleId) throw new AppError(422, "missing_vehicle", "vehicle_id is required");
     const chunks: Buffer[] = [];
     let size = 0;
@@ -97,7 +97,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     }
     const bytes = Buffer.concat(chunks);
     if (file.file.truncated) throw new AppError(413, "payload_too_large", "File exceeds 15MB");
-    const contentType = documentContentType(bytes, mediaPurpose === "driving_license" || mediaPurpose === "vehicle_photo");
+    const contentType = documentContentType(bytes, mediaPurpose === "vehicle_photo");
     const row = await storeWithQuota(app.db, app.media, {
       id, owner: { userId: ownerId, orgId }, vehicleId, purpose: mediaPurpose, bytes, contentType,
     });
@@ -111,6 +111,34 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     });
     return reply.code(201).send(payload);
   });
+
+  // Drain retired credentials even for accounts that never sign in again.
+  let running = false;
+  async function retireLicenses() {
+    if (running) return;
+    running = true;
+    try {
+      let after: string | undefined;
+      do {
+        const page = await app.db.select({id:mediaObjects.id}).from(mediaObjects)
+          .where(and(eq(mediaObjects.purpose,"retired_license"),after ? gt(mediaObjects.id,after) : undefined))
+          .orderBy(mediaObjects.id).limit(50);
+        for (const {id} of page) {
+          try { await app.db.transaction(tx => deleteUnreferencedMedia(tx,app.media,id)); }
+          catch (err) { app.log.warn({err}, "Retired license deletion will retry"); }
+        }
+        after = page.length === 50 ? page[49].id : undefined;
+      } while (after);
+    } catch (err) { app.log.warn({err}, "License cleanup will retry"); }
+    finally { running = false; }
+  }
+  let timer: NodeJS.Timeout;
+  app.addHook("onReady", async () => {
+    await retireLicenses();
+    timer = setInterval(() => void retireLicenses(), 60 * 60_000);
+    timer.unref();
+  });
+  app.addHook("onClose", async () => clearInterval(timer));
 
   async function retryCleanup(userId: string, orgId?: string) {
     const pending = await app.db.select({ id: mediaObjects.id }).from(mediaCleanup)
@@ -142,7 +170,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     await assertPersonalMedia(mediaId);
     const token = (request.query as { token?: string }).token;
     const [row] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId)).limit(1);
-    if (!row) throw new AppError(404, "not_found", "Media not found");
+    if (!row || row.purpose === "retired_license") throw new AppError(404, "not_found", "Media not found");
     if (token) {
       if (!app.media.verifyDownload(mediaId, token)) throw new AppError(401, "unauthorized", "Invalid download token");
     } else {
@@ -162,7 +190,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
       throw new AppError(401, "unauthorized", "Invalid download token");
     }
     const [row] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId)).limit(1);
-    if (!row) throw new AppError(404, "not_found", "Media not found");
+    if (!row || row.purpose === "retired_license") throw new AppError(404, "not_found", "Media not found");
     const bytes = await app.media.get(row.blobKey);
     return reply.type(row.contentType).send(bytes);
   });

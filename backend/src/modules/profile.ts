@@ -1,3 +1,4 @@
+import { credentialFields, saveCredentials } from "../lib/driver-credentials.js";
 import { eq } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
@@ -33,6 +34,7 @@ export const profilePlugin: FastifyPluginAsync = async (app) => {
     const userId = request.authUser!.sub;
     const body = z
       .object({
+        ...credentialFields,
         display_name: z.string().max(50).optional(),
         contact_phone: z.string().max(20).optional().nullable(),
         address: z.string().max(500).optional().nullable(),
@@ -65,21 +67,17 @@ export const profilePlugin: FastifyPluginAsync = async (app) => {
       set.activeVehicleId = vehicleId;
     }
 
-    if (Object.keys(set).length === 0) {
-      const [u] = await app.db.select().from(users).where(eq(users.id, userId)).limit(1);
-      if (!u) throw new AppError(404, "not_found", "User not found");
-      return publicUser(u);
-    }
-
-    const [updated] = await app.db.update(users).set(set).where(eq(users.id, userId)).returning();
-    await recordChange(app.db, {
-      userId,
-      entityType: "user",
-      entityId: userId,
-      op: "upsert",
-      payload: publicUser(updated),
+    return app.db.transaction(async tx => {
+      const [user] = await tx.select().from(users).where(eq(users.id,userId)).for("update");
+      if (!user) throw new AppError(404,"not_found","User not found");
+      if (body.license_number !== undefined || body.license_expiry_date !== undefined) {
+        await saveCredentials(tx,userId,body);
+      }
+      if (!Object.keys(set).length) return publicUser(user);
+      const [updated] = await tx.update(users).set(set).where(eq(users.id,userId)).returning();
+      await recordChange(tx,{userId,entityType:"user",entityId:userId,op:"upsert",payload:publicUser(updated)});
+      return publicUser(updated);
     });
-    return publicUser(updated);
   });
 
   app.post("/users/me/profile/photo", async (request, reply) => {

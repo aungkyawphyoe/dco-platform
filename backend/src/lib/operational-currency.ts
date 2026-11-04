@@ -16,9 +16,7 @@ export async function incomingCurrency(db: Db, body: unknown, amounts: unknown[]
   const active = await currencyEnabled(db);
   if (supplied === undefined && active) throw new AppError(428, 'currency_required', 'Send the intended currency with this monetary entry');
   const currency = operationalCurrency.parse(supplied ?? existing?.currency ?? 'MMK');
-  if (existing && currency !== existing.currency) throw new AppError(409, 'currency_immutable', 'Historical record currency cannot change');
-  if (!active && currency !== 'MMK') throw new AppError(409, 'currency_not_enabled', 'Currency selection is not available yet');
-  if (active) amounts.forEach((amount, index) => {
+  if (active || currency !== 'MMK') amounts.forEach((amount, index) => {
     if (amount == null) return;
     // Preserve exact legacy values when an edit sends the unchanged amount.
     if (existing?.amounts?.[index] != null && String(amount).replace(/\.0+$|(?<=\.[0-9]*[1-9])0+$/g, '') === String(existing.amounts[index]).replace(/\.0+$|(?<=\.[0-9]*[1-9])0+$/g, '')) return;
@@ -70,11 +68,11 @@ export async function lockCurrencyVehicle(db: Db, vehicleId: string, organizatio
 
 
 export async function effectiveVehicleCurrency(db: Db, vehicleId: string): Promise<string | null> {
-  const [row] = await db.select({ownerCurrency:users.currency, orgId:organizationVehicles.orgId, orgCurrency:organizations.currency})
+  const [row] = await db.select({base:vehicles.baseCurrency, ownerCurrency:users.currency, orgId:organizationVehicles.orgId, orgCurrency:organizations.currency})
     .from(vehicles).innerJoin(users,eq(users.id,vehicles.userId))
     .leftJoin(organizationVehicles,eq(organizationVehicles.vehicleId,vehicles.id))
     .leftJoin(organizations,eq(organizations.id,organizationVehicles.orgId))
     .where(eq(vehicles.id,vehicleId));
   if (!row) throw new AppError(404,'not_found','Vehicle not found');
-  return row.orgId ? row.orgCurrency : row.ownerCurrency;
+  return row.base ?? (row.orgId ? row.orgCurrency : row.ownerCurrency);
 }

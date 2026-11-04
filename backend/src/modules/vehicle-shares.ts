@@ -25,7 +25,7 @@ import {
 import { newId, randomToken, sha256 } from "../lib/crypto.js";
 import { dateOnly, iso, recordChange } from "../lib/dbx.js";
 import { publicUser, publicVehicle } from "../lib/serialize.js";
-import { publicDrivingLicense } from "./licenses.js";
+import { publicDrivingLicense } from "../lib/driver-credentials.js";
 import {
   loadService,
   publicDoc,

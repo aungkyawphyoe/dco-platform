@@ -2,6 +2,24 @@ import 'package:dco_mobile/core/entities/driving_license.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('warns on the expiry date and for the preceding 30 calendar days', () {
+    final now = DateTime.now();
+    for (final entry in {
+      -1: LicenseStatus.expired,
+      0: LicenseStatus.expiringSoon,
+      30: LicenseStatus.expiringSoon,
+      31: LicenseStatus.valid,
+    }.entries) {
+      final license = DrivingLicense(
+        id: 'id',
+        userId: 'driver',
+        createdAt: now,
+        updatedAt: now,
+        expiryDate: DateTime(now.year, now.month, now.day + entry.key),
+      );
+      expect(license.status, entry.value);
+    }
+  });
   test(
     'license without expiry survives cache round trip without a validity claim',
     () {
@@ -17,7 +35,7 @@ void main() {
       expect(license.status, LicenseStatus.none);
       final cached = DrivingLicense.fromJson(license.toJson());
       expect(cached.expiryDate, isNull);
-      expect(cached.frontMediaId, 'front');
+      expect(cached.toJson().containsKey('front_media_id'), isFalse);
     },
   );
 }

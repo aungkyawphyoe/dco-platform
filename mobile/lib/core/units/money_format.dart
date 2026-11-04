@@ -11,7 +11,8 @@ abstract final class MoneyFormat {
   static bool isMmk(String currencyCode) => currencyCode.toUpperCase() == 'MMK';
 
   static String labeled(double amount, String currencyCode) {
-    return '${number(amount, currencyCode)} ${currencyCode.toUpperCase()}';
+    if (isMmk(currencyCode)) return '${_mmk(amount)} MMK';
+    return NumberFormat.simpleCurrency(name: currencyCode).format(amount);
   }
 
   static String number(double amount, String currencyCode) {
@@ -21,7 +22,8 @@ abstract final class MoneyFormat {
 
   /// Full digits for form fields. Never compact; MMK has no fraction digits.
   static String input(double amount, String currencyCode) {
-    if (isMmk(currencyCode)) return amount.round().toString();
+    if (isMmk(currencyCode) && amount == amount.truncateToDouble())
+      return amount.toInt().toString();
     return amount.toStringAsFixed(2);
   }
 

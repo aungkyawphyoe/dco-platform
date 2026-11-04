@@ -34,42 +34,17 @@ class LicenseRepositoryImpl implements LicenseRepository {
   @override
   Future<DrivingLicense> upsertLicense({
     String? licenseNumber,
-    String? issuingCountry,
     required String expiryDate,
-    String? categories,
-    String? frontMediaId,
-    String? backMediaId,
   }) async {
     try {
       final response = await _dio.put<Map<String, dynamic>>(
         '/users/me/license',
         data: {
           'license_number': licenseNumber,
-          'issuing_country': issuingCountry,
-          'expiry_date': expiryDate.trim().isEmpty ? null : expiryDate,
-          'categories': categories,
-          'front_media_id': frontMediaId?.isEmpty == true ? null : frontMediaId,
-          'back_media_id': backMediaId?.isEmpty == true ? null : backMediaId,
+          'license_expiry_date': expiryDate.trim().isEmpty ? null : expiryDate,
         },
       );
       return DrivingLicense.fromJson(response.data!);
-    } on DioException catch (error) {
-      throw mapDioError(error);
-    }
-  }
-
-  @override
-  Future<String> uploadLicensePhoto(String side, List<int> bytes) async {
-    try {
-      final formData = FormData.fromMap({
-        'side': side,
-        'file': MultipartFile.fromBytes(bytes, filename: 'license_$side.jpg'),
-      });
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/users/me/license/media',
-        data: formData,
-      );
-      return response.data!['media_id'] as String;
     } on DioException catch (error) {
       throw mapDioError(error);
     }
@@ -105,31 +80,19 @@ class MockLicenseRepository implements LicenseRepository {
   @override
   Future<DrivingLicense> upsertLicense({
     String? licenseNumber,
-    String? issuingCountry,
     required String expiryDate,
-    String? categories,
-    String? frontMediaId,
-    String? backMediaId,
   }) async {
     final now = DateTime.now();
     _license = DrivingLicense(
       id: _license?.id ?? 'mock-license',
       userId: 'mock-user',
       licenseNumber: licenseNumber,
-      issuingCountry: issuingCountry,
       expiryDate: expiryDate.trim().isEmpty ? null : DateTime.parse(expiryDate),
-      categories: categories,
-      frontMediaId: frontMediaId ?? _license?.frontMediaId,
-      backMediaId: backMediaId ?? _license?.backMediaId,
       createdAt: _license?.createdAt ?? now,
       updatedAt: now,
     );
     return _license!;
   }
-
-  @override
-  Future<String> uploadLicensePhoto(String side, List<int> bytes) async =>
-      'mock_${side}_media_id';
 
   @override
   Future<DrivingLicense?> getMemberLicense(String userId) async => null;

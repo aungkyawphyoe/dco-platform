@@ -404,9 +404,11 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     final title =
         _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
     final record = ServiceRecord(
-      currency: await CurrencyStore(
-        _db,
-      ).validateCreation(userId, draft.currency, vehicleId: vehicle.id),
+      currency: await CurrencyStore(_db).validateCreation(
+        userId,
+        draft.currency ?? 'MMK',
+        vehicleId: vehicle.id,
+      ),
       id: _uuid.v4(),
       vehicleId: vehicle.id,
       title: title,
@@ -423,7 +425,6 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
     );
 
     await _db.transaction(() async {
-      await CurrencyStore(_db).markLocalCreation(userId, vehicleId: vehicle.id);
       await _db
           .into(_db.serviceRecordRows)
           .insert(
@@ -597,7 +598,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         _emptyToNull(draft.title) ?? lines.map((line) => line.name).join(', ');
     final record = ServiceRecord(
       id: existing.id,
-      currency: existing.currency,
+      currency: draft.currency ?? existing.currency,
       vehicleId: existing.vehicleId,
       title: title,
       servicedOn: DueCalculator.dateOnly(draft.servicedOn),
@@ -686,6 +687,19 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
         op: OutboxOp.upsert,
         payload: record.toWriteJson(),
       );
+      if (!_outbox.derivesExpenses &&
+          await _expenseRepository.getById(record.id) != null) {
+        await _expenseRepository.update(
+          userId: userId,
+          expenseId: record.id,
+          draft: ExpenseDraft(
+            currency: record.currency,
+            category: ExpenseCategory.maintenance,
+            amount: record.totalCost,
+            incurredOn: record.servicedOn,
+          ),
+        );
+      }
     });
     _sync?.requestSync();
     return record;

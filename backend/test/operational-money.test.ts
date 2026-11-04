@@ -2,10 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { currencyTotal, defaultCurrency, fuelCost, moneyAmount, operationalCurrency } from '../src/lib/operational-money.js';
 
 describe('operational money', () => {
-  it('defaults to MMK and accepts only the four operational currencies', () => {
+  it('defaults to MMK and accepts standard operational currencies', () => {
     expect(defaultCurrency).toBe('MMK');
     for (const currency of ['MMK', 'USD', 'THB', 'CNY']) expect(operationalCurrency.parse(currency)).toBe(currency);
-    expect(operationalCurrency.safeParse('EUR').success).toBe(false);
+    expect(operationalCurrency.safeParse('EUR').success).toBe(true);
+    expect(operationalCurrency.safeParse('ZZZ').success).toBe(false);
   });
   it('validates final costs without floating point rounding or silent truncation', () => {
     expect(moneyAmount('50000.00', 'MMK')).toBe('50000');

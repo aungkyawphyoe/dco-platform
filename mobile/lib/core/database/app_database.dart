@@ -48,7 +48,7 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 25;
+  int get schemaVersion => 26;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -192,6 +192,27 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from >= 6 && from < 23) {
         await migrator.addColumn(fuelLogRecords, fuelLogRecords.fillStatus);
+      }
+      if (from < 26) {
+        if (from >= 10) {
+          final columns = (await customSelect(
+            "PRAGMA table_info(driving_licenses)",
+          ).get()).map((row) => row.read<String>('name')).toSet();
+          for (final column in [
+            'front_media_id',
+            'back_media_id',
+            'issuing_country',
+            'categories',
+          ]) {
+            if (columns.contains(column))
+              await customStatement(
+                'ALTER TABLE driving_licenses DROP COLUMN $column',
+              );
+          }
+        }
+        await customStatement(
+          r"UPDATE app_meta SET value=json_remove(value,'$.front_media_id','$.back_media_id','$.issuing_country','$.categories') WHERE key='personal_document_license' AND json_valid(value)",
+        );
       }
       if (from < 22) {
         // Gating: outbox rows parked by a LIMIT_EXCEEDED rejection (§9).

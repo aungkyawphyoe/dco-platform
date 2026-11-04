@@ -35,6 +35,7 @@ import {
   vehicleClassOptions,
 } from "@/lib/api/types";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
+import { useFleetCurrency } from "@/lib/api/currency";
 import { formatDate, money } from "@dco/ui/lib/format";
 
 // ── Formatting ──────────────────────────────────────────────────────────────
@@ -247,9 +248,11 @@ function ConditionStrip({ items, mileage }: { items: VehiclePlanItem[]; mileage:
 }
 
 function CostPanel({
+  currency,
   analytics,
   isLoading,
 }: {
+  currency: string;
   analytics: {
     tco: number;
     cost_per_km: number;
@@ -280,7 +283,7 @@ function CostPanel({
   const mixTotal = mix.reduce((sum, part) => sum + part.value, 0);
 
   const figures: { label: string; value: string }[] = [
-    { label: "Cost / km", value: money(analytics.cost_per_km ?? 0, 3) },
+    { label: "Cost / km", value: money(analytics.cost_per_km ?? 0, 3, currency) },
     { label: "Distance", value: `${(analytics.total_km_driven ?? 0).toLocaleString()} km` },
     { label: "Utilization", value: `${analytics.utilization_rate ?? 0}%` },
   ];
@@ -288,7 +291,7 @@ function CostPanel({
   return (
     <>
       <p className="mt-3 font-mono text-3xl font-medium tracking-tight text-ink">
-        {money(analytics.tco ?? 0, 0)}
+        {money(analytics.tco ?? 0, 0, currency)}
       </p>
       <p className="mt-1 text-sm text-ink-caption">Total spend to date</p>
 
@@ -317,7 +320,7 @@ function CostPanel({
               <div key={part.label} className="flex items-center gap-1.5 text-xs text-ink-caption">
                 <span className="size-2 rounded-full" style={{ background: part.color }} />
                 <dt>{part.label}</dt>
-                <dd className="font-mono text-ink-muted">{money(part.value, 0)}</dd>
+                <dd className="font-mono text-ink-muted">{money(part.value, 0, currency)}</dd>
               </div>
             ))}
           </dl>
@@ -728,6 +731,7 @@ export default function VehicleDetailPage() {
   const params = useParams<{ id: string }>();
   const vehicleId = params.id;
   const orgId = useOrgId();
+  const fleetCurrency = useFleetCurrency(orgId);
   const role = useOrgRole();
   const canManage = role === "org_admin" || role === "org_manager";
 
@@ -838,7 +842,7 @@ export default function VehicleDetailPage() {
           </div>
           <div className="border-t border-line-subtle p-5 lg:border-t-0">
             <h2 className="font-display text-base font-semibold text-ink">Cost analytics</h2>
-            <CostPanel analytics={analytics} isLoading={analyticsLoading} />
+            <CostPanel currency={vehicle?.base_currency ?? fleetCurrency.data?.currency ?? "MMK"} analytics={analytics} isLoading={analyticsLoading} />
           </div>
         </div>
       </section>

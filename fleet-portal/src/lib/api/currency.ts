@@ -14,9 +14,9 @@ export function useFleetCurrency(id: string | null) {
 export function useSaveFleetCurrency(id: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: { currency: Currency; expected_currency: Currency | null }) =>
+    mutationFn: (body: { currency: Currency; expected_currency: Currency | null; relabel_history?: boolean }) =>
       apiPut<CurrencyState>(`/organizations/${id}/currency`, body),
-    onSuccess: (state) => { qc.setQueryData(currencyKey(id), state); void qc.invalidateQueries({ queryKey: ["analytics-settings", id] }); void qc.invalidateQueries({ queryKey: ["analytics", id] }); },
+    onSuccess: (state) => { qc.setQueryData(currencyKey(id), state); void qc.invalidateQueries({ queryKey: ["fleet"] }); void qc.invalidateQueries({ queryKey: ["analytics-settings", id] }); void qc.invalidateQueries({ queryKey: ["analytics", id] }); },
     onError: () => { void qc.invalidateQueries({ queryKey: currencyKey(id) }); },
   });
 }

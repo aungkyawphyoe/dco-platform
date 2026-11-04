@@ -110,7 +110,7 @@ class Expense {
 class ExpenseDraft {
   const ExpenseDraft({
     this.currencyParentId,
-    this.currency = 'MMK',
+    this.currency,
     required this.category,
     required this.amount,
     required this.incurredOn,
@@ -121,7 +121,7 @@ class ExpenseDraft {
   });
 
   final String? currencyParentId;
-  final String currency;
+  final String? currency;
 
   final ExpenseCategory category;
   final double amount;

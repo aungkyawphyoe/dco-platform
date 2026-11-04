@@ -119,6 +119,8 @@ class ServiceDetailScreen extends ConsumerWidget {
               ),
               SizedBox(height: tokens.space.s5),
               _kv(context, s.serviceDetailMileage, odometer),
+              if (record.currency != currency)
+                _kv(context, 'Recorded currency', record.currency),
               _kv(context, s.serviceDetailTotal, money),
               if (record.workshopName != null)
                 _kv(context, s.serviceDetailWorkshop, record.workshopName!),

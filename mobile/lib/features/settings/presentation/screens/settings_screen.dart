@@ -263,7 +263,7 @@ class SettingsScreen extends ConsumerWidget {
                           ),
                           title: Text(s.settingsUnitFormat),
                           subtitle: Text(
-                            '${prefs.currency.code}, ${prefs.lengthUnit.fullLabel.toLowerCase()}',
+                            '${ref.watch(currencyProvider).code}, ${prefs.lengthUnit.fullLabel.toLowerCase()}',
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: tokens.text.caption),
                           ),

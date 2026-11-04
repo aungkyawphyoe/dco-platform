@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:dco_mobile/core/entities/driving_license.dart';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/onboarding/tour_targets.dart';
@@ -40,6 +41,20 @@ class DashboardScreen extends ConsumerWidget {
     final tokens = context.tokens;
     final session = ref.watch(sessionControllerProvider).valueOrNull;
     final active = ref.watch(activeVehicleProvider);
+
+    final credentials = ref.watch(myDrivingLicenseProvider);
+    final license = credentials.valueOrNull;
+    final missingCredentials =
+        credentials.hasValue &&
+        ref.watch(driverOrganizationIdProvider) != null &&
+        (license?.licenseNumber == null || license?.expiryDate == null);
+    final licenseWarning = missingCredentials
+        ? 'Complete your driving license details'
+        : switch (license?.status) {
+            LicenseStatus.expired => s.userDetailLicenseExpired,
+            LicenseStatus.expiringSoon => s.userDetailLicenseExpiringSoon,
+            _ => null,
+          };
 
     final displayName = session?.user.displayName?.trim();
     final email = session?.user.email.trim();
@@ -97,6 +112,13 @@ class DashboardScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          if (licenseWarning != null)
+            ListTile(
+              leading: const Icon(Icons.badge_outlined),
+              title: Text(s.profileLicenseSection),
+              subtitle: Text(licenseWarning),
+              onTap: () => context.push(AppRoutes.profileEdit),
+            ),
           if (session?.user.emailVerified == false)
             Material(
               color: tokens.status.warningBg,

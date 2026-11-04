@@ -49,19 +49,17 @@ class CurrencySyncApi implements SyncApi {
             .map((c) => c.entityId),
       };
       for (final id in ids) {
-        if (organizationId != null) {
-          await store.save(userId, scope, vehicleId: id);
-        } else {
-          try {
-            final state = await dio.get<Map<String, dynamic>>(
-              '/vehicles/$id/currency',
-            );
-            await store.save(userId, state.data!, vehicleId: id);
-          } on DioException catch (error) {
-            if (error.response?.statusCode != 403 &&
-                error.response?.statusCode != 404) {
-              rethrow;
-            }
+        try {
+          final state = await dio.get<Map<String, dynamic>>(
+            organizationId == null
+                ? '/vehicles/$id/currency'
+                : '/organizations/$organizationId/vehicles/$id/currency',
+          );
+          await store.save(userId, state.data!, vehicleId: id);
+        } on DioException catch (error) {
+          if (error.response?.statusCode != 403 &&
+              error.response?.statusCode != 404) {
+            rethrow;
           }
         }
       }

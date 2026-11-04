@@ -108,6 +108,8 @@ class ExpenseDetailScreen extends ConsumerWidget {
                 s.expenseDetailAmount,
                 MoneyFormat.labeled(expense.amount, currency),
               ),
+              if (expense.currency != currency)
+                _kv(context, 'Recorded currency', expense.currency),
               if (expense.notes != null && expense.notes!.trim().isNotEmpty)
                 _kv(context, s.expenseDetailNotes, expense.notes!),
               if (expense.parts.isNotEmpty)

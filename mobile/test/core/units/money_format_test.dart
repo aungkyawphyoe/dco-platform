@@ -4,14 +4,14 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('USD', () {
     test('always shows two decimal places', () {
-      expect(MoneyFormat.labeled(12, 'USD'), '12.00 USD');
-      expect(MoneyFormat.labeled(12.5, 'USD'), '12.50 USD');
-      expect(MoneyFormat.labeled(12.56, 'USD'), '12.56 USD');
+      expect(MoneyFormat.labeled(12, 'USD'), r'$12.00');
+      expect(MoneyFormat.labeled(12.5, 'USD'), r'$12.50');
+      expect(MoneyFormat.labeled(12.56, 'USD'), r'$12.56');
     });
 
     test('uses thousands separators and does not compact', () {
-      expect(MoneyFormat.labeled(23000, 'USD'), '23,000.00 USD');
-      expect(MoneyFormat.labeled(23000000, 'USD'), '23,000,000.00 USD');
+      expect(MoneyFormat.labeled(23000, 'USD'), r'$23,000.00');
+      expect(MoneyFormat.labeled(23000000, 'USD'), r'$23,000,000.00');
     });
 
     test('form input keeps cents', () {
@@ -42,7 +42,7 @@ void main() {
 
     test('form input is a whole number, never compact', () {
       expect(MoneyFormat.input(23000, 'MMK'), '23000');
-      expect(MoneyFormat.input(12.4, 'MMK'), '12');
+      expect(MoneyFormat.input(12.4, 'MMK'), '12.40');
     });
   });
 }

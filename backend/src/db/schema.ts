@@ -138,6 +138,8 @@ export const vehicles = pgTable("vehicles", {
   mileage: numeric("mileage", { precision: 12, scale: 1 }).notNull(),
   mileageUnit: mileageUnitEnum("mileage_unit").notNull().default("mi"),
   purchaseDate: date("purchase_date"),
+  baseCurrency: text("base_currency"),
+  allowMemberCurrency: boolean("allow_member_currency").notNull().default(false),
   purchaseCurrency: text("purchase_currency").notNull().default("MMK"),
   purchasePrice: numeric("purchase_price", { precision: 12, scale: 2 }),
   photoMediaId: uuid("photo_media_id"),
@@ -207,11 +209,7 @@ export const drivingLicenses = pgTable("driving_licenses", {
     .unique()
     .references(() => users.id, { onDelete: "cascade" }),
   licenseNumber: text("license_number"),
-  issuingCountry: text("issuing_country"),
-  expiryDate: date("expiry_date"),
-  categories: text("categories"),
-  frontMediaId: uuid("front_media_id").references(() => mediaObjects.id),
-  backMediaId: uuid("back_media_id").references(() => mediaObjects.id),
+  expiryDate: date("license_expiry_date"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -504,6 +502,7 @@ export const organizations = pgTable("organizations", {
 }));
 
 export const organizationMembers = pgTable("organization_members", {
+  displayCurrency: text("display_currency"),
   id: uuid("id").primaryKey(),
   orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),

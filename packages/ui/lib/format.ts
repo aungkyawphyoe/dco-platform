@@ -1,11 +1,11 @@
 export const DEFAULT_CURRENCY = "MMK";
 
 export function money(value: number, digits = 2, currency = DEFAULT_CURRENCY) {
-  const amount = value.toLocaleString(undefined, {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency", currency,
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
-  });
-  return `${amount} ${currency}`;
+  }).format(value);
 }
 
 export function formatDate(value: string | Date) {

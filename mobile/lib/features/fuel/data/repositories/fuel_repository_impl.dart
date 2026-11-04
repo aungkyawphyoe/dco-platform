@@ -258,7 +258,7 @@ class FuelRepositoryImpl implements FuelRepository {
     final log = FuelLog(
       currency: await CurrencyStore(
         _db,
-      ).validateCreation(userId, draft.currency, vehicleId: vehicleId),
+      ).validateCreation(userId, draft.currency ?? 'MMK', vehicleId: vehicleId),
       id: _uuid.v4(),
       userId: userId,
       vehicleId: vehicleId,
@@ -276,7 +276,6 @@ class FuelRepositoryImpl implements FuelRepository {
     );
 
     await _db.transaction(() async {
-      await CurrencyStore(_db).markLocalCreation(userId, vehicleId: vehicleId);
       await _db.into(_db.fuelLogRecords).insert(fuelLogToCompanion(log));
       await _outbox.enqueue(
         userId: userId,
@@ -334,7 +333,7 @@ class FuelRepositoryImpl implements FuelRepository {
     _assertOdometer(vehicle, draft);
 
     final updated = FuelLog(
-      currency: existing.currency,
+      currency: draft.currency ?? existing.currency,
       id: existing.id,
       userId: existing.userId,
       vehicleId: existing.vehicleId,
@@ -368,12 +367,13 @@ class FuelRepositoryImpl implements FuelRepository {
         odometer: draft.odometer,
         now: updated.updatedAt,
       );
-      // Auto-create/update expense for fuel cost
-      if (!_outbox.derivesExpenses) {
-        await _expenseRepository.add(
+      if (!_outbox.derivesExpenses &&
+          await _expenseRepository.getById(logId) != null) {
+        await _expenseRepository.update(
           userId: userId,
-          vehicleId: existing.vehicleId,
+          expenseId: logId,
           draft: ExpenseDraft(
+            currency: updated.currency,
             category: ExpenseCategory.fuel,
             amount: draft.cost,
             incurredOn: draft.loggedOn,

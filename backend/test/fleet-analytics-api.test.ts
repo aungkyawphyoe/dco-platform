@@ -43,11 +43,17 @@ it('persists full/partial tank status through shared organization record writes'
     expect(response.json().fill_status).toBe('partial');
     const snapshot=await client.query<{payload:{fill_status:string}}>('SELECT payload FROM analytics_records WHERE org_id=$1 AND kind=$2 AND id=$3',[orgId,'fuel_log',id]);
     expect(snapshot.rows[0].payload.fill_status).toBe('partial');
+    const corrected=await app.inject({method:'PATCH',url:`/v1/organizations/${orgId}/records/fuel-logs/${id}`,
+      headers:{...headers,'if-match':String(response.json().revision)},payload:{cost:12.75,currency:'EUR'}});
+    expect(corrected.statusCode,corrected.body).toBe(200);
+    expect(corrected.json()).toMatchObject({currency:'EUR',cost:12.75});
+    const mirror=await client.query('SELECT currency,amount::text FROM expenses WHERE source_id=$1',[id]);
+    expect(mirror.rows).toEqual([{currency:'EUR',amount:'12.75'}]);
   } finally {await app.close();await client.close();}
 },30000);
 
 
-it('uses organization currency and excludes foreign history without relabeling details or exports', async () => {
+it('displays totals in fleet currency and preserves original tags in records and exports', async () => {
   const {app,client,headers,orgId,vehicleId}=await analyticsFixture();
   try {
     const base=`/v1/organizations/${orgId}/analytics`, query='from=2026-01-01&to=2026-09-30';
@@ -57,10 +63,9 @@ it('uses organization currency and excludes foreign history without relabeling d
       [orgId,vehicleId,foreignId,JSON.stringify({amount:12.25,currency:'USD',incurred_on:'2026-09-25',category:'parking'})]);
     const report=await app.inject({url:`${base}/report?${query}`,headers});
     expect(report.json().currency).toBe('MMK');
-    expect(report.json().total_cost).toBe(1962000);
-    expect(report.json().warnings.join(' ')).toContain('1 expenses in other currencies');
+    expect(report.json().total_cost).toBe(1962012.25);
     const records=await app.inject({url:`${base}/records?${query}`,headers});
-    expect(records.json().items.find((r:{id:string})=>r.id===foreignId)).toMatchObject({amount:12.25,currency:'USD',included_in_total:false});
+    expect(records.json().items.find((r:{id:string})=>r.id===foreignId)).toMatchObject({amount:12.25,currency:'USD',included_in_total:true});
     const csv=await app.inject({url:`${base}/export?${query}&kind=expenses`,headers});
     expect(csv.body.split('\n').find(line=>line.includes(foreignId))).toContain('USD');
     const save=await app.inject({method:'PUT',url:`${base}/settings`,headers,payload:{timezone:'Asia/Bangkok'}});

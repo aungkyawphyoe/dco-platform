@@ -3,7 +3,7 @@ import { assertPersonalVehicleWritable } from "./subscription-access.js";
 import { effectiveSubscription } from "./gifts.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "../db/client.js";
-import { documents, drivingLicenses, expenses, mediaObjects, organizations, serviceRecords, users, vehicles } from "../db/schema.js";
+import { documents, expenses, mediaObjects, organizations, serviceRecords, users, vehicles } from "../db/schema.js";
 import { AppError } from "./errors.js";
 import { PLANS } from "./plans.js";
 import type { MediaStore } from "./media.js";
@@ -69,8 +69,7 @@ export async function deleteUnreferencedMedia(db: Db, store: MediaStore, mediaId
   for (const [table, column] of [
     [documents, documents.mediaId], [serviceRecords, serviceRecords.receiptMediaId],
     [expenses, expenses.receiptMediaId], [vehicles, vehicles.photoMediaId],
-    [users, users.profilePhotoMediaId], [drivingLicenses, drivingLicenses.frontMediaId],
-    [drivingLicenses, drivingLicenses.backMediaId],
+    [users, users.profilePhotoMediaId],
   ] as const) {
     const refs = await db.select({ id: table.id }).from(table).where(eq(column, mediaId)).limit(1);
     if (refs.length) return;

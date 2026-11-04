@@ -1,3 +1,4 @@
+import '../garage/providers.dart';
 import '../../core/currency/currency_store.dart';
 import '../../core/storage/entry_preferences.dart';
 import 'dart:ui';
@@ -44,9 +45,22 @@ final selectedCurrencyStateProvider = StreamProvider<Map<String, dynamic>?>((
   return CurrencyStore(ref.watch(recordDatabaseProvider)).watch(userId);
 });
 
+final vehicleCurrencyStateProvider = StreamProvider<Map<String, dynamic>?>((
+  ref,
+) {
+  final user = ref.watch(currentUserIdProvider);
+  final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
+  if (user == null || vehicle == null) return Stream.value(null);
+  return CurrencyStore(
+    ref.watch(recordDatabaseProvider),
+  ).watch(user, vehicleId: vehicle.id);
+});
+
 final currencyProvider = Provider<AppCurrency>((ref) {
-  return ref.watch(userPreferencesProvider).valueOrNull?.currency ??
-      AppCurrency.mmk;
+  final state = ref.watch(selectedCurrencyStateProvider).valueOrNull;
+  final vehicle = ref.watch(vehicleCurrencyStateProvider).valueOrNull;
+  final code = vehicle?['currency'] ?? state?['currency'];
+  return AppCurrency.parse(code as String? ?? 'MMK');
 });
 
 /// Light / Dark / System choice from Settings → Appearance (default: system).

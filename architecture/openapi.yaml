@@ -63,9 +63,9 @@ paths:
       tags: [Me]
       summary: Confirm or correct personal garage currency
       description: >
-        Requires rollout activation. Personal owner or Fleet Admin only; fleet writes
-        require the Fleet Portal audience. The first monetary event permanently locks
-        the scope. expected_currency must match the current value (null for fleet setup).
+        Personal owners and fleet administrators can change their preference at any time.
+        Pass the current selection as expected_currency to detect concurrent changes.
+        Set relabel_history to update existing log tags without changing numerical amounts.
       requestBody:
         required: true
         content:
@@ -80,7 +80,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CurrencyState'
         '403': {description: Owner or Fleet Admin access required}
-        '409': {description: Currency is locked, stale, requires migration review, or rollout is disabled}
+        '409': {description: The selection has changed since it was read}
         '422': {description: Unsupported currency or invalid request}
   /vehicles/{vehicleId}/currency:
     parameters:
@@ -99,6 +99,52 @@ paths:
               schema:
                 $ref: '#/components/schemas/CurrencyState'
         '403': {description: Scope access is required}
+    put:
+      summary: Set base currency and member override policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/VehicleCurrencyPolicy'}
+      responses:
+        '200': {description: Saved vehicle currency policy}
+        '403': {description: Vehicle owner or fleet administrator required}
+  /organizations/{id}/vehicles/{vehicleId}/currency:
+    parameters:
+      - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+      - {in: path, name: vehicleId, required: true, schema: {type: string, format: uuid}}
+    get:
+      summary: Read effective fleet vehicle currency for this member
+      responses:
+        '200': {description: Effective currency and vehicle policy}
+    put:
+      summary: Set base currency and member override policy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/VehicleCurrencyPolicy'}
+      responses:
+        '200': {description: Saved vehicle currency policy}
+        '403': {description: Vehicle owner or fleet administrator required}
+  /organizations/{id}/vehicles/{vehicleId}/currency/member:
+    parameters:
+      - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+      - {in: path, name: vehicleId, required: true, schema: {type: string, format: uuid}}
+    put:
+      summary: Choose a personal display currency within this fleet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [currency]
+              properties:
+                currency: {$ref: '#/components/schemas/OperationalCurrency'}
+      responses:
+        '200': {description: Saved member preference}
+        '403': {description: Vehicle access and member overrides required}
   /organizations/{id}/currency:
     parameters:
       - in: path
@@ -120,9 +166,9 @@ paths:
       tags: [Fleet]
       summary: Confirm or correct organization operational currency
       description: >
-        Requires rollout activation. Personal owner or Fleet Admin only; fleet writes
-        require the Fleet Portal audience. The first monetary event permanently locks
-        the scope. expected_currency must match the current value (null for fleet setup).
+        Personal owners and fleet administrators can change their preference at any time.
+        Pass the current selection as expected_currency to detect concurrent changes.
+        Set relabel_history to update existing log tags without changing numerical amounts.
       requestBody:
         required: true
         content:
@@ -137,7 +183,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/CurrencyState'
         '403': {description: Owner or Fleet Admin access required}
-        '409': {description: Currency is locked, stale, requires migration review, or rollout is disabled}
+        '409': {description: The selection has changed since it was read}
         '422': {description: Unsupported currency or invalid request}
   /admin/prices:
     get:
@@ -1449,7 +1495,7 @@ paths:
                     type: object
                     nullable: true
                     properties:
-                      currency: {type: string, enum: [MMK, USD, THB, CNY, null], nullable: true}
+                      currency: {type: string, pattern: '^[A-Z]{3}$', nullable: true}
                       currency_locked: {type: boolean}
                   features:
                     type: object
@@ -2190,7 +2236,7 @@ paths:
                   format: binary
                 purpose:
                   type: string
-                  enum: [vehicle_photo, document, service_receipt, expense_receipt, driving_license]
+                  enum: [vehicle_photo, document, service_receipt, expense_receipt]
                 vehicle_id:
                   type: string
                   format: uuid
@@ -2902,6 +2948,43 @@ paths:
           $ref: '#/components/responses/Error'
         '410':
           $ref: '#/components/responses/Error'
+  /organizations/{id}/members/{userId}/license:
+    put:
+      summary: Update an active fleet driver's credentials as an administrator or manager
+      parameters:
+        - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+        - {in: path, name: userId, required: true, schema: {type: string, format: uuid}}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                license_number: {type: string, maxLength: 50, pattern: '^[A-Za-z0-9]+$'}
+                license_expiry_date: {type: string, format: date}
+      responses:
+        '200': {description: Saved expiry date and status}
+        '422': {description: Both credential fields are required for fleet drivers}
+  /users/me/profile:
+    patch:
+      summary: Update personal profile and optional text-based driver credentials
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                display_name: {type: string, maxLength: 50}
+                contact_phone: {type: string, maxLength: 20, nullable: true}
+                address: {type: string, maxLength: 500, nullable: true}
+                active_vehicle_id: {type: string, format: uuid, nullable: true}
+                license_number: {type: string, maxLength: 50, pattern: '^[A-Za-z0-9]+$', nullable: true}
+                license_expiry_date: {type: string, format: date, nullable: true}
+      responses:
+        '200': {description: Saved user profile}
+        '422': {description: Invalid profile or incomplete driver credentials}
   /users/me/license:
     get:
       tags: [Licenses]
@@ -2929,27 +3012,8 @@ paths:
                   type: string
                   maxLength: 50
                   nullable: true
-                issuing_country:
-                  type: string
-                  minLength: 2
-                  maxLength: 2
-                  nullable: true
-                expiry_date:
-                  type: string
-                  pattern: '^\d{4}-\d{2}-\d{2}$'
-                  nullable: true
-                  description: Optional YYYY-MM-DD; when supplied, must be in the future
-                categories:
-                  type: string
-                  nullable: true
-                front_media_id:
-                  type: string
-                  format: uuid
-                  description: Required on first save; omission preserves the current front image. Cannot be null.
-                back_media_id:
-                  type: string
-                  format: uuid
-                  nullable: true
+                  pattern: '^[A-Za-z0-9]+$'
+                license_expiry_date: {type: string, format: date, nullable: true}
       responses:
         '200':
           description: Upserted
@@ -2961,44 +3025,13 @@ paths:
           $ref: '#/components/responses/Error'
     delete:
       tags: [Licenses]
-      summary: Permanently delete the caller's driving license and queue its images for cleanup
+      summary: Permanently delete the caller's driving license details
       responses:
         '204':
           description: Deleted (also returned when no license exists)
         '401':
           $ref: '#/components/responses/Error'
 
-  /users/me/license/media:
-    post:
-      tags: [Licenses]
-      summary: Upload driving license photo
-      requestBody:
-        required: true
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              required: [file, side]
-              properties:
-                side:
-                  type: string
-                  enum: [front, back]
-                file:
-                  type: string
-                  format: binary
-      responses:
-        '201':
-          description: Uploaded
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  media_id:
-                    type: string
-                    format: uuid
-        '400':
-          $ref: '#/components/responses/Error'
   /users/{userId}/license:
     get:
       tags: [Licenses]
@@ -4352,7 +4385,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        currency: {type: string, enum: [MMK, USD, THB, CNY, null], nullable: true}
+                        currency: {type: string, pattern: '^[A-Z]{3}$', nullable: true}
                         vehicle: {type: object}
                         warranty: {type: object}
                         organization_id: {type: string, format: uuid}
@@ -5996,7 +6029,7 @@ components:
       type: object
       required: [currency, locked, locked_at, review_required, enabled, default_currency, supported]
       properties:
-        currency: {type: string, enum: [MMK, USD, THB, CNY, null], nullable: true}
+        currency: {type: string, pattern: '^[A-Z]{3}$', nullable: true}
         locked: {type: boolean}
         locked_at: {type: string, format: date-time, nullable: true}
         review_required: {type: boolean}
@@ -6005,16 +6038,23 @@ components:
         supported:
           type: array
           items: {$ref: '#/components/schemas/OperationalCurrency'}
+    VehicleCurrencyPolicy:
+      type: object
+      required: [base_currency, allow_member_currency]
+      properties:
+        base_currency: {type: string, nullable: true, pattern: '^[A-Z]{3}$'}
+        allow_member_currency: {type: boolean}
     CurrencyChange:
       type: object
       required: [currency, expected_currency]
       properties:
         currency: {$ref: '#/components/schemas/OperationalCurrency'}
-        expected_currency: {type: string, enum: [MMK, USD, THB, CNY, null], nullable: true}
+        relabel_history: {type: boolean, default: false}
+        expected_currency: {type: string, pattern: '^[A-Z]{3}$', nullable: true}
     OperationalCurrency:
       type: string
-      enum: [MMK, USD, THB, CNY]
-      description: Currency of an operational monetary record. Historical amounts are never converted or relabeled.
+      pattern: '^[A-Z]{3}$'
+      description: Currency of an operational monetary record. Historical labels can be edited without converting amounts.
     VehicleClass:
       type: string
       enum: [car, motorcycle, truck, van, bus]
@@ -6038,6 +6078,8 @@ components:
       type: object
       required: [email, password]
       properties:
+        license_number: {type: string, maxLength: 50, pattern: '^[A-Za-z0-9]+$', nullable: true}
+        license_expiry_date: {type: string, format: date, nullable: true}
         currency:
           allOf:
             - $ref: '#/components/schemas/OperationalCurrency'
@@ -7564,24 +7606,7 @@ components:
         license_number:
           type: string
           nullable: true
-        issuing_country:
-          type: string
-          nullable: true
-        expiry_date:
-          type: string
-          format: date
-          nullable: true
-        categories:
-          type: string
-          nullable: true
-        front_media_id:
-          type: string
-          format: uuid
-          nullable: true
-        back_media_id:
-          type: string
-          format: uuid
-          nullable: true
+        license_expiry_date: {type: string, format: date, nullable: true}
         created_at:
           type: string
           format: date-time

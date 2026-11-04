@@ -333,7 +333,7 @@ export function useUpdateWorkOrder(orgId: string | null) {
       assigned_to?: string | null;
       resolution_notes?: string | null;
       completion_cost?: number;
-      currency?: "MMK" | "USD" | "THB" | "CNY";
+      currency?: string;
     }) => apiPatch<WorkOrder>(orgPath(orgId, `/work-orders/${id}`), body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["fleet", "work-orders", orgId] });

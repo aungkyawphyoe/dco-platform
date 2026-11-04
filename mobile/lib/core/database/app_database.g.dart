@@ -10085,17 +10085,6 @@ class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _issuingCountryMeta = const VerificationMeta(
-    'issuingCountry',
-  );
-  @override
-  late final GeneratedColumn<String> issuingCountry = GeneratedColumn<String>(
-    'issuing_country',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
   static const VerificationMeta _expiryDateMeta = const VerificationMeta(
     'expiryDate',
   );
@@ -10106,39 +10095,6 @@ class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
     false,
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
-  );
-  static const VerificationMeta _categoriesMeta = const VerificationMeta(
-    'categories',
-  );
-  @override
-  late final GeneratedColumn<String> categories = GeneratedColumn<String>(
-    'categories',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _frontMediaIdMeta = const VerificationMeta(
-    'frontMediaId',
-  );
-  @override
-  late final GeneratedColumn<String> frontMediaId = GeneratedColumn<String>(
-    'front_media_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _backMediaIdMeta = const VerificationMeta(
-    'backMediaId',
-  );
-  @override
-  late final GeneratedColumn<String> backMediaId = GeneratedColumn<String>(
-    'back_media_id',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
   );
   static const VerificationMeta _createdAtMeta = const VerificationMeta(
     'createdAt',
@@ -10178,11 +10134,7 @@ class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
     id,
     userId,
     licenseNumber,
-    issuingCountry,
     expiryDate,
-    categories,
-    frontMediaId,
-    backMediaId,
     createdAt,
     updatedAt,
     syncedAt,
@@ -10221,15 +10173,6 @@ class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
         ),
       );
     }
-    if (data.containsKey('issuing_country')) {
-      context.handle(
-        _issuingCountryMeta,
-        issuingCountry.isAcceptableOrUnknown(
-          data['issuing_country']!,
-          _issuingCountryMeta,
-        ),
-      );
-    }
     if (data.containsKey('expiry_date')) {
       context.handle(
         _expiryDateMeta,
@@ -10237,30 +10180,6 @@ class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
       );
     } else if (isInserting) {
       context.missing(_expiryDateMeta);
-    }
-    if (data.containsKey('categories')) {
-      context.handle(
-        _categoriesMeta,
-        categories.isAcceptableOrUnknown(data['categories']!, _categoriesMeta),
-      );
-    }
-    if (data.containsKey('front_media_id')) {
-      context.handle(
-        _frontMediaIdMeta,
-        frontMediaId.isAcceptableOrUnknown(
-          data['front_media_id']!,
-          _frontMediaIdMeta,
-        ),
-      );
-    }
-    if (data.containsKey('back_media_id')) {
-      context.handle(
-        _backMediaIdMeta,
-        backMediaId.isAcceptableOrUnknown(
-          data['back_media_id']!,
-          _backMediaIdMeta,
-        ),
-      );
     }
     if (data.containsKey('created_at')) {
       context.handle(
@@ -10305,26 +10224,10 @@ class $DrivingLicenseRecordsTable extends DrivingLicenseRecords
         DriftSqlType.string,
         data['${effectivePrefix}license_number'],
       ),
-      issuingCountry: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}issuing_country'],
-      ),
       expiryDate: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}expiry_date'],
       )!,
-      categories: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}categories'],
-      ),
-      frontMediaId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}front_media_id'],
-      ),
-      backMediaId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}back_media_id'],
-      ),
       createdAt: attachedDatabase.typeMapping.read(
         DriftSqlType.dateTime,
         data['${effectivePrefix}created_at'],
@@ -10351,11 +10254,7 @@ class DrivingLicenseRecord extends DataClass
   final String id;
   final String userId;
   final String? licenseNumber;
-  final String? issuingCountry;
   final DateTime expiryDate;
-  final String? categories;
-  final String? frontMediaId;
-  final String? backMediaId;
   final DateTime createdAt;
   final DateTime updatedAt;
   final String? syncedAt;
@@ -10363,11 +10262,7 @@ class DrivingLicenseRecord extends DataClass
     required this.id,
     required this.userId,
     this.licenseNumber,
-    this.issuingCountry,
     required this.expiryDate,
-    this.categories,
-    this.frontMediaId,
-    this.backMediaId,
     required this.createdAt,
     required this.updatedAt,
     this.syncedAt,
@@ -10380,19 +10275,7 @@ class DrivingLicenseRecord extends DataClass
     if (!nullToAbsent || licenseNumber != null) {
       map['license_number'] = Variable<String>(licenseNumber);
     }
-    if (!nullToAbsent || issuingCountry != null) {
-      map['issuing_country'] = Variable<String>(issuingCountry);
-    }
     map['expiry_date'] = Variable<DateTime>(expiryDate);
-    if (!nullToAbsent || categories != null) {
-      map['categories'] = Variable<String>(categories);
-    }
-    if (!nullToAbsent || frontMediaId != null) {
-      map['front_media_id'] = Variable<String>(frontMediaId);
-    }
-    if (!nullToAbsent || backMediaId != null) {
-      map['back_media_id'] = Variable<String>(backMediaId);
-    }
     map['created_at'] = Variable<DateTime>(createdAt);
     map['updated_at'] = Variable<DateTime>(updatedAt);
     if (!nullToAbsent || syncedAt != null) {
@@ -10408,19 +10291,7 @@ class DrivingLicenseRecord extends DataClass
       licenseNumber: licenseNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(licenseNumber),
-      issuingCountry: issuingCountry == null && nullToAbsent
-          ? const Value.absent()
-          : Value(issuingCountry),
       expiryDate: Value(expiryDate),
-      categories: categories == null && nullToAbsent
-          ? const Value.absent()
-          : Value(categories),
-      frontMediaId: frontMediaId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(frontMediaId),
-      backMediaId: backMediaId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(backMediaId),
       createdAt: Value(createdAt),
       updatedAt: Value(updatedAt),
       syncedAt: syncedAt == null && nullToAbsent
@@ -10438,11 +10309,7 @@ class DrivingLicenseRecord extends DataClass
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
       licenseNumber: serializer.fromJson<String?>(json['licenseNumber']),
-      issuingCountry: serializer.fromJson<String?>(json['issuingCountry']),
       expiryDate: serializer.fromJson<DateTime>(json['expiryDate']),
-      categories: serializer.fromJson<String?>(json['categories']),
-      frontMediaId: serializer.fromJson<String?>(json['frontMediaId']),
-      backMediaId: serializer.fromJson<String?>(json['backMediaId']),
       createdAt: serializer.fromJson<DateTime>(json['createdAt']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
       syncedAt: serializer.fromJson<String?>(json['syncedAt']),
@@ -10455,11 +10322,7 @@ class DrivingLicenseRecord extends DataClass
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
       'licenseNumber': serializer.toJson<String?>(licenseNumber),
-      'issuingCountry': serializer.toJson<String?>(issuingCountry),
       'expiryDate': serializer.toJson<DateTime>(expiryDate),
-      'categories': serializer.toJson<String?>(categories),
-      'frontMediaId': serializer.toJson<String?>(frontMediaId),
-      'backMediaId': serializer.toJson<String?>(backMediaId),
       'createdAt': serializer.toJson<DateTime>(createdAt),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
       'syncedAt': serializer.toJson<String?>(syncedAt),
@@ -10470,11 +10333,7 @@ class DrivingLicenseRecord extends DataClass
     String? id,
     String? userId,
     Value<String?> licenseNumber = const Value.absent(),
-    Value<String?> issuingCountry = const Value.absent(),
     DateTime? expiryDate,
-    Value<String?> categories = const Value.absent(),
-    Value<String?> frontMediaId = const Value.absent(),
-    Value<String?> backMediaId = const Value.absent(),
     DateTime? createdAt,
     DateTime? updatedAt,
     Value<String?> syncedAt = const Value.absent(),
@@ -10484,13 +10343,7 @@ class DrivingLicenseRecord extends DataClass
     licenseNumber: licenseNumber.present
         ? licenseNumber.value
         : this.licenseNumber,
-    issuingCountry: issuingCountry.present
-        ? issuingCountry.value
-        : this.issuingCountry,
     expiryDate: expiryDate ?? this.expiryDate,
-    categories: categories.present ? categories.value : this.categories,
-    frontMediaId: frontMediaId.present ? frontMediaId.value : this.frontMediaId,
-    backMediaId: backMediaId.present ? backMediaId.value : this.backMediaId,
     createdAt: createdAt ?? this.createdAt,
     updatedAt: updatedAt ?? this.updatedAt,
     syncedAt: syncedAt.present ? syncedAt.value : this.syncedAt,
@@ -10502,21 +10355,9 @@ class DrivingLicenseRecord extends DataClass
       licenseNumber: data.licenseNumber.present
           ? data.licenseNumber.value
           : this.licenseNumber,
-      issuingCountry: data.issuingCountry.present
-          ? data.issuingCountry.value
-          : this.issuingCountry,
       expiryDate: data.expiryDate.present
           ? data.expiryDate.value
           : this.expiryDate,
-      categories: data.categories.present
-          ? data.categories.value
-          : this.categories,
-      frontMediaId: data.frontMediaId.present
-          ? data.frontMediaId.value
-          : this.frontMediaId,
-      backMediaId: data.backMediaId.present
-          ? data.backMediaId.value
-          : this.backMediaId,
       createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
       syncedAt: data.syncedAt.present ? data.syncedAt.value : this.syncedAt,
@@ -10529,11 +10370,7 @@ class DrivingLicenseRecord extends DataClass
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('licenseNumber: $licenseNumber, ')
-          ..write('issuingCountry: $issuingCountry, ')
           ..write('expiryDate: $expiryDate, ')
-          ..write('categories: $categories, ')
-          ..write('frontMediaId: $frontMediaId, ')
-          ..write('backMediaId: $backMediaId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncedAt: $syncedAt')
@@ -10546,11 +10383,7 @@ class DrivingLicenseRecord extends DataClass
     id,
     userId,
     licenseNumber,
-    issuingCountry,
     expiryDate,
-    categories,
-    frontMediaId,
-    backMediaId,
     createdAt,
     updatedAt,
     syncedAt,
@@ -10562,11 +10395,7 @@ class DrivingLicenseRecord extends DataClass
           other.id == this.id &&
           other.userId == this.userId &&
           other.licenseNumber == this.licenseNumber &&
-          other.issuingCountry == this.issuingCountry &&
           other.expiryDate == this.expiryDate &&
-          other.categories == this.categories &&
-          other.frontMediaId == this.frontMediaId &&
-          other.backMediaId == this.backMediaId &&
           other.createdAt == this.createdAt &&
           other.updatedAt == this.updatedAt &&
           other.syncedAt == this.syncedAt);
@@ -10577,11 +10406,7 @@ class DrivingLicenseRecordsCompanion
   final Value<String> id;
   final Value<String> userId;
   final Value<String?> licenseNumber;
-  final Value<String?> issuingCountry;
   final Value<DateTime> expiryDate;
-  final Value<String?> categories;
-  final Value<String?> frontMediaId;
-  final Value<String?> backMediaId;
   final Value<DateTime> createdAt;
   final Value<DateTime> updatedAt;
   final Value<String?> syncedAt;
@@ -10590,11 +10415,7 @@ class DrivingLicenseRecordsCompanion
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
     this.licenseNumber = const Value.absent(),
-    this.issuingCountry = const Value.absent(),
     this.expiryDate = const Value.absent(),
-    this.categories = const Value.absent(),
-    this.frontMediaId = const Value.absent(),
-    this.backMediaId = const Value.absent(),
     this.createdAt = const Value.absent(),
     this.updatedAt = const Value.absent(),
     this.syncedAt = const Value.absent(),
@@ -10604,11 +10425,7 @@ class DrivingLicenseRecordsCompanion
     required String id,
     required String userId,
     this.licenseNumber = const Value.absent(),
-    this.issuingCountry = const Value.absent(),
     required DateTime expiryDate,
-    this.categories = const Value.absent(),
-    this.frontMediaId = const Value.absent(),
-    this.backMediaId = const Value.absent(),
     required DateTime createdAt,
     required DateTime updatedAt,
     this.syncedAt = const Value.absent(),
@@ -10622,11 +10439,7 @@ class DrivingLicenseRecordsCompanion
     Expression<String>? id,
     Expression<String>? userId,
     Expression<String>? licenseNumber,
-    Expression<String>? issuingCountry,
     Expression<DateTime>? expiryDate,
-    Expression<String>? categories,
-    Expression<String>? frontMediaId,
-    Expression<String>? backMediaId,
     Expression<DateTime>? createdAt,
     Expression<DateTime>? updatedAt,
     Expression<String>? syncedAt,
@@ -10636,11 +10449,7 @@ class DrivingLicenseRecordsCompanion
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
       if (licenseNumber != null) 'license_number': licenseNumber,
-      if (issuingCountry != null) 'issuing_country': issuingCountry,
       if (expiryDate != null) 'expiry_date': expiryDate,
-      if (categories != null) 'categories': categories,
-      if (frontMediaId != null) 'front_media_id': frontMediaId,
-      if (backMediaId != null) 'back_media_id': backMediaId,
       if (createdAt != null) 'created_at': createdAt,
       if (updatedAt != null) 'updated_at': updatedAt,
       if (syncedAt != null) 'synced_at': syncedAt,
@@ -10652,11 +10461,7 @@ class DrivingLicenseRecordsCompanion
     Value<String>? id,
     Value<String>? userId,
     Value<String?>? licenseNumber,
-    Value<String?>? issuingCountry,
     Value<DateTime>? expiryDate,
-    Value<String?>? categories,
-    Value<String?>? frontMediaId,
-    Value<String?>? backMediaId,
     Value<DateTime>? createdAt,
     Value<DateTime>? updatedAt,
     Value<String?>? syncedAt,
@@ -10666,11 +10471,7 @@ class DrivingLicenseRecordsCompanion
       id: id ?? this.id,
       userId: userId ?? this.userId,
       licenseNumber: licenseNumber ?? this.licenseNumber,
-      issuingCountry: issuingCountry ?? this.issuingCountry,
       expiryDate: expiryDate ?? this.expiryDate,
-      categories: categories ?? this.categories,
-      frontMediaId: frontMediaId ?? this.frontMediaId,
-      backMediaId: backMediaId ?? this.backMediaId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       syncedAt: syncedAt ?? this.syncedAt,
@@ -10690,20 +10491,8 @@ class DrivingLicenseRecordsCompanion
     if (licenseNumber.present) {
       map['license_number'] = Variable<String>(licenseNumber.value);
     }
-    if (issuingCountry.present) {
-      map['issuing_country'] = Variable<String>(issuingCountry.value);
-    }
     if (expiryDate.present) {
       map['expiry_date'] = Variable<DateTime>(expiryDate.value);
-    }
-    if (categories.present) {
-      map['categories'] = Variable<String>(categories.value);
-    }
-    if (frontMediaId.present) {
-      map['front_media_id'] = Variable<String>(frontMediaId.value);
-    }
-    if (backMediaId.present) {
-      map['back_media_id'] = Variable<String>(backMediaId.value);
     }
     if (createdAt.present) {
       map['created_at'] = Variable<DateTime>(createdAt.value);
@@ -10726,11 +10515,7 @@ class DrivingLicenseRecordsCompanion
           ..write('id: $id, ')
           ..write('userId: $userId, ')
           ..write('licenseNumber: $licenseNumber, ')
-          ..write('issuingCountry: $issuingCountry, ')
           ..write('expiryDate: $expiryDate, ')
-          ..write('categories: $categories, ')
-          ..write('frontMediaId: $frontMediaId, ')
-          ..write('backMediaId: $backMediaId, ')
           ..write('createdAt: $createdAt, ')
           ..write('updatedAt: $updatedAt, ')
           ..write('syncedAt: $syncedAt, ')
@@ -17701,11 +17486,7 @@ typedef $$DrivingLicenseRecordsTableCreateCompanionBuilder =
       required String id,
       required String userId,
       Value<String?> licenseNumber,
-      Value<String?> issuingCountry,
       required DateTime expiryDate,
-      Value<String?> categories,
-      Value<String?> frontMediaId,
-      Value<String?> backMediaId,
       required DateTime createdAt,
       required DateTime updatedAt,
       Value<String?> syncedAt,
@@ -17716,11 +17497,7 @@ typedef $$DrivingLicenseRecordsTableUpdateCompanionBuilder =
       Value<String> id,
       Value<String> userId,
       Value<String?> licenseNumber,
-      Value<String?> issuingCountry,
       Value<DateTime> expiryDate,
-      Value<String?> categories,
-      Value<String?> frontMediaId,
-      Value<String?> backMediaId,
       Value<DateTime> createdAt,
       Value<DateTime> updatedAt,
       Value<String?> syncedAt,
@@ -17751,28 +17528,8 @@ class $$DrivingLicenseRecordsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get issuingCountry => $composableBuilder(
-    column: $table.issuingCountry,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnFilters<DateTime> get expiryDate => $composableBuilder(
     column: $table.expiryDate,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get categories => $composableBuilder(
-    column: $table.categories,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get frontMediaId => $composableBuilder(
-    column: $table.frontMediaId,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get backMediaId => $composableBuilder(
-    column: $table.backMediaId,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17816,28 +17573,8 @@ class $$DrivingLicenseRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<String> get issuingCountry => $composableBuilder(
-    column: $table.issuingCountry,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<DateTime> get expiryDate => $composableBuilder(
     column: $table.expiryDate,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get categories => $composableBuilder(
-    column: $table.categories,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get frontMediaId => $composableBuilder(
-    column: $table.frontMediaId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get backMediaId => $composableBuilder(
-    column: $table.backMediaId,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -17877,28 +17614,8 @@ class $$DrivingLicenseRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<String> get issuingCountry => $composableBuilder(
-    column: $table.issuingCountry,
-    builder: (column) => column,
-  );
-
   GeneratedColumn<DateTime> get expiryDate => $composableBuilder(
     column: $table.expiryDate,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get categories => $composableBuilder(
-    column: $table.categories,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get frontMediaId => $composableBuilder(
-    column: $table.frontMediaId,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<String> get backMediaId => $composableBuilder(
-    column: $table.backMediaId,
     builder: (column) => column,
   );
 
@@ -17961,11 +17678,7 @@ class $$DrivingLicenseRecordsTableTableManager
                 Value<String> id = const Value.absent(),
                 Value<String> userId = const Value.absent(),
                 Value<String?> licenseNumber = const Value.absent(),
-                Value<String?> issuingCountry = const Value.absent(),
                 Value<DateTime> expiryDate = const Value.absent(),
-                Value<String?> categories = const Value.absent(),
-                Value<String?> frontMediaId = const Value.absent(),
-                Value<String?> backMediaId = const Value.absent(),
                 Value<DateTime> createdAt = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
                 Value<String?> syncedAt = const Value.absent(),
@@ -17974,11 +17687,7 @@ class $$DrivingLicenseRecordsTableTableManager
                 id: id,
                 userId: userId,
                 licenseNumber: licenseNumber,
-                issuingCountry: issuingCountry,
                 expiryDate: expiryDate,
-                categories: categories,
-                frontMediaId: frontMediaId,
-                backMediaId: backMediaId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 syncedAt: syncedAt,
@@ -17989,11 +17698,7 @@ class $$DrivingLicenseRecordsTableTableManager
                 required String id,
                 required String userId,
                 Value<String?> licenseNumber = const Value.absent(),
-                Value<String?> issuingCountry = const Value.absent(),
                 required DateTime expiryDate,
-                Value<String?> categories = const Value.absent(),
-                Value<String?> frontMediaId = const Value.absent(),
-                Value<String?> backMediaId = const Value.absent(),
                 required DateTime createdAt,
                 required DateTime updatedAt,
                 Value<String?> syncedAt = const Value.absent(),
@@ -18002,11 +17707,7 @@ class $$DrivingLicenseRecordsTableTableManager
                 id: id,
                 userId: userId,
                 licenseNumber: licenseNumber,
-                issuingCountry: issuingCountry,
                 expiryDate: expiryDate,
-                categories: categories,
-                frontMediaId: frontMediaId,
-                backMediaId: backMediaId,
                 createdAt: createdAt,
                 updatedAt: updatedAt,
                 syncedAt: syncedAt,

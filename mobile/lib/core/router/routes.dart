@@ -97,7 +97,6 @@ abstract final class AppRoutes {
   static const profileEdit = '/profile/edit';
   static String profileDetail(String id) => '/profile/$id';
 
-  static const licenseCapture = '/license-capture';
 
   static const authPaths = {introduction, login, signup, forgotPassword};
 }

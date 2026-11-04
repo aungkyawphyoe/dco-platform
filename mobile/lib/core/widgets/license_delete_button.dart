@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:drift/drift.dart' show Value;
-import '../database/app_database.dart';
 import '../providers.dart';
 import '../../features/auth/presentation/session_controller.dart';
 
@@ -22,7 +20,7 @@ class _LicenseDeleteButtonState extends ConsumerState<LicenseDeleteButton> {
       builder: (context) => AlertDialog(
         title: const Text('Delete driving license?'),
         content: const Text(
-          'Permanently remove your license and its photos from Profile and Documents?',
+          'Permanently remove your license details from your profile?',
         ),
         actions: [
           TextButton(
@@ -38,20 +36,11 @@ class _LicenseDeleteButtonState extends ConsumerState<LicenseDeleteButton> {
     );
     if (confirmed != true || !mounted) return;
     setState(() => _busy = true);
-    final db = ref.read(appDatabaseProvider);
     final controller = ref.read(sessionControllerProvider.notifier);
     final repository = ref.read(licenseRepositoryProvider);
     final userId = ref.read(sessionControllerProvider).valueOrNull?.user.id;
     try {
       await repository.deleteMyLicense();
-      await db
-          .into(db.appMeta)
-          .insertOnConflictUpdate(
-            AppMetaCompanion.insert(
-              key: 'personal_document_license',
-              value: const Value('null'),
-            ),
-          );
       if (userId != null) controller.clearDrivingLicenseFor(userId);
       if (mounted) widget.onDeleted?.call();
     } catch (error) {

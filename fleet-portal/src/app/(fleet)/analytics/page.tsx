@@ -1,5 +1,6 @@
 "use client";
 
+import { money as formatMoney } from "@dco/ui/lib/format";
 import { useState, useRef, useEffect, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPut, apiDownload } from "@/lib/api/client";
@@ -319,7 +320,7 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
     ) =>
       v == null
         ? "Unavailable"
-        : `${number(v, digits)} ${r?.currency ?? settings.data!.currency}`;
+        : formatMoney(v, digits, r?.currency ?? settings.data?.currency ?? "MMK");
   const sorted = [...(r?.vehicles ?? [])].sort((a, b) => {
     const av = sort.key === "efficiency" ? a.efficiency.value : a[sort.key],
       bv = sort.key === "efficiency" ? b.efficiency.value : b[sort.key];

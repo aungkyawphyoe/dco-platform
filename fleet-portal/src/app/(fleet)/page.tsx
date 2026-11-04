@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { money } from "@dco/ui/lib/format";
 import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@dco/ui/components/page-header";
 import { Card } from "@dco/ui/components/card";
@@ -163,8 +164,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-ink-muted">Recorded spend</p>
                 <p className="mt-1 text-2xl font-semibold tabular-nums">
-                  {format(costs.total_cost)}
-                  {costs.currency}
+                  {money(costs.total_cost, costs.currency === "MMK" ? 0 : 2, costs.currency)}
                 </p>
                 <p className="mt-1 text-sm text-ink-caption">
                   {costs.changes.total_cost === null ? "No comparable previous-period baseline" : `${costs.changes.total_cost > 0 ? "+" : ""}${format(costs.changes.total_cost, 1)}% vs previous period`}
@@ -173,8 +173,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm text-ink-muted">Matched cost / km</p>
                 <p className="mt-1 text-2xl font-semibold tabular-nums">
-                  {format(costs.cost_per_km, 2)}
-                  {costs.cost_per_km !== null ? ` ${costs.currency}` : ""}
+                  {costs.cost_per_km === null ? "Unavailable" : money(costs.cost_per_km, 2, costs.currency)}
                 </p>
               </div>
               <div>

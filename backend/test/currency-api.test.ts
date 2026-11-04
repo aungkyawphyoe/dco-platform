@@ -18,16 +18,16 @@ async function car(state:State, owner:Awaited<ReturnType<typeof account>>) {
 const expense=(currency?:string,amount=10)=>({id:uuid(),category:'parking',amount,incurred_on:'2026-10-29',...(currency?{currency}:{})});
 
 describe('operational currency API',()=>{
-  it('keeps rollout disabled and defaults signup to MMK',async()=>{
+  it('offers currency selection by default and defaults signup to MMK',async()=>{
     const state=await createTestApp();try {
       const user=await account(state);
       const read=await state.app.inject({url:'/v1/me/currency',headers:user.headers});
-      expect(read.json()).toMatchObject({currency:'MMK',locked:false,enabled:false,default_currency:'MMK'});
+      expect(read.json()).toMatchObject({currency:'MMK',locked:false,enabled:true,default_currency:'MMK'});
       const result=await state.app.inject({method:'PUT',url:'/v1/me/currency',headers:user.headers,payload:{currency:'THB',expected_currency:'MMK'}});
-      expect(result.json().error.code).toBe('currency_not_enabled');
+      expect(result.json()).toMatchObject({currency:'THB',locked:false});
     } finally {await state.app.close();await state.client.close();}
   });
-  it('validates intended currency, locks on the first cost, and never unlocks on deletion',async()=>{
+  it('validates intended currency and permits changes after recording costs',async()=>{
     const state=await createTestApp();try {
       await activate(state);const user=await account(state);const id=await car(state,user);
       const change=await state.app.inject({method:'PUT',url:'/v1/me/currency',headers:user.headers,payload:{currency:'THB',expected_currency:'MMK'}});
@@ -42,25 +42,46 @@ describe('operational currency API',()=>{
       expect((await send(body)).statusCode).toBe(201);
       const removed=await state.app.inject({method:'DELETE',url:`/v1/expenses/${body.id}`,headers:user.headers});expect(removed.statusCode,removed.body).toBe(204);
       const changeLocked=await state.app.inject({method:'PUT',url:'/v1/me/currency',headers:user.headers,payload:{currency:'MMK',expected_currency:'THB'}});
-      expect(changeLocked.json().error.code).toBe('currency_locked');
-      await expect(state.db.update(users).set({currencyLockedAt:null}).where(eq(users.id,user.id))).rejects.toThrow();
+      expect(changeLocked.json()).toMatchObject({currency:'MMK',locked:false});
+
     }finally {await state.app.close();await state.client.close();}
   });
-  it('locks the owner rather than a shared contributor and preserves history after transfer',async()=>{
+  it('preserves history after transfer and allows authorized manual corrections',async()=>{
     const state=await createTestApp();try {
       await activate(state);const owner=await account(state,'MMK');const other=await account(state,'THB');const id=await car(state,owner);
       await state.db.insert(vehicleShares).values({id:uuid(),vehicleId:id,userId:other.id,grantedBy:owner.id,accessLevel:'add_edit_own',status:'active'});
+      const policyUrl=`/v1/vehicles/${id}/currency`;
+      const policy={base_currency:'EUR',allow_member_currency:false};
+      expect((await state.app.inject({method:'PUT',url:policyUrl,headers:other.headers,payload:policy})).statusCode).toBe(403);
+      expect((await state.app.inject({method:'PUT',url:policyUrl,headers:owner.headers,payload:policy})).statusCode).toBe(200);
+      expect((await state.app.inject({url:policyUrl,headers:other.headers})).json().currency).toBe('EUR');
+      expect((await state.app.inject({method:'PUT',url:policyUrl,headers:owner.headers,payload:{...policy,allow_member_currency:true}})).statusCode).toBe(200);
+      expect((await state.app.inject({url:policyUrl,headers:other.headers})).json().currency).toBe('THB');
       const body=expense('MMK',50000);
       const result=await state.app.inject({method:'POST',url:`/v1/vehicles/${id}/expenses`,headers:other.headers,payload:body});
       expect(result.statusCode,result.body).toBe(201);
-      expect((await state.app.inject({url:'/v1/me/currency',headers:owner.headers})).json().locked).toBe(true);
+      expect((await state.app.inject({url:'/v1/me/currency',headers:owner.headers})).json().locked).toBe(false);
       expect((await state.app.inject({url:'/v1/me/currency',headers:other.headers})).json().locked).toBe(false);
       await state.db.update(vehicles).set({userId:other.id}).where(eq(vehicles.id,id));
       const corrected=await state.app.inject({method:'PATCH',url:`/v1/expenses/${body.id}`,headers:other.headers,payload:{amount:45000,currency:'MMK'}});
       expect(corrected.statusCode,corrected.body).toBe(200);expect(corrected.json().currency).toBe('MMK');
       expect((await state.app.inject({url:'/v1/me/currency',headers:other.headers})).json().locked).toBe(false);
       const relabel=await state.app.inject({method:'PATCH',url:`/v1/expenses/${body.id}`,headers:other.headers,payload:{amount:45000,currency:'THB'}});
-      expect(relabel.json().error.code).toBe('currency_immutable');
+      expect(relabel.statusCode,relabel.body).toBe(200);
+    }finally {await state.app.close();await state.client.close();}
+  });
+  it('preserves amounts and changes historical tags only on explicit request',async()=>{
+    const state=await createTestApp();try {
+      const user=await account(state,'USD'), id=await car(state,user);
+      const entry=expense('USD',19.75);
+      const saved=await state.app.inject({method:'POST',url:`/v1/vehicles/${id}/expenses`,headers:user.headers,payload:entry});
+      expect(saved.statusCode,saved.body).toBe(201);
+      const set=(currency:string, expected_currency:string,relabel_history=false)=>state.app.inject({method:'PUT',url:'/v1/me/currency',headers:user.headers,payload:{currency,expected_currency,relabel_history}});
+      expect((await set('EUR','USD')).statusCode).toBe(200);
+      const read=async()=> (await state.db.select().from(expenses).where(eq(expenses.id,entry.id)))[0];
+      expect(await read()).toMatchObject({currency:'USD',amount:'19.75'});
+      expect((await set('EUR','EUR',true)).statusCode).toBe(200);
+      expect(await read()).toMatchObject({currency:'EUR',amount:'19.75'});
     }finally {await state.app.close();await state.client.close();}
   });
   it('handles stale offline writes as conflicts while applying unrelated valid operations',async()=>{
@@ -73,7 +94,7 @@ describe('operational currency API',()=>{
       expect((await state.db.select().from(expenses)).map(e=>e.currency)).toEqual(['CNY']);
     }finally {await state.app.close();await state.client.close();}
   });
-  it('locks on a free service and preserves unchanged legacy fractional MMK edits',async()=>{
+  it('allows changes after a free service and preserves unchanged legacy fractional MMK edits',async()=>{
     const state=await createTestApp();try {
       const legacy=await account(state);const legacyCar=await car(state,legacy);
       const body=expense('MMK',50000.25);
@@ -89,17 +110,17 @@ describe('operational currency API',()=>{
       expect(malformedService.statusCode,malformedService.body).toBe(422);
       const free=await state.app.inject({method:'POST',url:`/v1/vehicles/${id}/service-records`,headers:user.headers,payload:{id:uuid(),serviced_on:'2026-10-29',odometer:0,total_cost:0,currency:'MMK',items:[{name:'Free inspection',line_cost:0}]}});
       expect(free.statusCode,free.body).toBe(201);
-      expect((await state.app.inject({url:'/v1/me/currency',headers:user.headers})).json().locked).toBe(true);
+      expect((await state.app.inject({url:'/v1/me/currency',headers:user.headers})).json().locked).toBe(false);
     } finally {await state.app.close();await state.client.close();}
   });
-  it('validates and locks a vehicle purchase in its original currency',async()=>{
+  it('validates a vehicle purchase in its original currency',async()=>{
     const state=await createTestApp();try {
       await activate(state);const owner=await account(state,'USD');const id=await car(state,owner);
       const purchase=await state.app.inject({method:'PATCH',url:`/v1/vehicles/${id}`,headers:owner.headers,payload:{purchase_price:123.45,purchase_currency:'USD'}});
       expect(purchase.statusCode,purchase.body).toBe(200);expect(purchase.json().purchase_currency).toBe('USD');
-      expect((await state.app.inject({url:'/v1/me/currency',headers:owner.headers})).json().locked).toBe(true);
+      expect((await state.app.inject({url:'/v1/me/currency',headers:owner.headers})).json().locked).toBe(false);
       const relabel=await state.app.inject({method:'PATCH',url:`/v1/vehicles/${id}`,headers:owner.headers,payload:{purchase_price:123.45,purchase_currency:'THB'}});
-      expect(relabel.json().error.code).toBe('currency_immutable');
+      expect(relabel.statusCode,relabel.body).toBe(200);
     } finally {await state.app.close();await state.client.close();}
   });
   it('requires fleet setup and permits only the Fleet Admin to select it',async()=>{
@@ -114,7 +135,7 @@ describe('operational currency API',()=>{
       const denied=await state.app.inject({method:'PUT',url:`/v1/organizations/${orgId}/currency`,headers:driver.headers,payload:{currency:'CNY',expected_currency:null}});expect(denied.statusCode).toBe(403);
       const setup=await state.app.inject({method:'PUT',url:`/v1/organizations/${orgId}/currency`,headers,payload:{currency:'CNY',expected_currency:null}});expect(setup.statusCode,setup.body).toBe(200);
       const saved=await create();expect(saved.statusCode,saved.body).toBe(201);
-      expect((await state.app.inject({url:`/v1/organizations/${orgId}/currency`,headers})).json()).toMatchObject({currency:'CNY',locked:true});
+      expect((await state.app.inject({url:`/v1/organizations/${orgId}/currency`,headers})).json()).toMatchObject({currency:'CNY',locked:false});
       expect((await state.app.inject({url:'/v1/me/currency',headers:admin.headers})).json()).toMatchObject({currency:'USD',locked:false});
       const servicePayload={serviced_on:'2026-10-29',odometer:0,total_cost:10.25,currency:'CNY',items:[{name:'Service',line_cost:10.25}]};
       const service=await state.app.inject({method:'POST',url:`/v1/organizations/${orgId}/vehicles/${vehicleId}/service-records`,headers,payload:servicePayload});
@@ -126,6 +147,14 @@ describe('operational currency API',()=>{
       const sync=await state.app.inject({method:'POST',url:`/v1/organizations/${orgId}/sync/push`,headers:driver.headers,payload:{operations}});
       expect(sync.statusCode,sync.body).toBe(200);
       expect(sync.json().results[0].error.error.code).toBe('currency_mismatch');expect(sync.json().results[1].status).toBe('applied');
+      const policyUrl=`/v1/organizations/${orgId}/vehicles/${vehicleId}/currency`;
+      const policy={base_currency:'EUR',allow_member_currency:true};
+      expect((await state.app.inject({method:'PUT',url:policyUrl,headers:driver.headers,payload:policy})).statusCode).toBe(403);
+      expect((await state.app.inject({method:'PUT',url:policyUrl,headers,payload:policy})).statusCode).toBe(200);
+      expect((await state.app.inject({url:policyUrl,headers:driver.headers})).json().currency).toBe('EUR');
+      expect((await state.app.inject({method:'PUT',url:policyUrl+'/member',headers:driver.headers,payload:{currency:'GBP'}})).statusCode).toBe(200);
+      expect((await state.app.inject({url:policyUrl,headers:driver.headers})).json().currency).toBe('GBP');
+      expect((await state.app.inject({url:policyUrl,headers})).json().currency).toBe('EUR');
       const workOrderId=uuid();
       await state.db.insert(workOrders).values({id:workOrderId,orgId,vehicleId,reportedBy:driver.id,odometerKm:0,issueType:'breakdown',description:'Inspection needed',urgency:'medium',status:'in_progress'});
       const completed=await state.app.inject({method:'PATCH',url:`/v1/organizations/${orgId}/work-orders/${workOrderId}`,headers,payload:{status:'completed',completion_cost:12.50,currency:'CNY'}});
