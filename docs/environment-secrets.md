@@ -83,6 +83,23 @@ Web admin:
 
 Local dev may use generated secrets in an ignored `.env`. Prod keys are generated in Azure Key Vault.
 
+### Git exclusions
+
+The root `.gitignore` excludes local environment files, private keys, signing
+keystores, and service-account credential files. Only placeholder values belong
+in committed `.env.example` files. Firebase client configuration and the license
+public keyring remain tracked; they do not contain backend private keys.
+
+`backend/reset_users.js`, `tools/seed-demo-data.mjs`, and `docs/demo-accounts.md`
+are local-only because they contain database or demo-account credentials. Keep
+these files and their credentials in private storage when sharing the project.
+
+Removing a file from tracking does not erase previous commits. The credential
+audit on 2026-11-05 found the database connection string in local remote-tracking
+history. Rotate that database password and any still-active documented demo
+passwords; coordinate history cleanup before treating the old values as removed
+from GitHub. Never paste secret values into issues, commit messages, or reports.
+
 ---
 
 ## Email

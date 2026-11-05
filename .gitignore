@@ -3,17 +3,47 @@ node_modules/
 dist/
 backend/node_modules/
 backend/dist/
-backend/.env
 backend/var/
 backend/coverage/
 
-# Local media
+# Local environment files (commit placeholder-only examples)
+.env
+.env.*
+*.env
+*.env.*
+!.env.example
+!.env.*.example
+!*.env.example
+.envrc
+
+# Private keys, signing credentials, and service accounts
 *.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.jks
+*.keystore
+key.properties
+credentials.json
+credentials.*.json
+*service-account*.json
+*service_account*.json
+*serviceAccount*.json
+*firebase-adminsdk*.json
+.secrets/
+secrets/
+
+# Local operational files containing database or demo-account credentials
+/backend/reset_users.js
+/tools/seed-demo-data.mjs
+/docs/demo-accounts.md
+
+# Local media
 .DS_Store
 
 # Azure
-.azure/*.env
-.azure/.env
+.azure/**/.env*
 .azure/config.json
 
 # IDE
