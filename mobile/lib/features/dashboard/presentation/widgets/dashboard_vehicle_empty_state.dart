@@ -28,10 +28,7 @@ class DashboardVehicleEmptyState extends ConsumerWidget {
         onAction: () => context.push(AppRoutes.garage),
       );
     }
-    if (garage.hasError ||
-        loaded.hasError ||
-        (loaded.valueOrNull != true &&
-            (sync.hasError || sync.valueOrNull?.hasError == true))) {
+    if (garage.hasError || loaded.hasError) {
       return DcoEmptyState(
         title: s.dashboardVehicleLoadFailed,
         body: s.dashboardVehicleLoadRetryBody,
@@ -42,6 +39,16 @@ class DashboardVehicleEmptyState extends ConsumerWidget {
           ref.invalidate(garageLoadedProvider);
           ref.read(syncEngineProvider).syncNow(force: true);
         },
+      );
+    }
+    if (loaded.valueOrNull != true &&
+        (sync.hasError || sync.valueOrNull?.hasError == true)) {
+      return DcoEmptyState(
+        title: s.dashboardVehiclesNotDownloaded,
+        body: s.dashboardVehiclesNotDownloadedBody,
+        actionLabel: s.syncStatusTitle,
+        actionKey: const Key('open-sync-cta'),
+        onAction: () => context.push(AppRoutes.sync),
       );
     }
     if (garage.asData == null ||

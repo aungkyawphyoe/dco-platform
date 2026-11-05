@@ -1541,5 +1541,7 @@
         "type": "String"
       }
     }
-  }
+  },
+  "dashboardVehiclesNotDownloaded": "Your vehicles are not on this device yet",
+  "dashboardVehiclesNotDownloadedBody": "Open Sync Status to download your account’s vehicles."
 }

@@ -8639,6 +8639,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Last updated: {date}'**
   String sharedUsersUpdated(String date);
+
+  /// No description provided for @dashboardVehiclesNotDownloaded.
+  ///
+  /// In en, this message translates to:
+  /// **'Your vehicles are not on this device yet'**
+  String get dashboardVehiclesNotDownloaded;
+
+  /// No description provided for @dashboardVehiclesNotDownloadedBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Sync Status to download your account’s vehicles.'**
+  String get dashboardVehiclesNotDownloadedBody;
 }
 
 class _AppLocalizationsDelegate

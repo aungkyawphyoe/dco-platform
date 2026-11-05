@@ -4680,4 +4680,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String sharedUsersUpdated(String date) {
     return 'Last updated: $date';
   }
+
+  @override
+  String get dashboardVehiclesNotDownloaded =>
+      'Your vehicles are not on this device yet';
+
+  @override
+  String get dashboardVehiclesNotDownloadedBody =>
+      'Open Sync Status to download your account’s vehicles.';
 }

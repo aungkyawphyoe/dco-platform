@@ -232,3 +232,7 @@ The fourth tab retains `/settings` for route compatibility and uses `more_horiz`
 - Support & Information: Help, About (`/settings/about`). About displays the installed version/build, branding, Terms, Privacy, and a tappable website footer.
 
 Shared Users (`/settings/shared-users`) groups active shares by recipient, expands to vehicles and access levels, and links to existing vehicle sharing controls. Pending invitations are separate, with expired status shown. Active vehicle shares consume quota, including repeated recipients and archived vehicles, matching server rules; pending invitations do not. The overview uses an account-scoped Drift snapshot, preserves it on refresh failures, and shows its update time. Only a catalog plan with greater capacity triggers the premium banner; unlimited users see no upsell. Driver mode hides and guards this route.
+
+### Offline sync error presentation
+
+Background API/sync failures are displayed only on Sync Status, with localized details and retry controls. They must not trigger app-wide dialogs or interrupt local record saves, including the Service Logged screen. Before the first vehicle download completes, Dashboard offers neutral guidance linking to Sync Status without presenting the API error or suggesting the account has no vehicles. Local validation/save failures and explicit online-only operations retain their own actionable feedback.

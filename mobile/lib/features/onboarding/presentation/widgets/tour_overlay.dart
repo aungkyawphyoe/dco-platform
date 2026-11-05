@@ -297,7 +297,10 @@ class _OfferCard extends StatelessWidget {
               ),
               FilledButton(
                 onPressed: onShowMe,
-                style: FilledButton.styleFrom(minimumSize: const Size(44, 44)),
+                style: FilledButton.styleFrom(
+                  backgroundColor: tokens.button.primary.background,
+                  foregroundColor: tokens.text.onAccent,
+                ),
                 child: Text(s.tourShowMe),
               ),
             ],
@@ -385,7 +388,8 @@ class _TourHintCard extends StatelessWidget {
                   FilledButton(
                     onPressed: onNext,
                     style: FilledButton.styleFrom(
-                      minimumSize: const Size(44, 44),
+                      backgroundColor: tokens.button.primary.background,
+                      foregroundColor: tokens.text.onAccent,
                     ),
                     child: Text(last ? s.tourDone : s.tourNext),
                   ),

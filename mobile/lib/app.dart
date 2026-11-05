@@ -11,7 +11,6 @@ import 'core/router/app_router.dart';
 import 'core/sync/sync_engine.dart';
 import 'core/theme/dco_theme.dart';
 import 'core/widgets/dco_system_ui.dart';
-import 'core/widgets/dco_error_dialog.dart';
 import 'features/auth/presentation/session_controller.dart';
 import 'features/maintenance/providers.dart';
 import 'features/fleet/providers.dart';
@@ -19,7 +18,6 @@ import 'features/notifications/presentation/reminder_sync_controller.dart';
 import 'features/pricing/billing/providers.dart';
 import 'features/settings/domain/entities/user_preferences.dart';
 import 'features/settings/providers.dart';
-import 'features/sync/presentation/sync_error_messages.dart';
 import 'generated/app_localizations.dart';
 
 bool _isOnline(List<ConnectivityResult>? results) {
@@ -35,8 +33,6 @@ class DcoApp extends ConsumerStatefulWidget {
 }
 
 class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
-  ({String message, DateTime at})? _lastSyncDialog;
-
   @override
   void initState() {
     super.initState();
@@ -75,46 +71,20 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
     if (ref.read(accountTransitionProvider)) return;
     final state = status.valueOrNull;
     if (state == null) return;
-    if (!state.hasError) {
-      final userId = ref.read(currentUserIdProvider);
-      if (state.lastSyncedAt != null &&
-          userId != null &&
-          ref.read(driverOrganizationIdProvider) == null) {
-        unawaited(
-          ref
-              .read(profileRepositoryProvider)
-              .flushPendingActiveVehicle(userId)
-              .catchError((Object _) {}),
-        );
-      }
-      return;
+    // Background failures are presented only by Sync Status. A failed upload
+    // must never interrupt a successful local save or another offline workflow.
+    if (state.hasError) return;
+    final userId = ref.read(currentUserIdProvider);
+    if (state.lastSyncedAt != null &&
+        userId != null &&
+        ref.read(driverOrganizationIdProvider) == null) {
+      unawaited(
+        ref
+            .read(profileRepositoryProvider)
+            .flushPendingActiveVehicle(userId)
+            .catchError((Object _) {}),
+      );
     }
-
-    final navigatorContext = rootNavigatorKey.currentContext;
-    if (navigatorContext == null || !mounted) return;
-    final strings = AppLocalizations.of(navigatorContext);
-    if (strings == null) return;
-
-    final code = state.errorCode ?? 'unknown';
-    final message = syncErrorMessage(strings, code);
-    final last = _lastSyncDialog;
-    final cooldown = const Duration(minutes: 1);
-    final alreadyShown =
-        last != null &&
-        last.message == message &&
-        DateTime.now().difference(last.at) < cooldown;
-    if (alreadyShown) return;
-    _lastSyncDialog = (message: message, at: DateTime.now());
-
-    unawaited(
-      showDcoErrorDialog(
-        navigatorContext,
-        title: strings.syncErrorTitle,
-        message: message,
-        actionLabel: strings.retry,
-        onAction: () => ref.read(syncEngineProvider).syncNow(force: true),
-      ),
-    );
   }
 
   @override

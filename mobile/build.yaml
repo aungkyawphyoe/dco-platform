@@ -1,2 +1,11 @@
 additional_public_assets:
   - lib/core/theme/dco_tokens.g.dart
+
+targets:
+  $default:
+    builders:
+      source_gen:combining_builder:
+        generate_for:
+          exclude:
+            # Owned by tools/generate-theme.mjs, not Dart code generation.
+            - lib/core/theme/dco_tokens.dart

@@ -4722,4 +4722,12 @@ class AppLocalizationsMy extends AppLocalizations {
   String sharedUsersUpdated(String date) {
     return 'နောက်ဆုံး ပြင်ဆင်ချိန်: $date';
   }
+
+  @override
+  String get dashboardVehiclesNotDownloaded =>
+      'ဤစက်တွင် သင့်ယာဉ်များ မရှိသေးပါ';
+
+  @override
+  String get dashboardVehiclesNotDownloadedBody =>
+      'သင့်အကောင့်၏ ယာဉ်များကို ဒေါင်းလုဒ်လုပ်ရန် ချိန်ကိုက်မှုအခြေအနေကို ဖွင့်ပါ။';
 }

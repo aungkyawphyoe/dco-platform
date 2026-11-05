@@ -42,6 +42,10 @@ void main() {
           builder: (_, _) => const Scaffold(body: DashboardVehicleEmptyState()),
         ),
         GoRoute(
+          path: '/sync',
+          builder: (_, _) => const Scaffold(body: Text('Sync opened')),
+        ),
+        GoRoute(
           path: '/dashboard/garage',
           builder: (_, _) => const Scaffold(body: Text('Garage opened')),
         ),
@@ -100,13 +104,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Garage opened'), findsOneWidget);
   });
-  testWidgets('failed first sync offers Retry, never registration', (
-    tester,
-  ) async {
-    await pump(tester, failed: true);
-    expect(find.byKey(const Key('retry-vehicles-cta')), findsOneWidget);
-    expect(find.text('Register a vehicle'), findsNothing);
-  });
+  testWidgets(
+    'failed first sync offers Sync Status without displaying an API error',
+    (tester) async {
+      await pump(tester, failed: true);
+      expect(find.byKey(const Key('open-sync-cta')), findsOneWidget);
+      expect(find.text('Couldn’t load your vehicles'), findsNothing);
+      expect(find.text('Could not sync'), findsNothing);
+      await tester.tap(find.byKey(const Key('open-sync-cta')));
+      await tester.pumpAndSettle();
+      expect(find.text('Sync opened'), findsOneWidget);
+      expect(find.text('Register a vehicle'), findsNothing);
+    },
+  );
   testWidgets(
     'confirmed empty account offers vehicle creation even offline later',
     (tester) async {
