@@ -192,12 +192,14 @@ class SettingsScreen extends ConsumerWidget {
                       s.sharedUsersTitle,
                       AppRoutes.sharedUsers,
                     ),
+                  Divider(height: 1, indent: 16, color: tokens.border.divider),
                   _row(
                     context,
                     Icons.local_gas_station_outlined,
                     s.fuelTypesTitle,
                     AppRoutes.fuelTypes,
                   ),
+                  Divider(height: 1, indent: 16, color: tokens.border.divider),
                   _row(
                     context,
                     Icons.build_outlined,
@@ -220,6 +222,7 @@ class SettingsScreen extends ConsumerWidget {
                     s.settingsHelp,
                     AppRoutes.settingsHelp,
                   ),
+                  Divider(height: 1, indent: 16, color: tokens.border.divider),
                   _row(
                     context,
                     Icons.info_outline,
