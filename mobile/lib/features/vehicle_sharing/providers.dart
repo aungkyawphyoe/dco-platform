@@ -1,3 +1,6 @@
+import 'data/repositories/shared_users_repository_impl.dart';
+import 'domain/repositories/shared_users_repository.dart';
+import 'domain/entities/shared_users_overview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/providers.dart';
@@ -56,7 +59,9 @@ final userNameProvider = FutureProvider.family<String?, String>((
     if (name != null && name.isNotEmpty) return name;
     return user?.email;
   }
-  final cached = await ref.watch(vehicleShareRepositoryProvider).cachedUserName(userId);
+  final cached = await ref
+      .watch(vehicleShareRepositoryProvider)
+      .cachedUserName(userId);
   if (cached != null) return cached;
   try {
     final detail = await ref.watch(userDetailProvider(userId).future);
@@ -77,4 +82,21 @@ final sharePreviewProvider = FutureProvider.autoDispose
       final trimmed = code.trim().toUpperCase();
       if (trimmed.length != 8) return null;
       return ref.watch(vehicleShareRepositoryProvider).previewCode(trimmed);
+    });
+
+final sharedUsersRepositoryProvider = Provider<SharedUsersRepository>(
+  (ref) => SharedUsersRepositoryImpl(
+    ref.watch(appDatabaseProvider),
+    ref.watch(dioProvider),
+    ref.watch(currentUserIdProvider) ?? 'signed-out',
+  ),
+);
+
+final sharedUsersOverviewProvider =
+    StreamProvider.autoDispose<SharedUsersOverview?>((ref) {
+      if (ref.watch(currentUserIdProvider) == null ||
+          ref.watch(driverOrganizationIdProvider) != null) {
+        return Stream.value(null);
+      }
+      return ref.watch(sharedUsersRepositoryProvider).watch();
     });

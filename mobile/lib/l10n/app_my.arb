@@ -523,7 +523,7 @@
   "tourMaintenanceBody": "ပြုပြင်ထိန်းသိမ်းမှု တဘ်တွင် လက်ရှိယာဉ်၏ အစီအစဉ်နှင့် ဝန်ဆောင်မှုမှတ်တမ်းကို ပြပါသည်။",
   "tourExpensesTitle": "အသုံးစရိတ်များ",
   "tourExpensesBody": "အသုံးစရိတ် တဘ်တွင် လက်ရှိယာဉ်၏ အသုံးစရိတ်နှင့် စုစုပေါင်းကို မှတ်တမ်းတင်ပါသည်။",
-  "tourSettingsTitle": "ပြင်ဆင်ချက်နှင့် ချိတ်ဆက်မှု",
+  "tourSettingsTitle": "နောက်ထပ်နှင့် ဆက်တင်များ",
   "tourSettingsBody": "ဦးစားပေးချက်များ ပြောင်းရန်၊ ချိတ်ဆက်မှုအခြေအနေ စစ်ရန်နှင့် Help မှ ဤလမ်းညွှန်ကို ပြန်ကြည့်ရန်။",
   "settingsSyncStatusFailed": "ဒေတာ ချိတ်ဆက်မှု မအောင်မြင်ပါ",
   "settingsSyncStatusSyncing": "ဒေတာ ချိတ်ဆက်နေသည်...",
@@ -1410,5 +1410,64 @@
   "dashboardChooseVehicleBody": "ယာဉ်၏ ဒက်ရှ်ဘုတ်ကို ကြည့်ရန် Garage သို့သွားပြီး ယာဉ်တစ်စီးကို အသုံးပြုရန် ရွေးပါ။",
   "dashboardChooseVehicleAction": "Garage သို့သွားမည်",
   "dashboardVehicleLoadFailed": "သင့်ယာဉ်များကို မရယူနိုင်ပါ",
-  "dashboardVehicleLoadRetryBody": "အကောင့်ရှိ ယာဉ်များကို စစ်ဆေးရန် ပြန်ကြိုးစားပါ။"
+  "dashboardVehicleLoadRetryBody": "အကောင့်ရှိ ယာဉ်များကို စစ်ဆေးရန် ပြန်ကြိုးစားပါ။",
+  "navMore": "နောက်ထပ်",
+  "moreManagement": "စီမံခန့်ခွဲမှု",
+  "morePreferences": "စိတ်ကြိုက်သတ်မှတ်ချက်များ",
+  "moreSupport": "အကူအညီနှင့် အချက်အလက်",
+  "aboutTitle": "အကြောင်း",
+  "aboutVersion": "ဗားရှင်း {version} ({build})",
+  "aboutLinkError": "လင့်ခ်ကို ဖွင့်၍မရပါ။ ထပ်မံကြိုးစားပါ။",
+  "sharedUsersTitle": "မျှဝေထားသော အသုံးပြုသူများ",
+  "sharedUsersPending": "လက်ခံရန် စောင့်ဆိုင်းနေသော ဖိတ်ကြားချက်များ",
+  "sharedUsersExpired": "သက်တမ်းကုန်ဆုံးပြီ",
+  "sharedUsersUsed": "ယာဉ်မျှဝေမှု {count} ခု အသုံးပြုထားသည်",
+  "sharedUsersRemaining": "မျှဝေနိုင်သည့် အရေအတွက် {count} ခု ကျန်ရှိသည်",
+  "sharedUsersUnlimited": "အကန့်အသတ်မရှိ မျှဝေနိုင်သည်",
+  "sharedUsersVehicleCount": "ယာဉ် {count} စီး",
+  "sharedUsersQuotaHelp": "လူတစ်ဦးတည်းဖြစ်သော်လည်း အသုံးပြုနေသော ယာဉ်မျှဝေမှုတစ်ခုစီကို တစ်ခုအဖြစ် ရေတွက်သည်။ လက်ခံရန်စောင့်ဆိုင်းနေသော ဖိတ်ကြားချက်များကို မရေတွက်ပါ။ ယာဉ်တစ်စီးချင်း၏ ကန့်သတ်ချက်များ ဆက်လက်သက်ရောက်သည်။",
+  "sharedUsersUpgradeTitle": "နောက်ထပ် မျှဝေလိုပါသလား။",
+  "sharedUsersUpgradeBody": "ပိုမိုမျှဝေနိုင်ရန် ပရီမီယံအစီအစဉ်များကို ကြည့်ရှုပါ။",
+  "sharedUsersEmptyBody": "မျှဝေမှုစီမံရန်နှင့် ဖိတ်ကြားရန် ကျွန်ုပ်၏ယာဉ်များမှ ယာဉ်တစ်စီးကို ဖွင့်ပါ။",
+  "sharedUsersCached": "အသစ်ပြန်ယူ၍မရပါ။ နောက်ဆုံးသိမ်းထားသော အချက်အလက်များကို ပြထားသည်။",
+  "sharedUsersLoadError": "မျှဝေထားသော အသုံးပြုသူများကို ကြည့်ရန် အင်တာနက်ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။",
+  "sharedUsersUpdated": "နောက်ဆုံး ပြင်ဆင်ချိန်: {date}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "@sharedUsersUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@sharedUsersRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@sharedUsersVehicleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@sharedUsersUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

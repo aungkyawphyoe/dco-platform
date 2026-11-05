@@ -1714,7 +1714,7 @@ class AppLocalizationsEn extends AppLocalizations {
       'The Expenses tab tracks spending and totals for the active vehicle.';
 
   @override
-  String get tourSettingsTitle => 'Settings and sync';
+  String get tourSettingsTitle => 'More and settings';
 
   @override
   String get tourSettingsBody =>
@@ -4602,4 +4602,82 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardVehicleLoadRetryBody =>
       'Retry to check your account’s vehicles.';
+
+  @override
+  String get navMore => 'More';
+
+  @override
+  String get moreManagement => 'Management';
+
+  @override
+  String get morePreferences => 'Preferences';
+
+  @override
+  String get moreSupport => 'Support & Information';
+
+  @override
+  String get aboutTitle => 'About';
+
+  @override
+  String aboutVersion(String version, String build) {
+    return 'Version $version ($build)';
+  }
+
+  @override
+  String get aboutLinkError => 'Could not open the link. Please try again.';
+
+  @override
+  String get sharedUsersTitle => 'Shared Users';
+
+  @override
+  String get sharedUsersPending => 'Pending invitations';
+
+  @override
+  String get sharedUsersExpired => 'Expired';
+
+  @override
+  String sharedUsersUsed(int count) {
+    return '$count vehicle shares used';
+  }
+
+  @override
+  String sharedUsersRemaining(int count) {
+    return '$count sharing slots remaining';
+  }
+
+  @override
+  String get sharedUsersUnlimited => 'Unlimited sharing';
+
+  @override
+  String sharedUsersVehicleCount(int count) {
+    return '$count vehicles';
+  }
+
+  @override
+  String get sharedUsersQuotaHelp =>
+      'Each active vehicle share uses one slot, even for the same person. Pending invitations do not use slots. Per-vehicle limits still apply.';
+
+  @override
+  String get sharedUsersUpgradeTitle => 'Need more sharing slots?';
+
+  @override
+  String get sharedUsersUpgradeBody =>
+      'Explore premium plans to share with more people.';
+
+  @override
+  String get sharedUsersEmptyBody =>
+      'Open a vehicle in My Garage to manage sharing and invite someone.';
+
+  @override
+  String get sharedUsersCached =>
+      'Could not refresh. Showing the last saved overview.';
+
+  @override
+  String get sharedUsersLoadError =>
+      'Connect to load your shared users, then try again.';
+
+  @override
+  String sharedUsersUpdated(String date) {
+    return 'Last updated: $date';
+  }
 }

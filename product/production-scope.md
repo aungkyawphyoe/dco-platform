@@ -113,3 +113,7 @@ The approved [Documents and Storage specification](frd/documents.md) extends pro
 ### Offline Help — tester feedback Phase 5
 
 Settings → Help provides localized, offline answers for login, vehicle setup, maintenance, expenses, sync, and local-only Notes, alongside tour replay. Personal and Driver users share the screen with scoped vehicle guidance. User-reviewed feedback email drafts and a copy fallback are supported; platform information is opt-in and feedback is never automatically submitted or synchronized. No support backend or additional monitoring SDK is introduced.
+
+## More navigation hub — approved 5 November 2026
+
+The Settings tab becomes More, with Management (Shared Users, Fuel Types, Parts), Preferences (nested Settings), and Support & Information (Help, About). Customer info, subscriptions, and Sign Out remain; Account Connection moves into Profile and Parts leaves the drawer. Expense Types is deferred. Shared Users is a personal-owner overview grouped by person with vehicle-level management links, separate pending invitations, unchanged active-share quotas, cached offline reads, and an upgrade banner only when an available plan increases sharing capacity. About shows installed app version/build and the AutoX terms, privacy, and website links. See [app shell](../docs/app-shell.md#more-navigation-hub-5-november-2026).

@@ -540,7 +540,7 @@
   "tourMaintenanceBody": "The Maintenance tab shows the plan and service history for the active vehicle.",
   "tourExpensesTitle": "Expenses",
   "tourExpensesBody": "The Expenses tab tracks spending and totals for the active vehicle.",
-  "tourSettingsTitle": "Settings and sync",
+  "tourSettingsTitle": "More and settings",
   "tourSettingsBody": "Change preferences, check sync status, and replay this tour from Help.",
   "settingsSyncStatusFailed": "Sync failed",
   "settingsSyncStatusSyncing": "Syncing...",
@@ -1482,5 +1482,64 @@
   "dashboardChooseVehicleBody": "Go to Garage and activate a vehicle to see its dashboard.",
   "dashboardChooseVehicleAction": "Go to Garage",
   "dashboardVehicleLoadFailed": "Couldn’t load your vehicles",
-  "dashboardVehicleLoadRetryBody": "Retry to check your account’s vehicles."
+  "dashboardVehicleLoadRetryBody": "Retry to check your account’s vehicles.",
+  "navMore": "More",
+  "moreManagement": "Management",
+  "morePreferences": "Preferences",
+  "moreSupport": "Support & Information",
+  "aboutTitle": "About",
+  "aboutVersion": "Version {version} ({build})",
+  "aboutLinkError": "Could not open the link. Please try again.",
+  "sharedUsersTitle": "Shared Users",
+  "sharedUsersPending": "Pending invitations",
+  "sharedUsersExpired": "Expired",
+  "sharedUsersUsed": "{count} vehicle shares used",
+  "sharedUsersRemaining": "{count} sharing slots remaining",
+  "sharedUsersUnlimited": "Unlimited sharing",
+  "sharedUsersVehicleCount": "{count} vehicles",
+  "sharedUsersQuotaHelp": "Each active vehicle share uses one slot, even for the same person. Pending invitations do not use slots. Per-vehicle limits still apply.",
+  "sharedUsersUpgradeTitle": "Need more sharing slots?",
+  "sharedUsersUpgradeBody": "Explore premium plans to share with more people.",
+  "sharedUsersEmptyBody": "Open a vehicle in My Garage to manage sharing and invite someone.",
+  "sharedUsersCached": "Could not refresh. Showing the last saved overview.",
+  "sharedUsersLoadError": "Connect to load your shared users, then try again.",
+  "sharedUsersUpdated": "Last updated: {date}",
+  "@aboutVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      },
+      "build": {
+        "type": "String"
+      }
+    }
+  },
+  "@sharedUsersUsed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@sharedUsersRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@sharedUsersVehicleCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@sharedUsersUpdated": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  }
 }

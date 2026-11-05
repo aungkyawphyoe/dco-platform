@@ -1,13 +1,10 @@
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
-import 'package:dco_mobile/core/units/mileage_format.dart';
-import 'package:dco_mobile/core/units/mileage_unit.dart';
 import 'package:dco_mobile/core/widgets/dco_avatar.dart';
+import 'package:dco_mobile/core/widgets/dco_card.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
-import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
 import 'package:dco_mobile/features/settings/presentation/widgets/sign_out_button.dart';
-import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,9 +18,6 @@ class SettingsScreen extends ConsumerWidget {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final user = ref.watch(sessionControllerProvider).valueOrNull?.user;
-    final prefs =
-        ref.watch(userPreferencesProvider).valueOrNull ??
-        UserPreferences.defaults;
 
     return Scaffold(
       appBar: AppBar(
@@ -31,7 +25,7 @@ class SettingsScreen extends ConsumerWidget {
           icon: Icon(Icons.menu, color: tokens.icon.active),
           onPressed: () => Scaffold.of(context).openDrawer(),
         ),
-        title: Text(s.settingsTitle),
+        title: Text(s.navMore),
       ),
       body: Column(
         children: [
@@ -190,177 +184,52 @@ class SettingsScreen extends ConsumerWidget {
                 if (ref.watch(driverOrganizationIdProvider) == null)
                   SizedBox(height: tokens.space.s2),
 
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(tokens.radius.lg),
-                    boxShadow: tokens.shadows.card,
-                  ),
-                  child: Material(
-                    color: tokens.background.card,
-                    borderRadius: BorderRadius.circular(tokens.radius.lg),
-                    child: Column(
-                      children: [
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              tokens.radius.lg,
-                            ),
-                          ),
-                          leading: Icon(
-                            Icons.link,
-                            color: tokens.icon.inactive,
-                          ),
-                          title: Text(s.authConnections),
-                          trailing: Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                          onTap: () =>
-                              context.push(AppRoutes.accountConnections),
-                        ),
-                        Divider(
-                          height: 1,
-                          indent: 16,
-                          color: tokens.border.divider,
-                        ),
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              tokens.radius.lg,
-                            ),
-                          ),
-                          leading: Icon(
-                            Icons.language,
-                            color: tokens.icon.inactive,
-                          ),
-                          title: Text(s.settingsLocalization),
-                          subtitle: Text(
-                            prefs.language.label,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: tokens.text.caption),
-                          ),
-                          trailing: Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                          onTap: () =>
-                              context.push(AppRoutes.settingsLocalization),
-                        ),
-                        Divider(
-                          height: 1,
-                          indent: 16,
-                          color: tokens.border.divider,
-                        ),
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              tokens.radius.lg,
-                            ),
-                          ),
-                          leading: Icon(
-                            Icons.grid_3x3,
-                            color: tokens.icon.inactive,
-                          ),
-                          title: Text(s.settingsUnitFormat),
-                          subtitle: Text(
-                            '${ref.watch(currencyProvider).code}, ${prefs.lengthUnit.fullLabel.toLowerCase()}',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: tokens.text.caption),
-                          ),
-                          trailing: Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                          onTap: () => context.push(AppRoutes.settingsUnits),
-                        ),
-                        Divider(
-                          height: 1,
-                          indent: 16,
-                          color: tokens.border.divider,
-                        ),
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              tokens.radius.lg,
-                            ),
-                          ),
-                          leading: Icon(
-                            Icons.notifications_active_outlined,
-                            color: tokens.icon.inactive,
-                          ),
-                          title: Text(s.settingsReminders),
-                          subtitle: Text(
-                            s.settingsRemindersSummary(
-                              prefs.soonDays,
-                              MileageFormat.labeled(
-                                MileageUnit.km.toStorage(prefs.soonDistanceKm),
-                                prefs.lengthUnit,
-                              ),
-                            ),
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: tokens.text.caption),
-                          ),
-                          trailing: Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                          onTap: () =>
-                              context.push(AppRoutes.settingsReminders),
-                        ),
-                        Divider(
-                          height: 1,
-                          indent: 16,
-                          color: tokens.border.divider,
-                        ),
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              tokens.radius.lg,
-                            ),
-                          ),
-                          leading: Icon(
-                            Icons.palette,
-                            color: tokens.icon.inactive,
-                          ),
-                          title: Text(s.settingsAppearance),
-                          subtitle: Text(
-                            prefs.themeMode.label,
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: tokens.text.caption),
-                          ),
-                          trailing: Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                          onTap: () =>
-                              context.push(AppRoutes.settingsAppearance),
-                        ),
-                        Divider(
-                          height: 1,
-                          indent: 16,
-                          color: tokens.border.divider,
-                        ),
-                        ListTile(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              tokens.radius.lg,
-                            ),
-                          ),
-                          leading: Icon(
-                            Icons.help_outline,
-                            color: tokens.icon.inactive,
-                          ),
-                          title: Text(s.settingsHelp),
-                          trailing: Icon(
-                            Icons.chevron_right,
-                            color: tokens.icon.inactive,
-                          ),
-                          onTap: () => context.push(AppRoutes.settingsHelp),
-                        ),
-                      ],
+                _section(context, s.moreManagement, [
+                  if (ref.watch(driverOrganizationIdProvider) == null)
+                    _row(
+                      context,
+                      Icons.people_outline,
+                      s.sharedUsersTitle,
+                      AppRoutes.sharedUsers,
                     ),
+                  Divider(height: 1, indent: 16, color: tokens.border.divider),
+                  _row(
+                    context,
+                    Icons.local_gas_station_outlined,
+                    s.fuelTypesTitle,
+                    AppRoutes.fuelTypes,
                   ),
-                ),
+                  Divider(height: 1, indent: 16, color: tokens.border.divider),
+                  _row(
+                    context,
+                    Icons.build_outlined,
+                    s.partsTitle,
+                    AppRoutes.parts,
+                  ),
+                ]),
+                _section(context, s.morePreferences, [
+                  _row(
+                    context,
+                    Icons.settings_outlined,
+                    s.settingsTitle,
+                    AppRoutes.settingsPreferences,
+                  ),
+                ]),
+                _section(context, s.moreSupport, [
+                  _row(
+                    context,
+                    Icons.help_outline,
+                    s.settingsHelp,
+                    AppRoutes.settingsHelp,
+                  ),
+                  Divider(height: 1, indent: 16, color: tokens.border.divider),
+                  _row(
+                    context,
+                    Icons.info_outline,
+                    s.aboutTitle,
+                    AppRoutes.about,
+                  ),
+                ]),
                 SizedBox(height: tokens.space.s4),
                 const SignOutButton(),
                 SizedBox(height: tokens.space.s7),
@@ -371,4 +240,34 @@ class SettingsScreen extends ConsumerWidget {
       ),
     );
   }
+
+  Widget _section(BuildContext context, String title, List<Widget> rows) =>
+      Padding(
+        padding: EdgeInsets.only(top: context.tokens.space.s5),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: EdgeInsets.only(bottom: context.tokens.space.s2),
+              child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+            ),
+            DcoCard(
+              padding: EdgeInsets.zero,
+              child: Column(children: rows),
+            ),
+          ],
+        ),
+      );
+
+  Widget _row(
+    BuildContext context,
+    IconData icon,
+    String title,
+    String route,
+  ) => ListTile(
+    leading: Icon(icon, color: context.tokens.icon.inactive),
+    title: Text(title),
+    trailing: const Icon(Icons.chevron_right),
+    onTap: () => context.push(route),
+  );
 }

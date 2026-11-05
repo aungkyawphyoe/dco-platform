@@ -70,11 +70,16 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Settings sign-out asks for confirmation first', (tester) async {
+  testWidgets('More sign-out asks for confirmation first', (tester) async {
     controller = _FakeSessionController();
     await pump(tester, home: const Scaffold(body: SettingsScreen()));
     final s = localizations(tester);
 
+    await tester.scrollUntilVisible(
+      find.text(s.settingsSignOut),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text(s.settingsSignOut));
     await tester.pumpAndSettle();
 

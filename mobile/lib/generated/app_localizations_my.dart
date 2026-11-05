@@ -1738,7 +1738,7 @@ class AppLocalizationsMy extends AppLocalizations {
       'အသုံးစရိတ် တဘ်တွင် လက်ရှိယာဉ်၏ အသုံးစရိတ်နှင့် စုစုပေါင်းကို မှတ်တမ်းတင်ပါသည်။';
 
   @override
-  String get tourSettingsTitle => 'ပြင်ဆင်ချက်နှင့် ချိတ်ဆက်မှု';
+  String get tourSettingsTitle => 'နောက်ထပ်နှင့် ဆက်တင်များ';
 
   @override
   String get tourSettingsBody =>
@@ -4643,4 +4643,83 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get dashboardVehicleLoadRetryBody =>
       'အကောင့်ရှိ ယာဉ်များကို စစ်ဆေးရန် ပြန်ကြိုးစားပါ။';
+
+  @override
+  String get navMore => 'နောက်ထပ်';
+
+  @override
+  String get moreManagement => 'စီမံခန့်ခွဲမှု';
+
+  @override
+  String get morePreferences => 'စိတ်ကြိုက်သတ်မှတ်ချက်များ';
+
+  @override
+  String get moreSupport => 'အကူအညီနှင့် အချက်အလက်';
+
+  @override
+  String get aboutTitle => 'အကြောင်း';
+
+  @override
+  String aboutVersion(String version, String build) {
+    return 'ဗားရှင်း $version ($build)';
+  }
+
+  @override
+  String get aboutLinkError => 'လင့်ခ်ကို ဖွင့်၍မရပါ။ ထပ်မံကြိုးစားပါ။';
+
+  @override
+  String get sharedUsersTitle => 'မျှဝေထားသော အသုံးပြုသူများ';
+
+  @override
+  String get sharedUsersPending =>
+      'လက်ခံရန် စောင့်ဆိုင်းနေသော ဖိတ်ကြားချက်များ';
+
+  @override
+  String get sharedUsersExpired => 'သက်တမ်းကုန်ဆုံးပြီ';
+
+  @override
+  String sharedUsersUsed(int count) {
+    return 'ယာဉ်မျှဝေမှု $count ခု အသုံးပြုထားသည်';
+  }
+
+  @override
+  String sharedUsersRemaining(int count) {
+    return 'မျှဝေနိုင်သည့် အရေအတွက် $count ခု ကျန်ရှိသည်';
+  }
+
+  @override
+  String get sharedUsersUnlimited => 'အကန့်အသတ်မရှိ မျှဝေနိုင်သည်';
+
+  @override
+  String sharedUsersVehicleCount(int count) {
+    return 'ယာဉ် $count စီး';
+  }
+
+  @override
+  String get sharedUsersQuotaHelp =>
+      'လူတစ်ဦးတည်းဖြစ်သော်လည်း အသုံးပြုနေသော ယာဉ်မျှဝေမှုတစ်ခုစီကို တစ်ခုအဖြစ် ရေတွက်သည်။ လက်ခံရန်စောင့်ဆိုင်းနေသော ဖိတ်ကြားချက်များကို မရေတွက်ပါ။ ယာဉ်တစ်စီးချင်း၏ ကန့်သတ်ချက်များ ဆက်လက်သက်ရောက်သည်။';
+
+  @override
+  String get sharedUsersUpgradeTitle => 'နောက်ထပ် မျှဝေလိုပါသလား။';
+
+  @override
+  String get sharedUsersUpgradeBody =>
+      'ပိုမိုမျှဝေနိုင်ရန် ပရီမီယံအစီအစဉ်များကို ကြည့်ရှုပါ။';
+
+  @override
+  String get sharedUsersEmptyBody =>
+      'မျှဝေမှုစီမံရန်နှင့် ဖိတ်ကြားရန် ကျွန်ုပ်၏ယာဉ်များမှ ယာဉ်တစ်စီးကို ဖွင့်ပါ။';
+
+  @override
+  String get sharedUsersCached =>
+      'အသစ်ပြန်ယူ၍မရပါ။ နောက်ဆုံးသိမ်းထားသော အချက်အလက်များကို ပြထားသည်။';
+
+  @override
+  String get sharedUsersLoadError =>
+      'မျှဝေထားသော အသုံးပြုသူများကို ကြည့်ရန် အင်တာနက်ချိတ်ဆက်ပြီး ထပ်ကြိုးစားပါ။';
+
+  @override
+  String sharedUsersUpdated(String date) {
+    return 'နောက်ဆုံး ပြင်ဆင်ချိန်: $date';
+  }
 }

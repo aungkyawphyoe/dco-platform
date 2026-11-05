@@ -58,6 +58,9 @@ import '../../features/settings/presentation/screens/appearance_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
 import '../../features/settings/presentation/screens/reminders_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/settings/presentation/screens/preferences_screen.dart';
+import '../../features/settings/presentation/screens/about_screen.dart';
+import '../../features/vehicle_sharing/presentation/screens/shared_users_screen.dart';
 import '../../features/settings/presentation/screens/units_formats_screen.dart';
 import '../../features/stats/presentation/screens/expense_stats_screen.dart';
 import '../../features/stats/presentation/screens/fuel_stats_screen.dart';
@@ -379,6 +382,22 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                 path: AppRoutes.settings,
                 builder: (context, state) => const SettingsScreen(),
                 routes: [
+                  GoRoute(
+                    path: 'preferences',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const PreferencesScreen(),
+                  ),
+                  GoRoute(
+                    path: 'about',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const AboutScreen(),
+                  ),
+                  GoRoute(
+                    path: 'shared-users',
+                    parentNavigatorKey: rootNavigatorKey,
+                    builder: (context, state) => const SharedUsersScreen(),
+                  ),
+
                   GoRoute(
                     path: 'localization',
                     parentNavigatorKey: rootNavigatorKey,

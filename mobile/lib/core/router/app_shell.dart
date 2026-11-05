@@ -10,7 +10,7 @@ import 'app_drawer.dart';
 
 /// Bottom shell. Four tabs in both modes — Driver mode is personal-mode
 /// parity (Confirmed Access Decisions 15–24): Garage / Maintenance / Expenses
-/// / Settings, with driver repositories mapping to org endpoints.
+/// / More, with driver repositories mapping to org endpoints.
 class AppShell extends ConsumerStatefulWidget {
   const AppShell({super.key, required this.navigationShell});
 
@@ -56,9 +56,9 @@ class _AppShellState extends ConsumerState<AppShell> {
                     tourTarget: TourTarget.expenses,
                   ),
                   CustomNavItem(
-                    label: s.navSettings,
-                    icon: Icons.settings_outlined,
-                    activeIcon: Icons.settings,
+                    label: s.navMore,
+                    icon: Icons.more_horiz,
+                    activeIcon: Icons.more_horiz,
                     tourTarget: TourTarget.settings,
                   ),
                 ],

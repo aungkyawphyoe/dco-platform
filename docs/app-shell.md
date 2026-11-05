@@ -17,7 +17,7 @@ Four bottom tabs (consistent for normal users, fleet owners, **and drivers** —
 | **Garage** | `/dashboard` | **3** Dashboard (and **3** empty) | Home. Active vehicle summary. Default after login. |
 | **Maintenance** | `/maintenance` | **6** Maintenance (and **6** empty) | Plan + history for the active vehicle. |
 | **Expenses** | `/expenses` | **7** Expenses | Spend for the active vehicle. |
-| **Setting** | `/settings` | **9** Settings | Account and profile. Minimal — most features moved to hamburger. |
+| **More** | `/settings` | **9** More | Customer info, subscription card, Management, Preferences, Support & Information. |
 
 Active tab icon uses design-token gold (`icon.active`). Inactive uses slate (`icon.inactive`).
 
@@ -35,7 +35,6 @@ Accessible from **any screen** via the leading hamburger icon in the app bar. Op
 |-----------|------|-------------|-------|
 | **My Garage** | Car |  My Garage | List of viehicle screen. Add new, detail can be checked. |
 | **Documents** | folder | Document List | Moved from Settings. Per-vault document management. |
-| **Parts** | wrench | Parts List | Entry point also kept on Dashboard quick actions. |
 | **Maintenance Plan** | clipboard-list | Maintenance Plan | Moved from Maintenance tab. Upcoming/Scheduled/History. |
 | **Insurance** | shield | Insurance section | Moved from Garage. Vehicle insurance documents/status. *Not Implemented* Hide for now. |
 | **Fuel Stats** | chart-bar | Fuel Stats screen | Adaptive: charge KPIs for electric, refuel KPIs otherwise. Charts for cost trends, efficiency, cost per distance. |
@@ -57,14 +56,13 @@ Auth (online)
   ┌─────────────────────────────────────────┐
   │  Shell (bottom nav + hamburger)         │
   │                                         │
-  │  ☰ [Garage]  Maintenance  Expenses  Setting
+  │  ☰ [Garage]  Maintenance  Expenses  More
   │     ▲                                   │
   │     └── default: screen 3 Dashboard     │
   │                                         │
   │  Hamburger drawer:                      │
   │  ├─ Sync                               │
   │  ├─ Documents                          │
-  │  ├─ Parts                              │
   │  ├─ Maintenance Plan                   │
   │  ├─ Insurance                          │
   │  ├─ Fuel Stats (NEW)                  │
@@ -91,13 +89,13 @@ Numbering follows the tldraw frame names.
 | 6 | Maintenance | Maintenance tab | Upcoming / Scheduled / History. Stack: plan list, add item, suggested catalog, register service |
 | 7 | Expenses | Expenses tab | Month/total, by category, recent list |
 | 8 | Documents | **Hamburger menu** → Documents | Moved from header on 7. Per-vault document management. |
-| 9 | Settings | Setting tab | Profile, account, Sign Out (asks for confirmation). Fleet context switch is in the conditional hamburger menu. |
+| 9 | More | More tab | Profile, subscription card, grouped management/preferences/support rows, Sign Out (asks for confirmation). |
 | 10 | Maintenance Plan | **Hamburger menu** → Maintenance Plan; after registering a vehicle | Moved from Maintenance tab. Suggested items filtered by fuel type. In the registration flow it shows an extra **Done** button → My Garage (4). |
 | 11 | Add Maintenance Item / Register Service | From 6 or from Hamburger → Maintenance Plan | Register service updates mileage and can complete plan items |
 | 12 | Vehicle Share Management | **Hamburger menu** → Sharing | Vehicle Shares tab: manage shares on your vehicles (code/QR, email invites, access levels).
 | 13 | Shared with Me | **Hamburger menu** → Shared with Me; My Garage → Shared tab | View shares and join a vehicle share. No separate Join Vehicle Share drawer entry. |
 | 14 | Insurance | **Hamburger menu** → Insurance | Moved from Garage. Vehicle insurance documents/status. |
-| 15 | Parts | **Hamburger menu** → Parts (also from Dashboard quick actions) | Per-vehicle parts catalog. |
+| 15 | Parts | **More** → Parts (also from Dashboard quick actions) | Per-vehicle parts catalog. |
 | 16 | Sync Status | **Hamburger menu** → Sync | Moved from Settings. Sync status indicator + manual sync. |
 | 17 | Fuel Stats | **Hamburger menu** → Fuel Stats | Adaptive (charge/refuel KPIs): cost trends, efficiency, cost per distance. Contract: `product/frd/stats.md`. |
 | 18 | Maintenance Stats | **Hamburger menu** → Maintenance Stats | **NEW.** Charts: maintenance cost trends, service frequency, upcoming schedule. |
@@ -159,11 +157,11 @@ Driver-specific screens push on the active **tab** stacks (parity with personal 
 Distinct from the pre-login introduction in `product/frd/auth.md`. The introduction runs before sign-in and is marked handled per installation; the tour runs after authentication and is stored per account.
 
 - After the dashboard has loaded on the Garage tab (active-vehicle stream resolved, first-vehicle and verification routing prompts dismissed), the shell offers a compact **Show me around?** card with **Show me around** and **Not now**. It never covers the screen before the user opts in.
-- Four anchored steps point at real controls: the active vehicle card or empty state, then the Maintenance, Expenses, and Settings bottom tabs. Copy explains settings and sync together.
+- Four anchored steps point at real controls: the active vehicle card or empty state, then the Maintenance, Expenses, and More bottom tabs. Copy explains settings and sync together.
 - Personal accounts with an empty garage are told to add their first vehicle; no vehicle or sample record is created. Drivers with no assignment are told that a fleet admin manages assignments, and vehicle creation is never offered.
 - Next, Back, Skip, and system Back are always available. Back on the first step exits the tour; the overlay never traps the user. Steps do not switch tabs, so existing tab stacks are preserved.
 - Dismissal and completion are stored locally in account-scoped AppMeta under a versioned key. The offer appears once per account and tour version and does not repeat on launch, sign-out, or transient loading. A new tour version is offered again.
-- Settings → Help → **Replay tour** starts an explicit replay from the Garage dashboard, regardless of stored progress. Replays do not re-arm the automatic offer.
+- More → Help → **Replay tour** starts an explicit replay from the Garage dashboard, regardless of stored progress. Replays do not re-arm the automatic offer.
 - Targets that are not currently laid out fall back to a centred card rather than failing. The presentation honours light/dark, English/Burmese, large text (scrollable hint card), and reduced motion (no animated overlay), and exposes the hint as a live-region semantic.
 
 Tour state is device-local. It is not a sync entity and does not affect account isolation.
@@ -186,7 +184,7 @@ From `product/frd/auth.md`:
 
 Autozis web demo uses a **left sidebar** (Manage: Garage, Assistant, Maintenance Plan, Insurance, Notes, Documents; Stats: Insights, Refuel, Maintenance, Expenses, Trips; Catalogs; Account) plus a **bottom module dock** (Dashboard, Refuel, Maintenance, Expenses, Trips, Reminders).
 
-AutoX mobile uses **four bottom tabs + hamburger menu**. The hamburger menu provides access to secondary features (Documents, Parts, Maintenance Plan, Insurance, Stats, Sharing, Fleet) while the bottom tabs remain the primary navigation. This is a hybrid approach — bottom tabs for daily use, hamburger for less frequent actions.
+AutoX mobile uses **four bottom tabs + hamburger menu**. The hamburger menu provides access to secondary features (Documents, Maintenance Plan, Insurance, Stats, Sharing, Fleet) while the bottom tabs remain the primary navigation. This is a hybrid approach — bottom tabs for daily use, hamburger for less frequent actions.
 
 ---
 
@@ -217,10 +215,20 @@ Flow: Login → Dashboard → Users (search → profile → deactivate / reactiv
 
 ### Personal plans and gifts
 
-Settings → **Plans & subscriptions** opens `/pricing`. Vehicle/share limit dialogs and personal storage-full state expose **View plans**. The screen shows the current personal plan, gift end time, and selectable Free/Lite/Standard price comparisons (monthly/annual). **Redeem a gift code** opens the dedicated `/pricing/redeem` screen for online redemption, verification, feedback, and retry. Browsing plans never changes the subscription. Driver mode hides and route-guards this screen. Paid checkout remains unavailable. See `product/frd/mobile-pricing-promotions.md`.
+More → **Plans & subscriptions** opens `/pricing`. Vehicle/share limit dialogs and personal storage-full state expose **View plans**. The screen shows the current personal plan, gift end time, and selectable Free/Lite/Standard price comparisons (monthly/annual). **Redeem a gift code** opens the dedicated `/pricing/redeem` screen for online redemption, verification, feedback, and retry. Browsing plans never changes the subscription. Driver mode hides and route-guards this screen. Paid checkout remains unavailable. See `product/frd/mobile-pricing-promotions.md`.
 
 ## Offline Help and feedback
 
-Settings → Help retains Replay tour and adds six offline FAQs: sign-in, vehicle setup, maintenance, expenses/fuel, synchronization, and local-only Notes. Vehicle guidance follows the current Personal/Driver scope. The sync answer links to the existing sync status screen.
+More → Help retains Replay tour and adds six offline FAQs: sign-in, vehicle setup, maintenance, expenses/fuel, synchronization, and local-only Notes. Vehicle guidance follows the current Personal/Driver scope. The sync answer links to the existing sync status screen.
 
 Feedback to `support@autoxmm.com` is an ephemeral, editable message. Opening an email draft hands it to the user's mail app for review; AutoX does not send it. Platform information is excluded by default and only included through an explicit checkbox. Copy includes the recipient, subject, and the same message, providing an offline/no-mail-app fallback. Failed launching or copying preserves the typed message. No account records, documents, logs, or tokens are attached or sent to analytics. The draft is discarded when the Help screen is disposed. Broad crash monitoring and ticket infrastructure remain separate work.
+
+## More navigation hub (5 November 2026)
+
+The fourth tab retains `/settings` for route compatibility and uses `more_horiz` with the More label. Customer information and the personal subscription card remain at the top, and Sign Out remains at the bottom. Account Connection moves to the current user's Profile screen only.
+
+- Management: Shared Users (personal owners only), Fuel Types, Parts. Expense Types is deferred. Parts is removed from the drawer; existing contextual entry points remain.
+- Preferences: Settings (`/settings/preferences`) contains Appearance, Localization, Unit and Formats, Reminders, retaining existing destinations.
+- Support & Information: Help, About (`/settings/about`). About displays the installed version/build, branding, Terms, Privacy, and a tappable website footer.
+
+Shared Users (`/settings/shared-users`) groups active shares by recipient, expands to vehicles and access levels, and links to existing vehicle sharing controls. Pending invitations are separate, with expired status shown. Active vehicle shares consume quota, including repeated recipients and archived vehicles, matching server rules; pending invitations do not. The overview uses an account-scoped Drift snapshot, preserves it on refresh failures, and shows its update time. Only a catalog plan with greater capacity triggers the premium banner; unlimited users see no upsell. Driver mode hides and guards this route.
