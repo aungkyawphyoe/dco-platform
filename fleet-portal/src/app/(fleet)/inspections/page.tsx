@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
+import { Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell } from "@dco/ui/components/table";
 import { PageHeader } from "@dco/ui/components/page-header";
 import { Card } from "@dco/ui/components/card";
 import { Badge } from "@dco/ui/components/badge";
@@ -28,7 +30,7 @@ export default function InspectionsPage() {
   const isAdmin = role === "org_admin";
 
   const { data: templates, isLoading: templatesLoading } = useInspectionTemplates(orgId);
-  const { data: inspections, isLoading: inspectionsLoading } = useInspections(orgId);
+  const { data: inspections, isLoading: inspectionsLoading, error: inspectionsError, refetch: refetchInspections } = useInspections(orgId);
   const createTemplate = useCreateInspectionTemplate(orgId);
   const deleteTemplate = useDeleteInspectionTemplate(orgId);
 
@@ -88,54 +90,96 @@ export default function InspectionsPage() {
         </div>
       </InstrumentBand>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-5">
+        <div className="min-w-0 xl:col-span-3">
           <Card className="flex h-full flex-col">
             <SectionHeading title="Inspection history" count={runs.length} />
             <div className="flex-1 p-5">
               {inspectionsLoading ? (
                 <Skeleton className="h-32 w-full" />
+              ) : inspectionsError ? (
+                <div role="alert">
+                  <p className="text-sm text-danger">Inspection history could not be loaded.</p>
+                  <Button className="mt-3" variant="secondary" size="sm" onClick={() => void refetchInspections()}>Try again</Button>
+                </div>
               ) : runs.length === 0 ? (
                 <EmptyState
                   title="No inspections yet"
                   description="Drivers start pre-trip and post-trip checks from their assignment; completed runs list here."
                 />
               ) : (
-                <ul className="divide-y divide-line-subtle">
-                  {runs.map((inspection) => {
-                    const failed = inspection.items.filter((item) => item.result === "not_ok");
-                    return (
-                      <li
-                        key={inspection.id}
-                        id={`inspection-${inspection.id}`}
-                        className="flex items-start justify-between gap-4 py-3 first:pt-0 last:pb-0"
-                      >
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium capitalize text-ink">
-                            {inspection.inspection_type.replace("_", " ")}
-                          </p>
-                          <p className="mt-0.5 text-xs text-ink-caption">
-                            {inspection.started_at ? formatDateTime(inspection.started_at) : "—"}
-                          </p>
-                          {failed.length ? (
-                            <p className="mt-1 text-xs text-danger">
-                              Failed: {failed.map((item) => item.item_name).join(", ")}
+                <Table aria-label="Inspection history">
+                  <TableHead>
+                    <TableRow>
+                      <TableHeadCell>Vehicle</TableHeadCell>
+                      <TableHeadCell>Inspection</TableHeadCell>
+                      <TableHeadCell>Status</TableHeadCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {runs.map((inspection) => {
+                      const failed = inspection.items.filter((item) => item.result === "not_ok");
+                      const vehicleName = inspection.vehicle_name || inspection.vehicle_license_plate || `Vehicle ${inspection.vehicle_id}`;
+                      return (
+                        <TableRow key={inspection.id} id={`inspection-${inspection.id}`} className="align-top">
+                          <TableCell>
+                            <Link
+                              href={`/vehicles/${inspection.vehicle_id}`}
+                              className="font-medium text-link underline underline-offset-4 focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
+                            >
+                              {vehicleName}
+                            </Link>
+                            {inspection.vehicle_license_plate && (
+                              <p className="mt-1 text-xs text-ink-caption">{inspection.vehicle_license_plate}</p>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <p className="font-medium capitalize">{inspection.inspection_type.replaceAll("_", " ")}</p>
+                            <p className="mt-1 text-xs text-ink-caption">
+                              {inspection.started_at ? formatDateTime(inspection.started_at) : "—"}
                             </p>
-                          ) : null}
-                        </div>
-                        <Badge tone={inspectionStatusTone[inspection.status] ?? "neutral"}>
-                          {inspection.status}
-                        </Badge>
-                      </li>
-                    );
-                  })}
-                </ul>
+                            {failed.length > 0 && (
+                              <p className="mt-1 text-xs text-danger">Failed: {failed.map((item) => item.item_name).join(", ")}</p>
+                            )}
+                            <details className="mt-2 text-xs">
+                              <summary className="cursor-pointer rounded text-link focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus">
+                                View details<span className="sr-only"> for {vehicleName}</span>
+                              </summary>
+                              <div className="mt-2 space-y-2">
+                                <p className="font-medium">{vehicleName}{inspection.vehicle_license_plate ? ` (${inspection.vehicle_license_plate})` : ""}</p>
+                                {inspection.completed_at && <p className="text-ink-caption">Completed {formatDateTime(inspection.completed_at)}</p>}
+                                {inspection.items.length ? (
+                                  <ul className="space-y-2">
+                                    {inspection.items.map((item, index) => (
+                                      <li key={`${item.item_name}-${index}`}>
+                                        <p className={item.result === "not_ok" ? "text-danger" : "text-ink"}>
+                                          {item.item_name}: {item.result === "not_ok" ? "Failed" : "Passed"}
+                                        </p>
+                                        {item.notes && <p className="whitespace-pre-wrap text-ink-caption">{item.notes}</p>}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                ) : <p className="text-ink-caption">No checklist results recorded yet.</p>}
+                                {inspection.notes && <p className="whitespace-pre-wrap text-ink-caption">{inspection.notes}</p>}
+                              </div>
+                            </details>
+                          </TableCell>
+                          <TableCell>
+                            <Badge tone={inspectionStatusTone[inspection.status] ?? "neutral"}>
+                              {inspection.status.replaceAll("_", " ")}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
               )}
             </div>
           </Card>
         </div>
 
-        <div className="lg:col-span-2">
+        <div className="min-w-0 xl:col-span-2">
           <Card className="flex h-full flex-col">
             <SectionHeading title="Checklist templates" count={templates?.items.length ?? 0} />
             <div className="flex-1 p-5">

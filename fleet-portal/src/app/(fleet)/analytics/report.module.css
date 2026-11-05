@@ -64,8 +64,9 @@
   font-weight: 600;
 }
 .filters label {
-  display: grid;
-  gap: 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 13px;
 }
 .filters .check,
@@ -73,7 +74,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  min-height: 42px;
+  min-height: 36px;
 }
 .check input {
   width: 18px;
@@ -85,7 +86,8 @@
   min-width: 185px;
 }
 .vehicleFilter summary {
-  padding: 11px 12px;
+  padding: 6px 10px;
+  min-height: 36px;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: 6px;
@@ -94,7 +96,7 @@
 }
 .vehicleFilter > div {
   position: absolute;
-  top: 48px;
+  top: calc(100% + 6px);
   z-index: 5;
   background: var(--bg-card);
   border: 1px solid var(--border-default);
@@ -318,7 +320,11 @@
     gap: 12px;
   }
   .filters > label {
-    flex: 1;
+    flex: 1 1 auto;
+    justify-content: space-between;
+  }
+  .filters > .check {
+    justify-content: flex-start;
   }
   .vehicleFilter {
     width: 100%;
@@ -396,12 +402,22 @@
 }
 .filters {
   border-radius: 8px;
-  align-items: end;
+  align-items: center;
   flex-wrap: wrap;
   border: 1px solid var(--border-divider);
   background: var(--bg-card);
-  gap: 12px 20px;
-  padding: 16px 18px;
+  gap: 8px 12px;
+  padding: 10px 12px;
+}
+.filters :is(button, select, input:not([type="checkbox"])) {
+  min-height: 36px;
+  padding: 6px 10px;
+}
+.filters > label {
+  white-space: nowrap;
+}
+.filters > label > :is(select, input) {
+  min-width: 0;
 }
 .pending {
   align-self: center;
@@ -620,7 +636,7 @@
     padding: 16px;
   }
   .filters {
-    padding: 14px;
+    padding: 10px 12px;
   }
   .filters > label {
     min-width: 0;

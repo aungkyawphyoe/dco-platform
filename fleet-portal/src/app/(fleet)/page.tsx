@@ -40,7 +40,7 @@ export default function DashboardPage() {
   const urgentVehicles = new Set(data?.items.filter(item => item.group === "urgent").map(item => item.vehicle_id)).size;
   return <div className="flex flex-col gap-6">
 
-    <PageHeader title="Fleet overview" description="Resolve today’s priorities, then review operating costs." meta={org?.organization?.name ?? "Your fleet"} />
+    <PageHeader title="Fleet overview" description="Review operating costs and resolve today’s fleet priorities." meta={org?.organization?.name ?? "Your fleet"} />
 
     {attention.isPending && <div aria-label="Loading fleet overview" className="space-y-3">
       <Skeleton className="h-28 w-full" />
@@ -62,6 +62,69 @@ export default function DashboardPage() {
           {attention.isFetching ? "Refreshing…" : "Refresh"}
         </Button>
       </div>
+
+      <Card>
+        <SectionHeading title="Operating costs this month">
+          <Link className={`${linkStyle} text-sm`} href="/analytics">Explore analytics</Link>
+        </SectionHeading>
+        <div className="p-5">
+
+          {report.isPending && <Skeleton className="h-24 w-full" />}
+
+          {report.error && <div role="alert">
+            <p className="text-sm text-danger">Costs could not be loaded. Check your reporting currency in Organization settings or try again.</p>
+            <Button className="mt-3" size="sm" variant="secondary" onClick={() => void report.refetch()}>Retry costs</Button>
+          </div>}
+
+          {costs && !report.error && <>
+            <p className="mb-4 text-sm text-ink-caption">{costs.period.from} to {costs.period.to}. Current fleet, {costs.currency}.</p>
+            <div className="grid gap-6 sm:grid-cols-3">
+              <div>
+                <p className="text-sm text-ink-muted">Recorded spend</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums">
+                  {money(costs.total_cost, costs.currency === "MMK" ? 0 : 2, costs.currency)}
+                </p>
+                <p className="mt-1 text-sm text-ink-caption">
+                  {costs.changes.total_cost === null ? "No comparable previous-period baseline" : `${costs.changes.total_cost > 0 ? "+" : ""}${format(costs.changes.total_cost, 1)}% vs previous period`}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-ink-muted">Matched cost / km</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums">
+                  {costs.cost_per_km === null ? "Unavailable" : money(costs.cost_per_km, 2, costs.currency)}
+                </p>
+              </div>
+              <div>
+                <p className="text-sm text-ink-muted">Recorded distance</p>
+                <p className="mt-1 text-2xl font-semibold tabular-nums">
+                  {format(costs.distance_km, 1)}
+                  {costs.distance_km !== null ? " km" : ""}
+                </p>
+                <p className="mt-1 text-sm text-ink-caption">
+                  {costs.coverage_complete ? "Complete mileage coverage" : "Incomplete mileage coverage; comparisons may be limited"}
+                </p>
+              </div>
+            </div>
+            <div className="mt-6 space-y-3" aria-label="Spending by category">
+              {Object.entries(costs.categories).sort((a, b) => b[1] - a[1]).map(([category, amount]) => <div key={category} className="grid grid-cols-[7rem_minmax(0,1fr)_auto] items-center gap-3 text-sm">
+                <span className="capitalize">
+                  {category.replaceAll("_", " ")}
+                </span>
+                <div className="h-2 rounded bg-panel">
+                  <div className="h-2 rounded bg-info" style={{ width: `${Math.min(100, Math.max(0, costs.total_cost > 0 ? amount / costs.total_cost * 100 : 0))}%` }} />
+                </div>
+                <span className="tabular-nums">
+                  {format(amount)}
+                </span>
+              </div>)}
+            </div>
+            {costs.warnings.map(warning => <p key={warning} className="mt-3 text-xs text-ink-caption">
+              {warning}
+            </p>)}
+          </>}
+
+        </div>
+      </Card>
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,3fr)_minmax(16rem,1fr)]">
 
@@ -144,69 +207,6 @@ export default function DashboardPage() {
         </div>
 
       </div>
-
-      <Card>
-        <SectionHeading title="Operating costs this month">
-          <Link className={`${linkStyle} text-sm`} href="/analytics">Explore analytics</Link>
-        </SectionHeading>
-        <div className="p-5">
-
-          {report.isPending && <Skeleton className="h-24 w-full" />}
-
-          {report.error && <div role="alert">
-            <p className="text-sm text-danger">Costs could not be loaded. Check your reporting currency in Organization settings or try again.</p>
-            <Button className="mt-3" size="sm" variant="secondary" onClick={() => void report.refetch()}>Retry costs</Button>
-          </div>}
-
-          {costs && !report.error && <>
-            <p className="mb-4 text-sm text-ink-caption">{costs.period.from} to {costs.period.to}. Current fleet, {costs.currency}.</p>
-            <div className="grid gap-6 sm:grid-cols-3">
-              <div>
-                <p className="text-sm text-ink-muted">Recorded spend</p>
-                <p className="mt-1 text-2xl font-semibold tabular-nums">
-                  {money(costs.total_cost, costs.currency === "MMK" ? 0 : 2, costs.currency)}
-                </p>
-                <p className="mt-1 text-sm text-ink-caption">
-                  {costs.changes.total_cost === null ? "No comparable previous-period baseline" : `${costs.changes.total_cost > 0 ? "+" : ""}${format(costs.changes.total_cost, 1)}% vs previous period`}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-ink-muted">Matched cost / km</p>
-                <p className="mt-1 text-2xl font-semibold tabular-nums">
-                  {costs.cost_per_km === null ? "Unavailable" : money(costs.cost_per_km, 2, costs.currency)}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-ink-muted">Recorded distance</p>
-                <p className="mt-1 text-2xl font-semibold tabular-nums">
-                  {format(costs.distance_km, 1)}
-                  {costs.distance_km !== null ? " km" : ""}
-                </p>
-                <p className="mt-1 text-sm text-ink-caption">
-                  {costs.coverage_complete ? "Complete mileage coverage" : "Incomplete mileage coverage; comparisons may be limited"}
-                </p>
-              </div>
-            </div>
-            <div className="mt-6 space-y-3" aria-label="Spending by category">
-              {Object.entries(costs.categories).sort((a, b) => b[1] - a[1]).map(([category, amount]) => <div key={category} className="grid grid-cols-[7rem_minmax(0,1fr)_auto] items-center gap-3 text-sm">
-                <span className="capitalize">
-                  {category.replaceAll("_", " ")}
-                </span>
-                <div className="h-2 rounded bg-panel">
-                  <div className="h-2 rounded bg-info" style={{ width: `${Math.min(100, Math.max(0, costs.total_cost > 0 ? amount / costs.total_cost * 100 : 0))}%` }} />
-                </div>
-                <span className="tabular-nums">
-                  {format(amount)}
-                </span>
-              </div>)}
-            </div>
-            {costs.warnings.map(warning => <p key={warning} className="mt-3 text-xs text-ink-caption">
-              {warning}
-            </p>)}
-          </>}
-
-        </div>
-      </Card>
 
     </>}
 

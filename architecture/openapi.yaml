@@ -3773,7 +3773,7 @@ paths:
           required: true
           schema: {type: string, format: uuid}
       responses:
-        '200': {description: Inspections}
+        '200': {description: 'Inspection records including vehicle_id, vehicle_name, and vehicle_license_plate for each entry.'}
     post:
       tags: [Fleet]
       summary: Start an inspection for an assigned vehicle

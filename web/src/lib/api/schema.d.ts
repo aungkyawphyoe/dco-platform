@@ -7410,7 +7410,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Inspections */
+                /** @description Inspection records including vehicle_id, vehicle_name, and vehicle_license_plate for each entry. */
                 200: {
                     headers: {
                         [name: string]: unknown;

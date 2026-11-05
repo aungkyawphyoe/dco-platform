@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { PageHeader } from "@dco/ui/components/page-header";
 import { Card } from "@dco/ui/components/card";
@@ -64,6 +64,7 @@ function statusTone(status: string): "success" | "warning" | "danger" | "info" |
 }
 
 export default function VehiclesPage() {
+  const importInput = useRef<HTMLInputElement>(null);
   const orgId = useOrgId();
   const role = useOrgRole();
   const canManage = role === "org_admin" || role === "org_manager";
@@ -161,21 +162,22 @@ export default function VehiclesPage() {
         actions={
           <>
             {canImport ? (
-              <label className="inline-flex">
+              <>
                 <input
+                  ref={importInput}
                   type="file"
                   accept=".csv"
-                  className="sr-only"
+                  className="hidden"
                   onChange={(e) => {
                     const file = e.target.files?.[0];
                     if (file) void onImport(file);
                     e.target.value = "";
                   }}
                 />
-                <span className="inline-flex h-9 cursor-pointer items-center justify-center rounded-md border border-line-strong bg-card px-4 font-display text-sm font-semibold text-ink transition-colors hover:bg-skeleton">
+                <Button variant="secondary" onClick={() => importInput.current?.click()}>
                   Import CSV
-                </span>
-              </label>
+                </Button>
+              </>
             ) : null}
             {canManage ? <Button onClick={() => setShowCreate(true)}>Add vehicle</Button> : null}
           </>
@@ -321,7 +323,6 @@ export default function VehiclesPage() {
                 ) : null}
                 <TableHeadCell>Vehicle</TableHeadCell>
                 <TableHeadCell>Plate</TableHeadCell>
-                <TableHeadCell>Class</TableHeadCell>
                 <TableHeadCell>Lifecycle</TableHeadCell>
                 <TableHeadCell>Status</TableHeadCell>
                 <TableHeadCell>Distance</TableHeadCell>
@@ -358,10 +359,6 @@ export default function VehiclesPage() {
                     </TableCell>
                     <TableCell className="font-mono text-xs">{vehicle.license_plate}</TableCell>
                     <TableCell className="text-xs text-ink-muted">
-                      {vehicleClassOptions.find((o) => o.value === (vehicle.vehicle_class ?? "car"))
-                        ?.label ?? vehicle.vehicle_class}
-                    </TableCell>
-                    <TableCell className="text-xs text-ink-muted">
                       {lifecycleTemplateOptions.find((o) => o.value === vehicle.lifecycle_template)
                         ?.label ?? vehicle.lifecycle_template}
                     </TableCell>
@@ -376,7 +373,7 @@ export default function VehiclesPage() {
                         {canManage && nextStatuses.length ? (
                           <select
                             aria-label={`Change status for ${vehicle.name}`}
-                            className="h-8 rounded-sm border border-line-strong bg-field px-2 text-xs text-ink"
+                            className="h-8 w-36 min-w-36 shrink-0 rounded-sm border border-line-strong bg-field px-2 text-xs text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
                             value=""
                             onChange={async (e) => {
                               if (!e.target.value) return;

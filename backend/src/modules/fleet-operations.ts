@@ -315,10 +315,16 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     requireFleetPortal(request);
     const orgId = uuid.parse((request.params as { id: string }).id);
     const { membership } = await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager", "org_driver"]);
-    const rows = await app.db.select().from(inspections).where(and(
+    const rows = await app.db.select({
+      inspection: inspections,
+      vehicle_name: vehicles.name,
+      vehicle_license_plate: vehicles.licensePlate,
+    }).from(inspections).innerJoin(vehicles, eq(vehicles.id, inspections.vehicleId)).where(and(
       eq(inspections.orgId, orgId), ...(membership.role === "org_driver" ? [eq(inspections.driverId, uid(request))] : []),
     ));
-    return { items: rows.map(serializeInspection) };
+    return { items: rows.map(({ inspection, vehicle_name, vehicle_license_plate }) => ({
+      ...serializeInspection(inspection), vehicle_name, vehicle_license_plate,
+    })) };
   });
 
   app.get("/drivers/my-inspections", async (request) => {

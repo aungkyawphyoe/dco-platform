@@ -450,6 +450,29 @@ describe("Enterprise Fleet access", () => {
     const driverInspections = await app.inject({ method: "GET", url: "/v1/drivers/my-inspections", headers: auth(driverToken) });
     expect(driverInspections.json().items).toHaveLength(1);
 
+    const history = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/inspections`, headers: auth(ownerToken) });
+    expect(history.statusCode).toBe(200);
+    expect(history.json().items).toEqual([expect.objectContaining({
+      id: inspection.json().id,
+      vehicle_id: vehicleId,
+      vehicle_name: "Taxi CSV",
+      vehicle_license_plate: "CSV123",
+      status: "failed",
+      items: expect.arrayContaining([expect.objectContaining({ item_name: "Tires", result: "not_ok" })]),
+    })]);
+    const outsider = await signup(app, "inspection-outsider");
+    const otherOrg = await app.inject({
+      method: "POST", url: "/v1/admin/organizations", headers: auth(platformAdmin),
+      payload: { name: "Other Inspection Fleet", type: "taxi_fleet", admin_email: outsider.email },
+    });
+    expect(otherOrg.statusCode).toBe(201);
+    await grantTestFleet(app, platformAdmin, otherOrg.json().id);
+    await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${otherOrg.json().id}/status`, headers: auth(platformAdmin), payload: { status: "active" } });
+    const outsiderLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: outsider.email, password: "password1", surface: "fleet" } });
+    expect(outsiderLogin.statusCode).toBe(200);
+    const forbiddenHistory = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/inspections`, headers: auth(outsiderLogin.json().access_token) });
+    expect(forbiddenHistory.statusCode).toBe(403);
+
     const fleetAnalytics = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/analytics/fleet`, headers: auth(ownerToken) });
     expect(fleetAnalytics.statusCode).toBe(200);
     expect(fleetAnalytics.json().active_assignments).toBe(1);

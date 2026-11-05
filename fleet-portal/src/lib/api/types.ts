@@ -158,6 +158,8 @@ export type Inspection = {
   id: string;
   org_id: string;
   vehicle_id: string;
+  vehicle_name: string;
+  vehicle_license_plate: string;
   driver_id: string;
   template_id: string;
   inspection_type: string;
