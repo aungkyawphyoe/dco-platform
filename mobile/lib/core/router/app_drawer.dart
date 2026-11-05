@@ -63,11 +63,6 @@ class AppDrawer extends ConsumerWidget {
                           _navigate(context, AppRoutes.maintenancePlan),
                     ),
                     _DrawerTile(
-                      icon: Icons.settings_input_component_outlined,
-                      title: s.drawerParts,
-                      onTap: () => _navigate(context, AppRoutes.parts),
-                    ),
-                    _DrawerTile(
                       icon: Icons.folder_outlined,
                       title: s.drawerDocuments,
                       onTap: () => _navigate(context, AppRoutes.documents),

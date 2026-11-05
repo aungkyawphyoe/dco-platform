@@ -38,6 +38,9 @@ abstract final class AppRoutes {
   static const pricing = '/pricing';
   static const redeemGift = '/pricing/redeem';
   static const settings = '/settings';
+  static const settingsPreferences = '/settings/preferences';
+  static const about = '/settings/about';
+  static const sharedUsers = '/settings/shared-users';
   static const settingsLocalization = '/settings/localization';
   static const settingsUnits = '/settings/units';
   static const settingsReminders = '/settings/reminders';
@@ -96,7 +99,6 @@ abstract final class AppRoutes {
   // Profile (top-level, accessible from any tab)
   static const profileEdit = '/profile/edit';
   static String profileDetail(String id) => '/profile/$id';
-
 
   static const authPaths = {introduction, login, signup, forgotPassword};
 }

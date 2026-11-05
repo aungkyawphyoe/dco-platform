@@ -37,7 +37,7 @@ Production scope wins over an FRD. If they disagree, update the FRD. OpenAPI win
 
 AutoX is a digital garage: vehicles, maintenance plan + history, documents, expenses. Offline-first. Synced to a versioned REST API (`/v1`, audience `dco-owner`).
 
-After a successful owner login, land on **Dashboard** (tldraw screen 3) — the **active vehicle's home**. Bottom nav labels: **Garage / Maintenance / Expenses / Setting**. The Garage tab **is** Dashboard; it is named Garage because the working context is the garage's active vehicle. My Garage (vehicle list) is one tap off the header chip, not a fifth tab.
+After a successful owner login, land on **Dashboard** (tldraw screen 3) — the **active vehicle's home**. Bottom nav labels: **Garage / Maintenance / Expenses / More**. The Garage tab **is** Dashboard; it is named Garage because the working context is the garage's active vehicle. My Garage (vehicle list) is one tap off the header chip, not a fifth tab.
 
 Documents is reached from Expenses (header) and from vehicle flows — not a tab. Sync status is a compact indicator in the top bar or Settings — never a fifth tab.
 
@@ -267,7 +267,7 @@ From [`docs/app-shell.md`](../docs/app-shell.md). Keep one `StatefulShellRoute` 
 | Garage | `/dashboard` | 3 | Home. Active vehicle. Default after login. |
 | Maintenance | `/maintenance` | 6 | Plan + history for the active vehicle. |
 | Expenses | `/expenses` | 7 | Spend for the active vehicle. |
-| Setting | `/settings` | 9 | Account, vehicles, sync. |
+| More | `/settings` | 9 | Account, management, preferences, help and About. |
 
 Unauthenticated: login / signup / password-reset only.
 

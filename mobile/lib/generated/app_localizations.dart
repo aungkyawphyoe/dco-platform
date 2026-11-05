@@ -3287,7 +3287,7 @@ abstract class AppLocalizations {
   /// No description provided for @tourSettingsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Settings and sync'**
+  /// **'More and settings'**
   String get tourSettingsTitle;
 
   /// No description provided for @tourSettingsBody.
@@ -8513,6 +8513,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Retry to check your account’s vehicles.'**
   String get dashboardVehicleLoadRetryBody;
+
+  /// No description provided for @navMore.
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get navMore;
+
+  /// No description provided for @moreManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'Management'**
+  String get moreManagement;
+
+  /// No description provided for @morePreferences.
+  ///
+  /// In en, this message translates to:
+  /// **'Preferences'**
+  String get morePreferences;
+
+  /// No description provided for @moreSupport.
+  ///
+  /// In en, this message translates to:
+  /// **'Support & Information'**
+  String get moreSupport;
+
+  /// No description provided for @aboutTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get aboutTitle;
+
+  /// No description provided for @aboutVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version {version} ({build})'**
+  String aboutVersion(String version, String build);
+
+  /// No description provided for @aboutLinkError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the link. Please try again.'**
+  String get aboutLinkError;
+
+  /// No description provided for @sharedUsersTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared Users'**
+  String get sharedUsersTitle;
+
+  /// No description provided for @sharedUsersPending.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending invitations'**
+  String get sharedUsersPending;
+
+  /// No description provided for @sharedUsersExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get sharedUsersExpired;
+
+  /// No description provided for @sharedUsersUsed.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} vehicle shares used'**
+  String sharedUsersUsed(int count);
+
+  /// No description provided for @sharedUsersRemaining.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} sharing slots remaining'**
+  String sharedUsersRemaining(int count);
+
+  /// No description provided for @sharedUsersUnlimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Unlimited sharing'**
+  String get sharedUsersUnlimited;
+
+  /// No description provided for @sharedUsersVehicleCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} vehicles'**
+  String sharedUsersVehicleCount(int count);
+
+  /// No description provided for @sharedUsersQuotaHelp.
+  ///
+  /// In en, this message translates to:
+  /// **'Each active vehicle share uses one slot, even for the same person. Pending invitations do not use slots. Per-vehicle limits still apply.'**
+  String get sharedUsersQuotaHelp;
+
+  /// No description provided for @sharedUsersUpgradeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Need more sharing slots?'**
+  String get sharedUsersUpgradeTitle;
+
+  /// No description provided for @sharedUsersUpgradeBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Explore premium plans to share with more people.'**
+  String get sharedUsersUpgradeBody;
+
+  /// No description provided for @sharedUsersEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a vehicle in My Garage to manage sharing and invite someone.'**
+  String get sharedUsersEmptyBody;
+
+  /// No description provided for @sharedUsersCached.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not refresh. Showing the last saved overview.'**
+  String get sharedUsersCached;
+
+  /// No description provided for @sharedUsersLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect to load your shared users, then try again.'**
+  String get sharedUsersLoadError;
+
+  /// No description provided for @sharedUsersUpdated.
+  ///
+  /// In en, this message translates to:
+  /// **'Last updated: {date}'**
+  String sharedUsersUpdated(String date);
 }
 
 class _AppLocalizationsDelegate

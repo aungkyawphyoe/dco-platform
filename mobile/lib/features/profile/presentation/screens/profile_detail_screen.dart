@@ -197,6 +197,13 @@ class ProfileDetailScreen extends ConsumerWidget {
             address ?? '-',
           ),
           if (selfUser != null) ...[
+            ListTile(
+              leading: const Icon(Icons.link),
+              title: Text(s.authConnections),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(AppRoutes.accountConnections),
+            ),
+
             SizedBox(height: tokens.space.s3),
             Container(
               padding: EdgeInsets.all(tokens.space.s3),

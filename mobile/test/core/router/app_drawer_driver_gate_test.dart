@@ -72,6 +72,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Shared with Me'), findsOneWidget);
+      expect(find.text('Parts'), findsNothing);
       expect(find.byIcon(Icons.qr_code_scanner), findsNothing);
       expect(find.byIcon(Icons.people_outline), findsOneWidget);
     },
