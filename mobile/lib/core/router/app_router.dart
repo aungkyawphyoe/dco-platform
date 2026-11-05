@@ -500,7 +500,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: 'new',
             parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => const PlanItemFormScreen(),
+            pageBuilder: (context, state) =>
+                PlanItemFormPage(key: state.pageKey),
           ),
           GoRoute(
             path: 'suggested',
@@ -510,7 +511,8 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: ':planItemId/edit',
             parentNavigatorKey: rootNavigatorKey,
-            builder: (context, state) => PlanItemFormScreen(
+            pageBuilder: (context, state) => PlanItemFormPage(
+              key: state.pageKey,
               planItemId: state.pathParameters['planItemId'],
             ),
           ),

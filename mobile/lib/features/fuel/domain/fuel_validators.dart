@@ -59,7 +59,7 @@ abstract final class FuelLogValidators {
     if (parsed < 0) return 'Odometer cannot be negative';
     if (parsed > maxOdometer) return 'Odometer is too large';
     if (vehicleMileage != null && parsed < vehicleMileage) {
-      return 'Odometer cannot be below vehicle mileage';
+      return 'Odometer cannot be below the current reading';
     }
     return null;
   }

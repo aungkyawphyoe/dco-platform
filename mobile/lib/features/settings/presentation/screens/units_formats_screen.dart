@@ -193,7 +193,7 @@ class UnitsFormatsScreen extends ConsumerWidget {
           ),
           SizedBox(height: tokens.space.s2),
           Text(
-            'Odometer, service intervals, and due mileage follow this unit.',
+            'Odometer, service intervals, and due odometer readings follow this unit.',
             style: Theme.of(
               context,
             ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),

@@ -55,18 +55,49 @@ void main() {
     expect(queued.single.entityId, vehicle.id);
   });
 
+  test(
+    'new vehicles become active even with existing vehicles and no selection',
+    () async {
+      final first = await repo.add(userId: 'user-1', draft: _draft());
+      await (db.update(db.userProfiles)
+            ..where((row) => row.userId.equals('user-1')))
+          .write(const UserProfilesCompanion(activeVehicleId: Value(null)));
+      final next = await repo.add(
+        userId: 'user-1',
+        draft: _draft(name: 'Second', plate: 'DEF456'),
+      );
+      expect((await repo.watchActive('user-1').first)?.id, next.id);
+      expect(next.id, isNot(first.id));
+      final pending =
+          await (db.select(db.appMeta)..where(
+                (row) => row.key.equals('pending_active_vehicle:user-1'),
+              ))
+              .getSingle();
+      expect(pending.value, next.id);
+    },
+  );
+
   test('duplicate plate is rejected', () async {
     const userId = 'user-1';
-    await repo.add(userId: userId, draft: _draft(plate: 'ABC123'));
+    await repo.add(
+      userId: userId,
+      draft: _draft(plate: 'ABC123'),
+    );
     expect(
-      () => repo.add(userId: userId, draft: _draft(name: 'Other', plate: 'abc123')),
+      () => repo.add(
+        userId: userId,
+        draft: _draft(name: 'Other', plate: 'abc123'),
+      ),
       throwsA(isA<DuplicatePlateFailure>()),
     );
   });
 
   test('duplicate VIN is rejected', () async {
     const userId = 'user-1';
-    await repo.add(userId: userId, draft: _draft(vin: '1HGBH41JXMN109186'));
+    await repo.add(
+      userId: userId,
+      draft: _draft(vin: '1HGBH41JXMN109186'),
+    );
     expect(
       () => repo.add(
         userId: userId,
@@ -78,7 +109,10 @@ void main() {
 
   test('mileage cannot decrease', () async {
     const userId = 'user-1';
-    final vehicle = await repo.add(userId: userId, draft: _draft(mileage: 5000));
+    final vehicle = await repo.add(
+      userId: userId,
+      draft: _draft(mileage: 5000),
+    );
     expect(
       () => repo.update(
         userId: userId,
@@ -97,7 +131,9 @@ void main() {
 
     // Local vehicle row with a stale denormalized permission (owner upgraded
     // the share after the row was first stamped, or it was never stamped).
-    await db.into(db.vehicleRecords).insert(
+    await db
+        .into(db.vehicleRecords)
+        .insert(
           VehicleRecordsCompanion.insert(
             id: vehicleId,
             userId: owner,
@@ -114,7 +150,9 @@ void main() {
             permission: const Value('view'),
           ),
         );
-    await db.into(db.vehicleShareRecords).insert(
+    await db
+        .into(db.vehicleShareRecords)
+        .insert(
           VehicleShareRecordsCompanion.insert(
             id: 'share-1',
             vehicleId: vehicleId,
@@ -125,21 +163,34 @@ void main() {
             createdAt: now,
           ),
         );
-    await db.into(db.userProfiles).insert(
+    await db
+        .into(db.userProfiles)
+        .insert(
           UserProfilesCompanion.insert(
             userId: member,
             activeVehicleId: const Value(vehicleId),
           ),
         );
 
+    final garage = await repo.watchGarage(member).first;
+    expect(garage.map((vehicle) => vehicle.id), [
+      vehicleId,
+    ], reason: 'The first garage snapshot must include shared vehicles.');
+
     final active = await repo.watchActive(member).first;
     expect(active, isNotNull);
-    expect(active!.accessLevel, ShareAccessLevel.addEditOwn,
-        reason: 'the share mirror must win over the stale row permission');
+    expect(
+      active!.accessLevel,
+      ShareAccessLevel.addEditOwn,
+      reason: 'the share mirror must win over the stale row permission',
+    );
     expect(active.source, VehicleSource.shared);
 
     final byId = await repo.watchById(vehicleId, userId: member).first;
-    expect(byId?.accessLevel, ShareAccessLevel.addEditOwn,
-        reason: 'vehicle detail gating must see the same level');
+    expect(
+      byId?.accessLevel,
+      ShareAccessLevel.addEditOwn,
+      reason: 'vehicle detail gating must see the same level',
+    );
   });
 }

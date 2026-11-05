@@ -25,6 +25,11 @@ abstract class ProfileRepository {
     required String vehicleId,
   });
 
+  Future<void> clearPendingActiveVehicle({
+    required String userId,
+    required String vehicleId,
+  });
+
   /// Retries a remembered switch; safe to call repeatedly.
   Future<void> flushPendingActiveVehicle(String userId);
 }

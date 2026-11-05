@@ -74,7 +74,21 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
   void _onSyncStatus(AsyncValue<SyncState> status) {
     if (ref.read(accountTransitionProvider)) return;
     final state = status.valueOrNull;
-    if (state == null || !state.hasError) return;
+    if (state == null) return;
+    if (!state.hasError) {
+      final userId = ref.read(currentUserIdProvider);
+      if (state.lastSyncedAt != null &&
+          userId != null &&
+          ref.read(driverOrganizationIdProvider) == null) {
+        unawaited(
+          ref
+              .read(profileRepositoryProvider)
+              .flushPendingActiveVehicle(userId)
+              .catchError((Object _) {}),
+        );
+      }
+      return;
+    }
 
     final navigatorContext = rootNavigatorKey.currentContext;
     if (navigatorContext == null || !mounted) return;

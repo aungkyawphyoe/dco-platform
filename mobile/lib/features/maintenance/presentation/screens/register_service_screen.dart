@@ -624,9 +624,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                       MileageFormat.labeled(vehicle.mileage, lengthUnit),
                     ),
                     errorText: _errors['mileage'],
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
+                    keyboardType: TextInputType.number,
                     suffix: Padding(
                       padding: const EdgeInsets.only(right: 12, top: 12),
                       child: Text(

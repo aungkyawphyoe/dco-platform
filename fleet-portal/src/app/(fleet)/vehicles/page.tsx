@@ -369,7 +369,7 @@ export default function VehiclesPage() {
                       <Badge tone={statusTone(vehicle.status)}>{vehicle.status}</Badge>
                     </TableCell>
                     <TableCell className="font-mono text-xs text-ink-caption">
-                      {vehicle.mileage.toLocaleString()} km
+                      {vehicle.mileage.toLocaleString(undefined, { maximumFractionDigits: 0 })} km
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">

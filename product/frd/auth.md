@@ -104,3 +104,10 @@ The pre-login introduction remains unchanged and is marked handled per installat
 ## Provider visibility and legal links — 1 November 2026
 
 Apple sign-in/connect buttons are hidden at the user’s request until Apple Developer setup is ready. Google remains available; backend Apple support is retained. Authentication footers open `https://www.autoxmm.com/terms` and `https://www.autoxmm.com/privacy`. This supersedes the requirement to show both providers during this rollout.
+
+
+## Dashboard after login and vehicle creation — 5 November 2026
+
+Fresh signup confirms an empty account and offers vehicle creation (or Later). Existing-account login on a fresh device waits for its vehicle sync before declaring the garage empty. A failed initial sync shows vehicle-loading error copy and Retry. Restore the saved active vehicle when available; if accessible vehicles exist with no active selection, Dashboard directs the user to Garage to activate one. Driver accounts with no assigned vehicles see assignment guidance. Confirmed cached data remains usable offline.
+
+Creating a vehicle makes it locally active before maintenance setup, including when other vehicles exist without an active selection. Queue that selection for server propagation after the vehicle upload. Maintenance reminders are optional: Done works with zero items and returns to Dashboard for the new vehicle.

@@ -8,7 +8,7 @@ class MaintenanceValidationFailure extends MaintenanceFailure {
 }
 
 class MileageDecreaseFailure extends MaintenanceFailure {
-  const MileageDecreaseFailure([super.message = 'Mileage cannot decrease']);
+  const MileageDecreaseFailure([super.message = 'Odometer cannot decrease']);
 }
 
 class VehicleNotFoundFailure extends MaintenanceFailure {

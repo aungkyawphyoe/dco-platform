@@ -258,7 +258,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       throw const MaintenanceValidationFailure('Add at least one service');
     }
     if (draft.odometer != null && draft.odometer! < 0) {
-      throw const MaintenanceValidationFailure('Enter a valid mileage');
+      throw const MaintenanceValidationFailure('Enter a valid odometer');
     }
     if (draft.totalCost < 0) {
       throw const MaintenanceValidationFailure('Enter a valid amount');
@@ -410,7 +410,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       throw const MaintenanceValidationFailure('Add at least one service');
     }
     if (draft.odometer != null && draft.odometer! < 0) {
-      throw const MaintenanceValidationFailure('Enter a valid mileage');
+      throw const MaintenanceValidationFailure('Enter a valid odometer');
     }
     if (draft.totalCost < 0) {
       throw const MaintenanceValidationFailure('Enter a valid amount');
@@ -600,7 +600,7 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
       }
       if (plan.intervalDistance != null && draft.odometer == null) {
         throw const MaintenanceValidationFailure(
-          'Mileage is required for a distance repeat',
+          'Odometer is required for a distance repeat',
         );
       }
     }

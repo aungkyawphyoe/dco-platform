@@ -10,17 +10,17 @@ Status is approved for implementation. This section supersedes conflicting catal
 - Show the full suggested catalog for every vehicle, without vehicle-class, lifecycle, or fuel filtering. Every item follows the same behavior, including Mileage Update.
 - Seed Air Conditioning, Air Filter, Battery, Belts, Brake Fluid, Brake Pads, Car Wash, Fuel Filter, Lights, Mileage Update, New Tires, Oil Change, Oil Filter, Schedule Maintenance, Suspension/Shock Absorbers, Tires - Alignment/Balancing, Tires - Pressure, and Tire - Rotation.
 - Remove reusable fleet interval templates, class assignment, and template-based plan generation. Fleet managers configure reminders per vehicle.
-- Custom service names belong to the vehicle. They do not become shared catalog suggestions.
+- Custom reminder names belong to the vehicle. Fleet admins/managers may separately add fleet-only catalog names for reuse across their fleet.
 - Removing a catalog suggestion preserves existing reminders, their names, and service history. Existing reminders remain selectable during service logging.
 
 ### Reminder setup and permissions
 
-- Offer Create Custom Service Item and Add Suggested Item. Selecting a suggestion opens a bottom sheet with its name filled in. Use the bottom-sheet setup flow in mobile and Fleet Portal.
+- Offer Create Custom Service Item and Add Suggested Item. Selecting a suggestion opens a bottom sheet with its name filled in. Create and edit use the same bottom-sheet flow in mobile; Fleet Portal uses centered web dialogs. Both forms show Name, side-by-side next due date and odometer, Recurring, Note, then Active. Mobile uses flat controls with no grouping card or Next due section heading. New time repeats offer Months and Years; existing day-based schedules remain unchanged until explicitly edited. Only Save appears in the footer; close, Back, and sheet dismissal exit without saving. Suggested rows use compact padding and a Set up button.
 - Require at least one explicit first due target, expressed as an odometer reading, a date, or both. Users select which suggested items to add.
 - Support one-time reminders and optional repetition. A distance repeat requires a first due odometer reading. A time repeat requires a first due date.
 - Store targets separately from repeat intervals. Both date and distance targets use whichever is reached first.
 - Time repeats support days, calendar months, and calendar years. Clamp to the destination month's last valid day when needed.
-- Configure distance and date advance warnings per reminder. Prefill from the owner's existing reminder settings and allow overrides. Show warnings only for the corresponding enabled target. Either warning can make a reminder upcoming.
+- Mobile setup uses the global reminder settings, with no per-item warning inputs. Creating or saving an edited mobile reminder clears its overrides so later global setting changes apply. Fleet Portal preserves its existing warning thresholds without exposing warning fields in this form. Either warning can make a reminder upcoming.
 - Allow at most one active reminder per catalog item per vehicle. Selecting an already active item during setup opens it for editing. Separately named custom reminders can have independent schedules.
 - Personal owners manage their reminders and log services. Fleet managers manage fleet reminders. Fleet drivers can log planned, unplanned, and custom services.
 
@@ -49,7 +49,7 @@ Existing development maintenance catalog, template, reminder, and service-log da
 - [ ] Suggested-item selection opens a prefilled bottom sheet requiring at least one manual due target.
 - [ ] One-time and recurring reminders support distance, date, or both, with either target making them due.
 - [ ] Repeat rules require corresponding first targets and preserve calendar units.
-- [ ] Reminder warnings default from owner settings and can be overridden per reminder.
+- [ ] Mobile reminders use global warning settings; Fleet Portal can set per-reminder overrides.
 - [ ] Duplicate active catalog reminders open the existing reminder for editing.
 - [ ] Fleet setup works per vehicle and permissions enforce manager setup and driver logging.
 - [ ] A service visit supports multiple planned, unplanned, and custom items with a shared total cost.
@@ -412,3 +412,9 @@ maintenance_reminder_dismissed
 - Verified service history / digital passport
 - Manufacturer schedule import
 - Predictive due dates
+
+User-facing readings and reading inputs use **Odometer**. Repeat intervals use **Distance**. **Mileage** is reserved for efficiency and chart contexts; API field names stay unchanged.
+
+Distance and odometer UI values use whole numbers with no decimal places in mobile and Fleet Portal. Keep canonical storage/conversion precision; costs, quantities, and efficiency ratios retain their existing precision.
+
+When recurrence is enabled, each entered due target requires its matching repeat: date requires repeat time (at least 1 month for new schedules), odometer requires a positive repeat distance. A single due target does not require the other target or repeat. Show only the applicable repeat fields and place required-field errors beside missing inputs. One-time reminders need either due target and no repeats.

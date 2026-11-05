@@ -86,6 +86,19 @@ void main() {
     payload: {'id': 'queued', 'vehicle_id': 'vehicle'},
   );
 
+  test('fresh signup confirms an empty garage before its first sync', () async {
+    await container.read(sessionControllerProvider.future);
+    await container
+        .read(sessionControllerProvider.notifier)
+        .signUp(email: 'fresh@example.com', password: 'password12');
+    final id = container.read(sessionControllerProvider).valueOrNull!.user.id;
+    final marker = await (db.select(
+      db.appMeta,
+    )..where((row) => row.key.equals('garage_loaded:$id'))).getSingle();
+    expect(marker.value, 'true');
+    expect(await db.select(db.vehicleRecords).get(), isEmpty);
+  });
+
   test(
     'logout drains changes, removes all preferences and prevents the next account seeing notes',
     () async {

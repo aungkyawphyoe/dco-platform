@@ -16,6 +16,19 @@ abstract final class MileageFormat {
 
   static String input(double storedMiles, MileageUnit unit) {
     final displayed = unit.toDisplay(storedMiles);
-    return displayed.toStringAsFixed(1);
+    return displayed.round().toString();
+  }
+
+  /// Preserve fractional storage when an unchanged rounded field is saved.
+  static double fromInput(
+    double displayed,
+    MileageUnit unit, {
+    double? original,
+  }) {
+    if (original != null &&
+        displayed == unit.toDisplay(original).roundToDouble()) {
+      return original;
+    }
+    return unit.toStorage(displayed);
   }
 }

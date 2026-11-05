@@ -1,5 +1,12 @@
 # Fleet Maintenance Templates
 
+## Fleet catalog presentation — 4 November 2026
+
+The names-only reminder model supersedes the interval/template flows below. The Fleet Portal catalog uses separated service rows, search, and Suggested / Custom source labels. Admins and managers can add fleet-only custom service names; mechanics can read them. Both global suggestions and that fleet's custom items are available in vehicle reminder setup and the assigned driver's suggested list. Other fleets and personal catalogs cannot see or select them.
+
+Vehicle reminder selection and editing use centered, bounded web dialogs with scrollable content, visible footer actions, keyboard focus containment, and Escape dismissal. The picker supports search; reminder fields group date and odometer rules separately. Catalog items carry no default intervals.
+
+
 **4 November 2026 approved refactor:** Reusable fleet interval templates, class assignment, and template-based generation are superseded by per-vehicle reminder setup. The shared catalog contains service names only and is available to every vehicle. Fleet managers configure reminders and drivers log services. See the approved section in [Maintenance Module](maintenance.md#simplified-reminders-and-flexible-service-logging--approved-4-november-2026) for the governing contract. The implementation described below is historical pending this refactor.
 
 **18 October realignment:** Driver suggested-plan creation and the separate Driver plan screens below are superseded by [the approved shared-mobile plan](mobile-personal-driver-realignment-plan.md). Fleet Admin manages all plan items. Drivers read those plans and log completed services through the shared Personal form; they cannot create plans through legacy endpoints. Historical sequencing below records the previous implementation.

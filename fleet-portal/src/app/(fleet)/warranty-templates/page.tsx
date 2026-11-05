@@ -122,7 +122,7 @@ export default function WarrantyTemplatesPage() {
                   <Stat label="Duration" value={`${template.duration_years} yr`} />
                   <Stat
                     label="Mileage limit"
-                    value={`${template.mileage_limit_km.toLocaleString()} km`}
+                    value={`${template.mileage_limit_km.toLocaleString(undefined, { maximumFractionDigits: 0 })} km`}
                   />
                   <Stat
                     label="Approved workshops"
@@ -175,7 +175,7 @@ export default function WarrantyTemplatesPage() {
               onChange={(e) => setForm({ ...form, duration_years: Number(e.target.value) })}
             />
             <Input
-              label="Mileage limit (km)"
+              label="Distance limit (km)"
               type="number"
               min={1000}
               value={form.mileage_limit_km}

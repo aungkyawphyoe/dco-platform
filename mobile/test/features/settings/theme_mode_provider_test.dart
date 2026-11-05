@@ -34,6 +34,35 @@ class _SignedInSession extends SessionController {
 
 void main() {
   test(
+    'login restores the server active selection without replacing a local selection',
+    () async {
+      final db = AppDatabase(NativeDatabase.memory());
+      final container = ProviderContainer(
+        overrides: [appDatabaseProvider.overrideWithValue(db)],
+      );
+      addTearDown(container.dispose);
+      addTearDown(db.close);
+      final controller = container.read(entryPreferencesProvider.notifier);
+      await controller.initializeAccountPreferences(
+        'user',
+        activeVehicleId: 'saved-server-car',
+      );
+      expect(
+        (await db.select(db.userProfiles).getSingle()).activeVehicleId,
+        'saved-server-car',
+      );
+      await controller.initializeAccountPreferences(
+        'user',
+        activeVehicleId: 'another-car',
+      );
+      expect(
+        (await db.select(db.userProfiles).getSingle()).activeVehicleId,
+        'saved-server-car',
+      );
+    },
+  );
+
+  test(
     'signed-out theme follows the current entry choice before login',
     () async {
       final db = AppDatabase(NativeDatabase.memory());

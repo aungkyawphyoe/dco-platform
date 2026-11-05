@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+import '../../../core/database/app_database.dart';
 import 'package:flutter/painting.dart';
 import '../../../core/storage/account_lifecycle.dart';
 import '../account_security_providers.dart';
@@ -81,6 +83,12 @@ class SessionController extends AsyncNotifier<Session?> {
         await lifecycle.lock(session.user.id);
         _publishLifecycle();
         await ref.read(analyticsProvider).setUserId(session.user.id);
+        await ref
+            .read(entryPreferencesProvider.notifier)
+            .initializeAccountPreferences(
+              session.user.id,
+              activeVehicleId: session.user.activeVehicleId,
+            );
         await ref.read(entryPreferencesProvider.notifier).complete();
       }
       return session;
@@ -165,8 +173,26 @@ class SessionController extends AsyncNotifier<Session?> {
     await ref.read(analyticsProvider).setUserId(session.user.id);
     await ref
         .read(entryPreferencesProvider.notifier)
-        .initializeAccountPreferences(session.user.id);
+        .initializeAccountPreferences(
+          session.user.id,
+          activeVehicleId: session.user.activeVehicleId,
+        );
     await ref.read(entryPreferencesProvider.notifier).complete();
+    if (isNew) {
+      final db = ref.read(appDatabaseProvider);
+      await db
+          .into(db.appMeta)
+          .insert(
+            AppMetaCompanion.insert(
+              key: 'garage_loaded:${session.user.id}',
+              value: const Value('true'),
+            ),
+            onConflict: DoUpdate(
+              (_) => const AppMetaCompanion(value: Value('true')),
+              target: [db.appMeta.key],
+            ),
+          );
+    }
     ref.read(newOwnerSetupProvider.notifier).state = isNew;
     ref
         .read(postAuthRouteProvider.notifier)

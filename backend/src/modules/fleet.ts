@@ -613,14 +613,28 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const orgId = uuid.parse((request.params as { id: string }).id);
     await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager", "org_mechanic"]);
     const rows = await app.db.select().from(maintenanceCatalog)
-      .where(and(isNull(maintenanceCatalog.orgId), eq(maintenanceCatalog.enabled, true)))
+      .where(and(or(isNull(maintenanceCatalog.orgId), eq(maintenanceCatalog.orgId, orgId)), eq(maintenanceCatalog.enabled, true)))
       .orderBy(maintenanceCatalog.sortOrder, maintenanceCatalog.name);
-    return { items: rows.map(row => ({ catalog_key: row.catalogKey, name: row.name })) };
+    return { items: rows.map(row => ({ catalog_key: row.catalogKey, name: row.name, source: row.orgId ? "org" : "global" })) };
+  });
+
+  app.post("/organizations/:id/maintenance-catalog", async (request, reply) => {
+    requireFleetPortal(request);
+    const orgId = uuid.parse((request.params as { id: string }).id);
+    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin", "org_manager"]);
+    const body = z.object({ name: z.string().trim().min(1).max(80) }).strict().parse(request.body);
+    const [row] = await app.db.insert(maintenanceCatalog).values({
+      id: newId(), orgId, name: body.name,
+      catalogKey: `${slugify(body.name)}__${newId()}`,
+      fuelTypes: ["petrol", "electric", "hybrid_plugin"],
+    }).returning();
+    return reply.code(201).send({ catalog_key: row.catalogKey, name: row.name, source: "org" });
   });
 
   const reminderBody = z.object({
     id: uuid,
     name: z.string().trim().min(1).max(80),
+    notes: z.string().trim().max(4000).nullable().optional(),
     catalog_key: z.string().nullable().optional(),
     interval_days: z.number().int().positive().nullable(),
     time_count: z.number().int().positive().nullable().optional(),
@@ -640,6 +654,11 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       context.addIssue({ code: "custom", message: "Time repetition requires a first due date" });
     if (body.interval_distance !== null && body.next_due_mileage === null)
       context.addIssue({ code: "custom", message: "Distance repetition requires a first due mileage" });
+    const recurring = body.interval_days !== null || body.time_count != null || body.interval_distance !== null;
+    if (recurring && body.next_due_on !== null && body.interval_days === null && !body.time_count)
+      context.addIssue({ code: "custom", path: ["time_count"], message: "Enter a repeat time" });
+    if (recurring && body.next_due_mileage !== null && body.interval_distance === null)
+      context.addIssue({ code: "custom", path: ["interval_distance"], message: "Enter a repeat distance" });
   });
 
   for (const method of ["POST", "PUT"] as const) {
@@ -660,7 +679,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         if (body.catalog_key) {
           if (body.catalog_key !== existing?.catalogKey) {
             const [catalog] = await tx.select().from(maintenanceCatalog).where(and(
-              eq(maintenanceCatalog.catalogKey, body.catalog_key), isNull(maintenanceCatalog.orgId), eq(maintenanceCatalog.enabled, true)));
+              eq(maintenanceCatalog.catalogKey, body.catalog_key), or(isNull(maintenanceCatalog.orgId), eq(maintenanceCatalog.orgId, orgId)), eq(maintenanceCatalog.enabled, true)));
             if (!catalog) throw new AppError(422, "invalid_catalog_item", "Select an available service item");
           }
           const [duplicate] = await tx.select().from(planItems).where(and(
@@ -668,7 +687,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
           if (body.enabled && duplicate && duplicate.id !== body.id)
             throw new AppError(409, "reminder_exists", "This service already has an active reminder");
         }
-        const values = { name: body.name, catalogKey: body.catalog_key ?? null,
+        const values = { name: body.name, notes: body.notes === undefined ? existing?.notes ?? null : body.notes, catalogKey: body.catalog_key ?? null,
           intervalDays: body.interval_days, timeCount: body.time_count ?? null, timeUnit: body.time_unit ?? null,
           warningDays: body.warning_days ?? null, warningDistance: body.warning_distance == null ? null : String(body.warning_distance), intervalDistance: body.interval_distance === null ? null : String(body.interval_distance),
           nextDueOn: body.next_due_on, nextDueMileage: body.next_due_mileage === null ? null : String(body.next_due_mileage), enabled: body.enabled };
@@ -992,9 +1011,9 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
   app.get("/drivers/vehicles/:vehicleId/suggested-plan-items", async (request) => {
     requireFleetClient(request);
     const { vehicleId } = request.params as { vehicleId: string };
-    await requireDriverAssignment(vehicleId, uid(request));
+    const assignment = await requireDriverAssignment(vehicleId, uid(request));
     const rows = await app.db.select().from(maintenanceCatalog)
-      .where(and(eq(maintenanceCatalog.enabled, true), isNull(maintenanceCatalog.orgId)))
+      .where(and(eq(maintenanceCatalog.enabled, true), or(isNull(maintenanceCatalog.orgId), eq(maintenanceCatalog.orgId, assignment.orgId))))
       .orderBy(maintenanceCatalog.sortOrder, maintenanceCatalog.name);
     return { items: rows.map((row) => ({ catalog_key: row.catalogKey, name: row.name })) };
   });

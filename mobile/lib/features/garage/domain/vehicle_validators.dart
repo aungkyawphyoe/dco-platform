@@ -35,10 +35,10 @@ class VehicleValidators {
   }
 
   static String? mileage(String value) {
-    if (value.trim().isEmpty) return 'Mileage is required';
+    if (value.trim().isEmpty) return 'Odometer is required';
     final parsed = double.tryParse(value.trim().replaceAll(',', ''));
-    if (parsed == null) return 'Enter a valid mileage';
-    if (parsed < 0) return 'Mileage cannot be negative';
+    if (parsed == null) return 'Enter a valid odometer';
+    if (parsed < 0) return 'Odometer cannot be negative';
     return null;
   }
 

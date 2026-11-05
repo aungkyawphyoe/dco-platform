@@ -40,7 +40,7 @@ function WorkOrderCard({
       <p className="mt-2 text-sm capitalize text-ink">{order.issue_type.replaceAll("_", " ")}</p>
       <p className="mt-1 line-clamp-2 text-xs text-ink-caption">{order.description}</p>
       <p className="mt-3 font-mono text-xs text-ink-caption">
-        {order.odometer_km.toLocaleString()} km
+        {order.odometer_km.toLocaleString(undefined, { maximumFractionDigits: 0 })} km
       </p>
       <p className="text-xs text-ink-faint">
         {order.reported_at ? formatDateTime(order.reported_at) : "Reported"}

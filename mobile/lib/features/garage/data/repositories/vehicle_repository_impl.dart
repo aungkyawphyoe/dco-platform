@@ -72,7 +72,7 @@ class VehicleRepositoryImpl implements VehicleRepository {
     );
 
     // Track latest lists from each source
-    final latestLists = <String, List<Vehicle>>{'owned': [], 'shared': []};
+    final latestLists = <String, List<Vehicle>>{};
     final controller = StreamController<List<Vehicle>>.broadcast();
     final subs = <StreamSubscription>[
       ownedStream.listen((list) {
@@ -96,6 +96,8 @@ class VehicleRepositoryImpl implements VehicleRepository {
     StreamController<List<Vehicle>> controller,
     Map<String, List<Vehicle>> latestLists,
   ) {
+    if (!latestLists.containsKey('owned') || !latestLists.containsKey('shared'))
+      return;
     final all = [...latestLists['owned']!, ...latestLists['shared']!];
     all.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
     controller.add(all);
@@ -201,10 +203,19 @@ class VehicleRepositoryImpl implements VehicleRepository {
 
     await _db.transaction(() async {
       await _db.into(_db.vehicleRecords).insert(_toCompanion(vehicle));
-      final garage = await _countGarage(userId);
-      if (garage == 1) {
-        await _upsertActive(userId, vehicle.id);
-      }
+      await _upsertActive(userId, vehicle.id);
+      await _db
+          .into(_db.appMeta)
+          .insert(
+            AppMetaCompanion.insert(
+              key: 'pending_active_vehicle:$userId',
+              value: Value(vehicle.id),
+            ),
+            onConflict: DoUpdate(
+              (_) => AppMetaCompanion(value: Value(vehicle.id)),
+              target: [_db.appMeta.key],
+            ),
+          );
       await _outbox.enqueue(
         userId: userId,
         entityType: OutboxEntityType.vehicle,
@@ -377,17 +388,6 @@ class VehicleRepositoryImpl implements VehicleRepository {
     if (matches.any((row) => row.id != exceptId)) {
       throw const DuplicateVinFailure();
     }
-  }
-
-  Future<int> _countGarage(String userId) {
-    final count = _db.vehicleRecords.id.count();
-    final query = _db.selectOnly(_db.vehicleRecords)
-      ..addColumns([count])
-      ..where(
-        _db.vehicleRecords.userId.equals(userId) &
-            _db.vehicleRecords.archived.equals(false),
-      );
-    return query.map((row) => row.read(count) ?? 0).getSingle();
   }
 
   Future<void> _upsertActive(String userId, String? vehicleId) {

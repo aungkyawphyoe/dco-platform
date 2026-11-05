@@ -15,7 +15,6 @@ import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_failure.dart';
 import 'package:dco_mobile/features/garage/domain/vehicle_validators.dart';
-import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -58,6 +57,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
   bool _saving = false;
   bool _fuelError = false;
   bool _isOwner = false;
+  double? _originalMileage;
 
   @override
   void initState() {
@@ -78,6 +78,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       _isOwner =
           vehicle.userId ==
           ref.read(sessionControllerProvider).valueOrNull?.user.id;
+      _originalMileage = vehicle.mileage;
       _name.text = vehicle.name;
       _make.text = vehicle.make;
       _year.text = '${vehicle.year}';
@@ -144,7 +145,11 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
       year: VehicleValidators.parseYear(_year.text)!,
       licensePlate: _plate.text,
       fuelType: _fuelType!,
-      mileage: unit.toStorage(VehicleValidators.parseMileage(_mileage.text)!),
+      mileage: MileageFormat.fromInput(
+        VehicleValidators.parseMileage(_mileage.text)!,
+        unit,
+        original: _originalMileage,
+      ),
       mileageUnit: MileageUnit.km,
       nickname: _nickname.text,
       vin: _vin.text,
@@ -198,15 +203,8 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
         return;
       }
 
-      final previousActiveId = ref.read(activeVehicleProvider).valueOrNull?.id;
-      final vehicle = await repo.add(userId: userId, draft: draft);
+      await repo.add(userId: userId, draft: draft);
       ref.read(analyticsProvider).track(AnalyticsEvent.vehicleAdded);
-      if (previousActiveId != null && previousActiveId != vehicle.id) {
-        try {
-          await ref.read(setActiveVehicleProvider)(vehicle.id);
-          ref.read(analyticsProvider).track(AnalyticsEvent.vehicleSwitched);
-        } catch (_) {}
-      }
       if (!mounted) return;
       context.pushReplacement(AppRoutes.maintenancePlanRegistered);
     } on VehicleFailure catch (failure) {
@@ -380,9 +378,7 @@ class _VehicleFormScreenState extends ConsumerState<VehicleFormScreen> {
                 label: s.vehicleMileageLabel,
                 controller: _mileage,
                 errorText: _errors['mileage'],
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
+                keyboardType: TextInputType.number,
                 textInputAction: TextInputAction.next,
                 suffix: Padding(
                   padding: const EdgeInsets.only(right: 12, top: 12),

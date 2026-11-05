@@ -373,7 +373,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehiclePlateLabel => 'License Plate *';
 
   @override
-  String get vehicleMileageLabel => 'Mileage *';
+  String get vehicleMileageLabel => 'Odometer *';
 
   @override
   String get vehicleFuelTypeLabel => 'Fuel Type *';
@@ -426,7 +426,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleVinDuplicate => 'That VIN already belongs to a vehicle';
 
   @override
-  String get vehicleMileageDecrease => 'Mileage cannot decrease';
+  String get vehicleMileageDecrease => 'Odometer cannot decrease';
 
   @override
   String get vehicleNotFound => 'Vehicle not found';
@@ -459,13 +459,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'License plate must be 20 characters or fewer';
 
   @override
-  String get vehicleMileageRequired => 'Mileage is required';
+  String get vehicleMileageRequired => 'Odometer is required';
 
   @override
-  String get vehicleMileageInvalid => 'Enter a valid mileage';
+  String get vehicleMileageInvalid => 'Enter a valid odometer';
 
   @override
-  String get vehicleMileageNegative => 'Mileage cannot be negative';
+  String get vehicleMileageNegative => 'Odometer cannot be negative';
 
   @override
   String get vehicleVinLength => 'VIN must be 17 characters';
@@ -569,7 +569,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get serviceDetailNotFoundBody => 'This record is no longer available.';
 
   @override
-  String get serviceDetailMileage => 'Mileage';
+  String get serviceDetailMileage => 'Odometer';
 
   @override
   String get serviceDetailTotal => 'Total';
@@ -606,11 +606,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get registerServiceDate => 'Date *';
 
   @override
-  String get registerServiceMileage => 'Mileage *';
+  String get registerServiceMileage => 'Odometer *';
 
   @override
   String registerServiceCurrentMileage(Object mileage) {
-    return 'Current mileage: $mileage';
+    return 'Current odometer: $mileage';
   }
 
   @override
@@ -697,7 +697,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planItemFormUnit => 'Unit';
 
   @override
-  String get planItemFormEveryMileage => 'Every (mileage)';
+  String get planItemFormEveryMileage => 'Repeat distance';
 
   @override
   String get planItemFormOverrideStart => 'Next due';
@@ -711,7 +711,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planItemFormTrackingStartHelper =>
-      'When to begin tracking this item. The first due date/mileage is calculated from here.';
+      'When to begin tracking this item. The first due date/odometer is calculated from here.';
 
   @override
   String get planItemFormDate => 'Date';
@@ -720,13 +720,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planItemFormDateRequired => 'Date *';
 
   @override
-  String get planItemFormMileage => 'Mileage';
+  String get planItemFormMileage => 'Odometer';
 
   @override
-  String get planItemFormMileageRequired => 'Mileage *';
+  String get planItemFormMileageRequired => 'Odometer *';
 
   @override
-  String get planItemFormNotes => 'Notes';
+  String get planItemFormNotes => 'Note';
 
   @override
   String get suggestedItemsTitle => 'Maintenance Items';
@@ -755,14 +755,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String suggestedItemsTrackingStartBody(Object itemCount) {
-    return 'Set when to start tracking $itemCount item(s). The first due date/mileage will be calculated from this point.';
+    return 'Set when to start tracking $itemCount item(s). The first due date/odometer will be calculated from this point.';
   }
 
   @override
   String get suggestedItemsStartDate => 'Start Date';
 
   @override
-  String get suggestedItemsStartMileage => 'Start Mileage';
+  String get suggestedItemsStartMileage => 'Start Odometer';
 
   @override
   String get lengthUnitKm => 'km';
@@ -782,7 +782,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get planItemTileNextMileage => 'Next Mileage: ';
+  String get planItemTileNextMileage => 'Next Odometer: ';
 
   @override
   String get planItemTileNextDate => 'Next Date: ';
@@ -803,7 +803,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get planItemTileDays => 'days';
 
   @override
-  String get maintenanceMileageDecrease => 'Mileage cannot decrease';
+  String get maintenanceMileageDecrease => 'Odometer cannot decrease';
 
   @override
   String get maintenanceVehicleNotFound => 'Vehicle not found';
@@ -824,16 +824,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get planItemScheduleRequired =>
-      'Set a time interval, a mileage interval, or both';
+      'Set a time interval, a distance interval, or both';
 
   @override
-  String get planItemDueRequired => 'Set a due date, a due mileage, or both';
+  String get planItemDueRequired => 'Set a due date, a due odometer, or both';
 
   @override
-  String get planItemMileageRequired => 'Mileage is required';
+  String get planItemMileageRequired => 'Odometer is required';
 
   @override
-  String get planItemMileageInvalid => 'Enter a valid mileage';
+  String get planItemMileageInvalid => 'Enter a valid odometer';
 
   @override
   String get planItemWholeNumber => 'Enter a whole number greater than 0';
@@ -1895,7 +1895,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get unitsFormatsLengthUnitHelper =>
-      'Odometer, service intervals, and due mileage follow this unit.';
+      'Odometer, service intervals, and due odometer readings follow this unit.';
 
   @override
   String get remindersTitle => 'Reminders';
@@ -1922,7 +1922,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get remindersSoonDistanceHelp =>
-      'A mileage reminder fires when the remaining distance is at or below this.';
+      'A odometer reminder fires when the remaining distance is at or below this.';
 
   @override
   String get remindersReset => 'Reset to defaults';
@@ -2116,7 +2116,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get vehicleDetailPlate => 'License Plate';
 
   @override
-  String get vehicleDetailMileage => 'Mileage';
+  String get vehicleDetailMileage => 'Odometer';
 
   @override
   String get vehicleDetailFuelType => 'Fuel Type';
@@ -2653,7 +2653,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fleetTransferSaleDate => 'Sale date *';
 
   @override
-  String get fleetTransferMileage => 'Current mileage (km) *';
+  String get fleetTransferMileage => 'Current odometer (km) *';
 
   @override
   String get fleetTransferWarranty => 'Warranty template';
@@ -4271,7 +4271,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get helpMaintenanceAnswer =>
-      'Choose the correct vehicle, then open Maintenance to view its plan and history. Register a completed service with its date, mileage, and cost. Recording planned work updates the linked plan item. Drivers can log services, while their organization manages the plan.';
+      'Choose the correct vehicle, then open Maintenance to view its plan and history. Register a completed service with its date, odometer, and cost. Recording planned work updates the linked plan item. Drivers can log services, while their organization manages the plan.';
 
   @override
   String get helpExpensesQuestion => 'Where do I track costs and fuel?';
@@ -4476,7 +4476,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apiErrorMileage =>
-      'Mileage cannot be lower than the last recorded value.';
+      'Odometer cannot be lower than the last recorded value.';
 
   @override
   String get apiErrorCurrency =>
@@ -4562,4 +4562,44 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsAccountLockedBody =>
       'This device still holds data from the previous account. Sign in to that same account to finish syncing, or explicitly discard the local data before using another account.';
+
+  @override
+  String get suggestedItemsSetUp => 'Set up';
+
+  @override
+  String get planItemFormNextDate => 'Next due date';
+
+  @override
+  String get planItemFormNextOdometer => 'Next due odometer';
+
+  @override
+  String get planDueTargetRequired => 'Enter a due date or odometer reading.';
+
+  @override
+  String get planRepeatTimeRequired =>
+      'Enter a repeat time of at least 1 month.';
+
+  @override
+  String get planRepeatDistanceRequired =>
+      'Enter a repeat distance greater than zero.';
+
+  @override
+  String get suggestedItemsAlreadySetUp => 'Already set up';
+
+  @override
+  String get dashboardChooseVehicleTitle => 'Choose an active vehicle';
+
+  @override
+  String get dashboardChooseVehicleBody =>
+      'Go to Garage and activate a vehicle to see its dashboard.';
+
+  @override
+  String get dashboardChooseVehicleAction => 'Go to Garage';
+
+  @override
+  String get dashboardVehicleLoadFailed => 'Couldn’t load your vehicles';
+
+  @override
+  String get dashboardVehicleLoadRetryBody =>
+      'Retry to check your account’s vehicles.';
 }

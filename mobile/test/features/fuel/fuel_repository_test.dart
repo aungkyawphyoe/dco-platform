@@ -265,7 +265,7 @@ void main() {
         isA<FuelValidationFailure>().having(
           (failure) => failure.message,
           'message',
-          'Odometer cannot be below vehicle mileage',
+          'Odometer cannot be below the current reading',
         ),
       ),
     );

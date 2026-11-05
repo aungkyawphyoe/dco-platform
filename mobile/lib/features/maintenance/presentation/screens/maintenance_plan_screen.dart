@@ -10,7 +10,6 @@ import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'plan_item_form_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -41,7 +40,7 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
           if (widget.showDone)
             TextButton(
               key: const Key('maintenance-plan-done'),
-              onPressed: () => context.go(AppRoutes.garage),
+              onPressed: () => context.go(AppRoutes.dashboard),
               child: Text(s.done, style: TextStyle(color: tokens.text.link)),
             ),
         ],
@@ -112,16 +111,7 @@ class _MaintenancePlanScreenState extends ConsumerState<MaintenancePlanScreen> {
               ref.watch(vehicleAccessProvider(vehicle)).canManagePlan)
             DcoStickyActions(
               secondaryLabel: s.maintenancePlanAddItem,
-              onSecondary: () => showModalBottomSheet<void>(
-                context: context,
-                isScrollControlled: true,
-                useSafeArea: true,
-                backgroundColor: tokens.background.card,
-                builder: (context) => const FractionallySizedBox(
-                  heightFactor: 0.95,
-                  child: PlanItemFormScreen(),
-                ),
-              ),
+              onSecondary: () => context.push(AppRoutes.maintenancePlanNew),
               primaryLabel: s.maintenancePlanAddSuggested,
               onPrimary: () => context.push(AppRoutes.maintenanceSuggested),
             ),

@@ -6742,7 +6742,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Shared suggested service names for per-vehicle reminder setup */
+        /** Suggested and fleet-only custom service names for per-vehicle reminder setup */
         get: {
             parameters: {
                 query?: never;
@@ -6769,7 +6769,37 @@ export interface paths {
             };
         };
         put?: never;
-        post?: never;
+        /** Add a fleet-only custom service name (admin or manager) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Custom service available to this fleet */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SuggestedPlanItem"];
+                    };
+                };
+                400: components["responses"]["Error"];
+                403: components["responses"]["Error"];
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -10926,11 +10956,12 @@ export interface components {
             notes?: string;
             enabled?: boolean;
         };
-        /** @description At least one first due target is required. Each repeat interval requires its corresponding first target. PUT requires the full reminder body. */
+        /** @description At least one first due target is required. Each repeat interval requires its corresponding first target. When any repetition is set, each due target requires its matching repeat interval. PUT requires the full reminder body. */
         FleetReminderWrite: {
             /** Format: uuid */
             id: string;
             name: string;
+            notes?: string | null;
             catalog_key?: string | null;
             time_count?: number | null;
             /** @enum {string|null} */
@@ -10945,6 +10976,11 @@ export interface components {
             enabled: boolean;
         };
         SuggestedPlanItem: {
+            /**
+             * @description Platform suggestion or fleet-only custom service (fleet catalog responses)
+             * @enum {string}
+             */
+            source?: "global" | "org";
             catalog_key: string;
             name: string;
         };

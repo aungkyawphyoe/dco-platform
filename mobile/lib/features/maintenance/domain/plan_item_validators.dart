@@ -26,24 +26,26 @@ abstract final class PlanItemValidators {
         return 'Choose a time count and unit together';
       final hasDistance = intervalDistance != null && intervalDistance > 0;
       if (!hasTime && !hasDistance) {
-        return 'Set a time interval, a mileage interval, or both';
+        return 'Set a time interval, a distance interval, or both';
       }
+      if (date != null && !hasTime) return 'Enter a repeat time';
+      if (mileage != null && !hasDistance) return 'Enter a repeat distance';
       if (hasTime && date == null) return 'Set the first due date';
-      if (hasDistance && mileage == null) return 'Set the first due mileage';
+      if (hasDistance && mileage == null) return 'Set the first due odometer';
       return null;
     }
     if (date == null && mileage == null) {
-      return 'Set a due date, a due mileage, or both';
+      return 'Set a due date, a due odometer, or both';
     }
     return null;
   }
 
   static String? mileage(String value, {required bool required}) {
     final trimmed = value.trim();
-    if (trimmed.isEmpty) return required ? 'Mileage is required' : null;
+    if (trimmed.isEmpty) return required ? 'Odometer is required' : null;
     final parsed = double.tryParse(trimmed.replaceAll(',', ''));
     if (parsed == null || !parsed.isFinite || parsed < 0)
-      return 'Enter a valid mileage';
+      return 'Enter a valid odometer';
     return null;
   }
 
@@ -77,10 +79,10 @@ abstract final class ServiceRecordValidators {
 
   static String? odometer(String value) {
     final trimmed = value.trim();
-    if (trimmed.isEmpty) return 'Mileage is required';
+    if (trimmed.isEmpty) return 'Odometer is required';
     final parsed = double.tryParse(trimmed.replaceAll(',', ''));
     if (parsed == null || !parsed.isFinite || parsed < 0)
-      return 'Enter a valid mileage';
+      return 'Enter a valid odometer';
     return null;
   }
 

@@ -315,6 +315,62 @@ void main() {
       );
     });
 
+    test(
+      'recurring targets require the corresponding repeat, not every field',
+      () {
+        final date = DateTime(2027);
+        expect(
+          PlanItemValidators.schedule(
+            recurring: true,
+            date: date,
+            timeCount: 1,
+            timeUnit: 'months',
+          ),
+          isNull,
+        );
+        expect(
+          PlanItemValidators.schedule(
+            recurring: true,
+            mileage: 10000,
+            intervalDistance: 5000,
+          ),
+          isNull,
+        );
+        expect(
+          PlanItemValidators.schedule(
+            recurring: true,
+            date: date,
+            mileage: 10000,
+            intervalDays: 30,
+          ),
+          isNotNull,
+        );
+        expect(
+          PlanItemValidators.schedule(
+            recurring: true,
+            date: date,
+            mileage: 10000,
+            intervalDistance: 5000,
+          ),
+          isNotNull,
+        );
+        expect(
+          PlanItemValidators.schedule(
+            recurring: true,
+            date: date,
+            mileage: 10000,
+            intervalDays: 30,
+            intervalDistance: 5000,
+          ),
+          isNull,
+        );
+        expect(
+          PlanItemValidators.schedule(recurring: false, date: date),
+          isNull,
+        );
+      },
+    );
+
     test('active needs a date or mileage', () {
       expect(PlanItemValidators.schedule(recurring: false), isNotNull);
       expect(

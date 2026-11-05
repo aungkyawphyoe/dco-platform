@@ -109,7 +109,10 @@ class EntryPreferencesController extends AsyncNotifier<EntryPreferences> {
 
   /// Seeds a new account row with the device-wide entry choices so the app
   /// keeps its current language and appearance right after signup.
-  Future<void> initializeAccountPreferences(String userId) async {
+  Future<void> initializeAccountPreferences(
+    String userId, {
+    String? activeVehicleId,
+  }) async {
     final db = ref.read(appDatabaseProvider);
     final row = await (db.select(
       db.userProfiles,
@@ -121,10 +124,19 @@ class EntryPreferencesController extends AsyncNotifier<EntryPreferences> {
           .insert(
             UserProfilesCompanion.insert(
               userId: userId,
+              activeVehicleId: Value(activeVehicleId),
               language: Value(prefs.language),
               themeMode: Value(prefs.themeMode ?? 'system'),
             ),
             mode: InsertMode.insertOrIgnore,
+          );
+    }
+    if (activeVehicleId != null) {
+      await (db.update(db.userProfiles)..where(
+            (row) => row.userId.equals(userId) & row.activeVehicleId.isNull(),
+          ))
+          .write(
+            UserProfilesCompanion(activeVehicleId: Value(activeVehicleId)),
           );
     }
   }

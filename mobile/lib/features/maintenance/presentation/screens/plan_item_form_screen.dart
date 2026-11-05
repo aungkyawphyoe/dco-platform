@@ -14,6 +14,65 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
+Future<void> showPlanItemForm(
+  BuildContext context, {
+  String? planItemId,
+  String? initialName,
+  String? catalogKey,
+}) => showModalBottomSheet<void>(
+  context: context,
+  isScrollControlled: true,
+  useSafeArea: true,
+  showDragHandle: true,
+  backgroundColor: context.tokens.background.card,
+  builder: (_) => _PlanItemSheet(
+    child: PlanItemFormScreen(
+      planItemId: planItemId,
+      initialName: initialName,
+      catalogKey: catalogKey,
+    ),
+  ),
+);
+
+class PlanItemFormPage extends Page<void> {
+  const PlanItemFormPage({super.key, this.planItemId});
+  final String? planItemId;
+
+  @override
+  Route<void> createRoute(BuildContext context) => ModalBottomSheetRoute<void>(
+    settings: this,
+    isScrollControlled: true,
+    useSafeArea: true,
+    showDragHandle: true,
+    backgroundColor: context.tokens.background.card,
+    builder: (_) =>
+        _PlanItemSheet(child: PlanItemFormScreen(planItemId: planItemId)),
+  );
+}
+
+class _PlanItemSheet extends StatelessWidget {
+  const _PlanItemSheet({required this.child});
+  final Widget child;
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      final keyboard = MediaQuery.viewInsetsOf(context).bottom;
+      return Padding(
+        padding: EdgeInsets.only(bottom: keyboard),
+        child: SizedBox(
+          height:
+              (constraints.maxHeight - keyboard).clamp(
+                0,
+                constraints.maxHeight,
+              ) *
+              .95,
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
 class PlanItemFormScreen extends ConsumerStatefulWidget {
   const PlanItemFormScreen({
     super.key,
@@ -39,13 +98,11 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
   final _notes = TextEditingController();
   final _intervalCount = TextEditingController();
   final _intervalDistance = TextEditingController();
-  final _warningDays = TextEditingController();
-  final _warningDistance = TextEditingController();
   final _errors = <String, String?>{};
 
   bool _enabled = true;
   bool _recurring = true;
-  TimeIntervalUnit _unit = TimeIntervalUnit.years;
+  TimeIntervalUnit _unit = TimeIntervalUnit.months;
   DateTime? _dateValue;
   String? _formError;
   bool _loading = true;
@@ -59,12 +116,6 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
 
   Future<void> _hydrate() async {
     _name.text = widget.initialName ?? '';
-    final warnings = ref.read(reminderThresholdsProvider);
-    final lengthUnit = ref.read(lengthUnitProvider);
-    _warningDays.text = '${warnings.soonDays}';
-    _warningDistance.text = lengthUnit
-        .toDisplay(warnings.soonDistanceMiles)
-        .toStringAsFixed(0);
     if (widget.planItemId == null) {
       setState(() => _loading = false);
       return;
@@ -86,11 +137,6 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
       if (item.nextDueMileage != null) {
         _mileage.text = MileageFormat.input(item.nextDueMileage!, length);
       }
-      if (item.warningDays != null) _warningDays.text = '${item.warningDays}';
-      if (item.warningDistance != null)
-        _warningDistance.text = length
-            .toDisplay(item.warningDistance!)
-            .toStringAsFixed(1);
       if (item.timeCount != null && item.timeUnit != null) {
         _intervalCount.text = '${item.timeCount}';
         _unit = TimeIntervalUnit.values.byName(item.timeUnit!);
@@ -111,8 +157,6 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
 
   @override
   void dispose() {
-    _warningDays.dispose();
-    _warningDistance.dispose();
     _name.dispose();
     _date.dispose();
     _mileage.dispose();
@@ -123,14 +167,17 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
   }
 
   PlanItemDraft? _draftOrNull() {
+    final s = AppLocalizations.of(context)!;
     final length = ref.read(lengthUnitProvider);
+    final hasDate = _dateValue != null;
+    final hasOdometer = _mileage.text.trim().isNotEmpty;
     final intervalCount = PlanItemValidators.parseIntervalCount(
-      _intervalCount.text,
+      hasDate ? _intervalCount.text : '',
     );
     final intervalDays = !_recurring || intervalCount == null
         ? null
         : _unit.toDays(intervalCount);
-    final parsedDistance = _recurring
+    final parsedDistance = _recurring && hasOdometer
         ? PlanItemValidators.parseMileage(_intervalDistance.text)
         : null;
     final intervalDistance = parsedDistance == null
@@ -143,29 +190,28 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
 
     setState(() {
       _errors
-        ..['warningDays'] = _dateValue == null
-            ? null
-            : int.tryParse(_warningDays.text) == null ||
-                  (int.tryParse(_warningDays.text) ?? -1) < 0
-            ? 'Enter zero or a positive whole number'
-            : null
-        ..['warningDistance'] = _mileage.text.trim().isEmpty
-            ? null
-            : PlanItemValidators.mileage(_warningDistance.text, required: true)
         ..['name'] = PlanItemValidators.name(_name.text)
-        ..['interval'] = _recurring
-            ? PlanItemValidators.intervalCount(_intervalCount.text)
+        ..['date'] = !hasDate && !hasOdometer ? s.planDueTargetRequired : null
+        ..['interval'] = _recurring && hasDate
+            ? (_intervalCount.text.trim().isEmpty
+                  ? s.planRepeatTimeRequired
+                  : PlanItemValidators.intervalCount(_intervalCount.text))
             : null
-        ..['distance'] = _recurring
-            ? PlanItemValidators.mileage(
-                _intervalDistance.text,
-                required: false,
-              )
+        ..['distance'] = _recurring && hasOdometer
+            ? (_intervalDistance.text.trim().isEmpty
+                  ? s.planRepeatDistanceRequired
+                  : (PlanItemValidators.parseMileage(_intervalDistance.text) ??
+                            0) <=
+                        0
+                  ? s.planRepeatDistanceRequired
+                  : PlanItemValidators.mileage(
+                      _intervalDistance.text,
+                      required: true,
+                    ))
             : null
-        ..['mileage'] = PlanItemValidators.mileage(
-          _mileage.text,
-          required: false,
-        )
+        ..['mileage'] = !hasDate && !hasOdometer
+            ? s.planDueTargetRequired
+            : PlanItemValidators.mileage(_mileage.text, required: false)
         ..['schedule'] = PlanItemValidators.schedule(
           recurring: _recurring,
           intervalDays: intervalDays,
@@ -173,7 +219,12 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
           date: _dateValue,
           mileage: mileage,
         );
-      _formError = _errors['schedule'];
+      _formError =
+          _errors['date'] != null ||
+              _errors['interval'] != null ||
+              _errors['distance'] != null
+          ? null
+          : _errors['schedule'];
     });
     if (_errors.values.any((error) => error != null)) return null;
 
@@ -182,12 +233,6 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
       recurring: _recurring,
       timeCount: _recurring ? intervalCount : null,
       timeUnit: _recurring && intervalCount != null ? _unit.name : null,
-      warningDays: _dateValue == null ? null : int.tryParse(_warningDays.text),
-      warningDistance: mileage == null
-          ? null
-          : length.toStorage(
-              PlanItemValidators.parseMileage(_warningDistance.text)!,
-            ),
       intervalDays: intervalDays,
       intervalDistance: intervalDistance,
       date: _dateValue,
@@ -199,6 +244,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
   }
 
   Future<void> _save() async {
+    if (_saving) return;
     final draft = _draftOrNull();
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
@@ -239,9 +285,12 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
       firstDate: DateTime(now.year - 10),
       lastDate: DateTime(now.year + 10),
     );
-    if (picked == null) return;
+    if (picked == null || !mounted) return;
     setState(() {
       _dateValue = picked;
+      _errors['date'] = null;
+      _errors['mileage'] = null;
+      _formError = null;
       _date.text = DateFormat.yMMMd().format(picked);
     });
   }
@@ -251,316 +300,288 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final unit = ref.watch(lengthUnitProvider).label;
-    if (_loading) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(
-            widget.isEditing
-                ? s.planItemFormEditTitle
-                : s.planItemFormCreateTitle,
-          ),
-        ),
-        body: Center(
-          child: CircularProgressIndicator(color: tokens.text.accent),
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.isEditing
-              ? s.planItemFormEditTitle
-              : s.planItemFormCreateTitle,
-        ),
-      ),
-      body: Column(
+    return PopScope(
+      canPop: !_saving,
+      child: Column(
         children: [
-          Expanded(
-            child: ListView(
-              padding: EdgeInsets.all(tokens.space.s5),
+          Padding(
+            padding: EdgeInsets.only(
+              left: tokens.space.s4,
+              right: tokens.space.s2,
+            ),
+            child: Row(
               children: [
-                DcoTextField(
-                  key: const Key('plan-item-name'),
-                  label: s.planItemFormName,
-                  controller: _name,
-                  errorText: _errors['name'],
-                  maxLength: PlanItemValidators.maxNameLength,
-                  textInputAction: TextInputAction.next,
-                  onChanged: (_) => setState(() => _errors['name'] = null),
-                ),
-                SizedBox(height: tokens.space.s4),
-
-                Container(
-                  decoration: BoxDecoration(
-                    color: tokens.background.card,
-                    borderRadius: BorderRadius.circular(tokens.radius.lg),
-                    boxShadow: tokens.shadows.card,
+                Expanded(
+                  child: Text(
+                    widget.isEditing
+                        ? s.planItemFormEditTitle
+                        : s.planItemFormCreateTitle,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
-                  padding: EdgeInsets.all(tokens.space.s4),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                IconButton(
+                  tooltip: s.close,
+                  onPressed: _saving ? null : () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _loading
+                ? Center(
+                    child: CircularProgressIndicator(color: tokens.text.accent),
+                  )
+                : ListView(
+                    padding: EdgeInsets.all(tokens.space.s4),
                     children: [
-                      Material(
-                        type: MaterialType.transparency,
-                        clipBehavior: Clip.antiAlias,
-                        borderRadius: BorderRadius.circular(tokens.radius.lg),
-                        child: SwitchListTile(
-                          value: _enabled,
-                          onChanged: (value) =>
-                              setState(() => _enabled = value),
-                          activeThumbColor: tokens.status.successFg,
-                          title: Text(
-                            s.planItemFormActive,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          subtitle: Text(
-                            s.planItemFormActiveHelper,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          contentPadding: EdgeInsets.zero,
-                        ),
+                      DcoTextField(
+                        key: const Key('plan-item-name'),
+                        label: s.planItemFormName,
+                        controller: _name,
+                        errorText: _errors['name'],
+                        maxLength: PlanItemValidators.maxNameLength,
+                        textInputAction: TextInputAction.next,
+                        onChanged: (_) =>
+                            setState(() => _errors['name'] = null),
                       ),
                       SizedBox(height: tokens.space.s4),
-                      Material(
-                        type: MaterialType.transparency,
-                        clipBehavior: Clip
-                            .antiAlias, // Ensures splashes don't bleed past corners
-                        borderRadius: BorderRadius.circular(
-                          tokens.radius.lg,
-                        ), // Matches your card radius
-                        child: SwitchListTile(
-                          value: _recurring,
-                          onChanged: (value) => setState(() {
-                            _recurring = value;
-                            _errors['interval'] = null;
-                            _errors['distance'] = null;
-                            _errors['schedule'] = null;
-                            _formError = null;
-                          }),
-                          activeThumbColor: tokens.status.successFg,
-                          title: Text(
-                            s.planItemFormRecurring,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          subtitle: Text(
-                            s.planItemFormRecurringHelper,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                          contentPadding: EdgeInsets.zero,
-                        ),
-                      ),
-                      if (_recurring) ...[
-                        SizedBox(height: tokens.space.s3),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              child: DcoTextField(
-                                label: s.planItemFormRepeatEvery,
-                                controller: _intervalCount,
-                                hint: '1',
-                                errorText: _errors['interval'],
-                                keyboardType: TextInputType.number,
-                                onChanged: (_) => setState(() {
-                                  _errors['interval'] = null;
-                                  _errors['schedule'] = null;
-                                  _formError = null;
-                                }),
-                              ),
-                            ),
-                            SizedBox(width: tokens.space.s3),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    s.planItemFormUnit,
-                                    style: Theme.of(
-                                      context,
-                                    ).textTheme.labelLarge,
-                                  ),
-                                  SizedBox(height: tokens.space.s2),
-                                  DropdownButtonFormField<TimeIntervalUnit>(
-                                    initialValue: _unit,
-                                    items: TimeIntervalUnit.values
-                                        .map(
-                                          (unit) => DropdownMenuItem(
-                                            value: unit,
-                                            child: Text(unit.label),
-                                          ),
-                                        )
-                                        .toList(),
-                                    onChanged: (value) {
-                                      if (value == null) return;
-                                      setState(() => _unit = value);
-                                    },
-                                    decoration: InputDecoration(
-                                      filled: true,
-                                      fillColor: tokens.background.input,
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          tokens.radius.md,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: tokens.border.subtle,
-                                        ),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          tokens.radius.md,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color: tokens.border.subtle,
-                                        ),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          tokens.radius.md,
-                                        ),
-                                        borderSide: BorderSide(
-                                          color:
-                                              tokens.button.primary.background,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: tokens.space.s3,
-                                        vertical: tokens.space.s2,
-                                      ),
+
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: DcoTextField(
+                              key: const Key('plan-item-date'),
+                              label: s.planItemFormNextDate,
+                              controller: _date,
+                              errorText: _errors['date'],
+                              readOnly: true,
+                              onTap: _pickDate,
+                              suffix: _dateValue == null
+                                  ? Icon(
+                                      Icons.calendar_today_outlined,
+                                      color: tokens.icon.inactive,
+                                      size: 18,
+                                    )
+                                  : IconButton(
+                                      key: const Key('plan-item-clear-date'),
+                                      tooltip:
+                                          '${s.remove} ${s.planItemFormNextDate}',
+                                      icon: const Icon(Icons.close, size: 18),
+                                      onPressed: () => setState(() {
+                                        _dateValue = null;
+                                        _date.clear();
+                                        _errors['date'] = null;
+                                        _errors['interval'] = null;
+                                        _errors['schedule'] = null;
+                                        _formError = null;
+                                      }),
                                     ),
-                                    style: Theme.of(context).textTheme.bodyLarge
-                                        ?.copyWith(color: tokens.text.primary),
-                                    dropdownColor: tokens.background.card,
-                                  ),
-                                ],
+                            ),
+                          ),
+                          SizedBox(width: tokens.space.s3),
+                          Expanded(
+                            child: DcoTextField(
+                              key: const Key('plan-item-mileage'),
+                              label: '${s.planItemFormNextOdometer} ($unit)',
+                              controller: _mileage,
+                              errorText: _errors['mileage'],
+                              keyboardType: TextInputType.number,
+                              textInputAction: TextInputAction.next,
+                              onChanged: (_) => setState(() {
+                                _errors['mileage'] = null;
+                                _errors['date'] = null;
+                                _errors['schedule'] = null;
+                                _formError = null;
+                              }),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: tokens.space.s4),
+                      SwitchListTile(
+                        key: const Key('plan-item-recurring'),
+                        value: _recurring,
+                        onChanged: (value) => setState(() {
+                          _recurring = value;
+                          _errors['interval'] = null;
+                          _errors['distance'] = null;
+                          _errors['schedule'] = null;
+                          _formError = null;
+                        }),
+                        activeThumbColor: tokens.status.successFg,
+                        title: Text(s.planItemFormRecurring),
+                        subtitle: Text(s.planItemFormRecurringHelper),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      if (_recurring &&
+                          (_dateValue != null ||
+                              _mileage.text.trim().isNotEmpty)) ...[
+                        SizedBox(height: tokens.space.s3),
+                        if (_dateValue != null)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                child: DcoTextField(
+                                  key: const Key('plan-item-repeat-time'),
+                                  label: s.planItemFormRepeatEvery,
+                                  controller: _intervalCount,
+                                  hint: '1',
+                                  errorText: _errors['interval'],
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (_) => setState(() {
+                                    _errors['interval'] = null;
+                                    _errors['schedule'] = null;
+                                    _formError = null;
+                                  }),
+                                ),
+                              ),
+                              SizedBox(width: tokens.space.s3),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      s.planItemFormUnit,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.labelLarge,
+                                    ),
+                                    SizedBox(height: tokens.space.s2),
+                                    DropdownButtonFormField<TimeIntervalUnit>(
+                                      initialValue: _unit,
+                                      items: TimeIntervalUnit.values
+                                          .where(
+                                            (unit) =>
+                                                unit != TimeIntervalUnit.days ||
+                                                _unit == TimeIntervalUnit.days,
+                                          )
+                                          .map(
+                                            (unit) => DropdownMenuItem(
+                                              value: unit,
+                                              enabled:
+                                                  unit != TimeIntervalUnit.days,
+                                              child: Text(unit.label),
+                                            ),
+                                          )
+                                          .toList(),
+                                      onChanged: (value) {
+                                        if (value == null) return;
+                                        setState(() => _unit = value);
+                                      },
+                                      decoration: InputDecoration(
+                                        filled: true,
+                                        fillColor: tokens.background.input,
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            tokens.radius.md,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: tokens.border.subtle,
+                                          ),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            tokens.radius.md,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: tokens.border.subtle,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            tokens.radius.md,
+                                          ),
+                                          borderSide: BorderSide(
+                                            color: tokens
+                                                .button
+                                                .primary
+                                                .background,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        contentPadding: EdgeInsets.symmetric(
+                                          horizontal: tokens.space.s3,
+                                          vertical: tokens.space.s2,
+                                        ),
+                                      ),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyLarge
+                                          ?.copyWith(
+                                            color: tokens.text.primary,
+                                          ),
+                                      dropdownColor: tokens.background.card,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        SizedBox(height: tokens.space.s4),
+                        if (_mileage.text.trim().isNotEmpty)
+                          DcoTextField(
+                            key: const Key('plan-item-repeat-distance'),
+                            label: s.planItemFormEveryMileage,
+                            controller: _intervalDistance,
+                            hint: '15000',
+                            errorText: _errors['distance'],
+                            keyboardType: TextInputType.number,
+                            suffix: Padding(
+                              padding: const EdgeInsets.only(
+                                right: 12,
+                                top: 12,
+                              ),
+                              child: Text(
+                                unit,
+                                style: TextStyle(color: tokens.text.caption),
                               ),
                             ),
-                          ],
-                        ),
+                            onChanged: (_) => setState(() {
+                              _errors['distance'] = null;
+                              _errors['schedule'] = null;
+                              _formError = null;
+                            }),
+                          ),
+                      ],
+                      SizedBox(height: tokens.space.s4),
+                      DcoTextField(
+                        key: const Key('plan-item-notes'),
+                        label: s.planItemFormNotes,
+                        controller: _notes,
+                        maxLines: 4,
+                        minLines: 3,
+                      ),
+                      SizedBox(height: tokens.space.s3),
+                      SwitchListTile(
+                        key: const Key('plan-item-active'),
+                        value: _enabled,
+                        onChanged: (value) => setState(() => _enabled = value),
+                        activeThumbColor: tokens.status.successFg,
+                        title: Text(s.planItemFormActive),
+                        subtitle: Text(s.planItemFormActiveHelper),
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      if (_formError != null) ...[
                         SizedBox(height: tokens.space.s4),
-                        DcoTextField(
-                          label: s.planItemFormEveryMileage,
-                          controller: _intervalDistance,
-                          hint: '15000',
-                          errorText: _errors['distance'],
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          suffix: Padding(
-                            padding: const EdgeInsets.only(right: 12, top: 12),
-                            child: Text(
-                              unit,
-                              style: TextStyle(color: tokens.text.caption),
-                            ),
-                          ),
-                          onChanged: (_) => setState(() {
-                            _errors['distance'] = null;
-                            _errors['schedule'] = null;
-                            _formError = null;
-                          }),
+                        Text(
+                          _formError!,
+                          style: TextStyle(color: tokens.status.dangerFg),
                         ),
                       ],
                     ],
                   ),
-                ),
-
-                SizedBox(height: tokens.space.s4),
-                Text(
-                  s.planItemFormOverrideStart,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                SizedBox(height: tokens.space.s2),
-                Text(
-                  s.planItemFormOverrideHelper,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
-                ),
-                SizedBox(height: tokens.space.s4),
-                Column(
-                  children: [
-                    DcoTextField(
-                      label: s.planItemFormDate,
-                      controller: _date,
-                      hint: 'dd/mm/yyyy',
-                      readOnly: true,
-                      onTap: _pickDate,
-                      suffix: Icon(
-                        Icons.calendar_today_outlined,
-                        color: tokens.icon.inactive,
-                        size: 18,
-                      ),
-                    ),
-                    SizedBox(height: tokens.space.s4),
-                    DcoTextField(
-                      label: s.planItemFormMileage,
-                      controller: _mileage,
-                      hint: '*** $unit',
-                      errorText: _errors['mileage'],
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      suffix: Padding(
-                        padding: const EdgeInsets.only(right: 12, top: 12),
-                        child: Text(
-                          unit,
-                          style: TextStyle(color: tokens.text.caption),
-                        ),
-                      ),
-                      onChanged: (_) => setState(() {
-                        _errors['mileage'] = null;
-                        _errors['schedule'] = null;
-                        _formError = null;
-                      }),
-                    ),
-                  ],
-                ),
-                SizedBox(height: tokens.space.s4),
-                if (_dateValue != null) ...[
-                  DcoTextField(
-                    label: s.planWarningDays,
-                    controller: _warningDays,
-                    errorText: _errors['warningDays'],
-                    keyboardType: TextInputType.number,
-                  ),
-                  SizedBox(height: tokens.space.s4),
-                ],
-                if (_mileage.text.trim().isNotEmpty) ...[
-                  DcoTextField(
-                    label: '${s.planWarningDistance} ($unit)',
-                    controller: _warningDistance,
-                    errorText: _errors['warningDistance'],
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                  ),
-                  SizedBox(height: tokens.space.s4),
-                ],
-                DcoTextField(
-                  label: s.planItemFormNotes,
-                  controller: _notes,
-                  hint: 'write a message',
-                  maxLines: 4,
-                  minLines: 3,
-                ),
-                if (_formError != null) ...[
-                  SizedBox(height: tokens.space.s4),
-                  Text(
-                    _formError!,
-                    style: TextStyle(color: tokens.status.dangerFg),
-                  ),
-                ],
-              ],
-            ),
           ),
-          DcoStickyActions(
-            secondaryLabel: s.cancel,
-            onSecondary: () => Navigator.of(context).pop(),
-            primaryLabel: s.save,
-            onPrimary: _save,
-            primaryLoading: _saving,
-            primaryKey: const Key('plan-item-save'),
+          SafeArea(
+            top: false,
+            child: DcoStickyActions(
+              primaryLabel: s.save,
+              onPrimary: _loading || _saving ? null : _save,
+              primaryLoading: _saving,
+              primaryKey: const Key('plan-item-save'),
+            ),
           ),
         ],
       ),

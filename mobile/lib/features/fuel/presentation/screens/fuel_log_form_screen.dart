@@ -131,7 +131,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         _cost.text = MoneyFormat.input(log.cost, log.currency);
         if (log.odometer != null) {
           final display = ref.read(lengthUnitProvider).toDisplay(log.odometer!);
-          _odometer.text = _formatNumber(display);
+          _odometer.text = display.round().toString();
         }
       }
     } else if (vehicle != null) {
@@ -503,9 +503,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                     label: s.fuelLogFormOdometer,
                     controller: _odometer,
                     hint: s.fuelLogFormOdometerHint,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
+                    keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
                     errorText: _errors['odometer'],
                     suffix: Padding(

@@ -103,7 +103,7 @@ function VehicleDataPlate({ vehicle }: { vehicle: FleetVehicle }) {
         { label: "Fuel", value: fuelLabel(vehicle.fuel_type) },
         {
           label: "Odometer",
-          value: `${vehicle.mileage.toLocaleString()} ${vehicle.mileage_unit ?? "km"}`,
+          value: `${vehicle.mileage.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${vehicle.mileage_unit ?? "km"}`,
           mono: true,
         },
         { label: "Lifecycle", value: lifecycleLabel(vehicle.lifecycle_template) },
@@ -144,7 +144,7 @@ function ConditionStrip({ items, mileage }: { items: VehiclePlanItem[]; mileage:
     if (withKm.length) {
       const upcoming = withKm.filter((i) => (i.next_due_mileage as number) >= mileage);
       const chosen = (upcoming.length ? upcoming : withKm)[0];
-      return { name: chosen.name, when: `${(chosen.next_due_mileage as number).toLocaleString()} km` };
+      return { name: chosen.name, when: `${(chosen.next_due_mileage as number).toLocaleString(undefined, { maximumFractionDigits: 0 })} km` };
     }
     return null;
   }, [items, mileage]);
@@ -239,7 +239,7 @@ function CostPanel({
 
   const figures: { label: string; value: string }[] = [
     { label: "Cost / km", value: money(analytics.cost_per_km ?? 0, 3, currency) },
-    { label: "Distance", value: `${(analytics.total_km_driven ?? 0).toLocaleString()} km` },
+    { label: "Distance", value: `${(analytics.total_km_driven ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })} km` },
     { label: "Utilization", value: `${analytics.utilization_rate ?? 0}%` },
   ];
 
@@ -315,7 +315,7 @@ function ServiceHistorySection({ orgId, vehicleId }: { orgId: string | null; veh
                   <p className="mt-1 text-xs text-ink-caption">
                     {formatDate(record.serviced_on)}
                     <span className="mx-1.5 text-ink-faint">/</span>
-                    <span className="font-mono">{record.odometer.toLocaleString()} km</span>
+                    <span className="font-mono">{record.odometer.toLocaleString(undefined, { maximumFractionDigits: 0 })} km</span>
                     {record.workshop_name ? (
                       <>
                         <span className="mx-1.5 text-ink-faint">/</span>

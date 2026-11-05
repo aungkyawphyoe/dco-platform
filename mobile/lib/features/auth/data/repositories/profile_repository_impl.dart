@@ -63,8 +63,10 @@ class ProfileRepositoryImpl implements ProfileRepository {
     required String vehicleId,
   }) async {
     final key = '$_pendingKeyPrefix$userId';
-    final updated = await (_db.update(_db.appMeta)..where((m) => m.key.equals(key)))
-        .write(AppMetaCompanion(value: Value(vehicleId)));
+    final updated =
+        await (_db.update(_db.appMeta)..where((m) => m.key.equals(key))).write(
+          AppMetaCompanion(value: Value(vehicleId)),
+        );
     if (updated == 0) {
       await _db
           .into(_db.appMeta)
@@ -73,19 +75,36 @@ class ProfileRepositoryImpl implements ProfileRepository {
   }
 
   @override
+  Future<void> clearPendingActiveVehicle({
+    required String userId,
+    required String vehicleId,
+  }) async {
+    await (_db.delete(_db.appMeta)..where(
+          (row) =>
+              row.key.equals('$_pendingKeyPrefix$userId') &
+              row.value.equals(vehicleId),
+        ))
+        .go();
+  }
+
+  @override
   Future<void> flushPendingActiveVehicle(String userId) async {
     final key = '$_pendingKeyPrefix$userId';
-    final row = await (_db.select(_db.appMeta)..where((m) => m.key.equals(key)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.appMeta,
+    )..where((m) => m.key.equals(key))).getSingleOrNull();
     final vehicleId = row?.value;
     if (vehicleId == null || vehicleId.isEmpty) return;
     try {
       final current = await get();
-      await update(displayName: current.displayName ?? '', activeVehicleId: vehicleId);
-      await (_db.delete(_db.appMeta)..where((m) => m.key.equals(key))).go();
+      await update(
+        displayName: current.displayName ?? '',
+        activeVehicleId: vehicleId,
+      );
+      await clearPendingActiveVehicle(userId: userId, vehicleId: vehicleId);
     } on ApiError catch (error) {
       if (error.code != 'network') {
-        await (_db.delete(_db.appMeta)..where((m) => m.key.equals(key))).go();
+        await clearPendingActiveVehicle(userId: userId, vehicleId: vehicleId);
       }
     }
   }

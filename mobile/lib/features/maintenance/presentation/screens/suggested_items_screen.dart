@@ -71,40 +71,63 @@ class SuggestedItemsScreen extends ConsumerWidget {
               padding: EdgeInsets.all(context.tokens.space.s4),
               children: [
                 for (final item in items)
-                  Padding(
-                    padding: EdgeInsets.only(bottom: context.tokens.space.s3),
-                    child: DcoCard(
-                      child: ListTile(
-                        title: Text(item.name),
-                        trailing: const Icon(Icons.chevron_right),
-                        onTap: plan.asData == null || vehicle == null
-                            ? null
-                            : () {
-                                final existing = plan.asData!.value
-                                    .where(
-                                      (entry) =>
-                                          entry.enabled &&
-                                          entry.catalogKey == item.catalogKey,
-                                    )
-                                    .firstOrNull;
-                                showModalBottomSheet<void>(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  useSafeArea: true,
-                                  backgroundColor:
-                                      context.tokens.background.card,
-                                  builder: (context) => FractionallySizedBox(
-                                    heightFactor: 0.95,
-                                    child: PlanItemFormScreen(
-                                      planItemId: existing?.id,
-                                      initialName: item.name,
-                                      catalogKey: item.catalogKey,
+                  Builder(
+                    builder: (context) {
+                      final existing = plan.asData?.value
+                          .where(
+                            (entry) =>
+                                entry.enabled &&
+                                entry.catalogKey == item.catalogKey,
+                          )
+                          .firstOrNull;
+                      final VoidCallback? setup =
+                          plan.asData == null || vehicle == null
+                          ? null
+                          : () {
+                              showPlanItemForm(
+                                context,
+                                planItemId: existing?.id,
+                                initialName: item.name,
+                                catalogKey: item.catalogKey,
+                              );
+                            };
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          bottom: context.tokens.space.s2,
+                        ),
+                        child: DcoCard(
+                          padding: EdgeInsets.zero,
+                          child: ListTile(
+                            contentPadding: EdgeInsets.symmetric(
+                              horizontal: context.tokens.space.s4,
+                            ),
+                            title: Row(
+                              children: [
+                                Expanded(child: Text(item.name)),
+                                if (existing != null)
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                      left: context.tokens.space.s2,
+                                    ),
+                                    child: Icon(
+                                      Icons.check_circle_rounded,
+                                      color: context.tokens.status.successFg,
+                                      size: 20,
+                                      semanticLabel:
+                                          s.suggestedItemsAlreadySetUp,
                                     ),
                                   ),
-                                );
-                              },
-                      ),
-                    ),
+                              ],
+                            ),
+                            trailing: TextButton(
+                              onPressed: setup,
+                              child: Text(s.suggestedItemsSetUp),
+                            ),
+                            onTap: setup,
+                          ),
+                        ),
+                      );
+                    },
                   ),
               ],
             ),

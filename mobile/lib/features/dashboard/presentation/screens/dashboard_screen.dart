@@ -1,3 +1,4 @@
+import '../widgets/dashboard_vehicle_empty_state.dart';
 import 'dart:io';
 import 'package:dco_mobile/core/entities/driving_license.dart';
 
@@ -170,15 +171,7 @@ class DashboardScreen extends ConsumerWidget {
                 if (vehicle == null) {
                   return TourAnchor(
                     target: TourTarget.vehicle,
-                    child: DcoEmptyState(
-                      title: s.dashboardEmptyTitle,
-                      body: s.dashboardEmptyBody,
-                      actionLabel: s.dashboardEmptyTitle,
-                      actionKey: const Key('register-vehicle-cta'),
-                      onAction: ref.watch(driverOrganizationIdProvider) == null
-                          ? () => context.push(AppRoutes.vehicleNew)
-                          : null,
-                    ),
+                    child: const DashboardVehicleEmptyState(),
                   );
                 }
                 return _PopulatedDashboard(vehicle: vehicle);

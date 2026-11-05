@@ -151,30 +151,103 @@ void main() {
       final context = tester.element(find.byType(SuggestedItemsScreen));
       final s = AppLocalizations.of(context)!;
       expect(find.text('Oil change'), findsOneWidget);
+      final check = find.byIcon(Icons.check_circle_rounded);
+      expect(check, findsOneWidget);
+      expect(
+        tester.widget<Icon>(check).semanticLabel,
+        s.suggestedItemsAlreadySetUp,
+      );
       final container = ProviderScope.containerOf(context);
       container.read(user.notifier).state = 'b';
       await tester.pump();
       await tester.pump();
       expect(find.text(s.suggestedItemsAllAdded), findsNothing);
-      bPlan.add([]);
+      expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
+      bPlan.add([
+        PlanItem(
+          id: 'inactive',
+          vehicleId: 'car-b',
+          name: 'Oil change',
+          catalogKey: 'oil',
+          enabled: false,
+          updatedAt: DateTime(2026),
+          createdAt: DateTime(2026),
+        ),
+      ]);
       await tester.pumpAndSettle();
       expect(find.text('Oil change'), findsOneWidget);
       expect(find.text(s.suggestedItemsAllAdded), findsNothing);
+      expect(find.byIcon(Icons.check_circle_rounded), findsNothing);
     },
   );
 
   testWidgets('suggestion opens a prefilled sheet and requires manual setup', (
     tester,
   ) async {
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.physicalSize = const Size(800, 1400);
+    addTearDown(tester.view.resetPhysicalSize);
     await pump(tester, [suggestion]);
     final context = tester.element(find.byType(SuggestedItemsScreen));
     final container = ProviderScope.containerOf(context);
     container.read(user.notifier).state = 'b';
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Oil change'));
+    expect(find.text('Set up'), findsOneWidget);
+    expect(find.byIcon(Icons.chevron_right), findsNothing);
+    await tester.tap(find.text('Set up'));
     await tester.pumpAndSettle();
     expect(find.byType(BottomSheet), findsOneWidget);
     expect(find.byType(PlanItemFormScreen), findsOneWidget);
+    expect(find.text('Next due'), findsNothing);
+    final recurring = find.byKey(const Key('plan-item-recurring'));
+    final notes = find.byKey(const Key('plan-item-notes'));
+    final active = find.byKey(const Key('plan-item-active'));
+    expect(
+      tester.getTopLeft(recurring).dy,
+      lessThan(tester.getTopLeft(notes).dy),
+    );
+    expect(tester.getTopLeft(notes).dy, lessThan(tester.getTopLeft(active).dy));
+    expect(find.byKey(const Key('plan-item-repeat-time')), findsNothing);
+    expect(find.byKey(const Key('plan-item-repeat-distance')), findsNothing);
+    await tester.tap(find.byKey(const Key('plan-item-save')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Enter a due date or odometer reading.'),
+      findsNWidgets(2),
+    );
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const Key('plan-item-mileage')),
+        matching: find.byType(TextField),
+      ),
+      '10000',
+    );
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('plan-item-repeat-time')), findsNothing);
+    await tester.tap(find.byKey(const Key('plan-item-save')));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Enter a repeat distance greater than zero.'),
+      findsOneWidget,
+    );
+    await tester.enterText(
+      find.descendant(
+        of: find.byKey(const Key('plan-item-mileage')),
+        matching: find.byType(TextField),
+      ),
+      '',
+    );
+    await tester.tap(find.byKey(const Key('plan-item-date')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('plan-item-repeat-distance')), findsNothing);
+    await tester.tap(find.byType(DropdownButtonFormField<TimeIntervalUnit>));
+    await tester.pumpAndSettle();
+    expect(find.text('Days'), findsNothing);
+    await tester.tap(find.text('Months').last);
+    await tester.pumpAndSettle();
     final fields = tester.widgetList<TextField>(find.byType(TextField));
     expect(
       fields.any((field) => field.controller?.text == 'Oil change'),
@@ -183,8 +256,23 @@ void main() {
     await tester.tap(find.byKey(const Key('plan-item-save')));
     await tester.pumpAndSettle();
     expect(find.byType(PlanItemFormScreen), findsOneWidget);
+    expect(
+      find.text('Enter a repeat time of at least 1 month.'),
+      findsOneWidget,
+    );
     final s = AppLocalizations.of(context)!;
-    await tester.tap(find.text(s.cancel));
+    expect(find.text(s.cancel), findsNothing);
+    expect(find.text(s.planWarningDays), findsNothing);
+    expect(find.textContaining(s.planWarningDistance), findsNothing);
+    final mileage = find.byKey(const Key('plan-item-mileage'));
+    final date = find.byKey(const Key('plan-item-date'));
+    await tester.ensureVisible(mileage);
+    expect(tester.getTopLeft(mileage).dy, tester.getTopLeft(date).dy);
+    expect(
+      tester.getTopLeft(mileage).dx,
+      greaterThan(tester.getTopLeft(date).dx),
+    );
+    await tester.tap(find.byTooltip(s.close));
     await tester.pumpAndSettle();
     expect(find.byType(PlanItemFormScreen), findsNothing);
   });

@@ -3397,7 +3397,7 @@ paths:
   /organizations/{id}/maintenance-catalog:
     get:
       tags: [Fleet, Maintenance]
-      summary: Shared suggested service names for per-vehicle reminder setup
+      summary: Suggested and fleet-only custom service names for per-vehicle reminder setup
       parameters:
         - in: path
           name: id
@@ -3415,6 +3415,32 @@ paths:
                   items:
                     type: array
                     items: {$ref: '#/components/schemas/SuggestedPlanItem'}
+        '403': {$ref: '#/components/responses/Error'}
+    post:
+      tags: [Fleet, Maintenance]
+      summary: Add a fleet-only custom service name (admin or manager)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [name]
+              properties:
+                name: {type: string, minLength: 1, maxLength: 80}
+      responses:
+        '201':
+          description: Custom service available to this fleet
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/SuggestedPlanItem'}
+        '400': {$ref: '#/components/responses/Error'}
         '403': {$ref: '#/components/responses/Error'}
   /organizations/{id}/vehicles/{vehicleId}/plan-items:
     get:
@@ -6318,10 +6344,11 @@ components:
       type: object
       additionalProperties: false
       required: [id, name, interval_days, interval_distance, next_due_on, next_due_mileage, enabled]
-      description: At least one first due target is required. Each repeat interval requires its corresponding first target. PUT requires the full reminder body.
+      description: At least one first due target is required. Each repeat interval requires its corresponding first target. When any repetition is set, each due target requires its matching repeat interval. PUT requires the full reminder body.
       properties:
         id: {type: string, format: uuid}
         name: {type: string, minLength: 1, maxLength: 80}
+        notes: {type: string, maxLength: 4000, nullable: true}
         catalog_key: {type: string, nullable: true}
         time_count: {type: integer, minimum: 1, nullable: true}
         time_unit: {type: string, enum: [days, months, years], nullable: true}
@@ -6336,6 +6363,11 @@ components:
       type: object
       required: [catalog_key, name]
       properties:
+        source:
+          type: string
+          enum: [global, org]
+          description: Platform suggestion or fleet-only custom service (fleet catalog responses)
+
         catalog_key:
           type: string
         name:

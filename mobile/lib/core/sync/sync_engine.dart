@@ -616,9 +616,16 @@ class SyncEngine {
         });
       }
       await _writeCursor(userId, pulled.cursor);
-      if (pulled.changes.isEmpty || pulled.cursor == cursor) return;
+      if (pulled.changes.isEmpty || pulled.cursor == cursor) {
+        await _writeMeta('garage_loaded:$userId', 'true');
+        return;
+      }
       cursor = pulled.cursor;
     }
+    throw const ApiError(
+      code: 'server',
+      message: 'Vehicle sync has more pages. Retry to continue.',
+    );
   }
 
   Future<String> _readCursor(String userId) async {

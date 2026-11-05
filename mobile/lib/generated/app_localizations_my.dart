@@ -382,7 +382,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get vehiclePlateLabel => 'ယာဉ်နံပါတ် *';
 
   @override
-  String get vehicleMileageLabel => 'မိုင်နှုန်း *';
+  String get vehicleMileageLabel => 'အိုဒိုမီတာ *';
 
   @override
   String get vehicleFuelTypeLabel => 'လောင်စာဆီ အမျိုးအစား *';
@@ -437,7 +437,7 @@ class AppLocalizationsMy extends AppLocalizations {
       'ဒီ VIN နံပါတ်သည် အခြားယာဉ်တွင် အသုံးပြုပြီးသားဖြစ်သည်';
 
   @override
-  String get vehicleMileageDecrease => 'မိုင်နှုန်း လျော့နည်းသွား၍ မရပါ';
+  String get vehicleMileageDecrease => 'အိုဒိုမီတာ လျော့နည်းသွား၍ မရပါ';
 
   @override
   String get vehicleNotFound => 'ယာဉ် ရှာမတွေ့ပါ';
@@ -469,13 +469,13 @@ class AppLocalizationsMy extends AppLocalizations {
   String get vehiclePlateMaxLength => 'ယာဉ်နံပါတ်သည် စာလုံးရေ ၂၀ ထက် မပိုရပါ';
 
   @override
-  String get vehicleMileageRequired => 'မိုင်နှုန်း ရိုက်ထည့်ရန် လိုအပ်သည်';
+  String get vehicleMileageRequired => 'အိုဒိုမီတာ ရိုက်ထည့်ရန် လိုအပ်သည်';
 
   @override
-  String get vehicleMileageInvalid => 'မှန်ကန်သော မိုင်နှုန်း ရိုက်ထည့်ပါ';
+  String get vehicleMileageInvalid => 'မှန်ကန်သော အိုဒိုမီတာ ရိုက်ထည့်ပါ';
 
   @override
-  String get vehicleMileageNegative => 'မိုင်နှုန်းသည် အနှုတ်ကိန်း မဖြစ်ရပါ';
+  String get vehicleMileageNegative => 'အိုဒိုမီတာသည် အနှုတ်ကိန်း မဖြစ်ရပါ';
 
   @override
   String get vehicleVinLength => 'VIN နံပါတ်သည် စာလုံးရေ ၁၇ လုံး ရှိရပါမည်';
@@ -584,7 +584,7 @@ class AppLocalizationsMy extends AppLocalizations {
       'ဒီမှတ်တမ်း ရရှိနိုင်တော့မည် မဟုတ်ပါ။';
 
   @override
-  String get serviceDetailMileage => 'မိုင်နှုန်း';
+  String get serviceDetailMileage => 'အိုဒိုမီတာ';
 
   @override
   String get serviceDetailTotal => 'စုစုပေါင်း';
@@ -621,11 +621,11 @@ class AppLocalizationsMy extends AppLocalizations {
   String get registerServiceDate => 'ရက်စွဲ *';
 
   @override
-  String get registerServiceMileage => 'မိုင်နှုန်း *';
+  String get registerServiceMileage => 'အိုဒိုမီတာ *';
 
   @override
   String registerServiceCurrentMileage(Object mileage) {
-    return 'လက်ရှိ မိုင်နှုန်း: $mileage';
+    return 'လက်ရှိ အိုဒိုမီတာ: $mileage';
   }
 
   @override
@@ -735,10 +735,10 @@ class AppLocalizationsMy extends AppLocalizations {
   String get planItemFormDateRequired => 'ရက်စွဲ *';
 
   @override
-  String get planItemFormMileage => 'မိုင်နှုန်း';
+  String get planItemFormMileage => 'အိုဒိုမီတာ';
 
   @override
-  String get planItemFormMileageRequired => 'မိုင်နှုန်း *';
+  String get planItemFormMileageRequired => 'အိုဒိုမီတာ *';
 
   @override
   String get planItemFormNotes => 'မှတ်ချက်များ';
@@ -778,7 +778,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get suggestedItemsStartDate => 'စတင်မည့်ရက်';
 
   @override
-  String get suggestedItemsStartMileage => 'စတင်မည့်မိုင်နှုန်း';
+  String get suggestedItemsStartMileage => 'စတင်မည့်အိုဒိုမီတာ';
 
   @override
   String get lengthUnitKm => 'km';
@@ -798,7 +798,7 @@ class AppLocalizationsMy extends AppLocalizations {
   }
 
   @override
-  String get planItemTileNextMileage => 'နောက်ပြုလုပ်ရမည့် မိုင်နှုန်း - ';
+  String get planItemTileNextMileage => 'နောက်ပြုလုပ်ရမည့် အိုဒိုမီတာ - ';
 
   @override
   String get planItemTileNextDate => 'နောက်ပြုလုပ်ရမည့် ရက်စွဲ - ';
@@ -819,7 +819,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get planItemTileDays => 'ရက်';
 
   @override
-  String get maintenanceMileageDecrease => 'မိုင်နှုန်း လျော့နည်းသွား၍ မရပါ';
+  String get maintenanceMileageDecrease => 'အိုဒိုမီတာ လျော့နည်းသွား၍ မရပါ';
 
   @override
   String get maintenanceVehicleNotFound => 'ယာဉ် ရှာမတွေ့ပါ';
@@ -845,13 +845,13 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get planItemDueRequired =>
-      'ပြုလုပ်ရမည့် ရက်စွဲ သို့မဟုတ် မိုင်နှုန်း တစ်ခုခု သတ်မှတ်ပါ';
+      'ပြုလုပ်ရမည့် ရက်စွဲ သို့မဟုတ် အိုဒိုမီတာ တစ်ခုခု သတ်မှတ်ပါ';
 
   @override
-  String get planItemMileageRequired => 'မိုင်နှုန်း ရိုက်ထည့်ရန် လိုအပ်သည်';
+  String get planItemMileageRequired => 'အိုဒိုမီတာ ရိုက်ထည့်ရန် လိုအပ်သည်';
 
   @override
-  String get planItemMileageInvalid => 'မှန်ကန်သော မိုင်နှုန်း ရိုက်ထည့်ပါ';
+  String get planItemMileageInvalid => 'မှန်ကန်သော အိုဒိုမီတာ ရိုက်ထည့်ပါ';
 
   @override
   String get planItemWholeNumber => '၀ ထက်ကြီးသော ကိန်းပြည့်ကို ရိုက်ထည့်ပါ';
@@ -2142,7 +2142,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get vehicleDetailPlate => 'လိုင်စင်နံပါတ်';
 
   @override
-  String get vehicleDetailMileage => 'မိုင်အကွာအဝေး';
+  String get vehicleDetailMileage => 'အိုဒိုမီတာ';
 
   @override
   String get vehicleDetailFuelType => 'လောင်စာအမျိုးအစား';
@@ -2682,7 +2682,7 @@ class AppLocalizationsMy extends AppLocalizations {
   String get fleetTransferSaleDate => 'ရောင်းချသည့်ရက် *';
 
   @override
-  String get fleetTransferMileage => 'လက်ရှိ မိုင်အတိုင်းစက် (ကီမိုမီတာ) *';
+  String get fleetTransferMileage => 'လက်ရှိ အိုဒိုမီတာ (ကီမိုမီတာ) *';
 
   @override
   String get fleetTransferWarranty => 'အာမခံ ပုံစံမူ';
@@ -4517,7 +4517,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get apiErrorMileage =>
-      'မိုင်နှုန်းသည် နောက်ဆုံးမှတ်တမ်းထက် လျော့နည်းမဖြစ်ရပါ။';
+      'အိုဒိုမီတာသည် နောက်ဆုံးမှတ်တမ်းထက် လျော့နည်းမဖြစ်ရပါ။';
 
   @override
   String get apiErrorCurrency =>
@@ -4602,4 +4602,45 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get settingsAccountLockedBody =>
       'ဤစက်တွင် ယခင်အကောင့်၏ ဒေတာရှိနေသေးသည်။ ထိုအကောင့်ဖြင့် ပြန်ဝင်ပြီး ဆင့်ခ်လုပ်ပါ၊ သို့မဟုတ် အခြားအကောင့်သုံးရန် စက်တွင်းဒေတာကို အတည်ပြုစွန့်ပစ်ပါ။';
+
+  @override
+  String get suggestedItemsSetUp => 'သတ်မှတ်မည်';
+
+  @override
+  String get planItemFormNextDate => 'နောက်တစ်ကြိမ် ပြုလုပ်ရမည့်ရက်';
+
+  @override
+  String get planItemFormNextOdometer => 'နောက်တစ်ကြိမ် အိုဒိုမီတာ';
+
+  @override
+  String get planDueTargetRequired =>
+      'ပြုလုပ်ရမည့်ရက် သို့မဟုတ် အိုဒိုမီတာကို ထည့်ပါ။';
+
+  @override
+  String get planRepeatTimeRequired =>
+      'အနည်းဆုံး ၁ လ ပြန်လုပ်မည့်ကာလကို ထည့်ပါ။';
+
+  @override
+  String get planRepeatDistanceRequired =>
+      'သုညထက်ကြီးသော ပြန်လုပ်မည့်အကွာအဝေးကို ထည့်ပါ။';
+
+  @override
+  String get suggestedItemsAlreadySetUp => 'သတ်မှတ်ပြီးပြီ';
+
+  @override
+  String get dashboardChooseVehicleTitle => 'အသုံးပြုမည့်ယာဉ်ကို ရွေးပါ';
+
+  @override
+  String get dashboardChooseVehicleBody =>
+      'ယာဉ်၏ ဒက်ရှ်ဘုတ်ကို ကြည့်ရန် Garage သို့သွားပြီး ယာဉ်တစ်စီးကို အသုံးပြုရန် ရွေးပါ။';
+
+  @override
+  String get dashboardChooseVehicleAction => 'Garage သို့သွားမည်';
+
+  @override
+  String get dashboardVehicleLoadFailed => 'သင့်ယာဉ်များကို မရယူနိုင်ပါ';
+
+  @override
+  String get dashboardVehicleLoadRetryBody =>
+      'အကောင့်ရှိ ယာဉ်များကို စစ်ဆေးရန် ပြန်ကြိုးစားပါ။';
 }

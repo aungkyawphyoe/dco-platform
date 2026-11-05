@@ -38,7 +38,7 @@ void main() {
   test('odometer rejects values below the vehicle mileage', () {
     expect(
       FuelLogValidators.odometer('99', vehicleMileage: 100),
-      'Odometer cannot be below vehicle mileage',
+      'Odometer cannot be below the current reading',
     );
     expect(FuelLogValidators.odometer('100', vehicleMileage: 100), isNull);
     expect(FuelLogValidators.odometer('101', vehicleMileage: 100), isNull);

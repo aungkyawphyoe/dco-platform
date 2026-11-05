@@ -791,7 +791,7 @@ abstract class AppLocalizations {
   /// No description provided for @vehicleMileageLabel.
   ///
   /// In en, this message translates to:
-  /// **'Mileage *'**
+  /// **'Odometer *'**
   String get vehicleMileageLabel;
 
   /// No description provided for @vehicleFuelTypeLabel.
@@ -893,7 +893,7 @@ abstract class AppLocalizations {
   /// No description provided for @vehicleMileageDecrease.
   ///
   /// In en, this message translates to:
-  /// **'Mileage cannot decrease'**
+  /// **'Odometer cannot decrease'**
   String get vehicleMileageDecrease;
 
   /// No description provided for @vehicleNotFound.
@@ -953,19 +953,19 @@ abstract class AppLocalizations {
   /// No description provided for @vehicleMileageRequired.
   ///
   /// In en, this message translates to:
-  /// **'Mileage is required'**
+  /// **'Odometer is required'**
   String get vehicleMileageRequired;
 
   /// No description provided for @vehicleMileageInvalid.
   ///
   /// In en, this message translates to:
-  /// **'Enter a valid mileage'**
+  /// **'Enter a valid odometer'**
   String get vehicleMileageInvalid;
 
   /// No description provided for @vehicleMileageNegative.
   ///
   /// In en, this message translates to:
-  /// **'Mileage cannot be negative'**
+  /// **'Odometer cannot be negative'**
   String get vehicleMileageNegative;
 
   /// No description provided for @vehicleVinLength.
@@ -1163,7 +1163,7 @@ abstract class AppLocalizations {
   /// No description provided for @serviceDetailMileage.
   ///
   /// In en, this message translates to:
-  /// **'Mileage'**
+  /// **'Odometer'**
   String get serviceDetailMileage;
 
   /// No description provided for @serviceDetailTotal.
@@ -1235,13 +1235,13 @@ abstract class AppLocalizations {
   /// No description provided for @registerServiceMileage.
   ///
   /// In en, this message translates to:
-  /// **'Mileage *'**
+  /// **'Odometer *'**
   String get registerServiceMileage;
 
   /// No description provided for @registerServiceCurrentMileage.
   ///
   /// In en, this message translates to:
-  /// **'Current mileage: {mileage}'**
+  /// **'Current odometer: {mileage}'**
   String registerServiceCurrentMileage(Object mileage);
 
   /// No description provided for @registerServiceNotes.
@@ -1403,7 +1403,7 @@ abstract class AppLocalizations {
   /// No description provided for @planItemFormEveryMileage.
   ///
   /// In en, this message translates to:
-  /// **'Every (mileage)'**
+  /// **'Repeat distance'**
   String get planItemFormEveryMileage;
 
   /// No description provided for @planItemFormOverrideStart.
@@ -1427,7 +1427,7 @@ abstract class AppLocalizations {
   /// No description provided for @planItemFormTrackingStartHelper.
   ///
   /// In en, this message translates to:
-  /// **'When to begin tracking this item. The first due date/mileage is calculated from here.'**
+  /// **'When to begin tracking this item. The first due date/odometer is calculated from here.'**
   String get planItemFormTrackingStartHelper;
 
   /// No description provided for @planItemFormDate.
@@ -1445,19 +1445,19 @@ abstract class AppLocalizations {
   /// No description provided for @planItemFormMileage.
   ///
   /// In en, this message translates to:
-  /// **'Mileage'**
+  /// **'Odometer'**
   String get planItemFormMileage;
 
   /// No description provided for @planItemFormMileageRequired.
   ///
   /// In en, this message translates to:
-  /// **'Mileage *'**
+  /// **'Odometer *'**
   String get planItemFormMileageRequired;
 
   /// No description provided for @planItemFormNotes.
   ///
   /// In en, this message translates to:
-  /// **'Notes'**
+  /// **'Note'**
   String get planItemFormNotes;
 
   /// No description provided for @suggestedItemsTitle.
@@ -1505,7 +1505,7 @@ abstract class AppLocalizations {
   /// No description provided for @suggestedItemsTrackingStartBody.
   ///
   /// In en, this message translates to:
-  /// **'Set when to start tracking {itemCount} item(s). The first due date/mileage will be calculated from this point.'**
+  /// **'Set when to start tracking {itemCount} item(s). The first due date/odometer will be calculated from this point.'**
   String suggestedItemsTrackingStartBody(Object itemCount);
 
   /// No description provided for @suggestedItemsStartDate.
@@ -1517,7 +1517,7 @@ abstract class AppLocalizations {
   /// No description provided for @suggestedItemsStartMileage.
   ///
   /// In en, this message translates to:
-  /// **'Start Mileage'**
+  /// **'Start Odometer'**
   String get suggestedItemsStartMileage;
 
   /// No description provided for @lengthUnitKm.
@@ -1541,7 +1541,7 @@ abstract class AppLocalizations {
   /// No description provided for @planItemTileNextMileage.
   ///
   /// In en, this message translates to:
-  /// **'Next Mileage: '**
+  /// **'Next Odometer: '**
   String get planItemTileNextMileage;
 
   /// No description provided for @planItemTileNextDate.
@@ -1583,7 +1583,7 @@ abstract class AppLocalizations {
   /// No description provided for @maintenanceMileageDecrease.
   ///
   /// In en, this message translates to:
-  /// **'Mileage cannot decrease'**
+  /// **'Odometer cannot decrease'**
   String get maintenanceMileageDecrease;
 
   /// No description provided for @maintenanceVehicleNotFound.
@@ -1619,25 +1619,25 @@ abstract class AppLocalizations {
   /// No description provided for @planItemScheduleRequired.
   ///
   /// In en, this message translates to:
-  /// **'Set a time interval, a mileage interval, or both'**
+  /// **'Set a time interval, a distance interval, or both'**
   String get planItemScheduleRequired;
 
   /// No description provided for @planItemDueRequired.
   ///
   /// In en, this message translates to:
-  /// **'Set a due date, a due mileage, or both'**
+  /// **'Set a due date, a due odometer, or both'**
   String get planItemDueRequired;
 
   /// No description provided for @planItemMileageRequired.
   ///
   /// In en, this message translates to:
-  /// **'Mileage is required'**
+  /// **'Odometer is required'**
   String get planItemMileageRequired;
 
   /// No description provided for @planItemMileageInvalid.
   ///
   /// In en, this message translates to:
-  /// **'Enter a valid mileage'**
+  /// **'Enter a valid odometer'**
   String get planItemMileageInvalid;
 
   /// No description provided for @planItemWholeNumber.
@@ -3623,7 +3623,7 @@ abstract class AppLocalizations {
   /// No description provided for @unitsFormatsLengthUnitHelper.
   ///
   /// In en, this message translates to:
-  /// **'Odometer, service intervals, and due mileage follow this unit.'**
+  /// **'Odometer, service intervals, and due odometer readings follow this unit.'**
   String get unitsFormatsLengthUnitHelper;
 
   /// No description provided for @remindersTitle.
@@ -3665,7 +3665,7 @@ abstract class AppLocalizations {
   /// No description provided for @remindersSoonDistanceHelp.
   ///
   /// In en, this message translates to:
-  /// **'A mileage reminder fires when the remaining distance is at or below this.'**
+  /// **'A odometer reminder fires when the remaining distance is at or below this.'**
   String get remindersSoonDistanceHelp;
 
   /// No description provided for @remindersReset.
@@ -4017,7 +4017,7 @@ abstract class AppLocalizations {
   /// No description provided for @vehicleDetailMileage.
   ///
   /// In en, this message translates to:
-  /// **'Mileage'**
+  /// **'Odometer'**
   String get vehicleDetailMileage;
 
   /// No description provided for @vehicleDetailFuelType.
@@ -5049,7 +5049,7 @@ abstract class AppLocalizations {
   /// No description provided for @fleetTransferMileage.
   ///
   /// In en, this message translates to:
-  /// **'Current mileage (km) *'**
+  /// **'Current odometer (km) *'**
   String get fleetTransferMileage;
 
   /// No description provided for @fleetTransferWarranty.
@@ -7971,7 +7971,7 @@ abstract class AppLocalizations {
   /// No description provided for @helpMaintenanceAnswer.
   ///
   /// In en, this message translates to:
-  /// **'Choose the correct vehicle, then open Maintenance to view its plan and history. Register a completed service with its date, mileage, and cost. Recording planned work updates the linked plan item. Drivers can log services, while their organization manages the plan.'**
+  /// **'Choose the correct vehicle, then open Maintenance to view its plan and history. Register a completed service with its date, odometer, and cost. Recording planned work updates the linked plan item. Drivers can log services, while their organization manages the plan.'**
   String get helpMaintenanceAnswer;
 
   /// No description provided for @helpExpensesQuestion.
@@ -8307,7 +8307,7 @@ abstract class AppLocalizations {
   /// No description provided for @apiErrorMileage.
   ///
   /// In en, this message translates to:
-  /// **'Mileage cannot be lower than the last recorded value.'**
+  /// **'Odometer cannot be lower than the last recorded value.'**
   String get apiErrorMileage;
 
   /// No description provided for @apiErrorCurrency.
@@ -8441,6 +8441,78 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This device still holds data from the previous account. Sign in to that same account to finish syncing, or explicitly discard the local data before using another account.'**
   String get settingsAccountLockedBody;
+
+  /// No description provided for @suggestedItemsSetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Set up'**
+  String get suggestedItemsSetUp;
+
+  /// No description provided for @planItemFormNextDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due date'**
+  String get planItemFormNextDate;
+
+  /// No description provided for @planItemFormNextOdometer.
+  ///
+  /// In en, this message translates to:
+  /// **'Next due odometer'**
+  String get planItemFormNextOdometer;
+
+  /// No description provided for @planDueTargetRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a due date or odometer reading.'**
+  String get planDueTargetRequired;
+
+  /// No description provided for @planRepeatTimeRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a repeat time of at least 1 month.'**
+  String get planRepeatTimeRequired;
+
+  /// No description provided for @planRepeatDistanceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a repeat distance greater than zero.'**
+  String get planRepeatDistanceRequired;
+
+  /// No description provided for @suggestedItemsAlreadySetUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Already set up'**
+  String get suggestedItemsAlreadySetUp;
+
+  /// No description provided for @dashboardChooseVehicleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose an active vehicle'**
+  String get dashboardChooseVehicleTitle;
+
+  /// No description provided for @dashboardChooseVehicleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Garage and activate a vehicle to see its dashboard.'**
+  String get dashboardChooseVehicleBody;
+
+  /// No description provided for @dashboardChooseVehicleAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Go to Garage'**
+  String get dashboardChooseVehicleAction;
+
+  /// No description provided for @dashboardVehicleLoadFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Couldn’t load your vehicles'**
+  String get dashboardVehicleLoadFailed;
+
+  /// No description provided for @dashboardVehicleLoadRetryBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry to check your account’s vehicles.'**
+  String get dashboardVehicleLoadRetryBody;
 }
 
 class _AppLocalizationsDelegate

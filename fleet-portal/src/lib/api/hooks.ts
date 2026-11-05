@@ -471,8 +471,9 @@ export function useVehiclePlanItems(orgId: string | null, vehicleId: string | nu
   });
 }
 
-export type SuggestedService = { catalog_key: string; name: string };
+export type SuggestedService = { catalog_key: string; name: string; source?: "global" | "org" };
 export type ReminderWrite = {
+  notes?: string | null;
   id: string;
   name: string;
   catalog_key: string | null;
@@ -492,6 +493,14 @@ export function useServiceCatalog(orgId: string | null) {
     queryKey: ["fleet", "service-catalog", orgId],
     queryFn: () => apiGet<{ items: SuggestedService[] }>(orgPath(orgId, "/maintenance-catalog")),
     enabled: Boolean(orgId),
+  });
+}
+
+export function useCreateServiceCatalogItem(orgId: string | null) {
+  const cache = useQueryClient();
+  return useMutation({
+    mutationFn: (name: string) => apiPost<SuggestedService>(orgPath(orgId, "/maintenance-catalog"), { name }),
+    onSuccess: () => cache.invalidateQueries({ queryKey: ["fleet", "service-catalog", orgId] }),
   });
 }
 

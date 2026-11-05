@@ -38,7 +38,10 @@ class FakeProfileRemoteDataSource implements ProfileRemoteDataSource {
   Future<String> uploadPhoto(String filePath) async => '';
 
   @override
-  Future<void> deleteAccount({required String password, String? reason}) async {}
+  Future<void> deleteAccount({
+    required String password,
+    String? reason,
+  }) async {}
 
   @override
   Future<void> registerDeviceToken({
@@ -76,11 +79,29 @@ void main() {
     await repo.flushPendingActiveVehicle('u1');
 
     expect(remote.recordedPatches.single['active_vehicle_id'], 'v9');
-    final rows = await (db.select(db.appMeta)
-          ..where((m) => m.key.equals('pending_active_vehicle:u1')))
-        .get();
+    final rows = await (db.select(
+      db.appMeta,
+    )..where((m) => m.key.equals('pending_active_vehicle:u1'))).get();
     expect(rows, isEmpty);
   });
+
+  test(
+    'clearing an older selection cannot remove a newer pending selection',
+    () async {
+      await repo.markPendingActiveVehicle(userId: 'u1', vehicleId: 'new-car');
+      await repo.markPendingActiveVehicle(
+        userId: 'u1',
+        vehicleId: 'chosen-car',
+      );
+      await repo.clearPendingActiveVehicle(userId: 'u1', vehicleId: 'new-car');
+      expect((await db.select(db.appMeta).getSingle()).value, 'chosen-car');
+      await repo.clearPendingActiveVehicle(
+        userId: 'u1',
+        vehicleId: 'chosen-car',
+      );
+      expect(await db.select(db.appMeta).get(), isEmpty);
+    },
+  );
 
   test('network failure keeps the pending switch for the next retry', () async {
     await repo.markPendingActiveVehicle(userId: 'u1', vehicleId: 'v9');
@@ -88,9 +109,9 @@ void main() {
 
     await repo.flushPendingActiveVehicle('u1');
 
-    final row = await (db.select(db.appMeta)
-          ..where((m) => m.key.equals('pending_active_vehicle:u1')))
-        .getSingle();
+    final row = await (db.select(
+      db.appMeta,
+    )..where((m) => m.key.equals('pending_active_vehicle:u1'))).getSingle();
     expect(row.value, 'v9');
   });
 
@@ -100,9 +121,9 @@ void main() {
 
     await repo.flushPendingActiveVehicle('u1');
 
-    final rows = await (db.select(db.appMeta)
-          ..where((m) => m.key.equals('pending_active_vehicle:u1')))
-        .get();
+    final rows = await (db.select(
+      db.appMeta,
+    )..where((m) => m.key.equals('pending_active_vehicle:u1'))).get();
     expect(rows, isEmpty);
   });
 }

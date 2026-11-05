@@ -19,7 +19,7 @@ class DuplicateVinFailure extends VehicleFailure {
 
 class MileageDecreaseFailure extends VehicleFailure {
   const MileageDecreaseFailure([
-    super.message = 'Mileage cannot decrease',
+    super.message = 'Odometer cannot decrease',
   ]);
 }
 

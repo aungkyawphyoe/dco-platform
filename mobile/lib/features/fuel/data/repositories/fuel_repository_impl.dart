@@ -424,7 +424,7 @@ class FuelRepositoryImpl implements FuelRepository {
     if (draft.odometer == null) return;
     if (!_outbox.derivesExpenses && draft.odometer! < vehicle.mileage) {
       throw const FuelValidationFailure(
-        'Odometer cannot be below vehicle mileage',
+        'Odometer cannot be below the current reading',
       );
     }
   }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:dco_mobile/core/network/api_error.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
@@ -8,6 +9,25 @@ final garageVehiclesProvider = StreamProvider<List<Vehicle>>((ref) {
   final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
   if (userId == null) return Stream.value(const []);
   return ref.watch(vehicleRepositoryProvider).watchGarage(userId);
+});
+
+/// Only a completed pull (or a newly created account) confirms an empty garage.
+final garageLoadedProvider = StreamProvider<bool>((ref) {
+  final userId = ref.watch(currentUserIdProvider);
+  if (userId == null) return Stream.value(false);
+  if (ref.watch(appConfigProvider).mockAuth) return Stream.value(true);
+  final db = ref.watch(recordDatabaseProvider);
+  final engine = ref.watch(syncEngineProvider);
+  final query = db.select(db.appMeta)
+    ..where((row) => row.key.equals('garage_loaded:$userId'));
+  var requested = false;
+  return query.watchSingleOrNull().map((row) {
+    if (row?.value != 'true' && !requested) {
+      requested = true;
+      unawaited(engine.syncNow(force: true));
+    }
+    return row?.value == 'true';
+  });
 });
 
 final activeVehicleProvider = StreamProvider<Vehicle?>((ref) {
@@ -45,18 +65,25 @@ final setActiveVehicleProvider = Provider<SetActiveVehicle>((ref) {
         .read(vehicleRepositoryProvider)
         .setActive(userId: userId, vehicleId: vehicleId);
     if (ref.read(driverOrganizationIdProvider) != null) return;
+    await profile.markPendingActiveVehicle(
+      userId: userId,
+      vehicleId: vehicleId,
+    );
     try {
       await profile.update(
         displayName: displayName,
         activeVehicleId: vehicleId,
       );
+      await profile.clearPendingActiveVehicle(
+        userId: userId,
+        vehicleId: vehicleId,
+      );
     } on ApiError catch (error) {
-      if (error.code == 'network') {
-        await profile.markPendingActiveVehicle(
+      if (error.code != 'network') {
+        await profile.clearPendingActiveVehicle(
           userId: userId,
           vehicleId: vehicleId,
         );
-      } else {
         // Re-throw non-network errors (e.g., invalid_vehicle) so caller can show proper error
         rethrow;
       }

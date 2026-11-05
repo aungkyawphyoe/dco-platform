@@ -1207,20 +1207,44 @@ describe("Per-vehicle reminder setup", () => {
       const catalog = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/maintenance-catalog`, headers });
       expect(catalog.statusCode).toBe(200);
       expect(catalog.json().items).toHaveLength(18);
+      const catalogUrl = `/v1/organizations/${orgId}/maintenance-catalog`;
+      const customCatalog = await app.inject({ method: "POST", url: catalogUrl, headers, payload: { name: "  Hydraulic fluid  " } });
+      expect(customCatalog.statusCode).toBe(201);
+      expect(customCatalog.json()).toMatchObject({ name: "Hydraulic fluid", source: "org" });
+      expect((await app.inject({ method: "GET", url: catalogUrl, headers })).json().items).toContainEqual(customCatalog.json());
+      expect((await app.inject({ method: "POST", url: catalogUrl, headers, payload: { name: "   " } })).statusCode).toBe(422);
+      expect((await app.inject({ method: "POST", url: catalogUrl, headers: auth(owner.token), payload: { name: "Forbidden" } })).statusCode).toBe(403);
+      const otherOwner = await signup(app, "other-catalog-owner");
+      const otherOrg = await app.inject({ method: "POST", url: "/v1/admin/organizations", headers: auth(admin),
+        payload: { name: "Other Fleet", type: "taxi_fleet", admin_email: otherOwner.email } });
+      const otherOrgId = otherOrg.json().id;
+      await grantTestFleet(app, admin, otherOrgId);
+      await app.inject({ method: "PATCH", url: `/v1/admin/organizations/${otherOrgId}/status`, headers: auth(admin), payload: { status: "active" } });
+      const otherLogin = await app.inject({ method: "POST", url: "/v1/auth/login", payload: { email: otherOwner.email, password: "password1", surface: "fleet" } });
+      const otherHeaders = auth(otherLogin.json().access_token);
+      const otherCatalogUrl = `/v1/organizations/${otherOrgId}/maintenance-catalog`;
+      expect((await app.inject({ method: "GET", url: otherCatalogUrl, headers: otherHeaders })).json().items).not.toContainEqual(customCatalog.json());
+      expect((await app.inject({ method: "POST", url: catalogUrl, headers: otherHeaders, payload: { name: "Forbidden" } })).statusCode).toBe(403);
+      const foreignItem = await app.inject({ method: "POST", url: otherCatalogUrl, headers: otherHeaders, payload: { name: "Other service" } });
       const url = `/v1/organizations/${orgId}/vehicles/${vehicleId}/plan-items`;
-      const payload = { id: uuid(), name: "Oil Change", catalog_key: "oil_change", interval_days: null,
+      const payload = { id: uuid(), name: "Oil Change", notes: "Use fleet-approved oil", catalog_key: "oil_change", interval_days: null,
         interval_distance: 5000, next_due_on: null, next_due_mileage: 33000, enabled: true };
+      expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), name: "Hydraulic fluid", catalog_key: customCatalog.json().catalog_key } })).statusCode).toBe(201);
+      expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), catalog_key: foreignItem.json().catalog_key } })).statusCode).toBe(422);
+      expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), next_due_on: "2027-01-01" } })).statusCode).toBe(422);
+      expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), interval_distance: null, next_due_on: "2027-01-01", time_count: 1, time_unit: "months" } })).statusCode).toBe(422);
       const saved = await app.inject({ method: "POST", url, headers, payload });
       expect(saved.statusCode).toBe(201);
-      expect(saved.json()).toMatchObject({ next_due_mileage: 33000, interval_distance: 5000 });
+      expect(saved.json()).toMatchObject({ next_due_mileage: 33000, interval_distance: 5000, notes: "Use fleet-approved oil" });
       expect((await app.inject({ method: "POST", url, headers, payload })).statusCode).toBe(201);
       expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid() } })).statusCode).toBe(409);
       expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), next_due_mileage: null } })).statusCode).toBe(422);
       expect((await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), interval_distance: -1 } })).statusCode).toBe(422);
       expect((await app.inject({ method: "POST", url, headers: auth(owner.token), payload })).statusCode).toBe(403);
-      const updated = await app.inject({ method: "PUT", url, headers, payload: { ...payload, next_due_mileage: 34000 } });
+      const updated = await app.inject({ method: "PUT", url, headers, payload: { ...payload, next_due_mileage: 34000, notes: "Updated note" } });
       expect(updated.statusCode).toBe(200);
       expect(updated.json().next_due_mileage).toBe(34000);
+      expect(updated.json().notes).toBe("Updated note");
       const baseline = await client.query<{ next_due_mileage: string }>("SELECT next_due_mileage FROM plan_schedule_baselines WHERE plan_item_id=$1", [payload.id]);
       expect(Number(baseline.rows[0].next_due_mileage)).toBe(34000);
       const custom = await app.inject({ method: "POST", url, headers, payload: { ...payload, id: uuid(), name: "Fork oil", catalog_key: null, interval_distance: null } });

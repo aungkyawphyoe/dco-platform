@@ -1,3 +1,4 @@
+import 'package:dco_mobile/features/garage/providers.dart';
 import 'dart:async';
 import 'dart:io';
 
@@ -145,6 +146,72 @@ void main() {
     expect(engine.state.phase, SyncPhase.idle);
     expect(engine.state.lastSyncedAt, isNotNull);
   });
+
+  test(
+    'only a completed pull confirms the account garage has loaded',
+    () async {
+      api.pullHandler = (_) =>
+          throw const ApiError(code: 'network', message: 'offline');
+      await engine.syncNow();
+      final query = db.select(db.appMeta)
+        ..where((row) => row.key.equals('garage_loaded:u1'));
+      expect(await query.getSingleOrNull(), isNull);
+      api.pullHandler = (_) => const SyncPullPage(cursor: '', changes: []);
+      await engine.syncNow();
+      expect((await query.getSingle()).value, 'true');
+      api.pullHandler = (_) =>
+          throw const ApiError(code: 'network', message: 'offline');
+      await engine.syncNow();
+      expect((await query.getSingle()).value, 'true');
+    },
+  );
+
+  test(
+    'first garage check pulls even when automatic sync is disabled',
+    () async {
+      var pulls = 0;
+      api.pullHandler = (_) {
+        pulls++;
+        return const SyncPullPage(cursor: '', changes: []);
+      };
+      final manualEngine = SyncEngine(
+        db: db,
+        api: api,
+        mediaApi: mediaApi,
+        currentUser: () => 'u1',
+        autoSyncEnabled: () => false,
+      );
+      final container = ProviderContainer(
+        overrides: [
+          currentUserIdProvider.overrideWithValue('u1'),
+          recordDatabaseProvider.overrideWithValue(db),
+          syncEngineProvider.overrideWithValue(manualEngine),
+          appConfigProvider.overrideWithValue(
+            const AppConfig(
+              apiBaseUrl: 'http://localhost',
+              jwtOwnerAud: 'dco-owner',
+              mockAuth: false,
+              analyticsEnabled: false,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      addTearDown(manualEngine.dispose);
+      final loaded = Completer<void>();
+      final subscription = container.listen(garageLoadedProvider, (_, next) {
+        if (next.valueOrNull == true && !loaded.isCompleted) loaded.complete();
+      });
+      addTearDown(subscription.close);
+      await manualEngine.stream.firstWhere(
+        (state) => state.lastSyncedAt != null,
+      );
+      await container.pump();
+      expect(pulls, 1);
+      await loaded.future;
+      expect(container.read(garageLoadedProvider).valueOrNull, isTrue);
+    },
+  );
 
   test('late status subscribers receive the current engine state', () async {
     expect((await engine.stream.first).phase, SyncPhase.idle);

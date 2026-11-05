@@ -8,7 +8,10 @@ void main() {
       const storedMiles = 10000.0;
       final displayed = MileageUnit.km.toDisplay(storedMiles);
       expect(displayed, closeTo(16093.44, 0.001));
-      expect(MileageUnit.km.toStorage(displayed), closeTo(storedMiles, 0.000001));
+      expect(
+        MileageUnit.km.toStorage(displayed),
+        closeTo(storedMiles, 0.000001),
+      );
     });
 
     test('parse returns km', () {
@@ -23,8 +26,30 @@ void main() {
       expect(MileageFormat.labeled(10000, MileageUnit.km), '16,093 km');
     });
 
-    test('input hydrates a one-decimal km value', () {
-      expect(MileageFormat.input(10000, MileageUnit.km), '16093.4');
+    test('input rounds kilometers to a whole number', () {
+      expect(MileageFormat.input(10000, MileageUnit.km), '16093');
+      expect(
+        MileageFormat.input(MileageUnit.km.toStorage(5000.6), MileageUnit.km),
+        '5001',
+      );
+      expect(MileageFormat.input(0, MileageUnit.km), '0');
+    });
+    test('unchanged rounded reading retains fractional storage', () {
+      final original = MileageUnit.km.toStorage(5000.4);
+      expect(
+        MileageFormat.fromInput(5000, MileageUnit.km, original: original),
+        original,
+      );
+      expect(
+        MileageUnit.km.toDisplay(
+          MileageFormat.fromInput(5001, MileageUnit.km, original: original),
+        ),
+        closeTo(5001, 0.000001),
+      );
+      expect(
+        MileageUnit.km.toDisplay(MileageFormat.fromInput(5000, MileageUnit.km)),
+        closeTo(5000, 0.000001),
+      );
     });
   });
 }

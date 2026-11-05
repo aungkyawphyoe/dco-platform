@@ -1,3 +1,4 @@
+import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/app.dart';
 import 'package:dco_mobile/core/config/app_config.dart';
 import 'package:dco_mobile/core/gating/license_store.dart';
@@ -67,6 +68,14 @@ void main() {
 
     return database;
   }
+
+  String containerRoute(WidgetTester tester) =>
+      ProviderScope.containerOf(tester.element(find.byType(DcoApp)))
+          .read(goRouterProvider)
+          .routerDelegate
+          .currentConfiguration
+          .last
+          .matchedLocation;
 
   testWidgets(
     'failed sign-in retains the form and displays localized feedback',
@@ -142,9 +151,14 @@ void main() {
     await tester.tap(find.byKey(const Key('maintenance-plan-done')));
     await tester.pumpAndSettle();
 
-    expect(find.text('My Garage'), findsOneWidget);
-    expect(find.text('Daily Driver'), findsWidgets);
-    expect(find.textContaining('Toyota Camry'), findsOneWidget);
+    expect(containerRoute(tester), AppRoutes.dashboard);
+    expect(
+      ProviderScope.containerOf(
+        tester.element(find.byType(DcoApp)),
+      ).read(activeVehicleProvider).valueOrNull?.name,
+      'Daily Driver',
+    );
+    expect(find.byKey(const Key('register-vehicle-cta')), findsNothing);
 
     await database.delete(database.planItemRecords).go();
     final container = ProviderScope.containerOf(
