@@ -41,9 +41,9 @@ List<int> statsMonthOptions(Iterable<DateTime> dates, {int? year}) {
 }
 
 /// Axis / chart label rule: numeric `MM` when a year is selected (the year is
-/// already pinned by the filter), `MM/yy` for All so labels stay compact and
+/// already pinned by the filter), `MM/yyyy` for All so labels stay compact and
 /// never depend on a locale-specific month name.
 String statsMonthLabel(DateTime month, {int? selectedYear}) {
   if (selectedYear != null) return DateFormat('MM').format(month);
-  return DateFormat('MM/yy').format(month);
+  return DateFormat('MM/yyyy').format(month);
 }

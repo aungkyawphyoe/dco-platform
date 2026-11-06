@@ -34,6 +34,27 @@ it('scopes reports and exports, locks currency, freezes transferred history, and
   } finally {await app.close();await client.close();}
 },30000);
 
+it('reports service types from service-record line items captured in the snapshot', async () => {
+  const {app,client,headers,orgId,vehicleId}=await analyticsFixture();
+  try {
+    const serviceId=crypto.randomUUID();
+    const created=await app.inject({method:'POST',url:`/v1/organizations/${orgId}/records/vehicles/${vehicleId}/service-records`,headers,payload:{
+      id:serviceId,serviced_on:'2026-09-26',odometer:9800,total_cost:100000,
+      items:[{name:'Oil change',line_cost:40000},{name:'Brake pads',line_cost:25000}],
+    }});
+    expect(created.statusCode,created.body).toBe(201);
+    const snapshot=await client.query<{payload:{items:{name:string;line_cost:string|null}[]}}>(
+      'SELECT payload FROM analytics_records WHERE org_id=$1 AND kind=$2 AND id=$3',[orgId,'service_record',serviceId]);
+    expect(snapshot.rows[0]?.payload.items.map(item=>item.name)).toEqual(['Oil change','Brake pads']);
+    const report=await app.inject({url:`/v1/organizations/${orgId}/analytics/report?from=2026-09-26&to=2026-09-26`,headers});
+    expect(report.statusCode,report.body).toBe(200);
+    expect(report.json().total_cost).toBe(100000);
+    expect(report.json().service_types).toEqual({'Oil change':40000,'Brake pads':25000,Unallocated:35000});
+    const scoped=await app.inject({url:`/v1/organizations/${orgId}/analytics/records?from=2026-09-26&to=2026-09-26&categories=parking,parts`,headers});
+    expect(scoped.json().total).toBe(0);
+  } finally {await app.close();await client.close();}
+},30000);
+
 it('persists full/partial tank status through shared organization record writes', async () => {
   const {app,client,headers,orgId,vehicleId,typeId}=await analyticsFixture();
   try {

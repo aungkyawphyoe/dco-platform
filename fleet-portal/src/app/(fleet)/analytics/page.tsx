@@ -1,7 +1,7 @@
 "use client";
 
 import { money as formatMoney } from "@dco/ui/lib/format";
-import { useState, useRef, useEffect, ReactNode } from "react";
+import { useState, useRef, useEffect, useId, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiGet, apiPut, apiDownload } from "@/lib/api/client";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
@@ -191,6 +191,231 @@ function Trend({
     </>
   );
 }
+
+type Slice = {
+  key: string;
+  label: string;
+  value: number;
+  color: string;
+  detail?: string;
+  /// Marks spend that has no supporting detail. Hatched so it never reads as
+  /// just another named category.
+  unallocated?: boolean;
+};
+
+/// Fixed order keeps service-type colours stable as the report changes. The
+/// expense charts keep their semantic category colours instead.
+const serviceColors = [
+  "var(--chart-maintenance)",
+  "var(--chart-fuel)",
+  "var(--chart-parts)",
+  "var(--chart-insurance)",
+  "var(--chart-parking)",
+  "var(--chart-tolls)"
+];
+const UNALLOCATED = "Unallocated";
+const DONUT_RADIUS = 52;
+const DONUT_CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
+
+/// Ring chart with the period total at its centre and a ranked, readable
+/// legend. The legend is the accessible version of the chart: every slice is
+/// named, quantified, and — when [onSelect] is set — keyboard operable.
+function Composition({
+  slices,
+  centerLabel,
+  formatValue,
+  money,
+  onSelect,
+  empty,
+  caption
+}: {
+  slices: Slice[];
+  centerLabel: string;
+  formatValue: (value: number) => string;
+  money: (value: number | null, digits?: number) => string;
+  onSelect?: (slice: Slice) => void;
+  empty: string;
+  caption?: string;
+}) {
+  const visible = slices.filter(slice => slice.value > 0),
+    total = visible.reduce((sum, slice) => sum + slice.value, 0),
+    patternId = `unallocated-${useId().replace(/:/g, "")}`;
+  if (!visible.length || total <= 0)
+    return <p className={styles.empty}>{empty}</p>;
+  const percent = (value: number) => (value / total) * 100;
+  // One decimal keeps the rounded shares from summing to 101% or 99% while
+  // still reading as a share, not a measurement.
+  const share = (value: number) => number(percent(value), 1);
+  let offset = 0;
+  return (
+    <div className={styles.composition}>
+      <div className={styles.donut}>
+        <svg
+          viewBox="0 0 140 140"
+          role="img"
+          aria-label={`${centerLabel}: ${formatValue(total)}. ${visible
+            .map(slice => `${slice.label} ${share(slice.value)} percent`)
+            .join(", ")}.`}
+        >
+          <defs>
+            <pattern
+              id={patternId}
+              width="6"
+              height="6"
+              patternUnits="userSpaceOnUse"
+              patternTransform="rotate(45)"
+            >
+              <rect width="6" height="6" fill="var(--bg-secondary)" />
+              <line
+                x1="0"
+                y1="0"
+                x2="0"
+                y2="6"
+                stroke="var(--text-tertiary)"
+                strokeWidth="2.5"
+              />
+            </pattern>
+          </defs>
+          <circle
+            cx="70"
+            cy="70"
+            r={DONUT_RADIUS}
+            fill="none"
+            stroke="var(--bg-secondary)"
+            strokeWidth="16"
+          />
+          <g className={styles.donutRing}>
+            {visible.map(slice => {
+              const length = (slice.value / total) * DONUT_CIRCUMFERENCE,
+                dash = length > 3 ? length - 2 : length,
+                circle = (
+                  <circle
+                    key={slice.key}
+                    cx="70"
+                    cy="70"
+                    r={DONUT_RADIUS}
+                    fill="none"
+                    stroke={
+                      slice.unallocated ? `url(#${patternId})` : slice.color
+                    }
+                    strokeWidth="16"
+                    strokeDasharray={`${dash} ${DONUT_CIRCUMFERENCE}`}
+                    strokeDashoffset={-offset}
+                    transform="rotate(-90 70 70)"
+                  >
+                    <title>{`${slice.label}: ${money(
+                      slice.value
+                    )} (${share(slice.value)}%)`}</title>
+                  </circle>
+                );
+              offset += length;
+              return circle;
+            })}
+          </g>
+        </svg>
+        <div className={styles.donutCenter}>
+          <strong>{formatValue(total)}</strong>
+          <span>{centerLabel}</span>
+        </div>
+      </div>
+      <div className={styles.compositionBody}>
+        <ul className={styles.legend}>
+          {visible.map(slice => {
+            const content = (
+              <>
+                <i
+                  className={slice.unallocated ? styles.hatched : undefined}
+                  style={
+                    slice.unallocated ? undefined : { background: slice.color }
+                  }
+                />
+                <span className={styles.legendLabel}>
+                  {slice.label}
+                  {slice.detail && <small>{slice.detail}</small>}
+                </span>
+                <span className={styles.legendShare}>
+                  {share(slice.value)}%
+                </span>
+                <strong>{formatValue(slice.value)}</strong>
+              </>
+            );
+            return (
+              <li key={slice.key}>
+                {onSelect ? (
+                  <button
+                    type="button"
+                    className={styles.legendRow}
+                    onClick={() => onSelect(slice)}
+                  >
+                    {content}
+                  </button>
+                ) : (
+                  <div className={styles.legendRow}>{content}</div>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+        {caption && <p className={styles.caption}>{caption}</p>}
+      </div>
+    </div>
+  );
+}
+
+/// Single-series monthly cost. Used by the scoped Maintenance and Expenses
+/// reports, where a stacked bar would repeat what the adjacent ring already
+/// says.
+function ScopedBars({
+  months,
+  values,
+  color,
+  formatValue,
+  ariaLabel,
+  onSelect,
+  empty
+}: {
+  months: { month: string; from: string; to: string }[];
+  values: number[];
+  color: string;
+  formatValue: (value: number) => string;
+  ariaLabel: (month: string, value: number) => string;
+  onSelect: (month: { month: string; from: string; to: string }) => void;
+  empty: string;
+}) {
+  if (!values.some(value => value > 0))
+    return <p className={styles.empty}>{empty}</p>;
+  const max = Math.max(...values, 1);
+  return (
+    <div className={styles.columns}>
+      {months.map((month, index) => {
+        const value = values[index] ?? 0;
+        return (
+          <button
+            type="button"
+            key={month.month}
+            className={styles.column}
+            onClick={() => onSelect(month)}
+            aria-label={ariaLabel(month.month, value)}
+          >
+            <span className={styles.barValue} aria-hidden={value <= 0}>
+              {value > 0 ? formatValue(value) : "\u00A0"}
+            </span>
+            <span className={styles.barTrack}>
+              <span
+                className={styles.stack}
+                style={{ height: `${(value / max) * 100}%` }}
+              >
+                <span style={{ background: color, height: "100%" }} />
+              </span>
+            </span>
+            <span>{monthLabel(month.month)}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AnalyticsPage() {
   const role = useOrgRole(),
     org = useOrgId();
@@ -339,6 +564,67 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
   const categories = Object.entries(r?.categories ?? {}).sort(
     (a, b) => b[1] - a[1]
   );
+  const digits = r?.currency === "MMK" ? 0 : 2;
+  // Service types are ranked, then folded to six slices plus an honest tail.
+  // Unallocated is never folded: it is the part of maintenance spending that
+  // has no line-item detail behind it.
+  const serviceTypes = r?.service_types ?? {},
+    serviceEntries = Object.entries(serviceTypes)
+      .filter(([name]) => name !== UNALLOCATED)
+      .sort((a, b) => b[1] - a[1]),
+    otherServiceValue = serviceEntries
+      .slice(6)
+      .reduce((sum, [, value]) => sum + value, 0),
+    unallocatedValue = serviceTypes[UNALLOCATED] ?? 0,
+    serviceSlices: Slice[] = [
+      ...serviceEntries.slice(0, 6).map(([name, value], index) => ({
+        key: name,
+        label: name,
+        value,
+        color: serviceColors[index] ?? "var(--chart-other)"
+      })),
+      ...(otherServiceValue > 0
+        ? [
+            {
+              key: "other-service-types",
+              label: "Other service types",
+              value: otherServiceValue,
+              color: "var(--chart-other)"
+            }
+          ]
+        : []),
+      ...(unallocatedValue > 0
+        ? [
+            {
+              key: UNALLOCATED,
+              label: UNALLOCATED,
+              value: unallocatedValue,
+              color: "var(--text-tertiary)",
+              detail: "Manual or missing line items",
+              unallocated: true
+            }
+          ]
+        : [])
+    ];
+  // Expenses here mean everything the Maintenance and Cost overview reports do
+  // not already own: fuel and maintenance are excluded on purpose.
+  const expenseCategories = categories.filter(
+      ([category]) => category !== "fuel" && category !== "maintenance"
+    ),
+    expenseSlices: Slice[] = expenseCategories.map(([category, value]) => ({
+      key: category,
+      label: label(category),
+      value,
+      color: categoryColor(category)
+    })),
+    expenseMonthValues =
+      r?.months.map(month =>
+        expenseCategories.reduce(
+          (sum, [category]) => sum + (month.categories[category] ?? 0),
+          0
+        )
+      ) ?? [],
+    expenseCategoryList = expenseCategories.map(([category]) => category).join(",");
   const filtersChanged = JSON.stringify(draft) !== JSON.stringify(filter);
   const displayDate = (value: string) =>
     new Date(`${value}T00:00:00Z`).toLocaleDateString("en-GB", {
@@ -584,7 +870,9 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
             {[
               { value: "costs", label: "Cost overview" },
               { value: "efficiency", label: "Efficiency" },
-              { value: "vehicles", label: "Vehicle comparison" }
+              { value: "vehicles", label: "Vehicle comparison" },
+              { value: "maintenance", label: "Maintenance" },
+              { value: "expense", label: "Expenses" }
             ].map(item => (
               <button
                 key={item.value}
@@ -666,48 +954,21 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
                   title="Costs by category"
                   note="Select a category to inspect its expenses."
                 >
-                  {r.total_cost > 0 ? (
-                    <div className={styles.categoryList}>
-                      {categories.map(([category, cost]) => (
-                        <button
-                          key={category}
-                          onClick={() =>
-                            openRecords(label(category), { category })
-                          }
-                        >
-                          <span className={styles.categoryName}>
-                            <span
-                              className={styles.dot}
-                              style={{ background: categoryColor(category) }}
-                            />
-                            {label(category)}
-                            <small>
-                              {number((cost / r.total_cost) * 100)}%
-                            </small>
-                          </span>
-                          <strong>{money(cost)}</strong>
-                          <span className={styles.categoryTrack}>
-                            <span
-                              style={{
-                                width: `${(cost /
-                                  Math.max(
-                                    ...categories.map(([, value]) => value),
-                                    1
-                                  )) *
-                                  100}%`,
-                                background: categoryColor(category)
-                              }}
-                            />
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className={styles.empty}>
-                      No recorded expenses in this period. Approved expenses
-                      will appear here.
-                    </p>
-                  )}
+                  <Composition
+                    slices={categories.map(([category, cost]) => ({
+                      key: category,
+                      label: label(category),
+                      value: cost,
+                      color: categoryColor(category)
+                    }))}
+                    centerLabel={`${r.currency} · Total cost`}
+                    formatValue={value => number(value, digits)}
+                    money={money}
+                    onSelect={slice =>
+                      openRecords(slice.label, { category: slice.key })
+                    }
+                    empty="No recorded expenses in this period. Approved expenses will appear here."
+                  />
                 </Section>
               </div>
             </>
@@ -908,6 +1169,96 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
                 </div>
               </Section>
             </>
+          )}
+          {view === "maintenance" && (
+            <div className={styles.chartGrid}>
+              <Section
+                title="Monthly maintenance cost"
+                note="Select a month to inspect its maintenance expenses."
+              >
+                <ScopedBars
+                  months={r.months}
+                  values={r.months.map(
+                    month => month.categories.maintenance ?? 0
+                  )}
+                  color="var(--chart-maintenance)"
+                  formatValue={value => number(value, digits)}
+                  ariaLabel={(month, value) =>
+                    `${monthLabel(
+                      month
+                    )}: ${money(value)}. View maintenance expenses.`
+                  }
+                  onSelect={month =>
+                    openRecords(monthLabel(month.month), {
+                      from: month.from,
+                      to: month.to,
+                      category: "maintenance"
+                    })
+                  }
+                  empty="No maintenance costs in this period."
+                />
+                <p className={styles.caption}>
+                  Service records and manually entered maintenance expenses.
+                </p>
+              </Section>
+              <Section
+                title="Cost by service type"
+                note="Line items captured from service records. Unallocated covers manual costs and missing line items."
+              >
+                <Composition
+                  slices={serviceSlices}
+                  centerLabel={`${r.currency} · Maintenance`}
+                  formatValue={value => number(value, digits)}
+                  money={money}
+                  empty="No maintenance costs in this period."
+                />
+              </Section>
+            </div>
+          )}
+          {view === "expense" && (
+            <div className={styles.chartGrid}>
+              <Section
+                title="Monthly expense cost"
+                note="Select a month to inspect these expenses."
+              >
+                <ScopedBars
+                  months={r.months}
+                  values={expenseMonthValues}
+                  color="var(--chart-insurance)"
+                  formatValue={value => number(value, digits)}
+                  ariaLabel={(month, value) =>
+                    `${monthLabel(month)}: ${money(value)}. View expenses.`
+                  }
+                  onSelect={month =>
+                    openRecords(monthLabel(month.month), {
+                      from: month.from,
+                      to: month.to,
+                      categories: expenseCategoryList
+                    })
+                  }
+                  empty="No other expenses in this period."
+                />
+                <p className={styles.caption}>
+                  Excludes fuel and maintenance, which are reported in Cost
+                  overview and Maintenance.
+                </p>
+              </Section>
+              <Section
+                title="Cost by category"
+                note="Select a category to inspect its expenses."
+              >
+                <Composition
+                  slices={expenseSlices}
+                  centerLabel={`${r.currency} · Other expenses`}
+                  formatValue={value => number(value, digits)}
+                  money={money}
+                  onSelect={slice =>
+                    openRecords(slice.label, { category: slice.key })
+                  }
+                  empty="No other expenses in this period."
+                />
+              </Section>
+            </div>
           )}
           <details className={styles.methods}>
             <summary>Calculation notes and data coverage</summary>

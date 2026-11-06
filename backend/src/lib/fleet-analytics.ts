@@ -100,10 +100,55 @@ function ownedDays(v: ReportingVehicle, p: Period) {
   for (const t of intervals) { const from = last && t.from <= last ? shiftDay(last, 1) : t.from; total += days(from, t.to); if (t.to > last) last = t.to; }
   return total;
 }
+export const UNALLOCATED_SERVICE_TYPE = 'Unallocated';
+
+/** Splits maintenance spend across the service-record line items that explain
+ * it. The expense ledger stays authoritative: anything the line items do not
+ * account for is returned as Unallocated, so the breakdown always adds up to
+ * the maintenance total rather than inventing or dropping money. */
+function serviceTypeBreakdown(records: ReportingRecord[], costs: ReturnType<typeof expenseRows>) {
+  const snapshots = new Map(records.filter(r => r.kind === 'service_record').map(r => [r.id, r.payload]));
+  const types = new Map<string, { name: string; amount: number }>();
+  let unallocated = 0;
+  const add = (raw: string, amount: number) => {
+    const name = raw.trim().replace(/\s+/g, ' ');
+    if (!name || amount <= 0) return;
+    const key = name.toLowerCase();
+    const existing = types.get(key);
+    // Preserve capitalisation such as "AC filter"; only lift all-lowercase
+    // entries so free-text service items stay readable.
+    const display = existing?.name ?? (/^[a-z]/.test(name) ? name[0]!.toUpperCase() + name.slice(1) : name);
+    types.set(key, { name: display, amount: (existing?.amount ?? 0) + amount });
+  };
+  for (const row of costs) {
+    if (row.category !== 'maintenance') continue;
+    const payload = row.source_kind === 'service_record' && row.source_id ? snapshots.get(row.source_id) : undefined;
+    const items: { name: string; cost: number }[] = [];
+    for (const raw of Array.isArray(payload?.items) ? payload.items : []) {
+      const item = raw as Record<string, unknown>;
+      const name = String(item.name ?? '').trim();
+      const cost = num(item.line_cost);
+      if (name && cost != null && cost > 0) items.push({ name, cost });
+    }
+    const itemTotal = sum(items.map(item => item.cost));
+    if (itemTotal <= 0) { unallocated += row.amount; continue; }
+    // Line costs are a breakdown, not a second ledger. Scale down when they
+    // exceed the authoritative expense so the pie never overflows its total.
+    const scale = itemTotal > row.amount ? row.amount / itemTotal : 1;
+    for (const item of items) add(item.name, item.cost * scale);
+    unallocated += Math.max(0, row.amount - itemTotal * scale);
+  }
+  const result: Record<string, number> = {};
+  for (const { name, amount } of types.values()) result[name] = amount;
+  if (unallocated > 0.005) result[UNALLOCATED_SERVICE_TYPE] = unallocated;
+  return result;
+}
+
 export function calculatePeriod(vehicles: ReportingVehicle[], records: ReportingRecord[], p: Period) {
   const costs = expenseRows(records, p);
   const categories: Record<string, number> = {};
   for (const r of costs) categories[r.category] = (categories[r.category] ?? 0) + r.amount;
+  const service_types = serviceTypeBreakdown(records, costs);
   const rows = vehicles.map(v => {
     const own = records.filter(r => r.vehicle_id === v.id), spend = costs.filter(r => r.vehicle_id === v.id);
     const window = distanceWindow(own, v, p);
@@ -131,7 +176,7 @@ export function calculatePeriod(vehicles: ReportingVehicle[], records: Reporting
     }
   }
   return { period: p, total_cost: total, distance_km: distance || null, cost_per_km: distance > 0 ? sum(rows.map(r => r.matched_cost)) / distance : null,
-    cost_per_day: days(p.from, p.to) ? total / days(p.from, p.to) : null, categories, vehicles: rows,
+    cost_per_day: days(p.from, p.to) ? total / days(p.from, p.to) : null, categories, service_types, vehicles: rows,
     coverage_complete: rows.length > 0 && rows.every(r => r.coverage === null),
     efficiency: Object.entries(efficiencyGroups).map(([fuel, e]) => ({ fuel, ...e, value: e.quantity / e.km * 100 })) };
 }

@@ -7,7 +7,7 @@ import { requireFleetPortal } from './auth.js';
 import { assertPasswordChangeClear, getOrganizationAccess } from './fleet.js';
 
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(v => !Number.isNaN(Date.parse(v)) && new Date(v).toISOString().slice(0, 10) === v, 'Invalid date');
-const query = z.object({ from: date, to: date, calendar: z.enum(['true', 'false']).default('false'), vehicles: z.string().optional(), active: z.enum(['true', 'false']).default('false'), category: z.string().max(80).optional(), page: z.coerce.number().int().min(1).default(1), kind: z.enum(['vehicles', 'expenses']).default('vehicles') });
+const query = z.object({ from: date, to: date, calendar: z.enum(['true', 'false']).default('false'), vehicles: z.string().optional(), active: z.enum(['true', 'false']).default('false'), category: z.string().max(80).optional(), categories: z.string().max(300).optional(), page: z.coerce.number().int().min(1).default(1), kind: z.enum(['vehicles', 'expenses']).default('vehicles') });
 type Settings = { currency: string | null; timezone: string };
 const settingsOf = (s: unknown, currency: string | null): Settings => {
   const value = (s as Record<string, unknown>).analytics as Partial<Settings> | undefined;
@@ -81,7 +81,10 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
   });
   app.get('/organizations/:id/analytics/records', async request => {
     const data = await load(request);
-    const rows = expenseRows(data.records, data.period).filter(r => !data.q.category || r.category === data.q.category).sort((a,b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+    const selectedCategories = data.q.categories ? new Set(data.q.categories.split(',')) : null;
+    const rows = expenseRows(data.records, data.period)
+      .filter(r => (!data.q.category || r.category === data.q.category) && (!selectedCategories || selectedCategories.has(r.category)))
+      .sort((a,b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
     return { total: rows.length, page: data.q.page, items: rows.slice((data.q.page - 1) * 50, data.q.page * 50).map(r => ({ ...r, included_in_total: true, vehicle: data.vehicles.find(v => v.id === r.vehicle_id)?.name,
       detail: data.records.find(x => x.id === r.source_id && x.kind === r.source_kind)?.payload ?? null })) };
   });

@@ -59,4 +59,26 @@ describe('Fleet Analytics calculations', () => {
   it('escapes spreadsheet formula injection and CSV delimiters', () => {
     expect(csvCell('=SUM(A1)')).toBe('"\'=SUM(A1)"'); expect(csvCell('a,"b"')).toBe('"a,""b"""'); expect(csvCell(-5)).toBe('"-5"');
   });
+  it('splits maintenance by service item and reports unallocated spend', () => {
+    const service: ReportingRecord = { id: 's1', vehicle_id: 'a', kind: 'service_record', payload: {
+      serviced_on: '2026-01-10', total_cost: 100,
+      items: [{ name: 'Oil change', line_cost: 40 }, { name: 'oil change', line_cost: 20 }, { name: 'Brake pads', line_cost: 25 }],
+    } };
+    const linked: ReportingRecord = { id: 'e1', vehicle_id: 'a', kind: 'expense', payload: {
+      incurred_on: '2026-01-10', category: 'maintenance', amount: 100, source_kind: 'service_record', source_id: 's1',
+    } };
+    const manual: ReportingRecord = { id: 'e2', vehicle_id: 'a', kind: 'expense', payload: { incurred_on: '2026-01-11', category: 'maintenance', amount: 30 } };
+    expect(calculatePeriod([vehicle], [service, linked, manual], period).service_types).toEqual({
+      'Oil change': 60, 'Brake pads': 25, Unallocated: 45,
+    });
+    // Line costs are informational. Over-allocated records are scaled to the
+    // authoritative maintenance total instead of overflowing the chart.
+    const over: ReportingRecord = { id: 's2', vehicle_id: 'a', kind: 'service_record', payload: {
+      serviced_on: '2026-01-12', total_cost: 100, items: [{ name: 'Engine', line_cost: 150 }],
+    } };
+    const overExpense: ReportingRecord = { id: 'e3', vehicle_id: 'a', kind: 'expense', payload: {
+      incurred_on: '2026-01-12', category: 'maintenance', amount: 100, source_kind: 'service_record', source_id: 's2',
+    } };
+    expect(calculatePeriod([vehicle], [over, overExpense], period).service_types).toEqual({ Engine: 100 });
+  });
 });
