@@ -173,7 +173,7 @@ class _DriverInspectionScreenState
                         )
                       : null,
                   value: _results[item.itemName] ?? true,
-                  activeThumbColor: tokens.icon.active,
+                  activeThumbColor: tokens.text.accent,
                   onChanged: (value) =>
                       setState(() => _results[item.itemName] = value),
                 ),

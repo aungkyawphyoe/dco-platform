@@ -410,7 +410,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                           _errors['schedule'] = null;
                           _formError = null;
                         }),
-                        activeThumbColor: tokens.status.successFg,
+                        activeThumbColor: tokens.text.accent,
                         title: Text(s.planItemFormRecurring),
                         subtitle: Text(s.planItemFormRecurringHelper),
                         contentPadding: EdgeInsets.zero,
@@ -559,7 +559,9 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                         key: const Key('plan-item-active'),
                         value: _enabled,
                         onChanged: (value) => setState(() => _enabled = value),
-                        activeThumbColor: tokens.status.successFg,
+                        activeThumbColor:
+                            tokens.button.primary.backgroundDisabled,
+                        activeTrackColor: tokens.button.primary.background,
                         title: Text(s.planItemFormActive),
                         subtitle: Text(s.planItemFormActiveHelper),
                         contentPadding: EdgeInsets.zero,
