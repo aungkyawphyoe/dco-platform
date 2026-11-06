@@ -1,5 +1,8 @@
-import 'package:dco_mobile/core/currency/currency_store.dart';
 import 'dart:io';
+
+import 'package:dco_mobile/core/media/attachment_image_compressor.dart';
+import 'package:dco_mobile/core/media/draft_attachment_files.dart';
+import 'package:dco_mobile/core/currency/currency_store.dart';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
@@ -25,8 +28,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:uuid/uuid.dart';
 
 class ExpenseFormScreen extends ConsumerStatefulWidget {
   const ExpenseFormScreen({super.key, this.expenseId});
@@ -56,6 +57,8 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
   bool _loading = true;
   String? _createdBy;
   bool _saving = false;
+  bool _processing = false;
+  final _draftFiles = DraftAttachmentFiles();
   bool _missing = false;
 
   @override
@@ -100,6 +103,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
 
   @override
   void dispose() {
+    _draftFiles.dispose();
     _categoryLabel.dispose();
     _amount.dispose();
     _date.dispose();
@@ -130,6 +134,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
   }
 
   Future<void> _save() async {
+    if (_saving || _processing) return;
     final draft = _draftOrNull();
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
@@ -141,6 +146,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
         .id;
     if (currentUserId == null) return;
     setState(() => _saving = true);
+    _draftFiles.beginSave();
     try {
       final repo = ref.read(expenseRepositoryProvider);
       if (widget.isEditing) {
@@ -149,19 +155,26 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
           expenseId: widget.expenseId!,
           draft: draft,
         );
-        ref.read(analyticsProvider).track(AnalyticsEvent.expenseUpdated);
+        _draftFiles.retain(_receiptPath);
+        if (mounted) {
+          ref.read(analyticsProvider).track(AnalyticsEvent.expenseUpdated);
+        }
       } else {
         await repo.add(
           userId: currentUserId,
           vehicleId: vehicle.id,
           draft: draft,
         );
-        ref.read(analyticsProvider).track(AnalyticsEvent.expenseAdded);
+        _draftFiles.retain(_receiptPath);
+        if (mounted) {
+          ref.read(analyticsProvider).track(AnalyticsEvent.expenseAdded);
+        }
       }
       if (mounted) context.pop();
     } on ExpenseFailure catch (failure) {
       if (mounted) setState(() => _formError = failure.message);
     } finally {
+      await _draftFiles.endSave();
       if (mounted) setState(() => _saving = false);
     }
   }
@@ -278,31 +291,36 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
   }
 
   Future<void> _pickReceipt(ImageSource source) async {
+    if (_processing || _saving) return;
+    final picker = ref.read(attachmentImagePickerProvider);
+    setState(() {
+      _processing = true;
+      _formError = null;
+    });
     try {
-      final picked = await ImagePicker().pickImage(
-        source: source,
-        imageQuality: 85,
-      );
-      if (picked == null) return;
-      final directory = await getApplicationDocumentsDirectory();
-      final dest = File('${directory.path}/expenses/${const Uuid().v4()}.jpg');
-      await dest.parent.create(recursive: true);
-      await File(picked.path).copy(dest.path);
+      final file = await picker.pick(source, folder: 'expenses');
+      if (file == null) return;
+      await _draftFiles.add(file.path);
+      if (!mounted) return;
+      await _draftFiles.discard(_receiptPath);
       if (!mounted) return;
       setState(() {
-        _receiptPath = dest.path;
+        _receiptPath = file.path;
         _receiptMediaId = null;
-        _formError = null;
       });
     } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _formError = AppLocalizations.of(context)!.expenseFormCameraDenied;
-      });
+      if (mounted) {
+        setState(
+          () => _formError = AppLocalizations.of(context)!.attachmentImageError,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _processing = false);
     }
   }
 
   Future<void> _chooseReceiptSource() async {
+    if (_processing || _saving) return;
     final tokens = context.tokens;
     final s = AppLocalizations.of(context)!;
     await showModalBottomSheet<void>(
@@ -557,13 +575,21 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 SizedBox(height: tokens.space.s3),
-                _ReceiptPicker(
-                  path: _receiptPath,
-                  onAdd: _chooseReceiptSource,
-                  onRemove: () => setState(() {
-                    _receiptPath = null;
-                    _receiptMediaId = null;
-                  }),
+                if (_processing) ...[
+                  const LinearProgressIndicator(),
+                  Text(s.attachmentProcessing),
+                ],
+                IgnorePointer(
+                  ignoring: _processing || _saving,
+                  child: _ReceiptPicker(
+                    path: _receiptPath,
+                    onAdd: _chooseReceiptSource,
+                    onRemove: () => setState(() {
+                      _draftFiles.discard(_receiptPath);
+                      _receiptPath = null;
+                      _receiptMediaId = null;
+                    }),
+                  ),
                 ),
                 SizedBox(height: tokens.space.s5),
                 Text(
@@ -623,7 +649,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
                     key: const Key('expense-delete'),
                     label: s.expenseFormDeleteButton,
                     variant: DcoButtonVariant.destructive,
-                    onPressed: _saving ? null : _delete,
+                    onPressed: _saving || _processing ? null : _delete,
                   ),
                 ],
               ],
@@ -634,7 +660,8 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
             onSecondary: () => context.pop(),
             primaryLabel: s.save,
             primaryKey: const Key('expense-save'),
-            onPrimary: () => canWrite ? _save : null,
+            onPrimary: canWrite && !_processing && !_saving ? _save : null,
+            primaryLoading: _saving,
           ),
         ],
       ),
