@@ -203,6 +203,8 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   }
 
   Future<void> _save() async {
+    if (_saving || (_attachments.currentState?.isProcessing ?? false)) return;
+    final attachments = _attachments.currentState;
     final draft = _draftOrNull();
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
@@ -215,6 +217,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     if (currentUserId == null) return;
     if (!_canWrite()) return;
     setState(() => _saving = true);
+    attachments?.beginSave();
     try {
       await ref.read(appDatabaseProvider).transaction(() async {
         final repo = ref.read(fuelRepositoryProvider);
@@ -231,9 +234,9 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                 kind: widget.kind,
                 draft: draft,
               );
-        await _attachments.currentState?.save(currentUserId, log.id);
+        await attachments?.save(currentUserId, log.id);
       });
-      _attachments.currentState?.markSaved();
+      attachments?.markSaved();
       ref
           .read(analyticsProvider)
           .track(
@@ -249,6 +252,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     } catch (error) {
       if (mounted) setState(() => _formError = '$error');
     } finally {
+      await attachments?.endSave();
       if (mounted) setState(() => _saving = false);
     }
   }
@@ -524,7 +528,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                       vehicleId: vehicle.id,
                       recordId: widget.logId,
                       readOnly:
-                          !canWrite ||
+                          !canWrite || _saving ||
                           (!access.isOwner &&
                               ref.watch(driverOrganizationIdProvider) == null),
                       onChanged: () => setState(() {}),
@@ -544,7 +548,13 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
               onSecondary: () => context.pop(),
               primaryLabel: s.save,
               primaryKey: const Key('fuel-log-save'),
-              onPrimary: () => canWrite ? _save : null,
+              onPrimary:
+                  canWrite &&
+                      !_saving &&
+                      !(_attachments.currentState?.isProcessing ?? false)
+                  ? _save
+                  : null,
+              primaryLoading: _saving,
             ),
           ],
         ),

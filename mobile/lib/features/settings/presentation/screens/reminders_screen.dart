@@ -24,12 +24,15 @@ class RemindersScreen extends ConsumerWidget {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final prefs =
-        ref.watch(userPreferencesProvider).valueOrNull ?? UserPreferences.defaults;
+        ref.watch(userPreferencesProvider).valueOrNull ??
+        UserPreferences.defaults;
     final userId = ref.watch(sessionControllerProvider).valueOrNull?.user.id;
 
     Future<void> save(UserPreferences next) async {
       if (userId == null) return;
-      await ref.read(preferencesRepositoryProvider).save(userId: userId, preferences: next);
+      await ref
+          .read(preferencesRepositoryProvider)
+          .save(userId: userId, preferences: next);
     }
 
     final daysValue = s.remindersSoonDaysValue(prefs.soonDays);
@@ -55,9 +58,9 @@ class RemindersScreen extends ConsumerWidget {
                 padding: EdgeInsets.all(tokens.space.s4),
                 child: Text(
                   s.remindersIntro(daysValue, distanceValue),
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: tokens.text.caption,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                 ),
               ),
             ),
@@ -94,12 +97,14 @@ class RemindersScreen extends ConsumerWidget {
               ),
               min: DueThresholds.minKm,
               max: DueThresholds.maxKm,
-              divisions: ((DueThresholds.maxKm - DueThresholds.minKm) /
-                      DueThresholds.stepKm)
-                  .round(),
+              divisions:
+                  ((DueThresholds.maxKm - DueThresholds.minKm) /
+                          DueThresholds.stepKm)
+                      .round(),
               label: distanceValue,
               onChanged: (value) {
-                final snapped = (value / DueThresholds.stepKm).round() *
+                final snapped =
+                    (value / DueThresholds.stepKm).round() *
                     DueThresholds.stepKm;
                 save(prefs.copyWith(soonDistanceKm: snapped));
               },
@@ -146,22 +151,25 @@ class _ThresholdSection extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Text(title, style: Theme.of(context).textTheme.titleMedium),
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
             Text(
               value,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: tokens.text.caption,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
             ),
           ],
         ),
         SizedBox(height: tokens.space.s2),
         Text(
           help,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: tokens.text.caption,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
         ),
         SizedBox(height: tokens.space.s3),
         child,
@@ -289,10 +297,11 @@ class _EmailReminderSectionState extends ConsumerState<_EmailReminderSection> {
                   user != null && user.email.isNotEmpty
                       ? '${s.remindersEmailBody}\n${s.remindersEmailTo(user.email)}'
                       : s.remindersEmailBody,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: tokens.text.caption,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                 ),
+                activeThumbColor: tokens.text.accent,
                 value: settings.enabled,
                 onChanged: canToggle
                     ? (value) => _save(settings.copyWith(enabled: value))
@@ -334,13 +343,11 @@ class _EmailReminderSectionState extends ConsumerState<_EmailReminderSection> {
                     label: s.remindersSoonDaysValue(leadDays),
                     onChanged: _saving
                         ? null
-                        : (value) =>
-                              setState(() => _leadDays = value.round()),
+                        : (value) => setState(() => _leadDays = value.round()),
                     onChangeEnd: _saving
                         ? null
-                        : (value) => _save(
-                            settings.copyWith(leadDays: value.round()),
-                          ),
+                        : (value) =>
+                              _save(settings.copyWith(leadDays: value.round())),
                   ),
                 ),
               ],

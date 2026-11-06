@@ -1471,5 +1471,7 @@
     }
   },
   "dashboardVehiclesNotDownloaded": "ဤစက်တွင် သင့်ယာဉ်များ မရှိသေးပါ",
-  "dashboardVehiclesNotDownloadedBody": "သင့်အကောင့်၏ ယာဉ်များကို ဒေါင်းလုဒ်လုပ်ရန် ချိန်ကိုက်မှုအခြေအနေကို ဖွင့်ပါ။"
+  "dashboardVehiclesNotDownloadedBody": "သင့်အကောင့်၏ ယာဉ်များကို ဒေါင်းလုဒ်လုပ်ရန် ချိန်ကိုက်မှုအခြေအနေကို ဖွင့်ပါ။",
+  "attachmentProcessing": "ပူးတွဲဖိုင်ကို ပြင်ဆင်နေသည်…",
+  "attachmentImageError": "ဤပုံကို ပြင်ဆင်၍မရပါ။ အခြားပုံတစ်ပုံကို ရွေးပါ။"
 }

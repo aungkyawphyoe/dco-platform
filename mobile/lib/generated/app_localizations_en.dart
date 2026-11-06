@@ -4688,4 +4688,11 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get dashboardVehiclesNotDownloadedBody =>
       'Open Sync Status to download your account’s vehicles.';
+
+  @override
+  String get attachmentProcessing => 'Preparing attachment…';
+
+  @override
+  String get attachmentImageError =>
+      'Could not prepare this image. Please choose another image.';
 }

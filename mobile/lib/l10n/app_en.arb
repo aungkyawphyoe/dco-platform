@@ -1543,5 +1543,7 @@
     }
   },
   "dashboardVehiclesNotDownloaded": "Your vehicles are not on this device yet",
-  "dashboardVehiclesNotDownloadedBody": "Open Sync Status to download your account’s vehicles."
+  "dashboardVehiclesNotDownloadedBody": "Open Sync Status to download your account’s vehicles.",
+  "attachmentProcessing": "Preparing attachment…",
+  "attachmentImageError": "Could not prepare this image. Please choose another image."
 }

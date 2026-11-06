@@ -262,6 +262,8 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
   }
 
   Future<void> _save() async {
+    if (_saving || (_attachments.currentState?.isProcessing ?? false)) return;
+    final attachments = _attachments.currentState;
     final draft = _draftOrNull();
     if (draft == null) return;
     final vehicle = ref.read(activeVehicleProvider).valueOrNull;
@@ -273,6 +275,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
         .id;
     if (currentUserId == null) return;
     setState(() => _saving = true);
+    attachments?.beginSave();
     try {
       final record = await ref.read(appDatabaseProvider).transaction(() async {
         final repo = ref.read(maintenanceRepositoryProvider);
@@ -288,10 +291,10 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                 vehicle: vehicle,
                 draft: draft,
               );
-        await _attachments.currentState?.save(currentUserId, record.id);
+        await attachments?.save(currentUserId, record.id);
         return record;
       });
-      _attachments.currentState?.markSaved();
+      attachments?.markSaved();
       if (mounted) setState(() => _allowPop = true);
       await WidgetsBinding.instance.endOfFrame;
       if (_isEdit) {
@@ -323,6 +326,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
         ).showSnackBar(SnackBar(content: Text(message)));
       }
     } finally {
+      await attachments?.endSave();
       if (mounted) setState(() => _saving = false);
     }
   }
@@ -804,7 +808,7 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                     vehicleId: vehicle.id,
                     recordId: widget.editServiceId,
                     readOnly:
-                        !canWrite ||
+                        !canWrite || _saving ||
                         (!access.isOwner &&
                             ref.watch(driverOrganizationIdProvider) == null),
                     onChanged: () => setState(() {}),
@@ -823,7 +827,12 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
               secondaryLabel: s.cancel,
               onSecondary: _cancelAttachments,
               primaryLabel: s.save,
-              onPrimary: canWrite ? _save : null,
+              onPrimary:
+                  canWrite &&
+                      !_saving &&
+                      !(_attachments.currentState?.isProcessing ?? false)
+                  ? _save
+                  : null,
               primaryLoading: _saving,
               primaryKey: const Key('register-service-save'),
             ),

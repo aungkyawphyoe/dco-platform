@@ -8651,6 +8651,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open Sync Status to download your account’s vehicles.'**
   String get dashboardVehiclesNotDownloadedBody;
+
+  /// No description provided for @attachmentProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Preparing attachment…'**
+  String get attachmentProcessing;
+
+  /// No description provided for @attachmentImageError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not prepare this image. Please choose another image.'**
+  String get attachmentImageError;
 }
 
 class _AppLocalizationsDelegate

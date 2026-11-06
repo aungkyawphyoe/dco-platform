@@ -4730,4 +4730,11 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get dashboardVehiclesNotDownloadedBody =>
       'သင့်အကောင့်၏ ယာဉ်များကို ဒေါင်းလုဒ်လုပ်ရန် ချိန်ကိုက်မှုအခြေအနေကို ဖွင့်ပါ။';
+
+  @override
+  String get attachmentProcessing => 'ပူးတွဲဖိုင်ကို ပြင်ဆင်နေသည်…';
+
+  @override
+  String get attachmentImageError =>
+      'ဤပုံကို ပြင်ဆင်၍မရပါ။ အခြားပုံတစ်ပုံကို ရွေးပါ။';
 }

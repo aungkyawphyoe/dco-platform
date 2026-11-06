@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:dco_mobile/core/media/attachment_image_compressor.dart';
+import 'package:dco_mobile/core/media/draft_attachment_files.dart';
+import 'package:dco_mobile/generated/app_localizations.dart';
+
 import 'package:dco_mobile/core/media/media_api.dart';
 import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
@@ -42,7 +46,9 @@ class LogAttachmentsState extends ConsumerState<LogAttachments> {
   final List<DocumentDraft> _files = [];
   final Map<String, Document> _selected = {};
   final Set<String> _removed = {};
-  bool _saved = false;
+  final _draftFiles = DraftAttachmentFiles();
+  bool _processing = false;
+  bool get isProcessing => _processing;
   String? _error;
 
   bool get hasChanges =>
@@ -51,9 +57,16 @@ class LogAttachmentsState extends ConsumerState<LogAttachments> {
     (link) => link.kind == widget.kind && link.recordId == widget.recordId,
   );
 
-  void markSaved() => _saved = true;
+  void beginSave() => _draftFiles.beginSave();
+  Future<void> endSave() => _draftFiles.endSave();
+  void markSaved() {
+    for (final draft in _files) {
+      _draftFiles.retain(draft.localFilePath);
+    }
+  }
 
   Future<void> save(String userId, String recordId) async {
+    if (_processing) throw StateError('Attachment is still being prepared');
     final repo = ref.read(documentRepositoryProvider);
     final target = DocumentLink(kind: widget.kind, recordId: recordId);
     for (final id in {..._selected.keys, ..._removed}) {
@@ -114,20 +127,8 @@ class LogAttachmentsState extends ConsumerState<LogAttachments> {
 
   @override
   void dispose() {
-    if (!_saved)
-      for (final draft in _files) {
-        _removeFile(draft.localFilePath);
-      }
+    _draftFiles.dispose();
     super.dispose();
-  }
-
-  Future<void> _removeFile(String? path) async {
-    if (path == null) return;
-    try {
-      await File(path).delete();
-    } on FileSystemException {
-      /* Already removed. */
-    }
   }
 
   bool _canChange(Document doc) {
@@ -142,53 +143,62 @@ class LogAttachmentsState extends ConsumerState<LogAttachments> {
   }
 
   Future<void> _pick(String source) async {
+    if (_processing || widget.readOnly) return;
+    final picker = ref.read(attachmentImagePickerProvider);
+    setState(() {
+      _processing = true;
+      _error = null;
+    });
+    widget.onChanged();
     try {
-      String? path;
-      String extension;
+      File? file;
       if (source == 'pdf') {
         final files = await FilePicker.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['pdf'],
         );
-        path = files.isEmpty ? null : files.single.path;
-        extension = 'pdf';
+        final path = files.isEmpty ? null : files.single.path;
+        if (path == null) return;
+        if (await File(path).length() > MediaApi.maxBytes) {
+          throw StateError('File exceeds the 15 MB limit');
+        }
+        final directory = await getApplicationDocumentsDirectory();
+        file = File('${directory.path}/documents/${const Uuid().v4()}.pdf');
+        await file.parent.create(recursive: true);
+        await _draftFiles.add(file.path);
+        await File(path).copy(file.path);
       } else {
-        final image = await ImagePicker().pickImage(
-          source: source == 'camera' ? ImageSource.camera : ImageSource.gallery,
-          imageQuality: 85,
-          maxWidth: 2400,
-          maxHeight: 2400,
+        file = await picker.pick(
+          source == 'camera' ? ImageSource.camera : ImageSource.gallery,
+          folder: 'documents',
         );
-        path = image?.path;
-        extension = 'jpg';
       }
-      if (path == null) return;
-      if (await File(path).length() > MediaApi.maxBytes)
-        throw StateError('File exceeds the 15 MB limit');
-      final directory = await getApplicationDocumentsDirectory();
-      final file = File(
-        '${directory.path}/documents/${const Uuid().v4()}.$extension',
-      );
-      await file.parent.create(recursive: true);
-      await File(path).copy(file.path);
-      if (!mounted) {
-        await _removeFile(file.path);
-        return;
-      }
+      if (file == null) return;
+      await _draftFiles.add(file.path);
+      if (!mounted) return;
       setState(() {
-        _error = null;
         _files.add(
           DocumentDraft(
             name:
                 '${widget.category == DocumentCategory.invoice ? 'Invoice' : 'Receipt'} ${_files.length + 1}',
             category: widget.category,
-            localFilePath: file.path,
+            localFilePath: file!.path,
           ),
         );
       });
-      widget.onChanged();
     } catch (error) {
-      if (mounted) setState(() => _error = '$error');
+      if (mounted) {
+        setState(
+          () => _error = source == 'pdf'
+              ? '$error'
+              : AppLocalizations.of(context)!.attachmentImageError,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _processing = false);
+        widget.onChanged();
+      }
     }
   }
 
@@ -307,6 +317,10 @@ class LogAttachmentsState extends ConsumerState<LogAttachments> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (_processing) ...[
+          const LinearProgressIndicator(),
+          Text(AppLocalizations.of(context)!.attachmentProcessing),
+        ],
         Text('Attachments', style: Theme.of(context).textTheme.titleMedium),
         const Text(
           'Images or PDF · up to 15 MB each. Files also appear in Documents.',
@@ -338,13 +352,13 @@ class LogAttachmentsState extends ConsumerState<LogAttachments> {
             contentPadding: EdgeInsets.zero,
             title: Text(draft.name),
             subtitle: Text('${draft.category.name} · Not saved yet'),
-            onTap: () => _editDraft(draft),
+            onTap: widget.readOnly || _processing ? null : () => _editDraft(draft),
             trailing: IconButton(
               icon: const Icon(Icons.close),
               tooltip: 'Discard file',
-              onPressed: () {
+              onPressed: widget.readOnly || _processing ? null : () {
                 setState(() => _files.remove(draft));
-                _removeFile(draft.localFilePath);
+                _draftFiles.discard(draft.localFilePath);
                 widget.onChanged();
               },
             ),
@@ -359,6 +373,7 @@ class LogAttachmentsState extends ConsumerState<LogAttachments> {
             spacing: 8,
             children: [
               PopupMenuButton<String>(
+                enabled: !_processing,
                 onSelected: _pick,
                 itemBuilder: (_) => const [
                   PopupMenuItem(value: 'camera', child: Text('Take photo')),

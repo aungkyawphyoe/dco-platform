@@ -47,10 +47,11 @@ class UnitsFormatsScreen extends ConsumerWidget {
         final result = await dio.get<Map<String, dynamic>>(url);
         await store.save(user, result.data!, vehicleId: vehicle.id);
       } catch (_) {
-        if (context.mounted)
+        if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Could not save vehicle currency.')),
           );
+        }
       }
     }
 
@@ -87,12 +88,13 @@ class UnitsFormatsScreen extends ConsumerWidget {
                   await store.save(user, response.data!, vehicleId: vehicle.id);
                   sync.requestSync();
                 } catch (_) {
-                  if (context.mounted)
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Could not save fleet display currency.'),
                       ),
                     );
+                  }
                 }
               },
             )
@@ -150,7 +152,7 @@ class UnitsFormatsScreen extends ConsumerWidget {
                   }
                   sync.requestSync();
                 } catch (_) {
-                  if (context.mounted)
+                  if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text(
@@ -158,10 +160,12 @@ class UnitsFormatsScreen extends ConsumerWidget {
                         ),
                       ),
                     );
+                  }
                 }
               },
             ),
           if (!isDriver && policy?['can_manage'] == true) ...[
+            SizedBox(height: tokens.space.s3),
             DropdownButtonFormField<String>(
               decoration: InputDecoration(
                 labelText: 'Base currency for ${vehicle?.displayName}',
@@ -181,6 +185,7 @@ class UnitsFormatsScreen extends ConsumerWidget {
             ),
             SwitchListTile(
               title: const Text('Use each member’s account currency'),
+              activeThumbColor: tokens.text.accent,
               value: policy?['allow_member_currency'] == true,
               onChanged: (value) =>
                   savePolicy(policy?['base_currency'] as String?, value),

@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:dco_mobile/core/media/attachment_image_compressor.dart';
+import 'package:dco_mobile/core/media/draft_attachment_files.dart';
+
 import 'package:dco_mobile/features/maintenance/presentation/widgets/sticky_actions.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:dco_mobile/core/media/media_api.dart';
@@ -56,6 +59,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   String? _formError;
   bool _loading = true;
   bool _saving = false;
+  bool _processing = false;
+  final _draftFiles = DraftAttachmentFiles();
   bool _missing = false;
   String? _createdBy;
 
@@ -94,6 +99,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
 
   @override
   void dispose() {
+    _draftFiles.dispose();
     _name.dispose();
     _notes.dispose();
     _categoryLabel.dispose();
@@ -149,6 +155,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   Future<void> _save() async {
+    if (_saving || _processing) return;
     final draft = _draftOrNull();
     if (draft == null) return;
     final vehicleId =
@@ -157,6 +164,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
     if (vehicleId == null || userId == null) return;
     if (!_canWrite()) return;
     setState(() => _saving = true);
+    _draftFiles.beginSave();
     try {
       final repo = ref.read(documentRepositoryProvider);
       if (widget.isEditing) {
@@ -167,8 +175,12 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
         );
       } else {
         await repo.add(userId: userId, vehicleId: vehicleId, draft: draft);
-        ref.read(analyticsProvider).track(AnalyticsEvent.documentUploaded);
+        _draftFiles.retain(_localFilePath);
+        if (mounted) {
+          ref.read(analyticsProvider).track(AnalyticsEvent.documentUploaded);
+        }
       }
+      _draftFiles.retain(_localFilePath);
       if (mounted) context.pop();
     } on DocumentFailure catch (failure) {
       if (mounted) {
@@ -181,6 +193,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
         );
       }
     } finally {
+      await _draftFiles.endSave();
       if (mounted) setState(() => _saving = false);
     }
   }
@@ -237,6 +250,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   Future<void> _pickFile() async {
+    if (_processing || _saving) return;
     final tokens = context.tokens;
     await showModalBottomSheet<void>(
       context: context,
@@ -288,38 +302,36 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
   }
 
   Future<void> _pickImage(ImageSource source) async {
+    if (_processing || _saving) return;
+    final picker = ref.read(attachmentImagePickerProvider);
+    setState(() {
+      _processing = true;
+      _formError = null;
+    });
     try {
-      final picked = await ImagePicker().pickImage(
-        source: source,
-        imageQuality: 85,
-        maxWidth: 2400,
-        maxHeight: 2400,
-      );
-      if (picked == null) return;
-      if (await File(picked.path).length() > MediaApi.maxBytes) {
-        if (mounted) {
-          setState(() => _formError = 'File exceeds the 15 MB limit');
-        }
-        return;
-      }
-      final directory = await getApplicationDocumentsDirectory();
-      final dest = File('${directory.path}/documents/${const Uuid().v4()}.jpg');
-      await dest.parent.create(recursive: true);
-      await File(picked.path).copy(dest.path);
+      final file = await picker.pick(source, folder: 'documents');
+      if (file == null) return;
+      await _draftFiles.add(file.path);
+      if (!mounted) return;
+      await _draftFiles.discard(_localFilePath);
       if (!mounted) return;
       setState(() {
-        _localFilePath = dest.path;
-        _formError = null;
+        _localFilePath = file.path;
       });
     } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        _formError = AppLocalizations.of(context)!.documentFormPickError;
-      });
+      if (mounted) {
+        setState(
+          () => _formError = AppLocalizations.of(context)!.attachmentImageError,
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _processing = false);
     }
   }
 
   Future<void> _pickPdf() async {
+    if (_processing || _saving) return;
+    setState(() => _processing = true);
     try {
       final result = await FilePicker.pickFiles(
         type: FileType.custom,
@@ -337,7 +349,13 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       final directory = await getApplicationDocumentsDirectory();
       final dest = File('${directory.path}/documents/${const Uuid().v4()}.pdf');
       await dest.parent.create(recursive: true);
+      await _draftFiles.add(dest.path);
       await file.copy(dest.path);
+      if (!mounted) {
+        await _draftFiles.add(dest.path);
+        return;
+      }
+      await _draftFiles.discard(_localFilePath);
       if (!mounted) return;
       setState(() {
         _localFilePath = dest.path;
@@ -348,6 +366,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
       setState(() {
         _formError = AppLocalizations.of(context)!.documentFormPickError;
       });
+    } finally {
+      if (mounted) setState(() => _processing = false);
     }
   }
 
@@ -579,12 +599,20 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                   style: Theme.of(context).textTheme.labelLarge,
                 ),
                 SizedBox(height: tokens.space.s3),
-                _FilePicker(
-                  path: _localFilePath,
-                  onAdd: _pickFile,
-                  onRemove: () => setState(() {
-                    _localFilePath = null;
-                  }),
+                if (_processing) ...[
+                  const LinearProgressIndicator(),
+                  Text(s.attachmentProcessing),
+                ],
+                IgnorePointer(
+                  ignoring: _processing || _saving,
+                  child: _FilePicker(
+                    path: _localFilePath,
+                    onAdd: _pickFile,
+                    onRemove: () => setState(() {
+                      _draftFiles.discard(_localFilePath);
+                      _localFilePath = null;
+                    }),
+                  ),
                 ),
                 if (_formError != null) ...[
                   SizedBox(height: tokens.space.s4),
@@ -599,7 +627,7 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
                     key: const Key('document-delete'),
                     label: s.documentFormDeleteButton,
                     variant: DcoButtonVariant.destructive,
-                    onPressed: _saving ? null : _delete,
+                    onPressed: _saving || _processing ? null : _delete,
                   ),
                 ],
               ],
@@ -609,7 +637,8 @@ class _DocumentFormScreenState extends ConsumerState<DocumentFormScreen> {
             secondaryLabel: s.cancel,
             onSecondary: () => context.pop(),
             primaryLabel: s.save,
-            onPrimary: () => canWrite ? _save : null,
+            onPrimary: canWrite && !_processing && !_saving ? _save : null,
+            primaryLoading: _saving,
           ),
         ],
       ),
