@@ -3371,7 +3371,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsDefMonthLabel =>
-      'Month labels use MMM when a year is selected, and MMM YY for All.';
+      'Month labels use MM when a year is selected, and MM/YYYY for All.';
 
   @override
   String get statsDefMonthlyCostChart =>

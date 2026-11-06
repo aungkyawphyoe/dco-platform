@@ -3406,7 +3406,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get statsDefMonthLabel =>
-      'လ အမည်များသည် နှစ် ရွေးထားပါက MMM၊ အားလုံးအတွက် MMM YY ဖြစ်သည်။';
+      'လ အမည်များသည် နှစ် ရွေးထားပါက MM၊ အားလုံးအတွက် MM/YYYY ဖြစ်သည်။';
 
   @override
   String get statsDefMonthlyCostChart =>

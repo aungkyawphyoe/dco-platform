@@ -8,12 +8,71 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+const double _axisFontSize = 10;
+
+/// Dashed horizontal grid. The dash belongs to the grid only; data series stay
+/// solid so their shape is never confused with the grid.
+const List<int> _gridDashPattern = [4, 4];
+
+/// Grid colour: a themed border colour lifted just enough to stay visible on
+/// both the light card and the darker dark-mode card.
+Color _gridLineColor(DcoTokens tokens) =>
+    tokens.border.defaultColor.withValues(alpha: 0.45);
+
 TextStyle _axisStyle(BuildContext context) {
   final tokens = context.tokens;
   return GoogleFonts.ibmPlexMono(
     color: tokens.text.caption,
-    fontSize: 10,
+    fontSize: _axisFontSize,
   );
+}
+
+/// Rough width of a monospace axis label at [_axisFontSize].
+double _axisLabelWidth(String label) => label.length * _axisFontSize * 0.62;
+
+/// Largest tick step that keeps every rendered label clear of its neighbour.
+///
+/// Labels are skipped rather than clipped on narrow screens or dense periods.
+int _axisLabelStep({
+  required List<String> labels,
+  required double chartWidth,
+  double leftReserved = 44,
+  double rightPadding = 8,
+}) {
+  if (labels.length <= 1) return 1;
+  final plotWidth = chartWidth - leftReserved - rightPadding;
+  if (plotWidth <= 0) return math.max(1, (labels.length / 6).ceil());
+  final slotWidth = plotWidth / labels.length;
+  final widest = labels.fold<double>(
+    0,
+    (width, label) => math.max(width, _axisLabelWidth(label)),
+  );
+  const minGap = 8.0;
+  return math.max(1, ((widest + minGap) / slotWidth).ceil());
+}
+
+/// Nudges the series colour toward the theme's strongest text colour: brighter
+/// on dark cards, darker on light cards, so line contrast survives both modes.
+Color _themeStrokeColor(BuildContext context, Color base) {
+  final tokens = context.tokens;
+  return Color.lerp(base, tokens.text.primary, 0.12)!;
+}
+
+/// Rounds an axis interval to 1/2/5 × 10ⁿ so tick labels stay readable.
+double _niceInterval(double maxValue) {
+  if (maxValue <= 0) return 1;
+  final raw = maxValue / 3;
+  final magnitude =
+      math.pow(10, (math.log(raw) / math.ln10).floorToDouble()).toDouble();
+  final normalized = raw / magnitude;
+  final step = normalized <= 1
+      ? 1.0
+      : normalized <= 2
+      ? 2.0
+      : normalized <= 5
+      ? 5.0
+      : 10.0;
+  return step * magnitude;
 }
 
 BoxDecoration _cardDecoration(DcoTokens tokens) {
@@ -99,6 +158,10 @@ class StatsBarChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final labels = [
+      for (final value in values)
+        statsMonthLabel(value.date, selectedYear: selectedYear),
+    ];
     final body = SizedBox(
       height: 180,
       child: values.isEmpty
@@ -111,7 +174,17 @@ class StatsBarChart extends StatelessWidget {
                     ?.copyWith(color: tokens.text.caption),
               ),
             )
-          : BarChart(_barData(context)),
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final step = _axisLabelStep(
+                  labels: labels,
+                  chartWidth: constraints.maxWidth,
+                );
+                return BarChart(
+                  _barData(context, labels: labels, labelStep: step),
+                );
+              },
+            ),
     );
     return _ChartCard(
       title: title,
@@ -120,7 +193,11 @@ class StatsBarChart extends StatelessWidget {
     );
   }
 
-  BarChartData _barData(BuildContext context) {
+  BarChartData _barData(
+    BuildContext context, {
+    required List<String> labels,
+    required int labelStep,
+  }) {
     final tokens = context.tokens;
     final maxValue =
         values.fold<double>(0, (max, item) => item.value > max ? item.value : max);
@@ -133,8 +210,9 @@ class StatsBarChart extends StatelessWidget {
         drawVerticalLine: false,
         horizontalInterval: interval,
         getDrawingHorizontalLine: (value) => FlLine(
-          color: tokens.border.subtle,
+          color: _gridLineColor(tokens),
           strokeWidth: 1,
+          dashArray: _gridDashPattern,
         ),
       ),
       borderData: FlBorderData(show: false),
@@ -148,6 +226,7 @@ class StatsBarChart extends StatelessWidget {
             showTitles: true,
             reservedSize: 44,
             interval: interval,
+            maxIncluded: false,
             getTitlesWidget: (value, meta) => Padding(
               padding: const EdgeInsets.only(right: 4),
               child: Text(
@@ -162,22 +241,27 @@ class StatsBarChart extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 26,
+            interval: labelStep.toDouble(),
+            maxIncluded: false,
             getTitlesWidget: (value, meta) {
               final index = value.toInt();
-              if (index < 0 || index >= values.length) {
+              if (index < 0 || index >= labels.length) {
                 return const SizedBox.shrink();
               }
-              final step = (values.length / 6).ceil();
-              if (values.length > 7 && index % step != 0) {
+              if (index % labelStep != 0) {
                 return const SizedBox.shrink();
               }
-              return Padding(
-                padding: const EdgeInsets.only(top: 4),
+              return SideTitleWidget(
+                meta: meta,
+                space: 4,
+                fitInside: SideTitleFitInsideData.fromTitleMeta(
+                  meta,
+                  distanceFromEdge: 2,
+                ),
                 child: Text(
-                  statsMonthLabel(
-                    values[index].date,
-                    selectedYear: selectedYear,
-                  ),
+                  labels[index],
+                  maxLines: 1,
+                  softWrap: false,
                   style: _axisStyle(context),
                 ),
               );
@@ -200,21 +284,6 @@ class StatsBarChart extends StatelessWidget {
           ),
       ],
     );
-  }
-
-  static double _niceInterval(double maxValue) {
-    final raw = maxValue / 3;
-    final magnitude =
-        math.pow(10, (math.log(raw) / math.ln10).floorToDouble()).toDouble();
-    final normalized = raw / magnitude;
-    final step = normalized <= 1
-        ? 1.0
-        : normalized <= 2
-        ? 2.0
-        : normalized <= 5
-        ? 5.0
-        : 10.0;
-    return step * magnitude;
   }
 }
 
@@ -245,6 +314,10 @@ class StatsLineChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tokens = context.tokens;
+    final labels = [
+      for (final month in axisMonths)
+        statsMonthLabel(month.date, selectedYear: selectedYear),
+    ];
     final body = SizedBox(
       height: 180,
       child: axisMonths.isEmpty || points.isEmpty
@@ -257,7 +330,17 @@ class StatsLineChart extends StatelessWidget {
                     ?.copyWith(color: tokens.text.caption),
               ),
             )
-          : LineChart(_lineData(context)),
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final step = _axisLabelStep(
+                  labels: labels,
+                  chartWidth: constraints.maxWidth,
+                );
+                return LineChart(
+                  _lineData(context, labels: labels, labelStep: step),
+                );
+              },
+            ),
     );
     return _ChartCard(
       title: title,
@@ -267,8 +350,13 @@ class StatsLineChart extends StatelessWidget {
     );
   }
 
-  LineChartData _lineData(BuildContext context) {
+  LineChartData _lineData(
+    BuildContext context, {
+    required List<String> labels,
+    required int labelStep,
+  }) {
     final tokens = context.tokens;
+    final strokeColor = _themeStrokeColor(context, color);
     final pointIndex = <int, double>{
       for (final point in points)
         if (axisMonths.indexWhere(
@@ -303,17 +391,23 @@ class StatsLineChart extends StatelessWidget {
       (min, item) => item.value < min ? item.value : min,
     );
     final pad = ((maxValue - minValue) * 0.2) + maxValue * 0.05 + 1;
+    final rawMinY = math.max(0.0, minValue - pad);
+    final maxY = maxValue + pad;
+    final yInterval = _niceInterval(maxY - rawMinY);
+    // Snap the baseline to a tick so the lowest label stays a round value.
+    final minY = (rawMinY / yInterval).floorToDouble() * yInterval;
 
     return LineChartData(
-      minY: math.max(0, minValue - pad),
-      maxY: maxValue + pad,
+      minY: minY,
+      maxY: maxY,
       lineTouchData: const LineTouchData(enabled: false),
       gridData: FlGridData(
         show: true,
         drawVerticalLine: false,
         getDrawingHorizontalLine: (value) => FlLine(
-          color: tokens.border.subtle,
+          color: _gridLineColor(tokens),
           strokeWidth: 1,
+          dashArray: _gridDashPattern,
         ),
       ),
       borderData: FlBorderData(show: false),
@@ -326,6 +420,8 @@ class StatsLineChart extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 44,
+            interval: yInterval,
+            maxIncluded: false,
             getTitlesWidget: (value, meta) => Padding(
               padding: const EdgeInsets.only(right: 4),
               child: Text(
@@ -340,22 +436,27 @@ class StatsLineChart extends StatelessWidget {
           sideTitles: SideTitles(
             showTitles: true,
             reservedSize: 26,
+            interval: labelStep.toDouble(),
+            maxIncluded: false,
             getTitlesWidget: (value, meta) {
               final index = value.toInt();
-              if (index < 0 || index >= axisMonths.length) {
+              if (index < 0 || index >= labels.length) {
                 return const SizedBox.shrink();
               }
-              final step = (axisMonths.length / 6).ceil();
-              if (axisMonths.length > 7 && index % step != 0) {
+              if (index % labelStep != 0) {
                 return const SizedBox.shrink();
               }
-              return Padding(
-                padding: const EdgeInsets.only(top: 4),
+              return SideTitleWidget(
+                meta: meta,
+                space: 4,
+                fitInside: SideTitleFitInsideData.fromTitleMeta(
+                  meta,
+                  distanceFromEdge: 2,
+                ),
                 child: Text(
-                  statsMonthLabel(
-                    axisMonths[index].date,
-                    selectedYear: selectedYear,
-                  ),
+                  labels[index],
+                  maxLines: 1,
+                  softWrap: false,
                   style: _axisStyle(context),
                 ),
               );
@@ -368,9 +469,18 @@ class StatsLineChart extends StatelessWidget {
           LineChartBarData(
             spots: run,
             isCurved: false,
-            color: color,
+            color: strokeColor,
             barWidth: 2,
-            dotData: FlDotData(show: run.length <= 12),
+            dotData: FlDotData(
+              show: run.length <= 12,
+              getDotPainter: (spot, percent, barData, index) =>
+                  FlDotCirclePainter(
+                    radius: 2.5,
+                    color: strokeColor,
+                    strokeWidth: 0,
+                    strokeColor: strokeColor,
+                  ),
+            ),
             belowBarData: BarAreaData(show: false),
           ),
       ],
@@ -511,4 +621,3 @@ class StatsDonutChart extends StatelessWidget {
     );
   }
 }
-

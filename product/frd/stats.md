@@ -215,7 +215,7 @@ Opens from **What do these stats mean?**. Plain-language definition of every KPI
 - What a *segment* is and why distance KPIs need ≥ 2 of them (shown as `—` otherwise)
 - That consumption is computed between odometer readings and is approximate when a tank is not filled to full
 - Unit rules in effect (from Settings)
-- Month label rule (`MMM` for a selected year, `MMM YY` for All)
+- Month label rule (`MM` for a selected year, `MM/yyyy` for All)
 
 ## Odometer field on the fuel log form (the contract change)
 

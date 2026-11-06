@@ -6399,7 +6399,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsDefMonthLabel.
   ///
   /// In en, this message translates to:
-  /// **'Month labels use MMM when a year is selected, and MMM YY for All.'**
+  /// **'Month labels use MM when a year is selected, and MM/YYYY for All.'**
   String get statsDefMonthLabel;
 
   /// No description provided for @statsDefMonthlyCostChart.

@@ -1065,7 +1065,7 @@
   "statsDefMostExpensiveCharge": "The most expensive charge in the period, with its date.",
   "statsDefSegments": "A segment is the distance between two consecutive odometer readings. Distance and consumption KPIs need at least two segments in the period.",
   "statsDefUnits": "Distances follow your Settings length unit; money follows your currency.",
-  "statsDefMonthLabel": "Month labels use MMM when a year is selected, and MMM YY for All.",
+  "statsDefMonthLabel": "Month labels use MM when a year is selected, and MM/YYYY for All.",
   "statsDefMonthlyCostChart": "One bar per month showing total cost in the period.",
   "statsDefEfficiencyChart": "One point per month with a usable segment; months without one are gaps.",
   "statsDefTotalJobs": "Service records saved in the period.",

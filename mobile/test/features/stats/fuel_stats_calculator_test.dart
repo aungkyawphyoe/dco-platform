@@ -74,10 +74,10 @@ void main() {
       expect(statsMonthOptions(dates, year: 2024), [3]);
     });
 
-    test('month label is MMM with a selected year and MMM yy for All', () {
+    test('month label is numeric: MM with a selected year, MM/YYYY for All', () {
       final jan = DateTime(2025, 1, 15);
-      expect(statsMonthLabel(jan, selectedYear: 2025), 'Jan');
-      expect(statsMonthLabel(jan, selectedYear: null), 'Jan 25');
+      expect(statsMonthLabel(jan, selectedYear: 2025), '01');
+      expect(statsMonthLabel(jan, selectedYear: null), '01/2025');
     });
   });
 
