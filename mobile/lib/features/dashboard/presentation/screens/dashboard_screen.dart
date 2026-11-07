@@ -257,7 +257,7 @@ class _PopulatedDashboard extends ConsumerWidget {
                           children: [
                             Text(
                               vehicle.yearMakeModel,
-                              style: Theme.of(context).textTheme.titleMedium,
+                              style: Theme.of(context).textTheme.titleSmall,
                             ),
                             SizedBox(height: tokens.space.s1),
                             Text(

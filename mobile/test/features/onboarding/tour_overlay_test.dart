@@ -26,6 +26,8 @@ void main() {
   Future<void> pumpOverlay(
     WidgetTester tester, {
     int branch = 0,
+    bool alwaysOffer = false,
+    Key? overlayKey,
     Widget? background,
   }) async {
     tester.view.physicalSize = const Size(420, 900);
@@ -41,7 +43,7 @@ void main() {
           ),
           activeVehicleProvider.overrideWith((ref) => Stream.value(null)),
           driverOrganizationIdProvider.overrideWithValue(null),
-          alwaysOfferTourProvider.overrideWithValue(false),
+          alwaysOfferTourProvider.overrideWithValue(alwaysOffer),
         ],
         child: MaterialApp(
           theme: buildDcoTheme(Brightness.light),
@@ -53,7 +55,7 @@ void main() {
               fit: StackFit.expand,
               children: [
                 ?background,
-                TourOverlay(currentBranch: branch),
+                TourOverlay(key: overlayKey, currentBranch: branch),
               ],
             ),
           ),
@@ -68,6 +70,34 @@ void main() {
 
   Future<TourProgress> savedProgress() =>
       TourStateRepositoryImpl(db).load('u1');
+
+  testWidgets(
+    'debug tour stays dismissed after progress loads and overlay remounts',
+    (tester) async {
+      await pumpOverlay(
+        tester,
+        alwaysOffer: true,
+        overlayKey: const ValueKey('first'),
+      );
+      final s = localizations(tester);
+      expect(find.text(s.tourOfferTitle), findsOneWidget);
+      await tester.tap(find.text(s.tourNotNow));
+      await tester.pumpAndSettle();
+      expect(find.text(s.tourOfferTitle), findsNothing);
+      await pumpOverlay(
+        tester,
+        alwaysOffer: true,
+        overlayKey: const ValueKey('remounted'),
+      );
+      expect(find.text(s.tourOfferTitle), findsNothing);
+      final container = ProviderScope.containerOf(
+        tester.element(find.byType(TourOverlay)),
+      );
+      container.read(tourControllerProvider.notifier).start(tourStepsFor());
+      await tester.pumpAndSettle();
+      expect(find.text(s.tourStepOf(1, 4)), findsOneWidget);
+    },
+  );
 
   testWidgets('offers the tour once and Not now persists dismissal', (
     tester,

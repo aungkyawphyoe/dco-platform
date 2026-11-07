@@ -55,17 +55,25 @@ class _TourOverlayState extends ConsumerState<TourOverlay> {
 
     if (userId == null) _offerScheduledFor = null;
 
-    final offerKey = userId == null ? null : '$userId:${progress?.version}';
+    final offerKey = userId;
     if (eligible && _offerScheduledFor != offerKey) {
       _offerScheduledFor = offerKey;
-      if (alwaysOffer) {
-        debugPrint('[tour] DCO_TOUR_ALWAYS active — offering on every launch');
-      }
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) return;
-        final current = ref.read(tourControllerProvider);
-        if (current.phase != TourPhase.idle) return;
-        ref.read(tourControllerProvider.notifier).offer(tourStepsFor());
+        if (ref.read(currentUserIdProvider) != userId ||
+            widget.currentBranch != 0 ||
+            ref.read(postAuthRouteProvider) != null) {
+          _offerScheduledFor = null;
+          return;
+        }
+        final offered = ref
+            .read(tourControllerProvider.notifier)
+            .offer(tourStepsFor(), automaticFor: userId);
+        if (offered && alwaysOffer) {
+          debugPrint(
+            '[tour] DCO_TOUR_ALWAYS active — offering once this launch',
+          );
+        }
       });
     }
 

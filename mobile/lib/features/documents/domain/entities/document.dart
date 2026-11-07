@@ -1,3 +1,32 @@
+enum DocumentFileType {
+  photo,
+  pdf;
+
+  static DocumentFileType? fromPath(String? path) {
+    final extension = path?.toLowerCase().split('.').last;
+    if (extension == 'pdf') return pdf;
+    if (const [
+      'jpg',
+      'jpeg',
+      'png',
+      'heic',
+      'heif',
+      'webp',
+      'gif',
+    ].contains(extension)) {
+      return photo;
+    }
+    return null;
+  }
+
+  static DocumentFileType? fromContentType(String? value) {
+    final mime = value?.split(';').first.trim().toLowerCase();
+    if (mime == 'application/pdf') return pdf;
+    if (mime?.startsWith('image/') == true) return photo;
+    return null;
+  }
+}
+
 enum DocumentCategory {
   insurance,
   registration,

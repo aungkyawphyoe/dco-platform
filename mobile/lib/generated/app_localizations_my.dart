@@ -4748,4 +4748,17 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get attachmentImageError =>
       'ဤပုံကို ပြင်ဆင်၍မရပါ။ အခြားပုံတစ်ပုံကို ရွေးပါ။';
+
+  @override
+  String get documentsFilterAll => 'အားလုံး';
+
+  @override
+  String get documentsFilterPhotos => 'ဓာတ်ပုံများ';
+
+  @override
+  String get documentsFilterEmpty => 'ကိုက်ညီသော စာရွက်စာတမ်း မရှိပါ';
+
+  @override
+  String get documentsFilterEmptyBody =>
+      'အခြားဖိုင်အမျိုးအစားကို ရွေးပါ သို့မဟုတ် စာရွက်စာတမ်း ထည့်ပါ။';
 }

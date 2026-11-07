@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/widgets/dco_filter_chip.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
@@ -351,14 +352,14 @@ class _CategoryFilterBar extends StatelessWidget {
         scrollDirection: Axis.horizontal,
         child: Row(
           children: [
-            _FilterChip(
+            DcoFilterChip(
               label: s.expensesAllFilter,
               selected: selected == null,
               onTap: () => onSelected(null),
             ),
             for (final category in ExpenseCategory.values) ...[
               SizedBox(width: tokens.space.s2),
-              _FilterChip(
+              DcoFilterChip(
                 label: category.label,
                 selected: selected == category,
                 onTap: () => onSelected(category),
@@ -409,51 +410,6 @@ class _CategoryFilterBarDelegate extends SliverPersistentHeaderDelegate {
       oldDelegate.selected != selected ||
       oldDelegate.onSelected != onSelected ||
       oldDelegate.tokens != tokens;
-}
-
-class _FilterChip extends StatelessWidget {
-  const _FilterChip({
-    required this.label,
-    required this.selected,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    return Material(
-      color: selected
-          ? tokens.button.primary.background
-          : tokens.background.input,
-      borderRadius: BorderRadius.circular(tokens.radius.full),
-      elevation: selected ? 2 : 0,
-      shadowColor: selected
-          ? tokens.text.accent.withValues(alpha: 0.3)
-          : Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(tokens.radius.full),
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 40),
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: tokens.space.s4),
-            child: Center(
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: selected ? tokens.text.onAccent : tokens.text.primary,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
 
 class _ExpenseTile extends StatelessWidget {
@@ -518,7 +474,7 @@ class _ExpenseTile extends StatelessWidget {
                       SizedBox(height: tokens.space.s1),
                       Text(
                         expense.category.label,
-                        style: Theme.of(context).textTheme.titleMedium,
+                        style: Theme.of(context).textTheme.titleSmall,
                       ),
                       if (expense.notesPreview != null) ...[
                         SizedBox(height: tokens.space.s1),

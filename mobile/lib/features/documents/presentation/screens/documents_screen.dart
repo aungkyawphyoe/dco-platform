@@ -1,3 +1,4 @@
+import 'package:dco_mobile/core/widgets/dco_filter_chip.dart';
 import 'dart:io';
 
 import 'package:dco_mobile/core/providers.dart';
@@ -14,15 +15,32 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 
-class DocumentsScreen extends ConsumerWidget {
+class DocumentsScreen extends ConsumerStatefulWidget {
   const DocumentsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DocumentsScreen> createState() => _DocumentsScreenState();
+}
+
+class _DocumentsScreenState extends ConsumerState<DocumentsScreen> {
+  DocumentFileType? _selectedType;
+
+  @override
+  Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
     final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final documents = ref.watch(vehicleDocumentsProvider);
+    final fileTypes = <String, DocumentFileType?>{
+      for (final doc in documents.valueOrNull ?? <Document>[])
+        doc.id:
+            DocumentFileType.fromPath(doc.localFilePath) ??
+            (doc.mediaId == null
+                ? null
+                : ref
+                      .watch(documentFileTypeProvider(doc.mediaId!))
+                      .valueOrNull),
+    };
     final usage = ref.watch(documentStorageProvider).valueOrNull;
     final access = ref.watch(vehicleAccessProvider(vehicle));
 
@@ -75,6 +93,30 @@ class DocumentsScreen extends ConsumerWidget {
               onPressed: () => context.push(AppRoutes.pricing),
               child: Text(AppLocalizations.of(context)!.pricingViewPlans),
             ),
+          if (vehicle != null)
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              padding: EdgeInsets.symmetric(
+                horizontal: tokens.space.s4,
+                vertical: tokens.space.s2,
+              ),
+              child: Row(
+                children: [
+                  for (final type in [null, ...DocumentFileType.values]) ...[
+                    if (type != null) SizedBox(width: tokens.space.s2),
+                    DcoFilterChip(
+                      label: switch (type) {
+                        null => s.documentsFilterAll,
+                        DocumentFileType.photo => s.documentsFilterPhotos,
+                        DocumentFileType.pdf => s.documentFormPdfOption,
+                      },
+                      selected: _selectedType == type,
+                      onTap: () => setState(() => _selectedType = type),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           Expanded(
             child: vehicle == null
                 ? Center(
@@ -93,65 +135,79 @@ class DocumentsScreen extends ConsumerWidget {
                       title: s.documentsLoadError,
                       body: '$error',
                     ),
-                    data: (items) => items.isEmpty
-                        ? Center(
-                            child: DcoEmptyState(
-                              title: s.documentsEmptyTitle,
-                              body: s.documentsEmptyBody(vehicle.displayName),
-                              actionLabel: canCreate
-                                  ? s.documentsAddDocument
-                                  : null,
-                              onAction: canCreate
-                                  ? () => context.push(AppRoutes.documentNew)
-                                  : null,
-                            ),
+                    data: (allItems) {
+                      final items = allItems
+                          .where(
+                            (doc) =>
+                                _selectedType == null ||
+                                fileTypes[doc.id] == _selectedType,
                           )
-                        : ListView.builder(
-                            padding: EdgeInsets.fromLTRB(
-                              tokens.space.s4,
-                              tokens.space.s2,
-                              tokens.space.s4,
-                              tokens.space.s5,
-                            ),
-                            itemCount: items.length,
-                            itemBuilder: (context, index) {
-                              final doc = items[index];
-                              final locked =
-                                  ref
-                                      .watch(
-                                        recordAdminLockProvider(
-                                          'document:${doc.id}',
-                                        ),
-                                      )
-                                      .valueOrNull ??
-                                  (ref.watch(driverOrganizationIdProvider) !=
-                                      null);
-                              return Padding(
-                                padding: EdgeInsets.only(
-                                  bottom: tokens.space.s3,
-                                ),
-                                child: _DocumentTile(
-                                  document: doc,
-                                  onTap: () {
-                                    final hasFile =
-                                        doc.hasLocalFile || doc.mediaId != null;
-                                    if (!hasFile &&
-                                        canCreate &&
-                                        access.canEditRecord(doc.createdBy) &&
-                                        !locked) {
-                                      context.push(
-                                        AppRoutes.documentEdit(doc.id),
-                                      );
-                                    } else {
-                                      context.push(
-                                        AppRoutes.documentView(doc.id),
-                                      );
-                                    }
-                                  },
-                                ),
-                              );
-                            },
-                          ),
+                          .toList();
+                      return items.isEmpty
+                          ? Center(
+                              child: DcoEmptyState(
+                                title: allItems.isEmpty
+                                    ? s.documentsEmptyTitle
+                                    : s.documentsFilterEmpty,
+                                body: allItems.isEmpty
+                                    ? s.documentsEmptyBody(vehicle.displayName)
+                                    : s.documentsFilterEmptyBody,
+                                actionLabel: canCreate
+                                    ? s.documentsAddDocument
+                                    : null,
+                                onAction: canCreate
+                                    ? () => context.push(AppRoutes.documentNew)
+                                    : null,
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: EdgeInsets.fromLTRB(
+                                tokens.space.s4,
+                                tokens.space.s2,
+                                tokens.space.s4,
+                                tokens.space.s5,
+                              ),
+                              itemCount: items.length,
+                              itemBuilder: (context, index) {
+                                final doc = items[index];
+                                final locked =
+                                    ref
+                                        .watch(
+                                          recordAdminLockProvider(
+                                            'document:${doc.id}',
+                                          ),
+                                        )
+                                        .valueOrNull ??
+                                    (ref.watch(driverOrganizationIdProvider) !=
+                                        null);
+                                return Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: tokens.space.s3,
+                                  ),
+                                  child: _DocumentTile(
+                                    document: doc,
+                                    onTap: () {
+                                      final hasFile =
+                                          doc.hasLocalFile ||
+                                          doc.mediaId != null;
+                                      if (!hasFile &&
+                                          canCreate &&
+                                          access.canEditRecord(doc.createdBy) &&
+                                          !locked) {
+                                        context.push(
+                                          AppRoutes.documentEdit(doc.id),
+                                        );
+                                      } else {
+                                        context.push(
+                                          AppRoutes.documentView(doc.id),
+                                        );
+                                      }
+                                    },
+                                  ),
+                                );
+                              },
+                            );
+                    },
                   ),
           ),
         ],
@@ -242,19 +298,18 @@ class _DocumentTile extends ConsumerWidget {
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       SizedBox(height: tokens.space.s1),
-                      Row(
+                      Wrap(
+                        spacing: tokens.space.s2,
                         children: [
                           Text(
                             _categoryLabel(document.category, s),
                             style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: tokens.text.caption),
                           ),
-                          SizedBox(width: tokens.space.s2),
                           Text(
                             '·',
                             style: TextStyle(color: tokens.text.caption),
                           ),
-                          SizedBox(width: tokens.space.s2),
                           Text(
                             DateFormat.yMMMd().format(document.createdAt),
                             style: Theme.of(context).textTheme.bodySmall

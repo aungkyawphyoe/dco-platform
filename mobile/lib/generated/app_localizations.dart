@@ -8681,6 +8681,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Could not prepare this image. Please choose another image.'**
   String get attachmentImageError;
+
+  /// No description provided for @documentsFilterAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get documentsFilterAll;
+
+  /// No description provided for @documentsFilterPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Photos'**
+  String get documentsFilterPhotos;
+
+  /// No description provided for @documentsFilterEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No matching documents'**
+  String get documentsFilterEmpty;
+
+  /// No description provided for @documentsFilterEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose another file type or add a document.'**
+  String get documentsFilterEmptyBody;
 }
 
 class _AppLocalizationsDelegate

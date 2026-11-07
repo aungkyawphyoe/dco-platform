@@ -4705,4 +4705,17 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get attachmentImageError =>
       'Could not prepare this image. Please choose another image.';
+
+  @override
+  String get documentsFilterAll => 'All';
+
+  @override
+  String get documentsFilterPhotos => 'Photos';
+
+  @override
+  String get documentsFilterEmpty => 'No matching documents';
+
+  @override
+  String get documentsFilterEmptyBody =>
+      'Choose another file type or add a document.';
 }

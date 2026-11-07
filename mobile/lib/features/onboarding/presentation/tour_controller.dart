@@ -88,12 +88,19 @@ List<TourTarget> tourStepsFor() => const [
 ];
 
 class TourController extends Notifier<TourState> {
+  final _automaticallyOfferedAccounts = <String>{};
   @override
   TourState build() => const TourState();
 
-  void offer(List<TourTarget> steps) {
-    if (state.phase != TourPhase.idle || steps.isEmpty) return;
+  bool offer(List<TourTarget> steps, {String? automaticFor}) {
+    if (state.phase != TourPhase.idle || steps.isEmpty) return false;
+    // Survives overlay remounts, but resets with the app's ProviderScope.
+    if (automaticFor != null &&
+        !_automaticallyOfferedAccounts.add(automaticFor)) {
+      return false;
+    }
     state = TourState(phase: TourPhase.offered, steps: steps);
+    return true;
   }
 
   void begin() {

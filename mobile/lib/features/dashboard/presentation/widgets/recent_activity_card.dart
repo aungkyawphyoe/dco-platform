@@ -175,7 +175,7 @@ class RecentActivityCard extends ConsumerWidget {
                               SizedBox(height: tokens.space.s1),
                               Text(
                                 recent[i].title,
-                                style: Theme.of(context).textTheme.titleMedium,
+                                style: Theme.of(context).textTheme.titleSmall,
                               ),
                             ],
                           ),

@@ -332,7 +332,7 @@ class HistoryTile extends StatelessWidget {
                 children: [
                   Text(
                     record.title,
-                    style: Theme.of(context).textTheme.titleMedium,
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(height: 4),
                   Text(

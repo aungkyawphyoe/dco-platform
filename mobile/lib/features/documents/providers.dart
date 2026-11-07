@@ -62,3 +62,46 @@ final documentStorageProvider = StreamProvider<Map<String, dynamic>?>((ref) {
         : jsonDecode(row!.value!) as Map<String, dynamic>,
   );
 });
+
+/// Only file type is cached; signed URLs and file bytes are not needed to filter.
+final documentFileTypeProvider = StreamProvider.autoDispose
+    .family<DocumentFileType?, String>((ref, mediaId) async* {
+      final db = ref.watch(recordDatabaseProvider);
+      final userId = ref.watch(currentUserIdProvider);
+      final orgId = ref.watch(driverOrganizationIdProvider);
+      final dio = ref.watch(dioProvider);
+      var active = true;
+      ref.onDispose(() => active = false);
+      final key = 'document_type:$userId:$mediaId';
+      final row = await (db.select(
+        db.appMeta,
+      )..where((r) => r.key.equals(key))).getSingleOrNull();
+      final cached = DocumentFileType.fromContentType(row?.value);
+      yield cached;
+      if (cached != null || userId == null) return;
+      try {
+        final String? contentType;
+        if (orgId == null) {
+          final response = await dio.get<Map<String, dynamic>>(
+            '/media/$mediaId',
+          );
+          contentType = response.data?['content_type'] as String?;
+        } else {
+          final response = await dio.head<void>(
+            '/organizations/$orgId/media/$mediaId/content',
+          );
+          contentType = response.headers.value('content-type');
+        }
+        if (!active || DocumentFileType.fromContentType(contentType) == null) {
+          return;
+        }
+        await db
+            .into(db.appMeta)
+            .insertOnConflictUpdate(
+              AppMetaCompanion.insert(key: key, value: Value(contentType)),
+            );
+        yield DocumentFileType.fromContentType(contentType);
+      } catch (_) {
+        // Unknown files remain visible under All until metadata is available.
+      }
+    });
