@@ -96,21 +96,25 @@ Assets in [`../out/`](../out) — regenerate with `../render.sh` and
 |-------|------|-------------|--------|
 | `feature-graphic.png` | 1024 × 500 | 1024 × 500 | ok |
 | `play-store-1-dashboard.png` | 1080 × 1920 | 320–3840 px, 9:16 | ok |
-| `play-store-2-garage.png` | 1080 × 1920 | same | ok |
-| `play-store-3-maintenance.png` | 1080 × 1920 | same | ok |
+| `play-store-2-maintenance.png` | 1080 × 1920 | same | ok |
+| `play-store-3-expenses.png` | 1080 × 1920 | same | ok |
 | `play-store-4-refuel.png` | 1080 × 1920 | same | ok |
+| `play-store-5-garage.png` | 1080 × 1920 | same | ok |
+
+`render.sh` renders all six files from the numbered Android captures in
+[`../assets/`](../assets) and re-encodes them as 24-bit PNGs at the exact sizes.
 
 Caption check (from [`../index.html`](../index.html)):
 
 | Caption | Accurate? |
 |---------|-----------|
-| "Works offline" / "Quick actions" | Yes — offline records, dashboard quick actions |
-| "Multi-vehicle" / "Full history" | Yes — multi-vehicle is a paid-plan capability, disclosed under Plans |
+| "Quick actions" / "Works offline" | Yes — offline records, dashboard quick actions |
 | "Date & km alerts" / "Service log" | Yes |
-| "Litres & cost" / "Month filter" | Yes |
+| "Category totals" / "Monthly totals" | Yes — expenses summary and category breakdown |
+| "Litres & cost" / "Month filter" | Yes — refuel list with "This month" filter |
+| "Multi-vehicle" / "Full history" | Yes — multi-vehicle is a paid-plan capability, disclosed under Plans |
 
-Regenerate the phone frames from a build that matches the release you publish —
-the current captures predate the post-login tour, Help screen, and currency work.
+Regenerate the phone frames from a build that matches the release you publish.
 Consider a Burmese screenshot set as well; Play shows per-language images.
 
 ## Before publishing

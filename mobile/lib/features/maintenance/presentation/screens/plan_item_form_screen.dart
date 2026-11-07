@@ -559,9 +559,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                         key: const Key('plan-item-active'),
                         value: _enabled,
                         onChanged: (value) => setState(() => _enabled = value),
-                        activeThumbColor:
-                            tokens.button.primary.backgroundDisabled,
-                        activeTrackColor: tokens.button.primary.background,
+                        activeThumbColor: tokens.text.accent,
                         title: Text(s.planItemFormActive),
                         subtitle: Text(s.planItemFormActiveHelper),
                         contentPadding: EdgeInsets.zero,
