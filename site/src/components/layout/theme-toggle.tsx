@@ -2,8 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { THEME_COOKIE } from "@/lib/theme";
+import type { Dictionary } from "@/i18n/types";
 
-export function ThemeToggle() {
+type ThemeToggleProps = {
+  labels: Dictionary["theme"];
+};
+
+export function ThemeToggle({ labels }: ThemeToggleProps) {
   const [theme, setTheme] = useState<"light" | "dark">("dark");
 
   useEffect(() => {
@@ -24,7 +29,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggle}
-      aria-label={theme === "dark" ? "Switch to light theme" : "Switch to dark theme"}
+      aria-label={theme === "dark" ? labels.toLight : labels.toDark}
       className="flex h-9 w-9 items-center justify-center rounded-full border border-line-strong text-ink-muted transition-[color,border-color,box-shadow] duration-200 ease-out-soft hover:border-gold/40 hover:text-gold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
     >
       {theme === "dark" ? (

@@ -446,6 +446,27 @@ html.light {
   animation: pop-in 0.35s var(--ease-fn-spring) both;
 }
 
+/* Demo page route diagram — one orchestrated load moment. Reduced-motion
+ * users still get the final state via the global animation override. */
+@keyframes route-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.route-line {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: route-draw 1.35s var(--ease-fn-soft) 0.15s forwards;
+}
+
+.route-node {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pop-in 0.35s var(--ease-fn-spring) forwards;
+}
+
 /* Scroll reveals — JS toggles .is-visible (see components/marketing/reveal.tsx). */
 
 .reveal {
@@ -467,6 +488,27 @@ html.light {
 /* The floating nav is fixed, so in-page anchors reserve room for it. */
 html {
   scroll-padding-top: 5.5rem;
+}
+
+/* Burmese (Myanmar) text rendering fixes:
+ * - Burmese doesn't use spaces between words, so lines can overlap when wrapping
+ * - Force adequate line-height and allow breaking anywhere for Myanmar script */
+@layer base {
+  html[lang="my"] {
+    line-height: 1.7;
+  }
+  html[lang="my"] h1,
+  html[lang="my"] h2,
+  html[lang="my"] h3,
+  html[lang="my"] h4,
+  html[lang="my"] h5,
+  html[lang="my"] h6 {
+    line-height: 1.4;
+  }
+  html[lang="my"] * {
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
 }
 
 body {
@@ -494,5 +536,13 @@ body {
   .animate-float,
   .animate-float-slow {
     animation: none;
+  }
+  .route-line {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .route-node {
+    animation: none;
+    opacity: 1;
   }
 }

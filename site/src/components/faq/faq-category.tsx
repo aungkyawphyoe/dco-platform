@@ -1,4 +1,6 @@
-import type { FaqCategory } from "@/content/faq";
+import type { Dictionary } from "@/i18n/types";
+
+type FaqCategory = Dictionary["faq"]["categories"][number];
 
 export function FaqCategorySection({ category }: { category: FaqCategory }) {
   return (

@@ -4,10 +4,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { NAV_LINKS } from "@/content/site";
+import { NAV_ITEMS } from "@/content/site";
+import type { Locale } from "@/i18n/locales";
+import type { Dictionary } from "@/i18n/types";
+import { LanguageToggle } from "./language-toggle";
 import { ThemeToggle } from "./theme-toggle";
 
-export function SiteNav() {
+type SiteNavProps = {
+  locale: Locale;
+  labels: Dictionary["nav"];
+  language: Dictionary["language"];
+  theme: Dictionary["theme"];
+};
+
+export function SiteNav({ locale, labels, language, theme }: SiteNavProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -23,8 +33,8 @@ export function SiteNav() {
           <span className="font-display text-lg font-semibold tracking-tight">AutoX</span>
         </Link>
 
-        <nav aria-label="Primary" className="hidden items-center gap-1 md:flex">
-          {NAV_LINKS.map((link) => {
+        <nav aria-label={labels.primaryAria} className="hidden items-center gap-1 md:flex">
+          {NAV_ITEMS.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
@@ -37,25 +47,26 @@ export function SiteNav() {
                     : "text-ink-muted hover:bg-ink/[0.05] hover:text-ink"
                 }`}
               >
-                {link.label}
+                {labels.links[link.key]}
               </Link>
             );
           })}
         </nav>
 
         <div className="flex items-center gap-2">
-          <ThemeToggle />
+          <LanguageToggle locale={locale} labels={language} />
+          <ThemeToggle labels={theme} />
           <Link
-            href="/#download"
+            href="/demo"
             className="btn-gloss hidden h-9 items-center rounded-full px-5 text-sm font-semibold sm:inline-flex"
           >
-            Get the app
+            {labels.requestDemo}
           </Link>
           <button
             type="button"
             aria-expanded={open}
             aria-controls="mobile-nav"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? labels.closeMenu : labels.openMenu}
             onClick={() => setOpen((v) => !v)}
             className="flex h-9 w-9 items-center justify-center rounded-full border border-line-strong text-ink-muted transition-colors duration-200 ease-out-soft hover:border-gold/40 hover:text-gold md:hidden focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
           >
@@ -69,10 +80,10 @@ export function SiteNav() {
       {open && (
         <nav
           id="mobile-nav"
-          aria-label="Primary mobile"
+          aria-label={labels.mobileAria}
           className="glass shadow-float mx-auto mt-2 max-w-6xl rounded-2xl px-3 py-3 backdrop-blur-xl md:hidden"
         >
-          {NAV_LINKS.map((link) => {
+          {NAV_ITEMS.map((link) => {
             const active = pathname === link.href;
             return (
               <Link
@@ -84,16 +95,16 @@ export function SiteNav() {
                   active ? "btn-gloss shadow-glow" : "text-ink-muted hover:text-ink"
                 }`}
               >
-                {link.label}
+                {labels.links[link.key]}
               </Link>
             );
           })}
           <Link
-            href="/#download"
+            href="/demo"
             onClick={() => setOpen(false)}
             className="btn-gloss mt-2 flex h-11 items-center justify-center rounded-full px-4 text-sm font-semibold"
           >
-            Get the app
+            {labels.requestDemo}
           </Link>
         </nav>
       )}

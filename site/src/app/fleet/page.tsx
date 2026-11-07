@@ -1,15 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  FLEET_BENEFITS,
-  FLEET_CHALLENGES,
-  FLEET_COMPARISON,
-  FLEET_HERO,
-  FLEET_INDUSTRIES,
-  FLEET_MODULES,
-  FLEET_STEPS,
-} from "@/content/fleet";
-import { FLEET_CONTACT_EMAIL } from "@/content/site";
+import { getSiteCopy } from "@/i18n/dictionary";
 import { cardTone, pillTone } from "@/lib/tone";
 import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
 import { BenefitList } from "@/components/marketing/benefit-list";
@@ -20,22 +11,26 @@ import { Reveal } from "@/components/marketing/reveal";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { StepList } from "@/components/marketing/step-list";
 
-export const metadata: Metadata = {
-  title: "Fleet Management",
-  description:
-    "Organize your company's vehicles, drivers, work orders and costs in one system — fleet portal plus mobile Fleet and Driver modes.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { d } = await getSiteCopy();
+  return {
+    title: d.meta.pages.fleet.title,
+    description: d.meta.pages.fleet.description,
+  };
+}
 
-function ContactSalesLink({ className }: { className: string }) {
-  const href = FLEET_CONTACT_EMAIL ? `mailto:${FLEET_CONTACT_EMAIL}` : "/faq#fleet";
+function RequestDemoLink({ className, label }: { className: string; label: string }) {
   return (
-    <Link href={href} className={className}>
-      Contact sales
+    <Link href="/demo" className={className}>
+      {label}
     </Link>
   );
 }
 
-export default function FleetPage() {
+export default async function FleetPage() {
+  const { d } = await getSiteCopy();
+  const f = d.fleet;
+
   return (
     <>
       {/* Hero */}
@@ -44,20 +39,20 @@ export default function FleetPage() {
         <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1fr_1.15fr] lg:items-center">
           <div className="flex flex-col items-start gap-6">
             <Reveal delay={0} className="flex flex-wrap items-center gap-3">
-              <span className="pill pill-gold">{FLEET_HERO.eyebrow}</span>
-              <span className="pill pill-info">Fleet/Pro · Guided onboarding</span>
+              <span className="pill pill-gold">{f.hero.eyebrow}</span>
+              <span className="pill pill-info">{f.hero.badge}</span>
             </Reveal>
             <Reveal delay={80}>
               <h1 className="font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
-                {FLEET_HERO.title}
+                {f.hero.title}
               </h1>
             </Reveal>
             <Reveal delay={160}>
-              <p className="max-w-xl text-base leading-7 text-ink-muted sm:text-lg">{FLEET_HERO.subtitle}</p>
+              <p className="max-w-xl text-base leading-7 text-ink-muted sm:text-lg">{f.hero.subtitle}</p>
             </Reveal>
             <Reveal delay={240}>
               <ul className="grid gap-2.5 sm:grid-cols-2">
-                {FLEET_HERO.bullets.map((bullet) => (
+                {f.hero.bullets.map((bullet) => (
                   <li key={bullet} className="flex items-start gap-2 text-sm text-ink-muted">
                     <svg
                       aria-hidden="true"
@@ -78,22 +73,25 @@ export default function FleetPage() {
             </Reveal>
             <Reveal delay={320} className="flex flex-col gap-3">
               <div className="flex flex-wrap gap-3">
-                <ContactSalesLink className="btn-gloss inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold" />
+                <RequestDemoLink
+                  className="btn-gloss inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold"
+                  label={f.hero.requestDemo}
+                />
                 <Link
                   href="/pricing"
                   className="surface card-hover inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold text-ink"
                 >
-                  See pricing
+                  {f.hero.seePricing}
                 </Link>
               </div>
-              <p className="text-xs text-ink-caption">No self-serve signup — we provision your workspace for you.</p>
+              <p className="text-xs text-ink-caption">{f.hero.noSignup}</p>
             </Reveal>
           </div>
           <Reveal delay={220} className="flex justify-center lg:justify-end">
             <BrowserFrame
               src={{ dark: "/screenshots/portal-dashboard-dark.webp", light: "/screenshots/portal-dashboard-light.webp" }}
-              alt="Fleet portal dashboard with vehicle analytics and lemon flags"
-              label="Fleet portal — ACME Motors workspace"
+              alt={f.hero.browserAlt}
+              label={f.hero.browserLabel}
               priority
             />
           </Reveal>
@@ -103,13 +101,13 @@ export default function FleetPage() {
       {/* Challenges */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
-          eyebrow="The challenges"
-          title={FLEET_CHALLENGES.heading}
-          intro={FLEET_CHALLENGES.intro}
+          eyebrow={f.challenges.eyebrow}
+          title={f.challenges.heading}
+          intro={f.challenges.intro}
           align="left"
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {FLEET_CHALLENGES.items.map((item, index) => (
+          {f.challenges.items.map((item, index) => (
             <Reveal key={item.title} delay={index * 70} className="h-full">
               <article className={`surface card-grad card-hover h-full rounded-xl p-6 ${cardTone(index)}`}>
                 <h3 className="font-display text-lg font-semibold tracking-tight">{item.title}</h3>
@@ -124,16 +122,19 @@ export default function FleetPage() {
       <section className="border-y border-line bg-panel">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <SectionHeading
-            eyebrow="Get started"
-            title="Your workspace is ready in 3 simple steps"
-            intro="Fleet onboarding is guided from the first call."
+            eyebrow={f.stepsSection.eyebrow}
+            title={f.stepsSection.title}
+            intro={f.stepsSection.intro}
           />
           <div className="mt-10">
-            <StepList items={FLEET_STEPS} />
+            <StepList items={f.steps} />
           </div>
           <div className="mt-10 flex flex-col items-center gap-2">
-            <ContactSalesLink className="btn-gloss inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold" />
-            <p className="text-xs text-ink-caption">No credit card — we start with a conversation.</p>
+            <RequestDemoLink
+              className="btn-gloss inline-flex h-11 items-center rounded-full px-6 text-sm font-semibold"
+              label={f.hero.requestDemo}
+            />
+            <p className="text-xs text-ink-caption">{f.stepsSection.note}</p>
           </div>
         </div>
       </section>
@@ -141,11 +142,11 @@ export default function FleetPage() {
       {/* Modules */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
-          eyebrow="System modules"
-          title="Everything your fleet needs, in one place"
+          eyebrow={f.modulesSection.eyebrow}
+          title={f.modulesSection.title}
         />
         <div className="mt-10">
-          <FeatureGrid items={FLEET_MODULES} />
+          <FeatureGrid items={f.modules} />
         </div>
       </section>
 
@@ -153,11 +154,11 @@ export default function FleetPage() {
       <section className="border-y border-line bg-panel">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <SectionHeading
-            eyebrow="Benefits"
-            title="Results that impact your bottom line"
+            eyebrow={f.benefitsSection.eyebrow}
+            title={f.benefitsSection.title}
           />
           <div className="mt-10">
-            <BenefitList items={FLEET_BENEFITS} />
+            <BenefitList items={f.benefits} />
           </div>
         </div>
       </section>
@@ -165,19 +166,19 @@ export default function FleetPage() {
       {/* Comparison */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
-          eyebrow="Spreadsheets vs AutoX"
-          title={FLEET_COMPARISON.heading}
+          eyebrow={f.comparison.eyebrow}
+          title={f.comparison.title}
         />
         <Reveal className="surface mt-10 overflow-hidden rounded-xl">
           <div className="grid grid-cols-2 border-b border-line bg-panel">
             <div className="px-5 py-3 text-xs font-medium uppercase tracking-wide text-ink-faint">
-              Manual control
+              {f.comparison.manual}
             </div>
             <div className="border-l border-line px-5 py-3 text-xs font-medium uppercase tracking-wide text-gold">
-              With AutoX
+              {f.comparison.dco}
             </div>
           </div>
-          {FLEET_COMPARISON.rows.map((row) => (
+          {f.comparison.rows.map((row) => (
             <div key={row.manual} className="grid grid-cols-2 border-b border-line-subtle last:border-0">
               <div className="px-5 py-4 text-sm text-ink-muted">{row.manual}</div>
               <div className="border-l border-line-subtle px-5 py-4 text-sm text-ink">{row.dco}</div>
@@ -190,11 +191,11 @@ export default function FleetPage() {
       <section className="border-y border-line bg-panel">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <SectionHeading
-            eyebrow="For companies in every industry"
-            title="Built for operations that run on vehicles"
+            eyebrow={f.industriesSection.eyebrow}
+            title={f.industriesSection.title}
           />
           <Reveal className="mt-10 flex flex-wrap justify-center gap-3">
-            {FLEET_INDUSTRIES.map((industry, index) => (
+            {f.industries.map((industry, index) => (
               <span
                 key={industry}
                 className={`pill ${pillTone(index)} px-4 py-2 text-sm transition-transform duration-200 ease-out-soft hover:-translate-y-0.5`}
@@ -207,11 +208,12 @@ export default function FleetPage() {
       </section>
 
       <CtaBanner
-        title="Take control of your fleet"
-        subtitle="Talk to us about your operation and we will set up your organization workspace."
+        title={f.cta.title}
+        subtitle={f.cta.subtitle}
         showBadges={false}
-        primary={{ href: FLEET_CONTACT_EMAIL ? `mailto:${FLEET_CONTACT_EMAIL}` : "/faq#fleet", label: "Contact sales" }}
-        secondary={{ href: "/pricing", label: "See pricing" }}
+        primary={{ href: "/demo", label: f.cta.primary }}
+        secondary={{ href: "/pricing", label: f.cta.secondary }}
+        badgeLabels={d.storeBadges}
       />
     </>
   );

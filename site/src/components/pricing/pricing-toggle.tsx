@@ -1,17 +1,19 @@
 "use client";
 
 import type { BillingPeriod } from "@/lib/pricing";
+import type { Dictionary } from "@/i18n/types";
 
 type PricingToggleProps = {
   value: BillingPeriod;
   onChange: (period: BillingPeriod) => void;
+  copy: Dictionary["pricing"]["toggle"];
 };
 
-export function PricingToggle({ value, onChange }: PricingToggleProps) {
+export function PricingToggle({ value, onChange, copy }: PricingToggleProps) {
   return (
     <div
       role="group"
-      aria-label="Billing period"
+      aria-label={copy.aria}
       className="glass inline-flex items-center gap-1 rounded-full p-1"
     >
       {(["monthly", "annual"] as const).map((period) => {
@@ -26,10 +28,10 @@ export function PricingToggle({ value, onChange }: PricingToggleProps) {
               active ? "btn-gloss" : "text-ink-muted hover:text-ink"
             }`}
           >
-            {period === "monthly" ? "Monthly" : "Annual"}
+            {period === "monthly" ? copy.monthly : copy.annual}
             {period === "annual" && (
               <span className={`pill pill-sm ml-2 ${active ? "pill-on-gold" : "pill-mint"}`}>
-                2 months free
+                {copy.twoMonthsFree}
               </span>
             )}
           </button>

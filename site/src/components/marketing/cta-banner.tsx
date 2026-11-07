@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Dictionary } from "@/i18n/types";
 import { StoreBadges } from "./store-badges";
 import { Reveal } from "./reveal";
 
@@ -8,9 +9,17 @@ type CtaBannerProps = {
   showBadges?: boolean;
   primary?: { href: string; label: string };
   secondary?: { href: string; label: string };
+  badgeLabels: Dictionary["storeBadges"];
 };
 
-export function CtaBanner({ title, subtitle, showBadges = true, primary, secondary }: CtaBannerProps) {
+export function CtaBanner({
+  title,
+  subtitle,
+  showBadges = true,
+  primary,
+  secondary,
+  badgeLabels,
+}: CtaBannerProps) {
   return (
     <section className="border-t border-line">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
@@ -43,7 +52,7 @@ export function CtaBanner({ title, subtitle, showBadges = true, primary, seconda
                 )}
               </div>
             )}
-            {showBadges && <StoreBadges className="justify-center" />}
+            {showBadges && <StoreBadges labels={badgeLabels} className="justify-center" />}
           </div>
         </Reveal>
       </div>

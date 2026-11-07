@@ -56,6 +56,40 @@ export async function getPricing(): Promise<{ data: PricingResponse; live: boole
   }
 }
 
+/**
+ * Translates catalog strings that match a known English source string. Plan
+ * names and feature labels may come from the live API or the bundled snapshot;
+ * anything unknown passes through unchanged.
+ */
+export function localizePricing(
+  data: PricingResponse,
+  catalog: Record<string, string>,
+): PricingResponse {
+  const translate = (value: string) => catalog[value] ?? value;
+
+  return {
+    ...data,
+    plans: data.plans.map((plan) => ({
+      ...plan,
+      name: translate(plan.name),
+      tagline: translate(plan.tagline),
+      features: plan.features.map(translate),
+    })),
+    feature_matrix: data.feature_matrix.map((group) => ({
+      category: translate(group.category),
+      rows: group.rows.map((row) => ({
+        label: translate(row.label),
+        values: Object.fromEntries(
+          Object.entries(row.values).map(([key, value]) => [
+            key,
+            typeof value === "string" ? translate(value) : value,
+          ]),
+        ),
+      })),
+    })),
+  };
+}
+
 export function formatMmk(amount: number): string {
   return `${amount.toLocaleString("en-US")} MMK`;
 }

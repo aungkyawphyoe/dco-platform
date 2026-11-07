@@ -1,0 +1,1013 @@
+{
+  "meta": {
+    "siteTitle": "AutoX — Your Digital Garage",
+    "siteDescription": "Track fuel, charging, maintenance, expenses and documents for every vehicle you own. Offline-first mobile app for personal vehicles and fleets.",
+    "pages": {
+      "personal": {
+        "title": "Personal Use",
+        "description": "Track fuel, charging, maintenance and expenses for your own vehicles. Free forever plan available — offline-first on Android and iOS."
+      },
+      "fleet": {
+        "title": "Fleet Management",
+        "description": "Organize your company's vehicles, drivers, work orders and costs in one system — fleet portal plus mobile Fleet and Driver modes."
+      },
+      "demo": {
+        "title": "Request a demo",
+        "description": "Book a 30-minute walkthrough of AutoX with the team that builds it. Personal garage or fleet portal — built around your vehicles and workflow."
+      },
+      "pricing": {
+        "title": "Pricing",
+        "description": "Simple, transparent pricing — free for one vehicle, flexible plans for more vehicles and fleets. Prices in MMK and USD."
+      },
+      "faq": {
+        "title": "FAQ",
+        "description": "Answers to common questions about AutoX — platforms, accounts, personal use, fleet management, maintenance, fuel and plans."
+      }
+    }
+  },
+  "nav": {
+    "links": {
+      "personal": "Personal",
+      "fleet": "Fleet",
+      "pricing": "Pricing",
+      "faq": "FAQ"
+    },
+    "primaryAria": "Primary",
+    "mobileAria": "Primary mobile",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "requestDemo": "Request a demo"
+  },
+  "theme": {
+    "toLight": "Switch to light theme",
+    "toDark": "Switch to dark theme"
+  },
+  "language": {
+    "group": "Language",
+    "english": "English",
+    "burmese": "Burmese",
+    "englishShort": "EN",
+    "burmeseShort": "မြန်မာ"
+  },
+  "storeBadges": {
+    "group": "Download the app",
+    "getItOn": "Get it on",
+    "googlePlay": "Google Play",
+    "downloadOn": "Download on the",
+    "appStore": "App Store"
+  },
+  "footer": {
+    "tagline": "AutoX — the digital garage for every vehicle you own. Track fuel, maintenance and costs, offline-first.",
+    "product": "Product",
+    "platforms": "Platforms",
+    "company": "Company",
+    "android": "Android",
+    "googlePlay": "Google Play",
+    "ios": "iOS",
+    "appStore": "App Store",
+    "requestDemo": "Request a demo",
+    "helpCenter": "Help center",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "deleteAccount": "Delete account",
+    "rights": "© {year} AutoX. All rights reserved."
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Digital Car Ownership",
+      "title": "Every vehicle deserves a digital identity",
+      "subtitle": "A complete digital record for every vehicle you own — every maintenance entry, every cost, every receipt, in one place that works offline and syncs the moment you reconnect.",
+      "dashboardAlt": "AutoX dashboard showing the vehicle garage",
+      "dashboardLabel": "Dashboard — your garage at a glance"
+    },
+    "valueChips": [
+      {
+        "title": "Offline-First",
+        "description": "Writes never block on a signal."
+      },
+      {
+        "title": "Smart Reminders",
+        "description": "Time and mileage thresholds."
+      },
+      {
+        "title": "Resale Ready",
+        "description": "A documented service history."
+      },
+      {
+        "title": "Multi-Vehicle",
+        "description": "One garage, many cars."
+      }
+    ],
+    "pathsSection": {
+      "eyebrow": "Choose your path",
+      "title": "How do you want to use AutoX?",
+      "intro": "AutoX adapts to your needs — track your own vehicles or manage an entire fleet."
+    },
+    "paths": [
+      {
+        "badge": "Free forever",
+        "title": "Personal Use",
+        "description": "Track fuel, expenses, maintenance and costs of your own vehicles.",
+        "bullets": [
+          "Fuel and charging logs",
+          "Expense tracking",
+          "Maintenance reminders",
+          "Complete history"
+        ],
+        "cta": "Explore personal use"
+      },
+      {
+        "badge": "For business",
+        "title": "Fleet Management",
+        "description": "Organize your company's vehicles, drivers and workshops in one system.",
+        "bullets": [
+          "Work orders and inspections",
+          "Driver assignments",
+          "Cost analytics",
+          "Fleet reports"
+        ],
+        "cta": "Explore fleet management"
+      }
+    ],
+    "featuresSection": {
+      "eyebrow": "Features",
+      "title": "Everything you need to manage your vehicles",
+      "intro": "One digital garage for fuel, charging, maintenance, costs and documents — offline-first."
+    },
+    "features": [
+      {
+        "title": "Maintenance",
+        "description": "Plan items by time or mileage. Suggested items filtered by fuel type. Register services with parts and receipts in seconds.",
+        "chips": ["Plan items", "Service records", "Receipts"]
+      },
+      {
+        "title": "Fuel or Charging",
+        "description": "Refuel logs for petrol and hybrid plugin, charge logs for electric. Volume, cost and date — never lose a fill-up again.",
+        "chips": ["Refuel", "Charge", "Per-vehicle"]
+      },
+      {
+        "title": "Mileage",
+        "description": "Mileage that never goes backward. Sync resolves conflicts with max-wins, so the highest odometer reading always wins.",
+        "chips": ["Monotonic", "km/mi", "Sync-safe"]
+      },
+      {
+        "title": "Costs",
+        "description": "Track fuel, maintenance, insurance, parking, tolls, parts and other. Monthly and total summaries per vehicle — your real cost of ownership.",
+        "chips": ["Categories", "Summaries", "Receipts"]
+      },
+      {
+        "title": "Reminders",
+        "description": "Local notifications when a plan item comes due by time or distance. Mark done, dismiss or snooze — nothing falls through the cracks.",
+        "chips": ["Local notifications", "Smart thresholds"]
+      },
+      {
+        "title": "Multiple Vehicles",
+        "description": "One garage, many cars. Switch the active vehicle in one tap and keep separate plans, services and expenses for each.",
+        "chips": ["Active switch", "Per-vehicle data"]
+      }
+    ],
+    "audiencesSection": {
+      "eyebrow": "Built for every driver",
+      "title": "Every type of vehicle, every type of owner"
+    },
+    "audiences": [
+      {
+        "title": "Electric Vehicle Owners",
+        "bullets": ["Charging costs", "Energy use", "Real cost per km"]
+      },
+      {
+        "title": "Petrol & Diesel Drivers",
+        "bullets": ["Track fuel usage", "Monitor service history", "Organized maintenance"]
+      },
+      {
+        "title": "Families With Multiple Cars",
+        "bullets": ["Manage multiple vehicles", "Share records", "Stay organized"]
+      },
+      {
+        "title": "Fleet Owners",
+        "bullets": ["Track multiple vehicles", "Monitor usage and costs", "Centralize vehicle data"]
+      },
+      {
+        "title": "Ride Share & Delivery",
+        "bullets": ["Fuel and earnings costs", "Mileage records", "High-mileage maintenance"]
+      }
+    ],
+    "stepsSection": {
+      "eyebrow": "How it works",
+      "title": "Start in 3 simple steps",
+      "intro": "You are minutes away from a complete vehicle history."
+    },
+    "steps": [
+      {
+        "title": "Create your account",
+        "description": "Download the app and sign up free with email, Google or Apple."
+      },
+      {
+        "title": "Add your vehicles",
+        "description": "Register your car, motorcycle or EV in less than a minute."
+      },
+      {
+        "title": "Start logging",
+        "description": "Record fuel, expenses and maintenance — your history builds itself."
+      }
+    ],
+    "showcaseSection": {
+      "eyebrow": "Explore the app",
+      "title": "See your garage at a glance",
+      "intro": "Fuel logs, maintenance plans and costs — captured straight from the app.",
+      "dashboardAlt": "Dashboard screen",
+      "dashboardLabel": "Dashboard",
+      "fuelAlt": "Fuel log screen",
+      "fuelLabel": "Fuel log",
+      "maintenanceAlt": "Maintenance plan screen",
+      "maintenanceLabel": "Maintenance plan"
+    },
+    "download": {
+      "title": "Start your digital garage now",
+      "intro": "Free forever for one vehicle. Download AutoX and log your first fill-up in under a minute.",
+      "note": "Android and iOS · Offline-first · No credit card"
+    },
+    "cta": {
+      "title": "Ready to take control?",
+      "subtitle": "Pick the plan that fits — start free and upgrade any time.",
+      "primary": "See pricing",
+      "secondary": "Read the FAQ"
+    }
+  },
+  "personal": {
+    "hero": {
+      "eyebrow": "Personal use",
+      "badge": "Free forever",
+      "title": "Complete control of your vehicle",
+      "subtitle": "Track fuel, charging, maintenance and expenses. Know exactly what your vehicle costs — your full history in one app that works offline.",
+      "bullets": [
+        "Fuel and charging logs",
+        "Maintenance plans with reminders",
+        "Expense tracking with receipts",
+        "Documents vault",
+        "Works offline, syncs automatically"
+      ],
+      "phoneAlt": "AutoX personal garage with vehicle cards",
+      "phoneLabel": "Your garage — fuel, costs and documents in one place"
+    },
+    "problem": {
+      "eyebrow": "The problem",
+      "heading": "Do you know how much you really spend on your vehicle?",
+      "intro": "Most drivers have no idea of the real cost of their car or motorcycle. Without tracking, money slips away unnoticed.",
+      "items": [
+        {
+          "title": "Untracked fuel and charging",
+          "description": "You fill up, pay and forget. Monthly spend and real consumption stay a mystery."
+        },
+        {
+          "title": "Scattered expenses",
+          "description": "Insurance, parking, tolls and parts pile up across receipts, notes and memory."
+        },
+        {
+          "title": "Forgotten maintenance",
+          "description": "Oil changes, inspections and tires — without reminders you only remember when something breaks."
+        },
+        {
+          "title": "Unknown real cost",
+          "description": "Without everything in one place you cannot know what your vehicle costs per month or per kilometer."
+        }
+      ]
+    },
+    "solution": {
+      "eyebrow": "The solution",
+      "heading": "AutoX solves this for you",
+      "intro": "All your vehicle information stays organized in one place. Log fuel, expenses and maintenance — and truly understand what your vehicle costs.",
+      "bullets": [
+        "Log in seconds, from anywhere",
+        "Keep a complete vehicle history",
+        "Track fuel and charging costs",
+        "Get reminders before problems appear",
+        "Share access when someone else drives"
+      ]
+    },
+    "featuresSection": {
+      "eyebrow": "Features",
+      "title": "Everything you need to manage your vehicle"
+    },
+    "features": [
+      {
+        "title": "Fuel & Charging",
+        "description": "Refuel logs for petrol and hybrid plugin, charge logs for electric — volume, cost and date per vehicle."
+      },
+      {
+        "title": "Maintenance",
+        "description": "Plan items by time or mileage, then register services with parts and receipt photos."
+      },
+      {
+        "title": "Expenses",
+        "description": "Seven categories from insurance to tolls, with monthly and total summaries per vehicle."
+      },
+      {
+        "title": "Documents Vault",
+        "description": "Insurance, registration, invoices and warranties stored as photos or PDFs per vehicle."
+      },
+      {
+        "title": "Reminders",
+        "description": "Local notifications when a plan item comes due by time or distance — dismiss or snooze in one tap."
+      },
+      {
+        "title": "Vehicle Sharing",
+        "description": "Share a vehicle by code or email invite with view or add-and-edit access levels."
+      }
+    ],
+    "benefitsSection": {
+      "eyebrow": "Benefits",
+      "title": "Why use AutoX?"
+    },
+    "benefits": [
+      {
+        "title": "Know what your vehicle really costs",
+        "description": "Add up fuel, maintenance and expenses to see the real monthly cost per vehicle."
+      },
+      {
+        "title": "Never miss a service",
+        "description": "Reminders by date and mileage arrive before the deadline, not after the breakdown."
+      },
+      {
+        "title": "Keep everything in one place",
+        "description": "No more spreadsheets, notes and lost receipts — your entire vehicle history is centralized."
+      },
+      {
+        "title": "Your data works offline",
+        "description": "Log anywhere with no signal. Everything syncs the moment you reconnect."
+      }
+    ],
+    "stepsSection": {
+      "eyebrow": "How to start",
+      "title": "Get started in 3 simple steps",
+      "intro": "You are minutes away from total control of your vehicle."
+    },
+    "steps": [
+      {
+        "title": "Install the app",
+        "description": "Download AutoX free on Google Play or the App Store."
+      },
+      {
+        "title": "Add your vehicle",
+        "description": "Register your car, motorcycle or EV in less than a minute."
+      },
+      {
+        "title": "Start logging",
+        "description": "Record fuel, expenses and maintenance — your history builds itself."
+      }
+    ],
+    "cta": {
+      "title": "Start free — no catch",
+      "subtitle": "One vehicle, full history, zero cost. Upgrade only when you need more.",
+      "primary": "See plans",
+      "secondary": "Download the app"
+    }
+  },
+  "fleet": {
+    "hero": {
+      "eyebrow": "Fleet management",
+      "badge": "Fleet/Pro · Guided onboarding",
+      "title": "Stop losing money on your fleet",
+      "subtitle": "Get full visibility into fuel, maintenance, work orders and costs across your entire operation — in one system your drivers already use on mobile.",
+      "bullets": [
+        "Vehicle inventory with CSV import",
+        "Work orders and inspections",
+        "Driver assignments and roles",
+        "Cost analytics: TCO and cost per km",
+        "Web portal plus mobile Fleet mode"
+      ],
+      "requestDemo": "Request a demo",
+      "seePricing": "See pricing",
+      "noSignup": "No self-serve signup — we provision your workspace for you.",
+      "browserAlt": "Fleet portal dashboard with vehicle analytics and lemon flags",
+      "browserLabel": "Fleet portal — ACME Motors workspace"
+    },
+    "challenges": {
+      "eyebrow": "The challenges",
+      "heading": "Do you recognize any of these problems?",
+      "intro": "Most fleet managers face these challenges every day.",
+      "items": [
+        {
+          "title": "Spreadsheet control",
+          "description": "Scattered data, outdated information and hours wasted consolidating reports by hand."
+        },
+        {
+          "title": "Hidden costs",
+          "description": "Without visibility, fuel and maintenance expenses go unnoticed and eat into your margin."
+        },
+        {
+          "title": "Delayed maintenance",
+          "description": "Unexpected breakdowns are costly and reduce your operation's productivity."
+        },
+        {
+          "title": "No cost visibility",
+          "description": "Without centralized data it is impossible to know what each vehicle truly costs your company."
+        }
+      ]
+    },
+    "stepsSection": {
+      "eyebrow": "Get started",
+      "title": "Your workspace is ready in 3 simple steps",
+      "intro": "Fleet onboarding is guided from the first call.",
+      "note": "No credit card — we start with a conversation."
+    },
+    "steps": [
+      {
+        "title": "Talk to us",
+        "description": "Tell us about your operation — we provision your organization workspace."
+      },
+      {
+        "title": "Add vehicles and drivers",
+        "description": "Import your inventory from a spreadsheet and invite drivers with roles."
+      },
+      {
+        "title": "Start managing",
+        "description": "Report issues, run inspections and track costs from the portal and mobile app."
+      }
+    ],
+    "modulesSection": {
+      "eyebrow": "System modules",
+      "title": "Everything your fleet needs, in one place"
+    },
+    "modules": [
+      {
+        "title": "Work Orders",
+        "description": "Drivers report issues straight from the dashboard quick actions; managers track them from reported to completed."
+      },
+      {
+        "title": "Inspections",
+        "description": "Template checklists for pre-trip and post-trip checks — failures auto-create a work order."
+      },
+      {
+        "title": "Driver Assignments",
+        "description": "Assign vehicles to drivers; maintenance and fuel logged by the driver track against each assignment."
+      },
+      {
+        "title": "Warranty Templates",
+        "description": "Standard warranty terms per vehicle, with approved workshops attached."
+      },
+      {
+        "title": "Workshop Management",
+        "description": "Keep your network of service providers and their records in one place."
+      },
+      {
+        "title": "Cost Analytics",
+        "description": "TCO, cost per km and lemon flags — fleet-wide summaries and per-vehicle drilldown."
+      },
+      {
+        "title": "Reports & CSV",
+        "description": "Operational reports with CSV export for finance and compliance."
+      },
+      {
+        "title": "Vehicle Lifecycle",
+        "description": "Showroom, taxi, rental and commercial lifecycles — plus transfer to buyers with full history."
+      }
+    ],
+    "benefitsSection": {
+      "eyebrow": "Benefits",
+      "title": "Results that impact your bottom line"
+    },
+    "benefits": [
+      {
+        "title": "Complete fleet control",
+        "description": "A 360° view of vehicles, drivers, costs and operations in one centralized system."
+      },
+      {
+        "title": "Cost reduction",
+        "description": "Identify excessive spending, optimize fuel consumption and eliminate waste."
+      },
+      {
+        "title": "Preventive maintenance",
+        "description": "Automatic reminders prevent surprise breakdowns and extend vehicle lifespan."
+      },
+      {
+        "title": "Management reports",
+        "description": "Clear, exportable reports for decision-making, compliance and auditing."
+      },
+      {
+        "title": "Standardized processes",
+        "description": "Inspections, work orders and records keep operations running the same way every day."
+      },
+      {
+        "title": "Web and mobile",
+        "description": "Managers work from the fleet portal; drivers log from Android and iOS."
+      }
+    ],
+    "comparison": {
+      "eyebrow": "Spreadsheets vs AutoX",
+      "title": "Why companies are replacing spreadsheets",
+      "manual": "Manual control",
+      "dco": "With AutoX",
+      "rows": [
+        {
+          "manual": "Data scattered across spreadsheets",
+          "dco": "Everything centralized in one system"
+        },
+        {
+          "manual": "Outdated information",
+          "dco": "Live data from the field"
+        },
+        {
+          "manual": "Hours building reports",
+          "dco": "Exportable reports in minutes"
+        },
+        {
+          "manual": "Forgotten maintenance",
+          "dco": "Automatic time and mileage reminders"
+        },
+        {
+          "manual": "No cost visibility",
+          "dco": "Cost per vehicle at a glance"
+        },
+        {
+          "manual": "Hard to scale",
+          "dco": "From a handful of vehicles to hundreds"
+        }
+      ]
+    },
+    "industriesSection": {
+      "eyebrow": "For companies in every industry",
+      "title": "Built for operations that run on vehicles"
+    },
+    "industries": [
+      "Carriers",
+      "Logistics",
+      "Vehicle rental",
+      "Field maintenance",
+      "Technical services",
+      "Field teams",
+      "Construction",
+      "Agriculture"
+    ],
+    "cta": {
+      "title": "Take control of your fleet",
+      "subtitle": "Talk to us about your operation and we will set up your organization workspace.",
+      "primary": "Request a demo",
+      "secondary": "See pricing"
+    }
+  },
+  "demo": {
+    "eyebrow": "Request a demo",
+    "title": "A demo built around your vehicles.",
+    "subtitle": "Thirty minutes with the team that builds AutoX. Bring a vehicle list or a fleet spreadsheet and we'll map it to the app and the portal — no slide deck.",
+    "proof": [
+      {
+        "title": "Your data, not a demo account",
+        "description": "We walk through your vehicles, your drivers and the way you work today."
+      },
+      {
+        "title": "Personal and fleet, one call",
+        "description": "Cover the owner app and the fleet portal in the same session."
+      },
+      {
+        "title": "Works without signal",
+        "description": "See how logging fuel, charging and maintenance behaves offline."
+      }
+    ],
+    "preferEmail": "Prefer email?",
+    "route": {
+      "vehicles": {
+        "title": "Vehicles",
+        "note": "your inventory"
+      },
+      "drivers": {
+        "title": "Drivers",
+        "note": "your team"
+      },
+      "reports": {
+        "title": "Reports",
+        "note": "one view"
+      }
+    },
+    "form": {
+      "title": "Request a demo",
+      "requiredNote": "Fields marked * are required.",
+      "duration": "30 min",
+      "fields": {
+        "firstName": {
+          "label": "First name",
+          "placeholder": "Aung"
+        },
+        "lastName": {
+          "label": "Last name",
+          "placeholder": "Kyaw"
+        },
+        "email": {
+          "label": "Email address",
+          "placeholder": "you@company.com"
+        },
+        "phone": {
+          "label": "Phone number",
+          "placeholder": "+95 9 000 000 000"
+        },
+        "company": {
+          "label": "Company name",
+          "placeholder": "e.g. ACME Logistics"
+        },
+        "jobTitle": {
+          "label": "Job title",
+          "placeholder": "e.g. Fleet manager"
+        }
+      },
+      "message": {
+        "label": "Message",
+        "optional": "Optional",
+        "placeholder": "Tell us about your vehicles or what you'd like to see."
+      },
+      "contactHint": "Add an email address or phone number — either is fine.",
+      "errors": {
+        "firstName": "Enter your first name.",
+        "lastName": "Enter your last name.",
+        "email": "Enter a valid email address, like you@company.com.",
+        "phone": "Enter a valid phone number or leave it blank.",
+        "contact": "Add an email address or a phone number so we can reach you.",
+        "submit": "We couldn't send your request. Try again in a moment, or email us directly."
+      },
+      "success": {
+        "sentTitle": "Request sent",
+        "mailtoTitle": "One more step",
+        "sentBody": "Thanks, {name}. We'll get back to you{contact} to schedule your walkthrough.",
+        "sentContact": " at {contact}",
+        "there": "there",
+        "mailtoBody": "Your email app should be open with the request already filled in. Press Send there and we'll take it from here."
+      },
+      "openEmailApp": "Open email app",
+      "sendAnother": "Send another request",
+      "sending": "Sending…",
+      "sendRequest": "Send request",
+      "privacyNote": "We use your details only to respond to this request. See our",
+      "privacyLink": "Privacy Policy"
+    }
+  },
+  "pricing": {
+    "hero": {
+      "eyebrow": "Pricing",
+      "title": "Simple, transparent pricing",
+      "intro": "Free for your first vehicle. Upgrade for more vehicles, sharing and storage — or move to Fleet/Pro for your operation."
+    },
+    "liveNote": "Prices served live from the API · shown in MMK, with USD equivalents",
+    "offlineNote": "Showing saved pricing — live API unavailable",
+    "offlineSnapshot": "(offline snapshot)",
+    "compareHeading": "Compare every plan",
+    "compareIntro": "Limits and features per tier. Fleet operations are included with Fleet/Pro.",
+    "perks": [
+      {
+        "title": "30-day money-back",
+        "description": "Paid plans include a no-questions-asked refund window."
+      },
+      {
+        "title": "Pay in MMK",
+        "description": "Local payment methods for Myanmar, USD by card internationally."
+      },
+      {
+        "title": "Annual = 2 months free",
+        "description": "Billed yearly at ten times the monthly price."
+      }
+    ],
+    "toggle": {
+      "aria": "Billing period",
+      "monthly": "Monthly",
+      "annual": "Annual",
+      "twoMonthsFree": "2 months free"
+    },
+    "card": {
+      "mostPopular": "Most popular",
+      "forBusiness": "For business",
+      "perMonth": "/ month",
+      "perYear": "/ year",
+      "billedMonthly": "billed monthly",
+      "billedYearly": "billed yearly",
+      "storage": "{storage} storage",
+      "exploreFleet": "Explore fleet plans",
+      "startFree": "Start free",
+      "getTheApp": "Get the app"
+    },
+    "table": {
+      "features": "Features",
+      "included": "Included",
+      "notIncluded": "Not included"
+    },
+    "catalog": {
+      "Free": "Free",
+      "Lite": "Lite",
+      "Standard": "Standard",
+      "Fleet/Pro": "Fleet/Pro",
+      "Start free — forever": "Start free — forever",
+      "More vehicles, more sharing": "More vehicles, more sharing",
+      "The complete personal garage": "The complete personal garage",
+      "For businesses and fleets": "For businesses and fleets",
+      "Digital garage for 1 vehicle": "Digital garage for 1 vehicle",
+      "Fuel and charging logs": "Fuel and charging logs",
+      "Maintenance plan and reminders": "Maintenance plan and reminders",
+      "Expense tracking": "Expense tracking",
+      "Documents vault": "Documents vault",
+      "50 MB storage": "50 MB storage",
+      "Everything in Free": "Everything in Free",
+      "3 vehicles": "3 vehicles",
+      "3 sharing invites": "3 sharing invites",
+      "150 MB storage": "150 MB storage",
+      "Data import": "Data import",
+      "Everything in Lite": "Everything in Lite",
+      "10 vehicles": "10 vehicles",
+      "Unlimited sharing": "Unlimited sharing",
+      "500 MB storage": "500 MB storage",
+      "Priority support": "Priority support",
+      "Everything in Standard": "Everything in Standard",
+      "Unlimited vehicles": "Unlimited vehicles",
+      "Organization workspace": "Organization workspace",
+      "Work orders and inspections": "Work orders and inspections",
+      "Driver assignments": "Driver assignments",
+      "Fleet reports and CSV import": "Fleet reports and CSV import",
+      "API access": "API access",
+      "5 GB storage": "5 GB storage",
+      "Tracking": "Tracking",
+      "Maintenance": "Maintenance",
+      "Costs and records": "Costs and records",
+      "Garage and sharing": "Garage and sharing",
+      "Support": "Support",
+      "Fleet operations": "Fleet operations",
+      "Fuel tracking": "Fuel tracking",
+      "EV charging tracking": "EV charging tracking",
+      "Mileage and odometer": "Mileage and odometer",
+      "Maintenance tracker": "Maintenance tracker",
+      "Custom maintenance plan": "Custom maintenance plan",
+      "Reminders (time and distance)": "Reminders (time and distance)",
+      "Receipt photos": "Receipt photos",
+      "CSV data export": "CSV data export",
+      "Vehicles": "Vehicles",
+      "Vehicle sharing": "Vehicle sharing",
+      "Offline-first sync": "Offline-first sync",
+      "Work orders": "Work orders",
+      "Inspections": "Inspections",
+      "Workshop management": "Workshop management",
+      "Warranty templates": "Warranty templates",
+      "Fleet reports": "Fleet reports",
+      "Unlimited": "Unlimited",
+      "1": "1",
+      "3": "3",
+      "10": "10",
+      "1 invite": "1 invite",
+      "3 invites": "3 invites"
+    }
+  },
+  "faq": {
+    "hero": {
+      "eyebrow": "Help center",
+      "title": "Frequently asked questions",
+      "intro": "Find answers to the most common questions about AutoX."
+    },
+    "categoriesAria": "FAQ categories",
+    "categories": [
+      {
+        "id": "general",
+        "label": "General",
+        "items": [
+          {
+            "q": "What is AutoX?",
+            "a": "AutoX is a platform for tracking everything about the vehicles you own. You can record fuel and charging entries, expenses, maintenance services, documents and reminders — and see the full history of each vehicle in one place."
+          },
+          {
+            "q": "Who is AutoX designed for?",
+            "a": "Two audiences: personal use for people who want to track costs and history of their own vehicles, and fleet use for companies that manage vehicles, drivers and workshop operations."
+          },
+          {
+            "q": "Which platforms does AutoX support?",
+            "a": "AutoX is available on Android and iOS, with a dedicated web fleet portal for organization managers. Your data syncs automatically across devices on the same account."
+          },
+          {
+            "q": "What types of vehicles can I manage?",
+            "a": "Cars, motorcycles, electric vehicles and hybrid plugin vehicles. Fuel tracking covers petrol refuels and electric charging; maintenance plans adapt suggestions to your fuel type."
+          },
+          {
+            "q": "Is AutoX free?",
+            "a": "Yes. The Free plan covers one vehicle with fuel logs, maintenance plans, reminders, expenses and documents. Paid plans unlock more vehicles, sharing and storage — see the pricing page for current tiers."
+          },
+          {
+            "q": "What is the difference between personal use and fleet management?",
+            "a": "Personal use focuses on tracking costs, fuel, maintenance and history for your own vehicles. Fleet management adds an organization workspace with roles, work orders, inspections, driver assignments and fleet reports through the fleet portal."
+          }
+        ]
+      },
+      {
+        "id": "account",
+        "label": "Account",
+        "items": [
+          {
+            "q": "Do I need to create an account?",
+            "a": "Yes. Your account identifies your profile, stores your information securely and lets you log in on other devices. You can sign up with email or with Google and Apple."
+          },
+          {
+            "q": "I changed my phone. Will I lose my data?",
+            "a": "No — as long as you log in with the same account. Your data is associated with your account and is restored to your new device after sign-in and sync."
+          },
+          {
+            "q": "Can I use my account on more than one device?",
+            "a": "Yes. Sign in with the same account on any of your devices; changes sync automatically when each device is online."
+          },
+          {
+            "q": "I forgot my password. How can I recover it?",
+            "a": "On the login screen use the password recovery option and follow the instructions sent to your email."
+          },
+          {
+            "q": "Can I delete my account?",
+            "a": "Yes — Settings → Profile → Edit Profile → Delete Account. This deactivates your account and archives all your vehicles; you can't sign in again afterwards. Contact support if you'd like it restored, or permanently erased instead."
+          },
+          {
+            "q": "Can I transfer my records to the buyer of the vehicle?",
+            "a": "Vehicle sharing lets you grant access to another AutoX user by code or email invite, including a view-only level — useful during a sale so the buyer can see the service history."
+          }
+        ]
+      },
+      {
+        "id": "personal",
+        "label": "Personal use",
+        "items": [
+          {
+            "q": "Can I manage more than one vehicle on the same account?",
+            "a": "Yes. How many depends on your plan — Free covers 1 vehicle, Lite 3, Standard 10 and Fleet/Pro unlimited. You switch the active vehicle in one tap."
+          },
+          {
+            "q": "Does AutoX work for electric vehicles?",
+            "a": "Yes. Charge logs track electricity cost and energy for electric vehicles, alongside the same maintenance, expenses and documents as petrol cars."
+          },
+          {
+            "q": "Is AutoX useful for ride share or delivery drivers?",
+            "a": "Yes. Many drivers use AutoX to log fuel, charging, mileage and expenses to understand the real operating cost of the vehicle they work with."
+          },
+          {
+            "q": "Can I attach documents and receipts to my records?",
+            "a": "Yes. Service records and expenses support receipt photos, and each vehicle has a documents vault for insurance, registration, invoices and warranty files."
+          },
+          {
+            "q": "Can I share a vehicle with another person?",
+            "a": "Yes. Vehicle sharing invites by code/QR or email with two access levels: view only, or add and edit your own records. Share counts are limited by plan."
+          },
+          {
+            "q": "Does AutoX work without an internet connection?",
+            "a": "Yes. The app is offline-first — you can log fuel, expenses and services with no signal. Everything syncs automatically once you reconnect."
+          }
+        ]
+      },
+      {
+        "id": "fleet",
+        "label": "Fleet management",
+        "items": [
+          {
+            "q": "Does AutoX work for companies?",
+            "a": "Yes. Fleet management adds an organization workspace where managers handle vehicles, drivers, work orders, inspections, workshops and reports — plus the mobile Fleet and Driver modes."
+          },
+          {
+            "q": "How do I get started with fleet management?",
+            "a": "Fleet onboarding is guided: we provision your organization and Fleet Admin account, then you add vehicles (CSV import supported) and invite drivers with the right roles."
+          },
+          {
+            "q": "Do drivers need their own account?",
+            "a": "Yes. Drivers sign in with their own credentials in a restricted Driver mode — they see their assigned vehicle and can report issues, while managers see everything centrally."
+          },
+          {
+            "q": "Can I limit a driver to only one vehicle?",
+            "a": "Yes. Drivers are bound to assigned vehicles, and organization roles (admin, manager, mechanic, driver) control what each person can see and do."
+          },
+          {
+            "q": "Is there a dashboard to monitor the fleet?",
+            "a": "Yes. The fleet portal is the central hub with dashboards, vehicle inventory, work orders, inspections, assignments, members, workshops and reports."
+          },
+          {
+            "q": "Can I import my vehicle list from a spreadsheet?",
+            "a": "Yes. Fleet onboarding supports CSV import of your vehicle inventory so you do not have to enter every vehicle manually."
+          }
+        ]
+      },
+      {
+        "id": "vehicle",
+        "label": "Vehicle & garage",
+        "items": [
+          {
+            "q": "How do I add a new vehicle?",
+            "a": "From the Garage tab, add a vehicle with its name, make, model, plate and fuel type — under a minute. All records you then add belong to the selected vehicle."
+          },
+          {
+            "q": "Are my records separated by vehicle?",
+            "a": "Yes. Fuel logs, expenses, services, documents and reminders all belong to one specific vehicle, so each vehicle keeps its own history."
+          },
+          {
+            "q": "Can I delete a vehicle?",
+            "a": "Vehicles are archived rather than deleted, so history is never lost by accident. Archived vehicles also stop counting against your plan limit."
+          },
+          {
+            "q": "How much does my vehicle's mileage go up?",
+            "a": "Mileage never goes backward: when devices disagree, sync resolves conflicts with max-wins so the highest reading is kept."
+          }
+        ]
+      },
+      {
+        "id": "maintenance",
+        "label": "Maintenance & reminders",
+        "items": [
+          {
+            "q": "How do maintenance plans work?",
+            "a": "You add plan items — suggested ones filtered by your fuel type, or fully custom — with a due interval in days or distance. When a service is done you mark it complete and the next occurrence is scheduled."
+          },
+          {
+            "q": "Can I set reminders by mileage as well as date?",
+            "a": "Yes. Reminders trigger on time or distance thresholds (for example within 7 days or 100 km of the due point), and the thresholds are configurable in settings."
+          },
+          {
+            "q": "How are reminder notifications delivered?",
+            "a": "Notifications are scheduled locally on your device, so they work even without an internet connection."
+          },
+          {
+            "q": "Can I keep receipts for services?",
+            "a": "Yes. Service records support parts you have fitted and receipt photos, building a verifiable history that helps at resale time."
+          }
+        ]
+      },
+      {
+        "id": "fuel",
+        "label": "Fuel & charging",
+        "items": [
+          {
+            "q": "What can I record in a fuel log?",
+            "a": "Date, volume, cost and optional odometer for each refuel — plus an owner-defined fuel types catalog if you use more than one fuel."
+          },
+          {
+            "q": "Can I track electricity charging costs?",
+            "a": "Yes. Electric vehicles get charge logs alongside the same cost summaries as petrol refuels."
+          },
+          {
+            "q": "Can I see how much I spend on fuel per month?",
+            "a": "Yes. Expense summaries group fuel (and every other category) into monthly and total views per vehicle."
+          }
+        ]
+      },
+      {
+        "id": "expenses",
+        "label": "Expenses",
+        "items": [
+          {
+            "q": "What should I record in Expenses?",
+            "a": "Anything that is not a maintenance service: fuel, insurance, parking, tolls, parts and other — seven categories in total, each with optional receipt photos."
+          },
+          {
+            "q": "What is the difference between Expenses and Services?",
+            "a": "Expenses are general vehicle costs; services are maintenance interventions recorded in the maintenance history with parts and reminders."
+          },
+          {
+            "q": "Can I attach receipts to expenses?",
+            "a": "Yes. Expense entries support receipt photos attached to each record."
+          },
+          {
+            "q": "Can I export my data?",
+            "a": "Yes. Data export to CSV is available on all plans so you can analyze your records anywhere."
+          }
+        ]
+      },
+      {
+        "id": "plans",
+        "label": "Plans & payments",
+        "items": [
+          {
+            "q": "How many vehicles can I register?",
+            "a": "It depends on the plan: Free 1, Lite 3, Standard 10, Fleet/Pro unlimited. When you reach a limit the app shows an upgrade prompt."
+          },
+          {
+            "q": "How do upgrades work?",
+            "a": "Upgrades are applied to your account and increase your limits immediately. Plans and billing are managed for you — contact support to change plan while self-serve billing rolls out."
+          },
+          {
+            "q": "What payment methods are supported?",
+            "a": "Pricing is listed in Myanmar Kyat (MMK), with local payment methods for Myanmar and USD pricing via card for international users."
+          },
+          {
+            "q": "Is there a money-back guarantee?",
+            "a": "Yes. Paid plans include a 30-day money-back guarantee."
+          },
+          {
+            "q": "What happens if I downgrade or cancel?",
+            "a": "You keep your current limits until the end of the paid period, then the account reverts to the Free plan — your data stays intact."
+          }
+        ]
+      }
+    ],
+    "cta": {
+      "title": "Still have questions?",
+      "subtitle": "Start with the free plan and try AutoX with zero commitment.",
+      "primary": "See pricing",
+      "secondary": "Download the app"
+    }
+  },
+  "legalCta": {
+    "terms": {
+      "title": "Ready to start?",
+      "subtitle": "Start with the free plan and try AutoX with zero commitment.",
+      "primary": "See pricing",
+      "secondary": "Download the app"
+    },
+    "privacy": {
+      "title": "Start with zero commitment",
+      "subtitle": "The free plan includes your first vehicles, records and reminders.",
+      "primary": "See pricing",
+      "secondary": "Visit the help center"
+    }
+  }
+}

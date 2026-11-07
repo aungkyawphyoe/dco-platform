@@ -1,12 +1,5 @@
 import type { Metadata } from "next";
-import {
-  PERSONAL_BENEFITS,
-  PERSONAL_FEATURES,
-  PERSONAL_HERO,
-  PERSONAL_PROBLEM,
-  PERSONAL_SOLUTION,
-  PERSONAL_STEPS,
-} from "@/content/personal";
+import { getSiteCopy } from "@/i18n/dictionary";
 import { cardTone } from "@/lib/tone";
 import { BenefitList } from "@/components/marketing/benefit-list";
 import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
@@ -17,13 +10,18 @@ import { Reveal } from "@/components/marketing/reveal";
 import { SectionHeading } from "@/components/marketing/section-heading";
 import { StepList } from "@/components/marketing/step-list";
 
-export const metadata: Metadata = {
-  title: "Personal Use",
-  description:
-    "Track fuel, charging, maintenance and expenses for your own vehicles. Free forever plan available — offline-first on Android and iOS.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { d } = await getSiteCopy();
+  return {
+    title: d.meta.pages.personal.title,
+    description: d.meta.pages.personal.description,
+  };
+}
 
-export default function PersonalPage() {
+export default async function PersonalPage() {
+  const { d } = await getSiteCopy();
+  const p = d.personal;
+
   return (
     <>
       {/* Hero */}
@@ -32,20 +30,20 @@ export default function PersonalPage() {
         <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_1fr] lg:items-center">
           <div className="flex flex-col items-start gap-6">
             <Reveal delay={0} className="flex flex-wrap items-center gap-3">
-              <span className="pill pill-gold">{PERSONAL_HERO.eyebrow}</span>
-              <span className="pill pill-success">Free forever</span>
+              <span className="pill pill-gold">{p.hero.eyebrow}</span>
+              <span className="pill pill-success">{p.hero.badge}</span>
             </Reveal>
             <Reveal delay={80}>
               <h1 className="font-display text-4xl font-semibold leading-[1.1] tracking-tight sm:text-5xl">
-                {PERSONAL_HERO.title}
+                {p.hero.title}
               </h1>
             </Reveal>
             <Reveal delay={160}>
-              <p className="max-w-xl text-base leading-7 text-ink-muted sm:text-lg">{PERSONAL_HERO.subtitle}</p>
+              <p className="max-w-xl text-base leading-7 text-ink-muted sm:text-lg">{p.hero.subtitle}</p>
             </Reveal>
             <Reveal delay={240}>
               <ul className="grid gap-2.5 sm:grid-cols-2">
-              {PERSONAL_HERO.bullets.map((bullet) => (
+              {p.hero.bullets.map((bullet) => (
                 <li key={bullet} className="flex items-start gap-2 text-sm text-ink-muted">
                   <svg
                     aria-hidden="true"
@@ -68,8 +66,8 @@ export default function PersonalPage() {
           <Reveal delay={220} className="flex justify-center lg:justify-end">
             <PhoneFrame
               src={{ dark: "/screenshots/app-garage-dark.webp", light: "/screenshots/app-garage-light.webp" }}
-              alt="AutoX personal garage with vehicle cards"
-              label="Your garage — fuel, costs and documents in one place"
+              alt={p.hero.phoneAlt}
+              label={p.hero.phoneLabel}
               float
               priority
             />
@@ -80,13 +78,13 @@ export default function PersonalPage() {
       {/* Problem */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
-          eyebrow="The problem"
-          title={PERSONAL_PROBLEM.heading}
-          intro={PERSONAL_PROBLEM.intro}
+          eyebrow={p.problem.eyebrow}
+          title={p.problem.heading}
+          intro={p.problem.intro}
           align="left"
         />
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
-          {PERSONAL_PROBLEM.items.map((item, index) => (
+          {p.problem.items.map((item, index) => (
             <Reveal key={item.title} delay={index * 70} className="h-full">
               <article className={`surface card-grad card-hover h-full rounded-xl p-6 ${cardTone(index)}`}>
                 <h3 className="font-display text-lg font-semibold tracking-tight">{item.title}</h3>
@@ -101,10 +99,15 @@ export default function PersonalPage() {
       <section className="border-y border-line bg-panel">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-2 lg:items-center">
           <div>
-            <SectionHeading eyebrow="The solution" title={PERSONAL_SOLUTION.heading} intro={PERSONAL_SOLUTION.intro} align="left" />
+            <SectionHeading
+              eyebrow={p.solution.eyebrow}
+              title={p.solution.heading}
+              intro={p.solution.intro}
+              align="left"
+            />
           </div>
           <ul className="grid gap-3">
-            {PERSONAL_SOLUTION.bullets.map((bullet, index) => (
+            {p.solution.bullets.map((bullet, index) => (
               <Reveal key={bullet} delay={index * 70} as="li" className={`surface surface-grad card-hover rounded-xl p-4 ${cardTone(index)}`}>
                 <span className="flex items-start gap-3 text-sm text-ink-muted">
                   <svg
@@ -130,20 +133,20 @@ export default function PersonalPage() {
       {/* Features */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
-          eyebrow="Features"
-          title="Everything you need to manage your vehicle"
+          eyebrow={p.featuresSection.eyebrow}
+          title={p.featuresSection.title}
         />
         <div className="mt-10">
-          <FeatureGrid items={PERSONAL_FEATURES} />
+          <FeatureGrid items={p.features} />
         </div>
       </section>
 
       {/* Benefits */}
       <section className="border-y border-line bg-panel">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <SectionHeading eyebrow="Benefits" title="Why use AutoX?" />
+          <SectionHeading eyebrow={p.benefitsSection.eyebrow} title={p.benefitsSection.title} />
           <div className="mt-10">
-            <BenefitList items={PERSONAL_BENEFITS} />
+            <BenefitList items={p.benefits} />
           </div>
         </div>
       </section>
@@ -151,20 +154,21 @@ export default function PersonalPage() {
       {/* How to start */}
       <section className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
         <SectionHeading
-          eyebrow="How to start"
-          title="Get started in 3 simple steps"
-          intro="You are minutes away from total control of your vehicle."
+          eyebrow={p.stepsSection.eyebrow}
+          title={p.stepsSection.title}
+          intro={p.stepsSection.intro}
         />
         <div className="mt-10">
-          <StepList items={PERSONAL_STEPS} />
+          <StepList items={p.steps} />
         </div>
       </section>
 
       <CtaBanner
-        title="Start free — no catch"
-        subtitle="One vehicle, full history, zero cost. Upgrade only when you need more."
-        primary={{ href: "/pricing", label: "See plans" }}
-        secondary={{ href: "/#download", label: "Download the app" }}
+        title={p.cta.title}
+        subtitle={p.cta.subtitle}
+        primary={{ href: "/pricing", label: p.cta.primary }}
+        secondary={{ href: "/#download", label: p.cta.secondary }}
+        badgeLabels={d.storeBadges}
       />
     </>
   );

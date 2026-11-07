@@ -1,17 +1,19 @@
 import { Fragment } from "react";
 import type { PricingFeatureGroup, PricingPlan } from "@/lib/pricing";
+import type { Dictionary } from "@/i18n/types";
 
 type FeatureTableProps = {
   plans: PricingPlan[];
   matrix: PricingFeatureGroup[];
+  copy: Dictionary["pricing"]["table"];
 };
 
-function renderValue(value: boolean | string): React.ReactNode {
+function renderValue(value: boolean | string, copy: Dictionary["pricing"]["table"]): React.ReactNode {
   if (typeof value === "string") return <span className="text-ink-muted">{value}</span>;
   if (value) {
     return (
       <svg
-        aria-label="Included"
+        aria-label={copy.included}
         role="img"
         viewBox="0 0 20 20"
         fill="currentColor"
@@ -26,20 +28,20 @@ function renderValue(value: boolean | string): React.ReactNode {
     );
   }
   return (
-    <span aria-label="Not included" role="img" className="text-ink-faint">
+    <span aria-label={copy.notIncluded} role="img" className="text-ink-faint">
       —
     </span>
   );
 }
 
-export function FeatureTable({ plans, matrix }: FeatureTableProps) {
+export function FeatureTable({ plans, matrix, copy }: FeatureTableProps) {
   return (
     <div className="surface overflow-x-auto rounded-xl">
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-line">
             <th scope="col" className="px-5 py-4 text-left font-display text-base font-semibold">
-              Features
+              {copy.features}
             </th>
             {plans.map((plan) => (
               <th key={plan.id} scope="col" className="px-4 py-4 text-center font-display text-base font-semibold">
@@ -70,7 +72,7 @@ export function FeatureTable({ plans, matrix }: FeatureTableProps) {
                   </th>
                   {plans.map((plan) => (
                     <td key={plan.id} className="px-4 py-3 text-center">
-                      {renderValue(row.values[plan.id])}
+                      {renderValue(row.values[plan.id], copy)}
                     </td>
                   ))}
                 </tr>

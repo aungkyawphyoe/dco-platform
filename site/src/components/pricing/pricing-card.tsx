@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { cardTone } from "@/lib/tone";
+import type { Dictionary } from "@/i18n/types";
 import {
   formatMmk,
   formatStorage,
@@ -12,19 +13,21 @@ type PricingCardProps = {
   plan: PricingPlan;
   period: BillingPeriod;
   index: number;
+  copy: Dictionary["pricing"]["card"];
 };
 
-function badgeFor(plan: PricingPlan): string | null {
-  if (plan.highlighted) return "Most popular";
-  if (plan.audience === "fleet") return "For business";
+function badgeFor(plan: PricingPlan, copy: Dictionary["pricing"]["card"]): string | null {
+  if (plan.highlighted) return copy.mostPopular;
+  if (plan.audience === "fleet") return copy.forBusiness;
   if (plan.id === "free") return null;
   return null;
 }
 
-export function PricingCard({ plan, period, index }: PricingCardProps) {
+export function PricingCard({ plan, period, index, copy }: PricingCardProps) {
   const money = plan.prices[period];
-  const badge = badgeFor(plan);
+  const badge = badgeFor(plan, copy);
   const highlighted = plan.highlighted;
+  const pricePeriod = period === "monthly" ? copy.perMonth : copy.perYear;
 
   return (
     <article
@@ -49,10 +52,10 @@ export function PricingCard({ plan, period, index }: PricingCardProps) {
 
       <div className="flex items-baseline gap-2">
         <span className="font-display text-4xl font-semibold tracking-tight">{formatMmk(money.mmk)}</span>
-        <span className="text-sm text-ink-faint">/ {period === "monthly" ? "month" : "year"}</span>
+        <span className="text-sm text-ink-faint">{pricePeriod}</span>
       </div>
       <p className="-mt-3 text-xs text-ink-caption">
-        {formatUsd(money.usd)} {period === "monthly" ? "/ month" : "/ year"} · billed {period === "annual" ? "yearly" : "monthly"}
+        {formatUsd(money.usd)} {pricePeriod} · {period === "annual" ? copy.billedYearly : copy.billedMonthly}
       </p>
 
       <ul className="flex flex-col gap-2.5 border-t border-line-subtle pt-4">
@@ -75,7 +78,7 @@ export function PricingCard({ plan, period, index }: PricingCardProps) {
         ))}
         <li className="flex items-start gap-2 text-sm text-ink-faint">
           <span aria-hidden="true" className="mt-0.5 w-4 shrink-0 text-center">·</span>
-          {formatStorage(plan.limits.storage_bytes)} storage
+          {copy.storage.replace("{storage}", formatStorage(plan.limits.storage_bytes))}
         </li>
       </ul>
 
@@ -85,7 +88,7 @@ export function PricingCard({ plan, period, index }: PricingCardProps) {
             href="/fleet"
             className="surface card-hover flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold text-ink"
           >
-            Explore fleet plans
+            {copy.exploreFleet}
           </Link>
         ) : (
           <Link
@@ -96,7 +99,7 @@ export function PricingCard({ plan, period, index }: PricingCardProps) {
                 : "surface card-hover text-ink"
             }`}
           >
-            {plan.id === "free" ? "Start free" : "Get the app"}
+            {plan.id === "free" ? copy.startFree : copy.getTheApp}
           </Link>
         )}
       </div>

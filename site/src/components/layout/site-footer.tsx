@@ -1,13 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
-import { NAV_LINKS } from "@/content/site";
+import { NAV_ITEMS } from "@/content/site";
+import type { Dictionary } from "@/i18n/types";
 
-const PLATFORMS = [
-  { label: "Android", note: "Google Play" },
-  { label: "iOS", note: "App Store" },
-] as const;
+type SiteFooterProps = {
+  labels: Dictionary["footer"];
+  navLabels: Dictionary["nav"]["links"];
+};
 
-export function SiteFooter() {
+export function SiteFooter({ labels, navLabels }: SiteFooterProps) {
   return (
     <footer className="border-t border-line bg-panel">
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6">
@@ -17,56 +18,59 @@ export function SiteFooter() {
               <Image src="/logo.png" alt="AutoX" width={28} height={28} className="rounded-sm" />
               <span className="font-display text-lg font-semibold tracking-tight">AutoX</span>
             </div>
-            <p className="mt-3 text-sm leading-6 text-ink-muted">
-              AutoX — the digital garage for every vehicle you own. Track fuel, maintenance and
-              costs, offline-first.
-            </p>
+            <p className="mt-3 text-sm leading-6 text-ink-muted">{labels.tagline}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-3">
             <div>
-              <h3 className="text-xs font-medium uppercase tracking-wide text-ink-faint">Product</h3>
+              <h3 className="text-xs font-medium uppercase tracking-wide text-ink-faint">{labels.product}</h3>
               <ul className="mt-3 space-y-2.5">
-                {NAV_LINKS.map((link) => (
+                {NAV_ITEMS.map((link) => (
                   <li key={link.href}>
                     <Link href={link.href} className="text-sm text-ink-muted transition-colors duration-150 hover:text-gold">
-                      {link.label}
+                      {navLabels[link.key]}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-medium uppercase tracking-wide text-ink-faint">Platforms</h3>
+              <h3 className="text-xs font-medium uppercase tracking-wide text-ink-faint">{labels.platforms}</h3>
               <ul className="mt-3 space-y-2.5">
-                {PLATFORMS.map((platform) => (
-                  <li key={platform.label} className="text-sm text-ink-muted">
-                    {platform.label} <span className="text-ink-faint">· {platform.note}</span>
-                  </li>
-                ))}
+                <li className="text-sm text-ink-muted">
+                  {labels.android} <span className="text-ink-faint">· {labels.googlePlay}</span>
+                </li>
+                <li className="text-sm text-ink-muted">
+                  {labels.ios} <span className="text-ink-faint">· {labels.appStore}</span>
+                </li>
               </ul>
             </div>
             <div>
-              <h3 className="text-xs font-medium uppercase tracking-wide text-ink-faint">Company</h3>
+              <h3 className="text-xs font-medium uppercase tracking-wide text-ink-faint">{labels.company}</h3>
               <ul className="mt-3 space-y-2.5">
                 <li>
+                  <Link href="/demo" className="text-sm text-ink-muted transition-colors duration-150 hover:text-gold">
+                    {labels.requestDemo}
+                  </Link>
+                </li>
+                <li>
                   <Link href="/faq" className="text-sm text-ink-muted transition-colors duration-150 hover:text-gold">
-                    Help center
+                    {labels.helpCenter}
                   </Link>
                 </li>
                 <li>
                   <Link href="/terms" className="text-sm text-ink-muted transition-colors duration-150 hover:text-gold">
-                    Terms of Service
+                    {labels.terms}
                   </Link>
                 </li>
                 <li>
                   <Link href="/privacy" className="text-sm text-ink-muted transition-colors duration-150 hover:text-gold">
-                    Privacy Policy
+                    {labels.privacy}
                   </Link>
                 </li>
                 <li>
                   <Link href="/account-deletion" className="text-sm text-ink-muted transition-colors duration-150 hover:text-gold">
-                    Delete account
+                    {labels.deleteAccount}
                   </Link>
                 </li>
               </ul>
@@ -75,7 +79,9 @@ export function SiteFooter() {
         </div>
 
         <div className="mt-10 border-t border-line pt-6">
-          <p className="text-xs text-ink-faint">© {new Date().getFullYear()} AutoX. All rights reserved.</p>
+          <p className="text-xs text-ink-faint">
+            {labels.rights.replace("{year}", String(new Date().getFullYear()))}
+          </p>
         </div>
       </div>
     </footer>
