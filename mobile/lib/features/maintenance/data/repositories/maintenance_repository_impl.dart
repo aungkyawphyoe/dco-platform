@@ -101,7 +101,11 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
   Stream<List<ServiceRecord>> watchHistory(String vehicleId) {
     final query = _db.select(_db.serviceRecordRows)
       ..where((row) => row.vehicleId.equals(vehicleId))
-      ..orderBy([(row) => OrderingTerm.desc(row.servicedOn)]);
+      ..orderBy([
+        (row) => OrderingTerm.desc(row.servicedOn),
+        (row) => OrderingTerm.desc(row.createdAt),
+        (row) => OrderingTerm.asc(row.id),
+      ]);
     return query.watch().asyncMap(_attachChildren);
   }
 

@@ -299,6 +299,8 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
   Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
     final tokens = context.tokens;
+    final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
+    final lengthUnit = ref.watch(lengthUnitProvider);
     final unit = ref.watch(lengthUnitProvider).label;
     return PopScope(
       canPop: !_saving,
@@ -355,6 +357,7 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                               key: const Key('plan-item-date'),
                               label: s.planItemFormNextDate,
                               controller: _date,
+                              hint: 'dd/mm/yyyy',
                               errorText: _errors['date'],
                               readOnly: true,
                               onTap: _pickDate,
@@ -386,7 +389,14 @@ class _PlanItemFormScreenState extends ConsumerState<PlanItemFormScreen> {
                               key: const Key('plan-item-mileage'),
                               label: '${s.planItemFormNextOdometer} ($unit)',
                               controller: _mileage,
+                              hint: '*** ${lengthUnit.label}',
                               errorText: _errors['mileage'],
+                              helperText: s.registerServiceCurrentMileage(
+                                MileageFormat.labeled(
+                                  vehicle?.mileage ?? 0,
+                                  lengthUnit,
+                                ),
+                              ),
                               keyboardType: TextInputType.number,
                               textInputAction: TextInputAction.next,
                               onChanged: (_) => setState(() {

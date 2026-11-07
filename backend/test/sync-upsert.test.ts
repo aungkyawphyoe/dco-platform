@@ -74,6 +74,7 @@ describe("sync push upserts update existing rows", () => {
         serviced_on: "2026-08-01",
         odometer: 6000,
         total_cost: 100,
+        title: "car wash at tea shop",
         workshop_name: null,
         notes: null,
         items: [{ id: uuid(), name: "Oil change", line_cost: 100 }],
@@ -89,6 +90,7 @@ describe("sync push upserts update existing rows", () => {
     });
     expect(before.statusCode).toBe(200);
     expect(before.json().total_cost).toBe(100);
+    expect(before.json().title).toBe("car wash at tea shop");
 
     const edit = await push(app, token, [
       op("service_record", serviceId, {
@@ -96,6 +98,7 @@ describe("sync push upserts update existing rows", () => {
         serviced_on: "2026-08-01",
         odometer: 6000,
         total_cost: 150,
+        title: "Updated custom job title",
         workshop_name: "WS",
         notes: "edited",
         items: [{ id: uuid(), name: "Oil change 5w30", line_cost: 150 }],
@@ -111,6 +114,15 @@ describe("sync push upserts update existing rows", () => {
     });
     expect(after.statusCode).toBe(200);
     expect(after.json().total_cost).toBe(150);
+    expect(after.json().title).toBe("Updated custom job title");
+    const pulled = await app.inject({method: "GET", url: "/v1/sync/changes?cursor=", headers: auth(token)});
+    expect(pulled.statusCode).toBe(200);
+    const changes = pulled.json().changes.filter((change: {entity_id: string}) => change.entity_id === serviceId);
+    expect(changes.at(-1).payload.title).toBe("Updated custom job title");
+    await app.inject({method: "PATCH", url: `/v1/service-records/${serviceId}`,
+      headers: auth(token), payload: {notes: "receipt added"}});
+    const retained = await app.inject({url: `/v1/service-records/${serviceId}`, headers: auth(token)});
+    expect(retained.json().title).toBe("Updated custom job title");
     expect(after.json().items[0].name).toBe("Oil change 5w30");
     expect(after.json().workshop_name).toBe("WS");
     await app.close();

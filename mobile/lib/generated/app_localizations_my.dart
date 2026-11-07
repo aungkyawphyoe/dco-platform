@@ -636,7 +636,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String registerServiceCurrentMileage(Object mileage) {
-    return 'လက်ရှိ အိုဒိုမီတာ: $mileage';
+    return 'Last: $mileage';
   }
 
   @override
@@ -4586,7 +4586,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get syncErrorGeneric =>
-      'ချိန်ကိုက်စဉ် တစ်ခုခု မှားယွင်းသွားပါသည်။ သင့်ပြောင်းလဲမှုများကို သိမ်းထားပြီး အလိုအလျောက် ပြန်ကြိုးစားပါမည်။';
+      'ပြောင်းလဲမှုအချို့ကို ချိန်ကိုက်၍ မရသေးပါ။ သင့်ပြောင်းလဲမှုများကို ဤစက်တွင် သိမ်းထားပါသည်။ ထပ်ကြိုးစားရန် ပြန်ကြိုးစားမည် ကို နှိပ်ပါ။';
 
   @override
   String get authLoadAccessFailed =>

@@ -1259,7 +1259,7 @@ abstract class AppLocalizations {
   /// No description provided for @registerServiceCurrentMileage.
   ///
   /// In en, this message translates to:
-  /// **'Current odometer: {mileage}'**
+  /// **'Last: {mileage}'**
   String registerServiceCurrentMileage(Object mileage);
 
   /// No description provided for @registerServiceNotes.
@@ -8415,7 +8415,7 @@ abstract class AppLocalizations {
   /// No description provided for @syncErrorGeneric.
   ///
   /// In en, this message translates to:
-  /// **'Something went wrong while syncing. Your changes are saved and will retry automatically.'**
+  /// **'Some changes have not synced. Your changes are saved on this device. Tap Retry to try again.'**
   String get syncErrorGeneric;
 
   /// No description provided for @authLoadAccessFailed.

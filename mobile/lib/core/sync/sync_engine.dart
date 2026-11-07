@@ -108,6 +108,7 @@ class SyncEngine {
   bool _pausedForAccountChange = false;
   Completer<void>? _finished;
   bool _queuedAfterRun = false;
+  bool _queuedForce = false;
   SyncState _state = SyncState.initial;
   final _states = StreamController<SyncState>.broadcast();
 
@@ -132,6 +133,7 @@ class SyncEngine {
     final finished = _finished;
     if (finished != null) await finished.future;
     _queuedAfterRun = false;
+    _queuedForce = false;
   }
 
   Future<void> flushForAccountChange() async {
@@ -157,17 +159,20 @@ class SyncEngine {
 
   /// Immediate drain used after login or connectivity regain.
   /// If called manually (from Sync Now button), [force] should be true
-  /// to bypass auto-sync setting.
+  /// to bypass auto-sync setting and retry exhausted, non-parked entries.
   Future<void> syncNow({bool force = false}) async {
     if (_pausedForAccountChange || (!force && !_autoSyncEnabled())) return;
     _timer?.cancel();
     if (_running) {
       _queuedAfterRun = true;
+      _queuedForce |= force;
       return;
     }
     _running = true;
     _finished = Completer<void>();
-    _emit(const SyncState(phase: SyncPhase.syncing));
+    _emit(
+      SyncState(phase: SyncPhase.syncing, lastSyncedAt: _state.lastSyncedAt),
+    );
     try {
       final userId = _currentUser();
       if (userId == null || userId.isEmpty) {
@@ -175,6 +180,13 @@ class SyncEngine {
           SyncState(phase: SyncPhase.idle, lastSyncedAt: _state.lastSyncedAt),
         );
         return;
+      }
+      if (force) {
+        // Manual retry revives exhausted rows, but never bypasses parked conflicts.
+        await (_db.update(_db.outboxEntries)..where(
+              (row) => row.userId.equals(userId) & row.parked.equals(false),
+            ))
+            .write(const OutboxEntriesCompanion(attemptCount: Value(0)));
       }
       if (_outbox.derivesExpenses) await _uploadPendingMedia(userId);
       await _pushAll(userId);
@@ -184,6 +196,18 @@ class SyncEngine {
         await _pushAll(userId);
       }
       await _pullAll(userId);
+      final remaining =
+          await (_db.select(_db.outboxEntries)
+                ..where((row) => row.userId.equals(userId))
+                ..orderBy([(row) => OrderingTerm.asc(row.id)])
+                ..limit(1))
+              .getSingleOrNull();
+      if (remaining != null) {
+        throw ApiError(
+          code: remaining.errorCode ?? 'sync_pending',
+          message: remaining.lastError ?? 'Changes are still waiting to sync',
+        );
+      }
       _emit(SyncState(phase: SyncPhase.idle, lastSyncedAt: _now()));
     } on ApiError catch (error) {
       _emit(
@@ -216,13 +240,20 @@ class SyncEngine {
       _finished = null;
       if (_queuedAfterRun) {
         _queuedAfterRun = false;
-        requestSync();
+        final forceNext = _queuedForce;
+        _queuedForce = false;
+        if (forceNext) {
+          unawaited(syncNow(force: true));
+        } else {
+          requestSync();
+        }
       }
     }
   }
 
   Future<int> _pushAll(String userId) async {
     var pushedBatches = 0;
+    final attempted = <int>{};
     while (true) {
       if (_pausedForAccountChange) return pushedBatches;
       final pending =
@@ -232,26 +263,40 @@ class SyncEngine {
               .get();
       final blocked = pending
           .where((r) => r.parked)
+          .map((r) => '${r.entityType}:${r.entityId}')
+          .toSet();
+      final pendingSourceIds = pending
+          .where(
+            (r) =>
+                r.entityType == OutboxEntityType.serviceRecord ||
+                r.entityType == OutboxEntityType.fuelLog,
+          )
           .map((r) => r.entityId)
           .toSet();
-      final pendingIds = pending.map((r) => r.entityId).toSet();
       final parents = <String, String>{};
       for (final row in pending) {
         final parent =
             (jsonDecode(row.payload)
                 as Map<String, dynamic>)['_currency_parent_id'];
-        if (parent is String) parents[row.entityId] = parent;
+        if (parent is String) {
+          parents['${row.entityType}:${row.entityId}'] = parent;
+        }
       }
       final seen = <String>{};
+      final batchIds = <String>{};
       final rows = pending
           .where((row) {
             if (!seen.add('${row.entityType}:${row.entityId}')) return false;
-            final parent = parents[row.entityId];
+            final key = '${row.entityType}:${row.entityId}';
+            final parent = parents[key];
             // A derived expense waits for its source, including a rejected source.
-            return !row.parked &&
-                !blocked.contains(row.entityId) &&
+            return !attempted.contains(row.id) &&
+                !row.parked &&
+                !blocked.contains(key) &&
                 row.attemptCount < _maxAttempts &&
-                !pendingIds.contains(parent);
+                !pendingSourceIds.contains(parent) &&
+                // Push responses identify results by UUID only.
+                batchIds.add(row.entityId);
           })
           .take(_batchSize)
           .toList();
@@ -268,19 +313,18 @@ class SyncEngine {
             ),
           )
           .toList();
+      attempted.addAll(rows.map((row) => row.id));
       final results = await _api.push(operations);
       final byEntityId = {
         for (final result in results) result.entityId: result,
       };
 
-      var ackedCount = 0;
       for (final row in rows) {
         final result = byEntityId[row.entityId];
         if (result != null && result.acked) {
           await (_db.delete(
             _db.outboxEntries,
           )..where((r) => r.id.equals(row.id))).go();
-          ackedCount++;
           continue;
         }
         final reason =
@@ -309,15 +353,6 @@ class SyncEngine {
         );
       }
       pushedBatches++;
-      // Parked conflicts must not starve later unrelated operations.
-      if (ackedCount < rows.length &&
-          (results.length < rows.length ||
-              results.any(
-                (r) =>
-                    !r.acked && r.error?.code.startsWith('currency_') != true,
-              ))) {
-        return pushedBatches;
-      }
     }
   }
 

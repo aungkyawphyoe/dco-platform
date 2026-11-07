@@ -515,6 +515,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     )).limit(1);
     if (!orgVehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
     const body = z.object({
+      title: z.string().optional().nullable(),
       serviced_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       odometer: z.number().min(0),
       total_cost: z.number().min(0),
@@ -531,7 +532,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       await lockCurrencyVehicle(tx,vehicleId,orgId);
       const [created] = await tx.insert(serviceRecords).values({
         currency: await incomingServiceCurrency(tx,request.body),
-        id: serviceId, vehicleId, servicedOn: body.serviced_on, odometer: String(body.odometer), totalCost: String(body.total_cost),
+        id: serviceId, vehicleId, title: body.title ?? null, servicedOn: body.serviced_on, odometer: String(body.odometer), totalCost: String(body.total_cost),
         workshopName: body.workshop_name ?? null, notes: body.notes ?? null,
       }).returning();
       const items = [];
@@ -547,6 +548,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const payload = {
       id: record.created.id,
       vehicle_id: vehicleId,
+      title: record.created.title,
       serviced_on: dateOnly(record.created.servicedOn),
       odometer: num(record.created.odometer),
       total_cost: reqNum(record.created.totalCost),
@@ -581,6 +583,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       items.push({
         id: row.id,
         vehicle_id: row.vehicleId,
+        title: row.title,
         serviced_on: dateOnly(row.servicedOn),
         odometer: num(row.odometer),
         total_cost: reqNum(row.totalCost),
@@ -882,6 +885,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     await getOrganizationAccess(app.db, actorId, orgId, ["org_driver"]);
     const body = z.object({
       id: uuid.optional(),
+      title: z.string().optional().nullable(),
       serviced_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       odometer_km: z.number().min(0),
       total_cost: z.number().min(0),
@@ -919,6 +923,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         currency: await incomingServiceCurrency(tx,request.body),
         id: serviceId,
         vehicleId,
+        title: body.title ?? null,
         servicedOn: body.serviced_on,
         odometer: String(body.odometer_km),
         totalCost: String(body.total_cost),
@@ -942,6 +947,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const payload = {
       id: record.created.id,
       vehicle_id: vehicleId,
+      title: record.created.title,
       serviced_on: dateOnly(record.created.servicedOn),
       odometer: num(record.created.odometer),
       total_cost: reqNum(record.created.totalCost),
@@ -994,6 +1000,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       items.push({
         id: row.id,
         vehicle_id: row.vehicleId,
+        title: row.title,
         serviced_on: dateOnly(row.servicedOn),
         odometer: num(row.odometer),
         total_cost: reqNum(row.totalCost),

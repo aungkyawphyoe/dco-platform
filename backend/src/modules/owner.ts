@@ -717,6 +717,7 @@ async function recordVehicleScopedChange(
   }
 
   const serviceBody = z.object({
+    title: z.string().optional().nullable(),
     id: uuid,
     serviced_on: z.string(),
     odometer: z.number().min(0).nullable().optional(),
@@ -768,6 +769,7 @@ async function recordVehicleScopedChange(
       currency: (request.body as {currency:string}).currency,
       id: body.id,
       vehicleId,
+      title: body.title ?? null,
       servicedOn: body.serviced_on,
       odometer: body.odometer == null ? null : String(body.odometer),
       totalCost: String(body.total_cost),
@@ -843,6 +845,7 @@ async function recordVehicleScopedChange(
       .update(serviceRecords)
       .set({
         currency: (request.body as {currency?: string}).currency,
+        ...(body.title !== undefined ? { title: body.title } : {}),
         ...(body.serviced_on ? { servicedOn: body.serviced_on } : {}),
         ...(body.odometer !== undefined ? { odometer: body.odometer == null ? null : String(body.odometer) } : {}),
         ...(body.total_cost !== undefined ? { totalCost: String(body.total_cost) } : {}),

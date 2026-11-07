@@ -12,7 +12,6 @@ import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
-import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/service_record.dart';
 import 'package:dco_mobile/features/maintenance/domain/maintenance_failure.dart';
@@ -382,81 +381,22 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
               ),
             )
             .toList();
-    final custom = TextEditingController();
     await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: context.tokens.background.card,
-      builder: (context) {
-        final tokens = context.tokens;
-        final s = AppLocalizations.of(context)!;
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            tokens.space.s4,
-            tokens.space.s4,
-            tokens.space.s4,
-            MediaQuery.viewInsetsOf(context).bottom + tokens.space.s4,
-          ),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * 0.6,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  s.registerServiceAddServiceTitle,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                SizedBox(height: tokens.space.s3),
-                if (available.isEmpty)
-                  Text(
-                    s.registerServiceAddServiceEmpty,
-                    style: TextStyle(color: tokens.text.caption),
-                  )
-                else
-                  Flexible(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        for (final item in available)
-                          ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(item.name),
-                            onTap: () {
-                              if (item.plan != null) {
-                                _addLine(item.plan!);
-                              } else {
-                                _addCustomLine(item.name);
-                              }
-                              Navigator.pop(context);
-                            },
-                          ),
-                      ],
-                    ),
-                  ),
-                SizedBox(height: tokens.space.s3),
-                DcoTextField(
-                  label: s.registerServiceCustomService,
-                  controller: custom,
-                  hint: s.registerServiceCustomHint,
-                ),
-                SizedBox(height: tokens.space.s3),
-                DcoButton(
-                  label: s.registerServiceAddCustom,
-                  onPressed: () {
-                    _addCustomLine(custom.text);
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ),
-          ),
-        );
-      },
+      builder: (context) => _AddServiceSheet(
+        available: available,
+        onSelect: (name, item) {
+          if (!mounted) return;
+          if (item != null) {
+            _addLine(item);
+          } else {
+            _addCustomLine(name);
+          }
+        },
+      ),
     );
-    custom.dispose();
   }
 
   Future<void> _openAssignPart() async {
@@ -808,7 +748,8 @@ class _RegisterServiceScreenState extends ConsumerState<RegisterServiceScreen> {
                     vehicleId: vehicle.id,
                     recordId: widget.editServiceId,
                     readOnly:
-                        !canWrite || _saving ||
+                        !canWrite ||
+                        _saving ||
                         (!access.isOwner &&
                             ref.watch(driverOrganizationIdProvider) == null),
                     onChanged: () => setState(() {}),
@@ -854,4 +795,90 @@ class _ServiceLineInput {
   double? get cost => ServiceRecordValidators.parseCost(costController.text);
 
   void dispose() => costController.dispose();
+}
+
+class _AddServiceSheet extends StatefulWidget {
+  const _AddServiceSheet({required this.available, required this.onSelect});
+
+  final List<({String name, PlanItem? plan})> available;
+  final void Function(String name, PlanItem? plan) onSelect;
+
+  @override
+  State<_AddServiceSheet> createState() => _AddServiceSheetState();
+}
+
+class _AddServiceSheetState extends State<_AddServiceSheet> {
+  final custom = TextEditingController();
+
+  @override
+  void dispose() {
+    custom.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = context.tokens;
+    final s = AppLocalizations.of(context)!;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        tokens.space.s4,
+        tokens.space.s4,
+        tokens.space.s4,
+        MediaQuery.viewInsetsOf(context).bottom + tokens.space.s4,
+      ),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(context).height * 0.6,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              s.registerServiceAddServiceTitle,
+              style: Theme.of(context).textTheme.titleLarge,
+            ),
+            SizedBox(height: tokens.space.s3),
+            if (widget.available.isEmpty)
+              Text(
+                s.registerServiceAddServiceEmpty,
+                style: TextStyle(color: tokens.text.caption),
+              )
+            else
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    for (final item in widget.available)
+                      ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(item.name),
+                        onTap: () {
+                          widget.onSelect(item.name, item.plan);
+                          Navigator.pop(context);
+                        },
+                      ),
+                  ],
+                ),
+              ),
+            SizedBox(height: tokens.space.s3),
+            DcoTextField(
+              label: s.registerServiceCustomService,
+              controller: custom,
+              hint: s.registerServiceCustomHint,
+            ),
+            SizedBox(height: tokens.space.s3),
+            DcoButton(
+              label: s.registerServiceAddCustom,
+              onPressed: () {
+                widget.onSelect(custom.text, null);
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

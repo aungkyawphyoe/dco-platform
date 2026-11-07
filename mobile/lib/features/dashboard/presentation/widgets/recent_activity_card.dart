@@ -57,9 +57,7 @@ class RecentActivityCard extends ConsumerWidget {
             (
               date: record.servicedOn,
               created: record.createdAt,
-              title: record.items.isEmpty
-                  ? record.title
-                  : record.items.first.name,
+              title: record.title,
               amount: record.totalCost,
               route: AppRoutes.serviceDetail(record.id),
               icon: Icons.build_outlined,

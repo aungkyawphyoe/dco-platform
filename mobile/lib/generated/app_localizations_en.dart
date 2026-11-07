@@ -620,7 +620,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String registerServiceCurrentMileage(Object mileage) {
-    return 'Current odometer: $mileage';
+    return 'Last: $mileage';
   }
 
   @override
@@ -4545,7 +4545,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get syncErrorGeneric =>
-      'Something went wrong while syncing. Your changes are saved and will retry automatically.';
+      'Some changes have not synced. Your changes are saved on this device. Tap Retry to try again.';
 
   @override
   String get authLoadAccessFailed =>

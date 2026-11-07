@@ -240,6 +240,7 @@ export const planItems = pgTable("plan_items", {
 });
 
 export const serviceRecords = pgTable("service_records", {
+  title: text("title"),
   currency: text("currency").notNull().default("MMK"),
   revision: integer("revision").notNull().default(1),
   adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),

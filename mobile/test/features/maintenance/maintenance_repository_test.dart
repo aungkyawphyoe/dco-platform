@@ -46,6 +46,49 @@ void main() {
     return vehicles.add(userId: 'user-1', draft: _vehicleDraft());
   }
 
+  test(
+    'history orders by service date then newest creation on the same day',
+    () async {
+      final vehicle = await addVehicle();
+      final day = DateTime(2026, 11, 7);
+      for (final entry in [
+        (id: 'first', date: day, created: day.add(const Duration(hours: 8))),
+        (id: 'second', date: day, created: day.add(const Duration(hours: 9))),
+        (
+          id: 'car-wash',
+          date: day,
+          created: day.add(const Duration(hours: 10)),
+        ),
+        (
+          id: 'backdated',
+          date: day.subtract(const Duration(days: 1)),
+          created: day.add(const Duration(hours: 11)),
+        ),
+      ]) {
+        await db
+            .into(db.serviceRecordRows)
+            .insert(
+              ServiceRecordRowsCompanion.insert(
+                id: entry.id,
+                vehicleId: vehicle.id,
+                title: entry.id,
+                servicedOn: entry.date,
+                totalCost: 7000,
+                createdAt: entry.created,
+                updatedAt: entry.created,
+              ),
+            );
+      }
+      final history = await maintenance.watchHistory(vehicle.id).first;
+      expect(history.map((record) => record.id), [
+        'car-wash',
+        'second',
+        'first',
+        'backdated',
+      ]);
+    },
+  );
+
   test('new vehicles start without automatic reminders', () async {
     final vehicle = await addVehicle();
     expect(await maintenance.watchPlan(vehicle.id).first, isEmpty);

@@ -312,7 +312,10 @@ class ChangeApplier {
               payload['vehicle_id'],
               fallback: existing?.vehicleId ?? '',
             ),
-            title: _str(payload['title'], fallback: derivedTitle),
+            title: _str(
+              payload['title'],
+              fallback: existing?.title ?? derivedTitle,
+            ),
             servicedOn: _date(payload['serviced_on']),
             odometer: Value(_dbl(payload['odometer'])),
             totalCost: _dbl(payload['total_cost']) ?? 0,

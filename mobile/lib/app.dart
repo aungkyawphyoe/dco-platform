@@ -50,6 +50,7 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
+      ref.read(syncEngineProvider).requestSync();
       unawaited(_refreshLicenseIfStale());
       unawaited(ref.read(playBillingProvider.notifier).reload());
     }
@@ -122,6 +123,12 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
         unawaited(ref.read(playBillingProvider.notifier).reload());
       }
       if (regained && ref.read(autoSyncProvider)) {
+        ref.read(syncEngineProvider).requestSync();
+      }
+    });
+
+    ref.listen(autoSyncProvider, (previous, enabled) {
+      if (previous == false && enabled) {
         ref.read(syncEngineProvider).requestSync();
       }
     });

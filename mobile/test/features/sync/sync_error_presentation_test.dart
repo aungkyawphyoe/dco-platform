@@ -55,7 +55,7 @@ void main() {
     (tester) async {
       GoogleFonts.config.allowRuntimeFetching = false;
       final db = _Database();
-      final states = StreamController<SyncState>();
+      final states = StreamController<SyncState>.broadcast();
       final engine = _Sync();
       final record = ServiceRecord(
         id: 'saved',
@@ -103,8 +103,8 @@ void main() {
             syncStatusProvider.overrideWith((ref) => states.stream),
             syncEngineProvider.overrideWithValue(engine),
             autoSyncProvider.overrideWith((ref) => AutoSyncNotifier(db, null)),
-            pendingOutboxCountProvider.overrideWith((ref) async => 1),
-            parkedOutboxCountProvider.overrideWith((ref) async => 0),
+            pendingOutboxCountProvider.overrideWith((ref) => Stream.value(1)),
+            parkedOutboxCountProvider.overrideWith((ref) => Stream.value(0)),
             organizationReviewsProvider.overrideWith((ref) => Stream.value([])),
             localeProvider.overrideWithValue(const Locale('en')),
             themeModeProvider.overrideWithValue(AppThemeMode.dark),
@@ -131,6 +131,10 @@ void main() {
       await tester.tap(find.text('Retry'));
       await tester.pumpAndSettle();
       expect(engine.retries, 1);
+      states.add(const SyncState());
+      await tester.pumpAndSettle();
+      expect(find.text('All changes synced'), findsNothing);
+      expect(find.byType(FilledButton), findsOneWidget);
       router.pop();
       await tester.pumpAndSettle();
       expect(find.text('Service Logged!'), findsOneWidget);
@@ -140,7 +144,6 @@ void main() {
       router.dispose();
       await states.close();
       await tester.pump();
-
     },
   );
 }

@@ -49,6 +49,7 @@ export async function loadService(appDb: Db, id: string) {
     revision: row.revision,
     admin_corrected_by: row.adminCorrectedBy,
     vehicle_id: row.vehicleId,
+    title: row.title,
     serviced_on: dateOnly(row.servicedOn),
     odometer: num(row.odometer),
     total_cost: reqNum(row.totalCost),

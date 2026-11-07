@@ -134,6 +134,125 @@ void main() {
     );
   }
 
+  test(
+    'pending count follows local writes, exhausted rows and acknowledgments',
+    () async {
+      final container = ProviderContainer(
+        overrides: [
+          currentUserIdProvider.overrideWithValue('u1'),
+          recordDatabaseProvider.overrideWithValue(db),
+        ],
+      );
+      final subscription = container.listen(
+        pendingOutboxCountProvider,
+        (_, _) {},
+      );
+      addTearDown(() {
+        subscription.close();
+        container.dispose();
+      });
+      expect(await container.read(pendingOutboxCountProvider.future), 0);
+      final values = <int>[];
+      final changes = container.listen(pendingOutboxCountProvider, (_, next) {
+        if (next.hasValue) values.add(next.requireValue);
+      });
+      addTearDown(changes.close);
+      Future<void> waitForCount(int count) async {
+        for (
+          var i = 0;
+          i < 100 &&
+              container.read(pendingOutboxCountProvider).valueOrNull != count;
+          i++
+        ) {
+          await Future<void>.delayed(const Duration(milliseconds: 5));
+        }
+        expect(container.read(pendingOutboxCountProvider).valueOrNull, count);
+      }
+
+      await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v1');
+      await waitForCount(1);
+      await db
+          .update(db.outboxEntries)
+          .write(const OutboxEntriesCompanion(attemptCount: Value(5)));
+      await engine.syncNow();
+      expect(await container.read(pendingOutboxCountProvider.future), 1);
+      await engine.syncNow(force: true);
+      await waitForCount(0);
+      expect(values, containsAllInOrder([1, 0]));
+    },
+  );
+
+  for (final sourceType in [
+    OutboxEntityType.serviceRecord,
+    OutboxEntityType.fuelLog,
+  ]) {
+    test(
+      '$sourceType and derived expense sharing UUID drain source first',
+      () async {
+        await outbox.enqueue(
+          userId: 'u1',
+          entityType: sourceType,
+          entityId: 'shared',
+          op: OutboxOp.upsert,
+          payload: {'id': 'shared'},
+        );
+        await outbox.enqueue(
+          userId: 'u1',
+          entityType: OutboxEntityType.expense,
+          entityId: 'shared',
+          op: OutboxOp.upsert,
+          payload: {'id': 'shared', '_currency_parent_id': 'shared'},
+        );
+        api.pushHandler = (ops) {
+          expect(ops, hasLength(1));
+          return [
+            SyncPushResult(
+              entityId: ops.single.entityId,
+              status: SyncPushStatus.applied,
+            ),
+          ];
+        };
+        await engine.syncNow();
+        expect(api.recordedOps.map((op) => op.entityType), [
+          sourceType,
+          'expense',
+        ]);
+        expect(await db.select(db.outboxEntries).get(), isEmpty);
+        expect(engine.state.hasError, false);
+      },
+    );
+    test('$sourceType rejection keeps same-ID expense waiting', () async {
+      await outbox.enqueue(
+        userId: 'u1',
+        entityType: sourceType,
+        entityId: 'shared',
+        op: OutboxOp.upsert,
+        payload: {'id': 'shared'},
+      );
+      await outbox.enqueue(
+        userId: 'u1',
+        entityType: OutboxEntityType.expense,
+        entityId: 'shared',
+        op: OutboxOp.upsert,
+        payload: {'id': 'shared', '_currency_parent_id': 'shared'},
+      );
+      api.pushHandler = (ops) => [
+        const SyncPushResult(
+          entityId: 'shared',
+          status: SyncPushStatus.rejected,
+          error: ApiError(
+            code: 'currency_mismatch',
+            message: 'Currency changed',
+          ),
+        ),
+      ];
+      await engine.syncNow();
+      expect(api.recordedOps.map((op) => op.entityType), [sourceType]);
+      expect(await db.select(db.outboxEntries).get(), hasLength(2));
+      expect(engine.state.errorCode, 'currency_mismatch');
+    });
+  }
+
   test('drains outbox in order and clears acked rows', () async {
     await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'v1');
     await enqueue('u1', entityType: OutboxEntityType.expense, entityId: 'e1');
@@ -285,6 +404,8 @@ void main() {
     final rejected = rows.where((row) => row.entityId == 'v1').single;
     expect(rejected.attemptCount, 1);
     expect(rejected.lastError, 'bad payload');
+    expect(engine.state.errorCode, 'validation');
+    expect(engine.state.lastSyncedAt, isNull);
     expect(rows.where((row) => row.entityId == 'e1'), isEmpty);
   });
 
@@ -308,6 +429,68 @@ void main() {
     expect(api.recordedOps, isEmpty);
     final row = await db.select(db.outboxEntries).getSingle();
     expect(row.entityId, 'v-dead');
+  });
+
+  test(
+    'manual retry recovers exhausted rows without un-parking conflicts or other users',
+    () async {
+      for (final id in ['retry', 'parked', 'other']) {
+        await enqueue(
+          id == 'other' ? 'u2' : 'u1',
+          entityType: OutboxEntityType.vehicle,
+          entityId: id,
+        );
+      }
+      await db
+          .update(db.outboxEntries)
+          .write(const OutboxEntriesCompanion(attemptCount: Value(5)));
+      await (db.update(db.outboxEntries)
+            ..where((r) => r.entityId.equals('parked')))
+          .write(const OutboxEntriesCompanion(parked: Value(true)));
+
+      await engine.syncNow();
+      expect(api.recordedOps, isEmpty);
+      expect(engine.state.hasError, true);
+      await engine.syncNow(force: true);
+
+      expect(api.recordedOps.map((op) => op.entityId), ['retry']);
+      final remaining = await db.select(db.outboxEntries).get();
+      expect(remaining.map((row) => row.entityId), ['parked', 'other']);
+      expect(remaining.every((row) => row.attemptCount == 5), true);
+    },
+  );
+
+  test('a rejected first batch does not starve unrelated records', () async {
+    final smallBatchEngine = SyncEngine(
+      db: db,
+      api: api,
+      mediaApi: mediaApi,
+      currentUser: () => 'u1',
+      autoSyncEnabled: () => true,
+      batchSize: 1,
+    );
+    addTearDown(smallBatchEngine.dispose);
+    await enqueue('u1', entityType: OutboxEntityType.vehicle, entityId: 'bad');
+    await enqueue('u1', entityType: OutboxEntityType.expense, entityId: 'good');
+    api.pushHandler = (ops) => ops
+        .map(
+          (op) => SyncPushResult(
+            entityId: op.entityId,
+            status: op.entityId == 'bad'
+                ? SyncPushStatus.rejected
+                : SyncPushStatus.applied,
+            error: op.entityId == 'bad'
+                ? const ApiError(code: 'validation', message: 'bad')
+                : null,
+          ),
+        )
+        .toList();
+
+    await smallBatchEngine.syncNow();
+
+    expect(api.recordedOps.map((op) => op.entityId), ['bad', 'good']);
+    expect((await db.select(db.outboxEntries).getSingle()).attemptCount, 1);
+    expect(smallBatchEngine.state.errorCode, 'validation');
   });
 
   test('network failure keeps the queue and reports error state', () async {

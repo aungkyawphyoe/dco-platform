@@ -615,32 +615,25 @@ final autoSyncProvider = StateNotifierProvider<AutoSyncNotifier, bool>((ref) {
 });
 
 // ---------------------------------------------------------------------------
-// Pending outbox count (reactive — recalculated on each sync cycle)
+// Live outbox counts include exhausted rows until the server acknowledges them.
 // ---------------------------------------------------------------------------
 
-final pendingOutboxCountProvider = FutureProvider<int>((ref) async {
+final pendingOutboxCountProvider = StreamProvider<int>((ref) {
   final userId = ref.watch(currentUserIdProvider);
-  if (userId == null || userId.isEmpty) return 0;
+  if (userId == null || userId.isEmpty) return Stream.value(0);
   final db = ref.watch(recordDatabaseProvider);
-  final rows =
-      await (db.select(db.outboxEntries)..where(
-            (row) =>
-                row.userId.equals(userId) &
-                row.parked.equals(false) &
-                row.attemptCount.isSmallerOrEqualValue(4),
-          ))
-          .get();
-  return rows.length;
+  return (db.select(db.outboxEntries)
+        ..where((row) => row.userId.equals(userId) & row.parked.equals(false)))
+      .watch()
+      .map((rows) => rows.length);
 });
 
-/// Rows parked by a `LIMIT_EXCEEDED` rejection — surfaced on the sync
-/// screen until a fresh license requeues them (feature-gating §9).
-final parkedOutboxCountProvider = FutureProvider<int>((ref) async {
+final parkedOutboxCountProvider = StreamProvider<int>((ref) {
   final userId = ref.watch(currentUserIdProvider);
-  if (userId == null || userId.isEmpty) return 0;
+  if (userId == null || userId.isEmpty) return Stream.value(0);
   final db = ref.watch(recordDatabaseProvider);
-  final rows = await (db.select(
-    db.outboxEntries,
-  )..where((row) => row.userId.equals(userId) & row.parked.equals(true))).get();
-  return rows.length;
+  return (db.select(db.outboxEntries)
+        ..where((row) => row.userId.equals(userId) & row.parked.equals(true)))
+      .watch()
+      .map((rows) => rows.length);
 });

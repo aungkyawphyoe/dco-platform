@@ -37,6 +37,9 @@ class SyncStatusScreen extends ConsumerWidget {
           // -- Hero status card
           _StatusHeroCard(
             syncState: syncState,
+            pendingCount:
+                (pendingCount.valueOrNull ?? 0) +
+                (parkedCount.valueOrNull ?? 0),
             isSyncing: isSyncing,
             isOnline: isOnline,
             tokens: tokens,
@@ -151,38 +154,37 @@ class SyncStatusScreen extends ConsumerWidget {
             SizedBox(height: tokens.space.s3),
           ],
 
-          // -- Sync now button (hidden when auto-sync is on)
-          if (!autoSyncEnabled)
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton.icon(
-                style: FilledButton.styleFrom(
-                  backgroundColor: tokens.button.primary.background,
-                  foregroundColor: tokens.text.onAccent,
-                ),
-                onPressed: isSyncing
-                    ? null
-                    : () async {
-                        await ref.read(syncEngineProvider).syncNow(force: true);
-                        ref.invalidate(pendingOutboxCountProvider);
-                        ref.invalidate(parkedOutboxCountProvider);
-                      },
-                icon: isSyncing
-                    ? SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: tokens.text.onAccent,
-                        ),
-                      )
-                    : const Icon(Icons.cloud_upload_outlined),
-                label: Text(
-                  isSyncing ? s.settingsSyncStatusSyncing : s.syncManualSync,
-                ),
+          // -- Manual retry remains available with auto-sync enabled.
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              style: FilledButton.styleFrom(
+                backgroundColor: tokens.button.primary.background,
+                foregroundColor: tokens.text.onAccent,
+              ),
+              onPressed: isSyncing
+                  ? null
+                  : () async {
+                      await ref.read(syncEngineProvider).syncNow(force: true);
+                      ref.invalidate(pendingOutboxCountProvider);
+                      ref.invalidate(parkedOutboxCountProvider);
+                    },
+              icon: isSyncing
+                  ? SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: tokens.text.onAccent,
+                      ),
+                    )
+                  : const Icon(Icons.cloud_upload_outlined),
+              label: Text(
+                isSyncing ? s.settingsSyncStatusSyncing : s.syncManualSync,
               ),
             ),
-          if (!autoSyncEnabled) SizedBox(height: tokens.space.s4),
+          ),
+          SizedBox(height: tokens.space.s4),
 
           // -- How it works
           _HowItWorksCard(tokens: tokens, s: s),
@@ -199,6 +201,7 @@ class SyncStatusScreen extends ConsumerWidget {
 class _StatusHeroCard extends StatelessWidget {
   const _StatusHeroCard({
     required this.syncState,
+    required this.pendingCount,
     required this.isSyncing,
     required this.isOnline,
     required this.tokens,
@@ -206,6 +209,7 @@ class _StatusHeroCard extends StatelessWidget {
   });
 
   final SyncState syncState;
+  final int pendingCount;
   final bool isSyncing;
   final bool isOnline;
   final DcoTokens tokens;
@@ -330,6 +334,9 @@ class _StatusHeroCard extends StatelessWidget {
     if (isSyncing) return s.syncAutoSyncDescription;
     if (syncState.hasError) {
       return syncErrorMessage(s, syncState.errorCode);
+    }
+    if (pendingCount > 0) {
+      return '$pendingCount ${s.syncPendingItemsDescription}';
     }
     return s.syncNoPendingItems;
   }

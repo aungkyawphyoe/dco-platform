@@ -52,35 +52,94 @@ void main() {
     'updated_at': '2026-01-02T10:00:00.000Z',
   };
 
+  test(
+    'service sync preserves custom title across old payloads and accepts remote title edits',
+    () async {
+      final payload = <String, dynamic>{
+        'id': 'service',
+        'vehicle_id': 'v1',
+        'serviced_on': '2026-11-07',
+        'total_cost': 7000,
+        'title': 'car wash at tea shop',
+        'items': [
+          {'id': 'wash', 'name': 'Car Wash', 'line_cost': 7000},
+          {'id': 'mileage', 'name': 'Mileage Update', 'line_cost': 0},
+        ],
+        'parts': [],
+      };
+      Future<void> apply(int hour) => applier.apply(
+        change(
+          'service_record',
+          'service',
+          'upsert',
+          payload,
+          '2026-11-07T$hour:00:00.000Z',
+        ),
+        userId: 'u1',
+      );
+      await apply(10);
+      expect(
+        (await db.select(db.serviceRecordRows).getSingle()).title,
+        'car wash at tea shop',
+      );
+      payload.remove('title');
+      await apply(11);
+      expect(
+        (await db.select(db.serviceRecordRows).getSingle()).title,
+        'car wash at tea shop',
+      );
+      payload['title'] = null;
+      await apply(12);
+      expect(
+        (await db.select(db.serviceRecordRows).getSingle()).title,
+        'car wash at tea shop',
+      );
+      payload['title'] = 'Updated job title';
+      await apply(13);
+      expect(
+        (await db.select(db.serviceRecordRows).getSingle()).title,
+        'Updated job title',
+      );
+    },
+  );
+
   test('vehicle upsert inserts a row', () async {
     await applier.apply(
-      change('vehicle', 'v1', 'upsert', vehiclePayload, '2026-01-02T10:00:00.000Z'),
+      change(
+        'vehicle',
+        'v1',
+        'upsert',
+        vehiclePayload,
+        '2026-01-02T10:00:00.000Z',
+      ),
       userId: 'u1',
     );
-    final row = await (db.select(db.vehicleRecords)
-          ..where((r) => r.id.equals('v1')))
-        .getSingle();
+    final row = await (db.select(
+      db.vehicleRecords,
+    )..where((r) => r.id.equals('v1'))).getSingle();
     expect(row.name, 'Daily');
     expect(row.mileage, 1500);
     expect(row.archived, false);
   });
 
   test('vehicle mileage never decreases even when remote is newer', () async {
-    await db.into(db.vehicleRecords).insert(
-      VehicleRecordsCompanion.insert(
-        id: 'v1',
-        userId: 'u1',
-        name: 'Daily',
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2022,
-        licensePlate: 'ABC123',
-        fuelType: 'petrol',
-        mileage: 2000,
-        updatedAt: DateTime.parse('2026-01-03T09:00:00.000Z'),
-        createdAt: DateTime.parse('2026-01-01T09:00:00.000Z'),
-      ),
-    );
+    await db
+        .into(db.vehicleRecords)
+        .insert(
+          VehicleRecordsCompanion.insert(
+            id: 'v1',
+            userId: 'u1',
+            name: 'Daily',
+            make: 'Toyota',
+            model: 'Camry',
+            year: 2022,
+            licensePlate: 'ABC123',
+            fuelType: 'petrol',
+            mileage: 2000,
+            updatedAt: DateTime.parse('2026-01-03T09:00:00.000Z'),
+            createdAt: DateTime.parse('2026-01-01T09:00:00.000Z'),
+          ),
+        );
 
     await applier.apply(
       change('vehicle', 'v1', 'upsert', {
@@ -90,62 +149,79 @@ void main() {
       }, '2026-01-04T10:00:00.000Z'),
       userId: 'u1',
     );
-    final row = await (db.select(db.vehicleRecords)
-          ..where((r) => r.id.equals('v1')))
-        .getSingle();
+    final row = await (db.select(
+      db.vehicleRecords,
+    )..where((r) => r.id.equals('v1'))).getSingle();
     expect(row.mileage, 2000);
     expect(
-      row.updatedAt.isAtSameMomentAs(DateTime.parse('2026-01-04T10:00:00.000Z')),
+      row.updatedAt.isAtSameMomentAs(
+        DateTime.parse('2026-01-04T10:00:00.000Z'),
+      ),
       true,
     );
   });
 
-  test('stale remote cannot roll back vehicle fields but can lift mileage', () async {
-    await db.into(db.vehicleRecords).insert(
-      VehicleRecordsCompanion.insert(
-        id: 'v1',
-        userId: 'u1',
-        name: 'Renamed',
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2022,
-        licensePlate: 'ABC123',
-        fuelType: 'petrol',
-        mileage: 1800,
-        updatedAt: DateTime.parse('2026-01-05T09:00:00.000Z'),
-        createdAt: DateTime.parse('2026-01-01T09:00:00.000Z'),
-      ),
-    );
+  test(
+    'stale remote cannot roll back vehicle fields but can lift mileage',
+    () async {
+      await db
+          .into(db.vehicleRecords)
+          .insert(
+            VehicleRecordsCompanion.insert(
+              id: 'v1',
+              userId: 'u1',
+              name: 'Renamed',
+              make: 'Toyota',
+              model: 'Camry',
+              year: 2022,
+              licensePlate: 'ABC123',
+              fuelType: 'petrol',
+              mileage: 1800,
+              updatedAt: DateTime.parse('2026-01-05T09:00:00.000Z'),
+              createdAt: DateTime.parse('2026-01-01T09:00:00.000Z'),
+            ),
+          );
 
-    await applier.apply(
-      change('vehicle', 'v1', 'upsert', vehiclePayload, '2026-01-02T10:00:00.000Z'),
-      userId: 'u1',
-    );
-    final row = await (db.select(db.vehicleRecords)
-          ..where((r) => r.id.equals('v1')))
-        .getSingle();
-    expect(row.name, 'Renamed');
-    expect(row.mileage, 1800);
-  });
+      await applier.apply(
+        change(
+          'vehicle',
+          'v1',
+          'upsert',
+          vehiclePayload,
+          '2026-01-02T10:00:00.000Z',
+        ),
+        userId: 'u1',
+      );
+      final row = await (db.select(
+        db.vehicleRecords,
+      )..where((r) => r.id.equals('v1'))).getSingle();
+      expect(row.name, 'Renamed');
+      expect(row.mileage, 1800);
+    },
+  );
 
   test('archive wins over a later edit', () async {
-    await db.into(db.vehicleRecords).insert(
-      VehicleRecordsCompanion.insert(
-        id: 'v1',
-        userId: 'u1',
-        name: 'Daily',
-        make: 'Toyota',
-        model: 'Camry',
-        year: 2022,
-        licensePlate: 'ABC123',
-        fuelType: 'petrol',
-        mileage: 1000,
-        updatedAt: DateTime.parse('2026-01-01T09:00:00.000Z'),
-        createdAt: DateTime.parse('2026-01-01T09:00:00.000Z'),
-      ),
-    );
+    await db
+        .into(db.vehicleRecords)
+        .insert(
+          VehicleRecordsCompanion.insert(
+            id: 'v1',
+            userId: 'u1',
+            name: 'Daily',
+            make: 'Toyota',
+            model: 'Camry',
+            year: 2022,
+            licensePlate: 'ABC123',
+            fuelType: 'petrol',
+            mileage: 1000,
+            updatedAt: DateTime.parse('2026-01-01T09:00:00.000Z'),
+            createdAt: DateTime.parse('2026-01-01T09:00:00.000Z'),
+          ),
+        );
     await applier.apply(
-      change('vehicle', 'v1', 'archive', {'id': 'v1'}, '2026-01-02T09:00:00.000Z'),
+      change('vehicle', 'v1', 'archive', {
+        'id': 'v1',
+      }, '2026-01-02T09:00:00.000Z'),
       userId: 'u1',
     );
     await applier.apply(
@@ -156,9 +232,9 @@ void main() {
       userId: 'u1',
     );
 
-    final row = await (db.select(db.vehicleRecords)
-          ..where((r) => r.id.equals('v1')))
-        .getSingle();
+    final row = await (db.select(
+      db.vehicleRecords,
+    )..where((r) => r.id.equals('v1'))).getSingle();
     expect(row.archived, true);
   });
 
@@ -193,8 +269,9 @@ void main() {
       }, '2026-02-02T08:00:00.000Z'),
       userId: 'u1',
     );
-    var row = await (db.select(db.expenseRecords)..where((r) => r.id.equals('e1')))
-        .getSingleOrNull();
+    var row = await (db.select(
+      db.expenseRecords,
+    )..where((r) => r.id.equals('e1'))).getSingleOrNull();
     expect(row!.amount, 99.99);
     parts = await db.select(db.expensePartRecords).get();
     expect(parts, isEmpty);
@@ -203,9 +280,9 @@ void main() {
       change('expense', 'e1', 'delete', {}, '2026-02-03T08:00:00.000Z'),
       userId: 'u1',
     );
-    final deleted = await (db.select(db.expenseRecords)
-          ..where((r) => r.id.equals('e1')))
-        .getSingleOrNull();
+    final deleted = await (db.select(
+      db.expenseRecords,
+    )..where((r) => r.id.equals('e1'))).getSingleOrNull();
     expect(deleted, isNull);
   });
 
@@ -223,9 +300,9 @@ void main() {
       }, '2026-02-01T08:00:00.000Z'),
       userId: 'u1',
     );
-    var row = await (db.select(db.notificationRecords)
-          ..where((r) => r.id.equals('n1')))
-        .getSingle();
+    var row = await (db.select(
+      db.notificationRecords,
+    )..where((r) => r.id.equals('n1'))).getSingle();
     expect(row.status, 'unread');
 
     await applier.apply(
@@ -237,8 +314,9 @@ void main() {
       }, '2026-02-05T08:00:00.000Z'),
       userId: 'u1',
     );
-    row = await (db.select(db.notificationRecords)..where((r) => r.id.equals('n1')))
-        .getSingle();
+    row = await (db.select(
+      db.notificationRecords,
+    )..where((r) => r.id.equals('n1'))).getSingle();
     expect(row.status, 'read');
   });
 }

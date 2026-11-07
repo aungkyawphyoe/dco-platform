@@ -59,6 +59,7 @@ void main() {
   );
   Future<void> pump(
     WidgetTester tester, {
+    ServiceRecord? serviceOverride,
     bool empty = false,
     bool error = false,
     bool standalone = false,
@@ -95,7 +96,7 @@ void main() {
           maintenanceHistoryProvider.overrideWith(
             (ref) => error
                 ? Stream.error(Exception('failed'))
-                : Stream.value(empty ? [] : [service]),
+                : Stream.value(empty ? [] : [serviceOverride ?? service]),
           ),
           vehicleFuelLogsProvider.overrideWith(
             (ref) => Stream.value(empty ? [] : [fuel]),
@@ -154,6 +155,40 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets(
+    'multi-line service uses the job title with the whole job total',
+    (tester) async {
+      await pump(
+        tester,
+        serviceOverride: ServiceRecord(
+          id: 'service',
+          vehicleId: 'car',
+          title: 'car wash at tea shop',
+          servicedOn: date,
+          odometer: 100,
+          totalCost: 7000,
+          items: const [
+            ServiceLine(id: 'mileage', name: 'Mileage Update', lineCost: 0),
+            ServiceLine(id: 'wash', name: 'Car Wash', lineCost: 7000),
+          ],
+          updatedAt: date,
+          createdAt: date,
+        ),
+      );
+      final row = find.byKey(const ValueKey('/maintenance/history/service'));
+      expect(
+        find.descendant(of: row, matching: find.text('car wash at tea shop')),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(of: row, matching: find.text(r'$7,000.00')),
+        findsOneWidget,
+      );
+      expect(find.text('Mileage Update'), findsNothing);
+      expect(find.text('Car Wash'), findsNothing);
+    },
+  );
 
   testWidgets('combines, sorts and caps ten rows in one card', (tester) async {
     await pump(tester);
