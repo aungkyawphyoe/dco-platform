@@ -11,17 +11,14 @@ import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/units/mileage_format.dart';
-import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/features/dashboard/domain/greeting.dart';
 import 'package:dco_mobile/features/dashboard/presentation/widgets/quick_actions_grid.dart';
-import 'package:dco_mobile/features/expenses/domain/entities/expense.dart';
-import 'package:dco_mobile/features/expenses/providers.dart';
+import '../widgets/recent_activity_card.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
-import 'package:dco_mobile/features/maintenance/domain/entities/service_record.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
 import 'package:dco_mobile/generated/app_localizations.dart';
@@ -33,8 +30,6 @@ import 'package:intl/intl.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
-
-  static const recentActivityLimit = 3;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -195,18 +190,8 @@ class _PopulatedDashboard extends ConsumerWidget {
     final tokens = context.tokens;
     final lengthUnit = ref.watch(lengthUnitProvider);
     final mileage = MileageFormat.labeled(vehicle.mileage, lengthUnit);
-    final currency = ref.watch(currencyProvider).code;
-    // final summary =
-    //     ref.watch(vehicleExpenseSummaryProvider).valueOrNull ??
-    //     ExpenseSummary.empty;
-    // final moneyTotal = MoneyFormat.labeled(summary.total, currency);
-    // final moneyMonth = MoneyFormat.labeled(summary.thisMonth, currency);
-    final history =
-        ref.watch(maintenanceHistoryProvider).valueOrNull ??
-        const <ServiceRecord>[];
     final plan =
         ref.watch(maintenancePlanProvider).valueOrNull ?? const <PlanItem>[];
-    final recent = history.take(DashboardScreen.recentActivityLimit).toList();
     final thresholds = ref.watch(reminderThresholdsProvider);
     final access = ref.watch(vehicleAccessProvider(vehicle));
     final next = DueCalculator.nearest(
@@ -409,92 +394,9 @@ class _PopulatedDashboard extends ConsumerWidget {
           style: Theme.of(context).textTheme.titleLarge,
         ),
         SizedBox(height: tokens.space.s3),
-        if (recent.isEmpty)
-          Text(
-            s.dashboardNoServicesYet,
-            style: Theme.of(
-              context,
-            ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
-          )
-        else
-          ...recent.map(
-            (record) => Padding(
-              padding: EdgeInsets.only(bottom: tokens.space.s3),
-              child: _RecentActivityRow(
-                record: record,
-                currency: currency,
-                onTap: () => context.push(AppRoutes.serviceDetail(record.id)),
-              ),
-            ),
-          ),
+        const RecentActivityCard(),
         SizedBox(height: tokens.space.s7),
       ],
-    );
-  }
-}
-
-class _RecentActivityRow extends StatelessWidget {
-  const _RecentActivityRow({
-    required this.record,
-    required this.currency,
-    required this.onTap,
-  });
-
-  final ServiceRecord record;
-  final String currency;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final tokens = context.tokens;
-    final title = record.items.isNotEmpty
-        ? record.items.first.name
-        : record.title;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(tokens.radius.lg),
-        boxShadow: tokens.shadows.card,
-      ),
-      child: Material(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.lg),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(tokens.radius.lg),
-          child: Padding(
-            padding: EdgeInsets.all(tokens.space.s3),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        DateFormat.yMMMd().format(record.servicedOn),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: tokens.text.caption,
-                        ),
-                      ),
-                      SizedBox(height: tokens.space.s1),
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                    ],
-                  ),
-                ),
-                Text(
-                  MoneyFormat.labeled(record.totalCost, currency),
-                  style: GoogleFonts.ibmPlexMono(
-                    color: tokens.text.secondary,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

@@ -214,11 +214,11 @@ class _SectionEmpty extends StatelessWidget {
       child: Container(
         height: 80,
         alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: tokens.background.card,
-          borderRadius: BorderRadius.circular(tokens.radius.lg),
-          boxShadow: tokens.shadows.card,
-        ),
+        // decoration: BoxDecoration(
+        //   color: tokens.background.card,
+        //   borderRadius: BorderRadius.circular(tokens.radius.lg),
+        //   boxShadow: tokens.shadows.card,
+        // ),
         child: Text(label, style: TextStyle(color: tokens.text.accent)),
       ),
     );

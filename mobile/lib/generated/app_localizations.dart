@@ -626,6 +626,24 @@ abstract class AppLocalizations {
   /// **'Recent Activity'**
   String get dashboardRecentActivity;
 
+  /// No description provided for @dashboardNoActivityYet.
+  ///
+  /// In en, this message translates to:
+  /// **'No activity yet'**
+  String get dashboardNoActivityYet;
+
+  /// No description provided for @dashboardActivityEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a refuel, service, or expense to see it here.'**
+  String get dashboardActivityEmptyBody;
+
+  /// No description provided for @dashboardActivityLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not load recent activity'**
+  String get dashboardActivityLoadError;
+
   /// No description provided for @dashboardNoServicesYet.
   ///
   /// In en, this message translates to:

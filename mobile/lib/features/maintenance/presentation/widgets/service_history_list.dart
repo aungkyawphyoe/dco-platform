@@ -1,6 +1,7 @@
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
+import 'package:dco_mobile/core/widgets/dco_card.dart';
 import 'package:dco_mobile/features/maintenance/presentation/widgets/plan_item_tile.dart';
 import 'package:dco_mobile/features/maintenance/providers.dart';
 import 'package:dco_mobile/features/settings/providers.dart';
@@ -25,9 +26,8 @@ class ServiceHistoryList extends ConsumerWidget {
     final currency = ref.watch(currencyProvider).code;
 
     return history.when(
-      loading: () => Center(
-        child: CircularProgressIndicator(color: tokens.text.accent),
-      ),
+      loading: () =>
+          Center(child: CircularProgressIndicator(color: tokens.text.accent)),
       error: (error, _) =>
           DcoEmptyState(title: s.serviceHistoryLoadError, body: '$error'),
       data: (records) {
@@ -37,21 +37,43 @@ class ServiceHistoryList extends ConsumerWidget {
             body: s.serviceHistoryEmptyBody,
           );
         }
-        return ListView.builder(
-          padding: EdgeInsets.only(
-            top: tokens.space.s3,
-            bottom: tokens.space.s5,
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            tokens.space.s4,
+            tokens.space.s3,
+            tokens.space.s4,
+            tokens.space.s5,
           ),
-          itemCount: records.length,
-          itemBuilder: (context, index) {
-            final record = records[index];
-            return HistoryTile(
-              record: record,
-              lengthUnit: lengthUnit,
-              currency: currency,
-              onTap: () => context.push(AppRoutes.serviceDetail(record.id)),
-            );
-          },
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: DcoCard(
+              padding: EdgeInsets.zero,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(tokens.radius.lg),
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  padding: EdgeInsets.zero,
+                  itemCount: records.length,
+                  separatorBuilder: (context, index) => Divider(
+                    height: 1,
+                    indent: 72,
+                    endIndent: 16,
+                    color: tokens.border.divider,
+                  ),
+                  itemBuilder: (context, index) {
+                    final record = records[index];
+                    return HistoryTile(
+                      record: record,
+                      lengthUnit: lengthUnit,
+                      currency: currency,
+                      onTap: () =>
+                          context.push(AppRoutes.serviceDetail(record.id)),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
         );
       },
     );

@@ -278,6 +278,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboardRecentActivity => 'Recent Activity';
 
   @override
+  String get dashboardNoActivityYet => 'No activity yet';
+
+  @override
+  String get dashboardActivityEmptyBody =>
+      'Add a refuel, service, or expense to see it here.';
+
+  @override
+  String get dashboardActivityLoadError => 'Could not load recent activity';
+
+  @override
   String get dashboardNoServicesYet => 'No services yet';
 
   @override

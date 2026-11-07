@@ -1,8 +1,8 @@
-import 'package:dco_mobile/core/providers.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
+import 'package:dco_mobile/core/widgets/dco_card.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
 import 'package:dco_mobile/features/fuel/providers.dart';
@@ -56,20 +56,6 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
                   : tokens.icon.active,
             ),
           ),
-          IconButton(
-            tooltip: kind == FuelLogKind.charge
-                ? s.fuelLogsAddChargeTooltip
-                : s.fuelLogsAddRefuelTooltip,
-            onPressed: !access.canCreate
-                ? null
-                : () => context.push(AppRoutes.fuelLogNew),
-            icon: Icon(
-              Icons.add,
-              color: !access.canCreate
-                  ? tokens.icon.inactive
-                  : tokens.icon.active,
-            ),
-          ),
         ],
       ),
       body: vehicle == null || kind == null
@@ -87,67 +73,119 @@ class _FuelLogsScreenState extends ConsumerState<FuelLogsScreen> {
               ),
               data: (items) {
                 final filtered = _applyFilters(items);
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                return Stack(
                   children: [
-                    _FilterBar(
-                      types: types,
-                      selectedTypeId: _fuelTypeId,
-                      period: _period,
-                      onTypeSelected: (id) => setState(() => _fuelTypeId = id),
-                      onPeriodSelected: (period) =>
-                          setState(() => _period = period),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        _FilterBar(
+                          types: types,
+                          selectedTypeId: _fuelTypeId,
+                          period: _period,
+                          onTypeSelected: (id) =>
+                              setState(() => _fuelTypeId = id),
+                          onPeriodSelected: (period) =>
+                              setState(() => _period = period),
+                        ),
+                        Expanded(
+                          child: items.isEmpty
+                              ? DcoEmptyState(
+                                  title: kind == FuelLogKind.charge
+                                      ? s.fuelLogsEmptyTitleCharges
+                                      : s.fuelLogsEmptyTitleRefuels,
+                                  body: kind == FuelLogKind.charge
+                                      ? s.fuelLogsEmptyBodyCharges(
+                                          vehicle.displayName,
+                                        )
+                                      : s.fuelLogsEmptyBodyRefuels(
+                                          vehicle.displayName,
+                                        ),
+                                  actionLabel: access.canCreate
+                                      ? kind.addLabel
+                                      : null,
+                                  onAction: access.canCreate
+                                      ? () => context.push(AppRoutes.fuelLogNew)
+                                      : null,
+                                )
+                              : filtered.isEmpty
+                              ? DcoEmptyState(
+                                  title: s.fuelLogsNoMatching,
+                                  body: s.fuelLogsNoMatchingBody,
+                                )
+                              : Padding(
+                                  padding: EdgeInsets.fromLTRB(
+                                    tokens.space.s4,
+                                    tokens.space.s2,
+                                    tokens.space.s4,
+                                    tokens.space.s2,
+                                  ),
+                                  child: Align(
+                                    alignment: Alignment.topCenter,
+                                    child: DcoCard(
+                                      padding: EdgeInsets.zero,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(
+                                          tokens.radius.lg,
+                                        ),
+                                        child: ListView.separated(
+                                          shrinkWrap: true,
+                                          padding: EdgeInsets.zero,
+                                          itemCount: filtered.length,
+                                          separatorBuilder: (context, index) =>
+                                              Divider(
+                                                height: 1,
+                                                indent: 72,
+                                                endIndent: 16,
+                                                color: tokens.border.divider,
+                                              ),
+                                          itemBuilder: (context, index) {
+                                            final log = filtered[index];
+                                            return _FuelLogTile(
+                                              log: log,
+                                              currency: currency,
+                                              onTap: () => context.push(
+                                                AppRoutes.fuelLogDetail(log.id),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                        ),
+                      ],
                     ),
-                    Expanded(
-                      child: items.isEmpty
-                          ? DcoEmptyState(
-                              title: kind == FuelLogKind.charge
-                                  ? s.fuelLogsEmptyTitleCharges
-                                  : s.fuelLogsEmptyTitleRefuels,
-                              body: kind == FuelLogKind.charge
-                                  ? s.fuelLogsEmptyBodyCharges(
-                                      vehicle.displayName,
-                                    )
-                                  : s.fuelLogsEmptyBodyRefuels(
-                                      vehicle.displayName,
-                                    ),
-                              actionLabel: access.canCreate
-                                  ? kind.addLabel
-                                  : null,
-                              onAction: access.canCreate
-                                  ? () => context.push(AppRoutes.fuelLogNew)
-                                  : null,
-                            )
-                          : filtered.isEmpty
-                          ? DcoEmptyState(
-                              title: s.fuelLogsNoMatching,
-                              body: s.fuelLogsNoMatchingBody,
-                            )
-                          : ListView.builder(
-                              padding: EdgeInsets.fromLTRB(
-                                tokens.space.s4,
-                                tokens.space.s2,
-                                tokens.space.s4,
-                                tokens.space.s5,
-                              ),
-                              itemCount: filtered.length,
-                              itemBuilder: (context, index) {
-                                final log = filtered[index];
-                                return Padding(
-                                  padding: EdgeInsets.only(
-                                    bottom: tokens.space.s3,
-                                  ),
-                                  child: _FuelLogTile(
-                                    log: log,
-                                    currency: currency,
-                                    onTap: () => context.push(
-                                      AppRoutes.fuelLogDetail(log.id),
-                                    ),
-                                  ),
-                                );
-                              },
+                    if (access.canCreate)
+                      Positioned(
+                        right: 16,
+                        bottom: 40,
+                        child: SizedBox(
+                          width: 150,
+                          height: 56,
+                          child: FloatingActionButton.extended(
+                            backgroundColor: tokens.button.primary.background,
+                            foregroundColor: tokens.text.onAccent,
+                            heroTag: 'btn-add-fuel-log',
+                            onPressed: () => context.push(AppRoutes.fuelLogNew),
+                            label: Text(
+                              kind == FuelLogKind.charge
+                                  ? s.fuelLogsAddChargeTooltip
+                                  : s.fuelLogsAddRefuelTooltip,
                             ),
-                    ),
+                            icon: Icon(
+                              kind == FuelLogKind.charge
+                                  ? Icons.bolt_outlined
+                                  : Icons.local_gas_station_outlined,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(
+                                tokens.radius.full,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
                   ],
                 );
               },
@@ -293,73 +331,69 @@ class _FuelLogTile extends StatelessWidget {
     final tokens = context.tokens;
     final isCharge = log.kind == FuelLogKind.charge;
     final color = tokens.chart.fuel;
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(tokens.radius.lg),
-        boxShadow: tokens.shadows.card,
-      ),
-      child: Material(
-        color: tokens.background.card,
-        borderRadius: BorderRadius.circular(tokens.radius.lg),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(tokens.radius.lg),
-          child: Padding(
-            padding: EdgeInsets.all(tokens.space.s3),
-            child: Row(
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.16),
+                borderRadius: BorderRadius.circular(tokens.radius.full),
+              ),
+              child: Icon(
+                isCharge
+                    ? Icons.bolt_outlined
+                    : Icons.local_gas_station_outlined,
+                color: color,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    log.fuelTypeName,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  SizedBox(height: tokens.space.s1),
+                  Text(
+                    log.amountLabel,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: .end,
               children: [
-                Container(
-                  width: 40,
-                  height: 40,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.16),
-                    borderRadius: BorderRadius.circular(tokens.radius.full),
-                  ),
-                  child: Icon(
-                    isCharge
-                        ? Icons.bolt_outlined
-                        : Icons.local_gas_station_outlined,
-                    color: color,
-                    size: 22,
-                  ),
+                Text(
+                  DateFormat.yMMMd().format(log.loggedOn),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
                 ),
-                SizedBox(width: tokens.space.s3),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        DateFormat.yMMMd().format(log.loggedOn),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: tokens.text.caption,
-                        ),
-                      ),
-                      SizedBox(height: tokens.space.s1),
-                      Text(
-                        log.fuelTypeName,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      SizedBox(height: tokens.space.s1),
-                      Text(
-                        log.amountLabel,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: tokens.text.caption,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                SizedBox(height: tokens.space.s1),
                 Text(
                   MoneyFormat.labeled(log.cost, currency),
+                  textAlign: TextAlign.end,
                   style: GoogleFonts.ibmPlexMono(
-                    color: tokens.text.secondary,
                     fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: tokens.text.primary,
                   ),
                 ),
               ],
             ),
-          ),
+          ],
         ),
       ),
     );

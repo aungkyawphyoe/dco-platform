@@ -285,6 +285,17 @@ class AppLocalizationsMy extends AppLocalizations {
   String get dashboardRecentActivity => 'လတ်တလော လုပ်ဆောင်ချက်များ';
 
   @override
+  String get dashboardNoActivityYet => 'လှုပ်ရှားမှု မရှိသေးပါ';
+
+  @override
+  String get dashboardActivityEmptyBody =>
+      'ဆီဖြည့်မှု၊ ပြုပြင်မှု သို့မဟုတ် အသုံးစရိတ် ထည့်သွင်းပါ။';
+
+  @override
+  String get dashboardActivityLoadError =>
+      'လတ်တလော လှုပ်ရှားမှုများကို မဖော်ပြနိုင်ပါ';
+
+  @override
   String get dashboardNoServicesYet =>
       'ပြုပြင်ထိန်းသိမ်းမှု မှတ်တမ်း မရှိသေးပါ';
 

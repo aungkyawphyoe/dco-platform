@@ -306,56 +306,35 @@ class HistoryTile extends StatelessWidget {
         ? '—'
         : MileageFormat.labeled(record.odometer!, lengthUnit);
     final workshop = record.workshopName;
-    return Padding(
-      padding: EdgeInsets.fromLTRB(
-        tokens.space.s4,
-        0,
-        tokens.space.s4,
-        tokens.space.s3,
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(tokens.radius.lg),
-          boxShadow: tokens.shadows.card,
-        ),
-        child: Material(
-          color: tokens.background.card,
-          borderRadius: BorderRadius.circular(tokens.radius.lg),
-          child: InkWell(
-            onTap: onTap,
-            borderRadius: BorderRadius.circular(tokens.radius.lg),
-            child: Padding(
-              padding: EdgeInsets.all(tokens.space.s3),
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: tokens.chart.maintenance.withValues(alpha: 0.12),
+              ),
+              child: Icon(
+                Icons.build_outlined,
+                color: tokens.chart.maintenance,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    DateFormat.yMMMd().format(record.servicedOn),
-                    style: Theme.of(
-                      context,
-                    ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                    record.title,
+                    style: Theme.of(context).textTheme.titleMedium,
                   ),
-                  SizedBox(height: tokens.space.s1),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          record.title,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                      ),
-                      SizedBox(width: tokens.space.s3),
-                      Text(
-                        money,
-                        style: GoogleFonts.ibmPlexMono(
-                          color: tokens.text.secondary,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: tokens.space.s1),
+                  const SizedBox(height: 4),
                   Text(
                     workshop == null || workshop.isEmpty
                         ? odometer
@@ -367,7 +346,28 @@ class HistoryTile extends StatelessWidget {
                 ],
               ),
             ),
-          ),
+            Column(
+              crossAxisAlignment: .end,
+              children: [
+                Text(
+                  DateFormat.yMMMd().format(record.servicedOn),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: tokens.text.caption),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  money,
+                  textAlign: TextAlign.end,
+                  style: GoogleFonts.ibmPlexMono(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: tokens.text.primary,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

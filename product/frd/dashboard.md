@@ -20,7 +20,7 @@ Enable users to:
 - Read a truthful ownership cost snapshot
 - Open Services, Documents, Refuel/Charge, and Parts from Quick Actions (Insurance is now in the hamburger menu)
 - Jump to the next due service
-- Scan the last three maintenance events
+- Scan the ten latest refuel, service, and expense records
 - Register a vehicle when the garage is empty
 
 ---
@@ -32,7 +32,7 @@ Enable users to:
 - Vehicle identity block (photo, plate, year/make/model, mileage, VIN if present)
 - Ownership summary: total spent, this month spent
 - Quick Actions: Services (full history), Documents, Refuel/Charge, Parts (Insurance moved to hamburger menu)
-- Recent activity: **3** maintenance history rows
+- Recent activity: up to **10** combined refuel, service, and expense rows
 - Next maintenance: the most due plan item + Log Service
 - Empty garage dashboard
 - Header notification entry (feed; delivery rules in `notifications.md`)
@@ -45,7 +45,6 @@ Enable users to:
 - Fuel *efficiency* KPIs (€/L, L/100km, charging kWh/100km). Refuel/Charge *logs* are a Quick Action, not dashboard metrics.
 - Insurance expiry as a dashboard module (Autozis Needs attention / Insurance)
 - Trips, AI assistant, mileage-update "events" as a product type
-- Mixing refuel rows into Recent Activity
 - Auto-creating expenses from service costs (summary uses **Expenses** only)
 - Fifth bottom-nav item
 
@@ -85,7 +84,7 @@ So that I know what ownership is costing without opening every module.
 
 As an owner,
 
-I want the next due item and three recent services
+I want the next due item and ten recent refuel, service, and expense entries
 
 So that I know what to do next and what was done last.
 
@@ -148,12 +147,13 @@ Tiles are shortcuts, not KPI counts. Insurance is accessed via the **hamburger m
 
 ## Recent activity
 
-- Exactly **3** rows from service history, newest first.
-- Each row: date, service name (first line item or record title), cost.
-- Tap a row → that service in Maintenance.
-- Fewer than 3: show what exists. Zero: dedicated empty line ("No services yet"), not a generic error.
-
-Do **not** show Autozis-style REFUEL timeline rows.
+- Up to **10** combined refuel/charge, service, and expense records for the active vehicle, newest transaction date first (creation time breaks date ties).
+- Auto-created expenses sharing a service/refuel record ID are excluded from the feed; show the source record once. Standalone expenses remain visible. Deduplicate before applying the ten-record limit.
+- One elevated card with continuous rows and inset dividers between rows.
+- Each row: circular module-colored icon, date above title, and right-aligned amount using the active currency preference.
+- Service titles use the first line item or record title; refuels use fuel type with full-tank status when available; expenses use notes or their category.
+- Tap a row → that specific record’s detail screen.
+- Zero records: localized guidance to add a refuel, service, or expense. Loading and failure states are distinct from empty; failures offer retry.
 
 ## Next maintenance
 
@@ -261,8 +261,9 @@ dashboard_log_service_tapped
 
 - Auth (session)
 - Garage (active vehicle, identity, mileage)
-- Expenses (totals)
-- Maintenance (counts, three rows, next plan item)
+- Expenses (totals and recent activity)
+- Maintenance (counts, recent activity, next plan item)
+- Refuel/charge logs (recent activity)
 - Documents (count)
 - Notifications (feed entry)
 - Sync (pull refreshes figures)
