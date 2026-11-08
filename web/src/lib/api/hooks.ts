@@ -43,18 +43,6 @@ export function useAdminUser(id: string | null) {
   });
 }
 
-export function useUpdateUserPlan() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, plan }: { id: string; plan: Plan }) =>
-      apiPatch<AdminUserProfile>(`/admin/users/${id}`, { plan }),
-    onSuccess: (_data, variables) => {
-      qc.invalidateQueries({ queryKey: ["admin", "users"] });
-      qc.invalidateQueries({ queryKey: ["admin", "users", variables.id] });
-    },
-  });
-}
-
 export function useUpdateUserRole() {
   const qc = useQueryClient();
   return useMutation({

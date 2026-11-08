@@ -30,7 +30,6 @@ import {
 import { Input } from "@dco/ui/components/input";
 import {
   useAdminUser,
-  useUpdateUserPlan,
   useUpdateUserRole,
   useUpdateUserAccess,
   useUpdateUserProfile,
@@ -39,7 +38,6 @@ import {
   useSendPasswordReset,
   useDeleteUser,
 } from "@/lib/api/hooks";
-import { PLAN_OPTIONS, type Plan } from "@/lib/plans";
 
 export default function UserProfilePage({
   params,
@@ -50,7 +48,6 @@ export default function UserProfilePage({
   const router = useRouter();
   const { data: user, isLoading, error } = useAdminUser(id);
 
-  const updatePlan = useUpdateUserPlan();
   const updateRole = useUpdateUserRole();
   const updateAccess = useUpdateUserAccess();
   const updateProfile = useUpdateUserProfile();
@@ -253,21 +250,6 @@ export default function UserProfilePage({
         <Card className="flex flex-col">
           <SectionHeading title="Actions" />
           <div className="flex flex-wrap gap-3 p-5">
-            <Select
-              label="Plan"
-              options={[...PLAN_OPTIONS]}
-              value={user.plan ?? "free"}
-              disabled={updatePlan.isPending}
-              onChange={(v) =>
-                updatePlan.mutate(
-                  { id, plan: v as Plan },
-                  {
-                    onSuccess: () => setFeedback(`Plan changed to ${v}.`),
-                  },
-                )
-              }
-            />
-
             <Select
               label="Account role"
               options={[

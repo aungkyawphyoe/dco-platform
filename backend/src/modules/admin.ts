@@ -6,6 +6,7 @@ import { hashPassword, newId, randomToken, sha256 } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { emailTokens } from "../db/schema.js";
 import { publicUser } from "../lib/serialize.js";
+import { effectiveSubscription } from "../lib/gifts.js";
 import { changeUserPlan } from "../lib/entitlements.js";
 import { PLAN_IDS } from "../lib/plans.js";
 import { provisionOwnerAccount } from "../lib/account-provisioning.js";
@@ -348,6 +349,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
       .innerJoin(organizations, eq(organizationMembers.orgId, organizations.id))
       .where(eq(organizationMembers.userId, userId))
       .limit(1);
+    const subscription = await effectiveSubscription(app.db, userId);
     return {
       id: u.id,
       email: u.email,
@@ -356,7 +358,7 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
       contact_phone: u.contactPhone,
       address: u.address,
       profile_photo_media_id: u.profilePhotoMediaId,
-      plan: u.plan,
+      plan: subscription.plan,
       role: u.role,
       status: u.status,
       vehicle_count: v.filter((x) => !x.archived).length,
