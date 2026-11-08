@@ -128,4 +128,20 @@ describe('admin billing', () => {
         expect((await effectiveSubscription(ctx.db, later.id)).plan).toBe('lite');
     });
 
+    it('shows the effective personal plan on User Detail throughout the subscription lifecycle', async () => {
+        const o = await owner();
+        const detail = () => ctx.app.inject({ method: 'GET', url: `/v1/admin/users/${o.id}`, headers: admin });
+        expect((await detail()).json().plan).toBe('free');
+        const grant = await ctx.app.inject({ method: 'POST', url: '/v1/admin/subscriptions', headers: admin, payload: payload(o.id) });
+        expect(grant.statusCode, grant.body).toBe(200);
+        expect((await ctx.db.select().from(users).where(eq(users.id, o.id)))[0].plan).toBe('free');
+        expect((await detail()).json().plan).toBe('lite');
+        const upgrade = await ctx.app.inject({ method: 'PATCH', url: `/v1/admin/subscriptions/${grant.json().id}`, headers: admin, payload: { version: 1, action: 'upgrade', reason: 'Upgrade regression' } });
+        expect(upgrade.statusCode, upgrade.body).toBe(200);
+        expect((await detail()).json().plan).toBe('standard');
+        const revoke = await ctx.app.inject({ method: 'PATCH', url: `/v1/admin/subscriptions/${grant.json().id}`, headers: admin, payload: { version: 2, action: 'revoke', reason: 'Revoke regression' } });
+        expect(revoke.statusCode, revoke.body).toBe(200);
+        expect((await detail()).json().plan).toBe('free');
+    });
+
 });

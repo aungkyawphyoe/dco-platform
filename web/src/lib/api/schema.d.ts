@@ -10985,6 +10985,8 @@ export interface components {
             name: string;
         };
         ServiceRecord: {
+            /** @description Custom job title, separate from the names of individual service items. */
+            title?: string | null;
             currency?: components["schemas"]["OperationalCurrency"];
             readonly revision?: number;
             /** Format: uuid */
@@ -11025,6 +11027,8 @@ export interface components {
             name: string;
         };
         ServiceRecordWrite: {
+            /** @description Custom job title, separate from the names of individual service items. */
+            title?: string | null;
             /** @description Required with monetary entries after rollout activation. Historical edits retain their original currency. */
             currency?: components["schemas"]["OperationalCurrency"];
             /** Format: uuid */

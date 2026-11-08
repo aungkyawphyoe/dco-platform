@@ -182,7 +182,10 @@ export function Subscriptions({
       ? latest.endsAt.slice(0, 16)
       : start;
   const end = calculateEnd(effectiveStart, unit, Number(count));
-  const refresh = () => qc.invalidateQueries({ queryKey: ["subscriptions"] });
+  const refresh = () => Promise.all([
+    qc.invalidateQueries({ queryKey: ["subscriptions"] }),
+    qc.invalidateQueries({ queryKey: ["admin", "users"] }),
+  ]);
   const create = useMutation({
     mutationFn: ({
       key,
