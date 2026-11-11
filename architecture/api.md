@@ -1,5 +1,7 @@
 # API contract (index)
 
+**Planned showroom handover — 10 November 2026:** [Plan](../product/frd/showroom-handover-plan.md) supersedes the intended immediate-transfer workflow. Existing OpenAPI describes the baseline; draft/review/complete/correction contracts are not available yet. Update OpenAPI and generated clients with implementation, and prevent the legacy route from bypassing new requirements.
+
 Canonical machine file: [`openapi.yaml`](openapi.yaml) (OpenAPI 3.0.3).
 
 - Base path: `/v1`

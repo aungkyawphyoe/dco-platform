@@ -1,5 +1,7 @@
 # Sync Module
 
+**Planned showroom handover — 10 November 2026:** [Plan](showroom-handover-plan.md) requires ownership-period filtering on initial and incremental sync, complete buyer vehicle/plan delivery, assignment revocation, and separate review of late showroom submissions. Late writes must not alter buyer history, mileage, or reminders. Existing sync implementation must be audited before handover rollout.
+
 ## Organization Driver synchronization — approved 18 October 2026
 
 Driver core records use a separate local database per account and organization, revision-aware operations, complete assignment manifests, and a review queue for revoked/stale/admin-corrected submissions. Reviewed operations do not affect live totals before acceptance. Personal sync remains separate; Driver identities cannot pull the Personal change feed. Fleet-only issue and inspection workflows remain online.

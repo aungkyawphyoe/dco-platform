@@ -1,5 +1,7 @@
 # Production Scope
 
+**Approved 10 November 2026; implementation pending:** [Showroom handover](frd/showroom-handover-plan.md) adds staff-completed handover to existing personal accounts, private showroom history, clean buyer history, mandatory reviewed independent maintenance plans, optional frozen warranty terms, and platform-admin correction.
+
 **Product:** AutoX Platform
 
 **Version:** 1.0

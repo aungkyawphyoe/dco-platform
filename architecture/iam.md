@@ -1,5 +1,7 @@
 # Identity and access (MVP + extension map)
 
+**Planned showroom handover — 10 November 2026:** [Plan](../product/frd/showroom-handover-plan.md) adds manager preparation and explicitly delegated completion permission (admin-controlled), checked again at submission. Buyer acceptance is not required. Historical showroom access ends at its ownership period; no automatic access to buyer activity. Completed mistakes require audited platform-admin correction, a narrow planned exception to ordinary read-only fleet support.
+
 **Status:** Binding for the shipped owner/Admin IAM baseline; backend Vehicle Sharing, Enterprise Fleet, and verified-workshop access gates are implemented. Fleet/Workshop Portal and mobile Fleet UI remain pending.
 **Contract:** `product/mvp-scope.md`.
 

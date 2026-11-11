@@ -1,5 +1,7 @@
 # Data model / ERD (MVP)
 
+**Planned showroom handover — 10 November 2026:** [Plan](../product/frd/showroom-handover-plan.md) requires ownership-period isolation, one vehicle identity, draft/review state, independent buyer plans, and frozen handover/warranty evidence. Existing tables below describe the baseline, not a completed implementation of these requirements. Resolve schema and legacy backfill in phase 0; vehicle ownership alone must not authorize previous-period child records.
+
 **Status:** Binding. Honor `product/mvp-scope.md` business rules.  
 **Compare target:** Autozis demo + public feature list (`https://autozis.com/`, `/app/dashboard`, `/app/garage`, `/app/expenses`).
 
@@ -479,3 +481,11 @@ Migration `0031_operational_currency.sql` adds `users.currency` (default MMK), n
 Existing operational amounts and retained analytics/transfer JSON snapshots are tagged MMK without changing amounts. Organization baseline initialization runs once, so new unselected fleets are not silently configured on subsequent boots. Existing analytics timezone and reporting settings are untouched in this additive slice.
 
 Migration `0032_currency_enforcement.sql` now enforces durable locks and atomic scope validation. Known legacy histories are locked; uncertain transferred/deleted histories are recorded in `currency_migration_reviews`, which blocks activation until reconciled. `operational_currency_control.enabled` defaults to false; compatibility-mode monetary writes still establish locks. Multi-currency selection, sync compatibility, client formatting, and totals must be completed before activation. See the [implementation plan](../docs/multi-currency-implementation-plan.md) and [FRD](../product/frd/multi-currency.md).
+
+## Ownership attribution foundation — implemented locally 11 November 2026
+
+Migration `0040_vehicle_ownership_periods.sql` introduces `vehicle_ownership_periods`: one active period per vehicle, exactly one personal or organization principal, and explicit observed versus legacy-baseline origin. Principal changes close the previous period and open a new one. Current organization membership takes precedence over the vehicle owner field until the inventory link is removed.
+
+`ownership_period_id` is now available on plans, service records, parts, fuel logs, documents, expenses, work orders, and inspections. New rows receive the current period under vehicle locking. Derived expenses inherit their source record's period. Routine updates cannot reassign period or vehicle identity. Line items and record attachments inherit the parent boundary; independent media authorization still needs integration.
+
+Existing rows are retained with null attribution and entered into `ownership_migration_reviews`. Neither current owner nor a service date is sufficient proof of historical ownership. This migration deliberately does not enable read filtering, reconcile ambiguous rows, or expose the new handover flow. A controlled audited reconciliation operation and period-aware route/media/sync checks remain required before handover rollout.

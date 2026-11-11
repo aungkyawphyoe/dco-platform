@@ -1,5 +1,7 @@
 # AutoX Fleet Portal · Administrator guide
 
+**Showroom handover status — 10 November 2026:** The staff handover flow is planned, not yet available in the Fleet Portal. The existing Transferred page is a read-only audit view. See the [approved implementation plan](../../product/frd/showroom-handover-plan.md) for future recipient verification, maintenance review, permissions, and correction rules; these are not current user instructions.
+
 Use this guide to get a driver ready for their first shift, follow up on repairs, and review fleet records.
 
 ## Contents
@@ -36,6 +38,17 @@ The vehicle record connects its drivers, inspections, service history, and costs
 2. Click **Add vehicle**. Enter a recognizable name, make, model, year, and license plate. Use the vehicle’s own records to fill in its details. VIN means the 17-character vehicle identification number.
 3. Select the fuel, vehicle class, and lifecycle that match the vehicle. Enter its current odometer reading in kilometers.
 4. Click **Add vehicle**. Find the vehicle in the inventory and check the plate and distance.
+
+## Change a vehicle’s status
+
+Implemented locally on 11 November 2026; availability depends on deployment.
+
+1. Open **Vehicles**, find the vehicle, and click **View**. The inventory displays statuses and filters but no longer changes statuses directly or in bulk.
+2. In **Vehicle status**, read the current status description. Expand **What each status means** for the lifecycle guide.
+3. As an organization admin or manager, select a valid next status. Read its explanation, then click **Save status**. Selection alone does not save.
+4. Check **Status saved** and the updated status. If the vehicle changed while you were reviewing it, choose again from the refreshed state.
+
+**Sold** cannot be selected manually. It requires completed handover; the new handover preparation flow is still pending.
 
 ## Give a driver access
 

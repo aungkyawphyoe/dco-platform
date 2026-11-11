@@ -1,5 +1,7 @@
 # Maintenance Module
 
+**Planned showroom handover — 10 November 2026:** [Plan](showroom-handover-plan.md) requires staff to review a nonempty per-vehicle maintenance plan before transfer. Copy configuration and true next-due targets into an independent buyer plan, not showroom service history or fabricated completions. Unknown baselines require explicit initial-service status; later fleet/catalog changes do not affect the buyer.
+
 ## Simplified reminders and flexible service logging — approved 4 November 2026
 
 Status is approved for implementation. This section supersedes conflicting catalog, template, plan setup, and service logging requirements below and in `fleet-maintenance-templates.md`. Approval records the product contract. Implementation is ready for manual acceptance testing. The one-time development catalog reset and reminder-rule schema updates are applied to the local development database. The owner is handling manual testing.

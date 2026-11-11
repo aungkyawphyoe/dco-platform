@@ -3388,12 +3388,14 @@ paths:
               type: object
               required: [status]
               properties:
-                status: {type: string}
+                status: {type: string, description: "Target lifecycle state. Sold requires the dedicated handover operation."}
+                expected_status: {type: string, description: "Previously displayed state; a mismatch returns 409 without changes."}
                 revenue_label: {type: string, maxLength: 200, nullable: true}
                 vehicle_class: {$ref: '#/components/schemas/VehicleClass'}
       responses:
         '200': {description: Updated fleet vehicle}
         '400': {$ref: '#/components/responses/Error'}
+        '409': {$ref: '#/components/responses/Error'}
   /organizations/{id}/maintenance-catalog:
     get:
       tags: [Fleet, Maintenance]

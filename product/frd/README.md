@@ -1,5 +1,7 @@
 # Feature Requirement Documents (FRDs)
 
+**Planned showroom handover — approved 10 November 2026:** [Implementation plan](showroom-handover-plan.md). The backend immediate-transfer endpoint is only a baseline; portal handover, clean buyer history, reviewed independent maintenance plans, delegated permission, and audited correction are not implemented.
+
 This directory contains the functional specifications for every feature of the AutoX Platform.
 
 Each FRD is self-contained and serves as the primary source of truth for:

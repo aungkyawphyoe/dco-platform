@@ -1,5 +1,7 @@
 # AutoX MVP — Product Guide (as built)
 
+**10 November 2026 transfer clarification:** An immediate backend transfer endpoint and a portal Transferred audit page exist; the reviewed staff handover journey is not implemented. [Approved plan](../product/frd/showroom-handover-plan.md) replaces the previous full-history buyer promise with clean history and an independent maintenance plan. Older transfer completion claims below do not establish this journey as shipped.
+
 **Product:** AutoX  
 **Audience:** Stakeholders, product, engineering  
 **Status:** Working implementation, production-ready  

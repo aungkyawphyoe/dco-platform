@@ -1,5 +1,7 @@
 # Fleet Maintenance Templates
 
+**Planned showroom handover — 10 November 2026:** [Plan](showroom-handover-plan.md) uses the current per-vehicle reminders, not the historical template-generation flow below. Reviewed configuration becomes buyer-owned; fleet-private catalog references must not expose the catalog or prevent buyer maintenance.
+
 ## Fleet catalog presentation — 4 November 2026
 
 The names-only reminder model supersedes the interval/template flows below. The Fleet Portal catalog uses separated service rows, search, and Suggested / Custom source labels. Admins and managers can add fleet-only custom service names; mechanics can read them. Both global suggestions and that fleet's custom items are available in vehicle reminder setup and the assigned driver's suggested list. Other fleets and personal catalogs cannot see or select them.

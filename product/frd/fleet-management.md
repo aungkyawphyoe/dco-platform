@@ -1,10 +1,12 @@
 # Fleet Management Module
 
+**10 November 2026 approved showroom handover (not implemented):** [Showroom handover plan](showroom-handover-plan.md) governs transfer design: existing buyer account, staff completion, delegated manager permission, clean buyer history, mandatory independent maintenance plan, and platform-admin-only correction. It supersedes older full-history, auto-created-buyer, immediate-transfer, and admin-only-finalizer requirements below. The immediate backend endpoint exists; the Fleet Portal handover journey is not implemented.
+
 **24 October 2026 subscription extension:** [Subscription Management and Admin Pricing](subscription-management.md) defines direct-paid and complimentary terms, grace, read-only expiry, per-organization migration, and editable catalog prices. It supersedes older indefinite admin-access assumptions for managed subscribers; store lifecycle and prices remain provider-controlled.
 
 ## Overview
 
-Fleet Management enables **business accounts** (showrooms, dealerships, taxi fleets, rental companies, commercial fleets) to manage multiple vehicles under an organization, track warranty periods with approved workshops, and transfer vehicle ownership to buyers with full maintenance history. Organizations are created exclusively by AutoX administrators via the Admin Portal (sales-led onboarding). This module extends the existing single-owner model to support multi-vehicle business operations with role-based access, warranty enforcement, ownership transfer, driver work orders, vehicle inspections, and cost analytics.
+Fleet Management enables **business accounts** (showrooms, dealerships, taxi fleets, rental companies, commercial fleets) to manage multiple vehicles under an organization, track warranty periods with approved workshops, and transfer vehicle ownership to buyers with clean history and a reviewed independent maintenance plan. Organizations are created exclusively by AutoX administrators via the Admin Portal (sales-led onboarding). This module extends the existing single-owner model to support multi-vehicle business operations with role-based access, warranty enforcement, ownership transfer, driver work orders, vehicle inspections, and cost analytics.
 
 **Status:** Partial — backend, Fleet Portal (`fleet-portal/`, `dco-fleet`), mobile Driver mode, and Web Admin organization provisioning implemented; Workshop Portal still planned (Phase 3, Year 2). Web Admin does not import initial vehicles during provisioning — seed inventory via the Fleet Portal CSV import after activation.
 **Requirement alignment (October 2026 — implemented):** Enterprise access-model shift confirmed by grilling: (1) Fleet Portal sidebar visibility is role-based — full nav for `org_admin`, reduced nav for `org_manager`/`org_mechanic`, no portal login for `org_driver`; (2) AutoX Admin provisions the Fleet Admin account with email + temporary password (invite-email provisioning retires); (3) drivers are created/deactivated by the Fleet Admin — ~~username + password and no email~~ superseded: drivers are created on the Fleet Portal **Members** page by **email** (see *Confirmed Access Decisions* 15–24); (4) driver login forces Driver mode; (5) driver deactivation is a soft delete that cascades to active assignments and reserves the username. See *Confirmed Access Decisions* 7–24.
@@ -39,7 +41,7 @@ Enable organizations to:
 - Be created by AutoX administrators via the Admin Portal (sales-led onboarding)
 - Manage vehicle inventory through lifecycle states using predefined templates (showroom, taxi fleet, rental, commercial fleet)
 - Configure warranty templates (duration + mileage + approved workshops)
-- Transfer vehicle ownership to buyers (new or existing AutoX users) with full history
+- Transfer vehicle ownership to existing active personal accounts with clean history and a reviewed independent maintenance plan (planned)
 - Enforce warranty service at approved workshops only
 - Maintain read-only audit trail of transferred vehicles
 - Import vehicles via CSV or add one-by-one
@@ -65,7 +67,7 @@ Enable organizations to:
 - Vehicle lifecycle states (free-form, chosen from template)
 - Warranty templates (duration, mileage, coverage, exclusions, approved workshops)
 - Per-vehicle warranty instance (sale date, template reference, warranty start mileage)
-- Vehicle transfer flow (user_id change + audit table)
+- Existing immediate transfer: user_id change + audit table; planned replacement requires the ownership-period, reviewed draft, independent plan, and correction rules in the showroom handover plan
 - `transferred_vehicles` audit table for org read-only history
 - Workshop accounts (type=workshop) with limited vehicle access
 - CSV vehicle import endpoint (admin portal + mobile)
@@ -88,7 +90,7 @@ Enable organizations to:
   - Maintenance tab: read-only admin plans, shared completed-service form, and full assigned-vehicle history.
   - Pushed **Reports** screen (Quick Action): own inspections + Report-Issue work orders
   - Personal-garage routes are **server-denied** (403) while an `org_driver` role or active driver assignment exists; Notes stay local-only personal
-- **Buyer Claim Flow**: Auto-assigned vehicle appears in buyer's personal garage with full history
+- **Buyer Handover (planned)**: Vehicle appears in the existing buyer's personal garage with clean history and a reviewed independent maintenance plan
 - **Workshop Account**: Limited view — current vehicle only, warranty scope only
 - Fleet management (mode switch, org management, inventory, transfers, assignments, warranty templates, reports/analytics) is **Fleet Portal only** — removed from mobile; management API routes require the `dco-fleet` audience
 
@@ -99,7 +101,7 @@ Enable organizations to:
 - **Fleet Admin (`org_admin`)**: Full fleet management (read + write) — vehicles, work orders, inspections, assignments, analytics, reports, warranty templates, and member/driver account management
 - **Driver management**: Fleet Admin creates driver accounts on the **Members** page by **email + role `org_driver` + temporary password** (the username-only driver-creation endpoint and Web Admin driver management are removed); creation **rejects emails belonging to existing personal accounts**; deactivates/reactivates drivers from the Members page
 - **AutoX Admin**: Read-only fleet visibility for support through the Web Admin portal only (`dco-admin`)
-- **Vehicle Inventory**: Table view with filters, sorting, bulk status changes
+- **Vehicle Inventory**: Table view with filters, sorting, and read-only status badges; status changes move to Vehicle Detail (implemented locally 11 November 2026)
 - **Work Orders**: Table + detail view with approve/assign/resolve actions
 - **Inspections**: Template management, inspection history, failure review
 - **Driver Assignments**: Assignment table, bulk assign/unassign
@@ -149,7 +151,7 @@ Enable organizations to:
 | **Fleet Manager** | Senior employee. Full operational access: vehicles, work orders, inspections, assignments, cost analytics. Cannot manage org settings or members. | Web (Fleet Portal) |
 | **Org Mechanic** | Workshop employee. Logs service, views vehicle info. Cannot add vehicles, manage templates, or transfer. | Web (Fleet Portal) |
 | **Driver** | Taxi/rental driver. Org member with `org_driver` role. Account created by the Fleet Admin on the Members page with **email + temporary password**; must change password on first login. Assigned one vehicle at a time. Logs in to the mobile app and is taken directly to Driver mode — the personal four-tab layout with their assigned vehicle read-only. Can log maintenance (Report \| Do myself), complete inspections, report issues, and log fuel from Dashboard quick actions. Restricted view — no costs/analytics, no other vehicles, no personal garage. | Mobile (Driver mode) |
-| **Buyer** | Customer who receives a vehicle. Sees vehicle in personal garage with full history. Normal owner after transfer. | Mobile (Personal mode) |
+| **Buyer** | Customer who receives a vehicle. Receives clean history and an independent maintenance plan. Normal owner after transfer. | Mobile (Personal mode) |
 | **Workshop** | External workshop with AutoX account. Logs warranty service on assigned vehicles. Limited visibility. | Mobile (Workshop mode) |
 | **Platform Admin** | AutoX staff. Creates orgs, manages org lifecycle, imports vehicles, views fleet stats for support. | Web Admin |
 
@@ -199,8 +201,8 @@ Enable organizations to:
 
 ### US-FLT-009: Transfer Vehicle to Buyer
 > As an Org Admin,  
-> I want to transfer a vehicle to a buyer by entering their email  
-> So that the buyer receives the vehicle with full maintenance history in their garage.
+> I want authorized staff to prepare and finalize a handover to an existing buyer identified by QR or exact email
+> So that the buyer receives clean history and a reviewed independent maintenance plan in their garage.
 
 ### US-FLT-010: Log Warranty Service
 > As a Workshop or Org Mechanic,  
@@ -219,7 +221,7 @@ Enable organizations to:
 
 ### US-FLT-013: Receive Transferred Vehicle
 > As a Buyer,  
-> I want to receive a vehicle in my garage with full maintenance history  
+> I want to receive a vehicle in my garage with clean history and a prepared maintenance plan
 > So that I can track my new car's maintenance from day one.
 
 ### US-FLT-014: View Warranty Status
@@ -520,8 +522,8 @@ Enable organizations to:
 - Created when vehicle is transferred to buyer
 - Org retains read-only access to vehicle history via this table
 - Buyer gets full ownership (vehicle's `user_id` changes to buyer)
-- Org can view: vehicle info, all service records, documents, fuel logs, expenses (read-only)
-- Buyer sees: full history including pre-transfer data
+- Org can view its own historical records and frozen handover evidence, not subsequent buyer activity (planned ownership-period isolation)
+- Buyer sees clean history and an independent reviewed maintenance plan; previous showroom data stays private (planned)
 
 ### 8. Workshop Account
 
@@ -757,7 +759,7 @@ Enable organizations to:
 | POST | `/v1/organizations/:id/warranty-templates` | `dco-owner` | Create warranty template — Admin only |
 | PATCH | `/v1/organizations/:id/warranty-templates/:templateId` | `dco-owner` | Update template — Admin only |
 | DELETE | `/v1/organizations/:id/warranty-templates/:templateId` | `dco-owner` | Delete template — Admin only |
-| POST | `/v1/organizations/:id/vehicles/:vehicleId/transfer` | `dco-owner` | Transfer vehicle to buyer — Admin only |
+| POST | `/v1/organizations/:id/vehicles/:vehicleId/transfer` | `dco-fleet` | Existing immediate endpoint — Admin only; replacement workflow pending per showroom handover plan |
 | GET | `/v1/organizations/:id/transferred` | `dco-owner` | List transferred vehicles (audit) |
 | GET | `/v1/organizations/:id/transferred/:vehicleId/history` | `dco-owner` | View transferred vehicle history (read-only) |
 | GET | `/v1/organizations/:id/workshops` | `dco-owner` | List approved workshops |
@@ -836,22 +838,21 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 - Additional fields: Lifecycle Template (dropdown, required), Status (default from template), Warranty Template (optional), Revenue Label (optional text)
 - If warranty template selected, warranty instance created on transfer
 
-#### Transfer Vehicle Screen (Fleet Portal)
-- Entry: Vehicle Detail → "Transfer to Buyer" (Admin only)
-- Steps:
-  1. Enter buyer email (autocomplete from existing users)
-  2. Select warranty template (dropdown, or "No Warranty")
-  3. Confirm sale date and current mileage
-  4. Review transfer summary
-  5. Confirm → Vehicle transferred
-- Post-transfer: Vehicle status → terminal state, `transferred_vehicles` row created, vehicle's `user_id` → buyer
+#### Transfer Vehicle Screen (Fleet Portal — planned)
+- Entry: Vehicle Detail → Prepare handover (Admin/Manager).
+- One draft per reserved showroom vehicle; changing buyer requires cancellation and a new draft.
+- Identify an existing personal account via QR or exact email; review recipient and vehicle identity.
+- Review nonempty independent maintenance plan, due targets, mileage, and explicit warranty/No warranty choice.
+- Complete/cancel all open repairs; relevant changes invalidate review.
+- Finalize: Admin or manager explicitly granted transfer permission; recheck permission and state on submission.
+- Atomic ownership/access/plan/warranty/audit changes; idempotent retries. See [implementation plan](showroom-handover-plan.md).
 
-#### Buyer Claim Flow
-- Buyer signs up / logs in → Vehicle appears in personal garage automatically
-- No acceptance required (email-based auto-assign)
-- Vehicle shows full history (pre-transfer maintenance, expenses, documents, fuel logs)
-- Warranty status displayed in vehicle detail
-- Free plan exempt from 1-vehicle limit for transferred vehicles
+#### Buyer Handover (planned)
+- Existing personal account receives the vehicle; buyer acceptance is not required for staff completion.
+- Service and expense histories start clean; showroom records remain private.
+- Reviewed maintenance configuration becomes an independent editable buyer plan; preserve a frozen handover copy.
+- Optional warranty terms are frozen and visible to the buyer; notification is delivered after completion.
+- Legacy free-plan transfer exemption must be reconciled with current entitlement rules before rollout.
 
 #### Driver Mode (Personal Parity View)
 - Entry: login as a driver → **forced directly into Driver mode** (no Personal/Fleet toggle is offered to `org_driver` accounts)
@@ -970,12 +971,13 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 - **Table view**: Name, plate, make/model, status badge, mileage, assigned driver, lifecycle template, last service
 - **Filters**: Status, lifecycle template, assigned driver, maintenance due
 - **Sorting**: Any column
-- **Bulk actions**: Change status, assign driver, export selected
-- **Row actions**: View detail, edit, transfer to buyer
+- **Bulk actions**: Assign driver, export selected. Remove bulk status changes; status editing belongs on Vehicle Detail (implemented locally 11 November 2026).
+- **Row actions**: View detail, edit non-status fields. Status changes and handover start on Vehicle Detail (planned).
 - **Add Vehicle**: Modal or separate page (reuse mobile form, desktop-optimized)
 - **CSV Import**: Upload with preview, validation, async processing
 
 #### Vehicle detail — `/vehicles/:id`
+- **Vehicle status (implemented locally 11 November 2026):** Move individual status editing here from inventory and remove inventory bulk status editing. Show current status meaning plus explanations for every state in the applicable lifecycle. Selecting a valid next status requires explicit Save; keep role/transition checks and error feedback. Sold is produced only by completed handover, not a manual status edit. See [status copy and acceptance requirements](showroom-handover-plan.md#frontend-vehicle-status-requirements--approved-11-november-2026).
 - **Maintenance plan card** (read-only): generated plan items with next-due mileage/date and overdue/due-soon status — lets a manager verify plan progression after driver logs
 - **Service history card**: org service records for the vehicle (driver do-myself logs, portal completions, workshop entries, auto-created WO completion records) — every driver log is checkable here
 
@@ -1071,7 +1073,7 @@ Mobile serves personal owners and the restricted **Driver** surface. Fleet manag
 4. **Vehicle status transitions follow lifecycle template** — cannot skip states or use invalid states for the template
 5. **Warranty expires on earlier of time or mileage** — system checks both on each service log
 6. **Only approved workshops can log warranty service** — enforced server-side
-7. **Transferred vehicles retain full history** — buyer sees everything
+7. **Transferred vehicles retain one identity** — showroom history stays private; buyer receives clean history and an independent reviewed maintenance plan (approved 10 November; pending implementation)
 8. **Free plan exempt** — transferred vehicles don't count against 1-vehicle limit
 9. **CSV import max 100 rows** — batch limit for performance
 10. **Org must be `active`** for fleet access (Fleet Portal login; Driver surface on mobile)
@@ -1160,15 +1162,15 @@ Fleet Owner (Mobile - Fleet Mode)
   → Status: reserved
 
   Fleet → Garage → Vehicle card → "Transfer to Buyer"
-  → Enter buyer email
-  → Select warranty template (optional)
-  → Confirm sale date + mileage
-  → Transfer complete → Status: sold
+  → Prepare draft with existing buyer QR / exact email
+  → Review independent maintenance plan and warranty / No warranty
+  → Resolve open repairs; confirm recipient, vehicle, sale date, mileage
+  → Authorized finalizer completes atomically → Status: sold (planned)
 
 Buyer (Mobile - Personal Mode)
-  Logs in / Signs up
+  Existing active personal account logs in
   → Vehicle appears in Personal Garage
-  → Full history visible
+  → Clean buyer history and independent reviewed maintenance plan
   → Warranty status shown
 ```
 
@@ -1344,7 +1346,7 @@ Platform Admin (Web Admin Portal)
 
 ### Vehicle Transfer
 - Buyer email: required, must be valid email
-- Buyer must exist or will be auto-created on claim
+- Buyer must already have an active personal account; no auto-creation or claim-later flow
 - Sale date: required, must be today or past
 - Current mileage: required, must be ≥ vehicle's current mileage
 - Warranty template: optional (if selected, warranty instance created)
@@ -1502,7 +1504,7 @@ Platform Admin (Web Admin Portal)
 - Vehicle transfer completion rate
 - Warranty service logging rate (workshop adoption)
 - CSV import usage vs one-by-one add
-- Buyer claim rate (transferred vehicles claimed within 7 days)
+- Buyer receipt delivery and first successful post-handover sync rate
 - Warranty expiry tracking accuracy
 - Workshop account activation rate
 - Fleet Owner fleet mode usage frequency
@@ -1576,7 +1578,7 @@ Platform Admin (Web Admin Portal)
 - **Organization members**: Add `org_driver` to role enum
 - **Organization vehicles**: Add `lifecycle_template`, `revenue_label` fields; status becomes free-form string
 - **Users table**: Add `org_id` nullable FK (denormalized for quick "my org" lookup)
-- **Vehicles table**: No change (ownership stays on `user_id`); org link via `organization_vehicles`
+- **Vehicles table (legacy implementation)**: Ownership stays on `user_id`; org link via `organization_vehicles`. Planned handover additionally requires ownership-period isolation; see the showroom handover plan before extending this schema.
 - **Partners table**: Add `workshop_account` flag for workshop AutoX accounts
 - **Users table**: Add `username` (NOT NULL after backfill, globally unique), make `email` nullable (Postgres UNIQUE already permits multiple NULLs), add `must_change_password` boolean; backfill usernames from email local part (collisions suffixed `_2`, `_3`, …); `status=deactivated` reused for driver soft delete with assignment cascade
 - **Sync**: New entity types `organization`, `organization_member`, `organization_vehicle`, `warranty_template`, `vehicle_warranty`, `transferred_vehicle`, `work_order`, `inspection`, `inspection_template`, `driver_assignment`
@@ -1622,13 +1624,13 @@ Platform Admin (Web Admin Portal)
 
 ## Remaining Open Decisions
 
-1. **Buyer auto-creation**: If the buyer email doesn't exist, should we auto-create a pending account (requires email verification) or reject the transfer?
+1. **Resolved 10 November:** Buyer must already have an active personal account; reject missing accounts.
 2. **Warranty mileage tracking**: Who updates the vehicle's mileage to check against warranty limits — the workshop on each service, or the owner on each fuel log?
 3. **Fleet Owner ownership transfer**: Can the Fleet Owner transfer admin role to another member (like vehicle ownership transfer for shared vehicles)?
 4. **Bulk status update**: Can the Fleet Owner change status of multiple vehicles at once (e.g., mark 5 vehicles as `listed`)?
 5. **Workshop service on non-warranty vehicles**: Should workshops be able to log service on vehicles not under warranty (general service)?
 6. **CSV template download**: Should we provide a CSV template file for import?
-7. **Transferred vehicle reversal**: If the buyer returns the vehicle within X days, can the org reclaim it?
+7. **Resolved 10 November:** No showroom self-service reversal; mistaken completed transfers require audited platform-admin correction. Commercial returns are outside this handover scope.
 8. ~~**Invite expiry**~~ **Resolved (Oct 2026)** — member adds and new org provisioning no longer send invite emails; credentials are handed over as a temporary password at creation time. Re-send remains only for legacy pending orgs.
 9. **Inspection template sharing**: Can inspection templates be shared across orgs, or are they always org-scoped?
 10. **Work order assignment**: Can a work order be assigned to a specific mechanic, or just to the org generally?
