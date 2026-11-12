@@ -70,7 +70,7 @@ export function VehicleStatus({ vehicle, orgId, canManage }: {
         </div>
       )}
       {vehicle.lifecycle_template === "showroom" && vehicle.status === "reserved" && (
-        <p className="mt-3 text-sm text-ink-caption">Sold is set only when buyer handover is completed. Handover preparation is not available yet.</p>
+        <p className="mt-3 text-sm text-ink-caption">Sold is set only when the buyer handover below is completed. Preparing or cancelling a draft does not change ownership.</p>
       )}
       {selected && reviewedStatus !== vehicle.status && <p role="alert" className="mt-3 text-sm text-ink-caption">Vehicle status changed. Choose the next status again before saving.</p>}
       {error && <p role="alert" className="mt-3 text-sm text-red-500">{error}</p>}

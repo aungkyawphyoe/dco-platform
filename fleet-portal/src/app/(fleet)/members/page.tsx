@@ -51,6 +51,7 @@ export default function MembersPage() {
   const [memberRole, setMemberRole] = useState("org_driver");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [teamError, setTeamError] = useState<string | null>(null);
   const [inviteResult, setInviteResult] = useState<string | null>(null);
   const [provisioned, setProvisioned] = useState<{ email: string; password: string } | null>(null);
 
@@ -83,10 +84,29 @@ export default function MembersPage() {
   }
 
   async function onRoleChange(userId: string, nextRole: string) {
+    setTeamError(null);
     try {
       await updateMember.mutateAsync({ userId, role: nextRole });
-    } catch {
-      // ignore — list refetches on success
+    } catch (err) {
+      setTeamError(
+        err instanceof Error ? err.message : "Could not change this member’s role.",
+      );
+    }
+  }
+
+  async function onHandoverPermission(userId: string, allowed: boolean) {
+    setTeamError(null);
+    try {
+      await updateMember.mutateAsync({
+        userId,
+        can_complete_handover: allowed,
+      });
+    } catch (err) {
+      setTeamError(
+        err instanceof Error
+          ? err.message
+          : "Could not update handover permission.",
+      );
     }
   }
 
@@ -106,12 +126,18 @@ export default function MembersPage() {
       <PageHeader
         title="Members"
         meta={members.length ? `${members.length} people in this organization` : undefined}
-        description="Add managers, mechanics, and drivers; manage roles"
+        description="Add managers, mechanics, and drivers; manage roles and handover completion permission"
         actions={isAdmin ? <Button onClick={() => setShowInvite(true)}>Add member</Button> : null}
       />
 
       {inviteResult ? (
         <Card className="p-4 text-sm text-success">{inviteResult}</Card>
+      ) : null}
+
+      {teamError ? (
+        <Card className="p-4 text-sm text-danger" role="alert">
+          {teamError}
+        </Card>
       ) : null}
 
       <InstrumentBand>
@@ -127,7 +153,7 @@ export default function MembersPage() {
         <SectionHeading title="Team" count={members.length} />
         {isLoading ? (
           <div className="p-5">
-            <SkeletonTable rows={4} cols={3} />
+            <SkeletonTable rows={4} cols={5} />
           </div>
         ) : members.length === 0 ? (
           <EmptyState title="No members" description="Invite your organization team." />
@@ -138,6 +164,7 @@ export default function MembersPage() {
                 <TableHeadCell>Member</TableHeadCell>
                 <TableHeadCell>Driving license</TableHeadCell>
                 <TableHeadCell>Role</TableHeadCell>
+                <TableHeadCell>Handover</TableHeadCell>
                 <TableHeadCell />
               </TableRow>
             </TableHead>
@@ -181,6 +208,34 @@ export default function MembersPage() {
                       <Badge tone={member.role === "org_admin" ? "info" : "neutral"}>
                         {orgRoleLabel[member.role] ?? member.role}
                       </Badge>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {member.role === "org_manager" ? (
+                      isAdmin ? (
+                        <label className="flex items-center gap-2 text-xs text-ink">
+                          <input
+                            type="checkbox"
+                            checked={Boolean(member.can_complete_handover)}
+                            onChange={(event) =>
+                              void onHandoverPermission(
+                                member.user_id,
+                                event.target.checked,
+                              )
+                            }
+                            disabled={updateMember.isPending}
+                          />
+                          Can complete
+                        </label>
+                      ) : member.can_complete_handover ? (
+                        <Badge tone="success">Completion granted</Badge>
+                      ) : (
+                        <span className="text-xs text-ink-caption">
+                          Prepare only
+                        </span>
+                      )
+                    ) : (
+                      <span className="text-xs text-ink-faint">—</span>
                     )}
                   </TableCell>
                   <TableCell className="text-right">

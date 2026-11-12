@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { HandoverPanel } from "@/components/vehicles/handover-panel";
 import { ReminderSetup } from "@/components/vehicles/reminder-setup";
 import { VehicleStatus } from "@/components/vehicles/vehicle-status";
 import { VehicleDocuments } from "@/components/vehicles/vehicle-documents";
@@ -427,6 +428,14 @@ export default function VehicleDetailPage() {
 
       <VehicleDataPlate vehicle={vehicle} />
       <VehicleStatus key={vehicle.id} vehicle={vehicle} orgId={orgId} canManage={canManage} />
+      {vehicle.lifecycle_template === "showroom" ? (
+        <HandoverPanel
+          orgId={orgId}
+          vehicle={vehicle}
+          planItems={planItems}
+          canManage={canManage}
+        />
+      ) : null}
       {orgId && role === "org_admin" && <VehicleDocuments key={`${orgId}:${vehicle.id}`} orgId={orgId} vehicleId={vehicle.id} />}
 
       <section className="rounded-lg border border-line-subtle bg-panel">

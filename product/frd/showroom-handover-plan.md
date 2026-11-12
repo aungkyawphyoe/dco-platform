@@ -1,7 +1,7 @@
 # Showroom handover implementation plan
 
 **Date:** 10 November 2026
-**Status:** Implementation started 11 November 2026. Vehicle Detail status controls and server-side status safeguards implemented locally; ownership attribution migration and core record-access isolation are implemented locally; the reviewed handover backend core (drafts, revision-bound review, delegated permission, atomic idempotent completion, frozen warranty/plan evidence, and legacy-route retirement) is implemented locally. Fleet Portal handover UI, personal/driver sync presentation, platform-admin correction, and rollout remain pending.
+**Status:** Implementation started 11 November 2026. Vehicle Detail status controls and server-side status safeguards implemented locally; ownership attribution migration and core record-access isolation are implemented locally; the reviewed handover backend core (drafts, revision-bound review, delegated permission, atomic idempotent completion, frozen warranty/plan evidence, and legacy-route retirement) is implemented locally; the Fleet Portal preparation/review/finalize UI and member permission controls are implemented locally. Personal/driver sync presentation, buyer receipts, QR camera scanning, platform-admin correction, and rollout remain pending.
 **Scope:** Fleet Portal showroom-to-personal handover, supporting API, personal/driver sync, and platform-admin correction. This document supersedes conflicting showroom transfer requirements in `fleet-management.md`. It does not claim the proposed routes or schema already exist.
 
 ## Outcome
@@ -10,7 +10,7 @@ A buyer receives a vehicle in their personal garage with clean service and expen
 
 ## Current implementation and gap
 
-Inspection on 10 November found an immediate transfer endpoint in `backend/src/modules/fleet-operations.ts`. The reviewed handover backend now replaces it locally: the immediate route returns `410 handover_required`, and `backend/src/modules/handover.ts` implements drafts, buyer lookup, revision-bound review, delegated completion permission, atomic idempotent completion, independent plan copies, and frozen warranty evidence. Fleet Portal has a Transferred audit page but still needs the handover preparation/review/finalize UI, member permission controls, and QR scanning. Personal/driver mobile presentation, platform-admin correction, delivery retry, and live rollout remain pending.
+Inspection on 10 November found an immediate transfer endpoint in `backend/src/modules/fleet-operations.ts`. The reviewed handover backend now replaces it locally: the immediate route returns `410 handover_required`, and `backend/src/modules/handover.ts` implements drafts, buyer lookup, revision-bound review, delegated completion permission, atomic idempotent completion, independent plan copies, and frozen warranty evidence. Fleet Portal now provides buyer lookup by exact email or account ID/QR value, draft plan and warranty preparation, blocking-issue review, revision-bound review, permission-aware completion, cancellation, and manager permission controls. QR camera scanning, buyer receipt presentation, personal/driver mobile presentation, platform-admin correction, delivery retry, and live rollout remain pending.
 
 ## Approved product rules
 
@@ -35,7 +35,7 @@ Inspection on 10 November found an immediate transfer endpoint in `backend/src/m
 
 ## Frontend vehicle status requirements — approved 11 November 2026
 
-**Status:** Status controls and explanations implemented locally on 11 November 2026; browser-tested with disposable showroom data. Handover entry and pending-draft integration remain pending. Applies to Fleet Portal vehicle lifecycle status controls, with showroom handover rules taking precedence for Sold.
+**Status:** Status controls and explanations implemented locally on 11 November 2026; browser-tested with disposable showroom data. Handover entry and pending-draft integration were added to Vehicle Detail on 12 November 2026. Applies to Fleet Portal vehicle lifecycle status controls, with showroom handover rules taking precedence for Sold.
 
 ### Location and interaction
 
@@ -145,8 +145,8 @@ Status controls were delivered as an independent first increment. Phase 0 invest
 | 0. Inventory and contract | Inspect schema, fleet operations, owner/driver routes, media, sync, analytics tenure, warranty, maintenance calculators, and legacy transfers. Specify field allowlist, ownership-period schema, correction behavior, and endpoint/error contracts. | Reviewed mapping of every linked record and access path; unresolved policies below resolved |
 | 1. Schema and migration (in progress) | Ownership-period ledger and new-record attribution implemented in migration 0040; legacy attribution flagged for review. Still add draft/revision/uniqueness, delegated permission, frozen warranty/plan evidence, and reliable delivery events. Backfill only from evidence. | Repeatable migration, reconciliation report, and ambiguous-row isolation without deletion |
 | 2. Authorization and isolation (in progress) | Core record APIs, totals, reminders, media, and sync now filter by ownership period; Fleet Admin has read-only attributed historical records. Complete the remaining transfer/workshop/late-review paths and apply ownership-period checks to direct reads/writes, joins, totals, exports, media, workshop access, and sync; close stale assignments/shares as applicable. | Cross-period access tests pass before exposing the new handover flow |
-| 3. Handover service | Implement draft, recipient lookup, cancel, review, atomic complete, work-order cancellation reason, idempotency, and legacy-route protection. Implemented locally in the backend; portal wiring remains in phase 4. | Failure and concurrency tests prove all-or-nothing behavior |
-| 4. Portal and personal mobile | Move vehicle status changes to detail and add lifecycle explanations; portal draft/review/finalize UI, member permission controls, QR scanning; personal account QR, independent plan delivery and receipt; driver revocation/late-write behavior. | Existing buyer can receive and maintain vehicle with clean history on first and incremental sync |
+| 3. Handover service | Implement draft, recipient lookup, cancel, review, atomic complete, work-order cancellation reason, idempotency, and legacy-route protection. Implemented locally in the backend and Fleet Portal. | Failure and concurrency tests prove all-or-nothing behavior |
+| 4. Portal and personal mobile | Vehicle status changes on detail with lifecycle explanations, portal draft/review/finalize UI, and member permission controls are implemented locally. Still pending: QR camera scanning, personal account QR, buyer receipt presentation, mobile first/incremental sync presentation, and driver revocation/late-write behavior. | Existing buyer can receive and maintain vehicle with clean history on first and incremental sync |
 | 5. Support correction and rollout | Audited platform-admin correction, delivery retries, migration rehearsal, end-to-end tests and updated user instructions. | Complete safety/acceptance matrix passes; enable only after backend and client compatibility are ready |
 
 Proposed API operations are create/read/update/cancel draft, resolve buyer, review a revision, complete idempotently, and platform-admin correction. Select exact paths in phase 0 and update `architecture/openapi.yaml` plus generated clients with implementation; do not advertise proposed paths as available now.

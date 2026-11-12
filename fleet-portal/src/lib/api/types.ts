@@ -20,6 +20,7 @@ export type OrgMember = {
   email: string;
   display_name: string | null;
   role: string;
+  can_complete_handover?: boolean;
 };
 
 export type InviteMemberResult = OrgMember & {
@@ -84,10 +85,112 @@ export type VehiclePlanItem = {
   interval_distance?: number | null;
   next_due_mileage?: number | null;
   next_due_on?: string | null;
+  initial_service_required?: boolean;
   enabled: boolean;
   notes?: string | null;
   catalog_key?: string | null;
   created_by?: string | null;
+};
+
+// ── Showroom handover ───────────────────────────────────────────────────────
+
+export type HandoverBuyer = {
+  user_id: string;
+  display_name: string | null;
+  email_masked: string | null;
+  phone_masked: string | null;
+  eligible: boolean;
+  reason: string | null;
+};
+
+export type HandoverPlanItem = {
+  name: string;
+  interval_days?: number | null;
+  time_count?: number | null;
+  time_unit?: "days" | "months" | "years" | null;
+  warning_days?: number | null;
+  warning_distance?: number | null;
+  interval_distance?: number | null;
+  next_due_on?: string | null;
+  next_due_mileage?: number | null;
+  initial_service_required?: boolean;
+  notes?: string | null;
+};
+
+export type HandoverWarrantyChoice = "undecided" | "none" | "template";
+
+export type HandoverWarrantySnapshot = {
+  template_id: string;
+  name: string;
+  duration_years: number;
+  mileage_limit_km: number;
+  coverage_categories: string[];
+  exclusions: string | null;
+  approved_workshops: { id: string; name: string }[];
+  captured_at: string;
+};
+
+export type HandoverIssue = {
+  code: string;
+  message: string;
+  details?: { work_order_ids?: string[]; [key: string]: unknown };
+};
+
+export type HandoverStatus = "draft" | "completed" | "cancelled";
+
+export type VehicleHandover = {
+  id: string;
+  org_id: string;
+  vehicle_id: string;
+  buyer: HandoverBuyer;
+  status: HandoverStatus;
+  revision: number;
+  reviewed_revision: number | null;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  sale_date: string | null;
+  current_mileage_km: number | null;
+  plan: HandoverPlanItem[];
+  warranty_choice: HandoverWarrantyChoice;
+  warranty_template_id: string | null;
+  warranty: HandoverWarrantySnapshot | null;
+  result: Record<string, unknown> | null;
+  cancellation_reason: string | null;
+  created_by: string;
+  created_at: string | null;
+  updated_at: string | null;
+  completed_by: string | null;
+  completed_at: string | null;
+  cancelled_by: string | null;
+  cancelled_at: string | null;
+};
+
+export type VehicleHandoverDetail = VehicleHandover & {
+  blocking_issues: HandoverIssue[];
+  ready_to_review: boolean;
+};
+
+export type HandoverCompletion = {
+  id: string;
+  status: string;
+  idempotent: boolean;
+  vehicle_id?: string;
+  buyer_user_id?: string;
+  transferred_vehicle_id?: string;
+  sale_date?: string;
+  current_mileage_km?: number;
+  plan_item_ids?: string[];
+  warranty_instance_id?: string | null;
+  completed_at?: string;
+  delivery?: { queued: number; delivered: number };
+};
+
+export type HandoverDraftInput = {
+  sale_date?: string | null;
+  current_mileage_km?: number | null;
+  plan?: HandoverPlanItem[];
+  warranty_choice?: HandoverWarrantyChoice;
+  warranty_template_id?: string | null;
 };
 
 export type ServiceRecordLine = {
@@ -124,10 +227,14 @@ export type WorkOrder = {
   urgency: string;
   photos: string[];
   status: string;
+  plan_item_id?: string | null;
   assigned_to: string | null;
   resolved_by: string | null;
   resolved_at: string | null;
   resolution_notes: string | null;
+  cancellation_reason?: string | null;
+  cancelled_by?: string | null;
+  cancelled_at?: string | null;
   created_at: string | null;
   updated_at: string | null;
 };
@@ -315,6 +422,7 @@ export const workOrderStatusTone: Record<string, "success" | "warning" | "danger
   reported: "warning",
   in_progress: "info",
   completed: "success",
+  cancelled: "neutral",
 };
 
 export const inspectionStatusTone: Record<string, "success" | "warning" | "danger" | "info" | "neutral"> = {

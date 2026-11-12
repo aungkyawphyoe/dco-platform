@@ -7,6 +7,9 @@ import type {
   Assignment,
   FleetAnalytics,
   FleetVehicle,
+  HandoverBuyer,
+  HandoverCompletion,
+  HandoverDraftInput,
   ImportJob,
   Inspection,
   InspectionTemplate,
@@ -18,6 +21,8 @@ import type {
   TransferredVehicle,
   VehicleCostMetrics,
   VehicleCreateInput,
+  VehicleHandover,
+  VehicleHandoverDetail,
   VehiclePlanItem,
   VehicleServiceRecord,
   WarrantyTemplate,
@@ -148,11 +153,11 @@ export async function downloadReport(
 
 // ── Members ──
 
-export function useMembers(orgId: string | null) {
+export function useMembers(orgId: string | null, enabled = true) {
   return useQuery({
     queryKey: ["fleet", "members", orgId],
     queryFn: () => apiGet<{ items: OrgMember[] }>(orgPath(orgId, "/members")),
-    enabled: Boolean(orgId),
+    enabled: Boolean(orgId) && enabled,
   });
 }
 
@@ -173,7 +178,7 @@ export function useUpdateMember(orgId: string | null) {
     mutationFn: ({
       userId,
       ...body
-    }: { userId: string; role?: string; remove?: boolean }) =>
+    }: { userId: string; role?: string; can_complete_handover?: boolean; remove?: boolean }) =>
       apiPatch<OrgMember | void>(orgPath(orgId, `/members/${userId}`), body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["fleet", "members", orgId] });
@@ -296,11 +301,14 @@ export function useUpdateWorkOrder(orgId: string | null) {
       resolution_notes?: string | null;
       completion_cost?: number;
       currency?: string;
+      cancellation_reason?: string;
     }) => apiPatch<WorkOrder>(orgPath(orgId, `/work-orders/${id}`), body),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["fleet", "work-orders", orgId] });
       qc.invalidateQueries({ queryKey: ["fleet", "currency", orgId] });
       qc.invalidateQueries({ queryKey: ["fleet", "analytics", orgId] });
+      qc.invalidateQueries({ queryKey: ["fleet", "handovers"] });
+      qc.invalidateQueries({ queryKey: ["fleet", "handover"] });
     },
   });
 }
@@ -381,6 +389,116 @@ export function useRemoveAssignment(orgId: string | null) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["fleet", "assignments", orgId] });
       qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
+    },
+  });
+}
+
+// ── Showroom handover ──
+
+export function useLookupHandoverBuyer(orgId: string | null) {
+  return useMutation({
+    mutationFn: ({ mode, value }: { mode: "email" | "account"; value: string }) =>
+      mode === "email"
+        ? apiGet<HandoverBuyer>(
+            orgPath(orgId, `/handover-buyers?email=${encodeURIComponent(value)}`),
+          )
+        : apiGet<HandoverBuyer>(
+            orgPath(orgId, `/handover-buyers/${encodeURIComponent(value.trim())}`),
+          ),
+  });
+}
+
+export function useVehicleHandovers(orgId: string | null, vehicleId: string | null) {
+  return useQuery({
+    queryKey: ["fleet", "handovers", orgId, vehicleId],
+    queryFn: () =>
+      apiGet<{ items: VehicleHandover[] }>(
+        orgPath(orgId, `/handovers?vehicle_id=${vehicleId}`),
+      ),
+    enabled: Boolean(orgId && vehicleId),
+  });
+}
+
+export function useHandover(orgId: string | null, handoverId: string | null) {
+  return useQuery({
+    queryKey: ["fleet", "handover", orgId, handoverId],
+    queryFn: () =>
+      apiGet<VehicleHandoverDetail>(orgPath(orgId, `/handovers/${handoverId}`)),
+    enabled: Boolean(orgId && handoverId),
+  });
+}
+
+function invalidateHandover(
+  qc: ReturnType<typeof useQueryClient>,
+  orgId: string | null,
+  vehicleId?: string,
+) {
+  qc.invalidateQueries({ queryKey: ["fleet", "handovers", orgId] });
+  qc.invalidateQueries({ queryKey: ["fleet", "handover", orgId] });
+  if (vehicleId) {
+    qc.invalidateQueries({ queryKey: ["fleet", "handovers", orgId, vehicleId] });
+  }
+}
+
+export function useCreateHandover(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: HandoverDraftInput & { vehicle_id: string; buyer_user_id: string }) =>
+      apiPost<VehicleHandover>(orgPath(orgId, "/handovers"), body),
+    onSuccess: (created) => invalidateHandover(qc, orgId, created.vehicle_id),
+  });
+}
+
+export function useUpdateHandover(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ handoverId, ...body }: HandoverDraftInput & { handoverId: string }) =>
+      apiPatch<VehicleHandover>(orgPath(orgId, `/handovers/${handoverId}`), body),
+    onSuccess: (updated) => invalidateHandover(qc, orgId, updated.vehicle_id),
+  });
+}
+
+export function useReviewHandover(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ handoverId, revision }: { handoverId: string; revision: number }) =>
+      apiPost<VehicleHandover>(orgPath(orgId, `/handovers/${handoverId}/review`), { revision }),
+    onSuccess: (reviewed) => invalidateHandover(qc, orgId, reviewed.vehicle_id),
+  });
+}
+
+export function useCancelHandover(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ handoverId, reason }: { handoverId: string; reason: string }) =>
+      apiPost<VehicleHandover>(orgPath(orgId, `/handovers/${handoverId}/cancel`), { reason }),
+    onSuccess: (cancelled) => invalidateHandover(qc, orgId, cancelled.vehicle_id),
+  });
+}
+
+export function useCompleteHandover(orgId: string | null) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      handoverId,
+      reviewedRevision,
+    }: {
+      handoverId: string;
+      reviewedRevision: number;
+    }) =>
+      apiPost<HandoverCompletion>(
+        orgPath(orgId, `/handovers/${handoverId}/complete`),
+        { reviewed_revision: reviewedRevision, acknowledged: true },
+      ),
+    onSuccess: () => {
+      // Keep the current detail page showing its receipt; mark inventory stale
+      // without refetching so the vehicle disappears on the next inventory load.
+      qc.invalidateQueries({
+        queryKey: ["fleet", "vehicles", orgId],
+        refetchType: "none",
+      });
+      invalidateHandover(qc, orgId);
+      qc.invalidateQueries({ queryKey: ["fleet", "transferred", orgId] });
     },
   });
 }

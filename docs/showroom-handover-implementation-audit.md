@@ -42,15 +42,38 @@ Implemented locally on 12 November 2026:
 - Organization admins can grant or revoke `can_complete_handover` for managers; the permission is rechecked under a membership lock at completion.
 - OpenAPI and both generated API type sets describe the new operations; Fleet Portal and Web TypeScript checks pass.
 
-Still pending: Fleet Portal draft/review/finalize UI, member permission controls, QR scanning, buyer receipt presentation, mobile first-sync/incremental-sync presentation checks, platform-admin correction with existing buyer activity, delivery retry worker, late-write review path, legacy reconciliation, and live migration rehearsal. This backend core must not be advertised as the completed handover journey until those client and correction phases ship.
+Still pending at the end of this increment: Fleet Portal draft/review/finalize UI and member permission controls (added in the sixth increment below), QR scanning, buyer receipt presentation, mobile first-sync/incremental-sync presentation checks, platform-admin correction with existing buyer activity, delivery retry worker, late-write review path, legacy reconciliation, and live migration rehearsal.
 
 ### Fifth-increment validation
 
 Backend TypeScript and full suite passed: 170 passed, 1 skipped across 39 files. Migration 0041 reapplies cleanly. Handover integration tests cover clean buyer delivery, frozen warranty terms and workshops, independent plan targets and initial-service state, idempotent retry, duplicate pending drafts, review/plan/warranty/open-repair blocking, delegated permission and recheck, stale revisions, cancellation, buyer changes, legacy-route retirement, buyer sync delivery, and ownership isolation.
 
+## Sixth increment — Fleet Portal handover preparation
+
+Implemented locally on 12 November 2026:
+
+- Vehicle Detail now renders `fleet-portal/src/components/vehicles/handover-panel.tsx` for showroom vehicles. While the vehicle is Reserved, admins and managers can identify a buyer by exact email or account ID/QR value, see the matched name and masked contact details, and start a handover draft. No directory or autocomplete lookup is offered.
+- Starting a draft seeds the buyer plan from the vehicle’s enabled showroom reminders, sets the sale date to the server calendar day, and uses the current odometer as the handover mileage. The vehicle stays Reserved and showroom-owned until completion.
+- `handover-plan-editor.tsx` edits the draft plan snapshot: service name, due date, due odometer, optional date/distance recurrence, notes, and an explicit “initial service required” state for unknown baselines. Local validation mirrors the server’s due-target and initial-service rules.
+- Warranty choice is explicit: reviewed template terms or No warranty. Saving a template captures and displays the frozen duration, mileage limit, coverage, exclusions, and approved workshops. Undecided warranty blocks review and completion.
+- The draft shows server blocking issues for sale date, mileage, plan, warranty, buyer eligibility, vehicle readiness, and open repairs. Open-repair issues link to the affected work orders. Unsaved edits hide stale readiness results and require a save before review.
+- Review is bound to the saved revision, and completion requires a fresh review, a final acknowledgement, and the delegated completion permission. Revocation is enforced by the backend; the portal surfaces `transfer_permission_required`. Stale-revision and not-ready responses refresh the draft checks.
+- Drafts can be cancelled with a reason. If the vehicle leaves Reserved while a draft exists, the panel remains reachable, explains that the draft cannot complete, and offers cancellation; it does not silently discard the draft.
+- Members now shows an admin-only “Can complete” control for managers and a read-only completion state for non-admins. Work Orders can explicitly cancel reported or in-progress repairs with a reason, retain them in a Cancelled audit column, and thereby clear handover blockers.
+- Vehicle status copy points Reserved handovers to the panel and keeps Sold non-selectable.
+
+### Sixth-increment validation
+
+- Fleet Portal TypeScript passed: `npx tsc --noEmit`.
+- Fleet Portal ESLint passed with no warnings or errors.
+- Fleet Portal production build passed: `npm run build` (23 routes).
+- The flow was not browser-exercised against live data in this increment. QR camera scanning, buyer receipt presentation, and mobile presentation remain pending.
+
+Still pending: QR camera scanning, buyer receipt presentation, mobile first-sync/incremental-sync presentation checks, platform-admin correction with existing buyer activity, delivery retry worker, late-write review path, legacy reconciliation, and live migration rehearsal. The portal flow must not be described as the complete handover journey until those client and correction phases ship.
+
 ## Next implementation boundary
 
-Before exposing handover preparation/completion, finish the period schema and access predicates, legacy reconciliation, draft/revision and delegated permission contracts, independent plan representation, atomic delivery, and admin correction semantics. Initial-service-required needs an explicit model/UI representation; do not simulate it with fabricated service records.
+The period schema, core access predicates, reviewed handover backend, and Fleet Portal preparation/review/finalize flow now exist locally. Remaining work is the buyer-facing receipt and mobile presentation, QR camera scanning, platform-admin correction with existing buyer activity, delivery retry, late-write review, and legacy reconciliation. Initial-service-required is represented explicitly in both the API and portal; do not simulate it with fabricated service records.
 
 Use existing per-vehicle reminder configuration, assignment manifests, review queues, and analytics evidence where appropriate. A schema migration alone cannot satisfy privacy: direct APIs, serializers, expense derivation, reminders, media, reporting, and both sync paths must be verified together.
 

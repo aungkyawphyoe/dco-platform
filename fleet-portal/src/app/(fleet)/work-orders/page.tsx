@@ -35,10 +35,17 @@ function WorkOrderCard({
     <article className="rounded-lg border border-line-subtle bg-card p-4">
       <div className="flex items-start justify-between gap-3">
         <p className="font-medium text-ink">{vehicleName}</p>
-        <Badge tone={urgencyTone(order.urgency)}>{order.urgency}</Badge>
+        <Badge tone={order.status === "cancelled" ? "neutral" : urgencyTone(order.urgency)}>
+          {order.status === "cancelled" ? "cancelled" : order.urgency}
+        </Badge>
       </div>
       <p className="mt-2 text-sm capitalize text-ink">{order.issue_type.replaceAll("_", " ")}</p>
       <p className="mt-1 line-clamp-2 text-xs text-ink-caption">{order.description}</p>
+      {order.status === "cancelled" && order.cancellation_reason ? (
+        <p className="mt-2 text-xs text-ink-caption">
+          Cancelled: {order.cancellation_reason}
+        </p>
+      ) : null}
       <p className="mt-3 font-mono text-xs text-ink-caption">
         {order.odometer_km.toLocaleString(undefined, { maximumFractionDigits: 0 })} km
       </p>
@@ -104,6 +111,8 @@ export default function WorkOrdersPage() {
   );
   const [assignee, setAssignee] = useState("");
   const [notes, setNotes] = useState("");
+  const [cancelling, setCancelling] = useState<WorkOrder | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
 
   useEffect(() => {
     if (window.location.hash) document.getElementById(window.location.hash.slice(1))?.scrollIntoView({ block: "center" });
@@ -126,10 +135,13 @@ export default function WorkOrdersPage() {
   const reported = byStage("reported");
   const inProgress = byStage("in_progress");
   const completed = byStage("completed");
+  const cancelled = byStage("cancelled");
   const openCount = reported.length + inProgress.length;
   const criticalOpen = orders.filter(
     (o) =>
-      o.status !== "completed" && (o.urgency === "critical" || o.urgency === "high"),
+      o.status !== "completed" &&
+      o.status !== "cancelled" &&
+      (o.urgency === "critical" || o.urgency === "high"),
   ).length;
 
   const vehicleName = (id: string) => vehicles.find((v) => v.id === id)?.name ?? id.slice(0, 8);
@@ -165,21 +177,55 @@ export default function WorkOrdersPage() {
     }
   }
 
+  async function onCancelWorkOrder() {
+    if (!cancelling) return;
+    setError(null);
+    if (!cancelReason.trim()) {
+      setError("Record why this repair is being cancelled.");
+      return;
+    }
+    try {
+      await updateOrder.mutateAsync({
+        id: cancelling.id,
+        status: "cancelled",
+        cancellation_reason: cancelReason.trim(),
+      });
+      setCancelling(null);
+      setCancelReason("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to cancel work order.");
+    }
+  }
+
   function actionFor(order: WorkOrder) {
     const next = nextStatus(order.status);
     if (!canManage || !next) return undefined;
     return (
-      <Button
-        size="sm"
-        variant={next === "in_progress" ? "primary" : "secondary"}
-        className="w-full"
-        onClick={() => {
-          setCost(""); setNotes(""); setAssignee(""); setError(null); setDraftCurrency(currencyFor(order));
-          setAdvance({ id: order.id, next, assign: next === "in_progress" });
-        }}
-      >
-        {next === "in_progress" ? "Start work" : "Mark completed"}
-      </Button>
+      <div className="flex flex-col gap-2">
+        <Button
+          size="sm"
+          variant={next === "in_progress" ? "primary" : "secondary"}
+          className="w-full"
+          onClick={() => {
+            setCost(""); setNotes(""); setAssignee(""); setError(null); setDraftCurrency(currencyFor(order));
+            setAdvance({ id: order.id, next, assign: next === "in_progress" });
+          }}
+        >
+          {next === "in_progress" ? "Start work" : "Mark completed"}
+        </Button>
+        <Button
+          size="sm"
+          variant="destructive"
+          className="w-full"
+          onClick={() => {
+            setCancelReason("");
+            setError(null);
+            setCancelling(order);
+          }}
+        >
+          Cancel repair
+        </Button>
+      </div>
     );
   }
 
@@ -208,7 +254,7 @@ export default function WorkOrdersPage() {
           />
         </Card>
       ) : (
-        <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2 xl:grid-cols-4">
           <PipelineColumn
             title="Reported"
             accent="border-t-warning"
@@ -240,6 +286,15 @@ export default function WorkOrdersPage() {
             accent="border-t-success"
             orders={completed}
             emptyText="Completed orders will list here."
+            renderCard={(order) => (
+              <WorkOrderCard order={order} vehicleName={vehicleName(order.vehicle_id)} />
+            )}
+          />
+          <PipelineColumn
+            title="Cancelled"
+            accent="border-t-line-strong"
+            orders={cancelled}
+            emptyText="Cancelled repairs remain audited here."
             renderCard={(order) => (
               <WorkOrderCard order={order} vehicleName={vehicleName(order.vehicle_id)} />
             )}
@@ -287,6 +342,43 @@ export default function WorkOrdersPage() {
           <p className="text-xs text-ink-caption">
             Signed in as {user?.email} ({role ?? "—"})
           </p>
+        </div>
+      </Modal>
+
+      <Modal
+        open={Boolean(cancelling)}
+        onClose={() => {
+          if (!updateOrder.isPending) {
+            setCancelling(null);
+            setCancelReason("");
+            setError(null);
+          }
+        }}
+        title="Cancel repair"
+        confirmLabel="Cancel repair"
+        destructive
+        loading={updateOrder.isPending}
+        onSubmit={() => void onCancelWorkOrder()}
+      >
+        <div className="flex flex-col gap-3">
+          <p>
+            This clears the open repair so handover can proceed. The reason is
+            retained in the work-order audit.
+          </p>
+          <label className="flex flex-col gap-1.5 text-xs font-medium text-ink-caption">
+            Reason
+            <textarea
+              className="min-h-24 rounded-md border border-line-strong bg-field p-3 text-sm text-ink"
+              rows={3}
+              maxLength={1000}
+              value={cancelReason}
+              onChange={(event) => {
+                setCancelReason(event.target.value);
+                setError(null);
+              }}
+            />
+          </label>
+          {error && <p role="alert" className="text-danger">{error}</p>}
         </div>
       </Modal>
     </div>
