@@ -1,3 +1,4 @@
+import { currentRecord } from "../lib/record-ownership.js";
 import { saveReminderBaseline, recalculateReminders } from "../lib/reminder-schedule.js";
 import { credentialBody, expiryStatus, saveCredentials } from "../lib/driver-credentials.js";
 import { incomingCurrency, incomingServiceCurrency, lockCurrencyVehicle } from '../lib/operational-currency.js';
@@ -437,25 +438,35 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin", "org_manager"]);
     const body = z.object({
       status: z.string().min(1).max(40),
+      expected_status: z.string().min(1).max(40).optional(),
       revenue_label: z.string().max(200).nullable().optional(),
       vehicle_class: vehicleClass.optional(),
     }).parse(request.body);
-    const [link] = await app.db.select().from(organizationVehicles).where(and(eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId))).limit(1);
-    if (!link) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
-    if (body.status !== link.status && !(transitions[link.lifecycleTemplate][link.status] ?? []).includes(body.status)) {
-      throw new AppError(400, "invalid_status_transition", "Status transition is not allowed by the vehicle lifecycle template");
-    }
-    const [updated] = await app.db.update(organizationVehicles).set({
-      status: body.status,
-      ...(body.revenue_label !== undefined ? { revenueLabel: body.revenue_label } : {}),
-      updatedAt: new Date(),
-    }).where(eq(organizationVehicles.id, link.id)).returning();
-    const [vehicle] = body.vehicle_class !== undefined
-      ? await app.db.update(vehicles).set({ vehicleClass: body.vehicle_class, updatedAt: new Date() }).where(eq(vehicles.id, vehicleId)).returning()
-      : await app.db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
-    const payload = serializeOrganizationVehicle(updated, vehicle!);
-    await recordChange(app.db, { userId: actorId, entityType: "organization_vehicle", entityId: updated.id, op: "upsert", payload });
-    return payload;
+    return app.db.transaction(async (tx) => {
+      await tx.select({ id: vehicles.id }).from(vehicles).where(eq(vehicles.id, vehicleId)).for("update");
+      const [link] = await tx.select().from(organizationVehicles).where(and(eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId))).limit(1).for("update");
+      if (!link) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
+      if (body.expected_status !== undefined && body.expected_status !== link.status) {
+        throw new AppError(409, "vehicle_status_changed", "Vehicle status changed. Refresh and select the next status again.");
+      }
+      if (body.status === "sold") {
+        throw new AppError(409, "handover_required", "Complete buyer handover to mark a showroom vehicle as sold.");
+      }
+      if (body.status !== link.status && !(transitions[link.lifecycleTemplate][link.status] ?? []).includes(body.status)) {
+        throw new AppError(400, "invalid_status_transition", "Status transition is not allowed by the vehicle lifecycle template");
+      }
+      const [updated] = await tx.update(organizationVehicles).set({
+        status: body.status,
+        ...(body.revenue_label !== undefined ? { revenueLabel: body.revenue_label } : {}),
+        updatedAt: new Date(),
+      }).where(eq(organizationVehicles.id, link.id)).returning();
+      const [vehicle] = body.vehicle_class !== undefined
+        ? await tx.update(vehicles).set({ vehicleClass: body.vehicle_class, updatedAt: new Date() }).where(eq(vehicles.id, vehicleId)).returning()
+        : await tx.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
+      const payload = serializeOrganizationVehicle(updated, vehicle!);
+      await recordChange(tx, { userId: actorId, entityType: "organization_vehicle", entityId: updated.id, op: "upsert", payload });
+      return payload;
+    });
   });
 
   app.post("/organizations/:id/assignments", async (request, reply) => {
@@ -574,7 +585,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     )).limit(1);
     if (!orgVehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
     const rows = await app.db.select().from(serviceRecords)
-      .where(eq(serviceRecords.vehicleId, vehicleId))
+      .where(and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords)))
       .orderBy(desc(serviceRecords.servicedOn));
     const items = [];
     for (const row of rows) {
@@ -607,7 +618,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId),
     )).limit(1);
     if (!orgVehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
-    const rows = await app.db.select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
+    const rows = await app.db.select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), currentRecord(planItems)));
     return { items: rows.map(publicPlan) };
   });
 
@@ -675,7 +686,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         const [vehicle] = await tx.select().from(organizationVehicles)
           .where(and(eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId))).for("update");
         if (!vehicle) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
-        const [existing] = await tx.select().from(planItems).where(eq(planItems.id, body.id));
+        const [existing] = await tx.select().from(planItems).where(and(eq(planItems.id, body.id), currentRecord(planItems)));
         if (existing && existing.vehicleId !== vehicleId) throw new AppError(404, "not_found", "Reminder not found");
         if (method === "PUT" && !existing) throw new AppError(404, "not_found", "Reminder not found");
         if (method === "POST" && existing) return existing;
@@ -686,7 +697,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
             if (!catalog) throw new AppError(422, "invalid_catalog_item", "Select an available service item");
           }
           const [duplicate] = await tx.select().from(planItems).where(and(
-            eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, body.catalog_key), eq(planItems.enabled, true)));
+            eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, body.catalog_key), eq(planItems.enabled, true), currentRecord(planItems)));
           if (body.enabled && duplicate && duplicate.id !== body.id)
             throw new AppError(409, "reminder_exists", "This service already has an active reminder");
         }
@@ -695,13 +706,13 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
           warningDays: body.warning_days ?? null, warningDistance: body.warning_distance == null ? null : String(body.warning_distance), intervalDistance: body.interval_distance === null ? null : String(body.interval_distance),
           nextDueOn: body.next_due_on, nextDueMileage: body.next_due_mileage === null ? null : String(body.next_due_mileage), enabled: body.enabled };
         const [saved] = existing
-          ? await tx.update(planItems).set(values).where(eq(planItems.id, body.id)).returning()
+          ? await tx.update(planItems).set(values).where(and(eq(planItems.id, body.id), currentRecord(planItems))).returning()
           : await tx.insert(planItems).values({ ...values, id: body.id, vehicleId, createdBy: uid(request) }).returning();
         await tx.execute(sql`INSERT INTO plan_schedule_baselines(plan_item_id,next_due_on,next_due_mileage)
           VALUES (${saved.id},${saved.nextDueOn},${saved.nextDueMileage}) ON CONFLICT (plan_item_id)
           DO UPDATE SET next_due_on=excluded.next_due_on,next_due_mileage=excluded.next_due_mileage`);
         await saveReminderBaseline(tx as Db, saved.id, Boolean(existing));
-        const [withBaseline] = await tx.select().from(planItems).where(eq(planItems.id, saved.id));
+        const [withBaseline] = await tx.select().from(planItems).where(and(eq(planItems.id, saved.id), currentRecord(planItems)));
         return withBaseline;
       });
       return reply.code(method === "POST" ? 201 : 200).send(publicPlan(row));
@@ -729,7 +740,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     if (!assignment) throw new AppError(403, "not_assigned_to_vehicle", "Driver is not assigned to this vehicle");
     if (body.plan_item_id) {
       const [planItem] = await app.db.select().from(planItems).where(and(
-        eq(planItems.id, body.plan_item_id), eq(planItems.vehicleId, body.vehicle_id),
+        eq(planItems.id, body.plan_item_id), eq(planItems.vehicleId, body.vehicle_id), currentRecord(planItems),
       )).limit(1);
       if (!planItem) throw new AppError(422, "invalid_plan_item", "Plan item must belong to the assigned vehicle");
     }
@@ -812,7 +823,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     for (const part of parts) {
       if (!part.part_id) continue;
       const [partRow] = await app.db.select().from(partsTable).where(and(
-        eq(partsTable.id, part.part_id), eq(partsTable.vehicleId, current.vehicleId),
+        eq(partsTable.id, part.part_id), eq(partsTable.vehicleId, current.vehicleId), currentRecord(partsTable),
       )).limit(1);
       if (!partRow) throw new AppError(422, "invalid_part", "Part must belong to the work order's vehicle");
     }
@@ -905,7 +916,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     let itemName: string;
     if (body.plan_item_id) {
       const [planItem] = await app.db.select().from(planItems).where(and(
-        eq(planItems.id, body.plan_item_id), eq(planItems.vehicleId, vehicleId),
+        eq(planItems.id, body.plan_item_id), eq(planItems.vehicleId, vehicleId), currentRecord(planItems),
       )).limit(1);
       if (!planItem) throw new AppError(422, "invalid_plan_item", "Plan item must belong to the assigned vehicle");
       itemName = planItem.name;
@@ -915,7 +926,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       throw new AppError(422, "service_item_required", "Provide a plan item or a free-text item name");
     }
     const serviceId = body.id ?? newId();
-    const [existing] = await app.db.select().from(serviceRecords).where(eq(serviceRecords.id, serviceId)).limit(1);
+    const [existing] = await app.db.select().from(serviceRecords).where(and(eq(serviceRecords.id, serviceId), currentRecord(serviceRecords))).limit(1);
     if (existing) return reply.code(201).send({ id: existing.id, duplicate: true });
     const record = await app.db.transaction(async (tx) => {
       await lockCurrencyVehicle(tx,vehicleId,orgId);
@@ -975,7 +986,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     requireFleetClient(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await requireDriverAssignment(vehicleId, uid(request));
-    const items = await app.db.select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
+    const items = await app.db.select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), currentRecord(planItems)));
     return { items: items.map(publicPlan) };
   });
 
@@ -991,7 +1002,7 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const { vehicleId } = request.params as { vehicleId: string };
     await requireDriverAssignment(vehicleId, uid(request));
     const rows = await app.db.select().from(serviceRecords)
-      .where(eq(serviceRecords.vehicleId, vehicleId))
+      .where(and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords)))
       .orderBy(desc(serviceRecords.servicedOn));
     const items = [];
     for (const row of rows) {

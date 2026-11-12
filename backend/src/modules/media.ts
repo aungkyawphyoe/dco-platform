@@ -1,3 +1,4 @@
+import { currentRecord, organizationRecord } from "../lib/record-ownership.js";
 import { createHash } from "node:crypto";
 import type { FastifyPluginAsync } from "fastify";
 import { and, eq, gt, isNull } from "drizzle-orm";
@@ -23,6 +24,10 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
   }
   async function assertPersonalMedia(mediaId: string) {
     const [media] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId));
+    if (media?.vehicleId) {
+      const [visible] = await app.db.select({ id: mediaObjects.id }).from(mediaObjects).where(and(eq(mediaObjects.id, mediaId), currentRecord(mediaObjects)));
+      if (!visible) throw new AppError(404, "not_found", "Media not found");
+    }
     if (media?.purpose === "retired_license") throw new AppError(404,"not_found","Media not found");
     if (media?.ownerOrgId) throw new AppError(403, "organization_media", "Use authenticated organization media access");
     for (const ref of await mediaVehicles(mediaId)) {
@@ -38,6 +43,15 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     const { membership } = await getOrganizationAccess(app.db, userId, orgId, ["org_admin", "org_driver"]);
     await assertPasswordChangeClear(app.db, userId);
     if (membership.role === "org_admin") requireFleetPortal(request); else requireOwner(request);
+    if (membership.role === "org_admin") {
+      const [historical] = await app.db.select().from(mediaObjects).where(and(eq(mediaObjects.id, mediaId),
+        eq(mediaObjects.ownerOrgId, orgId), organizationRecord(mediaObjects, orgId)));
+      if (historical && historical.purpose !== "retired_license") {
+        return reply.header("Cache-Control", "private, no-store").type(historical.contentType).send(await app.media.get(historical.blobKey));
+      }
+    }
+    const [scopedMedia] = await app.db.select({ id: mediaObjects.id }).from(mediaObjects).where(and(eq(mediaObjects.id, mediaId), currentRecord(mediaObjects)));
+    if (!scopedMedia) throw new AppError(404, "not_found", "Media not found");
     const refs = await mediaVehicles(mediaId);
     let allowed = false;
     for (const ref of refs) {

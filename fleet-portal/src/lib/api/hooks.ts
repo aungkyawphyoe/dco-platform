@@ -80,42 +80,9 @@ export function useCreateVehicle(orgId: string | null) {
 export function useUpdateVehicleStatus(orgId: string | null) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ vehicleId, status }: { vehicleId: string; status: string }) =>
-      apiPatch<FleetVehicle>(orgPath(orgId, `/vehicles/${vehicleId}`), { status }),
+    mutationFn: ({ vehicleId, status, expectedStatus }: { vehicleId: string; status: string; expectedStatus: string }) =>
+      apiPatch<FleetVehicle>(orgPath(orgId, `/vehicles/${vehicleId}`), { status, expected_status: expectedStatus }),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
-    },
-  });
-}
-
-export function useBulkVehicleStatus(orgId: string | null) {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({
-      vehicleIds,
-      status,
-    }: {
-      vehicleIds: string[];
-      status: string;
-    }) => {
-      const results: { vehicleId: string; ok: boolean; message?: string }[] = [];
-      for (const vehicleId of vehicleIds) {
-        try {
-          await apiPatch<FleetVehicle>(orgPath(orgId, `/vehicles/${vehicleId}`), {
-            status,
-          });
-          results.push({ vehicleId, ok: true });
-        } catch (error) {
-          results.push({
-            vehicleId,
-            ok: false,
-            message: error instanceof Error ? error.message : "Failed",
-          });
-        }
-      }
-      return results;
-    },
-    onSettled: () => {
       qc.invalidateQueries({ queryKey: ["fleet", "vehicles", orgId] });
     },
   });

@@ -1,4 +1,5 @@
 import { getAccessibleVehicle } from './vehicles.js';
+import { currentRecord } from '../lib/record-ownership.js';
 import { recordChange } from '../lib/dbx.js';
 import { publicUser } from '../lib/serialize.js';
 import { fanOutVehicleChange } from './vehicle-shares.js';
@@ -39,7 +40,7 @@ export const currencyPlugin: FastifyPluginAsync = async app => {
           .where(scope).orderBy(vehicles.id).for('update', { of: vehicles });
         for (const car of cars) {
           const filters = (table: typeof fuelLogs | typeof serviceRecords | typeof expenses) =>
-            and(eq(table.vehicleId,car.id), ne(table.currency,body.currency));
+            and(eq(table.vehicleId,car.id), currentRecord(table), ne(table.currency,body.currency));
           const fuel = await tx.update(fuelLogs).set({ currency: body.currency }).where(filters(fuelLogs)).returning();
           const services = await tx.update(serviceRecords).set({ currency: body.currency }).where(filters(serviceRecords)).returning();
           const costs = await tx.update(expenses).set({ currency: body.currency }).where(filters(expenses)).returning();

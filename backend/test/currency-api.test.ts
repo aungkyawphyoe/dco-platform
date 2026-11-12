@@ -46,7 +46,7 @@ describe('operational currency API',()=>{
 
     }finally {await state.app.close();await state.client.close();}
   });
-  it('preserves history after transfer and allows authorized manual corrections',async()=>{
+  it('allows current-period corrections and preserves private history after transfer',async()=>{
     const state=await createTestApp();try {
       await activate(state);const owner=await account(state,'MMK');const other=await account(state,'THB');const id=await car(state,owner);
       await state.db.insert(vehicleShares).values({id:uuid(),vehicleId:id,userId:other.id,grantedBy:owner.id,accessLevel:'add_edit_own',status:'active'});
@@ -62,12 +62,17 @@ describe('operational currency API',()=>{
       expect(result.statusCode,result.body).toBe(201);
       expect((await state.app.inject({url:'/v1/me/currency',headers:owner.headers})).json().locked).toBe(false);
       expect((await state.app.inject({url:'/v1/me/currency',headers:other.headers})).json().locked).toBe(false);
-      await state.db.update(vehicles).set({userId:other.id}).where(eq(vehicles.id,id));
       const corrected=await state.app.inject({method:'PATCH',url:`/v1/expenses/${body.id}`,headers:other.headers,payload:{amount:45000,currency:'MMK'}});
       expect(corrected.statusCode,corrected.body).toBe(200);expect(corrected.json().currency).toBe('MMK');
       expect((await state.app.inject({url:'/v1/me/currency',headers:other.headers})).json().locked).toBe(false);
       const relabel=await state.app.inject({method:'PATCH',url:`/v1/expenses/${body.id}`,headers:other.headers,payload:{amount:45000,currency:'THB'}});
       expect(relabel.statusCode,relabel.body).toBe(200);
+      await state.db.update(vehicles).set({userId:other.id}).where(eq(vehicles.id,id));
+      expect((await state.app.inject({method:'PATCH',url:`/v1/expenses/${body.id}`,headers:other.headers,payload:{amount:1,currency:'THB'}})).statusCode).toBe(404);
+      const relabelOwned=await state.app.inject({method:'PUT',url:'/v1/me/currency',headers:other.headers,payload:{currency:'USD',expected_currency:'THB',relabel_history:true}});
+      expect(relabelOwned.statusCode,relabelOwned.body).toBe(200);
+      const [preserved]=await state.db.select().from(expenses).where(eq(expenses.id,body.id));
+      expect(preserved).toMatchObject({amount:'45000.00',currency:'THB'});
     }finally {await state.app.close();await state.client.close();}
   });
   it('preserves amounts and changes historical tags only on explicit request',async()=>{

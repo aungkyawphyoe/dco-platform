@@ -10,6 +10,7 @@ import {
 } from "../db/schema.js";
 import { newId } from "./crypto.js";
 import type { Mailer } from "./mail.js";
+import { currentRecord } from "./record-ownership.js";
 
 type DeliveryRow = typeof reminderEmailDeliveries.$inferSelect;
 export type ReminderEmailKind = "upcoming" | "due";
@@ -148,6 +149,7 @@ export async function scanReminderEmails(input: {
       isNotNull(users.email),
       eq(vehicles.archived, false),
       eq(planItems.enabled, true),
+      currentRecord(planItems),
       isNull(organizationVehicles.id),
     ));
 

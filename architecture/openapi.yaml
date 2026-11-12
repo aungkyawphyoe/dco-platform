@@ -6,6 +6,10 @@ info:
     Versioned REST API for the AutoX MVP.
     Personal Flutter clients use audience `dco-owner`; Fleet Dashboard uses `dco-fleet`; verified Workshop accounts use `dco-workshop`; AutoX Admin uses `dco-admin`.
     Fleet audience split: fleet **management** routes (organization members, inventory writes, assignments, work-order status changes, inspections lists, analytics, reports, warranty templates, transfers, CSV import) require the `dco-fleet` audience (Fleet Portal). The mobile app (`dco-owner`) reaches only the personal garage, shared fleet **context** (`/me/entitlements`, `/organizations/me`), the organization-scoped shared record and sync APIs (`/organizations/{organizationId}/records/*`, `/organizations/{id}/sync/*`), and the supplemental **driver surface** (`/drivers/*`, driver work-order/fuel-log/inspection/driver-service-record routes). Driver identities are rejected on personal-garage routes with 403 `personal_garage_forbidden` (Oct 2026 second grilling).
+    Personal vehicle sync upserts include server-controlled transfer_limit_exempt (boolean), true for audited transfers to the recipient. Clients persist it for offline personal allowance counting; missing values default to false.
+    Vehicle child-record reads, writes, reminders, and sync are scoped to the current ownership period.
+    Closed showroom records remain private; historical organization access is read-only and requires Fleet Admin.
+    Unattributed legacy history remains visible only on an untransferred legacy-baseline vehicle pending reconciliation.
     Client-generated UUIDs on create are idempotent. Mileage never decreases.
     Azure hostname is environment-specific and is not part of this contract.
     Public routes (except health/readiness probes) have shared PostgreSQL-backed IP rate limits,
@@ -3956,6 +3960,47 @@ paths:
           schema: {type: string, format: uuid}
       responses:
         '200': {description: Transfer audit entries}
+  /organizations/{id}/transferred/{vehicleId}/records:
+    get:
+      tags: [Fleet]
+      summary: Read showroom records from closed ownership periods
+      description: Fleet Admin only. Returns records attributed to this organization's closed ownership periods; excludes buyer records and unresolved legacy attribution. Attachments use the organization media-content endpoint. No historical mutation is granted.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '200':
+          description: Read-only showroom history
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [service_records, expenses, documents, fuel_logs, parts, plan_items, read_only]
+                properties:
+                  read_only: {type: boolean, enum: [true]}
+                  service_records:
+                    type: array
+                    items: {$ref: '#/components/schemas/ServiceRecord'}
+                  expenses:
+                    type: array
+                    items: {$ref: '#/components/schemas/Expense'}
+                  documents:
+                    type: array
+                    items: {$ref: '#/components/schemas/Document'}
+                  fuel_logs:
+                    type: array
+                    items: {$ref: '#/components/schemas/FuelLog'}
+                  parts:
+                    type: array
+                    items: {$ref: '#/components/schemas/Part'}
+                  plan_items:
+                    type: array
+                    items: {$ref: '#/components/schemas/PlanItem'}
+        '403': {$ref: '#/components/responses/Error'}
+        '404': {$ref: '#/components/responses/Error'}
   /organizations/{id}/transferred/{vehicleId}/history:
     get:
       tags: [Fleet]

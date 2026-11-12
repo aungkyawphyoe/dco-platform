@@ -1,3 +1,4 @@
+import { currentRecord } from "../lib/record-ownership.js";
 import { incomingCurrency } from '../lib/operational-currency.js';
 import { assertPersonalVehicleWritable } from "../lib/subscription-access.js";
 import { effectiveSubscription } from "../lib/gifts.js";
@@ -41,7 +42,7 @@ function yearOk(year: number): boolean {
 }
 
 export async function nextMaintenance(db: Db, vehicleId: string, mileage: number) {
-    const items = await db.select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), eq(planItems.enabled, true)));
+    const items = await db.select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), eq(planItems.enabled, true), currentRecord(planItems)));
   let best: (typeof items)[number] | null = null;
   let bestScore = Number.POSITIVE_INFINITY;
   const today = new Date().toISOString().slice(0, 10);
@@ -296,7 +297,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     const { vehicleId } = request.params as { vehicleId: string };
     const row = await getAccessibleVehicle(app.db, request.authUser!.sub, vehicleId, "drive_only");
     const [displayOwner] = await app.db.select({currency:users.currency}).from(users).where(eq(users.id,row.allowMemberCurrency ? request.authUser!.sub : row.userId));
-    const expenseRows = await app.db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
+    const expenseRows = await app.db.select().from(expenses).where(and(eq(expenses.vehicleId, vehicleId), currentRecord(expenses)));
     const now = new Date();
     const monthPrefix = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
     const total = expenseRows.reduce((s, e) => s + reqNum(e.amount), 0);
@@ -306,9 +307,9 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
     const svc = await app.db
       .select()
       .from(serviceRecords)
-      .where(eq(serviceRecords.vehicleId, vehicleId))
+      .where(and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords)))
       .orderBy(desc(serviceRecords.servicedOn));
-    const docs = await app.db.select().from(documents).where(eq(documents.vehicleId, vehicleId));
+    const docs = await app.db.select().from(documents).where(and(eq(documents.vehicleId, vehicleId), currentRecord(documents)));
     return {
       vehicle: publicVehicle(row, await nextMaintenance(app.db, row.id, reqNum(row.mileage))),
       ownership: {

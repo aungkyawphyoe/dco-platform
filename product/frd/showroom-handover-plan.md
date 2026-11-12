@@ -1,7 +1,7 @@
 # Showroom handover implementation plan
 
 **Date:** 10 November 2026
-**Status:** Implementation started 11 November 2026. Vehicle Detail status controls and server-side status safeguards implemented locally; ownership attribution migration is implemented locally; handover phases 0–5 remain in progress/pending.
+**Status:** Implementation started 11 November 2026. Vehicle Detail status controls and server-side status safeguards implemented locally; ownership attribution migration and core record-access isolation are implemented locally; handover phases 0–5 remain in progress/pending.
 **Scope:** Fleet Portal showroom-to-personal handover, supporting API, personal/driver sync, and platform-admin correction. This document supersedes conflicting showroom transfer requirements in `fleet-management.md`. It does not claim the proposed routes or schema already exist.
 
 ## Outcome
@@ -140,13 +140,13 @@ Do not implement correction as a blind user_id reversal. Preserve buyer-created 
 
 ## Implementation sequence
 
-Status controls were delivered as an independent first increment. Phase 0 investigation is recorded in [the implementation audit](../../docs/showroom-handover-implementation-audit.md); ownership migration and the complete handover are not yet implemented.
+Status controls were delivered as an independent first increment. Phase 0 investigation is recorded in [the implementation audit](../../docs/showroom-handover-implementation-audit.md); ownership attribution and core access filters are implemented locally; legacy reconciliation and the complete handover remain pending.
 
 | Phase | Work and affected areas | Exit criterion |
 |---|---|---|
 | 0. Inventory and contract | Inspect schema, fleet operations, owner/driver routes, media, sync, analytics tenure, warranty, maintenance calculators, and legacy transfers. Specify field allowlist, ownership-period schema, correction behavior, and endpoint/error contracts. | Reviewed mapping of every linked record and access path; unresolved policies below resolved |
 | 1. Schema and migration (in progress) | Ownership-period ledger and new-record attribution implemented in migration 0040; legacy attribution flagged for review. Still add draft/revision/uniqueness, delegated permission, frozen warranty/plan evidence, and reliable delivery events. Backfill only from evidence. | Repeatable migration, reconciliation report, and ambiguous-row isolation without deletion |
-| 2. Authorization and isolation | Apply ownership-period checks to direct reads/writes, joins, totals, exports, media, workshop access, and sync; close stale assignments/shares as applicable. | Cross-period access tests pass before exposing the new handover flow |
+| 2. Authorization and isolation (in progress) | Core record APIs, totals, reminders, media, and sync now filter by ownership period; Fleet Admin has read-only attributed historical records. Complete the remaining transfer/workshop/late-review paths and apply ownership-period checks to direct reads/writes, joins, totals, exports, media, workshop access, and sync; close stale assignments/shares as applicable. | Cross-period access tests pass before exposing the new handover flow |
 | 3. Handover service | Implement draft, recipient lookup, cancel, review, atomic complete, work-order cancellation reason, idempotency, and legacy-route protection. | Failure and concurrency tests prove all-or-nothing behavior |
 | 4. Portal and personal mobile | Move vehicle status changes to detail and add lifecycle explanations; portal draft/review/finalize UI, member permission controls, QR scanning; personal account QR, independent plan delivery and receipt; driver revocation/late-write behavior. | Existing buyer can receive and maintain vehicle with clean history on first and incremental sync |
 | 5. Support correction and rollout | Audited platform-admin correction, delivery retries, migration rehearsal, end-to-end tests and updated user instructions. | Complete safety/acceptance matrix passes; enable only after backend and client compatibility are ready |
@@ -170,7 +170,7 @@ Proposed API operations are create/read/update/cancel draft, resolve buyer, revi
 
 These are implementation prerequisites, not reasons to reopen agreed product choices:
 
-- **Resolved 11 November:** Preserve the showroom-transfer vehicle-count exemption. Apply it consistently in backend counting and mobile offline gating; do not silently charge or upgrade the buyer. Implementation remains pending.
+- **Resolved 11 November:** Preserve the showroom-transfer vehicle-count exemption. Apply it consistently in backend counting and mobile offline gating; do not silently charge or upgrade the buyer. Backend allowance counting excludes audited transfers to the buyer; personal sync now supplies `transfer_limit_exempt` and mobile offline gating consumes it.
 - Decide draft expiration, account QR lifetime/rotation, and buyer receipt channel using current capabilities. Buyer acceptance remains unnecessary.
 - Define treatment of ambiguous legacy transfers and already-exposed history, currency/storage attribution, suspended organization access to retained records, and personal-account eligibility when organization memberships also exist.
 - Finalize buyer-visible vehicle fields and platform-admin correction outcomes when buyer activity already exists.

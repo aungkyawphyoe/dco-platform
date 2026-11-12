@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm";
+import { currentRecord, organizationRecord } from "./record-ownership.js";
+import { and, eq } from "drizzle-orm";
 import type { Db } from "../db/client.js";
 import {
   documents,
@@ -39,8 +40,8 @@ export function publicPlan(row: typeof planItems.$inferSelect) {
   };
 }
 
-export async function loadService(appDb: Db, id: string) {
-  const [row] = await appDb.select().from(serviceRecords).where(eq(serviceRecords.id, id)).limit(1);
+export async function loadService(appDb: Db, id: string, historicalOrgId?: string) {
+  const [row] = await appDb.select().from(serviceRecords).where(and(eq(serviceRecords.id, id), historicalOrgId ? organizationRecord(serviceRecords, historicalOrgId) : currentRecord(serviceRecords))).limit(1);
   if (!row) return null;
   const items = await appDb.select().from(serviceRecordItems).where(eq(serviceRecordItems.serviceRecordId, id));
   const assigned = await appDb.select().from(serviceRecordParts).where(eq(serviceRecordParts.serviceRecordId, id));
@@ -120,8 +121,8 @@ export async function publicDoc(db: Db, row: typeof documents.$inferSelect) {
   };
 }
 
-export async function publicExpense(appDb: Db, id: string) {
-  const [row] = await appDb.select().from(expenses).where(eq(expenses.id, id)).limit(1);
+export async function publicExpense(appDb: Db, id: string, historicalOrgId?: string) {
+  const [row] = await appDb.select().from(expenses).where(and(eq(expenses.id, id), historicalOrgId ? organizationRecord(expenses, historicalOrgId) : currentRecord(expenses))).limit(1);
   if (!row) return null;
   const assigned = await appDb.select().from(expenseParts).where(eq(expenseParts.expenseId, id));
   return {

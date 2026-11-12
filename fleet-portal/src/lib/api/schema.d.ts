@@ -6716,7 +6716,10 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        /** @description Target lifecycle state. Sold requires the dedicated handover operation. */
                         status: string;
+                        /** @description Previously displayed state; a mismatch returns 409 without changes. */
+                        expected_status?: string;
                         revenue_label?: string | null;
                         vehicle_class?: components["schemas"]["VehicleClass"];
                     };
@@ -6731,6 +6734,7 @@ export interface paths {
                     content?: never;
                 };
                 400: components["responses"]["Error"];
+                409: components["responses"]["Error"];
             };
         };
         trace?: never;
@@ -7822,6 +7826,59 @@ export interface paths {
                     };
                     content?: never;
                 };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/transferred/{vehicleId}/records": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read showroom records from closed ownership periods
+         * @description Fleet Admin only. Returns records attributed to this organization's closed ownership periods; excludes buyer records and unresolved legacy attribution. Attachments use the organization media-content endpoint. No historical mutation is granted.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: components["parameters"]["vehicleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Read-only showroom history */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            read_only: true;
+                            service_records: components["schemas"]["ServiceRecord"][];
+                            expenses: components["schemas"]["Expense"][];
+                            documents: components["schemas"]["Document"][];
+                            fuel_logs: components["schemas"]["FuelLog"][];
+                            parts: components["schemas"]["Part"][];
+                            plan_items: components["schemas"]["PlanItem"][];
+                        };
+                    };
+                };
+                403: components["responses"]["Error"];
+                404: components["responses"]["Error"];
             };
         };
         put?: never;
@@ -10985,6 +11042,8 @@ export interface components {
             name: string;
         };
         ServiceRecord: {
+            /** @description Custom job title, separate from the names of individual service items. */
+            title?: string | null;
             currency?: components["schemas"]["OperationalCurrency"];
             readonly revision?: number;
             /** Format: uuid */
@@ -11025,6 +11084,8 @@ export interface components {
             name: string;
         };
         ServiceRecordWrite: {
+            /** @description Custom job title, separate from the names of individual service items. */
+            title?: string | null;
             /** @description Required with monetary entries after rollout activation. Historical edits retain their original currency. */
             currency?: components["schemas"]["OperationalCurrency"];
             /** Format: uuid */

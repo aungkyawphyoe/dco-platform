@@ -19,12 +19,12 @@ import { PLANS, PLAN_IDS, vehicleLimit, type Plan } from "./plans.js";
 
 export const LIMIT_URL = "/pricing";
 
-/** Active (non-archived) vehicles owned by the user. */
+/** Active owned vehicles charged to the personal allowance; audited transfers are exempt. */
 export async function countActiveVehicles(db: Db, userId: string): Promise<number> {
   const [row] = await db
     .select({ count: sql<number>`count(*)::int` })
     .from(vehicles)
-    .where(and(eq(vehicles.userId, userId), eq(vehicles.archived, false)));
+    .where(and(eq(vehicles.userId, userId), eq(vehicles.archived, false), sql`NOT EXISTS (SELECT 1 FROM transferred_vehicles t WHERE t.vehicle_id = ${vehicles.id} AND t.buyer_user_id = ${userId})`));
   return Number(row?.count ?? 0);
 }
 

@@ -1,3 +1,4 @@
+import { currentRecord } from "../lib/record-ownership.js";
 import { assertPersonalVehicleWritable } from "../lib/subscription-access.js";
 import { randomInt } from "node:crypto";
 import { authLimit } from "../lib/rate-limit.js";
@@ -157,7 +158,7 @@ export async function getVehicleChangeAudience(db: Db, vehicleId: string): Promi
   const shares = await db
     .select({ userId: vehicleShares.userId })
     .from(vehicleShares)
-    .where(and(eq(vehicleShares.vehicleId, vehicleId), eq(vehicleShares.status, "active")));
+    .where(and(eq(vehicleShares.vehicleId, vehicleId), eq(vehicleShares.status, "active"), eq(vehicleShares.grantedBy, vehicle.userId)));
   const userIds = new Set<string>([vehicle.userId, ...shares.map((g) => g.userId)]);
   return [...userIds];
 }
@@ -201,22 +202,22 @@ export async function seedVehicleHistory(db: Db, vehicleId: string, targetUserId
   const record = (entityType: string, entityId: string, payload: Record<string, unknown> | null) =>
     payload ? recordChange(db, { userId: targetUserId, entityType, entityId, op: "upsert", payload }) : Promise.resolve();
 
-  const planRows = await db.select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
+  const planRows = await db.select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), currentRecord(planItems)));
   for (const row of planRows) await record("plan_item", row.id, publicPlan(row));
 
-  const serviceRows = await db.select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId));
+  const serviceRows = await db.select().from(serviceRecords).where(and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords)));
   for (const row of serviceRows) await record("service_record", row.id, await loadService(db, row.id));
 
-  const partRows = await db.select().from(parts).where(eq(parts.vehicleId, vehicleId));
+  const partRows = await db.select().from(parts).where(and(eq(parts.vehicleId, vehicleId), currentRecord(parts)));
   for (const row of partRows) await record("part", row.id, publicPart(row));
 
-  const fuelRows = await db.select().from(fuelLogs).where(eq(fuelLogs.vehicleId, vehicleId));
+  const fuelRows = await db.select().from(fuelLogs).where(and(eq(fuelLogs.vehicleId, vehicleId), currentRecord(fuelLogs)));
   for (const row of fuelRows) await record("fuel_log", row.id, publicFuelLog(row));
 
-  const docRows = await db.select().from(documents).where(eq(documents.vehicleId, vehicleId));
+  const docRows = await db.select().from(documents).where(and(eq(documents.vehicleId, vehicleId), currentRecord(documents)));
   for (const row of docRows) await record("document", row.id, await publicDoc(db, row));
 
-  const expenseRows = await db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
+  const expenseRows = await db.select().from(expenses).where(and(eq(expenses.vehicleId, vehicleId), currentRecord(expenses)));
   for (const row of expenseRows) await record("expense", row.id, await publicExpense(db, row.id));
 }
 
@@ -240,7 +241,7 @@ export async function getVehicleAccessLevel(
     .from(vehicleShares)
     .where(and(eq(vehicleShares.vehicleId, vehicleId), eq(vehicleShares.userId, userId), eq(vehicleShares.status, "active")))
     .limit(1);
-  if (!share) return null;
+  if (!share || share.grantedBy !== vehicle.userId) return null;
   await assertPersonalVehicleWritable(db, vehicleId);
   return share.accessLevel;
 }
@@ -269,7 +270,7 @@ export async function getVehicleSharesDetail(db: Db, vehicleId: string, userId: 
   // code — is owner-managed data. Sharees get the vehicle, its documents, and
   // its history, but never a view of other participants.
   const shares = access === "owner" ? await db.select().from(vehicleShares).where(eq(vehicleShares.vehicleId, vehicleId)) : [];
-  const docs = await db.select().from(documents).where(eq(documents.vehicleId, vehicleId));
+  const docs = await db.select().from(documents).where(and(eq(documents.vehicleId, vehicleId), currentRecord(documents)));
 
   const sharedUsers: Array<{
     user_id: string;
@@ -357,7 +358,7 @@ export async function getUserDetail(db: Db, userId: string, requestingUserId: st
     .select({ vehicle: vehicles, share: vehicleShares })
     .from(vehicleShares)
     .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
-    .where(and(eq(vehicleShares.userId, userId), eq(vehicleShares.status, "active"), eq(vehicles.archived, false)));
+    .where(and(eq(vehicleShares.userId, userId), eq(vehicleShares.grantedBy, vehicles.userId), eq(vehicleShares.status, "active"), eq(vehicles.archived, false)));
 
   const [license] = await db
     .select()
@@ -815,7 +816,7 @@ export const vehicleSharesPlugin: FastifyPluginAsync = async (app) => {
       .select({ vehicle: vehicles, share: vehicleShares })
       .from(vehicleShares)
       .innerJoin(vehicles, eq(vehicleShares.vehicleId, vehicles.id))
-      .where(and(eq(vehicleShares.userId, userId), eq(vehicleShares.status, "active"), eq(vehicles.archived, false)));
+      .where(and(eq(vehicleShares.userId, userId), eq(vehicleShares.grantedBy, vehicles.userId), eq(vehicleShares.status, "active"), eq(vehicles.archived, false)));
 
     // Fleet-managed vehicles are excluded from personal sharing entirely.
     const orgRows = await db().select({ vehicleId: organizationVehicles.vehicleId }).from(organizationVehicles);

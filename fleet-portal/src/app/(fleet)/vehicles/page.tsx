@@ -21,17 +21,14 @@ import {
   TableRow,
 } from "@dco/ui/components/table";
 import {
-  useBulkVehicleStatus,
   useCreateVehicle,
   useImportJob,
   useImportVehicleCsv,
-  useUpdateVehicleStatus,
   useVehicles,
 } from "@/lib/api/hooks";
 import {
   lifecycleTemplateOptions,
   vehicleClassOptions,
-  lifecycleTransitions,
   type VehicleCreateInput,
 } from "@/lib/api/types";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
@@ -75,16 +72,12 @@ export default function VehiclesPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [lifecycleFilter, setLifecycleFilter] = useState("");
   const [classFilter, setClassFilter] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
   const [showCreate, setShowCreate] = useState(false);
   const [form, setForm] = useState<VehicleCreateInput>({ ...emptyForm, id: crypto.randomUUID() });
   const [createError, setCreateError] = useState<string | null>(null);
   const [importJobId, setImportJobId] = useState<string | null>(null);
-  const [bulkStatus, setBulkStatus] = useState("");
 
   const createVehicle = useCreateVehicle(orgId);
-  const updateStatus = useUpdateVehicleStatus(orgId);
-  const bulkUpdate = useBulkVehicleStatus(orgId);
   const importCsv = useImportVehicleCsv(orgId);
   const { data: importJob } = useImportJob(orgId, importJobId);
 
@@ -109,20 +102,6 @@ export default function VehiclesPage() {
     return matchesSearch && matchesStatus && matchesLifecycle && matchesClass;
   });
 
-  function toggle(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function toggleAll() {
-    if (selected.size === filtered.length) setSelected(new Set());
-    else setSelected(new Set(filtered.map((v) => v.id)));
-  }
-
   async function onCreate() {
     setCreateError(null);
     try {
@@ -141,13 +120,6 @@ export default function VehiclesPage() {
     } catch {
       setImportJobId(null);
     }
-  }
-
-  async function onBulkStatus() {
-    if (!bulkStatus || !selected.size) return;
-    await bulkUpdate.mutateAsync({ vehicleIds: [...selected], status: bulkStatus });
-    setSelected(new Set());
-    setBulkStatus("");
   }
 
   return (
@@ -263,27 +235,7 @@ export default function VehiclesPage() {
             onChange={setClassFilter}
             className="w-44"
           />
-          {canManage && selected.size > 0 ? (
-            <div className="flex items-end gap-2">
-              <Select
-                label="Bulk status"
-                options={[{ value: bulkStatus, label: bulkStatus || "Choose…" }].filter(
-                  (o) => o.value,
-                )}
-                placeholder="Next status…"
-                value={bulkStatus}
-                onChange={setBulkStatus}
-                className="w-44"
-              />
-              <Button
-                className="h-11"
-                disabled={!bulkStatus || bulkUpdate.isPending}
-                onClick={() => void onBulkStatus()}
-              >
-                Apply to {selected.size}
-              </Button>
-            </div>
-          ) : null}
+
         </div>
       </div>
 
@@ -310,17 +262,7 @@ export default function VehiclesPage() {
           <Table>
             <TableHead>
               <TableRow>
-                {canManage ? (
-                  <TableHeadCell className="w-10">
-                    <input
-                      type="checkbox"
-                      aria-label="Select all"
-                      checked={selected.size > 0 && selected.size === filtered.length}
-                      onChange={toggleAll}
-                      className="size-4 accent-[var(--accent)]"
-                    />
-                  </TableHeadCell>
-                ) : null}
+
                 <TableHeadCell>Vehicle</TableHeadCell>
                 <TableHeadCell>Plate</TableHeadCell>
                 <TableHeadCell>Lifecycle</TableHeadCell>
@@ -331,21 +273,9 @@ export default function VehiclesPage() {
             </TableHead>
             <TableBody>
               {filtered.map((vehicle) => {
-                const nextStatuses =
-                  lifecycleTransitions[vehicle.lifecycle_template]?.[vehicle.status] ?? [];
                 return (
                   <TableRow key={vehicle.id}>
-                    {canManage ? (
-                      <TableCell>
-                        <input
-                          type="checkbox"
-                          aria-label={`Select ${vehicle.name}`}
-                          checked={selected.has(vehicle.id)}
-                          onChange={() => toggle(vehicle.id)}
-                          className="size-4 accent-[var(--accent)]"
-                        />
-                      </TableCell>
-                    ) : null}
+
                     <TableCell>
                       <Link
                         href={`/vehicles/${vehicle.id}`}
@@ -370,31 +300,7 @@ export default function VehiclesPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center justify-end gap-2">
-                        {canManage && nextStatuses.length ? (
-                          <select
-                            aria-label={`Change status for ${vehicle.name}`}
-                            className="h-8 w-36 min-w-36 shrink-0 rounded-sm border border-line-strong bg-field px-2 text-xs text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-focus"
-                            value=""
-                            onChange={async (e) => {
-                              if (!e.target.value) return;
-                              try {
-                                await updateStatus.mutateAsync({
-                                  vehicleId: vehicle.id,
-                                  status: e.target.value,
-                                });
-                              } catch {
-                                // surfaced by react-query error state
-                              }
-                            }}
-                          >
-                            <option value="">Move to…</option>
-                            {nextStatuses.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
-                              </option>
-                            ))}
-                          </select>
-                        ) : null}
+
                         <Link
                           href={`/vehicles/${vehicle.id}`}
                           className="font-display text-sm font-semibold text-gold hover:underline"

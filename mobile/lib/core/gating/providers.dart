@@ -184,7 +184,8 @@ final activeVehicleCountProvider = StreamProvider<int>((ref) {
     ..addColumns([count])
     ..where(
       db.vehicleRecords.userId.equals(userId) &
-          db.vehicleRecords.archived.equals(false),
+          db.vehicleRecords.archived.equals(false) &
+          db.vehicleRecords.transferLimitExempt.equals(false),
     );
   return query.map((row) => row.read(count) ?? 0).watchSingle();
 });

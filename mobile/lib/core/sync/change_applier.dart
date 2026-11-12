@@ -144,6 +144,7 @@ class ChangeApplier {
           _str(payload['purchase_currency'], fallback: 'MMK'),
         ),
         photoMediaId: Value(_strN(payload['photo_media_id'])),
+        transferLimitExempt: Value(payload['transfer_limit_exempt'] as bool? ?? false),
         archived: Value(payload['archived'] as bool? ?? false),
         archivedAt: Value(_dt(payload['archived_at'])),
         updatedAt: remoteUpdatedAt,

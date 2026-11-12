@@ -110,9 +110,10 @@ describe("offline entitlement license (GET /v1/me/license)", () => {
 
 describe("issueLicense (unit)", () => {
   it("bakes period_end + 7d grace into exp when a billing period exists", async () => {
+    const now = new Date("2026-10-25T00:00:00Z");
     const periodEnd = new Date("2026-11-01T00:00:00Z");
-    const { license } = await issueLicense(testEnv, { userId: uuid(), plan: "lite", periodEnd });
-    const { payload } = await jwtVerify(license, publicKey, { algorithms: ["EdDSA"] });
+    const { license } = await issueLicense(testEnv, { userId: uuid(), plan: "lite", periodEnd, now });
+    const { payload } = await jwtVerify(license, publicKey, { algorithms: ["EdDSA"], currentDate: now });
 
     expect(payload.period_end).toBe(periodEnd.toISOString());
     expect(new Date(payload.exp! * 1000)).toEqual(
@@ -123,7 +124,7 @@ describe("issueLicense (unit)", () => {
   it("falls back to the rolling TTL while billing is absent", async () => {
     const now = new Date("2026-10-09T12:00:00Z");
     const { license } = await issueLicense(testEnv, { userId: uuid(), plan: "free", now });
-    const { payload } = await jwtVerify(license, publicKey, { algorithms: ["EdDSA"] });
+    const { payload } = await jwtVerify(license, publicKey, { algorithms: ["EdDSA"], currentDate: now });
 
     expect(payload.iat).toBe(Math.floor(now.getTime() / 1000));
     expect(payload.exp! - payload.iat!).toBe(30 * 86_400);

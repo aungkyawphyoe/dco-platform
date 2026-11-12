@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 class VehicleRecords extends Table {
+  BoolColumn get transferLimitExempt => boolean().withDefault(const Constant(false))();
   TextColumn get purchaseCurrency =>
       text().withDefault(const Constant('MMK'))();
   @override

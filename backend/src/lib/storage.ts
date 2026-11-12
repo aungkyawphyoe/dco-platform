@@ -1,9 +1,10 @@
+import { currentRecord } from "./record-ownership.js";
 import { assertOrganizationWritable } from "./subscriptions.js";
 import { assertPersonalVehicleWritable } from "./subscription-access.js";
 import { effectiveSubscription } from "./gifts.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "../db/client.js";
-import { documents, expenses, mediaObjects, organizations, serviceRecords, users, vehicles } from "../db/schema.js";
+import { documents, expenses, mediaObjects, organizationVehicles, organizations, serviceRecords, users, vehicles } from "../db/schema.js";
 import { AppError } from "./errors.js";
 import { PLANS } from "./plans.js";
 import type { MediaStore } from "./media.js";
@@ -29,6 +30,12 @@ export async function storeWithQuota(db: Db, store: MediaStore, input: {
   if (input.owner.orgId) await assertOrganizationWritable(db, input.owner.orgId);
   else if (input.vehicleId) await assertPersonalVehicleWritable(db, input.vehicleId);
   return db.transaction(async (tx) => {
+    if (input.vehicleId) {
+      const [vehicle] = await tx.select().from(vehicles).where(eq(vehicles.id, input.vehicleId)).for("update");
+      const [link] = await tx.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, input.vehicleId));
+      const ownsScope = input.owner.orgId ? link?.orgId === input.owner.orgId : !link && vehicle?.userId === input.owner.userId;
+      if (!vehicle || !ownsScope) throw new AppError(409, "vehicle_ownership_changed", "Vehicle ownership changed during upload");
+    }
     if (input.owner.orgId) await tx.select().from(organizations).where(eq(organizations.id, input.owner.orgId)).for("update");
     else await tx.select().from(users).where(eq(users.id, input.owner.userId)).for("update");
     const [existing] = await tx.select().from(mediaObjects).where(eq(mediaObjects.id, input.id));
@@ -53,7 +60,7 @@ export async function storeWithQuota(db: Db, store: MediaStore, input: {
 }
 
 export async function assertDocumentMedia(db: Db, mediaId: string, vehicleId: string) {
-  const [row] = await db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId)).for("update");
+  const [row] = await db.select().from(mediaObjects).where(and(eq(mediaObjects.id, mediaId), currentRecord(mediaObjects))).for("update");
   if (!row || row.vehicleId !== vehicleId || !chargedPurpose(row.purpose ?? "document") ||
       ["driving_license", "license_front", "license_back"].includes(row.purpose ?? "")) {
     throw new AppError(422, "invalid_media", "Select a document uploaded for this vehicle");

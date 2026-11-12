@@ -1,3 +1,5 @@
+import { loadService, publicExpense, publicDoc, publicFuelLog, publicPart, publicPlan } from "../lib/serialize-records.js";
+import { currentRecord, organizationRecord } from "../lib/record-ownership.js";
 import { incomingCurrency, incomingServiceCurrency, lockCurrencyVehicle, effectiveVehicleCurrency } from '../lib/operational-currency.js';
 import { billingRequest } from "../lib/subscription-access.js";
 import { assertOrganizationWritable } from "../lib/subscriptions.js";
@@ -21,6 +23,7 @@ import {
   organizationWorkshops,
   organizations,
   partners,
+  parts,
   planItems,
   serviceRecordItems,
   serviceRecords,
@@ -496,7 +499,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     )).limit(1);
     if (!assignment) throw new AppError(403, "not_assigned_to_vehicle", "Driver is not assigned to this vehicle");
     const rows = await app.db.select().from(fuelLogs).where(and(
-      eq(fuelLogs.vehicleId, vehicleId),
+      and(eq(fuelLogs.vehicleId, vehicleId), currentRecord(fuelLogs)),
       eq(fuelLogs.userId, actorId),
     )).orderBy(desc(fuelLogs.loggedOn), desc(fuelLogs.id));
     return {
@@ -685,7 +688,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
         eq(organizationVehicles.id, link.id), eq(organizationVehicles.orgId, orgId),
       )).for("update");
       if (!lockedLink) throw new AppError(409, "vehicle_already_transferred", "Vehicle no longer belongs to this organization");
-      const history = await tx.select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId)).orderBy(desc(serviceRecords.servicedOn));
+      const history = await tx.select().from(serviceRecords).where(and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords))).orderBy(desc(serviceRecords.servicedOn));
       let warrantyId: string | null = null;
       if (template) {
         warrantyId = newId();
@@ -739,6 +742,28 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     })) };
   });
 
+  app.get("/organizations/:id/transferred/:vehicleId/records", async (request) => {
+    requireFleetPortal(request);
+    const { id, vehicleId } = request.params as { id: string; vehicleId: string };
+    const orgId = uuid.parse(id);
+    uuid.parse(vehicleId);
+    // Documents/receipts retain the existing Fleet Admin-only policy.
+    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin"]);
+    const [transfer] = await app.db.select({ id: transferredVehicles.id }).from(transferredVehicles)
+      .where(and(eq(transferredVehicles.orgId, orgId), eq(transferredVehicles.vehicleId, vehicleId))).limit(1);
+    if (!transfer) throw new AppError(404, "transferred_vehicle_not_found", "Transferred vehicle was not found");
+    const services = await app.db.select({ id: serviceRecords.id }).from(serviceRecords).where(and(eq(serviceRecords.vehicleId, vehicleId), organizationRecord(serviceRecords, orgId)));
+    const costs = await app.db.select({ id: expenses.id }).from(expenses).where(and(eq(expenses.vehicleId, vehicleId), organizationRecord(expenses, orgId)));
+    const docs = await app.db.select().from(documents).where(and(eq(documents.vehicleId, vehicleId), organizationRecord(documents, orgId)));
+    const fuel = await app.db.select().from(fuelLogs).where(and(eq(fuelLogs.vehicleId, vehicleId), organizationRecord(fuelLogs, orgId)));
+    const components = await app.db.select().from(parts).where(and(eq(parts.vehicleId, vehicleId), organizationRecord(parts, orgId)));
+    const plans = await app.db.select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), organizationRecord(planItems, orgId)));
+    return { service_records: await Promise.all(services.map(row => loadService(app.db, row.id, orgId))),
+      expenses: await Promise.all(costs.map(row => publicExpense(app.db, row.id, orgId))),
+      documents: await Promise.all(docs.map(row => publicDoc(app.db, row))), fuel_logs: fuel.map(publicFuelLog),
+      parts: components.map(publicPart), plan_items: plans.map(publicPlan), read_only: true };
+  });
+
   app.get("/organizations/:id/transferred/:vehicleId/history", async (request) => {
     requireFleetPortal(request);
     const { id: rawOrgId, vehicleId } = request.params as { id: string; vehicleId: string };
@@ -784,8 +809,8 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       .innerJoin(vehicles, eq(vehicles.id, organizationVehicles.vehicleId)).where(eq(organizationVehicles.orgId, orgId));
     const ids = fleet.map(row => row.vehicle.id);
     const [plans, docs, orders, checks, assignments] = await Promise.all([
-      ids.length ? app.db.select().from(planItems).where(and(inArray(planItems.vehicleId, ids), eq(planItems.enabled, true))) : [],
-      ids.length && membership.role === "org_admin" ? app.db.select().from(documents).where(inArray(documents.vehicleId, ids)) : [],
+      ids.length ? app.db.select().from(planItems).where(and(inArray(planItems.vehicleId, ids), eq(planItems.enabled, true), currentRecord(planItems))) : [],
+      ids.length && membership.role === "org_admin" ? app.db.select().from(documents).where(and(inArray(documents.vehicleId, ids), currentRecord(documents))) : [],
       app.db.select().from(workOrders).where(and(eq(workOrders.orgId, orgId), inArray(workOrders.status, ["reported", "in_progress"]))),
       app.db.select().from(inspections).where(and(eq(inspections.orgId, orgId), inArray(inspections.status, ["completed", "failed"]))).orderBy(desc(inspections.completedAt), desc(inspections.createdAt)),
       app.db.select().from(driverAssignments).where(and(eq(driverAssignments.orgId, orgId), eq(driverAssignments.status, "active"))),
@@ -853,7 +878,7 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
       : [];
     const vehicleById = new Map(vehicleRows.map((row) => [row.id, row]));
     const maintenancePlans = links.length
-      ? await app.db.select().from(planItems).where(and(inArray(planItems.vehicleId, links.map((row) => row.vehicleId)), eq(planItems.enabled, true)))
+      ? await app.db.select().from(planItems).where(and(inArray(planItems.vehicleId, links.map((row) => row.vehicleId)), eq(planItems.enabled, true), currentRecord(planItems)))
       : [];
     const soon = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
     const upcomingVehicleIds = new Set<string>();
@@ -1145,9 +1170,9 @@ async function processVehicleImport(
 }
 
 async function calculateVehicleCost(db: Db, vehicleId: string) {
-  const serviceRows = await db.select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId));
-  const fuelRows = await db.select().from(fuelLogs).where(eq(fuelLogs.vehicleId, vehicleId));
-  const expenseRows = await db.select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
+  const serviceRows = await db.select().from(serviceRecords).where(and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords)));
+  const fuelRows = await db.select().from(fuelLogs).where(and(eq(fuelLogs.vehicleId, vehicleId), currentRecord(fuelLogs)));
+  const expenseRows = await db.select().from(expenses).where(and(eq(expenses.vehicleId, vehicleId), currentRecord(expenses)));
   const [vehicle] = await db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
   const maintenanceCost = expenseRows.filter((row) => row.category === "maintenance").reduce((sum, row) => sum + reqNum(row.amount), 0);
   const fuelCost = expenseRows.filter((row) => row.category === "fuel").reduce((sum, row) => sum + reqNum(row.amount), 0);

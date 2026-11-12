@@ -1,5 +1,7 @@
 import {
   bigint,
+  check,
+  primaryKey,
   bigserial,
   boolean,
   date,
@@ -183,6 +185,7 @@ export const deviceTokens = pgTable("device_tokens", {
 });
 
 export const mediaObjects = pgTable("media_objects", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   ownerOrgId: uuid("owner_org_id"),
   vehicleId: uuid("vehicle_id").references(() => vehicles.id),
   id: uuid("id").primaryKey(),
@@ -214,7 +217,31 @@ export const drivingLicenses = pgTable("driving_licenses", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+// Principal identity and time boundaries are constrained by migration 0040.
+export const vehicleOwnershipPeriods = pgTable("vehicle_ownership_periods", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
+  userId: uuid("user_id").references(() => users.id),
+  orgId: uuid("org_id").references(() => organizations.id),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull().defaultNow(),
+  endedAt: timestamp("ended_at", { withTimezone: true }),
+  origin: text("origin").notNull(),
+}, (table) => ({
+  current: uniqueIndex("vehicle_ownership_period_current").on(table.vehicleId).where(sql`${table.endedAt} IS NULL`),
+  organization: index("vehicle_ownership_period_org").on(table.orgId, table.vehicleId),
+  principal: check("ownership_period_principal", sql`(${table.userId} IS NULL) <> (${table.orgId} IS NULL)`),
+}));
+
+export const ownershipMigrationReviews = pgTable("ownership_migration_reviews", {
+  entityType: text("entity_type").notNull(),
+  entityId: uuid("entity_id").notNull(),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id, { onDelete: "cascade" }),
+  reason: text("reason").notNull(),
+  resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+}, (table) => ({ key: primaryKey({ columns: [table.entityType, table.entityId] }) }));
+
 export const planItems = pgTable("plan_items", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   id: uuid("id").primaryKey(),
   vehicleId: uuid("vehicle_id")
     .notNull()
@@ -240,6 +267,7 @@ export const planItems = pgTable("plan_items", {
 });
 
 export const serviceRecords = pgTable("service_records", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   title: text("title"),
   currency: text("currency").notNull().default("MMK"),
   revision: integer("revision").notNull().default(1),
@@ -268,6 +296,7 @@ export const serviceRecordItems = pgTable("service_record_items", {
 });
 
 export const parts = pgTable("parts", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   revision: integer("revision").notNull().default(1),
   adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
@@ -301,6 +330,7 @@ export const fuelTypes = pgTable("fuel_types", {
 });
 
 export const fuelLogs = pgTable("fuel_logs", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   currency: text("currency").notNull().default("MMK"),
   revision: integer("revision").notNull().default(1),
   adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
@@ -323,6 +353,7 @@ export const fuelLogs = pgTable("fuel_logs", {
 });
 
 export const documents = pgTable("documents", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   revision: integer("revision").notNull().default(1),
   adminCorrectedBy: uuid("admin_corrected_by").references(() => users.id),
   id: uuid("id").primaryKey(),
@@ -346,6 +377,7 @@ export const documentLinks = pgTable("document_links", {
 });
 
 export const expenses = pgTable("expenses", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   currency: text("currency").notNull().default("MMK"),
   sourceKind: text("source_kind"),
   sourceId: uuid("source_id"),
@@ -559,6 +591,7 @@ export const driverAssignments = pgTable("driver_assignments", {
 }));
 
 export const workOrders = pgTable("work_orders", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   currency: text("currency").notNull().default("MMK"),
   id: uuid("id").primaryKey(),
   orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
@@ -657,6 +690,7 @@ export const inspectionTemplates = pgTable("inspection_templates", {
 });
 
 export const inspections = pgTable("inspections", {
+  ownershipPeriodId: uuid("ownership_period_id").references(() => vehicleOwnershipPeriods.id),
   id: uuid("id").primaryKey(),
   orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
   vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),

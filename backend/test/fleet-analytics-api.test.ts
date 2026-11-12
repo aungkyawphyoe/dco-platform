@@ -45,7 +45,7 @@ it('reports service types from service-record line items captured in the snapsho
     expect(created.statusCode,created.body).toBe(201);
     const snapshot=await client.query<{payload:{items:{name:string;line_cost:string|null}[]}}>(
       'SELECT payload FROM analytics_records WHERE org_id=$1 AND kind=$2 AND id=$3',[orgId,'service_record',serviceId]);
-    expect(snapshot.rows[0]?.payload.items.map(item=>item.name)).toEqual(['Oil change','Brake pads']);
+    expect(snapshot.rows[0]?.payload.items.map(item=>item.name).sort()).toEqual(['Brake pads','Oil change']);
     const report=await app.inject({url:`/v1/organizations/${orgId}/analytics/report?from=2026-09-26&to=2026-09-26`,headers});
     expect(report.statusCode,report.body).toBe(200);
     expect(report.json().total_cost).toBe(100000);

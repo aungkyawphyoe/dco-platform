@@ -128,6 +128,10 @@ void main() {
       );
       expect(full.canCreateVehicle, isFalse);
 
+      await (db.update(db.vehicleRecords)..where((row) => row.id.equals('v1')))
+          .write(const VehicleRecordsCompanion(transferLimitExempt: Value(true)));
+      final exempt = await awaitGate(container, until: (g) => g.vehicleCount == 0);
+      expect(exempt.canCreateVehicle, isTrue);
       await archiveVehicle('v1');
       final emptied = await awaitGate(
         container,

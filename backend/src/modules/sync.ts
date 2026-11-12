@@ -1,8 +1,10 @@
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq, gt, isNull, or } from "drizzle-orm";
 import type { FastifyInstance } from "fastify";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { changeLog } from "../db/schema.js";
+import { currentRecord } from "../lib/record-ownership.js";
+import { getVehicleAccessLevel } from "./vehicle-shares.js";
+import { changeLog, planItems, serviceRecords, parts, fuelLogs, documents, expenses, mediaObjects, transferredVehicles } from "../db/schema.js";
 import { assertPersonalGarageAllowed } from "../lib/personal-garage.js";
 import { AppError } from "../lib/errors.js";
 import { requireOwner } from "./auth.js";
@@ -75,15 +77,37 @@ export const syncPlugin: FastifyPluginAsync = async (app) => {
       .orderBy(changeLog.seq).limit(200);
     const limited = rows;
     const nextSeq = limited.length ? limited[limited.length - 1].seq : after;
+    const tables = { plan_item: planItems, service_record: serviceRecords, part: parts,
+      fuel_log: fuelLogs, document: documents, expense: expenses, media: mediaObjects };
+    const changes = [];
+    for (const row of limited) {
+      const payload = row.payload as Record<string, unknown>;
+      const table = tables[row.entityType as keyof typeof tables];
+      const vehicleId = row.entityType === "vehicle" ? row.entityId : typeof payload.vehicle_id === "string" ? payload.vehicle_id : undefined;
+      let visible = !vehicleId || Boolean(await getVehicleAccessLevel(app.db, request.authUser!.sub, vehicleId));
+      if (table && row.op !== "delete") {
+        const scope = row.entityType === "media"
+          ? or(isNull(mediaObjects.vehicleId), currentRecord(mediaObjects))
+          : currentRecord(table);
+        const [record] = await app.db.select({ vehicleId: table.vehicleId }).from(table)
+          .where(and(eq(table.id, row.entityId), scope));
+        // Standalone media is not vehicle history.
+        visible = visible && Boolean(record);
+        if (record?.vehicleId) visible = visible && Boolean(await getVehicleAccessLevel(app.db, request.authUser!.sub, record.vehicleId));
+      }
+      let responsePayload = payload;
+      if (visible && row.entityType === "vehicle" && row.op !== "delete") {
+        const [transfer] = await app.db.select({ id: transferredVehicles.id }).from(transferredVehicles)
+          .where(and(eq(transferredVehicles.vehicleId, row.entityId), eq(transferredVehicles.buyerUserId, request.authUser!.sub))).limit(1);
+        responsePayload = { ...payload, transfer_limit_exempt: Boolean(transfer) };
+      }
+      changes.push({ entity_type: row.entityType, entity_id: row.entityId,
+        op: visible ? row.op : "delete", payload: visible ? responsePayload : { id: row.entityId, ...(vehicleId ? { vehicle_id: vehicleId } : {}) },
+        server_ts: row.serverTs.toISOString() });
+    }
     return {
       cursor: Buffer.from(String(nextSeq), "utf8").toString("base64url"),
-      changes: limited.map((row) => ({
-        entity_type: row.entityType,
-        entity_id: row.entityId,
-        op: row.op,
-        payload: row.payload,
-        server_ts: row.serverTs.toISOString(),
-      })),
+      changes,
     };
   });
 };

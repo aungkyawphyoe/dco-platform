@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { ReminderSetup } from "@/components/vehicles/reminder-setup";
+import { VehicleStatus } from "@/components/vehicles/vehicle-status";
 import { VehicleDocuments } from "@/components/vehicles/vehicle-documents";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -425,6 +426,7 @@ export default function VehicleDetailPage() {
       </header>
 
       <VehicleDataPlate vehicle={vehicle} />
+      <VehicleStatus key={vehicle.id} vehicle={vehicle} orgId={orgId} canManage={canManage} />
       {orgId && role === "org_admin" && <VehicleDocuments key={`${orgId}:${vehicle.id}`} orgId={orgId} vehicleId={vehicle.id} />}
 
       <section className="rounded-lg border border-line-subtle bg-panel">

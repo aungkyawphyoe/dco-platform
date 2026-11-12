@@ -256,6 +256,20 @@ class $VehicleRecordsTable extends VehicleRecords
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $VehicleRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _transferLimitExemptMeta =
+      const VerificationMeta('transferLimitExempt');
+  @override
+  late final GeneratedColumn<bool> transferLimitExempt = GeneratedColumn<bool>(
+    'transfer_limit_exempt',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("transfer_limit_exempt" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   static const VerificationMeta _purchaseCurrencyMeta = const VerificationMeta(
     'purchaseCurrency',
   );
@@ -511,6 +525,7 @@ class $VehicleRecordsTable extends VehicleRecords
   );
   @override
   List<GeneratedColumn> get $columns => [
+    transferLimitExempt,
     purchaseCurrency,
     id,
     userId,
@@ -548,6 +563,15 @@ class $VehicleRecordsTable extends VehicleRecords
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('transfer_limit_exempt')) {
+      context.handle(
+        _transferLimitExemptMeta,
+        transferLimitExempt.isAcceptableOrUnknown(
+          data['transfer_limit_exempt']!,
+          _transferLimitExemptMeta,
+        ),
+      );
+    }
     if (data.containsKey('purchase_currency')) {
       context.handle(
         _purchaseCurrencyMeta,
@@ -741,6 +765,10 @@ class $VehicleRecordsTable extends VehicleRecords
   VehicleRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return VehicleRecord(
+      transferLimitExempt: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}transfer_limit_exempt'],
+      )!,
       purchaseCurrency: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}purchase_currency'],
@@ -847,6 +875,7 @@ class $VehicleRecordsTable extends VehicleRecords
 }
 
 class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
+  final bool transferLimitExempt;
   final String purchaseCurrency;
   final String id;
   final String userId;
@@ -872,6 +901,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   final String source;
   final String? permission;
   const VehicleRecord({
+    required this.transferLimitExempt,
     required this.purchaseCurrency,
     required this.id,
     required this.userId,
@@ -900,6 +930,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    map['transfer_limit_exempt'] = Variable<bool>(transferLimitExempt);
     map['purchase_currency'] = Variable<String>(purchaseCurrency);
     map['id'] = Variable<String>(id);
     map['user_id'] = Variable<String>(userId);
@@ -947,6 +978,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
 
   VehicleRecordsCompanion toCompanion(bool nullToAbsent) {
     return VehicleRecordsCompanion(
+      transferLimitExempt: Value(transferLimitExempt),
       purchaseCurrency: Value(purchaseCurrency),
       id: Value(id),
       userId: Value(userId),
@@ -996,6 +1028,9 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return VehicleRecord(
+      transferLimitExempt: serializer.fromJson<bool>(
+        json['transferLimitExempt'],
+      ),
       purchaseCurrency: serializer.fromJson<String>(json['purchaseCurrency']),
       id: serializer.fromJson<String>(json['id']),
       userId: serializer.fromJson<String>(json['userId']),
@@ -1026,6 +1061,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'transferLimitExempt': serializer.toJson<bool>(transferLimitExempt),
       'purchaseCurrency': serializer.toJson<String>(purchaseCurrency),
       'id': serializer.toJson<String>(id),
       'userId': serializer.toJson<String>(userId),
@@ -1054,6 +1090,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   }
 
   VehicleRecord copyWith({
+    bool? transferLimitExempt,
     String? purchaseCurrency,
     String? id,
     String? userId,
@@ -1079,6 +1116,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
     String? source,
     Value<String?> permission = const Value.absent(),
   }) => VehicleRecord(
+    transferLimitExempt: transferLimitExempt ?? this.transferLimitExempt,
     purchaseCurrency: purchaseCurrency ?? this.purchaseCurrency,
     id: id ?? this.id,
     userId: userId ?? this.userId,
@@ -1110,6 +1148,9 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   );
   VehicleRecord copyWithCompanion(VehicleRecordsCompanion data) {
     return VehicleRecord(
+      transferLimitExempt: data.transferLimitExempt.present
+          ? data.transferLimitExempt.value
+          : this.transferLimitExempt,
       purchaseCurrency: data.purchaseCurrency.present
           ? data.purchaseCurrency.value
           : this.purchaseCurrency,
@@ -1158,6 +1199,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   @override
   String toString() {
     return (StringBuffer('VehicleRecord(')
+          ..write('transferLimitExempt: $transferLimitExempt, ')
           ..write('purchaseCurrency: $purchaseCurrency, ')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
@@ -1188,6 +1230,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
 
   @override
   int get hashCode => Object.hashAll([
+    transferLimitExempt,
     purchaseCurrency,
     id,
     userId,
@@ -1217,6 +1260,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VehicleRecord &&
+          other.transferLimitExempt == this.transferLimitExempt &&
           other.purchaseCurrency == this.purchaseCurrency &&
           other.id == this.id &&
           other.userId == this.userId &&
@@ -1244,6 +1288,7 @@ class VehicleRecord extends DataClass implements Insertable<VehicleRecord> {
 }
 
 class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
+  final Value<bool> transferLimitExempt;
   final Value<String> purchaseCurrency;
   final Value<String> id;
   final Value<String> userId;
@@ -1270,6 +1315,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   final Value<String?> permission;
   final Value<int> rowid;
   const VehicleRecordsCompanion({
+    this.transferLimitExempt = const Value.absent(),
     this.purchaseCurrency = const Value.absent(),
     this.id = const Value.absent(),
     this.userId = const Value.absent(),
@@ -1297,6 +1343,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     this.rowid = const Value.absent(),
   });
   VehicleRecordsCompanion.insert({
+    this.transferLimitExempt = const Value.absent(),
     this.purchaseCurrency = const Value.absent(),
     required String id,
     required String userId,
@@ -1334,6 +1381,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
        updatedAt = Value(updatedAt),
        createdAt = Value(createdAt);
   static Insertable<VehicleRecord> custom({
+    Expression<bool>? transferLimitExempt,
     Expression<String>? purchaseCurrency,
     Expression<String>? id,
     Expression<String>? userId,
@@ -1361,6 +1409,8 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (transferLimitExempt != null)
+        'transfer_limit_exempt': transferLimitExempt,
       if (purchaseCurrency != null) 'purchase_currency': purchaseCurrency,
       if (id != null) 'id': id,
       if (userId != null) 'user_id': userId,
@@ -1390,6 +1440,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   }
 
   VehicleRecordsCompanion copyWith({
+    Value<bool>? transferLimitExempt,
     Value<String>? purchaseCurrency,
     Value<String>? id,
     Value<String>? userId,
@@ -1417,6 +1468,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
     Value<int>? rowid,
   }) {
     return VehicleRecordsCompanion(
+      transferLimitExempt: transferLimitExempt ?? this.transferLimitExempt,
       purchaseCurrency: purchaseCurrency ?? this.purchaseCurrency,
       id: id ?? this.id,
       userId: userId ?? this.userId,
@@ -1448,6 +1500,9 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (transferLimitExempt.present) {
+      map['transfer_limit_exempt'] = Variable<bool>(transferLimitExempt.value);
+    }
     if (purchaseCurrency.present) {
       map['purchase_currency'] = Variable<String>(purchaseCurrency.value);
     }
@@ -1529,6 +1584,7 @@ class VehicleRecordsCompanion extends UpdateCompanion<VehicleRecord> {
   @override
   String toString() {
     return (StringBuffer('VehicleRecordsCompanion(')
+          ..write('transferLimitExempt: $transferLimitExempt, ')
           ..write('purchaseCurrency: $purchaseCurrency, ')
           ..write('id: $id, ')
           ..write('userId: $userId, ')
@@ -12969,6 +13025,7 @@ typedef $$AppMetaTableProcessedTableManager =
     >;
 typedef $$VehicleRecordsTableCreateCompanionBuilder =
     VehicleRecordsCompanion Function({
+      Value<bool> transferLimitExempt,
       Value<String> purchaseCurrency,
       required String id,
       required String userId,
@@ -12997,6 +13054,7 @@ typedef $$VehicleRecordsTableCreateCompanionBuilder =
     });
 typedef $$VehicleRecordsTableUpdateCompanionBuilder =
     VehicleRecordsCompanion Function({
+      Value<bool> transferLimitExempt,
       Value<String> purchaseCurrency,
       Value<String> id,
       Value<String> userId,
@@ -13033,6 +13091,11 @@ class $$VehicleRecordsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnFilters<bool> get transferLimitExempt => $composableBuilder(
+    column: $table.transferLimitExempt,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get purchaseCurrency => $composableBuilder(
     column: $table.purchaseCurrency,
     builder: (column) => ColumnFilters(column),
@@ -13163,6 +13226,11 @@ class $$VehicleRecordsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<bool> get transferLimitExempt => $composableBuilder(
+    column: $table.transferLimitExempt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get purchaseCurrency => $composableBuilder(
     column: $table.purchaseCurrency,
     builder: (column) => ColumnOrderings(column),
@@ -13293,6 +13361,11 @@ class $$VehicleRecordsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumn<bool> get transferLimitExempt => $composableBuilder(
+    column: $table.transferLimitExempt,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get purchaseCurrency => $composableBuilder(
     column: $table.purchaseCurrency,
     builder: (column) => column,
@@ -13417,6 +13490,7 @@ class $$VehicleRecordsTableTableManager
               $$VehicleRecordsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<bool> transferLimitExempt = const Value.absent(),
                 Value<String> purchaseCurrency = const Value.absent(),
                 Value<String> id = const Value.absent(),
                 Value<String> userId = const Value.absent(),
@@ -13443,6 +13517,7 @@ class $$VehicleRecordsTableTableManager
                 Value<String?> permission = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VehicleRecordsCompanion(
+                transferLimitExempt: transferLimitExempt,
                 purchaseCurrency: purchaseCurrency,
                 id: id,
                 userId: userId,
@@ -13471,6 +13546,7 @@ class $$VehicleRecordsTableTableManager
               ),
           createCompanionCallback:
               ({
+                Value<bool> transferLimitExempt = const Value.absent(),
                 Value<String> purchaseCurrency = const Value.absent(),
                 required String id,
                 required String userId,
@@ -13497,6 +13573,7 @@ class $$VehicleRecordsTableTableManager
                 Value<String?> permission = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => VehicleRecordsCompanion.insert(
+                transferLimitExempt: transferLimitExempt,
                 purchaseCurrency: purchaseCurrency,
                 id: id,
                 userId: userId,

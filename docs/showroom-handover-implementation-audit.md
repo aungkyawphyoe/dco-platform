@@ -1,6 +1,6 @@
 # Showroom handover implementation audit
 
-Date: 11 November 2026. Phase 0 investigation, not a completed migration or handover implementation. Product contract: [approved handover plan](../product/frd/showroom-handover-plan.md).
+Date: 11–12 November 2026. Investigation and local implementation progress; the complete handover is not yet implemented. Product contract: [approved handover plan](../product/frd/showroom-handover-plan.md).
 
 ## Delivered first increment
 
@@ -50,13 +50,42 @@ The approved transfer exemption is resolved. Draft expiry/QR lifecycle and corre
 
 Implemented locally on 11 November 2026:
 
-- Migration 0040 and Drizzle mappings add ownership periods and attribution to eight core vehicle-record tables.
+- Migration 0040 and Drizzle mappings add ownership periods and attribution to eight core vehicle-record tables (extended to media in the third increment).
 - Database triggers observe current principal changes and stamp new records; derived accounting inherits source attribution. Cross-period reassignment by ordinary row update is rejected.
 - Existing history remains intact, unattributed, and explicitly queued for evidence-based review. No automatic guess based on service date or current vehicle owner is made.
 - Tests cover handover boundaries, backdated buyer records, historical expense attribution, rejection of spoofed/reassigned periods, repeated migration, legacy preservation, and principal/current-period constraints.
 
-This is attribution infrastructure, not access isolation. The immediate legacy transfer endpoint and existing record access behavior remain unchanged. Draft/finalize UI, read/write filtering, safe late-write acceptance, migration reconciliation, and full buyer sync delivery are still pending. Do not enable or market the new clean-history handover based on this increment alone.
+At the end of this increment, attribution infrastructure existed without access isolation. The third increment below adds core access filtering. The immediate legacy transfer endpoint remains unchanged. Draft/finalize UI, read/write filtering, safe late-write acceptance, migration reconciliation, and full buyer sync delivery are still pending. Do not enable or market the new clean-history handover based on this increment alone.
 
 ### Second-increment validation
 
 Backend TypeScript build passed. Ownership tests cover rollback as well as commit. Full backend run: 164 passed, 2 failed, 1 skipped across 37 files. The only failures were existing fixed-date license fixtures whose JWTs had expired relative to the current clock; tests now pass an explicit verification time matching issuance. The corrected license suite passed all 7 tests on focused rerun. The final ownership suite passed both tests. No database migration was executed against live data.
+
+
+## Third increment — core record isolation
+
+Implemented locally on 11 November 2026:
+
+- Shared period predicates now restrict personal and organization record APIs, serializers, dashboard costs, currency-history relabeling, reminder recalculation/email, and sync. Authorization still requires the existing actor/vehicle checks.
+- Personal sync converts inaccessible historical upserts into deletion tombstones, without replaying private payloads. Driver bootstrap and record serialization exclude closed-period rows. Shares granted by a previous personal owner no longer authorize access.
+- Media receives ownership attribution. Buyer reads, signed downloads, and attachment linking cannot reuse closed-period showroom media. Fleet Admin retains read-only access to its attributed historical attachments.
+- `GET /organizations/{id}/transferred/{vehicleId}/records` returns only the organization's closed-period service, expense, fuel, document, part, and plan records. The existing frozen history endpoint remains available.
+- Shared record mutations and vehicle uploads lock/recheck vehicle ownership to serialize against transfer.
+- Unattributed legacy rows remain visible only for an untransferred current legacy-baseline vehicle. Previously transferred ambiguous rows require reconciliation; they are not guessed into the buyer's history.
+- OpenAPI and both portal-generated API types describe the historical-record endpoint.
+
+Regression coverage exercises buyer list/detail/edit denial, dashboard totals, stale sync payloads, reminder emails, signed media, historical showroom reads, independent new buyer records, and rejection of old attachment reuse.
+
+Still pending: evidence-based legacy reconciliation, draft/review/finalize, explicit initial-service-required plans, immutable warranty terms, recipient lookup/QR, delegated authorization, count exemption, master-field privacy cleanup, complete buyer sync delivery, historical late-review acceptance, correction flow, and mobile integration. The old immediate-transfer endpoint does not satisfy the approved handover contract. This increment must not be advertised as the completed clean-history handover.
+
+
+### Third-increment validation
+
+Backend build and Fleet Portal/Web TypeScript checks passed; both API type generators passed; `git diff --check` passed. Full backend run: 165 passed, 2 failed, 1 skipped across 38 files. One failure was an old currency test expecting cross-period editing; it now checks current-period correction and post-transfer preservation, including bulk relabeling. The other was an analytics assertion relying on unspecified row order; its comparison now ignores order. Final focused rerun of ownership access, currency API, and fleet analytics: all 13 tests passed. The full suite was not rerun after those corrections. No live migration or deployment was performed.
+
+
+## Fourth increment — end-to-end vehicle-count exemption
+
+Backend personal vehicle-limit counting excludes vehicles with a transfer audit naming the current buyer. Ordinary active personal vehicles still count. The transfer regression verifies a free buyer can receive a transferred vehicle without consuming the allowance, while one ordinary vehicle exhausts it.
+
+Personal sync vehicle upserts now carry server-controlled `transfer_limit_exempt`; clients persist it with a safe false default. Mobile schema 28 adds the column, clears sync cursors so existing devices replay vehicle events, and excludes exempt vehicles from offline personal allowance counting. Backend build, the focused regression, Fleet Portal types, and the mobile gating test passed. This completes the count exemption only; the reviewed handover flow and full buyer delivery remain pending.

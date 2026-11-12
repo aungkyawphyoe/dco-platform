@@ -1,3 +1,4 @@
+import { currentRecord } from "../lib/record-ownership.js";
 import { isDeepStrictEqual } from "node:util";
 import { createHash } from "node:crypto";
 import { and, eq, gt, inArray, sql } from "drizzle-orm";
@@ -26,10 +27,10 @@ async function serialize(db: Db, kind: Kind, id: string): Promise<Record<string,
   if (kind === "service_record") return loadService(db, id);
   if (kind === "expense") return publicExpense(db, id);
   if (kind === "vehicle") { const [row] = await db.select().from(vehicles).where(eq(vehicles.id, id)); return row ? publicVehicle(row) : null; }
-  if (kind === "plan_item") { const [row] = await db.select().from(planItems).where(eq(planItems.id, id)); return row ? publicPlan(row) : null; }
-  if (kind === "fuel_log") { const [row] = await db.select().from(fuelLogs).where(eq(fuelLogs.id, id)); return row ? publicFuelLog(row) : null; }
-  if (kind === "document") { const [row] = await db.select().from(documents).where(eq(documents.id, id)); return row ? publicDoc(db, row) : null; }
-  const [row] = await db.select().from(parts).where(eq(parts.id, id)); return row ? publicPart(row) : null;
+  if (kind === "plan_item") { const [row] = await db.select().from(planItems).where(and(eq(planItems.id, id), currentRecord(planItems))); return row ? publicPlan(row) : null; }
+  if (kind === "fuel_log") { const [row] = await db.select().from(fuelLogs).where(and(eq(fuelLogs.id, id), currentRecord(fuelLogs))); return row ? publicFuelLog(row) : null; }
+  if (kind === "document") { const [row] = await db.select().from(documents).where(and(eq(documents.id, id), currentRecord(documents))); return row ? publicDoc(db, row) : null; }
+  const [row] = await db.select().from(parts).where(and(eq(parts.id, id), currentRecord(parts))); return row ? publicPart(row) : null;
 }
 
 export const organizationSyncPlugin: FastifyPluginAsync = async (app) => {
@@ -69,7 +70,7 @@ export const organizationSyncPlugin: FastifyPluginAsync = async (app) => {
       for (const vehicleId of vehicleIds) await append("vehicle", vehicleId, vehicleId);
       for (const kind of ["plan_item", "service_record", "expense", "fuel_log", "document", "part"] as const) {
         const table = tables[kind];
-        const rows = await app.db.select({ id: table.id, vehicleId: table.vehicleId }).from(table).where(inArray(table.vehicleId, vehicleIds));
+        const rows = await app.db.select({ id: table.id, vehicleId: table.vehicleId }).from(table).where(and(inArray(table.vehicleId, vehicleIds), currentRecord(table)));
         for (const row of rows) await append(kind, row.id, row.vehicleId);
       }
     } else if (vehicleIds.length) {
@@ -122,7 +123,7 @@ export const organizationSyncPlugin: FastifyPluginAsync = async (app) => {
         results.push({ entity_id: operation.entity_id, operation_id: operation.operation_id, status: "rejected", error: { error: { code: "not_assigned_to_vehicle", message: "No assignment history" } } }); continue;
       }
       const table = tables[operation.entity_type];
-      const [existing] = await app.db.select().from(table).where(eq(table.id, operation.entity_id));
+      const [existing] = await app.db.select().from(table).where(and(eq(table.id, operation.entity_id), currentRecord(table)));
       if (existing && existing.vehicleId !== operation.vehicle_id) {
         results.push({ entity_id: operation.entity_id, operation_id: operation.operation_id, status: "rejected", error: { error: { code: "vehicle_mismatch", message: "Record belongs to a different vehicle" } } }); continue;
       }
@@ -181,7 +182,7 @@ export const organizationSyncPlugin: FastifyPluginAsync = async (app) => {
     }
     const operation = operationSchema.parse(review.operation);
     const table = tables[operation.entity_type];
-    const [current] = await app.db.select().from(table).where(eq(table.id, operation.entity_id));
+    const [current] = await app.db.select().from(table).where(and(eq(table.id, operation.entity_id), currentRecord(table)));
     if (current && body.expected_revision !== current.revision) throw new AppError(409, "revision_conflict", "Refresh the current record before accepting");
     const response = await apply(orgId, request.headers.authorization!, { ...operation, expected_revision: current?.revision ?? null }, reviewId);
     if (response.statusCode >= 300) {

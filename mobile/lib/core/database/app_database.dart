@@ -53,12 +53,16 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 27;
+  int get schemaVersion => 28;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
+      if (from >= 2 && from < 28) {
+        await migrator.addColumn(vehicleRecords, vehicleRecords.transferLimitExempt);
+        await customStatement("UPDATE app_meta SET value='' WHERE key LIKE 'sync_cursor:%'");
+      }
       if (from >= 2 && from < 27) {
         final existing = (await customSelect(
           'PRAGMA table_info(plan_items)',

@@ -509,6 +509,17 @@ describe("Enterprise Fleet access", () => {
     expect(vehicle.json().status).toBe("inventory");
     await app.inject({ method: "PATCH", url: `/v1/organizations/${orgId}/vehicles/${vehicleId}`, headers: auth(fleetToken), payload: { status: "listed" } });
     await app.inject({ method: "PATCH", url: `/v1/organizations/${orgId}/vehicles/${vehicleId}`, headers: auth(fleetToken), payload: { status: "reserved" } });
+    const statusPath = `/v1/organizations/${orgId}/vehicles/${vehicleId}`;
+    const staleStatus = await app.inject({ method: "PATCH", url: statusPath, headers: auth(fleetToken),
+      payload: { status: "listed", expected_status: "listed" } });
+    expect(staleStatus.statusCode).toBe(409);
+    expect(staleStatus.json().error.code).toBe("vehicle_status_changed");
+    const bypassHandover = await app.inject({ method: "PATCH", url: statusPath, headers: auth(fleetToken),
+      payload: { status: "sold", expected_status: "reserved" } });
+    expect(bypassHandover.statusCode).toBe(409);
+    expect(bypassHandover.json().error.code).toBe("handover_required");
+    const inventory = await app.inject({ method: "GET", url: `/v1/organizations/${orgId}/vehicles`, headers: auth(fleetToken) });
+    expect(inventory.json().items.find((item: { id: string }) => item.id === vehicleId).status).toBe("reserved");
     const template = await app.inject({
       method: "POST", url: `/v1/organizations/${orgId}/warranty-templates`, headers: auth(fleetToken),
       payload: { name: "One year", duration_years: 1, mileage_limit_km: 20000, coverage_categories: ["Engine"] },

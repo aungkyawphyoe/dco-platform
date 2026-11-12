@@ -1,3 +1,4 @@
+import { currentRecord } from "../lib/record-ownership.js";
 import { saveReminderBaseline, recalculateReminders } from "../lib/reminder-schedule.js";
 import { incomingCurrency } from '../lib/operational-currency.js';
 import { createHash } from "node:crypto";
@@ -105,7 +106,7 @@ return async (app) => {
  * created, and a `view` sharee never writes at all.
  */
 async function loadFuelLogFor(db: Db, callerId: string, fuelLogId: string, mode: "read" | "write") {
-  const [row] = await db.select().from(fuelLogs).where(eq(fuelLogs.id, fuelLogId)).limit(1);
+  const [row] = await db.select().from(fuelLogs).where(and(eq(fuelLogs.id, fuelLogId), currentRecord(fuelLogs))).limit(1);
   if (!row) throw new AppError(404, "not_found", "Fuel log not found");
   const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
   if (!access) throw new AppError(404, "not_found", "Fuel log not found");
@@ -127,7 +128,7 @@ async function loadFuelLogFor(db: Db, callerId: string, fuelLogId: string, mode:
  * Write: only owner (plan items are owner-managed)
  */
 async function loadPlanItemFor(db: Db, callerId: string, planItemId: string, mode: "read" | "write") {
-  const [row] = await db.select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
+  const [row] = await db.select().from(planItems).where(and(eq(planItems.id, planItemId), currentRecord(planItems))).limit(1);
   if (!row) throw new AppError(404, "not_found", "Plan item not found");
   const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
   if (!access) throw new AppError(404, "not_found", "Plan item not found");
@@ -143,7 +144,7 @@ async function loadPlanItemFor(db: Db, callerId: string, planItemId: string, mod
  * Write: owner or author (for add_edit_own users, only their own records)
  */
 async function loadServiceRecordFor(db: Db, callerId: string, serviceRecordId: string, mode: "read" | "write") {
-  const [row] = await db.select().from(serviceRecords).where(eq(serviceRecords.id, serviceRecordId)).limit(1);
+  const [row] = await db.select().from(serviceRecords).where(and(eq(serviceRecords.id, serviceRecordId), currentRecord(serviceRecords))).limit(1);
   if (!row) throw new AppError(404, "not_found", "Service record not found");
   const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
   if (!access) throw new AppError(404, "not_found", "Service record not found");
@@ -165,7 +166,7 @@ async function loadServiceRecordFor(db: Db, callerId: string, serviceRecordId: s
  * Write: owner or author (for add_edit_own users, only their own records)
  */
 async function loadExpenseFor(db: Db, callerId: string, expenseId: string, mode: "read" | "write") {
-  const [row] = await db.select().from(expenses).where(eq(expenses.id, expenseId)).limit(1);
+  const [row] = await db.select().from(expenses).where(and(eq(expenses.id, expenseId), currentRecord(expenses))).limit(1);
   if (!row) throw new AppError(404, "not_found", "Expense not found");
   const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
   if (!access) throw new AppError(404, "not_found", "Expense not found");
@@ -187,7 +188,7 @@ async function loadExpenseFor(db: Db, callerId: string, expenseId: string, mode:
  * Write: owner or author (for add_edit_own users, only their own records)
  */
 async function loadDocumentFor(db: Db, callerId: string, documentId: string, mode: "read" | "write") {
-  const [row] = await db.select().from(documents).where(eq(documents.id, documentId)).limit(1);
+  const [row] = await db.select().from(documents).where(and(eq(documents.id, documentId), currentRecord(documents))).limit(1);
   if (!row) throw new AppError(404, "not_found", "Document not found");
   const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
   if (!access) throw new AppError(404, "not_found", "Document not found");
@@ -209,7 +210,7 @@ async function loadDocumentFor(db: Db, callerId: string, documentId: string, mod
  * Write: owner or author (for add_edit_own users, only their own records)
  */
 async function loadPartFor(db: Db, callerId: string, partId: string, mode: "read" | "write") {
-  const [row] = await db.select().from(parts).where(eq(parts.id, partId)).limit(1);
+  const [row] = await db.select().from(parts).where(and(eq(parts.id, partId), currentRecord(parts))).limit(1);
   if (!row) throw new AppError(404, "not_found", "Part not found");
   const access = await getVehicleAccessLevel(db, callerId, row.vehicleId);
   if (!access) throw new AppError(404, "not_found", "Part not found");
@@ -268,13 +269,27 @@ async function recordVehicleScopedChange(
 
   const db = () => transaction.getStore() ?? app.db;
   const uid = (request: { authUser?: { sub: string } }) => request.authUser!.sub;
+  async function lockRecordVehicle(request: FastifyRequest) {
+    if (!["POST", "PATCH", "DELETE"].includes(request.method)) return;
+    const params = request.params as Record<string, string>;
+    let vehicleId = params.vehicleId;
+    const tables = { planItemId: planItems, serviceRecordId: serviceRecords, expenseId: expenses,
+      documentId: documents, fuelLogId: fuelLogs, partId: parts };
+    if (!vehicleId) for (const [key, table] of Object.entries(tables)) {
+      if (!params[key]) continue;
+      const [record] = await db().select({ vehicleId: table.vehicleId }).from(table).where(eq(table.id, uuid.parse(params[key])));
+      vehicleId = record?.vehicleId;
+    }
+    if (vehicleId) await db().select({ id: vehicles.id }).from(vehicles).where(eq(vehicles.id, uuid.parse(vehicleId))).for("update");
+  }
+
   async function checkRevision(request: FastifyRequest) {
     if (request.method !== "PATCH" && request.method !== "DELETE") return;
     const params = request.params as Record<string, string>;
     const tables = { serviceRecordId: serviceRecords, expenseId: expenses, documentId: documents, fuelLogId: fuelLogs, partId: parts };
     for (const [key, table] of Object.entries(tables)) {
       if (!params[key]) continue;
-      const [row] = await db().select().from(table).where(eq(table.id, uuid.parse(params[key]))).for("update");
+      const [row] = await db().select().from(table).where(and(eq(table.id, uuid.parse(params[key])), currentRecord(table))).for("update");
       if (!row) return;
       await getAccessibleVehicle(db(), uid(request), row.vehicleId, "full");
       const access = await getVehicleAccessLevel(db(), uid(request), row.vehicleId);
@@ -297,17 +312,18 @@ async function recordVehicleScopedChange(
       const handler = route.handler;
       route.handler = async function(request, reply) {
         return app.db.transaction(async (tx) => transaction.run(tx as Db, async () => {
+          await lockRecordVehicle(request);
           await validatePersonalReferences(request);
           await validateCurrencyRequest(request);
           const params = request.params as { vehicleId?: string; serviceRecordId?: string };
           let scheduleVehicle = route.url.includes("service-records") ? params.vehicleId : undefined;
           if (route.url.includes("service-records") && params.serviceRecordId) {
-            const [record] = await db().select().from(serviceRecords).where(eq(serviceRecords.id, params.serviceRecordId));
+            const [record] = await db().select().from(serviceRecords).where(and(eq(serviceRecords.id, params.serviceRecordId), currentRecord(serviceRecords)));
             scheduleVehicle = record?.vehicleId;
           }
           if (scheduleVehicle) await db().execute(sql`UPDATE plan_items SET baseline_due_on=next_due_on,
             baseline_due_mileage=next_due_mileage,baseline_enabled=enabled WHERE vehicle_id=${scheduleVehicle}
-            AND baseline_due_on IS NULL AND baseline_due_mileage IS NULL AND manual_on IS NULL`);
+            AND baseline_due_on IS NULL AND baseline_due_mileage IS NULL AND manual_on IS NULL AND ${currentRecord(planItems)}`);
           const result = await handler.call(this, request, reply);
           if (scheduleVehicle) for (const row of await recalculateReminders(db(), scheduleVehicle)) {
             await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: scheduleVehicle, entityType: "plan_item", entityId: row.id, op: "upsert", payload: publicPlan(row) });
@@ -337,7 +353,7 @@ async function recordVehicleScopedChange(
     const body = z.record(z.unknown()).parse(request.body ?? {});
     const params = request.params as Record<string,string>;
     const id = request.method === 'POST' ? body.id : params[definition.param];
-    const existing = typeof id === 'string' ? (await db().select().from(definition.table).where(eq(definition.table.id,uuid.parse(id))))[0] : undefined;
+    const existing = typeof id === 'string' ? (await db().select().from(definition.table).where(and(eq(definition.table.id,uuid.parse(id)), currentRecord(definition.table))))[0] : undefined;
     if (request.method === 'POST' && existing) return; // authorized idempotent replay
     if (request.method === 'PATCH' && !existing) return;
     if (request.method === 'PATCH' && existing) {
@@ -373,12 +389,12 @@ async function recordVehicleScopedChange(
     let vehicleId = params.vehicleId;
     for (const [key, table] of Object.entries({ serviceRecordId: serviceRecords, expenseId: expenses })) {
       if (!params[key]) continue;
-      const [row] = await db().select().from(table).where(eq(table.id, uuid.parse(params[key])));
+      const [row] = await db().select().from(table).where(and(eq(table.id, uuid.parse(params[key])), currentRecord(table)));
       vehicleId = row?.vehicleId;
     }
     if (request.method === "POST" && resource && typeof body.id === "string") {
       const table = tables[resource as keyof typeof tables];
-      const [row] = await db().select().from(table).where(eq(table.id, uuid.parse(body.id)));
+      const [row] = await db().select().from(table).where(and(eq(table.id, uuid.parse(body.id)), currentRecord(table)));
       if (row) {
         if (row.vehicleId !== vehicleId) throw new AppError(409, "id_conflict", "Record ID already exists");
         const access = await getVehicleAccessLevel(db(), uid(request), row.vehicleId);
@@ -393,12 +409,12 @@ async function recordVehicleScopedChange(
     if (typeof body.receipt_media_id === "string") await assertDocumentMedia(db(), uuid.parse(body.receipt_media_id), vehicleId);
     if (Array.isArray(body.items)) for (const item of body.items as { plan_item_id?: string }[]) {
       if (!item?.plan_item_id) continue;
-      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, uuid.parse(item.plan_item_id)), eq(planItems.vehicleId, vehicleId))).for("update");
+      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, uuid.parse(item.plan_item_id)), eq(planItems.vehicleId, vehicleId), currentRecord(planItems))).for("update");
       if (!plan) throw new AppError(422, "invalid_plan_item", "Plan item must belong to this vehicle");
     }
     if (Array.isArray(body.parts)) for (const part of body.parts as { part_id?: string }[]) {
       if (!part?.part_id) continue;
-      const [row] = await db().select().from(parts).where(and(eq(parts.id, uuid.parse(part.part_id)), eq(parts.vehicleId, vehicleId)));
+      const [row] = await db().select().from(parts).where(and(eq(parts.id, uuid.parse(part.part_id)), eq(parts.vehicleId, vehicleId), currentRecord(parts)));
       if (!row) throw new AppError(422, "invalid_part", "Part must belong to this vehicle");
     }
   }
@@ -440,17 +456,18 @@ async function recordVehicleScopedChange(
             if (!link) throw new AppError(409, "vehicle_no_longer_in_org", "Cannot accept records for a transferred vehicle");
             approvedReview = review;
           }
+          await lockRecordVehicle(request);
           await checkRevision(request);
           let scheduleVehicle: string | undefined;
           if (["POST", "PATCH", "DELETE"].includes(request.method) && request.routeOptions.url?.includes("service-records")) {
             const params = request.params as Record<string, string>;
             scheduleVehicle = params.vehicleId;
             if (params.serviceRecordId) {
-              const [service] = await db().select().from(serviceRecords).where(eq(serviceRecords.id, params.serviceRecordId));
+              const [service] = await db().select().from(serviceRecords).where(and(eq(serviceRecords.id, params.serviceRecordId), currentRecord(serviceRecords)));
               scheduleVehicle = service?.vehicleId;
             }
             if (scheduleVehicle) await db().execute(sql`insert into plan_schedule_baselines (plan_item_id, next_due_on, next_due_mileage)
-              select id, next_due_on, next_due_mileage from plan_items where vehicle_id = ${scheduleVehicle}
+              select id, next_due_on, next_due_mileage from plan_items where vehicle_id = ${scheduleVehicle} AND ${currentRecord(planItems)}
               on conflict do nothing`);
           }
           const runHandler = async () => {
@@ -495,7 +512,7 @@ async function recordVehicleScopedChange(
       const resource = request.routeOptions.url?.split("/").reverse().find((segment) => segment in recordTables);
       if (request.method === "POST" && resource && typeof body.id === "string") {
         const table = recordTables[resource as keyof typeof recordTables];
-        const [existing] = await db().select().from(table).where(eq(table.id, uuid.parse(body.id)));
+        const [existing] = await db().select().from(table).where(and(eq(table.id, uuid.parse(body.id)), currentRecord(table)));
         if (existing && existing.vehicleId !== params.vehicleId) throw new AppError(409, "id_conflict", "Record ID already exists");
         if (existing && membership.role === "org_driver") {
           const author = "createdBy" in existing ? existing.createdBy : "userId" in existing ? existing.userId : null;
@@ -506,7 +523,7 @@ async function recordVehicleScopedChange(
       let currentMedia: string | null = null;
       for (const [key, table] of Object.entries({ serviceRecordId: serviceRecords, expenseId: expenses, documentId: documents })) {
         if (!params[key]) continue;
-        const [record] = await db().select().from(table).where(eq(table.id, uuid.parse(params[key])));
+        const [record] = await db().select().from(table).where(and(eq(table.id, uuid.parse(params[key])), currentRecord(table)));
         vehicleId = record?.vehicleId;
         if (record) currentMedia = "mediaId" in record ? record.mediaId : record.receiptMediaId;
       }
@@ -518,14 +535,14 @@ async function recordVehicleScopedChange(
       if (Array.isArray(body.parts)) {
         for (const ref of body.parts as { part_id?: string }[]) {
           if (!ref.part_id) continue;
-          const [part] = await db().select().from(parts).where(eq(parts.id, uuid.parse(ref.part_id)));
+          const [part] = await db().select().from(parts).where(and(eq(parts.id, uuid.parse(ref.part_id)), currentRecord(parts)));
           if (!part || part.vehicleId !== vehicleId) throw new AppError(422, "invalid_part", "Part must belong to this vehicle");
         }
       }
       if (Array.isArray(body.items)) {
         for (const item of body.items as { plan_item_id?: string }[]) {
           if (!item.plan_item_id) continue;
-          const [plan] = await db().select().from(planItems).where(eq(planItems.id, uuid.parse(item.plan_item_id)));
+          const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, uuid.parse(item.plan_item_id)), currentRecord(planItems)));
           if (!plan || (!vehicleId || plan.vehicleId !== vehicleId)) throw new AppError(422, "invalid_plan_item", "Plan item must belong to this vehicle");
           await getAccessibleVehicle(db(), userId, plan.vehicleId, "full");
         }
@@ -538,7 +555,7 @@ async function recordVehicleScopedChange(
     await guard(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
-    const items = await db().select().from(planItems).where(eq(planItems.vehicleId, vehicleId));
+    const items = await db().select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), currentRecord(planItems)));
     return { items: items.map(publicPlan) };
   });
 
@@ -570,7 +587,7 @@ async function recordVehicleScopedChange(
     if (body.next_due_on == null && body.next_due_mileage == null) {
       throw new AppError(422, "invalid_interval", "Provide a time interval, a distance interval, or both");
     }
-    const [existing] = await db().select().from(planItems).where(eq(planItems.id, body.id)).limit(1);
+    const [existing] = await db().select().from(planItems).where(and(eq(planItems.id, body.id), currentRecord(planItems))).limit(1);
     if (existing) { reply.code(201); return publicPlan(existing); }
     await db().select().from(vehicles).where(eq(vehicles.id, vehicleId)).for("update");
     if (body.catalog_key) {
@@ -578,7 +595,7 @@ async function recordVehicleScopedChange(
       if (!catalog) throw new AppError(422, "invalid_catalog_item", "Select an available service item");
     }
     if (body.catalog_key && body.enabled !== false) {
-      const [duplicate] = await db().select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, body.catalog_key), eq(planItems.enabled, true)));
+      const [duplicate] = await db().select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, body.catalog_key), eq(planItems.enabled, true), currentRecord(planItems)));
       if (duplicate) throw new AppError(409, "reminder_exists", "This service already has an active reminder");
     }
     const computed = dueFrom(body.interval_days, body.interval_distance, reqNum(vehicle.mileage));
@@ -605,7 +622,7 @@ async function recordVehicleScopedChange(
       })
       .returning();
     await saveReminderBaseline(db(), row.id, false);
-    const [saved] = await db().select().from(planItems).where(eq(planItems.id, row.id));
+    const [saved] = await db().select().from(planItems).where(and(eq(planItems.id, row.id), currentRecord(planItems)));
     const payload = publicPlan(saved);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId, entityType: "plan_item", entityId: row.id, op: "upsert", payload });
     reply.code(201); return payload;
@@ -641,7 +658,7 @@ async function recordVehicleScopedChange(
         enabled: z.boolean().optional(),
       })
       .parse(request.body ?? {});
-    const [current] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).for("update");
+    const [current] = await db().select().from(planItems).where(and(eq(planItems.id, planItemId), currentRecord(planItems))).for("update");
     const timeCount = body.time_count === undefined ? current.timeCount : body.time_count;
     const timeUnit = body.time_unit === undefined ? current.timeUnit : body.time_unit;
     const days = body.interval_days === undefined ? current.intervalDays : body.interval_days;
@@ -652,7 +669,7 @@ async function recordVehicleScopedChange(
       throw new AppError(422, "invalid_interval", "Set a first due target for each repeat interval");
     }
     if ((body.enabled ?? current.enabled) && current.catalogKey) {
-      const duplicates = await db().select().from(planItems).where(and(eq(planItems.vehicleId, current.vehicleId), eq(planItems.catalogKey, current.catalogKey), eq(planItems.enabled, true)));
+      const duplicates = await db().select().from(planItems).where(and(eq(planItems.vehicleId, current.vehicleId), eq(planItems.catalogKey, current.catalogKey), eq(planItems.enabled, true), currentRecord(planItems)));
       if (duplicates.some(item => item.id !== current.id)) throw new AppError(409, "reminder_exists", "This service already has an active reminder");
     }
     const [updated] = await db()
@@ -674,10 +691,10 @@ async function recordVehicleScopedChange(
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
         ...(body.enabled !== undefined ? { enabled: body.enabled } : {}),
       })
-      .where(eq(planItems.id, planItemId))
+      .where(and(eq(planItems.id, planItemId), currentRecord(planItems)))
       .returning();
     await saveReminderBaseline(db(), updated.id, true);
-    const [saved] = await db().select().from(planItems).where(eq(planItems.id, updated.id));
+    const [saved] = await db().select().from(planItems).where(and(eq(planItems.id, updated.id), currentRecord(planItems)));
     const payload = publicPlan(saved);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: updated.vehicleId, entityType: "plan_item", entityId: updated.id, op: "upsert", payload });
     return payload;
@@ -687,10 +704,10 @@ async function recordVehicleScopedChange(
     await guard(request);
     requireOwner(request);
     const { planItemId } = request.params as { planItemId: string };
-    const [row] = await db().select().from(planItems).where(eq(planItems.id, planItemId)).limit(1);
+    const [row] = await db().select().from(planItems).where(and(eq(planItems.id, planItemId), currentRecord(planItems))).limit(1);
     if (!row) { reply.code(204); return null; }
     await loadPlanItemFor(db(), uid(request), planItemId, "write");
-    await db().delete(planItems).where(eq(planItems.id, planItemId));
+    await db().delete(planItems).where(and(eq(planItems.id, planItemId), currentRecord(planItems)));
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: row.vehicleId, entityType: "plan_item", entityId: planItemId, op: "delete", payload: { id: planItemId } });
     reply.code(204); return null;
   });
@@ -704,14 +721,14 @@ async function recordVehicleScopedChange(
       await loadServiceRecordFor(db(), uid(request), serviceRecordId, "write");
       await db().delete(serviceRecordItems).where(eq(serviceRecordItems.serviceRecordId, serviceRecordId));
       await db().delete(serviceRecordParts).where(eq(serviceRecordParts.serviceRecordId, serviceRecordId));
-      await db().delete(serviceRecords).where(eq(serviceRecords.id, serviceRecordId));
+      await db().delete(serviceRecords).where(and(eq(serviceRecords.id, serviceRecordId), currentRecord(serviceRecords)));
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: existing.vehicle_id, entityType: "service_record", entityId: serviceRecordId, op: "delete", payload: { id: serviceRecordId } });
       reply.code(204); return null;
     });
     if (organizationScoped) app.delete("/fuel-logs/:fuelLogId", async (request, reply) => {
       const { fuelLogId } = request.params as { fuelLogId: string };
       await loadFuelLogFor(db(), uid(request), fuelLogId, "write");
-      await db().delete(fuelLogs).where(eq(fuelLogs.id, fuelLogId));
+      await db().delete(fuelLogs).where(and(eq(fuelLogs.id, fuelLogId), currentRecord(fuelLogs)));
       reply.code(204); return null;
     });
   }
@@ -740,7 +757,7 @@ async function recordVehicleScopedChange(
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
-    const rows = await db().select().from(serviceRecords).where(eq(serviceRecords.vehicleId, vehicleId)).orderBy(desc(serviceRecords.servicedOn));
+    const rows = await db().select().from(serviceRecords).where(and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords))).orderBy(desc(serviceRecords.servicedOn));
     const items = [];
     for (const row of rows) items.push(await loadService(db(), row.id));
     return { items };
@@ -754,16 +771,16 @@ async function recordVehicleScopedChange(
     const body = serviceBody.parse(request.body);
     for (const item of body.items) {
       if (item.catalog_key && !item.plan_item_id) {
-        const [matching] = await db().select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, item.catalog_key), eq(planItems.enabled, true)));
+        const [matching] = await db().select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), eq(planItems.catalogKey, item.catalog_key), eq(planItems.enabled, true), currentRecord(planItems)));
         item.plan_item_id = matching?.id ?? null;
       }
     }
     for (const item of body.items) if (item.plan_item_id) {
-      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, item.plan_item_id), eq(planItems.vehicleId, vehicleId)));
+      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, item.plan_item_id), eq(planItems.vehicleId, vehicleId), currentRecord(planItems)));
       if (!plan) throw new AppError(422, "invalid_plan_item", "Reminder must belong to this vehicle");
       if (plan.intervalDistance && body.odometer == null) throw new AppError(422, "odometer_required", "Distance repetition requires the service odometer reading");
     }
-    const [existing] = await db().select().from(serviceRecords).where(eq(serviceRecords.id, body.id)).limit(1);
+    const [existing] = await db().select().from(serviceRecords).where(and(eq(serviceRecords.id, body.id), currentRecord(serviceRecords))).limit(1);
     if (existing) { reply.code(201); return await loadService(db(), existing.id); }
     await db().insert(serviceRecords).values({
       currency: (request.body as {currency:string}).currency,
@@ -787,7 +804,7 @@ async function recordVehicleScopedChange(
         lineCost: item.line_cost != null ? String(item.line_cost) : null,
       });
       if (item.plan_item_id) {
-        const [plan] = await db().select().from(planItems).where(eq(planItems.id, item.plan_item_id)).limit(1);
+        const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, item.plan_item_id), currentRecord(planItems))).limit(1);
         if (plan) {
           const due = dueFrom(plan.intervalDays, num(plan.intervalDistance), body.odometer ?? 0, body.serviced_on, plan.timeCount, plan.timeUnit);
           await db()
@@ -796,7 +813,7 @@ async function recordVehicleScopedChange(
               nextDueOn: due.nextDueOn,
               nextDueMileage: due.nextDueMileage != null ? String(due.nextDueMileage) : null,
             })
-            .where(eq(planItems.id, plan.id));
+            .where(and(eq(planItems.id, plan.id), currentRecord(planItems)));
         }
       }
     }
@@ -836,7 +853,7 @@ async function recordVehicleScopedChange(
     await loadServiceRecordFor(db(), uid(request), serviceRecordId, "write");
     const body = serviceBody.partial().parse(request.body ?? {});
     for (const item of body.items ?? existing.items) if (item.plan_item_id) {
-      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, item.plan_item_id), eq(planItems.vehicleId, existing.vehicle_id)));
+      const [plan] = await db().select().from(planItems).where(and(eq(planItems.id, item.plan_item_id), eq(planItems.vehicleId, existing.vehicle_id), currentRecord(planItems)));
       if (!plan) throw new AppError(422, "invalid_plan_item", "Reminder must belong to this vehicle");
       const mileage = body.odometer !== undefined ? body.odometer : existing.odometer;
       if (plan.intervalDistance && mileage == null) throw new AppError(422, "odometer_required", "Distance repetition requires the service odometer reading");
@@ -853,7 +870,7 @@ async function recordVehicleScopedChange(
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
         ...(body.receipt_media_id !== undefined ? { receiptMediaId: body.receipt_media_id } : {}),
       })
-      .where(eq(serviceRecords.id, serviceRecordId));
+      .where(and(eq(serviceRecords.id, serviceRecordId), currentRecord(serviceRecords)));
     if (body.items !== undefined) {
       await db().delete(serviceRecordItems).where(eq(serviceRecordItems.serviceRecordId, serviceRecordId));
       for (const item of body.items) {
@@ -894,7 +911,7 @@ async function recordVehicleScopedChange(
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
-    const items = await db().select().from(parts).where(eq(parts.vehicleId, vehicleId)).orderBy(asc(parts.name));
+    const items = await db().select().from(parts).where(and(eq(parts.vehicleId, vehicleId), currentRecord(parts))).orderBy(asc(parts.name));
     return {
       items: items.map((p) => ({
         id: p.id,
@@ -919,7 +936,7 @@ async function recordVehicleScopedChange(
       part_number: z.string().optional().nullable(),
       notes: z.string().optional().nullable(),
     }).parse(request.body);
-    const [existing] = await db().select().from(parts).where(eq(parts.id, body.id)).limit(1);
+    const [existing] = await db().select().from(parts).where(and(eq(parts.id, body.id), currentRecord(parts))).limit(1);
     if (existing) {
       reply.code(201); return publicPart(existing);
     }
@@ -959,7 +976,7 @@ async function recordVehicleScopedChange(
         ...(body.part_number !== undefined ? { partNumber: body.part_number } : {}),
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
       })
-      .where(eq(parts.id, partId))
+      .where(and(eq(parts.id, partId), currentRecord(parts)))
       .returning();
     const payload = publicPart(updated);
     await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: updated.vehicleId, entityType: "part", entityId: updated.id, op: "upsert", payload });
@@ -1033,7 +1050,7 @@ async function recordVehicleScopedChange(
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const q = request.query as { fuel_type_id?: string; month?: string };
-    let rows = await db().select().from(fuelLogs).where(eq(fuelLogs.vehicleId, vehicleId)).orderBy(desc(fuelLogs.loggedOn));
+    let rows = await db().select().from(fuelLogs).where(and(eq(fuelLogs.vehicleId, vehicleId), currentRecord(fuelLogs))).orderBy(desc(fuelLogs.loggedOn));
     if (q.fuel_type_id) rows = rows.filter((r) => r.fuelTypeId === q.fuel_type_id);
     if (q.month === "this_month") {
       const prefix = new Date().toISOString().slice(0, 7);
@@ -1059,7 +1076,7 @@ async function recordVehicleScopedChange(
     if (body.logged_on.slice(0, 10) > new Date().toISOString().slice(0, 10)) {
       throw new AppError(422, "invalid_date", "Date cannot be in the future");
     }
-    const [existing] = await db().select().from(fuelLogs).where(eq(fuelLogs.id, body.id)).limit(1);
+    const [existing] = await db().select().from(fuelLogs).where(and(eq(fuelLogs.id, body.id), currentRecord(fuelLogs))).limit(1);
     if (existing) { reply.code(201); return publicFuelLog(existing); }
     const [ft] = await db().select().from(fuelTypes).where(eq(fuelTypes.id, body.fuel_type_id)).limit(1);
     if (!ft || ft.userId !== (reviewAuthor.getStore() ?? uid(request))) throw new AppError(422, "invalid_fuel_type", "Unknown fuel type");
@@ -1144,7 +1161,7 @@ async function recordVehicleScopedChange(
         fuelTypeName,
         unit,
       })
-      .where(eq(fuelLogs.id, fuelLogId))
+      .where(and(eq(fuelLogs.id, fuelLogId), currentRecord(fuelLogs)))
       .returning();
     if (body.odometer != null) {
       const [vehicle] = await db().select({ mileage: vehicles.mileage, name: vehicles.name }).from(vehicles).where(eq(vehicles.id, row.vehicleId)).limit(1);
@@ -1190,7 +1207,7 @@ async function recordVehicleScopedChange(
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const category = (request.query as { category?: string }).category;
-    let rows = await db().select().from(documents).where(eq(documents.vehicleId, vehicleId));
+    let rows = await db().select().from(documents).where(and(eq(documents.vehicleId, vehicleId), currentRecord(documents)));
     if (category) rows = rows.filter((r) => r.category === category);
     return { items: await Promise.all(rows.map(row => publicDoc(db(), row))) };
   });
@@ -1210,7 +1227,7 @@ async function recordVehicleScopedChange(
       media_id: uuid.optional().nullable(),
       links: documentLinkBody.optional(),
     }).parse(request.body);
-    const [existing] = await db().select().from(documents).where(eq(documents.id, body.id)).limit(1);
+    const [existing] = await db().select().from(documents).where(and(eq(documents.id, body.id), currentRecord(documents))).limit(1);
     if (existing) {
       if (existing.vehicleId !== vehicleId) throw new AppError(409, "id_conflict", "Document ID already exists");
       await loadDocumentFor(db(), uid(request), existing.id, "write");
@@ -1240,7 +1257,7 @@ async function recordVehicleScopedChange(
     await guard(request);
     requireOwner(request);
     const { documentId } = request.params as { documentId: string };
-    const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
+    const [row] = await db().select().from(documents).where(and(eq(documents.id, documentId), currentRecord(documents))).limit(1);
     if (!row) throw new AppError(404, "not_found", "Document not found");
     await getAccessibleVehicle(db(), uid(request), row.vehicleId, "drive_only", true);
     return await publicDoc(db(), row);
@@ -1251,7 +1268,7 @@ async function recordVehicleScopedChange(
     requireOwner(request);
     const { documentId } = request.params as { documentId: string };
     await loadDocumentFor(db(), uid(request), documentId, "write");
-    const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
+    const [row] = await db().select().from(documents).where(and(eq(documents.id, documentId), currentRecord(documents))).limit(1);
     if (!row) throw new AppError(404, "not_found", "Document not found");
     const body = z.object({
       name: z.string().trim().min(1).max(120).optional(),
@@ -1271,7 +1288,7 @@ async function recordVehicleScopedChange(
         ...(body.expires_on !== undefined ? { expiresOn: body.expires_on } : {}),
         ...(body.media_id !== undefined ? { mediaId: body.media_id } : {}),
       })
-      .where(eq(documents.id, documentId))
+      .where(and(eq(documents.id, documentId), currentRecord(documents)))
       .returning();
     if (body.links) await replaceDocumentLinks(request, updated.id, row.vehicleId, body.links);
     const payload = await publicDoc(db(), updated);
@@ -1283,7 +1300,7 @@ async function recordVehicleScopedChange(
     await guard(request);
     requireOwner(request);
     const { documentId } = request.params as { documentId: string };
-    const [row] = await db().select().from(documents).where(eq(documents.id, documentId)).limit(1);
+    const [row] = await db().select().from(documents).where(and(eq(documents.id, documentId), currentRecord(documents))).limit(1);
     if (row) {
       await loadDocumentFor(db(), uid(request), documentId, "write");
       const linked = await publicDoc(db(), row);
@@ -1291,23 +1308,23 @@ async function recordVehicleScopedChange(
       if (row.mediaId) {
         // Older clients stored a direct receipt pointer. Explicit file deletion
         // must clear that pointer as well as the new reusable links.
-        const receipts = await db().select().from(serviceRecords).where(eq(serviceRecords.receiptMediaId, row.mediaId));
+        const receipts = await db().select().from(serviceRecords).where(and(eq(serviceRecords.receiptMediaId, row.mediaId), currentRecord(serviceRecords)));
         for (const receipt of receipts) {
           await loadServiceRecordFor(db(), uid(request), receipt.id, "write");
-          await db().update(serviceRecords).set({ receiptMediaId: null }).where(eq(serviceRecords.id, receipt.id));
+          await db().update(serviceRecords).set({ receiptMediaId: null }).where(and(eq(serviceRecords.id, receipt.id), currentRecord(serviceRecords)));
           await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: receipt.vehicleId,
             entityType: "service_record", entityId: receipt.id, op: "upsert", payload: await loadService(db(), receipt.id) });
         }
-        const expenseReceipts = await db().select().from(expenses).where(eq(expenses.receiptMediaId, row.mediaId));
+        const expenseReceipts = await db().select().from(expenses).where(and(eq(expenses.receiptMediaId, row.mediaId), currentRecord(expenses)));
         for (const expense of expenseReceipts) {
           await loadExpenseFor(db(), uid(request), expense.id, "write");
-          await db().update(expenses).set({ receiptMediaId: null }).where(eq(expenses.id, expense.id));
+          await db().update(expenses).set({ receiptMediaId: null }).where(and(eq(expenses.id, expense.id), currentRecord(expenses)));
           await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: expense.vehicleId,
             entityType: "expense", entityId: expense.id, op: "upsert", payload: await publicExpense(db(), expense.id) });
         }
         await db().insert(mediaCleanup).values({ mediaId: row.mediaId }).onConflictDoNothing();
       }
-      await db().delete(documents).where(eq(documents.id, documentId));
+      await db().delete(documents).where(and(eq(documents.id, documentId), currentRecord(documents)));
       if (row.mediaId) {
         try { await deleteUnreferencedMedia(db(), app.media, row.mediaId); }
         catch (error) { app.log.warn({ err: error }, "Document file cleanup pending; storage remains charged"); }
@@ -1333,7 +1350,7 @@ async function recordVehicleScopedChange(
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
     const category = (request.query as { category?: string }).category;
-    let rows = await db().select().from(expenses).where(eq(expenses.vehicleId, vehicleId)).orderBy(desc(expenses.incurredOn));
+    let rows = await db().select().from(expenses).where(and(eq(expenses.vehicleId, vehicleId), currentRecord(expenses))).orderBy(desc(expenses.incurredOn));
     if (category) rows = rows.filter((r) => r.category === category);
     const items = [];
     for (const row of rows) items.push(await publicExpense(db(), row.id));
@@ -1346,7 +1363,7 @@ async function recordVehicleScopedChange(
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "full");
     const body = expenseBody.parse(request.body);
-    const [existing] = await db().select().from(expenses).where(eq(expenses.id, body.id)).limit(1);
+    const [existing] = await db().select().from(expenses).where(and(eq(expenses.id, body.id), currentRecord(expenses))).limit(1);
     if (existing) { reply.code(201); return await publicExpense(db(), existing.id); }
     await db().insert(expenses).values({
       currency: (request.body as {currency:string}).currency,
@@ -1377,7 +1394,7 @@ async function recordVehicleScopedChange(
     requireOwner(request);
     const { vehicleId } = request.params as { vehicleId: string };
     await getAccessibleVehicle(db(), uid(request), vehicleId, "drive_only", true);
-    const rows = await db().select().from(expenses).where(eq(expenses.vehicleId, vehicleId));
+    const rows = await db().select().from(expenses).where(and(eq(expenses.vehicleId, vehicleId), currentRecord(expenses)));
     const prefix = new Date().toISOString().slice(0, 7);
     const total = rows.reduce((s, e) => s + reqNum(e.amount), 0);
     const thisMonth = rows.filter((e) => dateOnly(e.incurredOn)?.startsWith(prefix)).reduce((s, e) => s + reqNum(e.amount), 0);
@@ -1412,7 +1429,7 @@ async function recordVehicleScopedChange(
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
         ...(body.receipt_media_id !== undefined ? { receiptMediaId: body.receipt_media_id } : {}),
       })
-      .where(eq(expenses.id, expenseId));
+      .where(and(eq(expenses.id, expenseId), currentRecord(expenses)));
     if (body.parts !== undefined) {
       await db().delete(expenseParts).where(eq(expenseParts.expenseId, expenseId));
       for (const part of body.parts) {
@@ -1437,7 +1454,7 @@ async function recordVehicleScopedChange(
     if (current) {
       await loadExpenseFor(db(), uid(request), expenseId, "write");
       await db().delete(expenseParts).where(eq(expenseParts.expenseId, expenseId));
-      await db().delete(expenses).where(eq(expenses.id, expenseId));
+      await db().delete(expenses).where(and(eq(expenses.id, expenseId), currentRecord(expenses)));
       await recordVehicleScopedChange(db(), { actorUserId: uid(request), vehicleId: current.vehicle_id, entityType: "expense", entityId: expenseId, op: "delete", payload: { id: expenseId } });
     }
     reply.code(204); return null;

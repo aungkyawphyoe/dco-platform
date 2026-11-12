@@ -1,10 +1,11 @@
+import { currentRecord } from "./record-ownership.js";
 import { and, desc, eq } from "drizzle-orm";
 import type { Db } from "../db/client.js";
 import { planItems, serviceRecordItems, serviceRecords } from "../db/schema.js";
 import { dueFrom } from "./catalog.js";
 
 export async function saveReminderBaseline(db: Db, id: string, manual: boolean) {
-  const [plan] = await db.select().from(planItems).where(eq(planItems.id, id));
+  const [plan] = await db.select().from(planItems).where(and(eq(planItems.id, id), currentRecord(planItems)));
   if (!plan) return;
   const [last] = await db.select({ id: serviceRecords.id }).from(serviceRecords)
     .innerJoin(serviceRecordItems, eq(serviceRecordItems.serviceRecordId, serviceRecords.id))
@@ -12,16 +13,16 @@ export async function saveReminderBaseline(db: Db, id: string, manual: boolean) 
     .orderBy(desc(serviceRecords.servicedOn), desc(serviceRecords.odometer), desc(serviceRecords.id)).limit(1);
   await db.update(planItems).set({ baselineDueOn: plan.nextDueOn, baselineDueMileage: plan.nextDueMileage,
     baselineEnabled: plan.enabled, manualOn: manual ? new Date().toISOString().slice(0, 10) : null,
-    manualServiceId: manual ? last?.id ?? null : null }).where(eq(planItems.id, id));
+    manualServiceId: manual ? last?.id ?? null : null }).where(and(eq(planItems.id, id), currentRecord(planItems)));
 }
 
 export async function recalculateReminders(db: Db, vehicleId: string) {
-  const plans = await db.select().from(planItems).where(eq(planItems.vehicleId, vehicleId)).for("update");
+  const plans = await db.select().from(planItems).where(and(eq(planItems.vehicleId, vehicleId), currentRecord(planItems))).for("update");
   const changed = [];
   for (const plan of plans) {
     const [last] = await db.select({ id: serviceRecords.id, on: serviceRecords.servicedOn, odometer: serviceRecords.odometer })
       .from(serviceRecords).innerJoin(serviceRecordItems, eq(serviceRecordItems.serviceRecordId, serviceRecords.id))
-      .where(and(eq(serviceRecordItems.planItemId, plan.id), eq(serviceRecords.vehicleId, vehicleId)))
+      .where(and(eq(serviceRecordItems.planItemId, plan.id), and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords))))
       .orderBy(desc(serviceRecords.servicedOn), desc(serviceRecords.odometer), desc(serviceRecords.id)).limit(1);
     const baseline = { nextDueOn: plan.baselineDueOn, nextDueMileage: plan.baselineDueMileage, enabled: plan.baselineEnabled };
     const preserveManual = plan.manualOn && last && (last.on < plan.manualOn || last.id === plan.manualServiceId);
@@ -37,7 +38,7 @@ export async function recalculateReminders(db: Db, vehicleId: string) {
     if (values.enabled && plan.catalogKey && plans.some(other => other.id !== plan.id && other.catalogKey === plan.catalogKey && other.enabled)) {
       values.enabled = false;
     }
-    const [updated] = await db.update(planItems).set(values).where(eq(planItems.id, plan.id)).returning();
+    const [updated] = await db.update(planItems).set(values).where(and(eq(planItems.id, plan.id), currentRecord(planItems))).returning();
     changed.push(updated);
   }
   return changed;
