@@ -85,6 +85,8 @@ az containerapp update --name dco-api-24739 --resource-group dco-rg --image dcoa
 DATABASE_URL="<prod-url>" npm run db:migrate
 ```
 
+> `0041_showroom_handover.sql` is additive and idempotent (handover tables, `can_complete_handover`, `initial_service_required`, cancelled work-order evidence). It runs on API startup; take a database backup first. It has only been rehearsed on an empty/test database, not on a production-shaped copy.
+
 **Email (ACS):** The API mailer supports `stdout` (dev/demo — prints to container logs, never delivers) and `acs` (Azure Communication Services — delivers for real). Current demo env uses `MAIL_PROVIDER=stdout`. Account provisioning never depends on email: organization creation (`admin_password`), Fleet member add (`temporary_password`), workshop account link, and Web Admin user create all provision accounts with a **temporary password** shown once in the creating UI — no invite or account-setup emails exist for these flows. Email is still used for signup verification, password reset, organization activation, workshop invitation, and invite resend; under `stdout` those only print to container logs, so recover accounts via Web Admin → user → **Set password**. To enable real delivery:
 
 1. Create an ACS resource and a verified sending domain (or use the ACS default domain for testing).
@@ -113,10 +115,15 @@ npm run license:key
 
 **Build:**
 ```bash
+# From the repository root: the Dockerfile needs packages/ui.
 cd web
-npm run gen:api   # generates types from architecture/openapi.yaml
-npm run build
-az acr build --registry dcoacr24739 --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.autoxmm.com/v1 --image dco-admin-web:v1.0.3 --image dco-admin-web:latest .
+npm run gen:api   # regenerates src/lib/api/schema.d.ts from architecture/openapi.yaml
+npm run build     # optional local verification
+cd ..
+az acr build --registry dcoacr24739 \
+  --file web/Dockerfile \
+  --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.autoxmm.com/v1 \
+  --image dco-admin-web:v1.0.3 --image dco-admin-web:latest .
 ```
 
 **Deploy:**
@@ -144,10 +151,15 @@ az containerapp update --name dco-admin-web --resource-group dco-rg --image dcoa
 
 **Build:**
 ```bash
+# From the repository root: the Dockerfile needs packages/ui.
 cd fleet-portal
 npm run gen:api
-npm run build
-az acr build --registry dcoacr24739 --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.autoxmm.com/v1 --image dco-fleet-portal:v1.0.2 --image dco-fleet-portal:latest .
+npm run build     # optional local verification
+cd ..
+az acr build --registry dcoacr24739 \
+  --file fleet-portal/Dockerfile \
+  --build-arg NEXT_PUBLIC_API_BASE_URL=https://api.autoxmm.com/v1 \
+  --image dco-fleet-portal:v1.1.0 --image dco-fleet-portal:latest .
 ```
 
 **Deploy:**
