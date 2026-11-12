@@ -683,6 +683,10 @@ export const transferredVehicles = pgTable("transferred_vehicles", {
   transferredAt: timestamp("transferred_at", { withTimezone: true }).notNull().defaultNow(),
   warrantyInstanceId: uuid("warranty_instance_id").references(() => vehicleWarranties.id),
   handoverId: uuid("handover_id").references(() => vehicleHandovers.id),
+  status: text("status").notNull().default("active"),
+  revertedAt: timestamp("reverted_at", { withTimezone: true }),
+  revertedBy: uuid("reverted_by").references(() => users.id),
+  revertReason: text("revert_reason"),
 }, (table) => ({
   orgIndex: index("transferred_vehicles_org_idx").on(table.orgId),
 }));

@@ -35,6 +35,7 @@ import { reminderEmailsPlugin } from "./modules/reminder-emails.js";
 import { fleetPlugin } from "./modules/fleet.js";
 import { fleetOperationsPlugin } from "./modules/fleet-operations.js";
 import { handoverPlugin } from "./modules/handover.js";
+import { lateWriteReviewPlugin } from "./modules/late-write-review.js";
 import "./types.js";
 
 export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: MediaStore }) {
@@ -134,6 +135,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(fleetPlugin);
       await v1.register(fleetOperationsPlugin);
       await v1.register(handoverPlugin);
+      await v1.register(lateWriteReviewPlugin);
       await v1.register(fleetAnalyticsPlugin);
       await v1.register(adminPlugin);
     },

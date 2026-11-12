@@ -4,6 +4,8 @@ import { z } from "zod";
 import type { Db } from "../db/client.js";
 import {
   driverAssignments,
+  expenses,
+  fuelLogs,
   organizationMembers,
   organizationVehicles,
   partners,
@@ -19,7 +21,7 @@ import {
   warrantyTemplates,
   workOrders,
 } from "../db/schema.js";
-import { requireFleetPortal } from "./auth.js";
+import { requireAdmin, requireFleetPortal } from "./auth.js";
 import { newId } from "../lib/crypto.js";
 import { dateOnly, iso, num, recordChange, reqNum } from "../lib/dbx.js";
 import { AppError } from "../lib/errors.js";
@@ -737,5 +739,222 @@ export const handoverPlugin: FastifyPluginAsync = async (app) => {
       delivery: { queued: 0, delivered: delivered.length },
       status: result.row.status,
     });
+  });
+
+  // Platform-admin correction for completed handovers
+  app.post("/admin/handovers/:handoverId/correct", async (request, reply) => {
+    requireAdmin(request, app.env.JWT_ADMIN_AUD);
+    const { handoverId } = z.object({ handoverId: uuid }).parse(request.params);
+    const body = z
+      .object({
+        action: z.enum(["revert", "reassign"]),
+        reason: z.string().trim().min(1).max(1000),
+        new_org_id: uuid.nullish(),
+        new_buyer_user_id: uuid.nullish(),
+      })
+      .parse(request.body);
+
+    const correction = await app.db.transaction(async (tx) => {
+      const [handover] = await tx
+        .select()
+        .from(vehicleHandovers)
+        .where(eq(vehicleHandovers.id, handoverId))
+        .for("update");
+      if (!handover) throw new AppError(404, "handover_not_found", "Handover not found");
+      if (handover.status !== "completed") {
+        throw new AppError(409, "handover_not_completed", "Only completed handovers can be corrected");
+      }
+
+      const [vehicle] = await tx
+        .select()
+        .from(vehicles)
+        .where(eq(vehicles.id, handover.vehicleId))
+        .for("update");
+      if (!vehicle) throw new AppError(404, "vehicle_not_found", "Vehicle not found");
+
+      // Check buyer's activity since handover
+      const buyerServices = await tx
+        .select({ id: serviceRecords.id, servicedOn: serviceRecords.servicedOn })
+        .from(serviceRecords)
+        .where(
+          and(
+            eq(serviceRecords.vehicleId, vehicle.id),
+            sql`${serviceRecords.servicedOn} >= ${handover.completedAt}`,
+          ),
+        );
+      const buyerExpenses = await tx
+        .select({ id: expenses.id, incurredOn: expenses.incurredOn })
+        .from(expenses)
+        .where(
+          and(
+            eq(expenses.vehicleId, vehicle.id),
+            sql`${expenses.incurredOn} >= ${handover.completedAt}`,
+          ),
+        );
+      const buyerFuelLogs = await tx
+        .select({ id: fuelLogs.id, loggedOn: fuelLogs.loggedOn })
+        .from(fuelLogs)
+        .where(
+          and(
+            eq(fuelLogs.vehicleId, vehicle.id),
+            sql`${fuelLogs.loggedOn} >= ${handover.completedAt}`,
+          ),
+        );
+      const buyerPlanItems = await tx
+        .select({ id: planItems.id })
+        .from(planItems)
+        .where(eq(planItems.vehicleId, vehicle.id));
+
+      const hasBuyerActivity =
+        buyerServices.length > 0 ||
+        buyerExpenses.length > 0 ||
+        buyerFuelLogs.length > 0 ||
+        buyerPlanItems.length > 0;
+
+      if (body.action === "reassign" && (!body.new_org_id || !body.new_buyer_user_id)) {
+        throw new AppError(400, "reassign_missing_fields", "reassign requires new_org_id and new_buyer_user_id");
+      }
+      if (body.action === "reassign" && hasBuyerActivity) {
+        throw new AppError(
+          409,
+          "buyer_has_activity",
+          "Cannot reassign: buyer has logged services, expenses, fuel, or plans since handover. Use revert instead.",
+        );
+      }
+
+      // Mark original handover as corrected
+      const [corrected] = await tx
+        .update(vehicleHandovers)
+        .set({
+          status: "corrected",
+          cancellationReason: `Platform-admin correction: ${body.reason}`,
+          cancelledBy: request.authUser!.sub,
+          cancelledAt: new Date(),
+          updatedAt: new Date(),
+        })
+        .where(eq(vehicleHandovers.id, handoverId))
+        .returning();
+
+      // Remove buyer's plan items
+      await tx.delete(planItems).where(eq(planItems.vehicleId, vehicle.id));
+
+      // Remove buyer's warranty
+      await tx.delete(vehicleWarranties).where(eq(vehicleWarranties.vehicleId, vehicle.id));
+
+      // Remove buyer's handover receipt
+      await tx.delete(vehicleHandovers).where(eq(vehicleHandovers.id, handoverId));
+
+      // Remove buyer's sync changes (vehicle, plan, warranty, receipt)
+      await recordChange(tx, {
+        userId: handover.buyerUserId,
+        entityType: "vehicle",
+        entityId: vehicle.id,
+        op: "delete",
+        payload: { id: vehicle.id },
+      });
+      for (const plan of buyerPlanItems) {
+        await recordChange(tx, {
+          userId: handover.buyerUserId,
+          entityType: "plan_item",
+          entityId: plan.id,
+          op: "delete",
+          payload: { id: plan.id },
+        });
+      }
+      const [warranty] = await tx
+        .select({ id: vehicleWarranties.id })
+        .from(vehicleWarranties)
+        .where(eq(vehicleWarranties.vehicleId, vehicle.id))
+        .limit(1);
+      if (warranty) {
+        await recordChange(tx, {
+          userId: handover.buyerUserId,
+          entityType: "warranty",
+          entityId: warranty.id,
+          op: "delete",
+          payload: { id: warranty.id },
+        });
+      }
+      await recordChange(tx, {
+        userId: handover.buyerUserId,
+        entityType: "handover_receipt",
+        entityId: handoverId,
+        op: "delete",
+        payload: { id: handoverId },
+      });
+
+      if (body.action === "revert") {
+        // Return vehicle to original organization (update organizationVehicles)
+        const revertOrgId = handover.orgId ?? (() => { throw new AppError(500, "handover_org_missing", "Handover missing orgId"); })();
+
+        await tx
+          .update(organizationVehicles)
+          .set({
+            orgId: revertOrgId,
+            lifecycleTemplate: "showroom",
+            status: "reserved",
+            updatedAt: new Date(),
+          })
+          .where(eq(organizationVehicles.vehicleId, vehicle.id));
+
+        // Update transferred_vehicles record
+        await tx
+          .update(transferredVehicles)
+          .set({
+            status: "reverted",
+            revertedAt: new Date(),
+            revertedBy: request.authUser!.sub,
+            revertReason: body.reason,
+          })
+          .where(eq(transferredVehicles.handoverId, handoverId));
+      } else {
+        // Reassign to new organization/buyer
+        const [newOrg] = await tx
+          .select()
+          .from(organizationVehicles)
+          .where(and(eq(organizationVehicles.orgId, body.new_org_id!), eq(organizationVehicles.vehicleId, vehicle.id)))
+          .limit(1);
+        if (!newOrg) {
+          throw new AppError(404, "org_vehicle_not_found", "Vehicle not found in target organization");
+        }
+
+        await tx
+          .update(vehicles)
+          .set({
+            userId: body.new_buyer_user_id as string,
+            updatedAt: new Date(),
+          })
+          .where(eq(vehicles.id, vehicle.id));
+
+        const newOrgId = body.new_org_id as string;
+        await tx
+          .update(organizationVehicles)
+          .set({
+            orgId: newOrgId,
+            updatedAt: new Date(),
+          })
+          .where(eq(organizationVehicles.vehicleId, vehicle.id));
+
+        const handoverOrgId = handover.orgId ?? (() => { throw new AppError(500, "handover_org_missing", "Handover missing orgId"); })();
+
+        await tx
+          .insert(transferredVehicles)
+          .values({
+            vehicleId: vehicle.id,
+            orgId: handoverOrgId,
+            buyerUserId: body.new_buyer_user_id!,
+            transferredBy: request.authUser!.sub,
+            warrantyInstanceId: null,
+            handoverId: handoverId,
+            vehicleSnapshot: handover.vehicleSnapshot ?? {},
+            serviceSnapshot: (handover.resultSnapshot as { serviceSnapshot?: unknown[] } | null)?.serviceSnapshot ?? [],
+          } as typeof transferredVehicles.$inferInsert)
+          .returning();
+      }
+
+      return { corrected, hasBuyerActivity, action: body.action };
+    });
+
+    return reply.send(correction);
   });
 };

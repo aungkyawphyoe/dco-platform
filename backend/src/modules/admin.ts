@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { auditEvents, documents, maintenanceCatalog, organizationMembers, organizationVehicles, organizations, partners, refreshTokens, users, vehicles, vehicleShares, vehicleShareInvitations, workshopMembers, driverAssignments } from "../db/schema.js";
+import { auditEvents, documents, maintenanceCatalog, organizationMembers, organizationVehicles, organizations, partners, refreshTokens, transferredVehicles, users, vehicles, vehicleShares, vehicleShareInvitations, workshopMembers, driverAssignments } from "../db/schema.js";
 import { hashPassword, newId, randomToken, sha256 } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { emailTokens } from "../db/schema.js";
@@ -733,13 +733,77 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
     await audit(app, request.authUser!.sub, "catalog.delete", { catalogKey: row.catalogKey });
     return reply.code(204).send();
   });
-};
 
-async function audit(
-  app: { db: import("../db/client.js").Db },
-  adminUserId: string,
-  action: string,
-  detail: Record<string, unknown>,
-) {
-  await app.db.insert(auditEvents).values({ adminUserId, action, detail });
+  // Legacy reconciliation endpoints
+  async function audit(
+    app: { db: import("../db/client.js").Db },
+    adminUserId: string,
+    action: string,
+    detail: Record<string, unknown>,
+  ) {
+    await app.db.insert(auditEvents).values({ adminUserId, action, detail });
+  }
+
+  const legacyReconciliationQuery = z.object({
+    status: z.enum(["pending", "reconciled", "quarantined"]).optional(),
+  });
+
+  app.get("/admin/legacy-reconciliation", async (request) => {
+    const query = legacyReconciliationQuery.parse(request.query);
+    const conditions = [];
+    if (query.status) conditions.push(eq(transferredVehicles.status, query.status));
+
+    const legacyTransfers = await app.db
+      .select({
+        id: transferredVehicles.id,
+        vehicleId: transferredVehicles.vehicleId,
+        orgId: transferredVehicles.orgId,
+        buyerUserId: transferredVehicles.buyerUserId,
+        status: transferredVehicles.status,
+        transferredAt: transferredVehicles.transferredAt,
+        handoverId: transferredVehicles.handoverId,
+        warrantyInstanceId: transferredVehicles.warrantyInstanceId,
+      })
+      .from(transferredVehicles)
+      .where(isNull(transferredVehicles.handoverId))
+      .orderBy(desc(transferredVehicles.transferredAt))
+      .limit(200);
+
+    return { items: legacyTransfers };
+  });
+
+  const reconcileBody = z.object({
+    transfer_id: uuid,
+    action: z.enum(["reconcile", "quarantine"]),
+    reviewer_note: z.string().trim().max(1000).optional(),
+  });
+
+  app.post("/admin/legacy-reconciliation/resolve", async (request) => {
+    const body = reconcileBody.parse(request.body);
+    const [transfer] = await app.db
+      .select()
+      .from(transferredVehicles)
+      .where(eq(transferredVehicles.id, body.transfer_id))
+      .limit(1);
+
+    if (!transfer) throw new AppError(404, "transfer_not_found", "Transfer not found");
+    if (transfer.handoverId) throw new AppError(409, "handover_exists", "Transfer already has handover linkage");
+
+    const newStatus = body.action === "reconcile" ? "reconciled" : "quarantined";
+    await app.db
+      .update(transferredVehicles)
+      .set({
+        status: newStatus,
+      })
+      .where(eq(transferredVehicles.id, body.transfer_id));
+
+    await audit(app, request.authUser!.sub, "legacy.reconcile", {
+      transfer_id: body.transfer_id,
+      action: body.action,
+      reviewer_note: body.reviewer_note ? body.reviewer_note : null,
+    });
+
+    const result = { transfer_id: body.transfer_id, status: newStatus };
+    return result;
+  });
 }

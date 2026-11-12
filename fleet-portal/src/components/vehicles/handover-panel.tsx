@@ -43,6 +43,7 @@ import {
   planSaveIssues,
   type PlanDraftRow,
 } from "./handover-plan-editor";
+import { QrScanner } from "./qr-scanner";
 
 // The handover API validates sale dates against the UTC calendar day.
 function serverToday(): string {
@@ -208,9 +209,9 @@ function PlanSummary({ plan }: { plan: HandoverPlanItem[] }) {
               <p className="font-medium text-ink">{item.name}</p>
               <p className="text-xs text-ink-caption">
                 {item.initial_service_required
-                  ? "Initial service required — baseline unknown"
+                  ? "Initial service required \u2014 baseline unknown"
                   : due || "No due target"}
-                {repeat ? ` · ${repeat}` : ""}
+                {repeat ? ` \u00b7 ${repeat}` : ""}
               </p>
             </div>
           </li>
@@ -231,7 +232,7 @@ function BuyerIdentity({ buyer }: { buyer: HandoverBuyer }) {
       </div>
       <p className="mt-1 text-sm text-ink-caption">
         {buyer.email_masked ?? "Email unavailable"}
-        {buyer.phone_masked ? ` · ${buyer.phone_masked}` : ""}
+        {buyer.phone_masked ? ` \u00b7 ${buyer.phone_masked}` : ""}
       </p>
       <p className="mt-1 font-mono text-xs text-ink-faint">{buyer.user_id}</p>
       {!buyer.eligible ? (
@@ -260,14 +261,14 @@ function HandoverHeader({
     status === "completed"
       ? "Completed"
       : status === "draft"
-        ? `Draft${revision ? ` · revision ${revision}` : ""}`
+        ? `Draft${revision ? ` \u00b7 revision ${revision}` : ""}`
         : status === "cancelled"
           ? "Cancelled"
           : "Not started";
   return <Badge tone={tone}>{label}</Badge>;
 }
 
-// ── Starting a handover ─────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Starting a handover \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 function StartHandover({
   orgId,
@@ -278,10 +279,11 @@ function StartHandover({
   vehicle: FleetVehicle;
   planItems: VehiclePlanItem[];
 }) {
-  const [mode, setMode] = useState<"email" | "account">("email");
+  const [mode, setMode] = useState<"email" | "account" | "qr">("email");
   const [value, setValue] = useState("");
   const [buyer, setBuyer] = useState<HandoverBuyer | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [qrOpen, setQrOpen] = useState(false);
   const lookup = useLookupHandoverBuyer(orgId);
   const create = useCreateHandover(orgId);
   const queryClient = useQueryClient();
@@ -293,15 +295,32 @@ function StartHandover({
     setBuyer(null);
     const trimmed = value.trim();
     if (!trimmed) {
-      setError(mode === "email" ? "Enter the buyer’s exact email." : "Enter the account ID.");
+      setError(
+        mode === "email"
+          ? "Enter the buyer's exact email."
+          : "Enter the account ID.",
+      );
       return;
     }
+    const apiMode = mode === "qr" ? "account" : mode;
     try {
-      const found = await lookup.mutateAsync({ mode, value: trimmed });
+      const found = await lookup.mutateAsync({ mode: apiMode, value: trimmed });
       setBuyer(found);
     } catch (cause) {
       setError(handoverError(cause));
     }
+  }
+
+  function handleQrScan(code: string) {
+    setValue(code);
+    setQrOpen(false);
+    setMode("account");
+    void findBuyer();
+  }
+
+  function closeQr() {
+    setQrOpen(false);
+    setMode("account");
   }
 
   async function start() {
@@ -327,23 +346,48 @@ function StartHandover({
     }
   }
 
+  if (qrOpen) {
+    return (
+      <div className="flex flex-col gap-4">
+        <p className="max-w-2xl text-sm text-ink-caption">
+          Point the camera at the buyer&apos;s account code QR. The buyer finds this
+          in their AutoX app under Profile \u2192 Account code.
+        </p>
+        <QrScanner onScan={handleQrScan} onCancel={closeQr} />
+        <Button
+          type="button"
+          variant="secondary"
+          onClick={closeQr}
+          disabled={busy}
+        >
+          Enter account ID manually instead
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <p className="max-w-2xl text-sm text-ink-caption">
-        Identify an existing active personal account by exact email or account
-        ID. There is no directory or autocomplete search.
+        Identify an existing active personal account by exact email, account ID,
+        or by scanning the buyer&apos;s account code QR.
       </p>
 
-      <div className="grid gap-3 sm:grid-cols-[9rem_1fr_auto] sm:items-end">
+      <div className="grid gap-3 sm:grid-cols-[9rem_1fr_auto_auto] sm:items-end">
         <Select
           label="Lookup by"
           value={mode}
           options={[
             { value: "email", label: "Exact email" },
-            { value: "account", label: "Account ID / QR" },
+            { value: "account", label: "Account ID" },
+            { value: "qr", label: "Scan QR" },
           ]}
           onChange={(next) => {
-            setMode(next as "email" | "account");
+            const m = next as "email" | "account" | "qr";
+            setMode(m);
+            if (m === "qr") {
+              setQrOpen(true);
+            }
             setValue("");
             setBuyer(null);
             setError(null);
@@ -359,7 +403,7 @@ function StartHandover({
           placeholder={
             mode === "email"
               ? "buyer@example.com"
-              : "Account UUID from the buyer’s QR / account code"
+              : "Account UUID from the buyer's QR / account code"
           }
           onChange={(event) => {
             setValue(event.target.value);
@@ -372,15 +416,15 @@ function StartHandover({
               void findBuyer();
             }
           }}
-          disabled={busy}
+          disabled={busy || mode === "qr"}
         />
         <Button
           type="button"
           variant="secondary"
           onClick={() => void findBuyer()}
-          disabled={busy}
+          disabled={busy || mode === "qr"}
         >
-          {lookup.isPending ? "Looking up…" : "Find buyer"}
+          {lookup.isPending ? "Looking up..." : "Find buyer"}
         </Button>
       </div>
 
@@ -398,7 +442,7 @@ function StartHandover({
           onClick={() => void start()}
           disabled={!buyer?.eligible || busy}
         >
-          {create.isPending ? "Starting draft…" : "Start handover draft"}
+          {create.isPending ? "Starting draft..." : "Start handover draft"}
         </Button>
         <p className="text-xs text-ink-caption">
           The vehicle stays reserved and owned by the showroom until completion.
@@ -408,7 +452,7 @@ function StartHandover({
   );
 }
 
-// ── Draft preparation, review, and completion ───────────────────────────────
+// \u2500\u2500\u2500 Draft preparation, review, and completion \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 function HandoverDraft({
   orgId,
@@ -815,7 +859,7 @@ function HandoverDraft({
                 value={warrantyTemplateId}
                 options={(templates.data?.items ?? []).map((template) => ({
                   value: template.id,
-                  label: `${template.name} · ${template.duration_years} yr / ${template.mileage_limit_km.toLocaleString()} km`,
+                  label: `${template.name} \u00b7 ${template.duration_years} yr / ${template.mileage_limit_km.toLocaleString()} km`,
                 }))}
                 disabled={update.isPending}
                 onChange={(value) => {
@@ -927,7 +971,7 @@ function HandoverDraft({
           <p className="mt-3 text-sm text-success">
             Revision {handover.reviewed_revision} reviewed
             {handover.reviewed_at
-              ? ` · ${formatDateTime(handover.reviewed_at)}`
+              ? ` \u00b7 ${formatDateTime(handover.reviewed_at)}`
               : ""}
             .
           </p>
@@ -940,14 +984,14 @@ function HandoverDraft({
             onClick={() => void saveDraft()}
             disabled={!dirty || update.isPending}
           >
-            {update.isPending ? "Saving…" : "Save draft"}
+            {update.isPending ? "Saving..." : "Save draft"}
           </Button>
           <Button
             type="button"
             onClick={() => void reviewDraft()}
             disabled={!canReview}
           >
-            {review.isPending ? "Reviewing…" : "Review revision"}
+            {review.isPending ? "Reviewing..." : "Review revision"}
           </Button>
           <Button
             type="button"
@@ -982,7 +1026,7 @@ function HandoverDraft({
             <dt className="text-xs text-ink-caption">Buyer</dt>
             <dd className="mt-0.5 text-ink">{buyerLabel(handover.buyer)}</dd>
             <dd className="text-xs text-ink-caption">
-              {handover.buyer.email_masked ?? "Email unavailable"} ·{" "}
+              {handover.buyer.email_masked ?? "Email unavailable"} \u00b7{" "}
               <span className="font-mono">{handover.buyer.user_id}</span>
             </dd>
           </div>
@@ -992,7 +1036,7 @@ function HandoverDraft({
               {vehicle.year} {vehicle.make} {vehicle.model}
             </dd>
             <dd className="text-xs text-ink-caption">
-              <span className="font-mono">{vehicle.license_plate}</span> ·{" "}
+              <span className="font-mono">{vehicle.license_plate}</span> \u00b7{" "}
               <span className="font-mono">{vehicle.vin}</span>
             </dd>
           </div>
@@ -1054,7 +1098,7 @@ function HandoverDraft({
                 onClick={() => void completeHandover()}
                 disabled={!canFinalize}
               >
-                {complete.isPending ? "Completing…" : "Complete handover"}
+                {complete.isPending ? "Completing..." : "Complete handover"}
               </Button>
             </div>
             {!reviewed ? (
@@ -1130,7 +1174,7 @@ function HandoverDraft({
   );
 }
 
-// ── Completed receipt ───────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Completed receipt \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 function HandoverCompleted({
   detail,
@@ -1167,14 +1211,14 @@ function HandoverCompleted({
         <div>
           <dt className="text-xs text-ink-caption">Vehicle</dt>
           <dd className="mt-0.5 text-ink">
-            {vehicle.year} {vehicle.make} {vehicle.model} ·{" "}
+            {vehicle.year} {vehicle.make} {vehicle.model} \u00b7{" "}
             <span className="font-mono">{vehicle.license_plate}</span>
           </dd>
         </div>
         <div>
           <dt className="text-xs text-ink-caption">Buyer</dt>
           <dd className="mt-0.5 text-ink">
-            {buyer ? buyerLabel(buyer) : result?.buyer_user_id ?? "—"}
+            {buyer ? buyerLabel(buyer) : result?.buyer_user_id ?? "\u2014"}
           </dd>
           {buyer?.email_masked ? (
             <dd className="text-xs text-ink-caption">{buyer.email_masked}</dd>
@@ -1183,14 +1227,14 @@ function HandoverCompleted({
         <div>
           <dt className="text-xs text-ink-caption">Sale date</dt>
           <dd className="mt-0.5 font-mono text-ink">
-            {saleDate ? formatDate(saleDate) : "—"}
+            {saleDate ? formatDate(saleDate) : "\u2014"}
           </dd>
         </div>
         <div>
           <dt className="text-xs text-ink-caption">Handover mileage</dt>
           <dd className="mt-0.5 font-mono text-ink">
             {mileage == null
-              ? "—"
+              ? "\u2014"
               : `${mileage.toLocaleString(undefined, { maximumFractionDigits: 0 })} km`}
           </dd>
         </div>
@@ -1207,7 +1251,7 @@ function HandoverCompleted({
         <div className="sm:col-span-2">
           <dt className="text-xs text-ink-caption">Completed</dt>
           <dd className="mt-0.5 font-mono text-ink">
-            {completedAt ? formatDateTime(completedAt) : "—"}
+            {completedAt ? formatDateTime(completedAt) : "\u2014"}
           </dd>
         </div>
       </dl>
@@ -1237,7 +1281,7 @@ function HandoverCompleted({
   );
 }
 
-// ── Panel ───────────────────────────────────────────────────────────────────
+// \u2500\u2500\u2500 Panel \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
 
 export function HandoverPanel({
   orgId,
@@ -1315,7 +1359,7 @@ export function HandoverPanel({
             <p className="mt-0.5 text-xs">
               {activeDetail.cancellation_reason ?? "No reason recorded."}
               {activeDetail.cancelled_at
-                ? ` · ${formatDateTime(activeDetail.cancelled_at)}`
+                ? ` \u00b7 ${formatDateTime(activeDetail.cancelled_at)}`
                 : ""}
             </p>
           </div>
@@ -1341,7 +1385,7 @@ export function HandoverPanel({
           <p className="mt-1 max-w-2xl text-sm text-ink-caption">
             Prepare the buyer, reviewed maintenance plan, and warranty for this
             reserved showroom vehicle. Completing the handover moves ownership
-            to the buyer’s personal account.
+            to the buyer\u2019s personal account.
           </p>
         </div>
         <HandoverHeader status={status} revision={activeDetail?.revision} />
