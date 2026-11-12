@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { grantTestFleet } from "./helpers.js";
+import { completeHandover, grantTestFleet } from "./helpers.js";
 import { describe, expect, it } from "vitest";
 import { createTestApp, testEnv, uuid } from "./helpers.js";
 
@@ -525,11 +525,11 @@ describe("Enterprise Fleet access", () => {
       payload: { name: "One year", duration_years: 1, mileage_limit_km: 20000, coverage_categories: ["Engine"] },
     });
     expect(template.statusCode).toBe(201);
-    const transfer = await app.inject({
-      method: "POST", url: `/v1/organizations/${orgId}/vehicles/${vehicleId}/transfer`, headers: auth(fleetToken),
-      payload: { buyer_email: buyer.email, sale_date: "2026-09-10", current_mileage_km: 1200, warranty_template_id: template.json().id },
+    const transfer = await completeHandover(app, {
+      orgId, token: fleetToken, vehicleId, buyerEmail: buyer.email,
+      saleDate: "2026-09-10", currentMileageKm: 1200, warrantyTemplateId: template.json().id,
     });
-    expect(transfer.statusCode).toBe(201);
+    expect(transfer.statusCode, transfer.body).toBe(201);
     const buyerVehicles = await app.inject({ method: "GET", url: "/v1/vehicles", headers: auth(buyer.token) });
     expect(buyerVehicles.json().items.map((item: { id: string }) => item.id)).toContain(vehicleId);
     const warranty = await app.inject({ method: "GET", url: `/v1/vehicles/${vehicleId}/warranty`, headers: auth(buyer.token) });
@@ -644,11 +644,11 @@ describe("Approved workshop warranty access", () => {
     expect(vehicle.statusCode).toBe(201);
     await app.inject({ method: "PATCH", url: `/v1/organizations/${orgId}/vehicles/${vehicleId}`, headers: auth(fleetToken), payload: { status: "listed" } });
     await app.inject({ method: "PATCH", url: `/v1/organizations/${orgId}/vehicles/${vehicleId}`, headers: auth(fleetToken), payload: { status: "reserved" } });
-    const transfer = await app.inject({
-      method: "POST", url: `/v1/organizations/${orgId}/vehicles/${vehicleId}/transfer`, headers: auth(fleetToken),
-      payload: { buyer_email: buyer.email, sale_date: "2026-09-15", current_mileage_km: 1200, warranty_template_id: template.json().id },
+    const transfer = await completeHandover(app, {
+      orgId, token: fleetToken, vehicleId, buyerEmail: buyer.email,
+      saleDate: "2026-09-15", currentMileageKm: 1200, warrantyTemplateId: template.json().id,
     });
-    expect(transfer.statusCode).toBe(201);
+    expect(transfer.statusCode, transfer.body).toBe(201);
     const warranty = await app.inject({ method: "GET", url: `/v1/vehicles/${vehicleId}/warranty`, headers: auth(buyer.token) });
     expect(warranty.json().status).toBe("active");
 

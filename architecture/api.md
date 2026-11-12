@@ -1,6 +1,6 @@
 # API contract (index)
 
-**Planned showroom handover — 10 November 2026:** [Plan](../product/frd/showroom-handover-plan.md) supersedes the intended immediate-transfer workflow. Existing OpenAPI describes the baseline; draft/review/complete/correction contracts are not available yet. Update OpenAPI and generated clients with implementation, and prevent the legacy route from bypassing new requirements.
+**Showroom handover — 12 November 2026:** [Plan](../product/frd/showroom-handover-plan.md) supersedes the immediate-transfer workflow. OpenAPI and generated clients describe backend handover draft/update/cancel/review/complete operations and the delegated manager permission. The legacy `POST /organizations/{id}/vehicles/{vehicleId}/transfer` returns `410 handover_required`. Fleet Portal and personal-mobile handover journeys, platform-admin correction, and delivery retry remain pending.
 
 Canonical machine file: [`openapi.yaml`](openapi.yaml) (OpenAPI 3.0.3).
 

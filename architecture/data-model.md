@@ -368,11 +368,11 @@ Fleet entitlement is **organization-scoped**, not a `users.plan` value or `users
 | `work_orders` | Organization/vehicle, reporting driver, odometer, issue, urgency, photos, status, assignee and resolution fields, optional **`plan_item_id`** and **`completion_cost`** (Oct 2026). Completion (admin/manager) auto-creates a service record at the report-time odometer and advances the linked plan item. Driver visibility is own-only; managers can review fleet-wide. |
 | `inspections` / `inspection_templates` | Organization-scoped checklist definitions and submitted results. Required items must be answered; a `not_ok` result creates a work order. |
 | ~~`shift_mileage`~~ | **Removed (Oct 2026, second grilling)** — shift start/end capture retired; vehicle mileage is log-driven only (service records + fuel logs). Table and routes dropped. |
-| `warranty_templates` / `vehicle_warranties` | Organization template terms and per-vehicle time/mileage limits, created on showroom transfer when selected. |
+| `warranty_templates` / `vehicle_warranties` | Organization template terms and per-vehicle time/mileage limits. Handover stores frozen terms in `vehicle_warranties.terms_snapshot` so later template edits do not change agreed buyer coverage. |
 | `warranty_template_workshops` | Template ↔ approved workshop partner link. Only workshops on this list may log warranty service for vehicles using the template. |
 | `organization_workshops` | Organization ↔ verified workshop partner approval list. Warranty templates may only reference workshops approved here; removal also clears the partner from the org's templates. |
 | `workshop_members` | Workshop partner ↔ user account link, created by AutoX Admin for verified workshop partners. One workshop per user. Workshop sign-in uses the `dco-workshop` audience. |
-| `transferred_vehicles` | Read-only organization audit row linking vehicle, buyer, transfer actor/time, and optional warranty instance. `vehicles.user_id` changes to the buyer. |
+| `transferred_vehicles` | Read-only organization audit row linking vehicle, buyer, transfer actor/time, optional warranty instance, and the originating `vehicle_handovers` row. `vehicles.user_id` changes to the buyer. |
 | `vehicle_import_jobs` | Persistent CSV import status/results, limited to 100 rows per job and polled by job ID. |
 | `vehicles.vehicle_class` | `car` \| `motorcycle` \| `truck` \| `van` \| `bus`, default `car` (`backend/drizzle/0013_maintenance_catalog_fleet.sql`). Primary dimension for maintenance-template matching; synced through the normal vehicle outbox path. |
 | `maintenance_catalog` (fleet extension) | Same table gains `vehicle_class` (default `car`), optional `lifecycle_template` narrowing, and nullable `org_id` (NULL = platform-seeded global row; non-NULL = org copy created in the Fleet Portal). Indexes on `vehicle_class` and `org_id`. 47 global rows seeded (11 car + 10 motorcycle + 14 truck + 12 van). |
@@ -489,3 +489,11 @@ Migration `0040_vehicle_ownership_periods.sql` introduces `vehicle_ownership_per
 `ownership_period_id` is now available on plans, service records, parts, fuel logs, documents, expenses, work orders, and inspections. New rows receive the current period under vehicle locking. Derived expenses inherit their source record's period. Routine updates cannot reassign period or vehicle identity. Line items and record attachments inherit the parent boundary; independent media authorization still needs integration.
 
 Existing rows are retained with null attribution and entered into `ownership_migration_reviews`. Neither current owner nor a service date is sufficient proof of historical ownership. This migration deliberately does not enable read filtering, reconcile ambiguous rows, or expose the new handover flow. A controlled audited reconciliation operation and period-aware route/media/sync checks remain required before handover rollout.
+
+## Showroom handover evidence (migration 0041)
+
+`vehicle_handovers` stores the single pending draft per vehicle, buyer, preparing actor, revision, reviewed revision/actor/time, sale date and mileage, reviewed plan snapshot, explicit warranty choice, frozen warranty terms, prior warranty evidence, completion result, and cancellation evidence. A partial unique index enforces one `draft` per vehicle.
+
+`vehicle_handover_events` records queued/delivered buyer delivery events for the vehicle, plan, warranty, and receipt. Completion writes ownership, plan, warranty, audit, sync change rows, and delivery events in one transaction; a repeated completion returns the stored result.
+
+`organization_members.can_complete_handover` records admin-granted manager completion permission. `plan_items.initial_service_required` represents an unknown baseline without fabricating a service record. `work_orders` accepts a terminal `cancelled` state with reason, actor, and time. The legacy immediate-transfer route now returns `410 handover_required`.

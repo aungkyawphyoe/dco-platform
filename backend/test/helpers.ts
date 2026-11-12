@@ -63,3 +63,48 @@ export async function grantTestFleet(app: Awaited<ReturnType<typeof createTestAp
   }});
   if(result.statusCode !== 200) throw new Error(result.body);
 }
+
+/** Drive the reviewed showroom handover flow used by fleet integration fixtures. */
+export async function completeHandover(
+  app: Awaited<ReturnType<typeof createTestApp>>['app'],
+  options: {
+    orgId: string;
+    token: string;
+    vehicleId: string;
+    buyerEmail: string;
+    saleDate?: string;
+    currentMileageKm?: number;
+    warrantyTemplateId?: string | null;
+    plan?: Array<Record<string, unknown>>;
+  },
+) {
+  const headers = { authorization: `Bearer ${options.token}` };
+  const lookup = await app.inject({
+    method: 'GET',
+    url: `/v1/organizations/${options.orgId}/handover-buyers?email=${encodeURIComponent(options.buyerEmail)}`,
+    headers,
+  });
+  if (lookup.statusCode !== 200) return lookup;
+  const created = await app.inject({
+    method: 'POST', url: `/v1/organizations/${options.orgId}/handovers`, headers,
+    payload: {
+      vehicle_id: options.vehicleId,
+      buyer_user_id: lookup.json().user_id,
+      sale_date: options.saleDate ?? new Date().toISOString().slice(0, 10),
+      ...(options.currentMileageKm !== undefined ? { current_mileage_km: options.currentMileageKm } : {}),
+      plan: options.plan ?? [{ name: 'Initial service', initial_service_required: true }],
+      warranty_choice: options.warrantyTemplateId ? 'template' : 'none',
+      ...(options.warrantyTemplateId ? { warranty_template_id: options.warrantyTemplateId } : {}),
+    },
+  });
+  if (created.statusCode !== 201) return created;
+  const reviewed = await app.inject({
+    method: 'POST', url: `/v1/organizations/${options.orgId}/handovers/${created.json().id}/review`, headers,
+    payload: { revision: created.json().revision },
+  });
+  if (reviewed.statusCode !== 200) return reviewed;
+  return app.inject({
+    method: 'POST', url: `/v1/organizations/${options.orgId}/handovers/${created.json().id}/complete`, headers,
+    payload: { reviewed_revision: reviewed.json().revision, acknowledged: true },
+  });
+}

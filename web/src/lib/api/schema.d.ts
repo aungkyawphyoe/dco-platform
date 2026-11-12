@@ -6453,6 +6453,8 @@ export interface paths {
                     "application/json": {
                         /** @enum {string} */
                         role?: "org_manager" | "org_mechanic" | "org_driver";
+                        /** @description Admin-granted completion permission; org_manager only */
+                        can_complete_handover?: boolean;
                         remove?: boolean;
                     };
                 };
@@ -6993,7 +6995,10 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Transfer reserved showroom inventory to a buyer */
+        /**
+         * Retired direct showroom transfer
+         * @description Returns 410 handover_required. Ownership changes only through the reviewed handover draft, review, and complete flow.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -7004,27 +7009,387 @@ export interface paths {
                 };
                 cookie?: never;
             };
+            requestBody?: never;
+            responses: {
+                410: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/handover-buyers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve an existing buyer by exact email for handover */
+        get: {
+            parameters: {
+                query: {
+                    email: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Matched account with masked contact details and eligibility */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/handover-buyers/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Resolve a buyer by account QR/account ID for handover */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    userId: components["parameters"]["userId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Matched account with masked contact details and eligibility */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/handovers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List handover drafts, completions, and cancellations */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "draft" | "completed" | "cancelled";
+                    vehicle_id?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Handover list */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Create a handover draft for a reserved showroom vehicle
+         * @description At most one pending draft exists per vehicle.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
             requestBody: {
                 content: {
                     "application/json": {
-                        /** Format: email */
-                        buyer_email: string;
+                        /** Format: uuid */
+                        vehicle_id: string;
+                        /** Format: uuid */
+                        buyer_user_id: string;
                         /** Format: date */
-                        sale_date: string;
-                        current_mileage_km: number;
+                        sale_date?: string | null;
+                        current_mileage_km?: number | null;
+                        plan?: components["schemas"]["HandoverPlanItem"][];
+                        /** @enum {string} */
+                        warranty_choice?: "undecided" | "none" | "template";
                         /** Format: uuid */
                         warranty_template_id?: string | null;
                     };
                 };
             };
             responses: {
-                /** @description Vehicle transferred with audit and optional warranty */
+                /** @description Handover draft created */
                 201: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content?: never;
                 };
+                409: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/handovers/{handoverId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read a handover with readiness issues */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    handoverId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Handover detail and blocking issues */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                404: components["responses"]["Error"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update a handover draft and invalidate review
+         * @description Changing buyer or vehicle requires cancelling and creating a new draft.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    handoverId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        sale_date?: string | null;
+                        current_mileage_km?: number | null;
+                        plan?: components["schemas"]["HandoverPlanItem"][];
+                        /** @enum {string} */
+                        warranty_choice?: "undecided" | "none" | "template";
+                        /** Format: uuid */
+                        warranty_template_id?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated draft with incremented revision */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                409: components["responses"]["Error"];
+                422: components["responses"]["Error"];
+            };
+        };
+        trace?: never;
+    };
+    "/organizations/{id}/handovers/{handoverId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Review the current handover revision */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    handoverId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        revision: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Revision reviewed */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                409: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/handovers/{handoverId}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a pending handover draft */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    handoverId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Handover cancelled (idempotent while already cancelled) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                409: components["responses"]["Error"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/handovers/{handoverId}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Complete a reviewed handover atomically and idempotently
+         * @description Requires org_admin, or org_manager with can_complete_handover. Rechecks permission, eligibility, reviewed revision, plan, warranty choice, and open repairs inside the ownership-change transaction. Repeated completion returns the original result without creating another transfer.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    handoverId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reviewed_revision: number;
+                        /** @enum {boolean} */
+                        acknowledged: true;
+                    };
+                };
+            };
+            responses: {
+                /** @description Original completion result returned for an idempotent retry */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Handover completed */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                403: components["responses"]["Error"];
                 409: components["responses"]["Error"];
             };
         };
@@ -7226,8 +7591,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Advance work order to in-progress or completed (completion requires cost → auto service record)
-         * @description Status must advance reported → in_progress → completed without skipping. transition to completed accepts/requires completion_cost (>= 0) plus optional resolution notes and parts (free-text names allowed). Completion is Admin/Manager only, stamps the report-time odometer on the auto-created service record, and advances the linked plan item when work_orders.plan_item_id is set. The auto service record is portal-side only (driver history shows the WO row status).
+         * Advance or cancel a work order (completion requires cost → auto service record)
+         * @description Status must advance reported → in_progress → completed without skipping. Transition to completed accepts/requires completion_cost (>= 0) plus optional resolution notes and parts (free-text names allowed). A reported or in_progress work order may instead be cancelled with a cancellation_reason so handover can proceed. Completion is Admin/Manager only, stamps the report-time odometer on the auto-created service record, and advances the linked plan item when work_orders.plan_item_id is set. The auto service record is portal-side only (driver history shows the WO row status).
          */
         patch: {
             parameters: {
@@ -7243,7 +7608,9 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        status: "in_progress" | "completed";
+                        status: "in_progress" | "completed" | "cancelled";
+                        /** @description Required when status=cancelled */
+                        cancellation_reason?: string;
                         currency?: components["schemas"]["OperationalCurrency"];
                         /** @description Required when status=completed (else 400 completion_cost_required) */
                         completion_cost?: number;
@@ -10453,6 +10820,21 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        HandoverPlanItem: {
+            name: string;
+            interval_days?: number | null;
+            time_count?: number | null;
+            /** @enum {string|null} */
+            time_unit?: "days" | "months" | "years" | null;
+            warning_days?: number | null;
+            warning_distance?: number | null;
+            interval_distance?: number | null;
+            /** Format: date */
+            next_due_on?: string | null;
+            next_due_mileage?: number | null;
+            initial_service_required?: boolean;
+            notes?: string | null;
+        };
         AdminPayment: {
             amount: number;
             /** @enum {string} */

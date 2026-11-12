@@ -29,6 +29,25 @@ Date: 11–12 November 2026. Investigation and local implementation progress; th
 | Limits | `lib/limits.ts` counts all active owned vehicles; mobile FeatureGate uses vehicle count | Preserve user-approved transfer exemption in both backend and offline mobile. Existing transfer bypass does not exclude the car from later count-based checks |
 | Legacy data | `0032_currency_enforcement.sql` already marks transfer provenance ambiguity | Backfill only supported attribution; quarantine ambiguous legacy records instead of date-based guesses |
 
+## Fifth increment — reviewed handover backend core
+
+Implemented locally on 12 November 2026:
+
+- Migration 0041 adds handover drafts, the single-pending-draft database constraint, frozen plan/warranty evidence, delivery events, delegated manager permission, initial-service-required plan state, work-order cancellation evidence, and handover linkage on the existing transfer audit.
+- `modules/handover.ts` provides exact-email and account-ID buyer lookup with masked contact details, draft create/update/cancel, revision-bound review, and atomic idempotent completion. Completion rechecks delegated permission, buyer eligibility, reserved showroom state, mileage, reviewed revision, plan, explicit warranty choice, and open repairs inside the transaction.
+- Completion closes showroom access, opens the buyer ownership period, copies only the reviewed maintenance plan into new buyer-owned rows, freezes warranty terms, records showroom vehicle/service evidence, ends driver assignments, writes buyer sync changes and a receipt, and queues delivery events. Repeated completion returns the original result without duplicating ownership, plan, warranty, or receipt rows.
+- Showroom purchase price/date and vehicle photo are captured in the handover evidence and cleared from the buyer-facing vehicle. Buyer plan/service isolation continues to use ownership periods.
+- The immediate `POST /organizations/{id}/vehicles/{vehicleId}/transfer` route now returns `410 handover_required`; fleet tests now drive the reviewed flow.
+- Work orders can be explicitly cancelled with a reason, and open reported/in-progress repairs block review and completion.
+- Organization admins can grant or revoke `can_complete_handover` for managers; the permission is rechecked under a membership lock at completion.
+- OpenAPI and both generated API type sets describe the new operations; Fleet Portal and Web TypeScript checks pass.
+
+Still pending: Fleet Portal draft/review/finalize UI, member permission controls, QR scanning, buyer receipt presentation, mobile first-sync/incremental-sync presentation checks, platform-admin correction with existing buyer activity, delivery retry worker, late-write review path, legacy reconciliation, and live migration rehearsal. This backend core must not be advertised as the completed handover journey until those client and correction phases ship.
+
+### Fifth-increment validation
+
+Backend TypeScript and full suite passed: 170 passed, 1 skipped across 39 files. Migration 0041 reapplies cleanly. Handover integration tests cover clean buyer delivery, frozen warranty terms and workshops, independent plan targets and initial-service state, idempotent retry, duplicate pending drafts, review/plan/warranty/open-repair blocking, delegated permission and recheck, stale revisions, cancellation, buyer changes, legacy-route retirement, buyer sync delivery, and ownership isolation.
+
 ## Next implementation boundary
 
 Before exposing handover preparation/completion, finish the period schema and access predicates, legacy reconciliation, draft/revision and delegated permission contracts, independent plan representation, atomic delivery, and admin correction semantics. Initial-service-required needs an explicit model/UI representation; do not simulate it with fabricated service records.

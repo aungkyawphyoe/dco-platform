@@ -96,6 +96,7 @@ function serializeWarranty(row: typeof vehicleWarranties.$inferSelect, currentMi
     warranty_end_mileage: row.warrantyEndMileage,
     status,
     expired_by: status === "expired" ? (expiredByDate ? "time" : "mileage") : null,
+    terms: row.termsSnapshot,
   };
 }
 
@@ -646,83 +647,18 @@ export const fleetOperationsPlugin: FastifyPluginAsync = async (app) => {
     })) };
   });
 
-  // ── Dealer transfer / read-only history ────────────────────────────
-  app.post("/organizations/:id/vehicles/:vehicleId/transfer", async (request, reply) => {
+  // ── Dealer handover / read-only history ───────────────────────────
+  // The immediate transfer route is retired so it cannot bypass review.
+  app.post("/organizations/:id/vehicles/:vehicleId/transfer", async (request) => {
     requireFleetPortal(request);
-    const { id: rawOrgId, vehicleId } = request.params as { id: string; vehicleId: string };
+    const { id: rawOrgId } = request.params as { id: string; vehicleId: string };
     const orgId = uuid.parse(rawOrgId);
-    const actorId = uid(request);
-    const { organization } = await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
-    const body = z.object({
-      buyer_email: z.string().email().max(254),
-      sale_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
-      current_mileage_km: z.number().int().min(0),
-      warranty_template_id: uuid.optional().nullable(),
-    }).parse(request.body);
-    if (body.sale_date > new Date().toISOString().slice(0, 10)) throw new AppError(422, "invalid_sale_date", "Sale date cannot be in the future");
-    const [buyer] = await app.db.select().from(users).where(eq(users.email, body.buyer_email.toLowerCase())).limit(1);
-    if (!buyer || buyer.role !== "owner" || buyer.status !== "active") throw new AppError(404, "buyer_not_found", "Buyer must have an active AutoX account before transfer");
-    const [link] = await app.db.select().from(organizationVehicles).where(and(
-      eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, vehicleId),
-    )).limit(1);
-    if (!link) throw new AppError(404, "vehicle_not_in_org", "Vehicle not found in this organization");
-    if (link.lifecycleTemplate !== "showroom" || link.status !== "reserved") {
-      throw new AppError(409, "vehicle_not_ready_for_transfer", "Vehicle must be reserved in the showroom lifecycle before transfer");
-    }
-    const [vehicle] = await app.db.select().from(vehicles).where(eq(vehicles.id, vehicleId)).limit(1);
-    if (!vehicle || body.current_mileage_km < Math.floor(reqNum(vehicle.mileage))) {
-      throw new AppError(422, "invalid_odometer", "Sale mileage cannot be below the last recorded mileage");
-    }
-    let template: typeof warrantyTemplates.$inferSelect | null = null;
-    if (body.warranty_template_id) {
-      const [found] = await app.db.select().from(warrantyTemplates).where(and(
-        eq(warrantyTemplates.id, body.warranty_template_id), eq(warrantyTemplates.orgId, orgId),
-      )).limit(1);
-      if (!found) throw new AppError(404, "warranty_template_not_found", "Warranty template not found in this organization");
-      template = found;
-    }
-    const transfer = await app.db.transaction(async (tx) => {
-      const [lockedVehicle] = await tx.select().from(vehicles).where(eq(vehicles.id,vehicleId)).for('update');
-      if (!lockedVehicle || body.current_mileage_km < Math.floor(reqNum(lockedVehicle.mileage))) throw new AppError(409,'vehicle_changed','Vehicle mileage changed; refresh before transfer');
-      const [lockedLink] = await tx.select().from(organizationVehicles).where(and(
-        eq(organizationVehicles.id, link.id), eq(organizationVehicles.orgId, orgId),
-      )).for("update");
-      if (!lockedLink) throw new AppError(409, "vehicle_already_transferred", "Vehicle no longer belongs to this organization");
-      const history = await tx.select().from(serviceRecords).where(and(eq(serviceRecords.vehicleId, vehicleId), currentRecord(serviceRecords))).orderBy(desc(serviceRecords.servicedOn));
-      let warrantyId: string | null = null;
-      if (template) {
-        warrantyId = newId();
-        await tx.insert(vehicleWarranties).values({
-          id: warrantyId, vehicleId, templateId: template.id, saleDate: body.sale_date,
-          saleMileageKm: body.current_mileage_km,
-          warrantyEndDate: daysLater(body.sale_date, template.durationYears),
-          warrantyEndMileage: body.current_mileage_km + template.mileageLimitKm,
-          status: "active",
-        });
-      }
-      const [updatedVehicle] = await tx.update(vehicles).set({
-        userId: buyer.id,
-        mileage: String(body.current_mileage_km),
-        mileageUnit: "km",
-        updatedAt: new Date(),
-      }).where(eq(vehicles.id, vehicleId)).returning();
-      const [auditRow] = await tx.insert(transferredVehicles).values({
-        id: newId(), vehicleId, orgId, buyerUserId: buyer.id, transferredBy: actorId,
-        warrantyInstanceId: warrantyId,
-        vehicleSnapshot: { id: vehicle.id, name: vehicle.name, make: vehicle.make, model: vehicle.model, year: vehicle.year, plate: vehicle.licensePlate },
-        serviceSnapshot: history.map(row => ({ id: row.id, serviced_on: dateOnly(row.servicedOn), odometer: reqNum(row.odometer), total_cost: reqNum(row.totalCost), currency: row.currency, workshop_name: row.workshopName, notes: row.notes })),
-      }).returning();
-      await tx.delete(organizationVehicles).where(eq(organizationVehicles.id, link.id));
-      return { vehicle: updatedVehicle, audit: auditRow, warrantyId };
-    });
-    await recordChange(app.db, { userId: buyer.id, entityType: "vehicle", entityId: vehicleId, op: "upsert", payload: { id: vehicleId, user_id: buyer.id, mileage: body.current_mileage_km } });
-    return reply.code(201).send({
-      vehicle_id: transfer.vehicle.id,
-      buyer_user_id: buyer.id,
-      transferred_at: iso(transfer.audit.transferredAt),
-      warranty_instance_id: transfer.warrantyId,
-      status: "sold",
-    });
+    await getOrganizationAccess(app.db, uid(request), orgId, ["org_admin"]);
+    throw new AppError(
+      410,
+      "handover_required",
+      "Direct vehicle transfer is retired. Prepare, review, and complete a showroom handover instead.",
+    );
   });
 
   app.get("/organizations/:id/transferred", async (request) => {

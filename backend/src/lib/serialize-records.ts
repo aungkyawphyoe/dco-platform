@@ -34,6 +34,7 @@ export function publicPlan(row: typeof planItems.$inferSelect) {
     next_due_mileage: num(row.nextDueMileage),
     next_due_on: dateOnly(row.nextDueOn),
     enabled: row.enabled,
+    initial_service_required: row.initialServiceRequired,
     notes: row.notes,
     catalog_key: row.catalogKey,
     created_by: row.createdBy,

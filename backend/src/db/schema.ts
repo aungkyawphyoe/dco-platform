@@ -75,7 +75,7 @@ export const lifecycleTemplateEnum = pgEnum("lifecycle_template", ["showroom", "
 export const assignmentStatusEnum = pgEnum("assignment_status", ["active", "completed"]);
 export const workOrderIssueTypeEnum = pgEnum("work_order_issue_type", ["breakdown", "accident", "wear_tear", "scheduled_service", "other"]);
 export const workOrderUrgencyEnum = pgEnum("work_order_urgency", ["low", "medium", "high", "critical"]);
-export const workOrderStatusEnum = pgEnum("work_order_status", ["reported", "in_progress", "completed"]);
+export const workOrderStatusEnum = pgEnum("work_order_status", ["reported", "in_progress", "completed", "cancelled"]);
 export const warrantyStatusEnum = pgEnum("warranty_status", ["active", "expired", "voided"]);
 export const inspectionTypeEnum = pgEnum("inspection_type", ["pre_trip", "post_trip", "random"]);
 export const inspectionStatusEnum = pgEnum("inspection_status", ["in_progress", "completed", "failed"]);
@@ -261,6 +261,7 @@ export const planItems = pgTable("plan_items", {
   nextDueMileage: numeric("next_due_mileage", { precision: 12, scale: 1 }),
   nextDueOn: date("next_due_on"),
   enabled: boolean("enabled").notNull().default(true),
+  initialServiceRequired: boolean("initial_service_required").notNull().default(false),
   notes: text("notes"),
   catalogKey: text("catalog_key"),
   createdBy: uuid("created_by").references(() => users.id),
@@ -550,6 +551,7 @@ export const organizationMembers = pgTable("organization_members", {
   userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
   role: organizationRoleEnum("role").notNull(),
   status: text("status").notNull().default("active"),
+  canCompleteHandover: boolean("can_complete_handover").notNull().default(false),
   joinedAt: timestamp("joined_at", { withTimezone: true }).notNull().defaultNow(),
   invitedBy: uuid("invited_by").references(() => users.id),
 }, (table) => ({
@@ -610,6 +612,9 @@ export const workOrders = pgTable("work_orders", {
   resolvedAt: timestamp("resolved_at", { withTimezone: true }),
   resolutionNotes: text("resolution_notes"),
   completionCost: numeric("completion_cost", { precision: 12, scale: 2 }),
+  cancellationReason: text("cancellation_reason"),
+  cancelledBy: uuid("cancelled_by").references(() => users.id),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
@@ -663,6 +668,7 @@ export const vehicleWarranties = pgTable("vehicle_warranties", {
   warrantyEndDate: date("warranty_end_date").notNull(),
   warrantyEndMileage: integer("warranty_end_mileage").notNull(),
   status: warrantyStatusEnum("status").notNull().default("active"),
+  termsSnapshot: jsonb("terms_snapshot").notNull().default(sql`'{}'::jsonb`),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -676,9 +682,52 @@ export const transferredVehicles = pgTable("transferred_vehicles", {
   transferredBy: uuid("transferred_by").notNull().references(() => users.id),
   transferredAt: timestamp("transferred_at", { withTimezone: true }).notNull().defaultNow(),
   warrantyInstanceId: uuid("warranty_instance_id").references(() => vehicleWarranties.id),
+  handoverId: uuid("handover_id").references(() => vehicleHandovers.id),
 }, (table) => ({
   orgIndex: index("transferred_vehicles_org_idx").on(table.orgId),
 }));
+
+export const vehicleHandovers = pgTable("vehicle_handovers", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  buyerUserId: uuid("buyer_user_id").notNull().references(() => users.id),
+  createdBy: uuid("created_by").notNull().references(() => users.id),
+  completedBy: uuid("completed_by").references(() => users.id),
+  cancelledBy: uuid("cancelled_by").references(() => users.id),
+  status: text("status").notNull().default("draft"),
+  revision: integer("revision").notNull().default(1),
+  reviewedRevision: integer("reviewed_revision"),
+  reviewedBy: uuid("reviewed_by").references(() => users.id),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  saleDate: date("sale_date"),
+  currentMileageKm: integer("current_mileage_km"),
+  planSnapshot: jsonb("plan_snapshot").notNull().default(sql`'[]'::jsonb`),
+  warrantyChoice: text("warranty_choice").notNull().default("undecided"),
+  warrantyTemplateId: uuid("warranty_template_id").references(() => warrantyTemplates.id),
+  warrantySnapshot: jsonb("warranty_snapshot"),
+  vehicleSnapshot: jsonb("vehicle_snapshot"),
+  priorWarrantySnapshot: jsonb("prior_warranty_snapshot"),
+  resultSnapshot: jsonb("result_snapshot"),
+  cancellationReason: text("cancellation_reason"),
+  completedAt: timestamp("completed_at", { withTimezone: true }),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const vehicleHandoverEvents = pgTable("vehicle_handover_events", {
+  id: uuid("id").primaryKey(),
+  handoverId: uuid("handover_id").notNull().references(() => vehicleHandovers.id, { onDelete: "cascade" }),
+  buyerUserId: uuid("buyer_user_id").notNull().references(() => users.id),
+  eventType: text("event_type").notNull(),
+  entityId: uuid("entity_id"),
+  status: text("status").notNull().default("queued"),
+  attempts: integer("attempts").notNull().default(0),
+  lastError: text("last_error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+});
 
 export const inspectionTemplates = pgTable("inspection_templates", {
   id: uuid("id").primaryKey(),

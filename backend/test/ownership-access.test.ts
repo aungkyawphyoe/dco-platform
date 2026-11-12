@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createTestApp, grantTestFleet, testEnv, uuid } from './helpers.js';
+import { completeHandover, createTestApp, grantTestFleet, testEnv, uuid } from './helpers.js';
 import { countActiveVehicles, assertVehicleLimit } from '../src/lib/limits.js';
 import { scanReminderEmails } from '../src/lib/reminder-email.js';
 import type { Mailer } from '../src/lib/mail.js';
@@ -34,8 +34,8 @@ describe('ownership-period access', () => {
         INSERT INTO media_objects(id,user_id,owner_org_id,vehicle_id,purpose,blob_key,content_type,byte_size) VALUES('${media}','${seller.id}','${org}','${vehicle}','document','${blobKey}','application/pdf',12);
         INSERT INTO documents(id,vehicle_id,name,category,media_id) VALUES('${doc}','${vehicle}','Private invoice','invoice','${media}');`);
       for (const status of ['listed','reserved']) expect((await app.inject({method:'PATCH',url:`/v1/organizations/${org}/vehicles/${vehicle}`,headers:fleet,payload:{status}})).statusCode).toBe(200);
-      const transferred = await app.inject({method:'POST',url:`/v1/organizations/${org}/vehicles/${vehicle}/transfer`,headers:fleet,payload:{buyer_email:buyer.email,sale_date:'2026-01-01',current_mileage_km:43000}});
-      expect(transferred.statusCode).toBe(201);
+      const transferred = await completeHandover(app,{orgId:org,token:login.json().access_token,vehicleId:vehicle,buyerEmail:buyer.email,saleDate:'2026-01-01',currentMileageKm:43000});
+      expect(transferred.statusCode,transferred.body).toBe(201);
       expect(await countActiveVehicles(app.db, buyer.id)).toBe(0);
       await expect(assertVehicleLimit(app.db, buyer.id, 'free')).resolves.toBeUndefined();
       const personalCar = uuid();
@@ -52,7 +52,11 @@ describe('ownership-period access', () => {
       for (const resource of ['plan-items','service-records','expenses','parts','documents','fuel-logs']) {
         const response = await app.inject({method:'GET',url:`/v1/vehicles/${vehicle}/${resource}`,headers:auth(buyer.token)});
         expect(response.statusCode,resource).toBe(200);
-        expect(response.json().items,resource).toEqual([]);
+        if (resource === 'plan-items') {
+          expect(response.json().items,resource).toEqual([expect.objectContaining({name:'Initial service',initial_service_required:true})]);
+        } else {
+          expect(response.json().items,resource).toEqual([]);
+        }
       }
       const oldExpense = (await client.query<{id:string}>(`SELECT id FROM expenses WHERE source_id='${service}'`)).rows[0].id;
       for (const [resource,id] of [['service-records',service],['expenses',oldExpense],['documents',doc],['parts',part],['plan-items',plan],['media',media]]) {

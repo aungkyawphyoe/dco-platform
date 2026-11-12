@@ -358,6 +358,7 @@ export const vehiclesPlugin: FastifyPluginAsync = async (app) => {
       warranty_end_mileage: warranty.warrantyEndMileage,
       status,
       expired_by: status === "expired" ? (expiredByDate ? "time" : "mileage") : null,
+      terms: warranty.termsSnapshot,
     };
   });
 };

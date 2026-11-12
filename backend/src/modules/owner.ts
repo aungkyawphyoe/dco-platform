@@ -576,15 +576,17 @@ async function recordVehicleScopedChange(
         interval_distance: z.number().positive().optional().nullable(),
         next_due_on: z.string().date().optional().nullable(),
         next_due_mileage: z.number().nonnegative().optional().nullable(),
+        initial_service_required: z.boolean().optional(),
         notes: z.string().optional().nullable(),
         catalog_key: z.string().optional().nullable(),
         enabled: z.boolean().optional(),
       })
       .parse(request.body);
+    const initialServiceRequired = body.initial_service_required ?? false;
     if (Boolean(body.time_count) !== Boolean(body.time_unit)) throw new AppError(422, "invalid_interval", "Choose a time count and unit together");
-    if ((body.time_count || body.interval_days) && body.next_due_on == null) throw new AppError(422, "invalid_interval", "Set the first due date");
-    if (body.interval_distance && body.next_due_mileage == null) throw new AppError(422, "invalid_interval", "Set the first due mileage");
-    if (body.next_due_on == null && body.next_due_mileage == null) {
+    if (!initialServiceRequired && (body.time_count || body.interval_days) && body.next_due_on == null) throw new AppError(422, "invalid_interval", "Set the first due date");
+    if (!initialServiceRequired && body.interval_distance && body.next_due_mileage == null) throw new AppError(422, "invalid_interval", "Set the first due mileage");
+    if (!initialServiceRequired && body.next_due_on == null && body.next_due_mileage == null) {
       throw new AppError(422, "invalid_interval", "Provide a time interval, a distance interval, or both");
     }
     const [existing] = await db().select().from(planItems).where(and(eq(planItems.id, body.id), currentRecord(planItems))).limit(1);
@@ -599,10 +601,12 @@ async function recordVehicleScopedChange(
       if (duplicate) throw new AppError(409, "reminder_exists", "This service already has an active reminder");
     }
     const computed = dueFrom(body.interval_days, body.interval_distance, reqNum(vehicle.mileage));
-    const due = {
-      nextDueOn: body.next_due_on ?? computed.nextDueOn,
-      nextDueMileage: body.next_due_mileage ?? computed.nextDueMileage,
-    };
+    const due = initialServiceRequired
+      ? { nextDueOn: body.next_due_on ?? null, nextDueMileage: body.next_due_mileage ?? null }
+      : {
+        nextDueOn: body.next_due_on ?? computed.nextDueOn,
+        nextDueMileage: body.next_due_mileage ?? computed.nextDueMileage,
+      };
     const [row] = await db()
       .insert(planItems)
       .values({
@@ -615,6 +619,7 @@ async function recordVehicleScopedChange(
         intervalDistance: body.interval_distance != null ? String(body.interval_distance) : null,
         nextDueOn: due.nextDueOn,
         nextDueMileage: due.nextDueMileage != null ? String(due.nextDueMileage) : null,
+        initialServiceRequired,
         notes: body.notes ?? null,
         catalogKey: body.catalog_key ?? null,
         enabled: body.enabled ?? true,
@@ -654,6 +659,7 @@ async function recordVehicleScopedChange(
         interval_distance: z.number().positive().nullable().optional(),
         next_due_on: z.string().date().nullable().optional(),
         next_due_mileage: z.number().nonnegative().nullable().optional(),
+        initial_service_required: z.boolean().optional(),
         notes: z.string().optional().nullable(),
         enabled: z.boolean().optional(),
       })
@@ -665,7 +671,11 @@ async function recordVehicleScopedChange(
     const distance = body.interval_distance === undefined ? current.intervalDistance : body.interval_distance;
     const dueOn = body.next_due_on === undefined ? current.nextDueOn : body.next_due_on;
     const dueMileage = body.next_due_mileage === undefined ? current.nextDueMileage : body.next_due_mileage;
-    if (Boolean(timeCount) !== Boolean(timeUnit) || ((timeCount || days) && dueOn == null) || (distance && dueMileage == null) || (dueOn == null && dueMileage == null)) {
+    const initialServiceRequired = body.initial_service_required ?? current.initialServiceRequired;
+    if (Boolean(timeCount) !== Boolean(timeUnit)
+      || (!initialServiceRequired && ((timeCount || days) && dueOn == null))
+      || (!initialServiceRequired && (distance && dueMileage == null))
+      || (!initialServiceRequired && (dueOn == null && dueMileage == null))) {
       throw new AppError(422, "invalid_interval", "Set a first due target for each repeat interval");
     }
     if ((body.enabled ?? current.enabled) && current.catalogKey) {
@@ -689,6 +699,7 @@ async function recordVehicleScopedChange(
           ? { nextDueMileage: body.next_due_mileage != null ? String(body.next_due_mileage) : null }
           : {}),
         ...(body.notes !== undefined ? { notes: body.notes } : {}),
+        ...(body.initial_service_required !== undefined ? { initialServiceRequired: body.initial_service_required } : {}),
         ...(body.enabled !== undefined ? { enabled: body.enabled } : {}),
       })
       .where(and(eq(planItems.id, planItemId), currentRecord(planItems)))
@@ -812,6 +823,7 @@ async function recordVehicleScopedChange(
             .set({
               nextDueOn: due.nextDueOn,
               nextDueMileage: due.nextDueMileage != null ? String(due.nextDueMileage) : null,
+              initialServiceRequired: false,
             })
             .where(and(eq(planItems.id, plan.id), currentRecord(planItems)));
         }

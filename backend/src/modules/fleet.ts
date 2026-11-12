@@ -110,6 +110,7 @@ function serializeMember(row: typeof organizationMembers.$inferSelect, user: typ
     display_name: user.displayName,
     role: row.role,
     status: row.status,
+    can_complete_handover: row.canCompleteHandover,
     joined_at: iso(row.joinedAt),
     invited_by: row.invitedBy,
   };
@@ -250,8 +251,12 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const orgId = uuid.parse(rawOrgId);
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin"]);
-    const body = z.object({ role: z.enum(["org_manager", "org_mechanic", "org_driver"]).optional(), remove: z.boolean().optional() })
-      .refine((value) => value.role !== undefined || value.remove === true, "Specify a role or remove=true")
+    const body = z.object({
+      role: z.enum(["org_manager", "org_mechanic", "org_driver"]).optional(),
+      can_complete_handover: z.boolean().optional(),
+      remove: z.boolean().optional(),
+    })
+      .refine((value) => value.role !== undefined || value.can_complete_handover !== undefined || value.remove === true, "Specify a role, handover permission, or remove=true")
       .parse(request.body ?? {});
     const [membership] = await app.db.select().from(organizationMembers)
       .where(and(eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, memberId))).limit(1);
@@ -267,7 +272,17 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     if (body.role === "org_driver" && membership.role !== "org_driver") {
       throw new AppError(409, "dedicated_driver_required", "Provision a dedicated driver account instead of converting an existing identity");
     }
-    const [updated] = await app.db.update(organizationMembers).set({ role: body.role! }).where(eq(organizationMembers.id, membership.id)).returning();
+    const nextRole = body.role ?? membership.role;
+    if (body.can_complete_handover === true && nextRole !== "org_manager") {
+      throw new AppError(422, "handover_permission_manager_only", "Only organization managers can be granted handover completion permission");
+    }
+    const nextPermission = nextRole === "org_manager"
+      ? body.can_complete_handover ?? membership.canCompleteHandover
+      : false;
+    const [updated] = await app.db.update(organizationMembers).set({
+      ...(body.role !== undefined ? { role: body.role } : {}),
+      canCompleteHandover: nextPermission,
+    }).where(eq(organizationMembers.id, membership.id)).returning();
     const [member] = await app.db.select().from(users).where(eq(users.id, memberId)).limit(1);
     return serializeMember(updated, member!);
   });
@@ -658,15 +673,16 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     interval_distance: z.number().positive().nullable(),
     next_due_on: z.string().date().nullable(),
     next_due_mileage: z.number().nonnegative().nullable(),
+    initial_service_required: z.boolean().optional(),
     enabled: z.boolean(),
   }).strict().superRefine((body, context) => {
-    if (body.next_due_on === null && body.next_due_mileage === null)
+    if (!body.initial_service_required && body.next_due_on === null && body.next_due_mileage === null)
       context.addIssue({ code: "custom", message: "Set a due date or mileage" });
     if (Boolean(body.time_count) !== Boolean(body.time_unit))
       context.addIssue({ code: "custom", message: "Choose a time count and unit together" });
-    if ((body.interval_days !== null || body.time_count) && body.next_due_on === null)
+    if (!body.initial_service_required && (body.interval_days !== null || body.time_count) && body.next_due_on === null)
       context.addIssue({ code: "custom", message: "Time repetition requires a first due date" });
-    if (body.interval_distance !== null && body.next_due_mileage === null)
+    if (!body.initial_service_required && body.interval_distance !== null && body.next_due_mileage === null)
       context.addIssue({ code: "custom", message: "Distance repetition requires a first due mileage" });
     const recurring = body.interval_days !== null || body.time_count != null || body.interval_distance !== null;
     if (recurring && body.next_due_on !== null && body.interval_days === null && !body.time_count)
@@ -704,7 +720,8 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
         const values = { name: body.name, notes: body.notes === undefined ? existing?.notes ?? null : body.notes, catalogKey: body.catalog_key ?? null,
           intervalDays: body.interval_days, timeCount: body.time_count ?? null, timeUnit: body.time_unit ?? null,
           warningDays: body.warning_days ?? null, warningDistance: body.warning_distance == null ? null : String(body.warning_distance), intervalDistance: body.interval_distance === null ? null : String(body.interval_distance),
-          nextDueOn: body.next_due_on, nextDueMileage: body.next_due_mileage === null ? null : String(body.next_due_mileage), enabled: body.enabled };
+          nextDueOn: body.next_due_on, nextDueMileage: body.next_due_mileage === null ? null : String(body.next_due_mileage),
+          initialServiceRequired: body.initial_service_required ?? false, enabled: body.enabled };
         const [saved] = existing
           ? await tx.update(planItems).set(values).where(and(eq(planItems.id, body.id), currentRecord(planItems))).returning()
           : await tx.insert(planItems).values({ ...values, id: body.id, vehicleId, createdBy: uid(request) }).returning();
@@ -786,10 +803,11 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     const actorId = uid(request);
     await getOrganizationAccess(app.db, actorId, orgId, ["org_admin", "org_manager"]);
     const body = z.object({
-      status: z.enum(["in_progress", "completed"]),
+      status: z.enum(["in_progress", "completed", "cancelled"]),
       assigned_to: uuid.optional().nullable(),
       resolution_notes: z.string().max(2000).optional().nullable(),
       completion_cost: z.number().min(0).optional(),
+      cancellation_reason: z.string().trim().min(1).max(1000).optional(),
       parts: z.array(z.object({
         part_id: uuid.nullable().optional(),
         name: z.string().min(1).max(200),
@@ -797,8 +815,17 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
     }).parse(request.body);
     const [current] = await app.db.select().from(workOrders).where(and(eq(workOrders.id, workOrderId), eq(workOrders.orgId, orgId))).limit(1);
     if (!current) throw new AppError(404, "work_order_not_found", "Work order not found");
-    const allowed = current.status === "reported" ? body.status === "in_progress" : current.status === "in_progress" && body.status === "completed";
-    if (!allowed) throw new AppError(400, "invalid_work_order_status", "Work order must advance reported → in_progress → completed");
+    const allowed = current.status === "reported"
+      ? ["in_progress", "cancelled"].includes(body.status)
+      : current.status === "in_progress" && ["completed", "cancelled"].includes(body.status);
+    if (!allowed) throw new AppError(400, "invalid_work_order_status", "Work order must advance reported → in_progress → completed, or be cancelled before completion");
+    const [orgVehicle] = await app.db.select({ id: organizationVehicles.id }).from(organizationVehicles).where(and(
+      eq(organizationVehicles.orgId, orgId), eq(organizationVehicles.vehicleId, current.vehicleId),
+    )).limit(1);
+    if (!orgVehicle) throw new AppError(409, "vehicle_no_longer_in_org", "Vehicle is no longer in this organization");
+    if (body.status === "cancelled" && !body.cancellation_reason) {
+      throw new AppError(422, "cancellation_reason_required", "Record why this open repair was cancelled");
+    }
     if (body.assigned_to) {
       const [assignee] = await app.db.select().from(organizationMembers).where(and(
         eq(organizationMembers.orgId, orgId), eq(organizationMembers.userId, body.assigned_to), inArray(organizationMembers.role, ["org_manager", "org_mechanic"]), eq(organizationMembers.status, "active"),
@@ -815,6 +842,11 @@ export const fleetPlugin: FastifyPluginAsync = async (app) => {
       const [updated] = await app.db.update(workOrders).set({
         status: body.status,
         ...(body.assigned_to !== undefined ? { assignedTo: body.assigned_to } : {}),
+        ...(body.status === "cancelled" ? {
+          cancellationReason: body.cancellation_reason!,
+          cancelledBy: actorId,
+          cancelledAt: new Date(),
+        } : {}),
         updatedAt: new Date(),
       }).where(eq(workOrders.id, current.id)).returning();
       return serializeWorkOrder(updated);
@@ -1057,6 +1089,9 @@ async function advancePlanItemForLog(
   odometerKm: number,
   servicedOn: string,
 ) {
+  await tx.update(planItems).set({ initialServiceRequired: false }).where(and(
+    eq(planItems.id, planItemId), eq(planItems.vehicleId, vehicleId), currentRecord(planItems),
+  ));
   const rows = await recalculateReminders(tx as Db, vehicleId);
   return rows.find(row => row.id === planItemId) ?? null;
 }
@@ -1081,6 +1116,9 @@ function serializeWorkOrder(row: typeof workOrders.$inferSelect) {
     resolved_by: row.resolvedBy,
     resolved_at: iso(row.resolvedAt),
     resolution_notes: row.resolutionNotes,
+    cancellation_reason: row.cancellationReason,
+    cancelled_by: row.cancelledBy,
+    cancelled_at: iso(row.cancelledAt),
     created_at: iso(row.createdAt),
     updated_at: iso(row.updatedAt),
   };

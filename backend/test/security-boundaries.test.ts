@@ -1,6 +1,6 @@
 import { afterEach, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { createTestApp, testEnv, uuid } from './helpers.js';
+import { completeHandover, createTestApp, testEnv, uuid } from './helpers.js';
 import { analyticsFixture } from './analytics-fixture.js';
 import { organizationMembers, organizationVehicles, planItems, serviceRecords, transferredVehicles, users } from '../src/db/schema.js';
 
@@ -80,7 +80,7 @@ it('freezes transferred history and vehicle details instead of exposing buyer ch
   const buyer = await owner(app);
   await db.update(organizationVehicles).set({ lifecycleTemplate: 'showroom', status: 'reserved' }).where(eq(organizationVehicles.vehicleId, vehicleId));
   await db.insert(serviceRecords).values({ id: uuid(), vehicleId, servicedOn: '2026-09-01', odometer: '11000', totalCost: '50', notes: 'Seller record', createdBy: userId });
-  const sold = await app.inject({ method: 'POST', url: `/v1/organizations/${orgId}/vehicles/${vehicleId}/transfer`, headers, payload: { buyer_email: buyer.email, sale_date: '2026-10-01', current_mileage_km: 12000 } });
+  const sold = await completeHandover(app, { orgId, token: headers.authorization.replace('Bearer ', ''), vehicleId, buyerEmail: buyer.email, saleDate: '2026-10-01', currentMileageKm: 12000 });
   expect(sold.statusCode, sold.body).toBe(201);
   await db.insert(serviceRecords).values({ id: uuid(), vehicleId, servicedOn: '2026-10-20', odometer: '13000', totalCost: '90', notes: 'Buyer private record', createdBy: buyer.user.id });
   const history = await app.inject({ method: 'GET', url: `/v1/organizations/${orgId}/transferred/${vehicleId}/history`, headers });

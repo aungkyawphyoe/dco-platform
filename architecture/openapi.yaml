@@ -3265,6 +3265,7 @@ paths:
               type: object
               properties:
                 role: {type: string, enum: [org_manager, org_mechanic, org_driver]}
+                can_complete_handover: {type: boolean, description: "Admin-granted completion permission; org_manager only"}
                 remove: {type: boolean}
       responses:
         '200': {description: Updated membership}
@@ -3564,27 +3565,223 @@ paths:
   /organizations/{id}/vehicles/{vehicleId}/transfer:
     post:
       tags: [Fleet]
-      summary: Transfer reserved showroom inventory to a buyer
+      summary: Retired direct showroom transfer
+      description: >-
+        Returns 410 handover_required. Ownership changes only through the reviewed
+        handover draft, review, and complete flow.
       parameters:
         - in: path
           name: id
           required: true
           schema: {type: string, format: uuid}
         - $ref: '#/components/parameters/vehicleId'
+      responses:
+        '410': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/handover-buyers:
+    get:
+      tags: [Fleet]
+      summary: Resolve an existing buyer by exact email for handover
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: email
+          required: true
+          schema: {type: string, format: email}
+      responses:
+        '200': {description: Matched account with masked contact details and eligibility}
+        '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/handover-buyers/{userId}:
+    get:
+      tags: [Fleet]
+      summary: Resolve a buyer by account QR/account ID for handover
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - $ref: '#/components/parameters/userId'
+      responses:
+        '200': {description: Matched account with masked contact details and eligibility}
+        '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/handovers:
+    get:
+      tags: [Fleet]
+      summary: List handover drafts, completions, and cancellations
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: query
+          name: status
+          schema: {type: string, enum: [draft, completed, cancelled]}
+        - in: query
+          name: vehicle_id
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Handover list}
+    post:
+      tags: [Fleet]
+      summary: Create a handover draft for a reserved showroom vehicle
+      description: At most one pending draft exists per vehicle.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [buyer_email, sale_date, current_mileage_km]
+              required: [vehicle_id, buyer_user_id]
               properties:
-                buyer_email: {type: string, format: email}
-                sale_date: {type: string, format: date}
-                current_mileage_km: {type: integer, minimum: 0}
+                vehicle_id: {type: string, format: uuid}
+                buyer_user_id: {type: string, format: uuid}
+                sale_date: {type: string, format: date, nullable: true}
+                current_mileage_km: {type: integer, minimum: 0, nullable: true}
+                plan:
+                  type: array
+                  maxItems: 100
+                  items: {$ref: '#/components/schemas/HandoverPlanItem'}
+                warranty_choice: {type: string, enum: [undecided, none, template]}
                 warranty_template_id: {type: string, format: uuid, nullable: true}
       responses:
-        '201': {description: Vehicle transferred with audit and optional warranty}
+        '201': {description: Handover draft created}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/handovers/{handoverId}:
+    get:
+      tags: [Fleet]
+      summary: Read a handover with readiness issues
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: handoverId
+          required: true
+          schema: {type: string, format: uuid}
+      responses:
+        '200': {description: Handover detail and blocking issues}
+        '404': {$ref: '#/components/responses/Error'}
+    patch:
+      tags: [Fleet]
+      summary: Update a handover draft and invalidate review
+      description: Changing buyer or vehicle requires cancelling and creating a new draft.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: handoverId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sale_date: {type: string, format: date, nullable: true}
+                current_mileage_km: {type: integer, minimum: 0, nullable: true}
+                plan:
+                  type: array
+                  maxItems: 100
+                  items: {$ref: '#/components/schemas/HandoverPlanItem'}
+                warranty_choice: {type: string, enum: [undecided, none, template]}
+                warranty_template_id: {type: string, format: uuid, nullable: true}
+      responses:
+        '200': {description: Updated draft with incremented revision}
+        '409': {$ref: '#/components/responses/Error'}
+        '422': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/handovers/{handoverId}/review:
+    post:
+      tags: [Fleet]
+      summary: Review the current handover revision
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: handoverId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [revision]
+              properties:
+                revision: {type: integer, minimum: 1}
+      responses:
+        '200': {description: Revision reviewed}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/handovers/{handoverId}/cancel:
+    post:
+      tags: [Fleet]
+      summary: Cancel a pending handover draft
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: handoverId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason]
+              properties:
+                reason: {type: string, minLength: 1, maxLength: 1000}
+      responses:
+        '200': {description: Handover cancelled (idempotent while already cancelled)}
+        '409': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/handovers/{handoverId}/complete:
+    post:
+      tags: [Fleet]
+      summary: Complete a reviewed handover atomically and idempotently
+      description: >-
+        Requires org_admin, or org_manager with can_complete_handover. Rechecks
+        permission, eligibility, reviewed revision, plan, warranty choice, and open
+        repairs inside the ownership-change transaction. Repeated completion returns
+        the original result without creating another transfer.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: {type: string, format: uuid}
+        - in: path
+          name: handoverId
+          required: true
+          schema: {type: string, format: uuid}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reviewed_revision, acknowledged]
+              properties:
+                reviewed_revision: {type: integer, minimum: 1}
+                acknowledged: {type: boolean, enum: [true]}
+      responses:
+        '201': {description: Handover completed}
+        '200': {description: Original completion result returned for an idempotent retry}
+        '403': {$ref: '#/components/responses/Error'}
         '409': {$ref: '#/components/responses/Error'}
   /organizations/{id}/assignments:
     parameters:
@@ -3663,14 +3860,16 @@ paths:
   /organizations/{id}/work-orders/{workOrderId}:
     patch:
       tags: [Fleet]
-      summary: Advance work order to in-progress or completed (completion requires cost → auto service record)
+      summary: Advance or cancel a work order (completion requires cost → auto service record)
       description: >
         Status must advance reported → in_progress → completed without skipping.
-        transition to completed accepts/requires completion_cost (>= 0) plus optional
-        resolution notes and parts (free-text names allowed). Completion is Admin/Manager
-        only, stamps the report-time odometer on the auto-created service record, and
-        advances the linked plan item when work_orders.plan_item_id is set. The auto
-        service record is portal-side only (driver history shows the WO row status).
+        Transition to completed accepts/requires completion_cost (>= 0) plus optional
+        resolution notes and parts (free-text names allowed). A reported or in_progress
+        work order may instead be cancelled with a cancellation_reason so handover can
+        proceed. Completion is Admin/Manager only, stamps the report-time odometer on the
+        auto-created service record, and advances the linked plan item when
+        work_orders.plan_item_id is set. The auto service record is portal-side only
+        (driver history shows the WO row status).
       parameters:
         - in: path
           name: id
@@ -3688,7 +3887,8 @@ paths:
               type: object
               required: [status]
               properties:
-                status: {type: string, enum: [in_progress, completed]}
+                status: {type: string, enum: [in_progress, completed, cancelled]}
+                cancellation_reason: {type: string, minLength: 1, maxLength: 1000, description: Required when status=cancelled}
                 currency: {$ref: '#/components/schemas/OperationalCurrency'}
                 completion_cost:
                   type: number
@@ -5514,6 +5714,21 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorBody'
   schemas:
+    HandoverPlanItem:
+      type: object
+      required: [name]
+      properties:
+        name: {type: string, minLength: 1, maxLength: 100}
+        interval_days: {type: integer, minimum: 1, nullable: true}
+        time_count: {type: integer, minimum: 1, nullable: true}
+        time_unit: {type: string, enum: [days, months, years], nullable: true}
+        warning_days: {type: integer, minimum: 0, nullable: true}
+        warning_distance: {type: number, minimum: 0, nullable: true}
+        interval_distance: {type: number, exclusiveMinimum: 0, nullable: true}
+        next_due_on: {type: string, format: date, nullable: true}
+        next_due_mileage: {type: number, minimum: 0, nullable: true}
+        initial_service_required: {type: boolean}
+        notes: {type: string, maxLength: 4000, nullable: true}
     AdminPayment:
       type: object
       properties:
