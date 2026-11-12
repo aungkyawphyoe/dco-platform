@@ -131,3 +131,22 @@ Backend build and Fleet Portal/Web TypeScript checks passed; both API type gener
 Backend personal vehicle-limit counting excludes vehicles with a transfer audit naming the current buyer. Ordinary active personal vehicles still count. The transfer regression verifies a free buyer can receive a transferred vehicle without consuming the allowance, while one ordinary vehicle exhausts it.
 
 Personal sync vehicle upserts now carry server-controlled `transfer_limit_exempt`; clients persist it with a safe false default. Mobile schema 28 adds the column, clears sync cursors so existing devices replay vehicle events, and excludes exempt vehicles from offline personal allowance counting. Backend build, the focused regression, Fleet Portal types, and the mobile gating test passed. This completes the count exemption only; the reviewed handover flow and full buyer delivery remain pending.
+
+## Seventh increment — personal buyer presentation (mobile)
+
+Implemented locally on 12 November 2026:
+
+- Mobile schema 29 adds `initial_service_required` to plan items and sync-managed `vehicle_warranties` / `handover_receipts` tables. The additive migration checks existing columns/tables before changing them.
+- The personal `ChangeApplier` applies `warranty`, `handover_receipt`, and the plan's `initial_service_required` flag from the buyer's change log. Unknown entity types remain safely ignored.
+- Vehicle Detail shows warranty and handover-receipt cards when those rows exist. A read-only receipt screen shows the sale date, handover odometer, copied plan, frozen warranty terms, and the clean-history note; it never exposes showroom service or expense records.
+- Handover plan items render an explicit “Initial service required” state instead of a fabricated due date/mileage. Logging a linked service clears the local flag; the backend remains authoritative and re-emits the cleared plan item.
+- Profile has an Account code screen showing the signed-in user ID as a QR code, with copy support and copy that states it identifies the account only — not login, consent, or garage access.
+- Sync tests cover a first handover pull (vehicle + plan + warranty + receipt) and an incremental pull (cleared initial service + updated warranty terms), and verify stale remote changes cannot overwrite newer local rows.
+
+### Seventh-increment validation
+
+- `flutter analyze` reports no errors.
+- Handover sync, schema migration, maintenance, and due-calculator tests pass.
+- Full mobile suite: 563 passed, 2 failures in `test/features/settings/units_formats_screen_test.dart`. Those failures assert a “Loading currency…” string that the settings screen stopped rendering in an earlier change; they are unrelated to handover.
+
+Still pending: QR camera scanning in Fleet Portal, platform-admin correction with existing buyer activity, delivery retry worker, late-write review path, legacy reconciliation, live migration rehearsal, and device/browser end-to-end verification.

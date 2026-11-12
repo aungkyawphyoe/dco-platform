@@ -72,6 +72,10 @@ class ChangeApplier {
         await _applyDocument(change);
       case OutboxEntityType.vehicleShare:
         await _applyVehicleShare(change, userId);
+      case OutboxEntityType.warranty:
+        await _applyWarranty(change);
+      case OutboxEntityType.handoverReceipt:
+        await _applyHandoverReceipt(change);
       default:
         // media / user have no local tables yet; nothing to apply.
         break;
@@ -144,7 +148,9 @@ class ChangeApplier {
           _str(payload['purchase_currency'], fallback: 'MMK'),
         ),
         photoMediaId: Value(_strN(payload['photo_media_id'])),
-        transferLimitExempt: Value(payload['transfer_limit_exempt'] as bool? ?? false),
+        transferLimitExempt: Value(
+          payload['transfer_limit_exempt'] as bool? ?? false,
+        ),
         archived: Value(payload['archived'] as bool? ?? false),
         archivedAt: Value(_dt(payload['archived_at'])),
         updatedAt: remoteUpdatedAt,
@@ -268,11 +274,101 @@ class ChangeApplier {
             enabled: Value(
               payload['enabled'] as bool? ?? existing?.enabled ?? true,
             ),
+            initialServiceRequired: Value(
+              payload['initial_service_required'] as bool? ??
+                  existing?.initialServiceRequired ??
+                  false,
+            ),
             notes: Value(_strN(payload['notes'])),
             catalogKey: Value(_strN(payload['catalog_key'])),
             createdBy: Value(
               _strN(payload['created_by']) ?? existing?.createdBy,
             ),
+            updatedAt: change.serverTs,
+            createdAt: existing?.createdAt ?? change.serverTs,
+          ),
+        );
+  }
+
+  Future<void> _applyWarranty(SyncChange change) async {
+    final payload = change.payload;
+    final id = _idOf(payload, change);
+    if (change.op == SyncChangeOp.delete) {
+      await (_db.delete(
+        _db.warrantyRecords,
+      )..where((row) => row.id.equals(id))).go();
+      return;
+    }
+    final existing = await (_db.select(
+      _db.warrantyRecords,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+    if (!_isWritable(change, existing?.updatedAt)) return;
+    final terms = payload['terms'];
+    await _db
+        .into(_db.warrantyRecords)
+        .insertOnConflictUpdate(
+          WarrantyRecordsCompanion.insert(
+            id: id,
+            vehicleId: _str(
+              payload['vehicle_id'],
+              fallback: existing?.vehicleId ?? '',
+            ),
+            saleDate: Value(_dateN(payload['sale_date'])),
+            saleMileageKm: Value(_dbl(payload['sale_mileage_km'])),
+            status: Value(_str(payload['status'], fallback: 'active')),
+            termsJson: Value(
+              terms is Map ? jsonEncode(terms) : _str(terms, fallback: '{}'),
+            ),
+            updatedAt: change.serverTs,
+            createdAt: existing?.createdAt ?? change.serverTs,
+          ),
+        );
+  }
+
+  Future<void> _applyHandoverReceipt(SyncChange change) async {
+    final payload = change.payload;
+    final id = _idOf(payload, change);
+    if (change.op == SyncChangeOp.delete) {
+      await (_db.delete(
+        _db.handoverReceiptRecords,
+      )..where((row) => row.id.equals(id))).go();
+      return;
+    }
+    final existing = await (_db.select(
+      _db.handoverReceiptRecords,
+    )..where((row) => row.id.equals(id))).getSingleOrNull();
+    if (!_isWritable(change, existing?.updatedAt)) return;
+    final planItemIds = payload['plan_item_ids'];
+    await _db
+        .into(_db.handoverReceiptRecords)
+        .insertOnConflictUpdate(
+          HandoverReceiptRecordsCompanion.insert(
+            id: id,
+            vehicleId: _str(
+              payload['vehicle_id'],
+              fallback: existing?.vehicleId ?? '',
+            ),
+            buyerUserId: _str(
+              payload['buyer_user_id'],
+              fallback: existing?.buyerUserId ?? '',
+            ),
+            transferredVehicleId: Value(
+              _strN(payload['transferred_vehicle_id']) ??
+                  existing?.transferredVehicleId,
+            ),
+            saleDate: Value(_dateN(payload['sale_date'])),
+            currentMileageKm: Value(_dbl(payload['current_mileage_km'])),
+            planItemIdsJson: Value(
+              planItemIds is List
+                  ? jsonEncode(planItemIds)
+                  : existing?.planItemIdsJson ?? '[]',
+            ),
+            warrantyInstanceId: Value(
+              _strN(payload['warranty_instance_id']) ??
+                  existing?.warrantyInstanceId,
+            ),
+            status: Value(_str(payload['status'], fallback: 'completed')),
+            completedAt: Value(_dt(payload['completed_at'])),
             updatedAt: change.serverTs,
             createdAt: existing?.createdAt ?? change.serverTs,
           ),

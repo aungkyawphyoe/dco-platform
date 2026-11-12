@@ -4718,4 +4718,110 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get documentsFilterEmptyBody =>
       'Choose another file type or add a document.';
+
+  @override
+  String get planItemInitialServiceRequired => 'Initial service required';
+
+  @override
+  String get vehicleDetailWarranty => 'Warranty';
+
+  @override
+  String get vehicleDetailWarrantyActive => 'Active warranty';
+
+  @override
+  String vehicleDetailWarrantyMileage(String mileage) {
+    return '$mileage km limit';
+  }
+
+  @override
+  String get vehicleDetailHandoverReceipt => 'Handover receipt';
+
+  @override
+  String get vehicleDetailReceiptCompleted => 'Completed';
+
+  @override
+  String get vehicleDetailReceiptView => 'View what you received';
+
+  @override
+  String get handoverReceiptTitle => 'Handover receipt';
+
+  @override
+  String get handoverReceiptNotFound => 'No handover receipt';
+
+  @override
+  String get handoverReceiptNotFoundBody =>
+      'This vehicle was not received through a showroom handover.';
+
+  @override
+  String get handoverReceiptSaleDate => 'Sale date';
+
+  @override
+  String get handoverReceiptMileage => 'Odometer at handover';
+
+  @override
+  String get handoverReceiptStatus => 'Status';
+
+  @override
+  String get handoverReceiptCompleted => 'Completed';
+
+  @override
+  String get handoverReceiptCompletedOn => 'Completed on';
+
+  @override
+  String get handoverReceiptPlan => 'Maintenance plan';
+
+  @override
+  String get handoverReceiptPlanItem => 'Plan item';
+
+  @override
+  String get handoverReceiptNoPlan => 'No maintenance plan was copied.';
+
+  @override
+  String get handoverReceiptInitialService => 'Initial service';
+
+  @override
+  String get handoverReceiptWarranty => 'Warranty';
+
+  @override
+  String handoverReceiptWarrantyDuration(int years) {
+    return '$years year warranty';
+  }
+
+  @override
+  String handoverReceiptWarrantyMileage(String mileage) {
+    return '$mileage km mileage limit';
+  }
+
+  @override
+  String get handoverReceiptWarrantyCoverage => 'Coverage';
+
+  @override
+  String get handoverReceiptWarrantyExclusions => 'Exclusions';
+
+  @override
+  String get handoverReceiptWarrantyWorkshops => 'Approved workshops';
+
+  @override
+  String get handoverReceiptHistoryNote =>
+      'This receipt covers the vehicle and plan you received. The seller’s service and expense records stay private.';
+
+  @override
+  String get accountCodeTitle => 'Account code';
+
+  @override
+  String get accountCodeCopy => 'Copy account ID';
+
+  @override
+  String get accountCodeCopied => 'Account ID copied';
+
+  @override
+  String get accountCodeExplanation =>
+      'This code identifies your account only. It is not a login or consent, and it does not give anyone access to your garage.';
+
+  @override
+  String get profileAccountCode => 'Account code';
+
+  @override
+  String get profileAccountCodeSubtitle =>
+      'Show or scan to identify your account';
 }

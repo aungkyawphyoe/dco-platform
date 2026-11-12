@@ -37,6 +37,7 @@ import '../../features/fuel/presentation/screens/fuel_types_screen.dart';
 import 'garage_overview_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_detail_screen.dart';
 import '../../features/garage/presentation/screens/vehicle_form_screen.dart';
+import '../../features/handover/presentation/screens/handover_receipt_screen.dart';
 import '../../features/insurance/presentation/screens/insurance_screen.dart';
 import '../../features/maintenance/domain/entities/service_record.dart';
 import '../../features/maintenance/presentation/screens/maintenance_plan_screen.dart';
@@ -54,6 +55,7 @@ import '../../features/parts/presentation/screens/part_form_screen.dart';
 import '../../features/parts/presentation/screens/parts_screen.dart';
 import '../../features/profile/presentation/screens/profile_detail_screen.dart';
 import '../../features/profile/presentation/screens/profile_form_screen.dart';
+import '../../features/profile/presentation/screens/account_code_screen.dart';
 import '../../features/settings/presentation/screens/appearance_screen.dart';
 import '../../features/settings/presentation/screens/localization_screen.dart';
 import '../../features/settings/presentation/screens/reminders_screen.dart';
@@ -662,12 +664,23 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         builder: (context, state) =>
             VehicleDetailScreen(vehicleId: state.pathParameters['id']!),
       ),
-      // /profile/edit must be registered before /profile/:id or it is
-      // shadowed by the detail route (id would resolve to "edit").
+      GoRoute(
+        path: AppRoutes.vehicleReceipt(':id'),
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) =>
+            HandoverReceiptScreen(vehicleId: state.pathParameters['id']!),
+      ),
+      // /profile/edit and /profile/account-code must be registered before
+      // /profile/:id or they are shadowed by the detail route.
       GoRoute(
         path: AppRoutes.profileEdit,
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const ProfileFormScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.accountCode,
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const AccountCodeScreen(),
       ),
       GoRoute(
         path: AppRoutes.profileDetail(':id'),

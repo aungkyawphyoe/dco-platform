@@ -8705,6 +8705,198 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Choose another file type or add a document.'**
   String get documentsFilterEmptyBody;
+
+  /// No description provided for @planItemInitialServiceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial service required'**
+  String get planItemInitialServiceRequired;
+
+  /// No description provided for @vehicleDetailWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty'**
+  String get vehicleDetailWarranty;
+
+  /// No description provided for @vehicleDetailWarrantyActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active warranty'**
+  String get vehicleDetailWarrantyActive;
+
+  /// No description provided for @vehicleDetailWarrantyMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'{mileage} km limit'**
+  String vehicleDetailWarrantyMileage(String mileage);
+
+  /// No description provided for @vehicleDetailHandoverReceipt.
+  ///
+  /// In en, this message translates to:
+  /// **'Handover receipt'**
+  String get vehicleDetailHandoverReceipt;
+
+  /// No description provided for @vehicleDetailReceiptCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get vehicleDetailReceiptCompleted;
+
+  /// No description provided for @vehicleDetailReceiptView.
+  ///
+  /// In en, this message translates to:
+  /// **'View what you received'**
+  String get vehicleDetailReceiptView;
+
+  /// No description provided for @handoverReceiptTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Handover receipt'**
+  String get handoverReceiptTitle;
+
+  /// No description provided for @handoverReceiptNotFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No handover receipt'**
+  String get handoverReceiptNotFound;
+
+  /// No description provided for @handoverReceiptNotFoundBody.
+  ///
+  /// In en, this message translates to:
+  /// **'This vehicle was not received through a showroom handover.'**
+  String get handoverReceiptNotFoundBody;
+
+  /// No description provided for @handoverReceiptSaleDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Sale date'**
+  String get handoverReceiptSaleDate;
+
+  /// No description provided for @handoverReceiptMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'Odometer at handover'**
+  String get handoverReceiptMileage;
+
+  /// No description provided for @handoverReceiptStatus.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get handoverReceiptStatus;
+
+  /// No description provided for @handoverReceiptCompleted.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed'**
+  String get handoverReceiptCompleted;
+
+  /// No description provided for @handoverReceiptCompletedOn.
+  ///
+  /// In en, this message translates to:
+  /// **'Completed on'**
+  String get handoverReceiptCompletedOn;
+
+  /// No description provided for @handoverReceiptPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'Maintenance plan'**
+  String get handoverReceiptPlan;
+
+  /// No description provided for @handoverReceiptPlanItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Plan item'**
+  String get handoverReceiptPlanItem;
+
+  /// No description provided for @handoverReceiptNoPlan.
+  ///
+  /// In en, this message translates to:
+  /// **'No maintenance plan was copied.'**
+  String get handoverReceiptNoPlan;
+
+  /// No description provided for @handoverReceiptInitialService.
+  ///
+  /// In en, this message translates to:
+  /// **'Initial service'**
+  String get handoverReceiptInitialService;
+
+  /// No description provided for @handoverReceiptWarranty.
+  ///
+  /// In en, this message translates to:
+  /// **'Warranty'**
+  String get handoverReceiptWarranty;
+
+  /// No description provided for @handoverReceiptWarrantyDuration.
+  ///
+  /// In en, this message translates to:
+  /// **'{years} year warranty'**
+  String handoverReceiptWarrantyDuration(int years);
+
+  /// No description provided for @handoverReceiptWarrantyMileage.
+  ///
+  /// In en, this message translates to:
+  /// **'{mileage} km mileage limit'**
+  String handoverReceiptWarrantyMileage(String mileage);
+
+  /// No description provided for @handoverReceiptWarrantyCoverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Coverage'**
+  String get handoverReceiptWarrantyCoverage;
+
+  /// No description provided for @handoverReceiptWarrantyExclusions.
+  ///
+  /// In en, this message translates to:
+  /// **'Exclusions'**
+  String get handoverReceiptWarrantyExclusions;
+
+  /// No description provided for @handoverReceiptWarrantyWorkshops.
+  ///
+  /// In en, this message translates to:
+  /// **'Approved workshops'**
+  String get handoverReceiptWarrantyWorkshops;
+
+  /// No description provided for @handoverReceiptHistoryNote.
+  ///
+  /// In en, this message translates to:
+  /// **'This receipt covers the vehicle and plan you received. The seller’s service and expense records stay private.'**
+  String get handoverReceiptHistoryNote;
+
+  /// No description provided for @accountCodeTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Account code'**
+  String get accountCodeTitle;
+
+  /// No description provided for @accountCodeCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy account ID'**
+  String get accountCodeCopy;
+
+  /// No description provided for @accountCodeCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Account ID copied'**
+  String get accountCodeCopied;
+
+  /// No description provided for @accountCodeExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'This code identifies your account only. It is not a login or consent, and it does not give anyone access to your garage.'**
+  String get accountCodeExplanation;
+
+  /// No description provided for @profileAccountCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Account code'**
+  String get profileAccountCode;
+
+  /// No description provided for @profileAccountCodeSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Show or scan to identify your account'**
+  String get profileAccountCodeSubtitle;
 }
 
 class _AppLocalizationsDelegate

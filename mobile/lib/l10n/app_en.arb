@@ -1552,5 +1552,58 @@
   "documentsFilterAll": "All",
   "documentsFilterPhotos": "Photos",
   "documentsFilterEmpty": "No matching documents",
-  "documentsFilterEmptyBody": "Choose another file type or add a document."
+  "documentsFilterEmptyBody": "Choose another file type or add a document.",
+  "planItemInitialServiceRequired": "Initial service required",
+  "vehicleDetailWarranty": "Warranty",
+  "vehicleDetailWarrantyActive": "Active warranty",
+  "vehicleDetailWarrantyMileage": "{mileage} km limit",
+  "vehicleDetailHandoverReceipt": "Handover receipt",
+  "vehicleDetailReceiptCompleted": "Completed",
+  "vehicleDetailReceiptView": "View what you received",
+  "handoverReceiptTitle": "Handover receipt",
+  "handoverReceiptNotFound": "No handover receipt",
+  "handoverReceiptNotFoundBody": "This vehicle was not received through a showroom handover.",
+  "handoverReceiptSaleDate": "Sale date",
+  "handoverReceiptMileage": "Odometer at handover",
+  "handoverReceiptStatus": "Status",
+  "handoverReceiptCompleted": "Completed",
+  "handoverReceiptCompletedOn": "Completed on",
+  "handoverReceiptPlan": "Maintenance plan",
+  "handoverReceiptPlanItem": "Plan item",
+  "handoverReceiptNoPlan": "No maintenance plan was copied.",
+  "handoverReceiptInitialService": "Initial service",
+  "handoverReceiptWarranty": "Warranty",
+  "handoverReceiptWarrantyDuration": "{years} year warranty",
+  "handoverReceiptWarrantyMileage": "{mileage} km mileage limit",
+  "handoverReceiptWarrantyCoverage": "Coverage",
+  "handoverReceiptWarrantyExclusions": "Exclusions",
+  "handoverReceiptWarrantyWorkshops": "Approved workshops",
+  "handoverReceiptHistoryNote": "This receipt covers the vehicle and plan you received. The seller’s service and expense records stay private.",
+  "accountCodeTitle": "Account code",
+  "accountCodeCopy": "Copy account ID",
+  "accountCodeCopied": "Account ID copied",
+  "accountCodeExplanation": "This code identifies your account only. It is not a login or consent, and it does not give anyone access to your garage.",
+  "profileAccountCode": "Account code",
+  "profileAccountCodeSubtitle": "Show or scan to identify your account",
+  "@vehicleDetailWarrantyMileage": {
+    "placeholders": {
+      "mileage": {
+        "type": "String"
+      }
+    }
+  },
+  "@handoverReceiptWarrantyDuration": {
+    "placeholders": {
+      "years": {
+        "type": "int"
+      }
+    }
+  },
+  "@handoverReceiptWarrantyMileage": {
+    "placeholders": {
+      "mileage": {
+        "type": "String"
+      }
+    }
+  }
 }

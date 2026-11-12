@@ -121,6 +121,9 @@ abstract final class DueCalculator {
     required DueThresholds thresholds,
   }) {
     if (!item.enabled) return PlanUrgency.hidden;
+    // Handover plans may not have a trustworthy baseline. Never invent a due
+    // target; surface the explicit "initial service required" state instead.
+    if (item.initialServiceRequired) return PlanUrgency.scheduled;
     final today = dateOnly(now);
     final dueOn = item.nextDueOn == null ? null : dateOnly(item.nextDueOn!);
     final dueMiles = item.nextDueMileage;
@@ -154,6 +157,9 @@ abstract final class DueCalculator {
 
   /// Smaller is more due. Used to pick Dashboard "Next Maintenance" and sort lists.
   static int remainingScore(PlanItem item, double mileage, DateTime now) {
+    // No due target exists for an initial service; it is still the most
+    // actionable item in a scheduled list.
+    if (item.initialServiceRequired) return -1;
     final today = dateOnly(now);
     final days = item.nextDueOn == null
         ? 1 << 20

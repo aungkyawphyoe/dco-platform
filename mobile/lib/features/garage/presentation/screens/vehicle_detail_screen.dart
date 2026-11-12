@@ -13,6 +13,7 @@ import 'package:dco_mobile/features/documents/providers.dart';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/garage/access_provider.dart';
 import 'package:dco_mobile/features/garage/providers.dart';
+import 'package:dco_mobile/features/handover/providers.dart';
 import 'package:dco_mobile/features/maintenance/domain/due_calculator.dart';
 import 'package:dco_mobile/features/maintenance/domain/entities/plan_item.dart';
 import 'package:dco_mobile/features/maintenance/domain/tire_service_finder.dart';
@@ -544,6 +545,10 @@ class _OverviewTab extends ConsumerWidget {
     );
     final tire = TireServiceFinder.latest(history);
     final registration = RegistrationExpiryFinder.summarize(documents);
+    final warranty = ref.watch(vehicleWarrantyProvider(vehicle.id)).valueOrNull;
+    final receipt = ref
+        .watch(vehicleHandoverReceiptProvider(vehicle.id))
+        .valueOrNull;
 
     final urgency = next == null
         ? null
@@ -702,6 +707,38 @@ class _OverviewTab extends ConsumerWidget {
           },
           onTap: registrationTap,
         ),
+        if (warranty != null) ...[
+          SizedBox(height: tokens.space.s2),
+          _OverviewTile(
+            icon: Icons.verified_user_outlined,
+            iconBackground: tokens.status.successBg,
+            iconColor: tokens.status.successFg,
+            title: s.vehicleDetailWarranty,
+            value: warranty.name ?? s.vehicleDetailWarrantyActive,
+            subtitle: warranty.mileageLimitKm == null
+                ? s.vehicleDetailWarrantyActive
+                : s.vehicleDetailWarrantyMileage(
+                    NumberFormat(
+                      '#,###',
+                    ).format(warranty.mileageLimitKm!.round()),
+                  ),
+            onTap: () => onPush(AppRoutes.vehicleReceipt(vehicle.id)),
+          ),
+        ],
+        if (receipt != null) ...[
+          SizedBox(height: tokens.space.s2),
+          _OverviewTile(
+            icon: Icons.receipt_long_outlined,
+            iconBackground: tokens.status.infoBg,
+            iconColor: tokens.status.infoFg,
+            title: s.vehicleDetailHandoverReceipt,
+            value: receipt.saleDate == null
+                ? s.vehicleDetailReceiptCompleted
+                : DateFormat.yMMMd().format(receipt.saleDate!),
+            subtitle: s.vehicleDetailReceiptView,
+            onTap: () => onPush(AppRoutes.vehicleReceipt(vehicle.id)),
+          ),
+        ],
       ],
     );
   }
@@ -713,6 +750,9 @@ class _OverviewTab extends ConsumerWidget {
     MileageUnit unit,
     AppLocalizations s,
   ) {
+    if (item.initialServiceRequired) {
+      return s.planItemInitialServiceRequired;
+    }
     final now = DateTime.now();
     final today = DueCalculator.dateOnly(now);
     final miles = NumberFormat('#,###');

@@ -95,9 +95,11 @@ abstract final class AppRoutes {
 
   // Detail screens (top-level, accessible from any tab)
   static String vehicleDetail(String id) => '/vehicle/$id';
+  static String vehicleReceipt(String id) => '/vehicle/$id/receipt';
 
   // Profile (top-level, accessible from any tab)
   static const profileEdit = '/profile/edit';
+  static const accountCode = '/profile/account-code';
   static String profileDetail(String id) => '/profile/$id';
 
   static const authPaths = {introduction, login, signup, forgotPassword};

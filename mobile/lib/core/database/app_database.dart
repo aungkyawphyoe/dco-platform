@@ -28,6 +28,8 @@ part 'app_database.g.dart';
     DocumentRecords,
     MaintenanceCatalogRecords,
     NoteRecords,
+    WarrantyRecords,
+    HandoverReceiptRecords,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -53,15 +55,25 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 28;
+  int get schemaVersion => 29;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
       if (from >= 2 && from < 28) {
-        await migrator.addColumn(vehicleRecords, vehicleRecords.transferLimitExempt);
-        await customStatement("UPDATE app_meta SET value='' WHERE key LIKE 'sync_cursor:%'");
+        final vehicleColumns = (await customSelect(
+          'PRAGMA table_info(vehicles)',
+        ).get()).map((row) => row.read<String>('name')).toSet();
+        if (!vehicleColumns.contains('transfer_limit_exempt')) {
+          await migrator.addColumn(
+            vehicleRecords,
+            vehicleRecords.transferLimitExempt,
+          );
+        }
+        await customStatement(
+          "UPDATE app_meta SET value='' WHERE key LIKE 'sync_cursor:%'",
+        );
       }
       if (from >= 2 && from < 27) {
         final existing = (await customSelect(
@@ -265,6 +277,26 @@ class AppDatabase extends _$AppDatabase {
           await customStatement(
             "UPDATE app_meta SET value='' WHERE key LIKE 'sync_cursor:%'",
           );
+        }
+      }
+      if (from < 29) {
+        final planColumns = (await customSelect(
+          'PRAGMA table_info(plan_items)',
+        ).get()).map((row) => row.read<String>('name')).toSet();
+        if (!planColumns.contains('initial_service_required')) {
+          await migrator.addColumn(
+            planItemRecords,
+            planItemRecords.initialServiceRequired,
+          );
+        }
+        final tables = (await customSelect(
+          "SELECT name FROM sqlite_master WHERE type='table'",
+        ).get()).map((row) => row.read<String>('name')).toSet();
+        if (!tables.contains('vehicle_warranties')) {
+          await migrator.createTable(warrantyRecords);
+        }
+        if (!tables.contains('handover_receipts')) {
+          await migrator.createTable(handoverReceiptRecords);
         }
       }
     },

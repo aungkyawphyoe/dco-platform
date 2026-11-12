@@ -31,6 +31,8 @@ import '../../features/fuel/data/repositories/fuel_repository_impl.dart';
 import '../../features/fuel/domain/repositories/fuel_repository.dart';
 import '../../features/garage/data/repositories/vehicle_repository_impl.dart';
 import '../../features/garage/domain/repositories/vehicle_repository.dart';
+import '../../features/handover/data/repositories/handover_repository_impl.dart';
+import '../../features/handover/domain/repositories/handover_repository.dart';
 import '../../features/maintenance/data/repositories/maintenance_catalog_repository_impl.dart';
 import '../../features/maintenance/data/repositories/maintenance_repository_impl.dart';
 import '../../features/maintenance/domain/repositories/maintenance_catalog_repository.dart';
@@ -467,6 +469,10 @@ final maintenanceRepositoryProvider = Provider<MaintenanceRepository>((ref) {
     syncEngine: ref.watch(syncEngineProvider),
     expenseRepository: ref.watch(expenseRepositoryProvider),
   );
+});
+
+final handoverRepositoryProvider = Provider<HandoverRepository>((ref) {
+  return HandoverRepositoryImpl(ref.watch(recordDatabaseProvider));
 });
 
 final maintenanceCatalogRepositoryProvider =

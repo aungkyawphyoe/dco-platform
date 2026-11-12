@@ -22,6 +22,7 @@ class PlanItem {
     this.notes,
     this.catalogKey,
     this.createdBy,
+    this.initialServiceRequired = false,
   });
 
   final String id;
@@ -41,6 +42,7 @@ class PlanItem {
   final double? nextDueMileage;
   final DateTime? nextDueOn;
   final bool enabled;
+  final bool initialServiceRequired;
   final String? notes;
   final String? catalogKey;
   final String? createdBy;
@@ -95,6 +97,7 @@ class PlanItem {
           : nextDueMileage ?? this.nextDueMileage,
       nextDueOn: clearNextDueOn ? null : nextDueOn ?? this.nextDueOn,
       enabled: enabled ?? this.enabled,
+      initialServiceRequired: initialServiceRequired,
       notes: clearNotes ? null : notes ?? this.notes,
       catalogKey: catalogKey,
       createdBy: createdBy ?? this.createdBy,
@@ -121,6 +124,7 @@ class PlanItem {
     'next_due_mileage': nextDueMileage,
     'next_due_on': nextDueOn?.toIso8601String().split('T').first,
     'enabled': enabled,
+    'initial_service_required': initialServiceRequired,
     'notes': notes,
     'catalog_key': catalogKey,
     'created_by': createdBy,

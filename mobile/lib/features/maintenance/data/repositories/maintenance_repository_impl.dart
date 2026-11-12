@@ -660,6 +660,9 @@ class MaintenanceRepositoryImpl implements MaintenanceRepository {
           nextDueOn: Value(next.on),
           nextDueMileage: Value(next.mileage),
           enabled: Value(enabled),
+          initialServiceRequired: Value(
+            last == null ? plan.initialServiceRequired : false,
+          ),
           updatedAt: Value(DateTime.now().toUtc()),
         ),
       );

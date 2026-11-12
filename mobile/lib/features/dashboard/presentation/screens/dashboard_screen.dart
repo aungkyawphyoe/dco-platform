@@ -537,6 +537,9 @@ String _dueCopy(
   AppLocalizations s,
   DueThresholds thresholds,
 ) {
+  if (item.initialServiceRequired) {
+    return s.planItemInitialServiceRequired;
+  }
   final now = DateTime.now();
   final today = DueCalculator.dateOnly(now);
   final overdue =

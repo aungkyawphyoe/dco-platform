@@ -4761,4 +4761,111 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get documentsFilterEmptyBody =>
       'အခြားဖိုင်အမျိုးအစားကို ရွေးပါ သို့မဟုတ် စာရွက်စာတမ်း ထည့်ပါ။';
+
+  @override
+  String get planItemInitialServiceRequired => 'ကနဦး ဝန်ဆောင်မှု လိုအပ်သည်';
+
+  @override
+  String get vehicleDetailWarranty => 'အာမခံ';
+
+  @override
+  String get vehicleDetailWarrantyActive => 'အာမခံ အသက်ဝင်နေသည်';
+
+  @override
+  String vehicleDetailWarrantyMileage(String mileage) {
+    return '$mileage ကီလိုမီတာ ကန့်သတ်';
+  }
+
+  @override
+  String get vehicleDetailHandoverReceipt => 'လွှဲပြောင်းမှု ပြေစာ';
+
+  @override
+  String get vehicleDetailReceiptCompleted => 'ပြီးစီး';
+
+  @override
+  String get vehicleDetailReceiptView => 'သင်ရရှိသည်ကို ကြည့်ရန်';
+
+  @override
+  String get handoverReceiptTitle => 'လွှဲပြောင်းမှု ပြေစာ';
+
+  @override
+  String get handoverReceiptNotFound => 'လွှဲပြောင်းမှု ပြေစာ မရှိပါ';
+
+  @override
+  String get handoverReceiptNotFoundBody =>
+      'ဤယာဉ်ကို ပြခန်းမှ လွှဲပြောင်းမှုဖြင့် မရရှိခဲ့ပါ။';
+
+  @override
+  String get handoverReceiptSaleDate => 'ရောင်းချသည့်ရက်';
+
+  @override
+  String get handoverReceiptMileage => 'လွှဲပြောင်းစဉ် မိုင်တာ';
+
+  @override
+  String get handoverReceiptStatus => 'အခြေအနေ';
+
+  @override
+  String get handoverReceiptCompleted => 'ပြီးစီး';
+
+  @override
+  String get handoverReceiptCompletedOn => 'ပြီးစီးသည့်ရက်';
+
+  @override
+  String get handoverReceiptPlan => 'ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ်';
+
+  @override
+  String get handoverReceiptPlanItem => 'အစီအစဉ် အချက်';
+
+  @override
+  String get handoverReceiptNoPlan =>
+      'ပြုပြင်ထိန်းသိမ်းမှု အစီအစဉ် မကူးယူခဲ့ပါ။';
+
+  @override
+  String get handoverReceiptInitialService => 'ကနဦး ဝန်ဆောင်မှု';
+
+  @override
+  String get handoverReceiptWarranty => 'အာမခံ';
+
+  @override
+  String handoverReceiptWarrantyDuration(int years) {
+    return '$years နှစ် အာမခံ';
+  }
+
+  @override
+  String handoverReceiptWarrantyMileage(String mileage) {
+    return '$mileage ကီလိုမီတာ မိုင်တာ ကန့်သတ်';
+  }
+
+  @override
+  String get handoverReceiptWarrantyCoverage => 'အကျုံးဝင်မှု';
+
+  @override
+  String get handoverReceiptWarrantyExclusions => 'မပါဝင်သည်များ';
+
+  @override
+  String get handoverReceiptWarrantyWorkshops => 'အတည်ပြု အလုပ်ရုံများ';
+
+  @override
+  String get handoverReceiptHistoryNote =>
+      'ဤပြေစာသည် သင်ရရှိသည့် ယာဉ်နှင့် အစီအစဉ်ကို ဖော်ပြသည်။ ရောင်းချသူ၏ ဝန်ဆောင်မှုနှင့် အသုံးစရိတ် မှတ်တမ်းများ သီးသန့်ဖြစ်သည်။';
+
+  @override
+  String get accountCodeTitle => 'အကောင့် ကုဒ်';
+
+  @override
+  String get accountCodeCopy => 'အကောင့် ID ကူးယူ';
+
+  @override
+  String get accountCodeCopied => 'အကောင့် ID ကူးယူပြီး';
+
+  @override
+  String get accountCodeExplanation =>
+      'ဤကုဒ်သည် သင့်အကောင့်ကို ဖော်ပြရန်သာ ဖြစ်သည်။ လော့ဂ်အင် သို့မဟုတ် သဘောတူညီမှု မဟုတ်ဘဲ သင့်ဂိုဒေါင်သို့ ဝင်ခွင့်မပေးပါ။';
+
+  @override
+  String get profileAccountCode => 'အကောင့် ကုဒ်';
+
+  @override
+  String get profileAccountCodeSubtitle =>
+      'အကောင့်ဖော်ပြရန် ပြပါ သို့မဟုတ် စကင်ဖတ်ပါ';
 }

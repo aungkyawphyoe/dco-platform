@@ -1,7 +1,8 @@
 import 'package:drift/drift.dart';
 
 class VehicleRecords extends Table {
-  BoolColumn get transferLimitExempt => boolean().withDefault(const Constant(false))();
+  BoolColumn get transferLimitExempt =>
+      boolean().withDefault(const Constant(false))();
   TextColumn get purchaseCurrency =>
       text().withDefault(const Constant('MMK'))();
   @override
@@ -89,9 +90,53 @@ class PlanItemRecords extends Table {
   RealColumn get nextDueMileage => real().nullable()();
   DateTimeColumn get nextDueOn => dateTime().nullable()();
   BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+  BoolColumn get initialServiceRequired =>
+      boolean().withDefault(const Constant(false))();
   TextColumn get notes => text().nullable()();
   TextColumn get catalogKey => text().nullable()();
   TextColumn get createdBy => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Warranty delivered with a showroom handover. Written only by sync; the
+/// buyer never edits it locally.
+class WarrantyRecords extends Table {
+  @override
+  String get tableName => 'vehicle_warranties';
+
+  TextColumn get id => text()();
+  TextColumn get vehicleId => text()();
+  DateTimeColumn get saleDate => dateTime().nullable()();
+  RealColumn get saleMileageKm => real().nullable()();
+  TextColumn get status => text().withDefault(const Constant('active'))();
+  TextColumn get termsJson => text().withDefault(const Constant('{}'))();
+  DateTimeColumn get updatedAt => dateTime()();
+  DateTimeColumn get createdAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {id};
+}
+
+/// Completion receipt for a showroom-to-personal handover. One row per
+/// handover; it records what the buyer received, not showroom history.
+class HandoverReceiptRecords extends Table {
+  @override
+  String get tableName => 'handover_receipts';
+
+  TextColumn get id => text()();
+  TextColumn get vehicleId => text()();
+  TextColumn get buyerUserId => text()();
+  TextColumn get transferredVehicleId => text().nullable()();
+  DateTimeColumn get saleDate => dateTime().nullable()();
+  RealColumn get currentMileageKm => real().nullable()();
+  TextColumn get planItemIdsJson => text().withDefault(const Constant('[]'))();
+  TextColumn get warrantyInstanceId => text().nullable()();
+  TextColumn get status => text().withDefault(const Constant('completed'))();
+  DateTimeColumn get completedAt => dateTime().nullable()();
   DateTimeColumn get updatedAt => dateTime()();
   DateTimeColumn get createdAt => dateTime()();
 

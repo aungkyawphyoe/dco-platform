@@ -12,6 +12,7 @@ PlanItem _item({
   DateTime? nextDueOn,
   double? nextDueMileage,
   bool enabled = true,
+  bool initialServiceRequired = false,
 }) {
   final now = DateTime(2026, 8, 19);
   return PlanItem(
@@ -23,6 +24,7 @@ PlanItem _item({
     nextDueOn: nextDueOn,
     nextDueMileage: nextDueMileage,
     enabled: enabled,
+    initialServiceRequired: initialServiceRequired,
     updatedAt: now,
     createdAt: now,
   );
@@ -44,6 +46,29 @@ void main() {
       expect(
         DueCalculator.addCalendar(DateTime(2026, 1, 15), 6, 'months'),
         DateTime(2026, 7, 15),
+      );
+    });
+
+    test('initial service has no fabricated due target', () {
+      final item = _item(initialServiceRequired: true);
+      expect(
+        DueCalculator.urgency(
+          item: item,
+          vehicleMileage: 43000,
+          now: now,
+          thresholds: DueThresholds.defaults,
+        ),
+        PlanUrgency.scheduled,
+      );
+      expect(DueCalculator.remainingScore(item, 43000, now), -1);
+      expect(
+        DueCalculator.nearest(
+          items: [item],
+          vehicleMileage: 43000,
+          now: now,
+          thresholds: DueThresholds.defaults,
+        ),
+        same(item),
       );
     });
 

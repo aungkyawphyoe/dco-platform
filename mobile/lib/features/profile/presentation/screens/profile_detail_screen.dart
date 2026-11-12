@@ -198,6 +198,13 @@ class ProfileDetailScreen extends ConsumerWidget {
           ),
           if (selfUser != null) ...[
             ListTile(
+              leading: const Icon(Icons.qr_code_2),
+              title: Text(s.profileAccountCode),
+              subtitle: Text(s.profileAccountCodeSubtitle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => context.push(AppRoutes.accountCode),
+            ),
+            ListTile(
               leading: const Icon(Icons.link),
               title: Text(s.authConnections),
               trailing: const Icon(Icons.chevron_right),

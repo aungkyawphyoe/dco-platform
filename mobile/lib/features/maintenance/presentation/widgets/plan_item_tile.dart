@@ -108,20 +108,22 @@ class PlanItemTile extends StatelessWidget {
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             SizedBox(height: tokens.space.s1),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                tokens.radius.sm,
-                              ),
-                              child: LinearProgressIndicator(
-                                value: _progress(item, vehicle, now),
-                                minHeight: 6,
-                                backgroundColor: tokens.background.input,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  accent,
+                            if (!item.initialServiceRequired) ...[
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  tokens.radius.sm,
+                                ),
+                                child: LinearProgressIndicator(
+                                  value: _progress(item, vehicle, now),
+                                  minHeight: 6,
+                                  backgroundColor: tokens.background.input,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    accent,
+                                  ),
                                 ),
                               ),
-                            ),
-                            SizedBox(height: tokens.space.s2),
+                              SizedBox(height: tokens.space.s2),
+                            ],
                             ..._dueLine(
                               item,
                               vehicle,
@@ -144,6 +146,12 @@ class PlanItemTile extends StatelessWidget {
                                 ),
                               ),
                             ),
+                            if (item.initialServiceRequired)
+                              Text(
+                                s.planItemInitialServiceRequired,
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: tokens.status.infoFg),
+                              ),
                             SizedBox(height: tokens.space.s1),
                             Text(
                               _remainingLine(item, vehicle, now, lengthUnit, s),
@@ -186,6 +194,7 @@ List<String> _dueLine(
   MileageUnit unit,
   AppLocalizations s,
 ) {
+  if (item.initialServiceRequired) return const [];
   if (overdue) {
     final parts = <String>[];
     if (item.nextDueMileage != null && vehicle.mileage > item.nextDueMileage!) {
@@ -262,6 +271,7 @@ String _remainingLine(
   MileageUnit unit,
   AppLocalizations s,
 ) {
+  if (item.initialServiceRequired) return '';
   final parts = <String>[];
   if (item.nextDueMileage != null) {
     final remaining = item.nextDueMileage! - vehicle.mileage;

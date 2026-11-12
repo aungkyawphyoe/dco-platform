@@ -3033,6 +3033,21 @@ class $PlanItemRecordsTable extends PlanItemRecords
     ),
     defaultValue: const Constant(true),
   );
+  static const VerificationMeta _initialServiceRequiredMeta =
+      const VerificationMeta('initialServiceRequired');
+  @override
+  late final GeneratedColumn<bool> initialServiceRequired =
+      GeneratedColumn<bool>(
+        'initial_service_required',
+        aliasedName,
+        false,
+        type: DriftSqlType.bool,
+        requiredDuringInsert: false,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("initial_service_required" IN (0, 1))',
+        ),
+        defaultValue: const Constant(false),
+      );
   static const VerificationMeta _notesMeta = const VerificationMeta('notes');
   @override
   late final GeneratedColumn<String> notes = GeneratedColumn<String>(
@@ -3105,6 +3120,7 @@ class $PlanItemRecordsTable extends PlanItemRecords
     nextDueMileage,
     nextDueOn,
     enabled,
+    initialServiceRequired,
     notes,
     catalogKey,
     createdBy,
@@ -3255,6 +3271,15 @@ class $PlanItemRecordsTable extends PlanItemRecords
         enabled.isAcceptableOrUnknown(data['enabled']!, _enabledMeta),
       );
     }
+    if (data.containsKey('initial_service_required')) {
+      context.handle(
+        _initialServiceRequiredMeta,
+        initialServiceRequired.isAcceptableOrUnknown(
+          data['initial_service_required']!,
+          _initialServiceRequiredMeta,
+        ),
+      );
+    }
     if (data.containsKey('notes')) {
       context.handle(
         _notesMeta,
@@ -3366,6 +3391,10 @@ class $PlanItemRecordsTable extends PlanItemRecords
         DriftSqlType.bool,
         data['${effectivePrefix}enabled'],
       )!,
+      initialServiceRequired: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}initial_service_required'],
+      )!,
       notes: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}notes'],
@@ -3413,6 +3442,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
   final double? nextDueMileage;
   final DateTime? nextDueOn;
   final bool enabled;
+  final bool initialServiceRequired;
   final String? notes;
   final String? catalogKey;
   final String? createdBy;
@@ -3436,6 +3466,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     this.nextDueMileage,
     this.nextDueOn,
     required this.enabled,
+    required this.initialServiceRequired,
     this.notes,
     this.catalogKey,
     this.createdBy,
@@ -3486,6 +3517,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       map['next_due_on'] = Variable<DateTime>(nextDueOn);
     }
     map['enabled'] = Variable<bool>(enabled);
+    map['initial_service_required'] = Variable<bool>(initialServiceRequired);
     if (!nullToAbsent || notes != null) {
       map['notes'] = Variable<String>(notes);
     }
@@ -3543,6 +3575,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
           ? const Value.absent()
           : Value(nextDueOn),
       enabled: Value(enabled),
+      initialServiceRequired: Value(initialServiceRequired),
       notes: notes == null && nullToAbsent
           ? const Value.absent()
           : Value(notes),
@@ -3582,6 +3615,9 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       nextDueMileage: serializer.fromJson<double?>(json['nextDueMileage']),
       nextDueOn: serializer.fromJson<DateTime?>(json['nextDueOn']),
       enabled: serializer.fromJson<bool>(json['enabled']),
+      initialServiceRequired: serializer.fromJson<bool>(
+        json['initialServiceRequired'],
+      ),
       notes: serializer.fromJson<String?>(json['notes']),
       catalogKey: serializer.fromJson<String?>(json['catalogKey']),
       createdBy: serializer.fromJson<String?>(json['createdBy']),
@@ -3610,6 +3646,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
       'nextDueMileage': serializer.toJson<double?>(nextDueMileage),
       'nextDueOn': serializer.toJson<DateTime?>(nextDueOn),
       'enabled': serializer.toJson<bool>(enabled),
+      'initialServiceRequired': serializer.toJson<bool>(initialServiceRequired),
       'notes': serializer.toJson<String?>(notes),
       'catalogKey': serializer.toJson<String?>(catalogKey),
       'createdBy': serializer.toJson<String?>(createdBy),
@@ -3636,6 +3673,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     Value<double?> nextDueMileage = const Value.absent(),
     Value<DateTime?> nextDueOn = const Value.absent(),
     bool? enabled,
+    bool? initialServiceRequired,
     Value<String?> notes = const Value.absent(),
     Value<String?> catalogKey = const Value.absent(),
     Value<String?> createdBy = const Value.absent(),
@@ -3671,6 +3709,8 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
         : this.nextDueMileage,
     nextDueOn: nextDueOn.present ? nextDueOn.value : this.nextDueOn,
     enabled: enabled ?? this.enabled,
+    initialServiceRequired:
+        initialServiceRequired ?? this.initialServiceRequired,
     notes: notes.present ? notes.value : this.notes,
     catalogKey: catalogKey.present ? catalogKey.value : this.catalogKey,
     createdBy: createdBy.present ? createdBy.value : this.createdBy,
@@ -3714,6 +3754,9 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
           : this.nextDueMileage,
       nextDueOn: data.nextDueOn.present ? data.nextDueOn.value : this.nextDueOn,
       enabled: data.enabled.present ? data.enabled.value : this.enabled,
+      initialServiceRequired: data.initialServiceRequired.present
+          ? data.initialServiceRequired.value
+          : this.initialServiceRequired,
       notes: data.notes.present ? data.notes.value : this.notes,
       catalogKey: data.catalogKey.present
           ? data.catalogKey.value
@@ -3744,6 +3787,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
           ..write('nextDueMileage: $nextDueMileage, ')
           ..write('nextDueOn: $nextDueOn, ')
           ..write('enabled: $enabled, ')
+          ..write('initialServiceRequired: $initialServiceRequired, ')
           ..write('notes: $notes, ')
           ..write('catalogKey: $catalogKey, ')
           ..write('createdBy: $createdBy, ')
@@ -3772,6 +3816,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
     nextDueMileage,
     nextDueOn,
     enabled,
+    initialServiceRequired,
     notes,
     catalogKey,
     createdBy,
@@ -3799,6 +3844,7 @@ class PlanItemRecord extends DataClass implements Insertable<PlanItemRecord> {
           other.nextDueMileage == this.nextDueMileage &&
           other.nextDueOn == this.nextDueOn &&
           other.enabled == this.enabled &&
+          other.initialServiceRequired == this.initialServiceRequired &&
           other.notes == this.notes &&
           other.catalogKey == this.catalogKey &&
           other.createdBy == this.createdBy &&
@@ -3824,6 +3870,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
   final Value<double?> nextDueMileage;
   final Value<DateTime?> nextDueOn;
   final Value<bool> enabled;
+  final Value<bool> initialServiceRequired;
   final Value<String?> notes;
   final Value<String?> catalogKey;
   final Value<String?> createdBy;
@@ -3848,6 +3895,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     this.nextDueMileage = const Value.absent(),
     this.nextDueOn = const Value.absent(),
     this.enabled = const Value.absent(),
+    this.initialServiceRequired = const Value.absent(),
     this.notes = const Value.absent(),
     this.catalogKey = const Value.absent(),
     this.createdBy = const Value.absent(),
@@ -3873,6 +3921,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     this.nextDueMileage = const Value.absent(),
     this.nextDueOn = const Value.absent(),
     this.enabled = const Value.absent(),
+    this.initialServiceRequired = const Value.absent(),
     this.notes = const Value.absent(),
     this.catalogKey = const Value.absent(),
     this.createdBy = const Value.absent(),
@@ -3902,6 +3951,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     Expression<double>? nextDueMileage,
     Expression<DateTime>? nextDueOn,
     Expression<bool>? enabled,
+    Expression<bool>? initialServiceRequired,
     Expression<String>? notes,
     Expression<String>? catalogKey,
     Expression<String>? createdBy,
@@ -3928,6 +3978,8 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
       if (nextDueMileage != null) 'next_due_mileage': nextDueMileage,
       if (nextDueOn != null) 'next_due_on': nextDueOn,
       if (enabled != null) 'enabled': enabled,
+      if (initialServiceRequired != null)
+        'initial_service_required': initialServiceRequired,
       if (notes != null) 'notes': notes,
       if (catalogKey != null) 'catalog_key': catalogKey,
       if (createdBy != null) 'created_by': createdBy,
@@ -3955,6 +4007,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     Value<double?>? nextDueMileage,
     Value<DateTime?>? nextDueOn,
     Value<bool>? enabled,
+    Value<bool>? initialServiceRequired,
     Value<String?>? notes,
     Value<String?>? catalogKey,
     Value<String?>? createdBy,
@@ -3980,6 +4033,8 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
       nextDueMileage: nextDueMileage ?? this.nextDueMileage,
       nextDueOn: nextDueOn ?? this.nextDueOn,
       enabled: enabled ?? this.enabled,
+      initialServiceRequired:
+          initialServiceRequired ?? this.initialServiceRequired,
       notes: notes ?? this.notes,
       catalogKey: catalogKey ?? this.catalogKey,
       createdBy: createdBy ?? this.createdBy,
@@ -4043,6 +4098,11 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
     if (enabled.present) {
       map['enabled'] = Variable<bool>(enabled.value);
     }
+    if (initialServiceRequired.present) {
+      map['initial_service_required'] = Variable<bool>(
+        initialServiceRequired.value,
+      );
+    }
     if (notes.present) {
       map['notes'] = Variable<String>(notes.value);
     }
@@ -4084,6 +4144,7 @@ class PlanItemRecordsCompanion extends UpdateCompanion<PlanItemRecord> {
           ..write('nextDueMileage: $nextDueMileage, ')
           ..write('nextDueOn: $nextDueOn, ')
           ..write('enabled: $enabled, ')
+          ..write('initialServiceRequired: $initialServiceRequired, ')
           ..write('notes: $notes, ')
           ..write('catalogKey: $catalogKey, ')
           ..write('createdBy: $createdBy, ')
@@ -12803,6 +12864,1272 @@ class NoteRecordsCompanion extends UpdateCompanion<NoteRecord> {
   }
 }
 
+class $WarrantyRecordsTable extends WarrantyRecords
+    with TableInfo<$WarrantyRecordsTable, WarrantyRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $WarrantyRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _saleDateMeta = const VerificationMeta(
+    'saleDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> saleDate = GeneratedColumn<DateTime>(
+    'sale_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _saleMileageKmMeta = const VerificationMeta(
+    'saleMileageKm',
+  );
+  @override
+  late final GeneratedColumn<double> saleMileageKm = GeneratedColumn<double>(
+    'sale_mileage_km',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('active'),
+  );
+  static const VerificationMeta _termsJsonMeta = const VerificationMeta(
+    'termsJson',
+  );
+  @override
+  late final GeneratedColumn<String> termsJson = GeneratedColumn<String>(
+    'terms_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('{}'),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    vehicleId,
+    saleDate,
+    saleMileageKm,
+    status,
+    termsJson,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'vehicle_warranties';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<WarrantyRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('sale_date')) {
+      context.handle(
+        _saleDateMeta,
+        saleDate.isAcceptableOrUnknown(data['sale_date']!, _saleDateMeta),
+      );
+    }
+    if (data.containsKey('sale_mileage_km')) {
+      context.handle(
+        _saleMileageKmMeta,
+        saleMileageKm.isAcceptableOrUnknown(
+          data['sale_mileage_km']!,
+          _saleMileageKmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('terms_json')) {
+      context.handle(
+        _termsJsonMeta,
+        termsJson.isAcceptableOrUnknown(data['terms_json']!, _termsJsonMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  WarrantyRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return WarrantyRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      saleDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sale_date'],
+      ),
+      saleMileageKm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}sale_mileage_km'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      termsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}terms_json'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $WarrantyRecordsTable createAlias(String alias) {
+    return $WarrantyRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class WarrantyRecord extends DataClass implements Insertable<WarrantyRecord> {
+  final String id;
+  final String vehicleId;
+  final DateTime? saleDate;
+  final double? saleMileageKm;
+  final String status;
+  final String termsJson;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const WarrantyRecord({
+    required this.id,
+    required this.vehicleId,
+    this.saleDate,
+    this.saleMileageKm,
+    required this.status,
+    required this.termsJson,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    if (!nullToAbsent || saleDate != null) {
+      map['sale_date'] = Variable<DateTime>(saleDate);
+    }
+    if (!nullToAbsent || saleMileageKm != null) {
+      map['sale_mileage_km'] = Variable<double>(saleMileageKm);
+    }
+    map['status'] = Variable<String>(status);
+    map['terms_json'] = Variable<String>(termsJson);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  WarrantyRecordsCompanion toCompanion(bool nullToAbsent) {
+    return WarrantyRecordsCompanion(
+      id: Value(id),
+      vehicleId: Value(vehicleId),
+      saleDate: saleDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(saleDate),
+      saleMileageKm: saleMileageKm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(saleMileageKm),
+      status: Value(status),
+      termsJson: Value(termsJson),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory WarrantyRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return WarrantyRecord(
+      id: serializer.fromJson<String>(json['id']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      saleDate: serializer.fromJson<DateTime?>(json['saleDate']),
+      saleMileageKm: serializer.fromJson<double?>(json['saleMileageKm']),
+      status: serializer.fromJson<String>(json['status']),
+      termsJson: serializer.fromJson<String>(json['termsJson']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'saleDate': serializer.toJson<DateTime?>(saleDate),
+      'saleMileageKm': serializer.toJson<double?>(saleMileageKm),
+      'status': serializer.toJson<String>(status),
+      'termsJson': serializer.toJson<String>(termsJson),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  WarrantyRecord copyWith({
+    String? id,
+    String? vehicleId,
+    Value<DateTime?> saleDate = const Value.absent(),
+    Value<double?> saleMileageKm = const Value.absent(),
+    String? status,
+    String? termsJson,
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => WarrantyRecord(
+    id: id ?? this.id,
+    vehicleId: vehicleId ?? this.vehicleId,
+    saleDate: saleDate.present ? saleDate.value : this.saleDate,
+    saleMileageKm: saleMileageKm.present
+        ? saleMileageKm.value
+        : this.saleMileageKm,
+    status: status ?? this.status,
+    termsJson: termsJson ?? this.termsJson,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  WarrantyRecord copyWithCompanion(WarrantyRecordsCompanion data) {
+    return WarrantyRecord(
+      id: data.id.present ? data.id.value : this.id,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      saleDate: data.saleDate.present ? data.saleDate.value : this.saleDate,
+      saleMileageKm: data.saleMileageKm.present
+          ? data.saleMileageKm.value
+          : this.saleMileageKm,
+      status: data.status.present ? data.status.value : this.status,
+      termsJson: data.termsJson.present ? data.termsJson.value : this.termsJson,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WarrantyRecord(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('saleDate: $saleDate, ')
+          ..write('saleMileageKm: $saleMileageKm, ')
+          ..write('status: $status, ')
+          ..write('termsJson: $termsJson, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    vehicleId,
+    saleDate,
+    saleMileageKm,
+    status,
+    termsJson,
+    updatedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is WarrantyRecord &&
+          other.id == this.id &&
+          other.vehicleId == this.vehicleId &&
+          other.saleDate == this.saleDate &&
+          other.saleMileageKm == this.saleMileageKm &&
+          other.status == this.status &&
+          other.termsJson == this.termsJson &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class WarrantyRecordsCompanion extends UpdateCompanion<WarrantyRecord> {
+  final Value<String> id;
+  final Value<String> vehicleId;
+  final Value<DateTime?> saleDate;
+  final Value<double?> saleMileageKm;
+  final Value<String> status;
+  final Value<String> termsJson;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const WarrantyRecordsCompanion({
+    this.id = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.saleDate = const Value.absent(),
+    this.saleMileageKm = const Value.absent(),
+    this.status = const Value.absent(),
+    this.termsJson = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  WarrantyRecordsCompanion.insert({
+    required String id,
+    required String vehicleId,
+    this.saleDate = const Value.absent(),
+    this.saleMileageKm = const Value.absent(),
+    this.status = const Value.absent(),
+    this.termsJson = const Value.absent(),
+    required DateTime updatedAt,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       vehicleId = Value(vehicleId),
+       updatedAt = Value(updatedAt),
+       createdAt = Value(createdAt);
+  static Insertable<WarrantyRecord> custom({
+    Expression<String>? id,
+    Expression<String>? vehicleId,
+    Expression<DateTime>? saleDate,
+    Expression<double>? saleMileageKm,
+    Expression<String>? status,
+    Expression<String>? termsJson,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (saleDate != null) 'sale_date': saleDate,
+      if (saleMileageKm != null) 'sale_mileage_km': saleMileageKm,
+      if (status != null) 'status': status,
+      if (termsJson != null) 'terms_json': termsJson,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  WarrantyRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vehicleId,
+    Value<DateTime?>? saleDate,
+    Value<double?>? saleMileageKm,
+    Value<String>? status,
+    Value<String>? termsJson,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return WarrantyRecordsCompanion(
+      id: id ?? this.id,
+      vehicleId: vehicleId ?? this.vehicleId,
+      saleDate: saleDate ?? this.saleDate,
+      saleMileageKm: saleMileageKm ?? this.saleMileageKm,
+      status: status ?? this.status,
+      termsJson: termsJson ?? this.termsJson,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (saleDate.present) {
+      map['sale_date'] = Variable<DateTime>(saleDate.value);
+    }
+    if (saleMileageKm.present) {
+      map['sale_mileage_km'] = Variable<double>(saleMileageKm.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (termsJson.present) {
+      map['terms_json'] = Variable<String>(termsJson.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('WarrantyRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('saleDate: $saleDate, ')
+          ..write('saleMileageKm: $saleMileageKm, ')
+          ..write('status: $status, ')
+          ..write('termsJson: $termsJson, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $HandoverReceiptRecordsTable extends HandoverReceiptRecords
+    with TableInfo<$HandoverReceiptRecordsTable, HandoverReceiptRecord> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $HandoverReceiptRecordsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _vehicleIdMeta = const VerificationMeta(
+    'vehicleId',
+  );
+  @override
+  late final GeneratedColumn<String> vehicleId = GeneratedColumn<String>(
+    'vehicle_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _buyerUserIdMeta = const VerificationMeta(
+    'buyerUserId',
+  );
+  @override
+  late final GeneratedColumn<String> buyerUserId = GeneratedColumn<String>(
+    'buyer_user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _transferredVehicleIdMeta =
+      const VerificationMeta('transferredVehicleId');
+  @override
+  late final GeneratedColumn<String> transferredVehicleId =
+      GeneratedColumn<String>(
+        'transferred_vehicle_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _saleDateMeta = const VerificationMeta(
+    'saleDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> saleDate = GeneratedColumn<DateTime>(
+    'sale_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _currentMileageKmMeta = const VerificationMeta(
+    'currentMileageKm',
+  );
+  @override
+  late final GeneratedColumn<double> currentMileageKm = GeneratedColumn<double>(
+    'current_mileage_km',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _planItemIdsJsonMeta = const VerificationMeta(
+    'planItemIdsJson',
+  );
+  @override
+  late final GeneratedColumn<String> planItemIdsJson = GeneratedColumn<String>(
+    'plan_item_ids_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('[]'),
+  );
+  static const VerificationMeta _warrantyInstanceIdMeta =
+      const VerificationMeta('warrantyInstanceId');
+  @override
+  late final GeneratedColumn<String> warrantyInstanceId =
+      GeneratedColumn<String>(
+        'warranty_instance_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('completed'),
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    vehicleId,
+    buyerUserId,
+    transferredVehicleId,
+    saleDate,
+    currentMileageKm,
+    planItemIdsJson,
+    warrantyInstanceId,
+    status,
+    completedAt,
+    updatedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'handover_receipts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<HandoverReceiptRecord> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('vehicle_id')) {
+      context.handle(
+        _vehicleIdMeta,
+        vehicleId.isAcceptableOrUnknown(data['vehicle_id']!, _vehicleIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_vehicleIdMeta);
+    }
+    if (data.containsKey('buyer_user_id')) {
+      context.handle(
+        _buyerUserIdMeta,
+        buyerUserId.isAcceptableOrUnknown(
+          data['buyer_user_id']!,
+          _buyerUserIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_buyerUserIdMeta);
+    }
+    if (data.containsKey('transferred_vehicle_id')) {
+      context.handle(
+        _transferredVehicleIdMeta,
+        transferredVehicleId.isAcceptableOrUnknown(
+          data['transferred_vehicle_id']!,
+          _transferredVehicleIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('sale_date')) {
+      context.handle(
+        _saleDateMeta,
+        saleDate.isAcceptableOrUnknown(data['sale_date']!, _saleDateMeta),
+      );
+    }
+    if (data.containsKey('current_mileage_km')) {
+      context.handle(
+        _currentMileageKmMeta,
+        currentMileageKm.isAcceptableOrUnknown(
+          data['current_mileage_km']!,
+          _currentMileageKmMeta,
+        ),
+      );
+    }
+    if (data.containsKey('plan_item_ids_json')) {
+      context.handle(
+        _planItemIdsJsonMeta,
+        planItemIdsJson.isAcceptableOrUnknown(
+          data['plan_item_ids_json']!,
+          _planItemIdsJsonMeta,
+        ),
+      );
+    }
+    if (data.containsKey('warranty_instance_id')) {
+      context.handle(
+        _warrantyInstanceIdMeta,
+        warrantyInstanceId.isAcceptableOrUnknown(
+          data['warranty_instance_id']!,
+          _warrantyInstanceIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  HandoverReceiptRecord map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return HandoverReceiptRecord(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      vehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}vehicle_id'],
+      )!,
+      buyerUserId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}buyer_user_id'],
+      )!,
+      transferredVehicleId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}transferred_vehicle_id'],
+      ),
+      saleDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}sale_date'],
+      ),
+      currentMileageKm: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}current_mileage_km'],
+      ),
+      planItemIdsJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}plan_item_ids_json'],
+      )!,
+      warrantyInstanceId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}warranty_instance_id'],
+      ),
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $HandoverReceiptRecordsTable createAlias(String alias) {
+    return $HandoverReceiptRecordsTable(attachedDatabase, alias);
+  }
+}
+
+class HandoverReceiptRecord extends DataClass
+    implements Insertable<HandoverReceiptRecord> {
+  final String id;
+  final String vehicleId;
+  final String buyerUserId;
+  final String? transferredVehicleId;
+  final DateTime? saleDate;
+  final double? currentMileageKm;
+  final String planItemIdsJson;
+  final String? warrantyInstanceId;
+  final String status;
+  final DateTime? completedAt;
+  final DateTime updatedAt;
+  final DateTime createdAt;
+  const HandoverReceiptRecord({
+    required this.id,
+    required this.vehicleId,
+    required this.buyerUserId,
+    this.transferredVehicleId,
+    this.saleDate,
+    this.currentMileageKm,
+    required this.planItemIdsJson,
+    this.warrantyInstanceId,
+    required this.status,
+    this.completedAt,
+    required this.updatedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['vehicle_id'] = Variable<String>(vehicleId);
+    map['buyer_user_id'] = Variable<String>(buyerUserId);
+    if (!nullToAbsent || transferredVehicleId != null) {
+      map['transferred_vehicle_id'] = Variable<String>(transferredVehicleId);
+    }
+    if (!nullToAbsent || saleDate != null) {
+      map['sale_date'] = Variable<DateTime>(saleDate);
+    }
+    if (!nullToAbsent || currentMileageKm != null) {
+      map['current_mileage_km'] = Variable<double>(currentMileageKm);
+    }
+    map['plan_item_ids_json'] = Variable<String>(planItemIdsJson);
+    if (!nullToAbsent || warrantyInstanceId != null) {
+      map['warranty_instance_id'] = Variable<String>(warrantyInstanceId);
+    }
+    map['status'] = Variable<String>(status);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  HandoverReceiptRecordsCompanion toCompanion(bool nullToAbsent) {
+    return HandoverReceiptRecordsCompanion(
+      id: Value(id),
+      vehicleId: Value(vehicleId),
+      buyerUserId: Value(buyerUserId),
+      transferredVehicleId: transferredVehicleId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(transferredVehicleId),
+      saleDate: saleDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(saleDate),
+      currentMileageKm: currentMileageKm == null && nullToAbsent
+          ? const Value.absent()
+          : Value(currentMileageKm),
+      planItemIdsJson: Value(planItemIdsJson),
+      warrantyInstanceId: warrantyInstanceId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(warrantyInstanceId),
+      status: Value(status),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+      updatedAt: Value(updatedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory HandoverReceiptRecord.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return HandoverReceiptRecord(
+      id: serializer.fromJson<String>(json['id']),
+      vehicleId: serializer.fromJson<String>(json['vehicleId']),
+      buyerUserId: serializer.fromJson<String>(json['buyerUserId']),
+      transferredVehicleId: serializer.fromJson<String?>(
+        json['transferredVehicleId'],
+      ),
+      saleDate: serializer.fromJson<DateTime?>(json['saleDate']),
+      currentMileageKm: serializer.fromJson<double?>(json['currentMileageKm']),
+      planItemIdsJson: serializer.fromJson<String>(json['planItemIdsJson']),
+      warrantyInstanceId: serializer.fromJson<String?>(
+        json['warrantyInstanceId'],
+      ),
+      status: serializer.fromJson<String>(json['status']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'vehicleId': serializer.toJson<String>(vehicleId),
+      'buyerUserId': serializer.toJson<String>(buyerUserId),
+      'transferredVehicleId': serializer.toJson<String?>(transferredVehicleId),
+      'saleDate': serializer.toJson<DateTime?>(saleDate),
+      'currentMileageKm': serializer.toJson<double?>(currentMileageKm),
+      'planItemIdsJson': serializer.toJson<String>(planItemIdsJson),
+      'warrantyInstanceId': serializer.toJson<String?>(warrantyInstanceId),
+      'status': serializer.toJson<String>(status),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  HandoverReceiptRecord copyWith({
+    String? id,
+    String? vehicleId,
+    String? buyerUserId,
+    Value<String?> transferredVehicleId = const Value.absent(),
+    Value<DateTime?> saleDate = const Value.absent(),
+    Value<double?> currentMileageKm = const Value.absent(),
+    String? planItemIdsJson,
+    Value<String?> warrantyInstanceId = const Value.absent(),
+    String? status,
+    Value<DateTime?> completedAt = const Value.absent(),
+    DateTime? updatedAt,
+    DateTime? createdAt,
+  }) => HandoverReceiptRecord(
+    id: id ?? this.id,
+    vehicleId: vehicleId ?? this.vehicleId,
+    buyerUserId: buyerUserId ?? this.buyerUserId,
+    transferredVehicleId: transferredVehicleId.present
+        ? transferredVehicleId.value
+        : this.transferredVehicleId,
+    saleDate: saleDate.present ? saleDate.value : this.saleDate,
+    currentMileageKm: currentMileageKm.present
+        ? currentMileageKm.value
+        : this.currentMileageKm,
+    planItemIdsJson: planItemIdsJson ?? this.planItemIdsJson,
+    warrantyInstanceId: warrantyInstanceId.present
+        ? warrantyInstanceId.value
+        : this.warrantyInstanceId,
+    status: status ?? this.status,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  HandoverReceiptRecord copyWithCompanion(
+    HandoverReceiptRecordsCompanion data,
+  ) {
+    return HandoverReceiptRecord(
+      id: data.id.present ? data.id.value : this.id,
+      vehicleId: data.vehicleId.present ? data.vehicleId.value : this.vehicleId,
+      buyerUserId: data.buyerUserId.present
+          ? data.buyerUserId.value
+          : this.buyerUserId,
+      transferredVehicleId: data.transferredVehicleId.present
+          ? data.transferredVehicleId.value
+          : this.transferredVehicleId,
+      saleDate: data.saleDate.present ? data.saleDate.value : this.saleDate,
+      currentMileageKm: data.currentMileageKm.present
+          ? data.currentMileageKm.value
+          : this.currentMileageKm,
+      planItemIdsJson: data.planItemIdsJson.present
+          ? data.planItemIdsJson.value
+          : this.planItemIdsJson,
+      warrantyInstanceId: data.warrantyInstanceId.present
+          ? data.warrantyInstanceId.value
+          : this.warrantyInstanceId,
+      status: data.status.present ? data.status.value : this.status,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HandoverReceiptRecord(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('buyerUserId: $buyerUserId, ')
+          ..write('transferredVehicleId: $transferredVehicleId, ')
+          ..write('saleDate: $saleDate, ')
+          ..write('currentMileageKm: $currentMileageKm, ')
+          ..write('planItemIdsJson: $planItemIdsJson, ')
+          ..write('warrantyInstanceId: $warrantyInstanceId, ')
+          ..write('status: $status, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    vehicleId,
+    buyerUserId,
+    transferredVehicleId,
+    saleDate,
+    currentMileageKm,
+    planItemIdsJson,
+    warrantyInstanceId,
+    status,
+    completedAt,
+    updatedAt,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is HandoverReceiptRecord &&
+          other.id == this.id &&
+          other.vehicleId == this.vehicleId &&
+          other.buyerUserId == this.buyerUserId &&
+          other.transferredVehicleId == this.transferredVehicleId &&
+          other.saleDate == this.saleDate &&
+          other.currentMileageKm == this.currentMileageKm &&
+          other.planItemIdsJson == this.planItemIdsJson &&
+          other.warrantyInstanceId == this.warrantyInstanceId &&
+          other.status == this.status &&
+          other.completedAt == this.completedAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class HandoverReceiptRecordsCompanion
+    extends UpdateCompanion<HandoverReceiptRecord> {
+  final Value<String> id;
+  final Value<String> vehicleId;
+  final Value<String> buyerUserId;
+  final Value<String?> transferredVehicleId;
+  final Value<DateTime?> saleDate;
+  final Value<double?> currentMileageKm;
+  final Value<String> planItemIdsJson;
+  final Value<String?> warrantyInstanceId;
+  final Value<String> status;
+  final Value<DateTime?> completedAt;
+  final Value<DateTime> updatedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const HandoverReceiptRecordsCompanion({
+    this.id = const Value.absent(),
+    this.vehicleId = const Value.absent(),
+    this.buyerUserId = const Value.absent(),
+    this.transferredVehicleId = const Value.absent(),
+    this.saleDate = const Value.absent(),
+    this.currentMileageKm = const Value.absent(),
+    this.planItemIdsJson = const Value.absent(),
+    this.warrantyInstanceId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  HandoverReceiptRecordsCompanion.insert({
+    required String id,
+    required String vehicleId,
+    required String buyerUserId,
+    this.transferredVehicleId = const Value.absent(),
+    this.saleDate = const Value.absent(),
+    this.currentMileageKm = const Value.absent(),
+    this.planItemIdsJson = const Value.absent(),
+    this.warrantyInstanceId = const Value.absent(),
+    this.status = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    required DateTime updatedAt,
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       vehicleId = Value(vehicleId),
+       buyerUserId = Value(buyerUserId),
+       updatedAt = Value(updatedAt),
+       createdAt = Value(createdAt);
+  static Insertable<HandoverReceiptRecord> custom({
+    Expression<String>? id,
+    Expression<String>? vehicleId,
+    Expression<String>? buyerUserId,
+    Expression<String>? transferredVehicleId,
+    Expression<DateTime>? saleDate,
+    Expression<double>? currentMileageKm,
+    Expression<String>? planItemIdsJson,
+    Expression<String>? warrantyInstanceId,
+    Expression<String>? status,
+    Expression<DateTime>? completedAt,
+    Expression<DateTime>? updatedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (vehicleId != null) 'vehicle_id': vehicleId,
+      if (buyerUserId != null) 'buyer_user_id': buyerUserId,
+      if (transferredVehicleId != null)
+        'transferred_vehicle_id': transferredVehicleId,
+      if (saleDate != null) 'sale_date': saleDate,
+      if (currentMileageKm != null) 'current_mileage_km': currentMileageKm,
+      if (planItemIdsJson != null) 'plan_item_ids_json': planItemIdsJson,
+      if (warrantyInstanceId != null)
+        'warranty_instance_id': warrantyInstanceId,
+      if (status != null) 'status': status,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  HandoverReceiptRecordsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? vehicleId,
+    Value<String>? buyerUserId,
+    Value<String?>? transferredVehicleId,
+    Value<DateTime?>? saleDate,
+    Value<double?>? currentMileageKm,
+    Value<String>? planItemIdsJson,
+    Value<String?>? warrantyInstanceId,
+    Value<String>? status,
+    Value<DateTime?>? completedAt,
+    Value<DateTime>? updatedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return HandoverReceiptRecordsCompanion(
+      id: id ?? this.id,
+      vehicleId: vehicleId ?? this.vehicleId,
+      buyerUserId: buyerUserId ?? this.buyerUserId,
+      transferredVehicleId: transferredVehicleId ?? this.transferredVehicleId,
+      saleDate: saleDate ?? this.saleDate,
+      currentMileageKm: currentMileageKm ?? this.currentMileageKm,
+      planItemIdsJson: planItemIdsJson ?? this.planItemIdsJson,
+      warrantyInstanceId: warrantyInstanceId ?? this.warrantyInstanceId,
+      status: status ?? this.status,
+      completedAt: completedAt ?? this.completedAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (vehicleId.present) {
+      map['vehicle_id'] = Variable<String>(vehicleId.value);
+    }
+    if (buyerUserId.present) {
+      map['buyer_user_id'] = Variable<String>(buyerUserId.value);
+    }
+    if (transferredVehicleId.present) {
+      map['transferred_vehicle_id'] = Variable<String>(
+        transferredVehicleId.value,
+      );
+    }
+    if (saleDate.present) {
+      map['sale_date'] = Variable<DateTime>(saleDate.value);
+    }
+    if (currentMileageKm.present) {
+      map['current_mileage_km'] = Variable<double>(currentMileageKm.value);
+    }
+    if (planItemIdsJson.present) {
+      map['plan_item_ids_json'] = Variable<String>(planItemIdsJson.value);
+    }
+    if (warrantyInstanceId.present) {
+      map['warranty_instance_id'] = Variable<String>(warrantyInstanceId.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('HandoverReceiptRecordsCompanion(')
+          ..write('id: $id, ')
+          ..write('vehicleId: $vehicleId, ')
+          ..write('buyerUserId: $buyerUserId, ')
+          ..write('transferredVehicleId: $transferredVehicleId, ')
+          ..write('saleDate: $saleDate, ')
+          ..write('currentMileageKm: $currentMileageKm, ')
+          ..write('planItemIdsJson: $planItemIdsJson, ')
+          ..write('warrantyInstanceId: $warrantyInstanceId, ')
+          ..write('status: $status, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -12841,6 +14168,11 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $MaintenanceCatalogRecordsTable maintenanceCatalogRecords =
       $MaintenanceCatalogRecordsTable(this);
   late final $NoteRecordsTable noteRecords = $NoteRecordsTable(this);
+  late final $WarrantyRecordsTable warrantyRecords = $WarrantyRecordsTable(
+    this,
+  );
+  late final $HandoverReceiptRecordsTable handoverReceiptRecords =
+      $HandoverReceiptRecordsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -12866,6 +14198,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     documentRecords,
     maintenanceCatalogRecords,
     noteRecords,
+    warrantyRecords,
+    handoverReceiptRecords,
   ];
 }
 
@@ -14267,6 +15601,7 @@ typedef $$PlanItemRecordsTableCreateCompanionBuilder =
       Value<double?> nextDueMileage,
       Value<DateTime?> nextDueOn,
       Value<bool> enabled,
+      Value<bool> initialServiceRequired,
       Value<String?> notes,
       Value<String?> catalogKey,
       Value<String?> createdBy,
@@ -14293,6 +15628,7 @@ typedef $$PlanItemRecordsTableUpdateCompanionBuilder =
       Value<double?> nextDueMileage,
       Value<DateTime?> nextDueOn,
       Value<bool> enabled,
+      Value<bool> initialServiceRequired,
       Value<String?> notes,
       Value<String?> catalogKey,
       Value<String?> createdBy,
@@ -14392,6 +15728,11 @@ class $$PlanItemRecordsTableFilterComposer
 
   ColumnFilters<bool> get enabled => $composableBuilder(
     column: $table.enabled,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get initialServiceRequired => $composableBuilder(
+    column: $table.initialServiceRequired,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -14515,6 +15856,11 @@ class $$PlanItemRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get initialServiceRequired => $composableBuilder(
+    column: $table.initialServiceRequired,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get notes => $composableBuilder(
     column: $table.notes,
     builder: (column) => ColumnOrderings(column),
@@ -14619,6 +15965,11 @@ class $$PlanItemRecordsTableAnnotationComposer
   GeneratedColumn<bool> get enabled =>
       $composableBuilder(column: $table.enabled, builder: (column) => column);
 
+  GeneratedColumn<bool> get initialServiceRequired => $composableBuilder(
+    column: $table.initialServiceRequired,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get notes =>
       $composableBuilder(column: $table.notes, builder: (column) => column);
 
@@ -14691,6 +16042,7 @@ class $$PlanItemRecordsTableTableManager
                 Value<double?> nextDueMileage = const Value.absent(),
                 Value<DateTime?> nextDueOn = const Value.absent(),
                 Value<bool> enabled = const Value.absent(),
+                Value<bool> initialServiceRequired = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> catalogKey = const Value.absent(),
                 Value<String?> createdBy = const Value.absent(),
@@ -14715,6 +16067,7 @@ class $$PlanItemRecordsTableTableManager
                 nextDueMileage: nextDueMileage,
                 nextDueOn: nextDueOn,
                 enabled: enabled,
+                initialServiceRequired: initialServiceRequired,
                 notes: notes,
                 catalogKey: catalogKey,
                 createdBy: createdBy,
@@ -14741,6 +16094,7 @@ class $$PlanItemRecordsTableTableManager
                 Value<double?> nextDueMileage = const Value.absent(),
                 Value<DateTime?> nextDueOn = const Value.absent(),
                 Value<bool> enabled = const Value.absent(),
+                Value<bool> initialServiceRequired = const Value.absent(),
                 Value<String?> notes = const Value.absent(),
                 Value<String?> catalogKey = const Value.absent(),
                 Value<String?> createdBy = const Value.absent(),
@@ -14765,6 +16119,7 @@ class $$PlanItemRecordsTableTableManager
                 nextDueMileage: nextDueMileage,
                 nextDueOn: nextDueOn,
                 enabled: enabled,
+                initialServiceRequired: initialServiceRequired,
                 notes: notes,
                 catalogKey: catalogKey,
                 createdBy: createdBy,
@@ -19408,6 +20763,656 @@ typedef $$NoteRecordsTableProcessedTableManager =
       NoteRecord,
       PrefetchHooks Function()
     >;
+typedef $$WarrantyRecordsTableCreateCompanionBuilder =
+    WarrantyRecordsCompanion Function({
+      required String id,
+      required String vehicleId,
+      Value<DateTime?> saleDate,
+      Value<double?> saleMileageKm,
+      Value<String> status,
+      Value<String> termsJson,
+      required DateTime updatedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$WarrantyRecordsTableUpdateCompanionBuilder =
+    WarrantyRecordsCompanion Function({
+      Value<String> id,
+      Value<String> vehicleId,
+      Value<DateTime?> saleDate,
+      Value<double?> saleMileageKm,
+      Value<String> status,
+      Value<String> termsJson,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$WarrantyRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $WarrantyRecordsTable> {
+  $$WarrantyRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get saleDate => $composableBuilder(
+    column: $table.saleDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get saleMileageKm => $composableBuilder(
+    column: $table.saleMileageKm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get termsJson => $composableBuilder(
+    column: $table.termsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$WarrantyRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $WarrantyRecordsTable> {
+  $$WarrantyRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get saleDate => $composableBuilder(
+    column: $table.saleDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get saleMileageKm => $composableBuilder(
+    column: $table.saleMileageKm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get termsJson => $composableBuilder(
+    column: $table.termsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$WarrantyRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $WarrantyRecordsTable> {
+  $$WarrantyRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get saleDate =>
+      $composableBuilder(column: $table.saleDate, builder: (column) => column);
+
+  GeneratedColumn<double> get saleMileageKm => $composableBuilder(
+    column: $table.saleMileageKm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get termsJson =>
+      $composableBuilder(column: $table.termsJson, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$WarrantyRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $WarrantyRecordsTable,
+          WarrantyRecord,
+          $$WarrantyRecordsTableFilterComposer,
+          $$WarrantyRecordsTableOrderingComposer,
+          $$WarrantyRecordsTableAnnotationComposer,
+          $$WarrantyRecordsTableCreateCompanionBuilder,
+          $$WarrantyRecordsTableUpdateCompanionBuilder,
+          (
+            WarrantyRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $WarrantyRecordsTable,
+              WarrantyRecord
+            >,
+          ),
+          WarrantyRecord,
+          PrefetchHooks Function()
+        > {
+  $$WarrantyRecordsTableTableManager(
+    _$AppDatabase db,
+    $WarrantyRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$WarrantyRecordsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$WarrantyRecordsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$WarrantyRecordsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<DateTime?> saleDate = const Value.absent(),
+                Value<double?> saleMileageKm = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> termsJson = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => WarrantyRecordsCompanion(
+                id: id,
+                vehicleId: vehicleId,
+                saleDate: saleDate,
+                saleMileageKm: saleMileageKm,
+                status: status,
+                termsJson: termsJson,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vehicleId,
+                Value<DateTime?> saleDate = const Value.absent(),
+                Value<double?> saleMileageKm = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> termsJson = const Value.absent(),
+                required DateTime updatedAt,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => WarrantyRecordsCompanion.insert(
+                id: id,
+                vehicleId: vehicleId,
+                saleDate: saleDate,
+                saleMileageKm: saleMileageKm,
+                status: status,
+                termsJson: termsJson,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$WarrantyRecordsTable, WarrantyRecord>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $WarrantyRecordsTable,
+                    WarrantyRecord
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$WarrantyRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $WarrantyRecordsTable,
+      WarrantyRecord,
+      $$WarrantyRecordsTableFilterComposer,
+      $$WarrantyRecordsTableOrderingComposer,
+      $$WarrantyRecordsTableAnnotationComposer,
+      $$WarrantyRecordsTableCreateCompanionBuilder,
+      $$WarrantyRecordsTableUpdateCompanionBuilder,
+      (
+        WarrantyRecord,
+        BaseReferences<_$AppDatabase, $WarrantyRecordsTable, WarrantyRecord>,
+      ),
+      WarrantyRecord,
+      PrefetchHooks Function()
+    >;
+typedef $$HandoverReceiptRecordsTableCreateCompanionBuilder =
+    HandoverReceiptRecordsCompanion Function({
+      required String id,
+      required String vehicleId,
+      required String buyerUserId,
+      Value<String?> transferredVehicleId,
+      Value<DateTime?> saleDate,
+      Value<double?> currentMileageKm,
+      Value<String> planItemIdsJson,
+      Value<String?> warrantyInstanceId,
+      Value<String> status,
+      Value<DateTime?> completedAt,
+      required DateTime updatedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$HandoverReceiptRecordsTableUpdateCompanionBuilder =
+    HandoverReceiptRecordsCompanion Function({
+      Value<String> id,
+      Value<String> vehicleId,
+      Value<String> buyerUserId,
+      Value<String?> transferredVehicleId,
+      Value<DateTime?> saleDate,
+      Value<double?> currentMileageKm,
+      Value<String> planItemIdsJson,
+      Value<String?> warrantyInstanceId,
+      Value<String> status,
+      Value<DateTime?> completedAt,
+      Value<DateTime> updatedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$HandoverReceiptRecordsTableFilterComposer
+    extends Composer<_$AppDatabase, $HandoverReceiptRecordsTable> {
+  $$HandoverReceiptRecordsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get buyerUserId => $composableBuilder(
+    column: $table.buyerUserId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get transferredVehicleId => $composableBuilder(
+    column: $table.transferredVehicleId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get saleDate => $composableBuilder(
+    column: $table.saleDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get currentMileageKm => $composableBuilder(
+    column: $table.currentMileageKm,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get planItemIdsJson => $composableBuilder(
+    column: $table.planItemIdsJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get warrantyInstanceId => $composableBuilder(
+    column: $table.warrantyInstanceId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$HandoverReceiptRecordsTableOrderingComposer
+    extends Composer<_$AppDatabase, $HandoverReceiptRecordsTable> {
+  $$HandoverReceiptRecordsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get vehicleId => $composableBuilder(
+    column: $table.vehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get buyerUserId => $composableBuilder(
+    column: $table.buyerUserId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get transferredVehicleId => $composableBuilder(
+    column: $table.transferredVehicleId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get saleDate => $composableBuilder(
+    column: $table.saleDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get currentMileageKm => $composableBuilder(
+    column: $table.currentMileageKm,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get planItemIdsJson => $composableBuilder(
+    column: $table.planItemIdsJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get warrantyInstanceId => $composableBuilder(
+    column: $table.warrantyInstanceId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$HandoverReceiptRecordsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $HandoverReceiptRecordsTable> {
+  $$HandoverReceiptRecordsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get vehicleId =>
+      $composableBuilder(column: $table.vehicleId, builder: (column) => column);
+
+  GeneratedColumn<String> get buyerUserId => $composableBuilder(
+    column: $table.buyerUserId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get transferredVehicleId => $composableBuilder(
+    column: $table.transferredVehicleId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get saleDate =>
+      $composableBuilder(column: $table.saleDate, builder: (column) => column);
+
+  GeneratedColumn<double> get currentMileageKm => $composableBuilder(
+    column: $table.currentMileageKm,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get planItemIdsJson => $composableBuilder(
+    column: $table.planItemIdsJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get warrantyInstanceId => $composableBuilder(
+    column: $table.warrantyInstanceId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$HandoverReceiptRecordsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $HandoverReceiptRecordsTable,
+          HandoverReceiptRecord,
+          $$HandoverReceiptRecordsTableFilterComposer,
+          $$HandoverReceiptRecordsTableOrderingComposer,
+          $$HandoverReceiptRecordsTableAnnotationComposer,
+          $$HandoverReceiptRecordsTableCreateCompanionBuilder,
+          $$HandoverReceiptRecordsTableUpdateCompanionBuilder,
+          (
+            HandoverReceiptRecord,
+            BaseReferences<
+              _$AppDatabase,
+              $HandoverReceiptRecordsTable,
+              HandoverReceiptRecord
+            >,
+          ),
+          HandoverReceiptRecord,
+          PrefetchHooks Function()
+        > {
+  $$HandoverReceiptRecordsTableTableManager(
+    _$AppDatabase db,
+    $HandoverReceiptRecordsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$HandoverReceiptRecordsTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$HandoverReceiptRecordsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$HandoverReceiptRecordsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> vehicleId = const Value.absent(),
+                Value<String> buyerUserId = const Value.absent(),
+                Value<String?> transferredVehicleId = const Value.absent(),
+                Value<DateTime?> saleDate = const Value.absent(),
+                Value<double?> currentMileageKm = const Value.absent(),
+                Value<String> planItemIdsJson = const Value.absent(),
+                Value<String?> warrantyInstanceId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => HandoverReceiptRecordsCompanion(
+                id: id,
+                vehicleId: vehicleId,
+                buyerUserId: buyerUserId,
+                transferredVehicleId: transferredVehicleId,
+                saleDate: saleDate,
+                currentMileageKm: currentMileageKm,
+                planItemIdsJson: planItemIdsJson,
+                warrantyInstanceId: warrantyInstanceId,
+                status: status,
+                completedAt: completedAt,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String vehicleId,
+                required String buyerUserId,
+                Value<String?> transferredVehicleId = const Value.absent(),
+                Value<DateTime?> saleDate = const Value.absent(),
+                Value<double?> currentMileageKm = const Value.absent(),
+                Value<String> planItemIdsJson = const Value.absent(),
+                Value<String?> warrantyInstanceId = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                required DateTime updatedAt,
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => HandoverReceiptRecordsCompanion.insert(
+                id: id,
+                vehicleId: vehicleId,
+                buyerUserId: buyerUserId,
+                transferredVehicleId: transferredVehicleId,
+                saleDate: saleDate,
+                currentMileageKm: currentMileageKm,
+                planItemIdsJson: planItemIdsJson,
+                warrantyInstanceId: warrantyInstanceId,
+                status: status,
+                completedAt: completedAt,
+                updatedAt: updatedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<
+                    $HandoverReceiptRecordsTable,
+                    HandoverReceiptRecord
+                  >(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $HandoverReceiptRecordsTable,
+                    HandoverReceiptRecord
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$HandoverReceiptRecordsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $HandoverReceiptRecordsTable,
+      HandoverReceiptRecord,
+      $$HandoverReceiptRecordsTableFilterComposer,
+      $$HandoverReceiptRecordsTableOrderingComposer,
+      $$HandoverReceiptRecordsTableAnnotationComposer,
+      $$HandoverReceiptRecordsTableCreateCompanionBuilder,
+      $$HandoverReceiptRecordsTableUpdateCompanionBuilder,
+      (
+        HandoverReceiptRecord,
+        BaseReferences<
+          _$AppDatabase,
+          $HandoverReceiptRecordsTable,
+          HandoverReceiptRecord
+        >,
+      ),
+      HandoverReceiptRecord,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -19459,4 +21464,11 @@ class $AppDatabaseManager {
       );
   $$NoteRecordsTableTableManager get noteRecords =>
       $$NoteRecordsTableTableManager(_db, _db.noteRecords);
+  $$WarrantyRecordsTableTableManager get warrantyRecords =>
+      $$WarrantyRecordsTableTableManager(_db, _db.warrantyRecords);
+  $$HandoverReceiptRecordsTableTableManager get handoverReceiptRecords =>
+      $$HandoverReceiptRecordsTableTableManager(
+        _db,
+        _db.handoverReceiptRecords,
+      );
 }
