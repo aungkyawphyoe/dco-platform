@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
-import { auditEvents, documents, maintenanceCatalog, organizationMembers, organizationVehicles, organizations, partners, refreshTokens, transferredVehicles, users, vehicles, vehicleShares, vehicleShareInvitations, workshopMembers, driverAssignments } from "../db/schema.js";
+import { auditEvents, documents, maintenanceCatalog, ownershipMigrationReviews, planItems, serviceRecords, fuelLogs, expenses, parts, vehicleOwnershipPeriods, organizationMembers, organizationVehicles, organizations, partners, refreshTokens, transferredVehicles, users, vehicles, vehicleShares, vehicleShareInvitations, workshopMembers, driverAssignments, workOrders, inspections, mediaObjects } from "../db/schema.js";
 import { hashPassword, newId, randomToken, sha256 } from "../lib/crypto.js";
 import { AppError } from "../lib/errors.js";
 import { emailTokens } from "../db/schema.js";
@@ -774,36 +774,50 @@ export const adminPlugin: FastifyPluginAsync = async (app) => {
 
   const reconcileBody = z.object({
     transfer_id: uuid,
-    action: z.enum(["reconcile", "quarantine"]),
-    reviewer_note: z.string().trim().max(1000).optional(),
+    ownership_period_id: uuid,
+    records: z.array(z.object({
+      entity_type: z.enum(["plan_items", "service_records", "fuel_logs", "expenses", "documents", "parts", "work_orders", "inspections", "media_objects"]),
+      entity_id: uuid,
+    })).min(1).max(500),
+    evidence_note: z.string().trim().min(1).max(2000),
   });
 
   app.post("/admin/legacy-reconciliation/resolve", async (request) => {
     const body = reconcileBody.parse(request.body);
-    const [transfer] = await app.db
-      .select()
-      .from(transferredVehicles)
-      .where(eq(transferredVehicles.id, body.transfer_id))
-      .limit(1);
-
-    if (!transfer) throw new AppError(404, "transfer_not_found", "Transfer not found");
-    if (transfer.handoverId) throw new AppError(409, "handover_exists", "Transfer already has handover linkage");
-
-    const newStatus = body.action === "reconcile" ? "reconciled" : "quarantined";
-    await app.db
-      .update(transferredVehicles)
-      .set({
-        status: newStatus,
-      })
-      .where(eq(transferredVehicles.id, body.transfer_id));
-
-    await audit(app, request.authUser!.sub, "legacy.reconcile", {
-      transfer_id: body.transfer_id,
-      action: body.action,
-      reviewer_note: body.reviewer_note ? body.reviewer_note : null,
+    if (new Set(body.records.map((record) => `${record.entity_type}:${record.entity_id}`)).size !== body.records.length) {
+      throw new AppError(422, "duplicate_record", "A record may appear only once in a reconciliation batch");
+    }
+    return app.db.transaction(async (tx) => {
+      const [transfer] = await tx.select().from(transferredVehicles)
+        .where(eq(transferredVehicles.id, body.transfer_id)).for("update").limit(1);
+      if (!transfer) throw new AppError(404, "transfer_not_found", "Transfer not found");
+      if (transfer.handoverId) throw new AppError(409, "handover_exists", "Transfer already has handover linkage");
+      const [period] = await tx.select().from(vehicleOwnershipPeriods)
+        .where(and(eq(vehicleOwnershipPeriods.id, body.ownership_period_id), eq(vehicleOwnershipPeriods.vehicleId, transfer.vehicleId)))
+        .limit(1);
+      if (!period || (period.orgId !== transfer.orgId && period.userId !== transfer.buyerUserId)) {
+        throw new AppError(422, "invalid_ownership_period", "Choose an ownership period for this vehicle belonging to the transfer organization or buyer");
+      }
+      await tx.execute(sql`SELECT set_config('app.allow_ownership_reconciliation', 'on', true)`);
+      const tables = { plan_items: planItems, service_records: serviceRecords, fuel_logs: fuelLogs,
+        expenses, documents, parts, work_orders: workOrders, inspections, media_objects: mediaObjects };
+      for (const record of body.records) {
+        const table = tables[record.entity_type];
+        const [updated] = await tx.update(table).set({ ownershipPeriodId: period.id })
+          .where(and(eq(table.id, record.entity_id), eq(table.vehicleId, transfer.vehicleId), isNull(table.ownershipPeriodId)))
+          .returning({ id: table.id });
+        if (!updated) throw new AppError(409, "record_not_reconcilable", `Record ${record.entity_type}/${record.entity_id} is missing, already attributed, or belongs to another vehicle`);
+        await tx.update(ownershipMigrationReviews).set({ resolvedAt: new Date() })
+          .where(and(eq(ownershipMigrationReviews.entityType, record.entity_type), eq(ownershipMigrationReviews.entityId, record.entity_id)));
+      }
+      await tx.update(transferredVehicles).set({ status: "reconciled" }).where(eq(transferredVehicles.id, transfer.id));
+      await audit(app, request.authUser!.sub, "legacy.reconcile", {
+        transfer_id: transfer.id, vehicle_id: transfer.vehicleId, ownership_period_id: period.id,
+        records: body.records, evidence_note: body.evidence_note,
+      });
+      return { transfer_id: transfer.id, ownership_period_id: period.id, attributed_count: body.records.length, status: "reconciled" };
     });
-
-    const result = { transfer_id: body.transfer_id, status: newStatus };
-    return result;
   });
+
+
 }
