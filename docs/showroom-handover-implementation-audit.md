@@ -1,14 +1,20 @@
 # Showroom handover implementation audit
 
-Date: 11–12 November 2026. Investigation and local implementation progress; the complete handover is not yet implemented. Product contract: [approved handover plan](../product/frd/showroom-handover-plan.md).
+Date: 11–13 November 2026. This audit records incremental implementation evidence. See “Current status” for the consolidated state; historical pending lists describe only the point in time of their section. Product contract: [approved handover plan](../product/frd/showroom-handover-plan.md).
 
-## Delivered first increment
+## Current status (13 November 2026)
+
+**Implemented locally:** ownership-period isolation and retained showroom history; backend reviewed handover drafts, revision review and completion; Fleet Portal preparation, permission controls and QR scan; buyer vehicle/plan/warranty/receipt sync and mobile presentation; transfer-count exemption; delivery retry; platform-admin correction; and legacy transfer review endpoints. Migration 0042 and the documented fresh-database rehearsal are present in the commit history. Automated checks are documented per increment and are not a substitute for deployed acceptance testing.
+
+**Still incomplete or unverified:** late-write acceptance does not apply submitted records; the legacy “reconciliation” actions change transfer status rather than backfilling ownership attribution; manual browser/device smoke test, production/staging rollout, load testing, and security review are not evidenced as completed. The implementation changes should not be described as a fully production-validated workflow until these are addressed.
+
+## Delivered first increment (historical status)
 
 - Inventory status badges/counts/filters remain; inline mutation controls, bulk status UI, its unused hook, and unused selection checkboxes are removed.
 - Vehicle Detail uses `fleet-portal/src/components/vehicles/vehicle-status.tsx`: readable lifecycle explanations, allowed-next-state selection, explicit Save, loading/success/error states, and no manual Sold action.
 - `backend/src/modules/fleet.ts` status PATCH accepts optional `expected_status`, serializes updates under vehicle then organization-link locks, rejects stale state with 409, rejects Sold with `handover_required`, and writes its change event transactionally.
 - OpenAPI and Fleet Portal generated types reflect the status contract.
-- The old immediate-transfer endpoint still exists. These status safeguards do not make that endpoint satisfy the new handover contract.
+- At this increment the old immediate-transfer endpoint still existed. Later, the reviewed handover backend retired it with `410 handover_required` (see fifth increment).
 
 ## Record and access inventory
 
@@ -220,8 +226,8 @@ Implemented locally on 12 November 2026:
 - Flow:
   1. Showroom submits record with reason → creates pending review
   2. Buyer/platform admin reviews via Fleet Portal
-  3. Accepted reviews are applied (stub handler; full implementation defers to existing record handlers)
-  4. Rejected reviews are closed with reviewer note
+  3. Resolution currently records `accepted` or `rejected` and reviewer metadata only. `applyLateWriteReview` returns placeholder success values; it does not write the submitted service, expense, fuel, document, plan, part, or fuel-type data.
+  4. Therefore acceptance is not a completed late-write workflow and must not be represented as applying a record.
 - Review data stored in existing `organization_reviews` table (reused from org admin review flow)
 
 ### Tenth-increment validation
@@ -280,7 +286,7 @@ Performed locally on 12 November 2026:
 - Check constraints on status, warranty_choice, reviewed_revision
 - Foreign keys properly reference organizations, users, vehicles, warranty_templates
 
-### Still pending
+### Still pending (at that increment)
 - Browser/device end-to-end verification (smoke test with disposable showroom vehicle and personal account)
 
 ## Thirteenth increment — end-to-end verification plan
@@ -430,7 +436,7 @@ Since automated CI/CD pipeline and staging environment are not available in this
 1. As showroom: submit service record for transferred vehicle via `POST /organizations/:id/late-write-reviews`
 2. Verify: Review created in "pending" state
 3. As admin: resolve review via `POST /organizations/:id/late-write-reviews/:id/resolve` with `action: "accept"`
-4. Verify: Record applied (stub handler)
+4. Verify: Review status changes only; record application is not implemented (this step is a known gap, not a passing acceptance case).
 
 ---
 
@@ -465,13 +471,13 @@ Since automated CI/CD pipeline and staging environment are not available in this
 ### Go/No-Go Criteria for Production
 | Criterion | Status |
 |-----------|--------|
-| All automated tests pass | ✅ (170 backend, 563 mobile, Fleet build) |
-| Migration rehearsal clean | ✅ (69 tables, 42 migrations) |
+| Automated checks | Historical per-increment results are listed above; the mobile suite had 2 unrelated failures at the time recorded. Re-run current suites before release. |
+| Fresh-database migration rehearsal | Reported as passed locally for migrations 0000–0042; not a staging/production rehearsal. |
 | Manual smoke test (this plan) | ⏳ Requires staging deployment |
 | Load/stress test | ⏳ Not performed |
 | Security audit | ⏳ Not performed |
-| Rollback procedure documented | ✅ (migrations are additive; image rollback) |
+| Rollback readiness | Not verified; additive migrations alone do not establish a tested rollback procedure. |
 
 ---
 
-**Next step:** Deploy to Azure staging environment (`dco-env-24739-staging`) and execute Test Cases 1–12 above with real devices and accounts.
+**Next step:** After completing the late-write and attribution gaps, arrange an authorized staging deployment and execute the manual browser/device smoke cases. The hostnames and environment identifiers above are examples from the earlier plan, not verified active endpoints.

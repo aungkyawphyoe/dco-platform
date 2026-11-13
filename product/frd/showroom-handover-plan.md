@@ -10,7 +10,9 @@ A buyer receives a vehicle in their personal garage with clean service and expen
 
 ## Current implementation and gap
 
-Inspection on 10 November found an immediate transfer endpoint in `backend/src/modules/fleet-operations.ts`. The reviewed handover backend now replaces it locally: the immediate route returns `410 handover_required`, and `backend/src/modules/handover.ts` implements drafts, buyer lookup, revision-bound review, delegated completion permission, atomic idempotent completion, independent plan copies, and frozen warranty evidence. Fleet Portal now provides buyer lookup by exact email or account ID/QR value, draft plan and warranty preparation, blocking-issue review, revision-bound review, permission-aware completion, cancellation, and manager permission controls. QR camera scanning, buyer receipt presentation, personal/driver mobile presentation, platform-admin correction, delivery retry, and live rollout remain pending.
+The former immediate transfer route now returns `410 handover_required`. The reviewed handover flow supports buyer lookup, draft preparation, revision-bound review, delegated completion permission, atomic completion, independent buyer plan records, frozen warranty evidence, retryable buyer delivery, buyer receipt/mobile presentation, QR scanning, and platform-admin correction. Ownership-period filters preserve showroom history and keep it out of buyer records. The backend and mobile enforce the approved transfer vehicle-count exemption.
+
+Two related support paths remain incomplete: late-write review resolution records a decision but does not apply the submitted record, and legacy reconciliation currently labels records reconciled/quarantined without backfilling ownership attribution. Automated tests and a fresh local migration rehearsal are recorded in the audit; staging deployment and manual device/browser acceptance have not been verified.
 
 ## Approved product rules
 
@@ -138,18 +140,16 @@ Do not implement correction as a blind user_id reversal. Preserve buyer-created 
 
 ## Implementation sequence
 
-Status controls were delivered as an independent first increment. Phase 0 investigation is recorded in [the implementation audit](../../docs/showroom-handover-implementation-audit.md); ownership attribution and core access filters are implemented locally; legacy reconciliation and the complete handover remain pending.
+Status controls, ownership periods, and the reviewed handover flow are implemented locally. The current phase table summarizes remaining verification and corrective work; detailed historical increments and evidence are in the [implementation audit](../../docs/showroom-handover-implementation-audit.md).
 
-| Phase | Work and affected areas | Exit criterion |
+| Phase | Current state | Remaining exit work |
 |---|---|---|
-| 0. Inventory and contract | Inspect schema, fleet operations, owner/driver routes, media, sync, analytics tenure, warranty, maintenance calculators, and legacy transfers. Specify field allowlist, ownership-period schema, correction behavior, and endpoint/error contracts. | Reviewed mapping of every linked record and access path; unresolved policies below resolved |
-| 1. Schema and migration (in progress) | Ownership-period ledger and new-record attribution implemented in migration 0040; legacy attribution flagged for review. Still add draft/revision/uniqueness, delegated permission, frozen warranty/plan evidence, and reliable delivery events. Backfill only from evidence. | Repeatable migration, reconciliation report, and ambiguous-row isolation without deletion |
-| 2. Authorization and isolation (in progress) | Core record APIs, totals, reminders, media, and sync now filter by ownership period; Fleet Admin has read-only attributed historical records. Complete the remaining transfer/workshop/late-review paths and apply ownership-period checks to direct reads/writes, joins, totals, exports, media, workshop access, and sync; close stale assignments/shares as applicable. | Cross-period access tests pass before exposing the new handover flow |
-| 3. Handover service | Implement draft, recipient lookup, cancel, review, atomic complete, work-order cancellation reason, idempotency, and legacy-route protection. Implemented locally in the backend and Fleet Portal. | Failure and concurrency tests prove all-or-nothing behavior |
-| 4. Portal and personal mobile | Vehicle status changes on detail with lifecycle explanations, portal draft/review/finalize UI, and member permission controls are implemented locally. Still pending: QR camera scanning, personal account QR, buyer receipt presentation, mobile first/incremental sync presentation, and driver revocation/late-write behavior. | Existing buyer can receive and maintain vehicle with clean history on first and incremental sync |
-| 5. Support correction and rollout | Audited platform-admin correction, delivery retries, migration rehearsal, end-to-end tests and updated user instructions. | Complete safety/acceptance matrix passes; enable only after backend and client compatibility are ready |
-
-Proposed API operations are create/read/update/cancel draft, resolve buyer, review a revision, complete idempotently, and platform-admin correction. Select exact paths in phase 0 and update `architecture/openapi.yaml` plus generated clients with implementation; do not advertise proposed paths as available now.
+| 0. Inventory and contract | Product decisions recorded; implementation mapped in audit | Resolve remaining late-write and legacy-attribution semantics; no unresolved buyer-acceptance decision |
+| 1. Schema and migration | Ownership ledger, handover records, correction metadata, and migration 0042 implemented; fresh local migration rehearsal reported | Evidence-based legacy attribution backfill; validate operational migration procedure in target environment |
+| 2. Authorization and isolation | Core direct APIs, media, sync, reminders, historical showroom read, and buyer period isolation implemented | Verify edge cases and role boundaries in deployed environment; late-write path must not bypass period controls |
+| 3. Handover service | Draft, buyer lookup, review, delegated completion, atomic completion, retry, correction implemented | Complete late-write application and actual legacy attribution reconciliation; verify with integration scenarios |
+| 4. Portal and personal mobile | Portal preparation/review, QR scanner, buyer sync/receipt, plan state, and exemption implemented | Browser/device smoke test for the full first and incremental sync journey |
+| 5. Release readiness | Local automated checks and migration rehearsal are documented | Staging deployment, manual acceptance, load/security review, and tested rollback procedure |
 
 ## Acceptance checks
 
@@ -166,7 +166,7 @@ Proposed API operations are create/read/update/cancel draft, resolve buyer, revi
 
 ## Policies to resolve during phase 0
 
-These are implementation prerequisites, not reasons to reopen agreed product choices:
+These are remaining technical decisions or verification items, not reasons to reopen agreed product choices:
 
 - **Resolved 11 November:** Preserve the showroom-transfer vehicle-count exemption. Apply it consistently in backend counting and mobile offline gating; do not silently charge or upgrade the buyer. Backend allowance counting excludes audited transfers to the buyer; personal sync now supplies `transfer_limit_exempt` and mobile offline gating consumes it.
 - Decide draft expiration, account QR lifetime/rotation, and buyer receipt channel using current capabilities. Buyer acceptance remains unnecessary.
@@ -177,4 +177,4 @@ These are implementation prerequisites, not reasons to reopen agreed product cho
 
 Related contracts: [Fleet Management](fleet-management.md), [Maintenance](maintenance.md), [Fleet maintenance](fleet-maintenance-templates.md), [Sync](sync.md), [IAM](../../architecture/iam.md), [Data model](../../architecture/data-model.md), and [API index](../../architecture/api.md).
 
-This plan records approved future behavior. Existing endpoint/schema documentation remains an implementation baseline where explicitly identified. Update OpenAPI, generated clients, schema diagrams, and user instructions alongside delivery; do not describe the planned handover as shipped.
+This plan records approved behavior and the current implementation state. OpenAPI and generated clients were updated with delivery. Do not present local implementation or a fresh-database rehearsal as deployed production readiness.
