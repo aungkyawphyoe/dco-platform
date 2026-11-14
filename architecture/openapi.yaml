@@ -6956,6 +6956,12 @@ components:
         kind:
           type: string
           enum: [refuel, charge]
+        battery_level:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Battery percentage after charging. Unknown for historical records; ignored for liquid refueling.
         fill_status:
           type: string
           enum: [full, partial, unknown]
@@ -6992,6 +6998,12 @@ components:
         id:
           type: string
           format: uuid
+        battery_level:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Battery percentage after charging. Unknown for historical records; ignored for liquid refueling.
         fill_status:
           type: string
           enum: [full, partial, unknown]
@@ -7019,6 +7031,12 @@ components:
           allOf:
             - $ref: '#/components/schemas/OperationalCurrency'
           description: Required with monetary entries after rollout activation. Historical edits retain their original currency.
+        battery_level:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Battery percentage after charging. Unknown for historical records; ignored for liquid refueling.
         fill_status:
           type: string
           enum: [full, partial, unknown]

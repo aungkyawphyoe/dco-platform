@@ -1458,6 +1458,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fuelLogFormCost => 'Cost *';
 
   @override
+  String get fuelBatteryLevel => 'Battery level after charging *';
+
+  @override
+  String get fuelBatteryLevelError => 'Enter a battery level from 0 to 100';
+
+  @override
   String get fuelLogFormOdometer => 'Odometer';
 
   @override

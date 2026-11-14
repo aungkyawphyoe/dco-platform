@@ -107,6 +107,12 @@ class FuelLogDetailScreen extends ConsumerWidget {
                 ).textTheme.bodyMedium?.copyWith(color: tokens.text.secondary),
               ),
               SizedBox(height: tokens.space.s5),
+              if (log.batteryLevel != null)
+                _kv(
+                  context,
+                  s.fuelBatteryLevel.replaceAll(' *', ''),
+                  '${log.batteryLevel}%',
+                ),
               if (log.odometer != null)
                 _kv(
                   context,

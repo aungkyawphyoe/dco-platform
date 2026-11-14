@@ -1480,6 +1480,12 @@ class AppLocalizationsMy extends AppLocalizations {
   String get fuelLogFormCost => 'ကျသင့်ငွေ *';
 
   @override
+  String get fuelBatteryLevel => 'အားသွင်းပြီး ဘက်ထရီပမာဏ *';
+
+  @override
+  String get fuelBatteryLevelError => 'ဘက်ထရီပမာဏ 0 မှ 100 အတွင်း ထည့်ပါ';
+
+  @override
   String get fuelLogFormOdometer => 'အကွာအဝေးတိုင်းစက်';
 
   @override

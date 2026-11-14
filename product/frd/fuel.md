@@ -4,7 +4,11 @@
 
 Fuel is per-vehicle **refuel** and **charge** logging, plus an account **Fuel Types** catalog. Petrol and hybrid plugin vehicles use the Refuel form. Electric vehicles use the Charge form. This is not a fuel *expense* (money-only category) and it is not an efficiency / MPG module.
 
-Source of truth for scope: `product/mvp-scope.md`. Shape reference: Autozis `https://autozis.com/app/refuel` and Catalog → Fuel Types. Do not copy Autozis extras (partial/full tank, cost-per-unit, OCR, bulk edit). Odometer is now an **optional** field on the log (contract change from `stats.md`); economy/consumption KPIs are computed and displayed only in `stats.md`, never here.
+Source of truth: `product/production-scope.md`.
+
+**14 November 2026 update:** Add/Edit Refuel requires an odometer reading and shows the current recorded mileage beneath it. Charge also requires battery percentage after charging (0–100). Historical missing readings remain unknown. Fuel selection uses stored catalog IDs; default types use account-scoped UUID v5 IDs shared by mobile and server. The form does not create types or expose a Fuel Types toolbar action. Liquid fill status remains available.
+
+Liquid defaults: 95 Octane gasoline (petrol), 92 Octane gasoline (petrol), Diesel, Premium Diesel, CNG, LPG. Electric defaults: Electric (Fast), Electric (Slow). Existing Petrol and Electricity/Electric history is renamed to 95 Octane gasoline (petrol) and Electric (Fast), retaining record IDs and pending changes.
 
 **As built (28 Aug 2026): Done.** `petrol` / `hybrid_plugin` → Refuel only; `electric` → Charge. Status index: `product/frd/README.md`.
 
@@ -26,13 +30,13 @@ Source of truth for scope: `product/mvp-scope.md`. Shape reference: Autozis `htt
 - Refuel form (liquid types, amount in L or gal)
 - Charge form (electric types, amount in kWh)
 - Fuel Types catalog: add / edit name, kind (liquid / electric), unit
-- Default catalog when empty: Petrol, Diesel, Electricity
-- Optional **odometer** on the log form (add + edit) in the vehicle's `mileage_unit` — feeds `stats.md`; see that FRD for validation and mileage-bump rules
+- Seed missing default catalog entries using stable IDs; retain existing selections.
+- Required **odometer** on the log form (add + edit) in the vehicle's `mileage_unit` — feeds `stats.md`; see that FRD for validation and mileage-bump rules
 
 # Out of Scope
 
 - Displaying efficiency / MPG / kWh-per-distance KPIs here (they live in `stats.md`)
-- Required odometer, full vs partial tank, cost per litre/kWh
+- Cost per litre/kWh
 - Receipt OCR
 - Auto-creating an expense from a fuel log
 - Mixing fuel logs into Dashboard Recent Activity

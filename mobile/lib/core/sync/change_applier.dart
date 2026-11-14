@@ -577,6 +577,11 @@ class ChangeApplier {
                 fallback: existing?.fillStatus ?? 'unknown',
               ),
             ),
+            batteryLevel: Value(
+              payload.containsKey('battery_level')
+                  ? (payload['battery_level'] as num?)?.toInt()
+                  : existing?.batteryLevel,
+            ),
             fuelTypeId: _str(payload['fuel_type_id'], fallback: ''),
             fuelTypeName: _str(payload['fuel_type_name']),
             unit: _str(payload['unit'], fallback: 'L'),

@@ -56,9 +56,18 @@ void main() {
     await fuel.ensureDefaultFuelTypes('user-1');
 
     final types = await fuel.watchFuelTypes('user-1').first;
-    expect(types.map((type) => type.name), containsAll(['Petrol', 'Diesel', 'Electricity']));
-    expect(types.where((type) => type.kind == FuelCatalogKind.liquid), hasLength(2));
-    expect(types.where((type) => type.kind == FuelCatalogKind.electric), hasLength(1));
+    expect(types.map((type) => type.name), containsAll(['95 Octane gasoline (petrol)', '92 Octane gasoline (petrol)', 'Diesel', 'Premium Diesel', 'CNG', 'LPG', 'Electric (Fast)', 'Electric (Slow)']));
+    expect(types.where((type) => type.kind == FuelCatalogKind.liquid), hasLength(6));
+    expect(types.where((type) => type.kind == FuelCatalogKind.electric), hasLength(2));
+  });
+
+  test('defaults have server-compatible IDs and concurrent seeding is safe', () async {
+    const user = '10000000-0000-0000-0000-000000000001';
+    await Future.wait([fuel.ensureDefaultFuelTypes(user), fuel.ensureDefaultFuelTypes(user)]);
+    final types = await fuel.watchFuelTypes(user).first;
+    expect(types, hasLength(8));
+    expect(types.firstWhere((type) => type.name == 'Electric (Fast)').id,
+      '30414785-9519-5e35-8ad8-671d7375fce3');
   });
 
   test('duplicate fuel type name on the same account is rejected', () async {
@@ -79,7 +88,7 @@ void main() {
     final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
     await fuel.ensureDefaultFuelTypes('user-1');
     final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
-        .firstWhere((type) => type.name == 'Petrol');
+        .firstWhere((type) => type.name == '95 Octane gasoline (petrol)');
 
     final log = await fuel.addLog(
       userId: 'user-1',
@@ -95,7 +104,7 @@ void main() {
     );
 
     expect(log.kind, FuelLogKind.refuel);
-    expect(log.fuelTypeName, 'Petrol');
+    expect(log.fuelTypeName, '95 Octane gasoline (petrol)');
     expect(log.unit, 'L');
     expect(log.amount, 40);
     expect(log.cost, 52.5);
@@ -110,7 +119,7 @@ void main() {
   test('electric vehicles log charge against electric types', () async {
     final vehicle = await vehicles.add(userId: 'user-1', draft: _evDraft());
     await fuel.ensureDefaultFuelTypes('user-1');
-    final electricity = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.electric).first).single;
+    final electricity = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.electric).first).first;
 
     final log = await fuel.addLog(
       userId: 'user-1',
@@ -121,11 +130,14 @@ void main() {
         fuelTypeId: electricity.id,
         amount: 32,
         cost: 8,
+        batteryLevel: 85,
       ),
     );
 
     expect(log.kind, FuelLogKind.charge);
     expect(log.unit, 'kWh');
+    expect((await fuel.getLog(log.id))!.batteryLevel, 85);
+    expect(log.toWriteJson()['battery_level'], 85);
     expect(FuelLogKind.forVehicleFuelType(vehicle.fuelType.storage), FuelLogKind.charge);
 
     final logs = await fuel.watchLogs(vehicleId: vehicle.id, kind: FuelLogKind.charge).first;
@@ -137,7 +149,7 @@ void main() {
   test('refuel cannot use an electric catalog type', () async {
     final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
     await fuel.ensureDefaultFuelTypes('user-1');
-    final electricity = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.electric).first).single;
+    final electricity = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.electric).first).first;
 
     expect(
       () => fuel.addLog(
@@ -159,7 +171,7 @@ void main() {
     final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
     await fuel.ensureDefaultFuelTypes('user-1');
     final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
-        .firstWhere((type) => type.name == 'Petrol');
+        .firstWhere((type) => type.name == '95 Octane gasoline (petrol)');
     final log = await fuel.addLog(
       userId: 'user-1',
       vehicleId: vehicle.id,
@@ -194,7 +206,7 @@ void main() {
     final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
     await fuel.ensureDefaultFuelTypes('user-1');
     final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
-        .firstWhere((type) => type.name == 'Petrol');
+        .firstWhere((type) => type.name == '95 Octane gasoline (petrol)');
 
     final log = await fuel.addLog(
       userId: 'user-1',
@@ -222,7 +234,7 @@ void main() {
     final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
     await fuel.ensureDefaultFuelTypes('user-1');
     final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
-        .firstWhere((type) => type.name == 'Petrol');
+        .firstWhere((type) => type.name == '95 Octane gasoline (petrol)');
 
     final log = await fuel.addLog(
       userId: 'user-1',
@@ -246,7 +258,7 @@ void main() {
     final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
     await fuel.ensureDefaultFuelTypes('user-1');
     final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
-        .firstWhere((type) => type.name == 'Petrol');
+        .firstWhere((type) => type.name == '95 Octane gasoline (petrol)');
 
     await expectLater(
       fuel.addLog(
@@ -278,7 +290,7 @@ void main() {
     final vehicle = await vehicles.add(userId: 'user-1', draft: _petrolDraft());
     await fuel.ensureDefaultFuelTypes('user-1');
     final petrol = (await fuel.watchFuelTypes('user-1', kind: FuelCatalogKind.liquid).first)
-        .firstWhere((type) => type.name == 'Petrol');
+        .firstWhere((type) => type.name == '95 Octane gasoline (petrol)');
     final log = await fuel.addLog(
       userId: 'user-1',
       vehicleId: vehicle.id,

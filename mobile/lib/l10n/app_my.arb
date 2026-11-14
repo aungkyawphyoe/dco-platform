@@ -443,6 +443,8 @@
   "fuelLogFormSelect": "ရွေးချယ်ရန်",
   "fuelLogFormAmount": "ပမာဏ *",
   "fuelLogFormCost": "ကျသင့်ငွေ *",
+  "fuelBatteryLevel": "အားသွင်းပြီး ဘက်ထရီပမာဏ *",
+  "fuelBatteryLevelError": "ဘက်ထရီပမာဏ 0 မှ 100 အတွင်း ထည့်ပါ",
   "fuelLogFormOdometer": "အကွာအဝေးတိုင်းစက်",
   "fuelLogFormOdometerHint": "မဖြည့်လည်းရသည်",
   "fuelTypesTitle": "လောင်စာဆီ အမျိုးအစားများ",

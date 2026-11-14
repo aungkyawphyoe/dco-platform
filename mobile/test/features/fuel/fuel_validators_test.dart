@@ -22,9 +22,9 @@ void main() {
     expect(FuelLogValidators.date(DateTime(2026, 8, 20), now: now), isNull);
   });
 
-  test('odometer is optional but validated when present', () {
-    expect(FuelLogValidators.odometer(''), isNull);
-    expect(FuelLogValidators.odometer('  '), isNull);
+  test('odometer is required and validated', () {
+    expect(FuelLogValidators.odometer(''), 'Odometer is required');
+    expect(FuelLogValidators.odometer('  '), 'Odometer is required');
     expect(FuelLogValidators.odometer('12345'), isNull);
     expect(FuelLogValidators.odometer('12,345'), isNull);
     expect(FuelLogValidators.odometer('abc'), 'Enter a valid odometer');
@@ -42,8 +42,8 @@ void main() {
     );
     expect(FuelLogValidators.odometer('100', vehicleMileage: 100), isNull);
     expect(FuelLogValidators.odometer('101', vehicleMileage: 100), isNull);
-    // Mileage does not apply to blank input.
-    expect(FuelLogValidators.odometer('', vehicleMileage: 100), isNull);
+    // A reading is required even when current mileage is known.
+    expect(FuelLogValidators.odometer('', vehicleMileage: 100), 'Odometer is required');
   });
 
   test('parseOdometer returns null for blank input', () {

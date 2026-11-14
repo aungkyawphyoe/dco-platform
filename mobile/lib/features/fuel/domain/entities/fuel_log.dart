@@ -54,6 +54,7 @@ class FuelLog {
     required this.updatedAt,
     required this.createdAt,
     this.odometer,
+    this.batteryLevel,
     this.fillStatus = 'unknown',
   });
 
@@ -72,6 +73,7 @@ class FuelLog {
 
   /// Optional reading in storage units (miles). Feeds `stats.md` distance KPIs.
   final double? odometer;
+  final int? batteryLevel;
   final DateTime updatedAt;
   final DateTime createdAt;
 
@@ -95,6 +97,7 @@ class FuelLog {
     'cost': cost,
     'fill_status': fillStatus,
     'odometer': odometer,
+    'battery_level': batteryLevel,
   };
 }
 
@@ -106,6 +109,7 @@ class FuelLogDraft {
     required this.amount,
     required this.cost,
     this.odometer,
+    this.batteryLevel,
     this.fillStatus = 'unknown',
   });
 
@@ -117,4 +121,5 @@ class FuelLogDraft {
   final double cost;
   final String fillStatus;
   final double? odometer;
+  final int? batteryLevel;
 }

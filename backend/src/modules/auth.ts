@@ -6,7 +6,7 @@ import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync } from "fastify";
 import { z } from "zod";
 import { emailTokens, fuelTypes, organizationMembers, organizations, partners, refreshTokens, users, workshopMembers } from "../db/schema.js";
-import { DEFAULT_FUEL_TYPES } from "../lib/catalog.js";
+import { DEFAULT_FUEL_TYPES, defaultFuelTypeId } from "../lib/catalog.js";
 import {
   hashPassword,
   newId,
@@ -71,7 +71,7 @@ export const authPlugin: FastifyPluginAsync = async (app) => {
     });
     for (const ft of DEFAULT_FUEL_TYPES) {
       await app.db.insert(fuelTypes).values({
-        id: newId(),
+        id: defaultFuelTypeId(id, ft.name),
         userId: id,
         name: ft.name,
         kind: ft.kind,

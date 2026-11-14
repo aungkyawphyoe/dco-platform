@@ -119,3 +119,7 @@ Settings → Help provides localized, offline answers for login, vehicle setup, 
 ## More navigation hub — approved 5 November 2026
 
 The Settings tab becomes More, with Management (Shared Users, Fuel Types, Parts), Preferences (nested Settings), and Support & Information (Help, About). Customer info, subscriptions, and Sign Out remain; Account Connection moves into Profile and Parts leaves the drawer. Expense Types is deferred. Shared Users is a personal-owner overview grouped by person with vehicle-level management links, separate pending invitations, unchanged active-share quotas, cached offline reads, and an upgrade banner only when an available plan increases sharing capacity. About shows installed app version/build and the AutoX terms, privacy, and website links. See [app shell](../docs/app-shell.md#more-navigation-hub-5-november-2026).
+
+### Refuel catalog and form update — 14 November 2026
+
+Fuel defaults and historical Petrol/Electricity names follow `frd/fuel.md`. Mobile and server share deterministic account-scoped default IDs. Add/Edit Refuel requires odometer with current-reading guidance; charging also captures battery percentage (0–100). Historical missing values stay null. The form selects existing types and has no Fuel Types toolbar button.

@@ -2804,6 +2804,18 @@ abstract class AppLocalizations {
   /// **'Cost *'**
   String get fuelLogFormCost;
 
+  /// No description provided for @fuelBatteryLevel.
+  ///
+  /// In en, this message translates to:
+  /// **'Battery level after charging *'**
+  String get fuelBatteryLevel;
+
+  /// No description provided for @fuelBatteryLevelError.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a battery level from 0 to 100'**
+  String get fuelBatteryLevelError;
+
   /// No description provided for @fuelLogFormOdometer.
   ///
   /// In en, this message translates to:

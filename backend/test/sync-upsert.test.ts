@@ -69,12 +69,12 @@ describe("sync push upserts update existing rows", () => {
     const { app, token } = await setup();
     try {
       const catalog = await app.inject({url:"/v1/fuel-types",headers:auth(token)});
-      const canonical = catalog.json().items.find((item: {name:string}) => item.name === "Electricity").id;
+      const canonical = catalog.json().items.find((item: {name:string}) => item.name === "Electric (Fast)").id;
       const response = await app.inject({method:"POST",url:"/v1/sync/push",headers:auth(token),
-        payload:{operations:[op("fuel_type",uuid(),{name:"Electricity",kind:"electric",unit:"kWh"})]}});
+        payload:{operations:[op("fuel_type",uuid(),{name:"Electric (Fast)",kind:"electric",unit:"kWh"})]}});
       expect(response.statusCode).toBe(200);
       expect(response.json().results[0].error.error).toMatchObject({code:"name_taken",details:{
-        existing_fuel_type:{id:canonical,name:"Electricity",kind:"electric",unit:"kWh"}}});
+        existing_fuel_type:{id:canonical,name:"Electric (Fast)",kind:"electric",unit:"kWh"}}});
     } finally { await app.close(); }
   });
   it("retries older offline mileage without blocking other vehicle edits", async () => {
