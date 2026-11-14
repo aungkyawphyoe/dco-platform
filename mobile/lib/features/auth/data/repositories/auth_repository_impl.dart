@@ -28,22 +28,36 @@ class AuthRepositoryImpl implements AuthRepository {
       final session = await _remote.refresh(refreshToken: refresh);
       await _persist(session, generation);
       return session;
-    } on RateLimitedFailure {
-      // A temporary throttle is not a revoked session. Keep credentials for retry.
-      rethrow;
-    } on ServiceUnavailableFailure {
-      rethrow;
-    } on AuthFailure {
+    } on AuthFailure catch (failure) {
       if (_tokenStore.generation != generation) return null;
+      final rejected =
+          failure is InvalidCredentialsFailure ||
+          failure is SessionExpiredFailure ||
+          failure is ForbiddenFailure;
       final cached = await _tokenStore.readUserJson();
-      if (refresh.startsWith('mock_refresh_') && cached != null) {
-        final user = User.fromJson(jsonDecode(cached) as Map<String, dynamic>);
-        return Session(
-          accessToken: await _tokenStore.readAccessToken() ?? 'mock_access',
-          refreshToken: refresh,
-          user: user,
-        );
+      final access = await _tokenStore.readAccessToken();
+      if (_tokenStore.generation != generation) return null;
+      // Connectivity and server failures must not revoke offline access.
+      if ((!rejected || refresh.startsWith('mock_refresh_')) &&
+          cached != null &&
+          access != null &&
+          access.isNotEmpty) {
+        try {
+          final user = User.fromJson(
+            jsonDecode(cached) as Map<String, dynamic>,
+          );
+          return Session(
+            accessToken: access,
+            refreshToken: refresh,
+            user: user,
+          );
+        } on FormatException {
+          // Preserve credentials when the cached profile cannot be restored.
+        } on TypeError {
+          // An incomplete cached profile is not a usable offline session.
+        }
       }
+      if (!rejected) rethrow;
       if (_tokenStore.generation == generation) await _tokenStore.clear();
       return null;
     }

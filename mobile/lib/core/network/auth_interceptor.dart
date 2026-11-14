@@ -21,7 +21,15 @@ class AuthInterceptor extends Interceptor {
   final TokenStore _tokenStore;
   final RefreshTokens _refreshTokens;
   final Set<String> _skipAuthPaths;
-  bool _refreshing = false;
+  Future<({String accessToken, String refreshToken})?>? _refresh;
+
+  Future<({String accessToken, String refreshToken})?> _refreshOnce() async {
+    try {
+      return await _refreshTokens();
+    } finally {
+      _refresh = null;
+    }
+  }
 
   bool _shouldSkip(RequestOptions options) {
     final base = Uri.parse(options.baseUrl);
@@ -95,23 +103,34 @@ class AuthInterceptor extends Interceptor {
       handler.next(err);
       return;
     }
-    if (_refreshing) {
+    if (err.requestOptions.extra['auth_retried'] == true) {
       handler.next(err);
       return;
     }
-    _refreshing = true;
     try {
-      final pair = await _refreshTokens();
+      final request = err.requestOptions;
+      final currentAccess = await _tokenStore.readAccessToken();
+      if (_stale(request)) {
+        handler.next(_accountChanged(request));
+        return;
+      }
+      // A concurrent request may already have rotated the rejected token.
+      var access = currentAccess;
+      if (access == null ||
+          request.headers['Authorization'] == 'Bearer $access') {
+        final pair = await (_refresh ??= _refreshOnce());
+        access = pair?.accessToken;
+      }
       if (_stale(err.requestOptions)) {
         handler.next(_accountChanged(err.requestOptions));
         return;
       }
-      if (pair == null) {
+      if (access == null) {
         handler.next(err);
         return;
       }
-      final request = err.requestOptions;
-      request.headers['Authorization'] = 'Bearer ${pair.accessToken}';
+      request.extra['auth_retried'] = true;
+      request.headers['Authorization'] = 'Bearer $access';
       final dio = err.requestOptions.extra['dio'] as Dio?;
       if (dio == null) {
         handler.next(err);
@@ -123,8 +142,6 @@ class AuthInterceptor extends Interceptor {
       handler.next(refreshError);
     } catch (_) {
       handler.next(err);
-    } finally {
-      _refreshing = false;
     }
   }
 }
