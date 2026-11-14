@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:dco_mobile/core/media/attachment_image_compressor.dart';
 import 'package:dco_mobile/core/media/draft_attachment_files.dart';
-import 'package:dco_mobile/core/currency/currency_store.dart';
 
 import 'package:dco_mobile/core/analytics/analytics.dart';
 import 'package:dco_mobile/core/providers.dart';
@@ -149,6 +148,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
     _draftFiles.beginSave();
     try {
       final repo = ref.read(expenseRepositoryProvider);
+      Expense? created;
       if (widget.isEditing) {
         await repo.update(
           userId: currentUserId,
@@ -160,7 +160,7 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
           ref.read(analyticsProvider).track(AnalyticsEvent.expenseUpdated);
         }
       } else {
-        await repo.add(
+        created = await repo.add(
           userId: currentUserId,
           vehicleId: vehicle.id,
           draft: draft,
@@ -170,7 +170,13 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
           ref.read(analyticsProvider).track(AnalyticsEvent.expenseAdded);
         }
       }
-      if (mounted) context.pop();
+      if (mounted) {
+        if (created == null) {
+          context.pop();
+        } else {
+          context.pushReplacement(AppRoutes.expenseSuccess, extra: created);
+        }
+      }
     } on ExpenseFailure catch (failure) {
       if (mounted) setState(() => _formError = failure.message);
     } finally {
@@ -322,7 +328,6 @@ class _ExpenseFormScreenState extends ConsumerState<ExpenseFormScreen> {
   Future<void> _chooseReceiptSource() async {
     if (_processing || _saving) return;
     final tokens = context.tokens;
-    final s = AppLocalizations.of(context)!;
     await showModalBottomSheet<void>(
       context: context,
       backgroundColor: tokens.background.card,

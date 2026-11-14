@@ -138,7 +138,15 @@ async function applyOp(app: FastifyInstance, auth: string, op: Op): Promise<"app
   if (op.entity_type === "vehicle" && op.op === "upsert") {
     const existing = await call("GET", `/vehicles/${op.entity_id}`);
     if (existing.statusCode === 200) {
-      const res = await call("PATCH", `/vehicles/${op.entity_id}`, op.payload);
+      const changes = { ...op.payload };
+      const currentMileage = existing.json().mileage;
+      // Offline records can advance mileage before an older queued vehicle edit.
+      // Preserve max(local, remote), while still applying the other edited fields.
+      if (typeof changes.mileage === "number" && changes.mileage >= 0 &&
+          typeof currentMileage === "number" && changes.mileage < currentMileage) {
+        delete changes.mileage;
+      }
+      const res = await call("PATCH", `/vehicles/${op.entity_id}`, changes);
       return finish(res);
     }
     const res = await call("POST", "/vehicles", payload);

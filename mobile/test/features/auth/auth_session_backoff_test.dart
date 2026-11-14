@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:dco_mobile/core/storage/memory_token_store.dart';
 import 'package:dco_mobile/features/auth/data/datasources/mock_auth_remote_datasource.dart';
 import 'package:dco_mobile/features/auth/data/datasources/auth_remote_datasource.dart';
@@ -27,6 +28,16 @@ class DelayedRefresh extends MockAuthRemoteDataSource {
 }
 
 void main() {
+  const user = User(
+    id: 'owner',
+    email: 'owner@test.local',
+    username: 'owner',
+    role: 'owner',
+    plan: 'free',
+    status: 'active',
+    emailVerified: true,
+    mustChangePassword: false,
+  );
   test('temporary HTTP failures map to retryable auth failures', () {
     expect(mapStatusToAuthFailure(429, 'Wait'), isA<RateLimitedFailure>());
     expect(
@@ -80,6 +91,68 @@ void main() {
     expect(await repository.restoreSession(), isNull);
     expect(await tokens.readRefreshToken(), isNull);
   });
+  for (final failure in <AuthFailure>[
+    const NetworkAuthFailure(),
+    const RateLimitedFailure(),
+    const ServiceUnavailableFailure(),
+    const UnknownAuthFailure(),
+  ]) {
+    test(
+      '${failure.code} restores cached session across offline restarts',
+      () async {
+        await tokens.writeSession(
+          accessToken: 'expired-access',
+          refreshToken: 'refresh',
+          userJson: jsonEncode(user.toJson()),
+        );
+        for (var restart = 0; restart < 2; restart++) {
+          final repository = AuthRepositoryImpl(
+            remote: FailingRefresh(failure),
+            tokenStore: tokens,
+          );
+          final session = await repository.restoreSession();
+          expect(session?.user.id, user.id);
+          expect(session?.accessToken, 'expired-access');
+          expect(await tokens.readRefreshToken(), 'refresh');
+        }
+        final remote = DelayedRefresh();
+        final restored = AuthRepositoryImpl(
+          remote: remote,
+          tokenStore: tokens,
+        ).restoreSession();
+        await remote.entered.future;
+        remote.response.complete(
+          const Session(
+            accessToken: 'renewed-access',
+            refreshToken: 'rotated-refresh',
+            user: user,
+          ),
+        );
+        expect((await restored)?.accessToken, 'renewed-access');
+        expect(await tokens.readRefreshToken(), 'rotated-refresh');
+      },
+    );
+  }
+
+  for (final failure in <AuthFailure>[
+    const InvalidCredentialsFailure(),
+    const SessionExpiredFailure(),
+    const ForbiddenFailure(),
+  ]) {
+    test('${failure.code} rejects even a complete cached session', () async {
+      await tokens.writeSession(
+        accessToken: 'access',
+        refreshToken: 'refresh',
+        userJson: jsonEncode(user.toJson()),
+      );
+      final repository = AuthRepositoryImpl(
+        remote: FailingRefresh(failure),
+        tokenStore: tokens,
+      );
+      expect(await repository.restoreSession(), isNull);
+      expect(await tokens.readUserJson(), isNull);
+    });
+  }
   for (final fails in [false, true]) {
     test(
       'late refresh fails=$fails cannot overwrite or clear a newer account',

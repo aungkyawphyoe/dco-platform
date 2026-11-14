@@ -65,6 +65,28 @@ function op(
 const ok = (status: string) => status === "applied" || status === "idempotent";
 
 describe("sync push upserts update existing rows", () => {
+  it("retries older offline mileage without blocking other vehicle edits", async () => {
+    const { app, token, vehicleId } = await setup();
+    try {
+      const service = await push(app, token, [op("service_record", uuid(), {
+        vehicle_id: vehicleId, serviced_on: "2026-08-01", odometer: 7000,
+        total_cost: 100, items: [{ name: "Oil", line_cost: 100 }], parts: [],
+      })]);
+      expect(ok(service[0].status)).toBe(true);
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const result = await push(app, token, [op("vehicle", vehicleId, {
+          mileage: 6000, name: "Offline edit",
+        })]);
+        expect(ok(result[0].status)).toBe(true);
+      }
+      const vehicle = await app.inject({url: `/v1/vehicles/${vehicleId}`, headers: auth(token)});
+      expect(vehicle.json().mileage).toBe(7000);
+      expect(vehicle.json().name).toBe("Offline edit");
+      const direct = await app.inject({method: "PATCH", url: `/v1/vehicles/${vehicleId}`,
+        headers: auth(token), payload: {mileage: 6000}});
+      expect(direct.statusCode).toBe(409);
+    } finally { await app.close(); }
+  });
   it("creates then edits a service record (items included)", async () => {
     const { app, token, vehicleId } = await setup();
     const serviceId = uuid();

@@ -266,6 +266,32 @@ void main() {
     expect(engine.state.lastSyncedAt, isNotNull);
   });
 
+  test('offline mixed changes survive restart and drain on reconnect', () async {
+    for (final type in ['fuel_log', 'service_record', 'expense', 'vehicle']) {
+      await enqueue('u1', entityType: type, entityId: type);
+    }
+    api.pushHandler = (_) =>
+        throw const ApiError(code: 'network', message: 'offline');
+    await engine.syncNow(force: true);
+    expect(engine.state.phase, SyncPhase.error);
+    expect(await db.select(db.outboxEntries).get(), hasLength(4));
+    engine.dispose();
+    engine = SyncEngine(
+      db: db,
+      api: api,
+      mediaApi: mediaApi,
+      currentUser: () => 'u1',
+      autoSyncEnabled: () => true,
+      outbox: outbox,
+    );
+    await engine.syncNow(force: true);
+    expect(await db.select(db.outboxEntries).get(), hasLength(4));
+    api.pushHandler = null;
+    await engine.syncNow(force: true);
+    expect(engine.state.phase, SyncPhase.idle);
+    expect(await db.select(db.outboxEntries).get(), isEmpty);
+  });
+
   test(
     'only a completed pull confirms the account garage has loaded',
     () async {

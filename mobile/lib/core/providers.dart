@@ -200,6 +200,8 @@ final dioProvider = Provider<Dio>((ref) {
       final bare = Dio(
         BaseOptions(
           baseUrl: config.apiBaseUrl,
+          connectTimeout: const Duration(seconds: 15),
+          receiveTimeout: const Duration(seconds: 20),
           headers: const {
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -239,10 +241,6 @@ final dioProvider = Provider<Dio>((ref) {
           refreshToken: session.refreshToken,
         );
       } on DioException catch (error) {
-        if (error.response?.statusCode == 429 ||
-            error.response?.statusCode == 503) {
-          rethrow;
-        }
         if (error.response?.statusCode == 401 &&
             tokens.generation == generation &&
             await tokens.readRefreshToken() == refresh) {
@@ -268,7 +266,9 @@ final dioProvider = Provider<Dio>((ref) {
             );
           }
         }
-        return null;
+        rethrow;
+      } finally {
+        bare.close();
       }
     },
   );
