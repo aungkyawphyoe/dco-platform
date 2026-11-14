@@ -1020,8 +1020,11 @@ async function recordVehicleScopedChange(
     const [existing] = await db().select().from(fuelTypes).where(eq(fuelTypes.id, body.id)).limit(1);
     if (existing) { reply.code(201); return publicFuelType(existing); }
     const clash = await db().select().from(fuelTypes).where(eq(fuelTypes.userId, uid(request)));
-    if (clash.some((t) => t.name.toLowerCase() === body.name.toLowerCase())) {
-      throw new AppError(409, "name_taken", "Fuel type name already exists");
+    const matching = clash.find((t) => t.name.toLowerCase() === body.name.toLowerCase());
+    if (matching) {
+      throw new AppError(409, "name_taken", "Fuel type name already exists", {
+        existing_fuel_type: publicFuelType(matching),
+      });
     }
     const [row] = await db()
       .insert(fuelTypes)

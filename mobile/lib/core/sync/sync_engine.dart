@@ -352,6 +352,81 @@ class SyncEngine {
           ),
         );
       }
+      for (final row in rows) {
+        final error = byEntityId[row.entityId]?.error;
+        if (row.entityType != OutboxEntityType.fuelType ||
+            error?.code != 'name_taken') {
+          continue;
+        }
+        final existing = error!.details['existing_fuel_type'];
+        final original = jsonDecode(row.payload) as Map<String, dynamic>;
+        if (existing is! Map ||
+            existing['id'] is! String ||
+            existing['id'] == row.entityId ||
+            (existing['name'] as String?)?.toLowerCase() !=
+                (original['name'] as String?)?.toLowerCase() ||
+            existing['kind'] != original['kind'] ||
+            existing['unit'] != original['unit']) {
+          continue;
+        }
+        final canonicalId = existing['id'] as String;
+        await _db.transaction(() async {
+          final canonical = await (_db.select(
+            _db.fuelTypeRecords,
+          )..where((r) => r.id.equals(canonicalId))).getSingleOrNull();
+          if (canonical == null) {
+            await (_db.update(_db.fuelTypeRecords)..where(
+                  (r) => r.id.equals(row.entityId) & r.userId.equals(userId),
+                ))
+                .write(FuelTypeRecordsCompanion(id: Value(canonicalId)));
+          } else {
+            await (_db.delete(_db.fuelTypeRecords)..where(
+                  (r) => r.id.equals(row.entityId) & r.userId.equals(userId),
+                ))
+                .go();
+          }
+          await (_db.update(_db.fuelLogRecords)..where(
+                (r) =>
+                    r.fuelTypeId.equals(row.entityId) & r.userId.equals(userId),
+              ))
+              .write(FuelLogRecordsCompanion(fuelTypeId: Value(canonicalId)));
+          final queued = await (_db.select(
+            _db.outboxEntries,
+          )..where((r) => r.userId.equals(userId))).get();
+          for (final entry in queued) {
+            final payload = jsonDecode(entry.payload) as Map<String, dynamic>;
+            if (entry.id != row.id &&
+                entry.entityType == OutboxEntityType.fuelType &&
+                entry.entityId == row.entityId) {
+              payload['id'] = canonicalId;
+              await (_db.update(
+                _db.outboxEntries,
+              )..where((r) => r.id.equals(entry.id))).write(
+                OutboxEntriesCompanion(
+                  entityId: Value(canonicalId),
+                  payload: Value(jsonEncode(payload)),
+                ),
+              );
+            }
+            if (entry.entityType == OutboxEntityType.fuelLog &&
+                payload['fuel_type_id'] == row.entityId) {
+              payload['fuel_type_id'] = canonicalId;
+              await (_db.update(
+                _db.outboxEntries,
+              )..where((r) => r.id.equals(entry.id))).write(
+                OutboxEntriesCompanion(
+                  payload: Value(jsonEncode(payload)),
+                  attemptCount: const Value(0),
+                ),
+              );
+              attempted.remove(entry.id);
+            }
+          }
+          await (_db.delete(
+            _db.outboxEntries,
+          )..where((r) => r.id.equals(row.id))).go();
+        });
+      }
       pushedBatches++;
     }
   }

@@ -266,6 +266,70 @@ void main() {
     expect(engine.state.lastSyncedAt, isNotNull);
   });
 
+  test(
+    'duplicate seeded fuel type remaps pending charge and retries it',
+    () async {
+      await db.into(db.fuelTypeRecords).insert(FuelTypeRecordsCompanion.insert(
+        id: 'local', userId: 'u1', name: 'Electricity', kind: 'electric', unit: 'kWh',
+        updatedAt: DateTime.now(), createdAt: DateTime.now()));
+      await outbox.enqueue(
+        userId: 'u1',
+        entityType: 'fuel_type',
+        entityId: 'local',
+        op: OutboxOp.upsert,
+        payload: {
+          'id': 'local',
+          'name': 'Electricity',
+          'kind': 'electric',
+          'unit': 'kWh',
+        },
+      );
+      await outbox.enqueue(
+        userId: 'u1',
+        entityType: 'fuel_log',
+        entityId: 'charge',
+        op: OutboxOp.upsert,
+        payload: {'id': 'charge', 'fuel_type_id': 'local', 'cost': 7500},
+      );
+      api.pushHandler = (ops) => ops.map((op) {
+        if (op.entityType == 'fuel_type') {
+          return SyncPushResult(
+            entityId: op.entityId,
+            status: SyncPushStatus.conflict,
+            error: const ApiError(
+              code: 'name_taken',
+              message: 'Already exists',
+              details: {
+                'existing_fuel_type': {
+                  'id': 'server',
+                  'name': 'Electricity',
+                  'kind': 'electric',
+                  'unit': 'kWh',
+                },
+              },
+            ),
+          );
+        }
+        return SyncPushResult(
+          entityId: op.entityId,
+          status: op.payload['fuel_type_id'] == 'server'
+              ? SyncPushStatus.applied
+              : SyncPushStatus.rejected,
+          error: const ApiError(
+            code: 'invalid_fuel_type',
+            message: 'Unknown fuel type',
+          ),
+        );
+      }).toList();
+      await engine.syncNow(force: true);
+      expect(engine.state.phase, SyncPhase.idle);
+      expect(await db.select(db.outboxEntries).get(), isEmpty);
+      expect(api.recordedOps.last.payload['fuel_type_id'], 'server');
+      expect(api.recordedOps.last.payload['cost'], 7500);
+      expect((await db.select(db.fuelTypeRecords).get()).single.id, 'server');
+    },
+  );
+
   test('offline mixed changes survive restart and drain on reconnect', () async {
     for (final type in ['fuel_log', 'service_record', 'expense', 'vehicle']) {
       await enqueue('u1', entityType: type, entityId: type);
