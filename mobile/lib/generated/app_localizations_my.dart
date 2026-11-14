@@ -2428,6 +2428,19 @@ class AppLocalizationsMy extends AppLocalizations {
   String get syncOther => 'အခြား';
 
   @override
+  String get refuelSuccessTitle => 'ဆီဖြည့်မှတ်တမ်း သိမ်းပြီးပါပြီ။';
+
+  @override
+  String get chargeSuccessTitle => 'အားသွင်းမှတ်တမ်း သိမ်းပြီးပါပြီ။';
+
+  @override
+  String get expenseSuccessTitle => 'အသုံးစရိတ် မှတ်တမ်းတင်ပြီးပါပြီ။';
+
+  @override
+  String get logSuccessSubtitle =>
+      'ဤစက်တွင် သိမ်းဆည်းပြီးပါပြီ။ အင်တာနက်ချိတ်ဆက်မှု ရရှိသောအခါ ထပ်တူပြုပါမည်။';
+
+  @override
   String get registerSuccessTitle => 'ဝန်ဆောင်မှု မှတ်တမ်းတင်ပြီးပါပြီ!';
 
   @override

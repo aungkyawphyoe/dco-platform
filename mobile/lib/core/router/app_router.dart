@@ -79,6 +79,10 @@ import 'app_shell.dart';
 import 'deep_links.dart';
 import 'routes.dart';
 import 'tab_switchers.dart';
+import '../../features/fuel/domain/entities/fuel_log.dart';
+import '../../features/fuel/presentation/screens/fuel_log_success_screen.dart';
+import '../../features/expenses/domain/entities/expense.dart';
+import '../../features/expenses/presentation/screens/expense_success_screen.dart';
 
 /// Root navigator. Nested screens set [GoRoute.parentNavigatorKey] to this
 /// so they cover the tab shell instead of sitting above the bottom bar.
@@ -267,6 +271,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                         builder: (context, state) => const FuelLogEntryScreen(),
                       ),
                       GoRoute(
+                        path: 'success',
+                        parentNavigatorKey: rootNavigatorKey,
+                        redirect: (context, state) =>
+                            state.extra is FuelLog ? null : AppRoutes.fuelLogs,
+                        builder: (context, state) =>
+                            FuelLogSuccessScreen(log: state.extra as FuelLog),
+                      ),
+                      GoRoute(
                         path: 'types',
                         parentNavigatorKey: rootNavigatorKey,
                         builder: (context, state) => const FuelTypesScreen(),
@@ -359,6 +371,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
                     path: 'new',
                     parentNavigatorKey: rootNavigatorKey,
                     builder: (context, state) => const ExpenseFormScreen(),
+                  ),
+                  GoRoute(
+                    path: 'success',
+                    parentNavigatorKey: rootNavigatorKey,
+                    redirect: (context, state) =>
+                        state.extra is Expense ? null : AppRoutes.expenses,
+                    builder: (context, state) =>
+                        ExpenseSuccessScreen(expense: state.extra as Expense),
                   ),
                   GoRoute(
                     path: ':expenseId/edit',

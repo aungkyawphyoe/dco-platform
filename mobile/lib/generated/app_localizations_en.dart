@@ -2401,6 +2401,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get syncOther => 'Other';
 
   @override
+  String get refuelSuccessTitle => 'Refuel Logged!';
+
+  @override
+  String get chargeSuccessTitle => 'Charge Logged!';
+
+  @override
+  String get expenseSuccessTitle => 'Expense Logged!';
+
+  @override
+  String get logSuccessSubtitle =>
+      'Saved on this device. Sync will continue when a connection is available.';
+
+  @override
   String get registerSuccessTitle => 'Service Logged!';
 
   @override

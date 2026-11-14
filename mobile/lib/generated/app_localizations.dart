@@ -4566,6 +4566,30 @@ abstract class AppLocalizations {
   /// **'Other'**
   String get syncOther;
 
+  /// No description provided for @refuelSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Refuel Logged!'**
+  String get refuelSuccessTitle;
+
+  /// No description provided for @chargeSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Charge Logged!'**
+  String get chargeSuccessTitle;
+
+  /// No description provided for @expenseSuccessTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Expense Logged!'**
+  String get expenseSuccessTitle;
+
+  /// No description provided for @logSuccessSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Saved on this device. Sync will continue when a connection is available.'**
+  String get logSuccessSubtitle;
+
   /// No description provided for @registerSuccessTitle.
   ///
   /// In en, this message translates to:

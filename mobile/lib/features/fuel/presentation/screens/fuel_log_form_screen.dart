@@ -1,4 +1,3 @@
-import 'package:dco_mobile/core/currency/currency_store.dart';
 import 'package:dco_mobile/features/documents/presentation/widgets/log_attachments.dart';
 import 'package:dco_mobile/features/documents/domain/entities/document.dart';
 import 'package:dco_mobile/core/analytics/analytics.dart';
@@ -7,7 +6,6 @@ import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
-import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
@@ -219,7 +217,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     setState(() => _saving = true);
     attachments?.beginSave();
     try {
-      await ref.read(appDatabaseProvider).transaction(() async {
+      final saved = await ref.read(recordDatabaseProvider).transaction(() async {
         final repo = ref.read(fuelRepositoryProvider);
         final log = widget.isEditing
             ? await repo.updateLog(
@@ -235,6 +233,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                 draft: draft,
               );
         await attachments?.save(currentUserId, log.id);
+        return log;
       });
       attachments?.markSaved();
       ref
@@ -246,7 +245,13 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
           );
       if (mounted) setState(() => _allowPop = true);
       await WidgetsBinding.instance.endOfFrame;
-      if (mounted) context.pop();
+      if (mounted) {
+        if (widget.isEditing) {
+          context.pop();
+        } else {
+          context.pushReplacement(AppRoutes.fuelLogSuccess, extra: saved);
+        }
+      }
     } on FuelFailure catch (failure) {
       if (mounted) setState(() => _formError = failure.message);
     } catch (error) {
