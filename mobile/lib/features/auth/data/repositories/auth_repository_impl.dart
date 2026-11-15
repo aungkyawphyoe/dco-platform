@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../../../core/storage/token_store.dart';
+import '../../../../core/gating/trusted_clock.dart';
 import '../../domain/auth_failure.dart';
 import '../../domain/entities/session.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -30,7 +31,10 @@ class AuthRepositoryImpl implements AuthRepository {
       return session;
     } on AuthFailure catch (failure) {
       if (_tokenStore.generation != generation) return null;
+      final expiresAt = jwtExpiresAt(refresh);
+      final expired = expiresAt != null && !DateTime.now().isBefore(expiresAt);
       final rejected =
+          expired ||
           failure is InvalidCredentialsFailure ||
           failure is SessionExpiredFailure ||
           failure is ForbiddenFailure;

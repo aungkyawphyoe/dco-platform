@@ -55,6 +55,7 @@ void main() {
     await fuel.ensureDefaultFuelTypes('user-1');
     await fuel.ensureDefaultFuelTypes('user-1');
 
+    expect(await db.select(db.outboxEntries).get(), isEmpty);
     final types = await fuel.watchFuelTypes('user-1').first;
     expect(types.map((type) => type.name), containsAll(['95 Octane gasoline (petrol)', '92 Octane gasoline (petrol)', 'Diesel', 'Premium Diesel', 'CNG', 'LPG', 'Electric (Fast)', 'Electric (Slow)']));
     expect(types.where((type) => type.kind == FuelCatalogKind.liquid), hasLength(6));
@@ -113,6 +114,10 @@ void main() {
     expect(log.toWriteJson()['fill_status'], 'partial');
 
     final queued = await db.select(db.outboxEntries).get();
+    final typeChanges = queued.where((row) => row.entityType == 'fuel_type');
+    expect(typeChanges.single.entityId, log.fuelTypeId);
+    final logChange = queued.singleWhere((row) => row.entityType == 'fuel_log');
+    expect(typeChanges.single.id, lessThan(logChange.id));
     expect(queued.any((row) => row.entityType == 'fuel_log' && row.entityId == log.id), isTrue);
   });
 

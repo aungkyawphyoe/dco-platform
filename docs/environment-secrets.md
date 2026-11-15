@@ -28,7 +28,7 @@ Placeholders only. Store in Key Vault (Azure) or a local ignored `.env` (`chmod 
 | `JWT_ACCESS_SECRET` | API | Signs owner, Fleet, workshop, and admin access tokens. Rotate by minting a new key and dual-verifying for one TTL. |
 | `JWT_REFRESH_SECRET` | API | Separate from access secret. |
 | `JWT_ACCESS_TTL` | API | Draft: `15m` |
-| `JWT_REFRESH_TTL` | API | Draft: `720h` (30 days) |
+| `JWT_REFRESH_TTL` | API | Draft: `2160h` (90 days) |
 | `JWT_OWNER_AUD` | API / mobile | Draft: `dco-owner` |
 | `JWT_FLEET_AUD` | API / Fleet Portal | Draft: `dco-fleet` |
 | `JWT_WORKSHOP_AUD` | API / Workshop Portal | Draft: `dco-workshop` |

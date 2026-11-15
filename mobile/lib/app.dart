@@ -11,6 +11,7 @@ import 'core/router/app_router.dart';
 import 'core/sync/sync_engine.dart';
 import 'core/theme/dco_theme.dart';
 import 'core/widgets/dco_system_ui.dart';
+import 'core/widgets/keyboard_dismissal.dart';
 import 'features/auth/presentation/session_controller.dart';
 import 'features/maintenance/providers.dart';
 import 'features/fleet/providers.dart';
@@ -33,16 +34,22 @@ class DcoApp extends ConsumerStatefulWidget {
 }
 
 class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
+  Timer? _sessionDeadlineCheck;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    _sessionDeadlineCheck = Timer.periodic(const Duration(minutes: 1), (_) {
+      unawaited(_checkSessionDeadline());
+    });
     // Cold-start license refresh behind the cached gate (decision 14).
     unawaited(_refreshLicenseIfStale());
   }
 
   @override
   void dispose() {
+    _sessionDeadlineCheck?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -50,9 +57,20 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
-      ref.read(syncEngineProvider).requestSync();
+      unawaited(_checkSessionDeadline(syncOnResume: true));
       unawaited(_refreshLicenseIfStale());
       unawaited(ref.read(playBillingProvider.notifier).reload());
+    }
+  }
+
+  Future<void> _checkSessionDeadline({bool syncOnResume = false}) async {
+    try {
+      await ref.read(sessionControllerProvider.notifier).checkSessionDeadline();
+      if (mounted && syncOnResume && ref.read(currentUserIdProvider) != null) {
+        ref.read(syncEngineProvider).requestSync();
+      }
+    } catch (error) {
+      debugPrint('Session deadline check failed: ${error.runtimeType}');
     }
   }
 
@@ -153,7 +171,9 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
         child: Stack(
           children: [
             if (child != null)
-              AbsorbPointer(absorbing: transitioning, child: child),
+              KeyboardDismissal(
+                child: AbsorbPointer(absorbing: transitioning, child: child),
+              ),
             if (transitioning)
               Positioned.fill(
                 child: ColoredBox(

@@ -68,7 +68,7 @@ az containerapp update --name dco-api-24739 --resource-group dco-rg --image dcoa
   - `JWT_OWNER_AUD=dco-owner`
   - `JWT_ADMIN_AUD=dco-admin`
   - `JWT_ACCESS_TTL=15m`
-  - `JWT_REFRESH_TTL=720h`
+  - `JWT_REFRESH_TTL=2160h`
   - `MAIL_PROVIDER=stdout`
   - `MAIL_FROM=noreply@localhost`
   - `MEDIA_DRIVER=local`

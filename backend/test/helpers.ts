@@ -16,7 +16,7 @@ export const testEnv = loadEnv({
   JWT_ACCESS_SECRET: "test-access-secret-32-chars-min",
   JWT_REFRESH_SECRET: "test-refresh-secret-32-chars-min",
   JWT_ACCESS_TTL: "15m",
-  JWT_REFRESH_TTL: "720h",
+  JWT_REFRESH_TTL: "2160h",
   JWT_OWNER_AUD: "dco-owner",
   JWT_ADMIN_AUD: "dco-admin",
   BOOTSTRAP_ADMIN_EMAIL: "admin@test.local",

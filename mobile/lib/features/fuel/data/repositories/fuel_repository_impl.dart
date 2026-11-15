@@ -130,17 +130,49 @@ class FuelRepositoryImpl implements FuelRepository {
                 ? _defaultLiquid
                 : _defaultElectric) {
           if (!names.add(item.name.toLowerCase())) continue;
-          await addFuelType(
+          final now = DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
+          final type = FuelCatalogType(
+            id: _defaultTypeId(userId, item.name),
             userId: userId,
-            draft: FuelCatalogTypeDraft(
-              name: item.name,
-              kind: kind,
-              unit: item.unit,
-            ),
+            name: item.name,
+            kind: kind,
+            unit: item.unit,
+            updatedAt: now,
+            createdAt: now,
           );
+          await _db
+              .into(_db.fuelTypeRecords)
+              .insert(fuelCatalogTypeToCompanion(type));
+          // Opening the catalog is a local read workflow. Publish only types used in a save.
+          await _db
+              .into(_db.appMeta)
+              .insert(AppMetaCompanion.insert(key: _seedKey(type.id)));
         }
       }
     });
+  }
+
+  String _defaultTypeId(String userId, String name) =>
+      const Uuid().v5(Namespace.dns.value, 'autox:fuel:$userId:$name');
+
+  String _seedKey(String id) => 'unpublished_fuel_type:$id';
+
+  Future<bool> _removeSeedMarker(String id) async {
+    final removed = await (_db.delete(
+      _db.appMeta,
+    )..where((row) => row.key.equals(_seedKey(id)))).go();
+    return removed != 0;
+  }
+
+  Future<void> _publishSeedIfNeeded(FuelCatalogType type) async {
+    if (!await _removeSeedMarker(type.id)) return;
+    await _outbox.enqueue(
+      userId: type.userId,
+      entityType: OutboxEntityType.fuelType,
+      entityId: type.id,
+      op: OutboxOp.upsert,
+      payload: type.toWriteJson(),
+    );
   }
 
   @override
@@ -158,10 +190,7 @@ class FuelRepositoryImpl implements FuelRepository {
             ..._defaultLiquid,
             ..._defaultElectric,
           ].any((item) => item.name == draft.name.trim())
-          ? const Uuid().v5(
-              Namespace.dns.value,
-              'autox:fuel:$userId:${draft.name.trim()}',
-            )
+          ? _defaultTypeId(userId, draft.name.trim())
           : _uuid.v4(),
       userId: userId,
       name: draft.name.trim(),
@@ -218,6 +247,7 @@ class FuelRepositoryImpl implements FuelRepository {
       await (_db.update(_db.fuelTypeRecords)
             ..where((row) => row.id.equals(fuelTypeId)))
           .write(fuelCatalogTypeToCompanion(updated));
+      await _removeSeedMarker(updated.id);
       await _outbox.enqueue(
         userId: userId,
         entityType: OutboxEntityType.fuelType,
@@ -300,6 +330,7 @@ class FuelRepositoryImpl implements FuelRepository {
     );
 
     await _db.transaction(() async {
+      await _publishSeedIfNeeded(catalog);
       await _db.into(_db.fuelLogRecords).insert(fuelLogToCompanion(log));
       await _outbox.enqueue(
         userId: userId,
@@ -382,6 +413,7 @@ class FuelRepositoryImpl implements FuelRepository {
     );
 
     await _db.transaction(() async {
+      await _publishSeedIfNeeded(catalog);
       await (_db.update(_db.fuelLogRecords)
             ..where((row) => row.id.equals(logId)))
           .write(fuelLogToCompanion(updated));

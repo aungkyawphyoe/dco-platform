@@ -21,7 +21,7 @@ const schema = z.object({
   JWT_ACCESS_SECRET: z.string().min(16),
   JWT_REFRESH_SECRET: z.string().min(16),
   JWT_ACCESS_TTL: z.string().default("15m"),
-  JWT_REFRESH_TTL: z.string().default("720h"),
+  JWT_REFRESH_TTL: z.string().default("2160h"),
   JWT_OWNER_AUD: z.string().default("dco-owner"),
   JWT_FLEET_AUD: z.string().default("dco-fleet"),
   JWT_WORKSHOP_AUD: z.string().default("dco-workshop"),

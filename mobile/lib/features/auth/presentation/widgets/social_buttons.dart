@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/router/routes.dart';
 import '../../../../core/storage/entry_preferences.dart';
 import '../../../../core/theme/dco_tokens.dart';
+import '../../../../core/widgets/dco_button.dart';
 import '../../../../generated/app_localizations.dart';
 import '../../account_security_providers.dart';
 import '../session_controller.dart';
@@ -102,20 +103,28 @@ class _SocialButtonsState extends ConsumerState<SocialButtons> {
           LinearProgressIndicator(minHeight: 2),
           SizedBox(height: tokens.space.s3),
         ],
-        Center(
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _SocialTile(
-                key: const Key('social-google'),
-                label: widget.connect ? s.authConnectGoogle : s.authGoogle,
-                showLabel: widget.connect,
-                asset: 'assets/auth/google.svg',
-                onTap: busy ? null : () => run('google'),
-              ),
-            ],
+        if (widget.connect)
+          DcoButton(
+            key: const Key('social-google'),
+            label: s.authConnectGoogle,
+            icon: Icons.link,
+            variant: DcoButtonVariant.secondary,
+            onPressed: busy ? null : () => run('google'),
+          )
+        else
+          Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _SocialTile(
+                  key: const Key('social-google'),
+                  label: s.authGoogle,
+                  asset: 'assets/auth/google.svg',
+                  onTap: busy ? null : () => run('google'),
+                ),
+              ],
+            ),
           ),
-        ),
       ],
     );
   }
@@ -127,13 +136,11 @@ class _SocialTile extends StatelessWidget {
     required this.label,
     required this.asset,
     required this.onTap,
-    this.showLabel = false,
   });
 
   final String label;
   final String asset;
   final VoidCallback? onTap;
-  final bool showLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -149,9 +156,9 @@ class _SocialTile extends StatelessWidget {
         child: ConstrainedBox(
           constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
           child: Container(
-            width: showLabel ? 96 : 64,
+            width: 64,
             padding: EdgeInsets.symmetric(
-              vertical: showLabel ? tokens.space.s3 : tokens.space.s4,
+              vertical: tokens.space.s4,
               horizontal: tokens.space.s2,
             ),
             decoration: BoxDecoration(
@@ -159,23 +166,7 @@ class _SocialTile extends StatelessWidget {
               borderRadius: radius,
               border: Border.all(color: tokens.border.subtle),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                icon,
-                if (showLabel) ...[
-                  SizedBox(height: tokens.space.s2),
-                  Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: tokens.text.secondary,
-                    ),
-                  ),
-                ],
-              ],
-            ),
+            child: icon,
           ),
         ),
       ),

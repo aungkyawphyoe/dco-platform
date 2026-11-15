@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dco_mobile/core/config/app_config.dart';
 import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/core/gating/license_store.dart';
@@ -182,8 +184,17 @@ void main() {
     () async {
       final first = await login('first@test.local');
       await queue(first);
-      await tokens.clear();
-      await container.read(sessionControllerProvider.notifier).sessionExpired();
+      final session = container.read(sessionControllerProvider).requireValue!;
+      final claims = base64Url.encode(utf8.encode('{"exp":1}'));
+      await tokens.writeSession(
+        accessToken: session.accessToken,
+        refreshToken: 'header.$claims.signature',
+        userJson: jsonEncode(session.user.toJson()),
+      );
+      await container
+          .read(sessionControllerProvider.notifier)
+          .checkSessionDeadline();
+      expect(await tokens.readRefreshToken(), isNull);
       await expectLater(
         login('second@test.local'),
         throwsA(isA<ApiAuthFailure>()),

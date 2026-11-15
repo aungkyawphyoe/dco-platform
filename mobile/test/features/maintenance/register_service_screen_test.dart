@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:dco_mobile/features/garage/domain/entities/vehicle.dart';
 import 'package:dco_mobile/features/settings/domain/entities/user_preferences.dart';
 
+import 'package:dco_mobile/core/database/app_database.dart';
 import 'package:dco_mobile/core/providers.dart';
+import 'package:dco_mobile/core/widgets/dco_text_field.dart';
+import 'package:drift/native.dart';
 import 'package:dco_mobile/core/theme/dco_theme.dart';
 import 'package:dco_mobile/features/documents/providers.dart';
 import 'package:dco_mobile/features/garage/access_provider.dart';
@@ -24,6 +27,8 @@ void main() {
   testWidgets(
     'cold preselection can add another service with the keyboard open',
     (tester) async {
+      final db = AppDatabase(NativeDatabase.memory());
+      addTearDown(db.close);
       final car = fixtures.vehicle('car', 'user');
       final plan = StreamController<List<PlanItem>>();
       addTearDown(plan.close);
@@ -38,6 +43,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            appDatabaseProvider.overrideWithValue(db),
+            recordDatabaseProvider.overrideWithValue(db),
             currentUserIdProvider.overrideWithValue('user'),
             activeVehicleProvider.overrideWith((ref) => Stream.value(car)),
             vehicleAccessProvider(
@@ -71,6 +78,18 @@ void main() {
       await tester.pumpAndSettle();
       plan.add([item('wash', 'Car Wash'), item('mileage', 'Mileage Update')]);
       await tester.pumpAndSettle();
+      final strings = AppLocalizations.of(
+        tester.element(find.byType(RegisterServiceScreen)),
+      )!;
+      String input(String label) => tester
+          .widgetList<DcoTextField>(find.byType(DcoTextField))
+          .singleWhere((field) => field.label == label)
+          .controller
+          .text;
+      expect(input(strings.registerServiceJobTitle), 'Car Wash');
+      expect(input(strings.registerServiceDate), isNotEmpty);
+      expect(input(strings.registerServiceMileage), '0');
+      expect(await tester.runAsync(() => db.select(db.outboxEntries).get()), isEmpty);
       final add = find.widgetWithText(OutlinedButton, 'add service');
       await tester.scrollUntilVisible(
         add,
@@ -115,6 +134,7 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.text('Tire check'), findsOneWidget);
       await tester.pumpWidget(const SizedBox.shrink());
+      expect(await tester.runAsync(() => db.select(db.outboxEntries).get()), isEmpty);
     },
   );
 }

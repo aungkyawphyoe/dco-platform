@@ -10,6 +10,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/analytics/analytics.dart';
 import '../../../core/providers.dart';
+import '../../../core/gating/trusted_clock.dart';
 import '../domain/auth_failure.dart';
 import '../domain/entities/session.dart';
 
@@ -261,6 +262,29 @@ class SessionController extends AsyncNotifier<Session?> {
     ref.read(accountLockProvider.notifier).state = lifecycle.lockedUserId;
     ref.read(accountCleanupPendingProvider.notifier).state =
         lifecycle.cleanupPending;
+  }
+
+  Future<void> checkSessionDeadline() async {
+    final current = state.valueOrNull;
+    if (current == null || _changingAccount) return;
+    final tokens = ref.read(tokenStoreProvider);
+    final generation = tokens.generation;
+    final refresh = await tokens.readRefreshToken();
+    if (refresh == null ||
+        tokens.generation != generation ||
+        !identical(state.valueOrNull, current) ||
+        _changingAccount)
+      return;
+    final expiresAt = jwtExpiresAt(refresh);
+    if (expiresAt != null && !DateTime.now().isBefore(expiresAt)) {
+      // The account lock and outbox are retained for reauthentication.
+      final cleared = tokens.clear();
+      try {
+        await sessionExpired();
+      } finally {
+        await cleared;
+      }
+    }
   }
 
   Future<void> sessionExpired() async {

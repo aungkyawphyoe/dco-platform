@@ -55,6 +55,38 @@ void main() {
     );
   });
 
+  for (final daysRemaining in [89, 0]) {
+    test(
+      'offline restore with $daysRemaining days until refresh expiry',
+      () async {
+        final deadline = DateTime.now().add(Duration(days: daysRemaining));
+        final claims = base64Url
+            .encode(
+              utf8.encode(
+                jsonEncode({'exp': deadline.millisecondsSinceEpoch ~/ 1000}),
+              ),
+            )
+            .replaceAll('=', '');
+        await tokens.writeSession(
+          accessToken: 'expired-access',
+          refreshToken: 'header.$claims.signature',
+          userJson: jsonEncode(user.toJson()),
+        );
+        final repository = AuthRepositoryImpl(
+          remote: FailingRefresh(const NetworkAuthFailure()),
+          tokenStore: tokens,
+        );
+        final session = await repository.restoreSession();
+        if (daysRemaining == 0) {
+          expect(session, isNull);
+          expect(await tokens.readRefreshToken(), isNull);
+        } else {
+          expect(session?.user.id, user.id);
+        }
+      },
+    );
+  }
+
   test(
     'a rate-limited restore preserves credentials and surfaces retry failure',
     () async {
