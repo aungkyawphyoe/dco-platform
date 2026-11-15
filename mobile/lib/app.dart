@@ -138,6 +138,8 @@ class _DcoAppState extends ConsumerState<DcoApp> with WidgetsBindingObserver {
       final regained =
           !_isOnline(previous?.valueOrNull) && _isOnline(next.valueOrNull);
       if (regained) {
+        ref.invalidate(maintenanceCatalogRefreshProvider);
+        ref.invalidate(entitlementsProvider);
         unawaited(ref.read(playBillingProvider.notifier).reload());
       }
       if (regained && ref.read(autoSyncProvider)) {

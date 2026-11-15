@@ -19,10 +19,16 @@ final fleetRepositoryProvider = Provider<FleetRepository>((ref) {
 ///
 /// Returns `null` while signed out so the startup splash never mistakes a
 /// missing session for an account-access failure.
-final entitlementsProvider = FutureProvider<Entitlements?>((ref) {
+final entitlementsProvider = StreamProvider<Entitlements?>((ref) async* {
   final userId = ref.watch(currentUserIdProvider);
-  if (userId == null) return null;
-  return ref.watch(fleetRepositoryProvider).getEntitlements();
+  if (userId == null) {
+    yield null;
+    return;
+  }
+  final repository = ref.watch(fleetRepositoryProvider);
+  final cached = await repository.readCachedEntitlements();
+  if (cached != null) yield cached;
+  yield await repository.getEntitlements();
 });
 
 /// Effective navigation mode, derived from live entitlements — no stored

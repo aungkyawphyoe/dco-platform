@@ -10,13 +10,27 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'plan_item_form_screen.dart';
 
-class SuggestedItemsScreen extends ConsumerWidget {
+class SuggestedItemsScreen extends ConsumerStatefulWidget {
   const SuggestedItemsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SuggestedItemsScreen> createState() =>
+      _SuggestedItemsScreenState();
+}
+
+class _SuggestedItemsScreenState extends ConsumerState<SuggestedItemsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) ref.invalidate(maintenanceCatalogRefreshProvider);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final s = AppLocalizations.of(context)!;
-    final vehicle = ref.watch(activeVehicleProvider).asData?.value;
+    final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
     final userId = ref.watch(currentUserIdProvider);
     final scope = (userId: userId ?? '', vehicleId: vehicle?.id ?? '');
     final suggestions = ref.watch(suggestedItemsProvider(scope));
@@ -24,11 +38,16 @@ class SuggestedItemsScreen extends ConsumerWidget {
     final refresh = ref.watch(maintenanceCatalogRefreshProvider);
 
     Future<void> retry() async {
-      ref.invalidate(maintenanceCatalogRefreshProvider);
+      if (scope.userId.isEmpty || scope.vehicleId.isEmpty) return;
       try {
-        await ref.read(maintenanceCatalogRefreshProvider.future);
+        await ref
+            .read(maintenanceCatalogRepositoryProvider)
+            .fetchAndCache(scope.vehicleId);
       } catch (_) {
-        // The refresh provider retains the error and the offline cache.
+        if (!mounted || ref.read(currentUserIdProvider) != scope.userId) return;
+        ScaffoldMessenger.of(this.context).showSnackBar(
+          SnackBar(content: Text(s.suggestedItemsRetryBody)),
+        );
       }
     }
 

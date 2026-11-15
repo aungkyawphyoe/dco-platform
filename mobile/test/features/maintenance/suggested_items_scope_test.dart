@@ -39,10 +39,12 @@ final sync = StateProvider<SyncState>((ref) => SyncState.initial);
 class Catalog extends MaintenanceCatalogRepository {
   final calls = <String>[];
   bool fail = true;
+  void Function()? afterFetch;
   @override
   Future<void> fetchAndCache(String vehicleId) async {
     calls.add(vehicleId);
     if (fail) throw StateError('Vehicle not uploaded yet');
+    afterFetch?.call();
   }
 
   @override
@@ -100,6 +102,8 @@ void main() {
     WidgetTester tester,
     List<SuggestedPlanItem>? suggestions, {
     Stream<List<PlanItem>>? secondPlan,
+    Catalog? catalog,
+    Stream<List<SuggestedPlanItem>?>? catalogUpdates,
   }) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -111,8 +115,13 @@ void main() {
           }),
           lengthUnitProvider.overrideWithValue(MileageUnit.km),
           maintenanceCatalogRefreshProvider.overrideWith((ref) async => true),
+          if (catalog != null)
+            maintenanceCatalogRepositoryProvider.overrideWithValue(catalog),
           suggestedItemsProvider.overrideWith(
-            (ref, scope) => Stream.value(suggestions),
+            (ref, scope) async* {
+              yield suggestions;
+              if (catalogUpdates != null) yield* catalogUpdates;
+            },
           ),
           suggestedVehiclePlanProvider.overrideWith((ref, scope) {
             if (scope.userId == 'a') {
@@ -141,6 +150,27 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('pull to refresh displays new items for the current vehicle', (
+    tester,
+  ) async {
+    final updates = StreamController<List<SuggestedPlanItem>?>.broadcast();
+    addTearDown(updates.close);
+    final catalog = Catalog()
+      ..fail = false
+      ..afterFetch = () => updates.add([
+        suggestion,
+        const SuggestedPlanItem(catalogKey: 'new', name: 'New admin item'),
+      ]);
+    await pump(tester, [suggestion], catalog: catalog, catalogUpdates: updates.stream);
+    expect(find.text('New admin item'), findsNothing);
+
+    await tester.drag(find.byType(ListView), const Offset(0, 350));
+    await tester.pumpAndSettle();
+
+    expect(catalog.calls, ['car-a']);
+    expect(find.text('New admin item'), findsOneWidget);
+  });
 
   testWidgets(
     'completed account A cannot hide suggestions for new account B while its plan loads',

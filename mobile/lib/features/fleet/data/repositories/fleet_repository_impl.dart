@@ -25,6 +25,19 @@ class FleetRepositoryImpl implements FleetRepository {
   // ── Entitlements ───────────────────────────────────────────────────
 
   @override
+  Future<Entitlements?> readCachedEntitlements() async {
+    final data = await _readCache('entitlements');
+    if (data == null) return null;
+    try {
+      return Entitlements.fromJson(data);
+    } on TypeError {
+      return null;
+    } on FormatException {
+      return null;
+    }
+  }
+
+  @override
   Future<Entitlements> getEntitlements() async {
     try {
       final data = await _call(() async {
@@ -38,8 +51,8 @@ class FleetRepositoryImpl implements FleetRepository {
       return Entitlements.fromJson(data);
     } catch (e) {
       if (e is FleetAccessDenied) rethrow;
-      final cached = await _readCache('entitlements');
-      if (cached != null) return Entitlements.fromJson(cached);
+      final cached = await readCachedEntitlements();
+      if (cached != null) return cached;
       rethrow;
     }
   }
@@ -269,26 +282,28 @@ class FleetRepositoryImpl implements FleetRepository {
       WorkOrder.fromJson,
     ).where((wo) => wo.issueType == 'scheduled_service');
 
-    return [...records, ...workOrders.map(
-      (wo) => DriverHistoryEntry.workOrder(
-        id: wo.id,
-        servicedOn: DateTime.tryParse(wo.reportedAt ?? '') ?? DateTime.now(),
-        odometer: wo.odometerKm.toDouble(),
-        title: wo.description,
-        workOrderStatus: wo.status,
+    return [
+      ...records,
+      ...workOrders.map(
+        (wo) => DriverHistoryEntry.workOrder(
+          id: wo.id,
+          servicedOn: DateTime.tryParse(wo.reportedAt ?? '') ?? DateTime.now(),
+          odometer: wo.odometerKm.toDouble(),
+          title: wo.description,
+          workOrderStatus: wo.status,
+        ),
       ),
-    )]..sort((a, b) => b.servicedOn.compareTo(a.servicedOn));
+    ]..sort((a, b) => b.servicedOn.compareTo(a.servicedOn));
   });
 
   @override
-  Future<List<DriverServiceRecord>> getDriverServiceRecords(
-    String vehicleId,
-  ) => _call(() async {
-    final response = await _dio.get<Map<String, dynamic>>(
-      '/drivers/vehicles/$vehicleId/service-records',
-    );
-    return _items(response.data, DriverServiceRecord.fromJson);
-  });
+  Future<List<DriverServiceRecord>> getDriverServiceRecords(String vehicleId) =>
+      _call(() async {
+        final response = await _dio.get<Map<String, dynamic>>(
+          '/drivers/vehicles/$vehicleId/service-records',
+        );
+        return _items(response.data, DriverServiceRecord.fromJson);
+      });
 
   @override
   Future<List<FuelLog>> getDriverFuelLogs(String vehicleId) => _call(() async {
@@ -365,9 +380,9 @@ class FleetRepositoryImpl implements FleetRepository {
 
   Future<String?> _readRaw(String name) async {
     final key = '$_cachePrefix.$name';
-    final row =
-        await (_db.select(_db.appMeta)..where((m) => m.key.equals(key)))
-            .getSingleOrNull();
+    final row = await (_db.select(
+      _db.appMeta,
+    )..where((m) => m.key.equals(key))).getSingleOrNull();
     return row?.value;
   }
 }
