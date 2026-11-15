@@ -20,6 +20,7 @@ class FleetAccessDenied implements Exception {
 /// the Fleet Portal and is not reachable from this app.
 abstract class FleetRepository {
   // ── Entitlements ──
+  Future<Entitlements?> readCachedEntitlements();
   Future<Entitlements> getEntitlements();
 
   // ── Work orders (driver) ──

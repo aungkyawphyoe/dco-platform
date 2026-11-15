@@ -6,6 +6,7 @@ import 'package:dco_mobile/features/auth/presentation/session_controller.dart';
 import 'package:dco_mobile/core/router/routes.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/units/money_format.dart';
+import 'package:dco_mobile/core/units/mileage_format.dart';
 import 'package:dco_mobile/core/widgets/dco_text_field.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_catalog_type.dart';
 import 'package:dco_mobile/features/fuel/domain/entities/fuel_log.dart';
@@ -89,6 +90,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   final _amount = TextEditingController();
   final _cost = TextEditingController();
   final _odometer = TextEditingController();
+  final _batteryLevel = TextEditingController();
   final _errors = <String, String?>{};
 
   DateTime _loggedOn = DateTime.now();
@@ -119,6 +121,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
       final log = await ref.read(fuelRepositoryProvider).getLog(widget.logId!);
       if (log != null && mounted) {
         _recordCurrency = log.currency;
+        _batteryLevel.text = log.batteryLevel?.toString() ?? '';
         _createdBy = log.userId;
         _fillStatus = log.fillStatus;
         _loggedOn = log.loggedOn;
@@ -153,6 +156,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     _amount.dispose();
     _cost.dispose();
     _odometer.dispose();
+    _batteryLevel.dispose();
     super.dispose();
   }
 
@@ -163,13 +167,33 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   }
 
   FuelLogDraft? _draftOrNull() {
+    // Sync can reconcile a seeded ID while this form is open.
+    final types = ref.read(matchingFuelTypesProvider);
+    if (!types.any((type) => type.id == _fuelTypeId)) {
+      _fuelTypeId = null;
+      for (final type in types) {
+        if (type.name == _fuelTypeLabel.text) {
+          _fuelTypeId = type.id;
+          break;
+        }
+      }
+    }
+    final battery = int.tryParse(_batteryLevel.text.trim());
+
     setState(() {
       _errors
         ..['date'] = FuelLogValidators.date(_loggedOn, now: DateTime.now())
         ..['type'] = FuelLogValidators.fuelTypeId(_fuelTypeId)
         ..['amount'] = FuelLogValidators.amount(_amount.text)
         ..['cost'] = FuelLogValidators.cost(_cost.text)
-        ..['odometer'] = FuelLogValidators.odometer(_odometer.text);
+        ..['odometer'] = _odometer.text.trim().isEmpty
+            ? AppLocalizations.of(context)!.vehicleMileageRequired
+            : FuelLogValidators.odometer(_odometer.text)
+        ..['battery'] =
+            widget.kind == FuelLogKind.charge &&
+                (battery == null || battery < 0 || battery > 100)
+            ? AppLocalizations.of(context)!.fuelBatteryLevelError
+            : null;
       _formError = null;
     });
     if (_errors.values.any((error) => error != null)) return null;
@@ -177,6 +201,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     return FuelLogDraft(
       currency: _recordCurrency ?? ref.read(currencyProvider).code,
       fillStatus: widget.kind == FuelLogKind.charge ? 'unknown' : _fillStatus,
+      batteryLevel: widget.kind == FuelLogKind.charge ? battery : null,
       loggedOn: _loggedOn,
       fuelTypeId: _fuelTypeId!,
       amount: FuelLogValidators.parseDecimal(_amount.text)!,
@@ -217,24 +242,26 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     setState(() => _saving = true);
     attachments?.beginSave();
     try {
-      final saved = await ref.read(recordDatabaseProvider).transaction(() async {
-        final repo = ref.read(fuelRepositoryProvider);
-        final log = widget.isEditing
-            ? await repo.updateLog(
-                userId: currentUserId,
-                logId: widget.logId!,
-                kind: widget.kind,
-                draft: draft,
-              )
-            : await repo.addLog(
-                userId: currentUserId,
-                vehicleId: vehicle.id,
-                kind: widget.kind,
-                draft: draft,
-              );
-        await attachments?.save(currentUserId, log.id);
-        return log;
-      });
+      final saved = await ref.read(recordDatabaseProvider).transaction(
+        () async {
+          final repo = ref.read(fuelRepositoryProvider);
+          final log = widget.isEditing
+              ? await repo.updateLog(
+                  userId: currentUserId,
+                  logId: widget.logId!,
+                  kind: widget.kind,
+                  draft: draft,
+                )
+              : await repo.addLog(
+                  userId: currentUserId,
+                  vehicleId: vehicle.id,
+                  kind: widget.kind,
+                  draft: draft,
+                );
+          await attachments?.save(currentUserId, log.id);
+          return log;
+        },
+      );
       attachments?.markSaved();
       ref
           .read(analyticsProvider)
@@ -279,10 +306,7 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   }
 
   Future<void> _pickFuelType(List<FuelCatalogType> types) async {
-    if (types.isEmpty) {
-      await context.push(AppRoutes.fuelTypeNew, extra: widget.kind.catalogKind);
-      return;
-    }
+    if (types.isEmpty) return;
     final selected = await showModalBottomSheet<String>(
       context: context,
       backgroundColor: context.tokens.background.card,
@@ -290,48 +314,42 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         final tokens = context.tokens;
         final s = AppLocalizations.of(context)!;
         return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                  tokens.space.s4,
-                  tokens.space.s4,
-                  tokens.space.s4,
-                  tokens.space.s2,
-                ),
-                child: Text(
-                  s.fuelLogFormTypeSheetTitle,
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-              ),
-              for (final type in types)
-                ListTile(
-                  title: Text(type.name),
-                  subtitle: Text(
-                    type.unit,
-                    style: TextStyle(color: tokens.text.caption),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    tokens.space.s4,
+                    tokens.space.s4,
+                    tokens.space.s4,
+                    tokens.space.s2,
                   ),
-                  trailing: type.id == _fuelTypeId
-                      ? Icon(Icons.check, color: tokens.text.accent)
-                      : null,
-                  onTap: () => Navigator.pop(context, type.id),
+                  child: Text(
+                    s.fuelLogFormTypeSheetTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
                 ),
-              ListTile(
-                leading: Icon(Icons.add, color: tokens.text.accent),
-                title: Text(s.fuelLogFormAddFuelType),
-                onTap: () => Navigator.pop(context, '__add__'),
-              ),
-            ],
+                for (final type in types)
+                  ListTile(
+                    title: Text(type.name),
+                    subtitle: Text(
+                      type.unit,
+                      style: TextStyle(color: tokens.text.caption),
+                    ),
+                    trailing: type.id == _fuelTypeId
+                        ? Icon(Icons.check, color: tokens.text.accent)
+                        : null,
+                    onTap: () => Navigator.pop(context, type.id),
+                  ),
+              ],
+            ),
           ),
         );
       },
     );
     if (!mounted || selected == null) return;
-    if (selected == '__add__') {
-      await context.push(AppRoutes.fuelTypeNew, extra: widget.kind.catalogKind);
-      return;
-    }
+
     FuelCatalogType? type;
     for (final item in types) {
       if (item.id == selected) {
@@ -391,15 +409,6 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
           title: Text(
             widget.isEditing ? widget.kind.editLabel : widget.kind.addLabel,
           ),
-          actions: [
-            TextButton(
-              onPressed: () => context.push(AppRoutes.fuelTypes),
-              child: Text(
-                s.fuelLogFormTypesLink,
-                style: TextStyle(color: tokens.text.link),
-              ),
-            ),
-          ],
         ),
         body: Column(
           children: [
@@ -436,9 +445,24 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                     ),
                   ),
                   SizedBox(height: tokens.space.s4),
+                  if (widget.kind == FuelLogKind.charge) ...[
+                    DcoTextField(
+                      key: const Key('fuel-log-battery-level'),
+                      label: s.fuelBatteryLevel,
+                      controller: _batteryLevel,
+                      keyboardType: TextInputType.number,
+                      errorText: _errors['battery'],
+                      suffix: const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text('%'),
+                      ),
+                    ),
+                    SizedBox(height: tokens.space.s4),
+                  ],
                   if (widget.kind == FuelLogKind.refuel) ...[
                     DropdownButtonFormField<String>(
                       key: const Key('fuel-log-fill-status'),
+                      isExpanded: true,
                       initialValue: _fillStatus,
                       decoration: InputDecoration(labelText: s.fuelFillStatus),
                       items: [
@@ -509,9 +533,14 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   SizedBox(height: tokens.space.s4),
                   DcoTextField(
                     key: const Key('fuel-log-odometer'),
-                    label: s.fuelLogFormOdometer,
+                    label: '${s.fuelLogFormOdometer} *',
                     controller: _odometer,
-                    hint: s.fuelLogFormOdometerHint,
+                    hint: '0',
+                    helperText: vehicle == null
+                        ? null
+                        : s.registerServiceCurrentMileage(
+                            MileageFormat.labeled(vehicle.mileage, lengthUnit),
+                          ),
                     keyboardType: TextInputType.number,
                     textInputAction: TextInputAction.done,
                     errorText: _errors['odometer'],
@@ -533,7 +562,8 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                       vehicleId: vehicle.id,
                       recordId: widget.logId,
                       readOnly:
-                          !canWrite || _saving ||
+                          !canWrite ||
+                          _saving ||
                           (!access.isOwner &&
                               ref.watch(driverOrganizationIdProvider) == null),
                       onChanged: () => setState(() {}),

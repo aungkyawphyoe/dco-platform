@@ -22,6 +22,11 @@ class FuelLogSuccessScreen extends ConsumerWidget {
       title: charge ? s.fuelLogAddCharge : s.fuelLogAddRefuel,
       heading: charge ? s.chargeSuccessTitle : s.refuelSuccessTitle,
       details: [
+        if (log.batteryLevel != null)
+          (
+            label: s.fuelBatteryLevel.replaceAll(' *', ''),
+            value: '${log.batteryLevel}%',
+          ),
         (
           label: s.registerServiceDate,
           value: DateFormat.yMMMd(s.localeName).format(log.loggedOn),

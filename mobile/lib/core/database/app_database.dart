@@ -55,12 +55,35 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 29;
+  int get schemaVersion => 30;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
+      if (from >= 6 && from < 30) {
+        await migrator.addColumn(fuelLogRecords, fuelLogRecords.batteryLevel);
+      }
+      if (from >= 6 && from < 30) {
+        const renamed = {'Petrol': '95 Octane gasoline (petrol)',
+          'Electricity': 'Electric (Fast)', 'Electric': 'Electric (Fast)'};
+        for (final entry in renamed.entries) {
+          await customStatement('UPDATE fuel_types SET name=? WHERE name=?', [entry.value, entry.key]);
+          await customStatement('UPDATE fuel_logs SET fuel_type_name=? WHERE fuel_type_name=?', [entry.value, entry.key]);
+        }
+        final pending = await customSelect('SELECT id, entity_type, payload FROM outbox_entries').get();
+        for (final row in pending) {
+          final type = row.read<String>('entity_type');
+          final key = type == 'fuel_type' ? 'name' : type == 'fuel_log' ? 'fuel_type_name' : null;
+          if (key == null) continue;
+          final payload = jsonDecode(row.read<String>('payload')) as Map<String, dynamic>;
+          if (!renamed.containsKey(payload[key])) continue;
+          payload[key] = renamed[payload[key]];
+          await (update(outboxEntries)..where((r) => r.id.equals(row.read<int>('id'))))
+            .write(OutboxEntriesCompanion(payload: Value(jsonEncode(payload))));
+        }
+      }
+
       if (from >= 2 && from < 28) {
         final vehicleColumns = (await customSelect(
           'PRAGMA table_info(vehicles)',

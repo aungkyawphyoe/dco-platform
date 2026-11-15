@@ -450,6 +450,8 @@
   "fuelLogFormSelect": "Select",
   "fuelLogFormAmount": "Amount *",
   "fuelLogFormCost": "Cost *",
+  "fuelBatteryLevel": "Battery level after charging *",
+  "fuelBatteryLevelError": "Enter a battery level from 0 to 100",
   "fuelLogFormOdometer": "Odometer",
   "fuelLogFormOdometerHint": "Optional",
   "fuelTypesTitle": "Fuel Types",

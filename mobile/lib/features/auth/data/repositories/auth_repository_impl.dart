@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../../../../core/storage/token_store.dart';
+import '../../../../core/gating/trusted_clock.dart';
 import '../../domain/auth_failure.dart';
 import '../../domain/entities/session.dart';
 import '../../domain/repositories/auth_repository.dart';
@@ -24,6 +25,14 @@ class AuthRepositoryImpl implements AuthRepository {
     final generation = _tokenStore.generation;
     final refresh = await _tokenStore.readRefreshToken();
     if (refresh == null || refresh.isEmpty) return null;
+    final expiresAt = jwtExpiresAt(refresh);
+    final expired = expiresAt != null && !DateTime.now().isBefore(expiresAt);
+    final cached = await _readCachedSession(refresh);
+    if (_tokenStore.generation != generation) return null;
+    // API requests can refresh the access token when the server rejects it.
+    // A slow connection must not delay access to an unexpired local session.
+    if (expiresAt != null && !expired && cached != null) return cached;
+
     try {
       final session = await _remote.refresh(refreshToken: refresh);
       await _persist(session, generation);
@@ -31,34 +40,33 @@ class AuthRepositoryImpl implements AuthRepository {
     } on AuthFailure catch (failure) {
       if (_tokenStore.generation != generation) return null;
       final rejected =
+          expired ||
           failure is InvalidCredentialsFailure ||
           failure is SessionExpiredFailure ||
           failure is ForbiddenFailure;
-      final cached = await _tokenStore.readUserJson();
-      final access = await _tokenStore.readAccessToken();
-      if (_tokenStore.generation != generation) return null;
-      // Connectivity and server failures must not revoke offline access.
       if ((!rejected || refresh.startsWith('mock_refresh_')) &&
-          cached != null &&
-          access != null &&
-          access.isNotEmpty) {
-        try {
-          final user = User.fromJson(
-            jsonDecode(cached) as Map<String, dynamic>,
-          );
-          return Session(
-            accessToken: access,
-            refreshToken: refresh,
-            user: user,
-          );
-        } on FormatException {
-          // Preserve credentials when the cached profile cannot be restored.
-        } on TypeError {
-          // An incomplete cached profile is not a usable offline session.
-        }
+          cached != null) {
+        return cached;
       }
       if (!rejected) rethrow;
-      if (_tokenStore.generation == generation) await _tokenStore.clear();
+      await _tokenStore.clear();
+      return null;
+    }
+  }
+
+  Future<Session?> _readCachedSession(String refresh) async {
+    final userJson = await _tokenStore.readUserJson();
+    final access = await _tokenStore.readAccessToken();
+    if (userJson == null || access == null || access.isEmpty) return null;
+    try {
+      return Session(
+        accessToken: access,
+        refreshToken: refresh,
+        user: User.fromJson(jsonDecode(userJson) as Map<String, dynamic>),
+      );
+    } on FormatException {
+      return null;
+    } on TypeError {
       return null;
     }
   }

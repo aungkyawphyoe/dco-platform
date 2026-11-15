@@ -7,7 +7,7 @@ import { z } from "zod";
 import { authFlows, authIdentities, fuelTypes, users } from "../db/schema.js";
 import type { Db } from "../db/client.js";
 import { newId, randomToken, sha256 } from "../lib/crypto.js";
-import { DEFAULT_FUEL_TYPES } from "../lib/catalog.js";
+import { DEFAULT_FUEL_TYPES, defaultFuelTypeId } from "../lib/catalog.js";
 import { generateUniqueUsername } from "../lib/username.js";
 import { AppError } from "../lib/errors.js";
 import { issueSession } from "./auth.js";
@@ -98,7 +98,7 @@ export const socialAuthPlugin: FastifyPluginAsync = async (app) => {
         const id = newId();
         [user] = await tx.insert(users).values({ currency: await signupCurrency(tx as unknown as Db,request.body), id, email: claims.email ?? null, username: await generateUniqueUsername(tx as unknown as Db, claims.email ?? id), passwordHash: null, emailVerified: claims.verified, role: "owner", plan: "free" }).returning();
         await tx.insert(authIdentities).values({ id: newId(), userId: id, provider: flow.provider, subject: claims.subject });
-        for (const ft of DEFAULT_FUEL_TYPES) await tx.insert(fuelTypes).values({ id: newId(), userId: id, name: ft.name, kind: ft.kind, unit: ft.unit });
+        for (const ft of DEFAULT_FUEL_TYPES) await tx.insert(fuelTypes).values({ id: defaultFuelTypeId(id, ft.name), userId: id, name: ft.name, kind: ft.kind, unit: ft.unit });
       }
       if (!user || user.status !== "active" || user.role !== "owner") throw new AppError(403, "forbidden", "This account cannot sign in here");
       await tx.update(authFlows).set({ consumedAt: new Date() }).where(eq(authFlows.id, flow.id));

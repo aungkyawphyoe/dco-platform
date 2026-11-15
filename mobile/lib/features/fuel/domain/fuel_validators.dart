@@ -50,10 +50,10 @@ abstract final class FuelLogValidators {
     return null;
   }
 
-  /// Optional odometer. Blank input is valid; parsed values must be in range.
+  /// New and edited logs require an odometer reading.
   static String? odometer(String value, {double? vehicleMileage}) {
     final trimmed = value.trim();
-    if (trimmed.isEmpty) return null;
+    if (trimmed.isEmpty) return 'Odometer is required';
     final parsed = parseDecimal(trimmed);
     if (parsed == null) return 'Enter a valid odometer';
     if (parsed < 0) return 'Odometer cannot be negative';

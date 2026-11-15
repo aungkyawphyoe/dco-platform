@@ -219,7 +219,7 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'JWT_WORKSHOP_AUD', value: 'dco-workshop' }
             { name: 'JWT_ADMIN_AUD', value: 'dco-admin' }
             { name: 'JWT_ACCESS_TTL', value: '15m' }
-            { name: 'JWT_REFRESH_TTL', value: '720h' }
+            { name: 'JWT_REFRESH_TTL', value: '2160h' }
             { name: 'MAIL_PROVIDER', value: 'acs' }
             { name: 'EMAIL_VERIFICATION', value: 'off' }
             { name: 'MAIL_FROM', value: 'noreply@localhost' }

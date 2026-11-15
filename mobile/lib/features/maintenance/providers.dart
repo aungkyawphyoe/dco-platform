@@ -60,7 +60,7 @@ final suggestedVehiclePlanProvider = StreamProvider.autoDispose
 /// push of a newly created vehicle). The screen always reads the local cache.
 final maintenanceCatalogRefreshProvider = FutureProvider<bool>((ref) async {
   final userId = ref.watch(currentUserIdProvider);
-  final vehicle = ref.watch(activeVehicleProvider).asData?.value;
+  final vehicle = ref.watch(activeVehicleProvider).valueOrNull;
   ref.watch(driverOrganizationIdProvider);
   ref.listen(syncStatusProvider, (previous, next) {
     final completed = next.asData?.value;

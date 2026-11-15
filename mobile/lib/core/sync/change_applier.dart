@@ -540,6 +540,9 @@ class ChangeApplier {
             createdAt: existing?.createdAt ?? change.serverTs,
           ),
         );
+    await (_db.delete(
+      _db.appMeta,
+    )..where((row) => row.key.equals('unpublished_fuel_type:$id'))).go();
   }
 
   Future<void> _applyFuelLog(SyncChange change, String userId) async {
@@ -576,6 +579,11 @@ class ChangeApplier {
                 payload['fill_status'],
                 fallback: existing?.fillStatus ?? 'unknown',
               ),
+            ),
+            batteryLevel: Value(
+              payload.containsKey('battery_level')
+                  ? (payload['battery_level'] as num?)?.toInt()
+                  : existing?.batteryLevel,
             ),
             fuelTypeId: _str(payload['fuel_type_id'], fallback: ''),
             fuelTypeName: _str(payload['fuel_type_name']),

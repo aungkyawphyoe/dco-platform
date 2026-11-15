@@ -116,7 +116,7 @@ curl -s -X PATCH "https://management.azure.com${RESOURCE_ID}?api-version=2024-03
               {"name": "JWT_WORKSHOP_AUD", "value": "dco-workshop"},
               {"name": "JWT_ADMIN_AUD", "value": "dco-admin"},
               {"name": "JWT_ACCESS_TTL", "value": "15m"},
-              {"name": "JWT_REFRESH_TTL", "value": "720h"},
+              {"name": "JWT_REFRESH_TTL", "value": "2160h"},
               {"name": "MAIL_PROVIDER", "value": "stdout"},
               {"name": "MAIL_FROM", "value": "noreply@localhost"},
               {"name": "MEDIA_DRIVER", "value": "local"},

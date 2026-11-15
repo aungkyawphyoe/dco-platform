@@ -93,6 +93,7 @@ export function publicFuelLog(row: typeof fuelLogs.$inferSelect) {
     vehicle_id: row.vehicleId,
     kind: row.kind,
     fill_status: row.fillStatus,
+    battery_level: row.batteryLevel,
     fuel_type_id: row.fuelTypeId,
     fuel_type_name: row.fuelTypeName,
     unit: row.unit,

@@ -1020,8 +1020,11 @@ async function recordVehicleScopedChange(
     const [existing] = await db().select().from(fuelTypes).where(eq(fuelTypes.id, body.id)).limit(1);
     if (existing) { reply.code(201); return publicFuelType(existing); }
     const clash = await db().select().from(fuelTypes).where(eq(fuelTypes.userId, uid(request)));
-    if (clash.some((t) => t.name.toLowerCase() === body.name.toLowerCase())) {
-      throw new AppError(409, "name_taken", "Fuel type name already exists");
+    const matching = clash.find((t) => t.name.toLowerCase() === body.name.toLowerCase());
+    if (matching) {
+      throw new AppError(409, "name_taken", "Fuel type name already exists", {
+        existing_fuel_type: publicFuelType(matching),
+      });
     }
     const [row] = await db()
       .insert(fuelTypes)
@@ -1082,6 +1085,7 @@ async function recordVehicleScopedChange(
       logged_on: z.string(),
       amount: z.number().positive(),
       cost: z.number().min(0),
+      battery_level: z.number().int().min(0).max(100).nullable().optional(),
       fill_status: z.enum(["full", "partial", "unknown"]).default("unknown"),
       odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body);
@@ -1110,6 +1114,7 @@ async function recordVehicleScopedChange(
         userId: reviewAuthor.getStore() ?? uid(request),
         vehicleId,
         kind,
+        batteryLevel: kind === "charge" ? body.battery_level ?? null : null,
         fillStatus: kind === "charge" ? "unknown" : body.fill_status,
         fuelTypeId: ft.id,
         fuelTypeName: ft.name,
@@ -1147,6 +1152,7 @@ async function recordVehicleScopedChange(
       logged_on: z.string().optional(),
       amount: z.number().optional(),
       cost: z.number().optional(),
+      battery_level: z.number().int().min(0).max(100).nullable().optional(),
       fill_status: z.enum(["full", "partial", "unknown"]).optional(),
       odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body ?? {});
@@ -1167,6 +1173,7 @@ async function recordVehicleScopedChange(
         ...(body.logged_on ? { loggedOn: body.logged_on } : {}),
         ...(body.amount !== undefined ? { amount: String(body.amount) } : {}),
         ...(body.cost !== undefined ? { cost: String(body.cost) } : {}),
+        ...(body.battery_level !== undefined ? { batteryLevel: row.kind === "charge" ? body.battery_level : null } : {}),
         ...(body.fill_status !== undefined ? { fillStatus: row.kind === "charge" ? "unknown" : body.fill_status } : {}),
         ...(body.odometer !== undefined ? { odometer: body.odometer != null ? String(body.odometer) : null } : {}),
         fuelTypeId,

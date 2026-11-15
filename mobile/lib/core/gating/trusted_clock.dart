@@ -10,11 +10,8 @@ typedef NowFn = DateTime Function();
 /// rolled-back device clock freezes effective time at the last trusted
 /// value instead of resurrecting an expired license.
 class TrustedClock {
-  TrustedClock({
-    required this.store,
-    required this.userId,
-    NowFn? now,
-  }) : _now = now ?? (() => DateTime.now().toUtc());
+  TrustedClock({required this.store, required this.userId, NowFn? now})
+    : _now = now ?? (() => DateTime.now().toUtc());
 
   /// Absorbs NTP corrections and timezone jitter (§6.1).
   static const rollbackTolerance = Duration(minutes: 5);
@@ -51,7 +48,12 @@ class TrustedClock {
 /// Best-effort `iat` of an unverified JWT — used only to advance the
 /// trusted clock with times the server attested to (tokens themselves
 /// live in secure storage, out of reach of local DB editors).
-DateTime? jwtIssuedAt(String jwt) {
+DateTime? jwtIssuedAt(String jwt) => _jwtTime(jwt, 'iat');
+
+/// Local session deadline from the server-issued refresh JWT in secure storage.
+DateTime? jwtExpiresAt(String jwt) => _jwtTime(jwt, 'exp');
+
+DateTime? _jwtTime(String jwt, String claim) {
   final parts = jwt.split('.');
   if (parts.length != 3) return null;
   try {
@@ -59,9 +61,9 @@ DateTime? jwtIssuedAt(String jwt) {
       utf8.decode(base64Url.decode(base64Url.normalize(parts[1]))),
     );
     if (payload is! Map<String, dynamic>) return null;
-    final iat = (payload['iat'] as num?)?.toInt();
-    if (iat == null) return null;
-    return DateTime.fromMillisecondsSinceEpoch(iat * 1000, isUtc: true);
+    final seconds = payload[claim];
+    if (seconds is! int) return null;
+    return DateTime.fromMillisecondsSinceEpoch(seconds * 1000, isUtc: true);
   } catch (_) {
     return null;
   }
