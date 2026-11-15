@@ -66,7 +66,7 @@ class FuelStats {
   final double? totalDeltaMiles;
 
   /// Refuel: L/100 km (km) or mpg (mi). Charge: km/kWh or mi/kWh.
-  /// Null under 2 segments or when segment units are mixed.
+  /// Refuel needs two segments. Charge needs a matching battery-level cycle.
   final double? consumption;
 
   /// Money per 100 display-distance units; null under 2 segments.
@@ -117,8 +117,7 @@ class FuelStats {
     final yearOptions = statsYearOptions(dates);
     final monthOptions = statsMonthOptions(dates, year: period.year);
 
-    final inPeriod =
-        logs.where((log) => period.matches(log.loggedOn)).toList();
+    final inPeriod = logs.where((log) => period.matches(log.loggedOn)).toList();
     var totalCost = 0.0;
     final volumeByUnit = <String, double>{};
     FuelLog? mostExpensive;
@@ -133,12 +132,20 @@ class FuelStats {
       }
     }
 
-    final segments = _segments(logs, period: period, lengthUnit: lengthUnit);
+    final sorted = _chronological(logs);
+    final segments = _segments(sorted, period: period, lengthUnit: lengthUnit);
+    final efficiencySegments = mode == FuelStatsMode.charge
+        ? _chargeCycles(sorted, period, lengthUnit)
+        : segments;
 
-    final deltaMiles =
-        segments.fold<double>(0, (sum, segment) => sum + segment.deltaMiles);
-    final segmentCosts =
-        segments.fold<double>(0, (sum, segment) => sum + segment.cost);
+    final deltaMiles = segments.fold<double>(
+      0,
+      (sum, segment) => sum + segment.deltaMiles,
+    );
+    final segmentCosts = segments.fold<double>(
+      0,
+      (sum, segment) => sum + segment.cost,
+    );
     final hasSegments = segments.length >= 2;
     final distanceDisplay = lengthUnit.toDisplay(deltaMiles);
 
@@ -146,9 +153,15 @@ class FuelStats {
     double? costPer100;
     if (hasSegments && distanceDisplay > 0) {
       costPer100 = segmentCosts / distanceDisplay * 100;
+    }
+    if (mode == FuelStatsMode.charge || hasSegments) {
+      final efficiencyDistance = efficiencySegments.fold<double>(
+        0,
+        (sum, segment) => sum + segment.deltaMiles,
+      );
       consumption = _consumption(
-        segments: segments,
-        distanceDisplay: distanceDisplay,
+        segments: efficiencySegments,
+        distanceDisplay: lengthUnit.toDisplay(efficiencyDistance),
         mode: mode,
         lengthUnit: lengthUnit,
       );
@@ -173,7 +186,7 @@ class FuelStats {
       mostExpensiveOn: mostExpensive?.loggedOn,
       monthlyCost: monthlyCost.values,
       monthlyEfficiency: _monthlyEfficiency(
-        segments,
+        efficiencySegments,
         lengthUnit: lengthUnit,
         mode: mode,
       ),
@@ -181,6 +194,62 @@ class FuelStats {
       monthOptions: monthOptions,
       lengthUnit: lengthUnit,
     );
+  }
+
+  static List<FuelLog> _chronological(List<FuelLog> logs) =>
+      [...logs]..sort((a, b) {
+        final byDate = a.loggedOn.compareTo(b.loggedOn);
+        if (byDate != 0) return byDate;
+        final byCreated = a.createdAt.compareTo(b.createdAt);
+        if (byCreated != 0) return byCreated;
+        return a.id.compareTo(b.id);
+      });
+
+  /// Equal post-charge levels cancel out the change in stored battery energy.
+  /// Count every top-up after the opening reading through the closing charge.
+  static List<FuelSegment> _chargeCycles(
+    List<FuelLog> logs,
+    StatsPeriod period,
+    MileageUnit lengthUnit,
+  ) {
+    final openings = <int, ({double odometer, double energy})>{};
+    final cycles = <FuelSegment>[];
+    final bound = outlierBoundMiles(lengthUnit);
+    var energy = 0.0;
+    for (final log in logs) {
+      if (!period.matches(log.loggedOn) ||
+          log.unit != 'kWh' ||
+          !log.amount.isFinite ||
+          log.amount < 0) {
+        openings.clear();
+        energy = 0;
+        continue;
+      }
+      energy += log.amount;
+      final level = log.batteryLevel;
+      final odometer = log.odometer;
+      if (level == null || odometer == null || !odometer.isFinite) continue;
+      final opening = openings[level];
+      if (opening != null) {
+        final distance = odometer - opening.odometer;
+        final charged = energy - opening.energy;
+        if (distance > 0 && distance <= bound && charged > 0) {
+          cycles.add(
+            FuelSegment(
+              on: log.loggedOn,
+              deltaMiles: distance,
+              amount: charged,
+              cost: 0,
+              unit: 'kWh',
+            ),
+          );
+          // Do not count the same distance or energy in overlapping cycles.
+          openings.clear();
+        }
+      }
+      openings[level] = (odometer: odometer, energy: energy);
+    }
+    return cycles;
   }
 
   /// Pairs consecutive odometer readings across the vehicle's full history;
@@ -192,22 +261,16 @@ class FuelStats {
     required StatsPeriod period,
     required MileageUnit lengthUnit,
   }) {
-    final sorted = [...logs]
-      ..sort((a, b) {
-        final byDate = a.loggedOn.compareTo(b.loggedOn);
-        if (byDate != 0) return byDate;
-        final byCreated = a.createdAt.compareTo(b.createdAt);
-        if (byCreated != 0) return byCreated;
-        return a.id.compareTo(b.id);
-      });
-    final readings =
-        sorted.where((log) => log.odometer != null).toList(growable: false);
+    final readings = logs
+        .where((log) => log.odometer != null)
+        .toList(growable: false);
     final bound = outlierBoundMiles(lengthUnit);
     final segments = <FuelSegment>[];
     for (var i = 1; i < readings.length; i++) {
       final earlier = readings[i - 1];
       final later = readings[i];
-      if (!period.matches(earlier.loggedOn) || !period.matches(later.loggedOn)) {
+      if (!period.matches(earlier.loggedOn) ||
+          !period.matches(later.loggedOn)) {
         continue;
       }
       final delta = later.odometer! - earlier.odometer!;
@@ -233,20 +296,24 @@ class FuelStats {
   }) {
     final units = segments.map((segment) => segment.unit).toSet();
     if (units.length != 1 || distanceDisplay <= 0) return null;
-    final volume =
-        segments.fold<double>(0, (sum, segment) => sum + segment.amount);
+    final volume = segments.fold<double>(
+      0,
+      (sum, segment) => sum + segment.amount,
+    );
     if (volume <= 0) return null;
     if (mode == FuelStatsMode.charge) {
       return distanceDisplay / volume;
     }
     final unit = units.first;
     if (lengthUnit == MileageUnit.km) {
-      final liters =
-          unit == 'L' ? volume : volume * _litersPerGallon; // gal → L
+      final liters = unit == 'L'
+          ? volume
+          : volume * _litersPerGallon; // gal → L
       return liters / distanceDisplay * 100;
     }
-    final gallons =
-        unit == 'gal' ? volume : volume / _litersPerGallon; // L → gal
+    final gallons = unit == 'gal'
+        ? volume
+        : volume / _litersPerGallon; // L → gal
     return distanceDisplay / gallons;
   }
 
@@ -271,8 +338,9 @@ class FuelStats {
       final group = entry.value;
       final units = group.map((segment) => segment.unit).toSet();
       if (units.length != 1) continue;
-      final deltaDisplay =
-          lengthUnit.toDisplay(group.fold(0.0, (s, g) => s + g.deltaMiles));
+      final deltaDisplay = lengthUnit.toDisplay(
+        group.fold(0.0, (s, g) => s + g.deltaMiles),
+      );
       final volume = group.fold<double>(0, (s, g) => s + g.amount);
       if (deltaDisplay <= 0 || volume <= 0) continue;
       final value = mode == FuelStatsMode.charge

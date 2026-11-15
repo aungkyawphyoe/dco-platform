@@ -1,6 +1,11 @@
 import { readFileSync } from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
 import { expect, it } from 'vitest';
+import { drizzle } from 'drizzle-orm/pglite';
+import { backfillFuelCatalog } from '../src/db/backfill-fuel-catalog.js';
+import type { Db } from '../src/db/client.js';
+import * as schema from '../src/db/schema.js';
+import { defaultFuelTypeId } from '../src/lib/catalog.js';
 import { applyInitSql } from '../src/db/migrate.js';
 
 it('renames legacy fuel history and change-log snapshots once, preserving IDs and costs', async () => {
@@ -27,5 +32,14 @@ it('renames legacy fuel history and change-log snapshots once, preserving IDs an
       .toEqual({fuel_type_name:'Electric (Fast)',cost:7500});
     await db.exec(migration);
     expect((await db.query('SELECT * FROM fuel_logs')).rows).toHaveLength(1);
+    const database = drizzle(db, { schema }) as unknown as Db;
+    await backfillFuelCatalog(database);
+    await backfillFuelCatalog(database);
+    const types = (await db.query<{id: string; name: string}>('SELECT id,name FROM fuel_types')).rows;
+    expect(types).toHaveLength(8);
+    expect(types).toContainEqual({id:'30000000-0000-0000-0000-000000000001',name:'Electric (Fast)'});
+    expect(types).toContainEqual({id:defaultFuelTypeId('10000000-0000-0000-0000-000000000001','Electric (Slow)'),name:'Electric (Slow)'});
+    expect((await db.query("SELECT entity_id FROM change_log WHERE entity_type='fuel_type'")).rows).toHaveLength(7);
+
   } finally { await db.close(); }
 });

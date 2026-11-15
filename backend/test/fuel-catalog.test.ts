@@ -20,13 +20,15 @@ it('accepts offline-seeded defaults with the same IDs and round-trips battery le
     const vehicleId = uuid();
     const vehicle = await app.inject({method:'POST',url:'/v1/vehicles',headers,payload:{id:vehicleId,name:'EV',make:'Tesla',model:'3',year:2024,license_plate:vehicleId.slice(0,8),fuel_type:'electric',mileage:100}});
     expect(vehicle.statusCode).toBe(201);
-    const body = {id:uuid(),fuel_type_id:defaultFuelTypeId(user.id,'Electric (Fast)'),logged_on:'2026-01-01',amount:10,cost:7500,currency:'MMK',odometer:101,battery_level:85};
+    const body = {id:uuid(),fuel_type_id:defaultFuelTypeId(user.id,'Electric (Fast)'),logged_on:'2026-01-01',amount:10,cost:7500,currency:'MMK',odometer:101,battery_level:85,battery_level_before:33};
     const created = await app.inject({method:'POST',url:`/v1/vehicles/${vehicleId}/fuel-logs`,headers,payload:body});
     expect(created.statusCode, created.body).toBe(201);
-    expect(created.json().battery_level).toBe(85);
+    expect(created.json()).toMatchObject({battery_level:85,battery_level_before:33});
+    const inverted = await app.inject({method:'PATCH',url:`/v1/fuel-logs/${body.id}`,headers,payload:{battery_level:32}});
+    expect(inverted.statusCode).toBe(422);
     const invalid = await app.inject({method:'PATCH',url:`/v1/fuel-logs/${body.id}`,headers,payload:{battery_level:101}});
     expect(invalid.statusCode).toBe(422);
     const updated = await app.inject({method:'PATCH',url:`/v1/fuel-logs/${body.id}`,headers,payload:{battery_level:95}});
-    expect(updated.json().battery_level).toBe(95);
+    expect(updated.json()).toMatchObject({battery_level:95,battery_level_before:33});
   } finally { await app.close(); }
 });

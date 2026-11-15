@@ -166,14 +166,14 @@ Mode by active vehicle `fuel_type` (same split as the Fuel module):
 | 2 | Total cost | Σ cost | avg cost per kWh (total ÷ total kWh) | always (sub needs kWh > 0) |
 | 3 | Total kWh | Σ amount | — | always |
 | 4 | Total distance | Σ segment deltas | — | ≥ 2 segments |
-| 5 | Avg efficiency | Σ segment deltas ÷ Σ segment amounts (km/kWh or mi/kWh) | — | ≥ 2 segments |
+| 5 | Avg efficiency | Σ matched-cycle distance ÷ Σ matched-cycle kWh (km/kWh or mi/kWh) | — | ≥ 1 matching battery-level cycle |
 | 6 | Cost per 100 distance | Σ segment costs ÷ Σ segment deltas × 100 | — | ≥ 2 segments |
 | 7 | Most expensive charge | max cost | its date | always (ties → most recent) |
 
 ### Charts (2)
 
 1. **Monthly cost** — bar; x = months in period chronological, y = Σ log cost in month
-2. **Efficiency trend** — line; refuel mode: monthly avg consumption; charge mode: monthly efficiency; only months containing ≥ 1 segment contribute a point; months without one are **gaps** (no interpolation)
+2. **Efficiency trend** — line; refuel mode: monthly avg consumption; charge mode: monthly efficiency; only months containing ≥ 1 segment contribute a point; months without one are **gaps** (no interpolation) EV efficiency uses closed cycles with equal post-charge battery percentages (including charge limits below 100%). Divide distance by all kWh added after the opening record through the closing charge. A single completed cycle is sufficient. The closing date determines the trend month. Older records with no battery level may contribute intervening kWh, but cannot start or close a cycle.
 
 ## Maintenance Stats
 
@@ -347,7 +347,7 @@ Events (add to `mobile/lib/core/analytics/analytics.dart`)
 - Table view (Charts/Table toggle with month × metric rows)
 - Compare By: fuel type, service type, expense category
 - Insights screen: cross-section cost per 100 km (fuel + maintenance + expenses)
-- Charge form extension (charging source, AC/DC, duration, battery %) → Home vs Away, AC vs DC, charge-speed KPIs
+- Charge form extension (charging source, AC/DC, duration) → Home vs Away, AC vs DC, charge-speed KPIs
 - Cost-per-unit trend chart; monthly volume / distance charts
 - Server aggregation for web / owner web read-only stats
 - Odometer backfill helper (prompt to set odometer from vehicle mileage on next log)

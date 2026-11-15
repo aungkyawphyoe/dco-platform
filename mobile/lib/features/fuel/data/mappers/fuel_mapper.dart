@@ -44,6 +44,7 @@ FuelLog fuelLogFromDrift(FuelLogRecord row) {
     currency: row.currency,
     odometer: row.odometer,
     batteryLevel: row.batteryLevel,
+    batteryLevelBefore: row.batteryLevelBefore,
     updatedAt: row.updatedAt,
     createdAt: row.createdAt,
   );
@@ -65,6 +66,7 @@ FuelLogRecordsCompanion fuelLogToCompanion(FuelLog log) {
     currency: Value(log.currency),
     odometer: Value(log.odometer),
     batteryLevel: Value(log.batteryLevel),
+    batteryLevelBefore: Value(log.batteryLevelBefore),
     updatedAt: log.updatedAt,
     createdAt: log.createdAt,
   );

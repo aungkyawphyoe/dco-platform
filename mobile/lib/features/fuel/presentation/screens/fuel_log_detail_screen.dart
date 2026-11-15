@@ -110,8 +110,10 @@ class FuelLogDetailScreen extends ConsumerWidget {
               if (log.batteryLevel != null)
                 _kv(
                   context,
-                  s.fuelBatteryLevel.replaceAll(' *', ''),
-                  '${log.batteryLevel}%',
+                  s.fuelBatteryRange,
+                  log.batteryLevelBefore == null
+                      ? '— → ${log.batteryLevel}%'
+                      : '${log.batteryLevelBefore}% → ${log.batteryLevel}%',
                 ),
               if (log.odometer != null)
                 _kv(

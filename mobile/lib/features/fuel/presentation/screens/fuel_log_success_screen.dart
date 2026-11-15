@@ -24,8 +24,10 @@ class FuelLogSuccessScreen extends ConsumerWidget {
       details: [
         if (log.batteryLevel != null)
           (
-            label: s.fuelBatteryLevel.replaceAll(' *', ''),
-            value: '${log.batteryLevel}%',
+            label: s.fuelBatteryRange,
+            value: log.batteryLevelBefore == null
+                ? '— → ${log.batteryLevel}%'
+                : '${log.batteryLevelBefore}% → ${log.batteryLevel}%',
           ),
         (
           label: s.registerServiceDate,

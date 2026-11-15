@@ -6786,6 +6786,16 @@ class $FuelLogRecordsTable extends FuelLogRecords
     type: DriftSqlType.int,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _batteryLevelBeforeMeta =
+      const VerificationMeta('batteryLevelBefore');
+  @override
+  late final GeneratedColumn<int> batteryLevelBefore = GeneratedColumn<int>(
+    'battery_level_before',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _fillStatusMeta = const VerificationMeta(
     'fillStatus',
   );
@@ -6899,6 +6909,7 @@ class $FuelLogRecordsTable extends FuelLogRecords
     vehicleId,
     kind,
     batteryLevel,
+    batteryLevelBefore,
     fillStatus,
     fuelTypeId,
     fuelTypeName,
@@ -6963,6 +6974,15 @@ class $FuelLogRecordsTable extends FuelLogRecords
         batteryLevel.isAcceptableOrUnknown(
           data['battery_level']!,
           _batteryLevelMeta,
+        ),
+      );
+    }
+    if (data.containsKey('battery_level_before')) {
+      context.handle(
+        _batteryLevelBeforeMeta,
+        batteryLevelBefore.isAcceptableOrUnknown(
+          data['battery_level_before']!,
+          _batteryLevelBeforeMeta,
         ),
       );
     }
@@ -7081,6 +7101,10 @@ class $FuelLogRecordsTable extends FuelLogRecords
         DriftSqlType.int,
         data['${effectivePrefix}battery_level'],
       ),
+      batteryLevelBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}battery_level_before'],
+      ),
       fillStatus: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}fill_status'],
@@ -7137,6 +7161,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
   final String vehicleId;
   final String kind;
   final int? batteryLevel;
+  final int? batteryLevelBefore;
   final String fillStatus;
   final String fuelTypeId;
   final String fuelTypeName;
@@ -7154,6 +7179,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     required this.vehicleId,
     required this.kind,
     this.batteryLevel,
+    this.batteryLevelBefore,
     required this.fillStatus,
     required this.fuelTypeId,
     required this.fuelTypeName,
@@ -7175,6 +7201,9 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     map['kind'] = Variable<String>(kind);
     if (!nullToAbsent || batteryLevel != null) {
       map['battery_level'] = Variable<int>(batteryLevel);
+    }
+    if (!nullToAbsent || batteryLevelBefore != null) {
+      map['battery_level_before'] = Variable<int>(batteryLevelBefore);
     }
     map['fill_status'] = Variable<String>(fillStatus);
     map['fuel_type_id'] = Variable<String>(fuelTypeId);
@@ -7201,6 +7230,9 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
       batteryLevel: batteryLevel == null && nullToAbsent
           ? const Value.absent()
           : Value(batteryLevel),
+      batteryLevelBefore: batteryLevelBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(batteryLevelBefore),
       fillStatus: Value(fillStatus),
       fuelTypeId: Value(fuelTypeId),
       fuelTypeName: Value(fuelTypeName),
@@ -7228,6 +7260,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
       vehicleId: serializer.fromJson<String>(json['vehicleId']),
       kind: serializer.fromJson<String>(json['kind']),
       batteryLevel: serializer.fromJson<int?>(json['batteryLevel']),
+      batteryLevelBefore: serializer.fromJson<int?>(json['batteryLevelBefore']),
       fillStatus: serializer.fromJson<String>(json['fillStatus']),
       fuelTypeId: serializer.fromJson<String>(json['fuelTypeId']),
       fuelTypeName: serializer.fromJson<String>(json['fuelTypeName']),
@@ -7250,6 +7283,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
       'vehicleId': serializer.toJson<String>(vehicleId),
       'kind': serializer.toJson<String>(kind),
       'batteryLevel': serializer.toJson<int?>(batteryLevel),
+      'batteryLevelBefore': serializer.toJson<int?>(batteryLevelBefore),
       'fillStatus': serializer.toJson<String>(fillStatus),
       'fuelTypeId': serializer.toJson<String>(fuelTypeId),
       'fuelTypeName': serializer.toJson<String>(fuelTypeName),
@@ -7270,6 +7304,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     String? vehicleId,
     String? kind,
     Value<int?> batteryLevel = const Value.absent(),
+    Value<int?> batteryLevelBefore = const Value.absent(),
     String? fillStatus,
     String? fuelTypeId,
     String? fuelTypeName,
@@ -7287,6 +7322,9 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     vehicleId: vehicleId ?? this.vehicleId,
     kind: kind ?? this.kind,
     batteryLevel: batteryLevel.present ? batteryLevel.value : this.batteryLevel,
+    batteryLevelBefore: batteryLevelBefore.present
+        ? batteryLevelBefore.value
+        : this.batteryLevelBefore,
     fillStatus: fillStatus ?? this.fillStatus,
     fuelTypeId: fuelTypeId ?? this.fuelTypeId,
     fuelTypeName: fuelTypeName ?? this.fuelTypeName,
@@ -7308,6 +7346,9 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
       batteryLevel: data.batteryLevel.present
           ? data.batteryLevel.value
           : this.batteryLevel,
+      batteryLevelBefore: data.batteryLevelBefore.present
+          ? data.batteryLevelBefore.value
+          : this.batteryLevelBefore,
       fillStatus: data.fillStatus.present
           ? data.fillStatus.value
           : this.fillStatus,
@@ -7336,6 +7377,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
           ..write('vehicleId: $vehicleId, ')
           ..write('kind: $kind, ')
           ..write('batteryLevel: $batteryLevel, ')
+          ..write('batteryLevelBefore: $batteryLevelBefore, ')
           ..write('fillStatus: $fillStatus, ')
           ..write('fuelTypeId: $fuelTypeId, ')
           ..write('fuelTypeName: $fuelTypeName, ')
@@ -7358,6 +7400,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
     vehicleId,
     kind,
     batteryLevel,
+    batteryLevelBefore,
     fillStatus,
     fuelTypeId,
     fuelTypeName,
@@ -7379,6 +7422,7 @@ class FuelLogRecord extends DataClass implements Insertable<FuelLogRecord> {
           other.vehicleId == this.vehicleId &&
           other.kind == this.kind &&
           other.batteryLevel == this.batteryLevel &&
+          other.batteryLevelBefore == this.batteryLevelBefore &&
           other.fillStatus == this.fillStatus &&
           other.fuelTypeId == this.fuelTypeId &&
           other.fuelTypeName == this.fuelTypeName &&
@@ -7398,6 +7442,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
   final Value<String> vehicleId;
   final Value<String> kind;
   final Value<int?> batteryLevel;
+  final Value<int?> batteryLevelBefore;
   final Value<String> fillStatus;
   final Value<String> fuelTypeId;
   final Value<String> fuelTypeName;
@@ -7416,6 +7461,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     this.vehicleId = const Value.absent(),
     this.kind = const Value.absent(),
     this.batteryLevel = const Value.absent(),
+    this.batteryLevelBefore = const Value.absent(),
     this.fillStatus = const Value.absent(),
     this.fuelTypeId = const Value.absent(),
     this.fuelTypeName = const Value.absent(),
@@ -7435,6 +7481,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     required String vehicleId,
     required String kind,
     this.batteryLevel = const Value.absent(),
+    this.batteryLevelBefore = const Value.absent(),
     this.fillStatus = const Value.absent(),
     required String fuelTypeId,
     required String fuelTypeName,
@@ -7465,6 +7512,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     Expression<String>? vehicleId,
     Expression<String>? kind,
     Expression<int>? batteryLevel,
+    Expression<int>? batteryLevelBefore,
     Expression<String>? fillStatus,
     Expression<String>? fuelTypeId,
     Expression<String>? fuelTypeName,
@@ -7484,6 +7532,8 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
       if (vehicleId != null) 'vehicle_id': vehicleId,
       if (kind != null) 'kind': kind,
       if (batteryLevel != null) 'battery_level': batteryLevel,
+      if (batteryLevelBefore != null)
+        'battery_level_before': batteryLevelBefore,
       if (fillStatus != null) 'fill_status': fillStatus,
       if (fuelTypeId != null) 'fuel_type_id': fuelTypeId,
       if (fuelTypeName != null) 'fuel_type_name': fuelTypeName,
@@ -7505,6 +7555,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     Value<String>? vehicleId,
     Value<String>? kind,
     Value<int?>? batteryLevel,
+    Value<int?>? batteryLevelBefore,
     Value<String>? fillStatus,
     Value<String>? fuelTypeId,
     Value<String>? fuelTypeName,
@@ -7524,6 +7575,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
       vehicleId: vehicleId ?? this.vehicleId,
       kind: kind ?? this.kind,
       batteryLevel: batteryLevel ?? this.batteryLevel,
+      batteryLevelBefore: batteryLevelBefore ?? this.batteryLevelBefore,
       fillStatus: fillStatus ?? this.fillStatus,
       fuelTypeId: fuelTypeId ?? this.fuelTypeId,
       fuelTypeName: fuelTypeName ?? this.fuelTypeName,
@@ -7558,6 +7610,9 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
     }
     if (batteryLevel.present) {
       map['battery_level'] = Variable<int>(batteryLevel.value);
+    }
+    if (batteryLevelBefore.present) {
+      map['battery_level_before'] = Variable<int>(batteryLevelBefore.value);
     }
     if (fillStatus.present) {
       map['fill_status'] = Variable<String>(fillStatus.value);
@@ -7604,6 +7659,7 @@ class FuelLogRecordsCompanion extends UpdateCompanion<FuelLogRecord> {
           ..write('vehicleId: $vehicleId, ')
           ..write('kind: $kind, ')
           ..write('batteryLevel: $batteryLevel, ')
+          ..write('batteryLevelBefore: $batteryLevelBefore, ')
           ..write('fillStatus: $fillStatus, ')
           ..write('fuelTypeId: $fuelTypeId, ')
           ..write('fuelTypeName: $fuelTypeName, ')
@@ -17618,6 +17674,7 @@ typedef $$FuelLogRecordsTableCreateCompanionBuilder =
       required String vehicleId,
       required String kind,
       Value<int?> batteryLevel,
+      Value<int?> batteryLevelBefore,
       Value<String> fillStatus,
       required String fuelTypeId,
       required String fuelTypeName,
@@ -17638,6 +17695,7 @@ typedef $$FuelLogRecordsTableUpdateCompanionBuilder =
       Value<String> vehicleId,
       Value<String> kind,
       Value<int?> batteryLevel,
+      Value<int?> batteryLevelBefore,
       Value<String> fillStatus,
       Value<String> fuelTypeId,
       Value<String> fuelTypeName,
@@ -17687,6 +17745,11 @@ class $$FuelLogRecordsTableFilterComposer
 
   ColumnFilters<int> get batteryLevel => $composableBuilder(
     column: $table.batteryLevel,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get batteryLevelBefore => $composableBuilder(
+    column: $table.batteryLevelBefore,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -17780,6 +17843,11 @@ class $$FuelLogRecordsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get batteryLevelBefore => $composableBuilder(
+    column: $table.batteryLevelBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get fillStatus => $composableBuilder(
     column: $table.fillStatus,
     builder: (column) => ColumnOrderings(column),
@@ -17860,6 +17928,11 @@ class $$FuelLogRecordsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<int> get batteryLevelBefore => $composableBuilder(
+    column: $table.batteryLevelBefore,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get fillStatus => $composableBuilder(
     column: $table.fillStatus,
     builder: (column) => column,
@@ -17936,6 +18009,7 @@ class $$FuelLogRecordsTableTableManager
                 Value<String> vehicleId = const Value.absent(),
                 Value<String> kind = const Value.absent(),
                 Value<int?> batteryLevel = const Value.absent(),
+                Value<int?> batteryLevelBefore = const Value.absent(),
                 Value<String> fillStatus = const Value.absent(),
                 Value<String> fuelTypeId = const Value.absent(),
                 Value<String> fuelTypeName = const Value.absent(),
@@ -17954,6 +18028,7 @@ class $$FuelLogRecordsTableTableManager
                 vehicleId: vehicleId,
                 kind: kind,
                 batteryLevel: batteryLevel,
+                batteryLevelBefore: batteryLevelBefore,
                 fillStatus: fillStatus,
                 fuelTypeId: fuelTypeId,
                 fuelTypeName: fuelTypeName,
@@ -17974,6 +18049,7 @@ class $$FuelLogRecordsTableTableManager
                 required String vehicleId,
                 required String kind,
                 Value<int?> batteryLevel = const Value.absent(),
+                Value<int?> batteryLevelBefore = const Value.absent(),
                 Value<String> fillStatus = const Value.absent(),
                 required String fuelTypeId,
                 required String fuelTypeName,
@@ -17992,6 +18068,7 @@ class $$FuelLogRecordsTableTableManager
                 vehicleId: vehicleId,
                 kind: kind,
                 batteryLevel: batteryLevel,
+                batteryLevelBefore: batteryLevelBefore,
                 fillStatus: fillStatus,
                 fuelTypeId: fuelTypeId,
                 fuelTypeName: fuelTypeName,

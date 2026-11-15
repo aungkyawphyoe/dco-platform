@@ -94,6 +94,7 @@ export function publicFuelLog(row: typeof fuelLogs.$inferSelect) {
     kind: row.kind,
     fill_status: row.fillStatus,
     battery_level: row.batteryLevel,
+    battery_level_before: row.batteryLevelBefore,
     fuel_type_id: row.fuelTypeId,
     fuel_type_name: row.fuelTypeName,
     unit: row.unit,

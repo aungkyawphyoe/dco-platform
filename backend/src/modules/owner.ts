@@ -51,6 +51,12 @@ import { getAccessibleVehicle as personalAccessibleVehicle, getOwnedVehicle as p
 
 const uuid = z.string().uuid();
 
+function validateBatteryRange(before?: number | null, after?: number | null) {
+  if (before != null && (after == null || before > after)) {
+    throw new AppError(422, "validation", "Battery level after charging must be at least the level before charging");
+  }
+}
+
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
   if (value && typeof value === "object") return `{${Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([key, child]) => `${JSON.stringify(key)}:${canonical(child)}`).join(",")}}`;
@@ -1086,6 +1092,7 @@ async function recordVehicleScopedChange(
       amount: z.number().positive(),
       cost: z.number().min(0),
       battery_level: z.number().int().min(0).max(100).nullable().optional(),
+      battery_level_before: z.number().int().min(0).max(100).nullable().optional(),
       fill_status: z.enum(["full", "partial", "unknown"]).default("unknown"),
       odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body);
@@ -1106,6 +1113,7 @@ async function recordVehicleScopedChange(
     if (!organizationScoped && body.odometer != null && body.odometer < reqNum(vehicle.mileage)) {
       throw new AppError(422, "mileage_decrease", "Fuel odometer cannot be below vehicle mileage");
     }
+    if (kind === "charge") validateBatteryRange(body.battery_level_before, body.battery_level);
     const [row] = await db()
       .insert(fuelLogs)
       .values({
@@ -1114,6 +1122,7 @@ async function recordVehicleScopedChange(
         userId: reviewAuthor.getStore() ?? uid(request),
         vehicleId,
         kind,
+        batteryLevelBefore: kind === "charge" ? body.battery_level_before ?? null : null,
         batteryLevel: kind === "charge" ? body.battery_level ?? null : null,
         fillStatus: kind === "charge" ? "unknown" : body.fill_status,
         fuelTypeId: ft.id,
@@ -1153,9 +1162,16 @@ async function recordVehicleScopedChange(
       amount: z.number().optional(),
       cost: z.number().optional(),
       battery_level: z.number().int().min(0).max(100).nullable().optional(),
+      battery_level_before: z.number().int().min(0).max(100).nullable().optional(),
       fill_status: z.enum(["full", "partial", "unknown"]).optional(),
       odometer: z.number().min(0).max(999999).optional().nullable(),
     }).parse(request.body ?? {});
+    if (row.kind === "charge") {
+      validateBatteryRange(
+        body.battery_level_before === undefined ? row.batteryLevelBefore : body.battery_level_before,
+        body.battery_level === undefined ? row.batteryLevel : body.battery_level,
+      );
+    }
     let fuelTypeName = row.fuelTypeName;
     let unit = row.unit;
     let fuelTypeId = row.fuelTypeId;
@@ -1173,6 +1189,7 @@ async function recordVehicleScopedChange(
         ...(body.logged_on ? { loggedOn: body.logged_on } : {}),
         ...(body.amount !== undefined ? { amount: String(body.amount) } : {}),
         ...(body.cost !== undefined ? { cost: String(body.cost) } : {}),
+        ...(body.battery_level_before !== undefined ? { batteryLevelBefore: row.kind === "charge" ? body.battery_level_before : null } : {}),
         ...(body.battery_level !== undefined ? { batteryLevel: row.kind === "charge" ? body.battery_level : null } : {}),
         ...(body.fill_status !== undefined ? { fillStatus: row.kind === "charge" ? "unknown" : body.fill_status } : {}),
         ...(body.odometer !== undefined ? { odometer: body.odometer != null ? String(body.odometer) : null } : {}),

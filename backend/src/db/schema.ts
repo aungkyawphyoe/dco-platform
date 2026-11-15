@@ -344,6 +344,7 @@ export const fuelLogs = pgTable("fuel_logs", {
     .references(() => vehicles.id),
   kind: fuelLogKindEnum("kind").notNull(),
   batteryLevel: integer("battery_level"),
+  batteryLevelBefore: integer("battery_level_before"),
   fillStatus: text("fill_status").notNull().default("unknown"),
   fuelTypeId: uuid("fuel_type_id"),
   fuelTypeName: text("fuel_type_name").notNull(),

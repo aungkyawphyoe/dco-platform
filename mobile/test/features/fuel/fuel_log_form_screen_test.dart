@@ -120,14 +120,14 @@ void main() {
                 -150,
                 scrollable: find.byType(Scrollable).first,
               );
-              expect(
-                tester
-                    .widget<DcoTextField>(
-                      find.byKey(const Key('fuel-log-battery-level')),
-                    )
-                    .errorText,
-                s.fuelBatteryLevelError,
+              expect(find.text(s.fuelBatteryLevelError), findsOneWidget);
+              final slider = find.byKey(const Key('fuel-log-battery-level'));
+              tester.widget<RangeSlider>(slider).onChanged!(
+                const RangeValues(33, 80),
               );
+              await tester.pump();
+              expect(find.text('33% → 80%'), findsOneWidget);
+              expect(find.text(s.fuelBatteryLevelError), findsNothing);
             }
             expect(tester.takeException(), isNull);
             await tester.pumpWidget(const SizedBox.shrink());

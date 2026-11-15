@@ -239,6 +239,7 @@ class FuelLogRecords extends Table {
   TextColumn get vehicleId => text()();
   TextColumn get kind => text()();
   IntColumn get batteryLevel => integer().nullable()();
+  IntColumn get batteryLevelBefore => integer().nullable()();
   TextColumn get fillStatus => text().withDefault(const Constant('unknown'))();
   TextColumn get fuelTypeId => text()();
   TextColumn get fuelTypeName => text()();

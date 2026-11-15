@@ -55,12 +55,15 @@ class AppDatabase extends _$AppDatabase {
   }
 
   @override
-  int get schemaVersion => 30;
+  int get schemaVersion => 31;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (migrator) => migrator.createAll(),
     onUpgrade: (migrator, from, to) async {
+      if (from >= 6 && from < 31) {
+        await migrator.addColumn(fuelLogRecords, fuelLogRecords.batteryLevelBefore);
+      }
       if (from >= 6 && from < 30) {
         await migrator.addColumn(fuelLogRecords, fuelLogRecords.batteryLevel);
       }

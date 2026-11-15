@@ -122,3 +122,5 @@ Type name and unit are snapshotted on the log so later catalog edits do not rewr
 # Dependencies
 
 Garage (active vehicle and vehicle fuel type)
+
+Charge forms use a two-handle battery range picker. New charge logs require before and after readings from 0–100%, in ascending order. Existing logs keep unknown before readings until edited with a selected value. Matching after-charge readings continue to anchor EV efficiency cycles.

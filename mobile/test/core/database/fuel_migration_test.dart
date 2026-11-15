@@ -64,6 +64,9 @@ void main() {
         await db.customStatement(
           'ALTER TABLE fuel_logs DROP COLUMN battery_level',
         );
+        await db.customStatement(
+          'ALTER TABLE fuel_logs DROP COLUMN battery_level_before',
+        );
         await db.customStatement('PRAGMA user_version=29');
         await db.close();
         db = AppDatabase(NativeDatabase(file));
@@ -79,6 +82,7 @@ void main() {
             (log) =>
                 log.cost == 7500 &&
                 log.batteryLevel == null &&
+                log.batteryLevelBefore == null &&
                 log.odometer == null,
           ),
           isTrue,

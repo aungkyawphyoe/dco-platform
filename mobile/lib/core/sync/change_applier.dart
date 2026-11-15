@@ -580,6 +580,11 @@ class ChangeApplier {
                 fallback: existing?.fillStatus ?? 'unknown',
               ),
             ),
+            batteryLevelBefore: Value(
+              payload.containsKey('battery_level_before')
+                  ? (payload['battery_level_before'] as num?)?.toInt()
+                  : existing?.batteryLevelBefore,
+            ),
             batteryLevel: Value(
               payload.containsKey('battery_level')
                   ? (payload['battery_level'] as num?)?.toInt()

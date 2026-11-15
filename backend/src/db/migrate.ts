@@ -115,4 +115,5 @@ export async function applyInitSql(exec: (sql: string) => Promise<unknown>): Pro
   await exec(readSql("0042_handover_correction.sql"));
   await exec(readSql("0043_legacy_ownership_reconciliation.sql"));
   await exec(readSql("0044_fuel_catalog_battery.sql"));
+  await exec(readSql("0045_battery_level_before.sql"));
 }

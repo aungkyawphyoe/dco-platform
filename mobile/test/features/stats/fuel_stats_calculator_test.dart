@@ -11,6 +11,7 @@ FuelLog _log({
   double cost = 50,
   String unit = 'L',
   double? odometer,
+  int? batteryLevel,
   FuelLogKind kind = FuelLogKind.refuel,
   DateTime? createdAt,
 }) {
@@ -26,6 +27,7 @@ FuelLog _log({
     amount: amount,
     cost: cost,
     odometer: odometer,
+    batteryLevel: batteryLevel,
     updatedAt: loggedOn,
     createdAt: createdAt ?? loggedOn,
   );
@@ -327,6 +329,7 @@ void main() {
             cost: 0,
             unit: 'kWh',
             kind: FuelLogKind.charge,
+            batteryLevel: 80,
           ),
           _log(
             id: 'b',
@@ -336,6 +339,7 @@ void main() {
             cost: 12,
             unit: 'kWh',
             kind: FuelLogKind.charge,
+            batteryLevel: 60,
           ),
           _log(
             id: 'c',
@@ -345,6 +349,7 @@ void main() {
             cost: 12,
             unit: 'kWh',
             kind: FuelLogKind.charge,
+            batteryLevel: 80,
           ),
         ],
         lengthUnit: MileageUnit.km,
@@ -355,6 +360,38 @@ void main() {
       expect(stats.consumption, closeTo(5.0, 1e-9)); // 200 km / 40 kWh
       expect(stats.volumeByUnit, {'kWh': 40.0});
       expect(stats.avgCostPerUnit, closeTo(0.6, 1e-9));
+      expect(stats.monthlyEfficiency.single.value, closeTo(5, 1e-9));
+    });
+
+    test('legacy or mismatched levels do not imply measured efficiency', () {
+      final stats = _compute([
+        _log(
+          id: 'a',
+          loggedOn: DateTime(2026, 1, 1),
+          odometer: 100,
+          unit: 'kWh',
+          kind: FuelLogKind.charge,
+          batteryLevel: 80,
+        ),
+        _log(
+          id: 'b',
+          loggedOn: DateTime(2026, 1, 2),
+          odometer: 150,
+          unit: 'kWh',
+          kind: FuelLogKind.charge,
+        ),
+        _log(
+          id: 'c',
+          loggedOn: DateTime(2026, 1, 3),
+          odometer: 200,
+          unit: 'kWh',
+          kind: FuelLogKind.charge,
+          batteryLevel: 60,
+        ),
+      ], mode: FuelStatsMode.charge);
+      expect(stats.totalDeltaMiles, 100);
+      expect(stats.consumption, isNull);
+      expect(stats.monthlyEfficiency, isEmpty);
     });
   });
 

@@ -6956,6 +6956,12 @@ components:
         kind:
           type: string
           enum: [refuel, charge]
+        battery_level_before:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Battery percentage before charging, at most battery_level. Null when unknown or for liquid refueling.
         battery_level:
           type: integer
           minimum: 0
@@ -6998,6 +7004,12 @@ components:
         id:
           type: string
           format: uuid
+        battery_level_before:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Battery percentage before charging, at most battery_level. Null when unknown or for liquid refueling.
         battery_level:
           type: integer
           minimum: 0
@@ -7031,6 +7043,12 @@ components:
           allOf:
             - $ref: '#/components/schemas/OperationalCurrency'
           description: Required with monetary entries after rollout activation. Historical edits retain their original currency.
+        battery_level_before:
+          type: integer
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Battery percentage before charging, at most battery_level. Null when unknown or for liquid refueling.
         battery_level:
           type: integer
           minimum: 0

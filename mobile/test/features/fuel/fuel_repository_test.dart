@@ -136,6 +136,7 @@ void main() {
         amount: 32,
         cost: 8,
         batteryLevel: 85,
+        batteryLevelBefore: 33,
       ),
     );
 
@@ -143,6 +144,8 @@ void main() {
     expect(log.unit, 'kWh');
     expect((await fuel.getLog(log.id))!.batteryLevel, 85);
     expect(log.toWriteJson()['battery_level'], 85);
+    expect((await fuel.getLog(log.id))!.batteryLevelBefore, 33);
+    expect(log.toWriteJson()['battery_level_before'], 33);
     expect(FuelLogKind.forVehicleFuelType(vehicle.fuelType.storage), FuelLogKind.charge);
 
     final logs = await fuel.watchLogs(vehicleId: vehicle.id, kind: FuelLogKind.charge).first;

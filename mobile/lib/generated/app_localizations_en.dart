@@ -1458,10 +1458,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get fuelLogFormCost => 'Cost *';
 
   @override
-  String get fuelBatteryLevel => 'Battery level after charging *';
+  String get fuelBatteryRange => 'Battery level';
 
   @override
-  String get fuelBatteryLevelError => 'Enter a battery level from 0 to 100';
+  String get fuelBatteryRangeHint =>
+      'Drag the handles to set the levels before and after charging.';
+
+  @override
+  String get fuelBatteryLevelError =>
+      'Select the battery levels before and after charging.';
 
   @override
   String get fuelLogFormOdometer => 'Odometer';
@@ -3376,7 +3381,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get statsDefAvgEfficiency =>
-      'Distance driven per kWh between odometer readings.';
+      'Distance per kWh charged between readings at the same post-charge battery level, including top-ups along the way.';
 
   @override
   String get statsDefCostPer100 =>

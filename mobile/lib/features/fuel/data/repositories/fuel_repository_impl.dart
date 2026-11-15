@@ -298,12 +298,6 @@ class FuelRepositoryImpl implements FuelRepository {
       kind: kind,
     );
     _assertLogDraft(draft);
-    if (draft.batteryLevel != null &&
-        (draft.batteryLevel! < 0 || draft.batteryLevel! > 100)) {
-      throw const FuelValidationFailure(
-        'Battery level must be between 0 and 100',
-      );
-    }
     final vehicle = await _requireVehicle(vehicleId);
     _assertOdometer(vehicle, draft);
 
@@ -325,6 +319,9 @@ class FuelRepositoryImpl implements FuelRepository {
       cost: draft.cost,
       odometer: draft.odometer,
       batteryLevel: kind == FuelLogKind.charge ? draft.batteryLevel : null,
+      batteryLevelBefore: kind == FuelLogKind.charge
+          ? draft.batteryLevelBefore
+          : null,
       updatedAt: now,
       createdAt: now,
     );
@@ -384,12 +381,6 @@ class FuelRepositoryImpl implements FuelRepository {
       kind: kind,
     );
     _assertLogDraft(draft);
-    if (draft.batteryLevel != null &&
-        (draft.batteryLevel! < 0 || draft.batteryLevel! > 100)) {
-      throw const FuelValidationFailure(
-        'Battery level must be between 0 and 100',
-      );
-    }
     final vehicle = await _requireVehicle(existing.vehicleId);
     _assertOdometer(vehicle, draft);
 
@@ -408,6 +399,9 @@ class FuelRepositoryImpl implements FuelRepository {
       cost: draft.cost,
       odometer: draft.odometer,
       batteryLevel: kind == FuelLogKind.charge ? draft.batteryLevel : null,
+      batteryLevelBefore: kind == FuelLogKind.charge
+          ? draft.batteryLevelBefore
+          : null,
       updatedAt: DateTime.now().toUtc(),
       createdAt: existing.createdAt,
     );
@@ -456,6 +450,13 @@ class FuelRepositoryImpl implements FuelRepository {
   }
 
   void _assertLogDraft(FuelLogDraft draft) {
+    final before = draft.batteryLevelBefore;
+    final after = draft.batteryLevel;
+    if ((after != null && (after < 0 || after > 100)) ||
+        (before != null && (before < 0 || after == null || before > after))) {
+      throw const FuelValidationFailure('Invalid charging battery range');
+    }
+
     final dateError = FuelLogValidators.date(
       draft.loggedOn,
       now: DateTime.now(),

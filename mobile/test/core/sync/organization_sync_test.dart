@@ -106,6 +106,7 @@ void main() {
       }
       await OrganizationOutboxWriter(legacy).enqueue(userId:'driver',entityType:'service_record',entityId:'pending',op:OutboxOp.upsert,
         payload:{'vehicle_id':'vehicle','odometer':500.0});
+      await legacy.customStatement('ALTER TABLE fuel_logs DROP COLUMN battery_level_before');
       await legacy.customStatement('ALTER TABLE fuel_logs DROP COLUMN battery_level');
       await legacy.customStatement('PRAGMA user_version=26');
       await legacy.close();

@@ -1480,10 +1480,15 @@ class AppLocalizationsMy extends AppLocalizations {
   String get fuelLogFormCost => 'ကျသင့်ငွေ *';
 
   @override
-  String get fuelBatteryLevel => 'အားသွင်းပြီး ဘက်ထရီပမာဏ *';
+  String get fuelBatteryRange => 'ဘက်ထရီပမာဏ';
 
   @override
-  String get fuelBatteryLevelError => 'ဘက်ထရီပမာဏ 0 မှ 100 အတွင်း ထည့်ပါ';
+  String get fuelBatteryRangeHint =>
+      'အားမသွင်းမီနှင့် အားသွင်းပြီး ဘက်ထရီပမာဏကို ရွှေ့၍ သတ်မှတ်ပါ။';
+
+  @override
+  String get fuelBatteryLevelError =>
+      'အားမသွင်းမီနှင့် အားသွင်းပြီး ဘက်ထရီပမာဏကို ရွေးပါ။';
 
   @override
   String get fuelLogFormOdometer => 'အကွာအဝေးတိုင်းစက်';
@@ -3412,7 +3417,7 @@ class AppLocalizationsMy extends AppLocalizations {
 
   @override
   String get statsDefAvgEfficiency =>
-      'အကွာအဝေးတိုင်းစက် ဖတ်တန်းများကြား kWh တစ်ခုလျှင် မောင်းနှင်သော အကွာအဝေး။';
+      'အားသွင်းပြီး ဘက်ထရီရာခိုင်နှုန်းတူသော မှတ်တမ်းနှစ်ခုကြား မောင်းနှင်သည့်အကွာအဝေးကို ကြားတွင် အားသွင်းခဲ့သော kWh စုစုပေါင်းဖြင့် တွက်ချက်သည်။';
 
   @override
   String get statsDefCostPer100 =>

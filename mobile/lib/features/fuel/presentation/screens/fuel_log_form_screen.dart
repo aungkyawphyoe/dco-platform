@@ -90,7 +90,8 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
   final _amount = TextEditingController();
   final _cost = TextEditingController();
   final _odometer = TextEditingController();
-  final _batteryLevel = TextEditingController();
+  int? _batteryBefore = 20;
+  int? _batteryAfter = 80;
   final _errors = <String, String?>{};
 
   DateTime _loggedOn = DateTime.now();
@@ -121,7 +122,8 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
       final log = await ref.read(fuelRepositoryProvider).getLog(widget.logId!);
       if (log != null && mounted) {
         _recordCurrency = log.currency;
-        _batteryLevel.text = log.batteryLevel?.toString() ?? '';
+        _batteryBefore = log.batteryLevelBefore;
+        _batteryAfter = log.batteryLevel;
         _createdBy = log.userId;
         _fillStatus = log.fillStatus;
         _loggedOn = log.loggedOn;
@@ -156,7 +158,6 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     _amount.dispose();
     _cost.dispose();
     _odometer.dispose();
-    _batteryLevel.dispose();
     super.dispose();
   }
 
@@ -165,6 +166,8 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         ? value.toStringAsFixed(0)
         : value.toStringAsFixed(2);
   }
+
+  String _percent(int? value) => value == null ? '—' : '$value%';
 
   FuelLogDraft? _draftOrNull() {
     // Sync can reconcile a seeded ID while this form is open.
@@ -178,7 +181,6 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
         }
       }
     }
-    final battery = int.tryParse(_batteryLevel.text.trim());
 
     setState(() {
       _errors
@@ -191,7 +193,8 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
             : FuelLogValidators.odometer(_odometer.text)
         ..['battery'] =
             widget.kind == FuelLogKind.charge &&
-                (battery == null || battery < 0 || battery > 100)
+                (_batteryAfter == null ||
+                    (!widget.isEditing && _batteryBefore == null))
             ? AppLocalizations.of(context)!.fuelBatteryLevelError
             : null;
       _formError = null;
@@ -201,7 +204,10 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
     return FuelLogDraft(
       currency: _recordCurrency ?? ref.read(currencyProvider).code,
       fillStatus: widget.kind == FuelLogKind.charge ? 'unknown' : _fillStatus,
-      batteryLevel: widget.kind == FuelLogKind.charge ? battery : null,
+      batteryLevel: widget.kind == FuelLogKind.charge ? _batteryAfter : null,
+      batteryLevelBefore: widget.kind == FuelLogKind.charge
+          ? _batteryBefore
+          : null,
       loggedOn: _loggedOn,
       fuelTypeId: _fuelTypeId!,
       amount: FuelLogValidators.parseDecimal(_amount.text)!,
@@ -446,16 +452,65 @@ class _FuelLogFormState extends ConsumerState<FuelLogForm> {
                   ),
                   SizedBox(height: tokens.space.s4),
                   if (widget.kind == FuelLogKind.charge) ...[
-                    DcoTextField(
-                      key: const Key('fuel-log-battery-level'),
-                      label: s.fuelBatteryLevel,
-                      controller: _batteryLevel,
-                      keyboardType: TextInputType.number,
-                      errorText: _errors['battery'],
-                      suffix: const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Text('%'),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: .center,
+                          spacing: tokens.space.s2,
+                          children: [
+                            Text(
+                              s.fuelBatteryRange,
+                              style: Theme.of(context).textTheme.labelLarge,
+                            ),
+                            const Text(': '),
+                            Text(
+                              '${_percent(_batteryBefore)} → ${_percent(_batteryAfter)}',
+                              style: Theme.of(context).textTheme.titleMedium,
+                            ),
+                          ],
+                        ),
+                        RangeSlider(
+                          key: const Key('fuel-log-battery-level'),
+                          values: RangeValues(
+                            (_batteryBefore ?? 20).toDouble(),
+                            (_batteryAfter ?? 80).toDouble(),
+                          ),
+                          min: 0,
+                          max: 100,
+                          divisions: 100,
+                          activeColor: tokens.button.primary.background,
+                          labels: RangeLabels(
+                            '${_batteryBefore ?? 20}%',
+                            '${_batteryAfter ?? 80}%',
+                          ),
+                          semanticFormatterCallback: (value) =>
+                              '${value.round()}%',
+                          onChanged: !canWrite || _saving
+                              ? null
+                              : (range) => setState(() {
+                                  final before = range.start.round();
+                                  final after = range.end.round();
+                                  if (before != (_batteryBefore ?? 0)) {
+                                    _batteryBefore = before;
+                                  }
+                                  if (after != (_batteryAfter ?? 100)) {
+                                    _batteryAfter = after;
+                                  }
+                                  _errors['battery'] = null;
+                                }),
+                        ),
+                        Text(
+                          _errors['battery'] ?? s.fuelBatteryRangeHint,
+                          key: const Key('fuel-log-battery-hint'),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: _errors['battery'] != null
+                                    ? tokens.status.dangerFg
+                                    : tokens.text.secondary,
+                              ),
+                        ),
+                      ],
                     ),
                     SizedBox(height: tokens.space.s4),
                   ],

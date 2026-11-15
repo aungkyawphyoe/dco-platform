@@ -2804,16 +2804,22 @@ abstract class AppLocalizations {
   /// **'Cost *'**
   String get fuelLogFormCost;
 
-  /// No description provided for @fuelBatteryLevel.
+  /// No description provided for @fuelBatteryRange.
   ///
   /// In en, this message translates to:
-  /// **'Battery level after charging *'**
-  String get fuelBatteryLevel;
+  /// **'Battery level'**
+  String get fuelBatteryRange;
+
+  /// No description provided for @fuelBatteryRangeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag the handles to set the levels before and after charging.'**
+  String get fuelBatteryRangeHint;
 
   /// No description provided for @fuelBatteryLevelError.
   ///
   /// In en, this message translates to:
-  /// **'Enter a battery level from 0 to 100'**
+  /// **'Select the battery levels before and after charging.'**
   String get fuelBatteryLevelError;
 
   /// No description provided for @fuelLogFormOdometer.
@@ -6417,7 +6423,7 @@ abstract class AppLocalizations {
   /// No description provided for @statsDefAvgEfficiency.
   ///
   /// In en, this message translates to:
-  /// **'Distance driven per kWh between odometer readings.'**
+  /// **'Distance per kWh charged between readings at the same post-charge battery level, including top-ups along the way.'**
   String get statsDefAvgEfficiency;
 
   /// No description provided for @statsDefCostPer100.
