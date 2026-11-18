@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { HandoverPanel } from "@/components/vehicles/handover-panel";
 import { ReminderSetup } from "@/components/vehicles/reminder-setup";
 import { VehicleStatus } from "@/components/vehicles/vehicle-status";
@@ -346,6 +346,7 @@ function ServiceHistorySection({ orgId, vehicleId }: { orgId: string | null; veh
 export default function VehicleDetailPage() {
   const params = useParams<{ id: string }>();
   const vehicleId = params.id;
+  const [activeTab, setActiveTab] = useState("detail");
   const orgId = useOrgId();
   const fleetCurrency = useFleetCurrency(orgId);
   const role = useOrgRole();
@@ -415,29 +416,10 @@ export default function VehicleDetailPage() {
               <span className="font-mono text-ink-muted">{vehicle.license_plate}</span>
             </p>
           </div>
-          {canManage ? (
-            <Link
-              href="/maintenance-templates"
-              className="inline-flex h-9 items-center rounded-md border border-line-strong bg-card px-4 font-display text-sm font-semibold text-ink transition-colors hover:bg-skeleton"
-            >
-              Maintenance catalog
-            </Link>
-          ) : null}
         </div>
       </header>
 
       <VehicleDataPlate vehicle={vehicle} />
-      <VehicleStatus key={vehicle.id} vehicle={vehicle} orgId={orgId} canManage={canManage} />
-      {vehicle.lifecycle_template === "showroom" ? (
-        <HandoverPanel
-          orgId={orgId}
-          vehicle={vehicle}
-          planItems={planItems}
-          canManage={canManage}
-        />
-      ) : null}
-      {orgId && role === "org_admin" && <VehicleDocuments key={`${orgId}:${vehicle.id}`} orgId={orgId} vehicleId={vehicle.id} />}
-
       <section className="rounded-lg border border-line-subtle bg-panel">
         <div className="grid grid-cols-1 lg:grid-cols-[3fr_2fr] lg:divide-x lg:divide-line">
           <div className="p-5">
@@ -451,12 +433,57 @@ export default function VehicleDetailPage() {
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-        <div className="lg:col-span-3">
-          <ServiceHistorySection orgId={orgId} vehicleId={vehicle.id} />
+      <div role="tablist" aria-label="Vehicle information" className="flex gap-6 border-b border-line">
+        {(["detail", "service"] as const).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            role="tab"
+            id={`vehicle-${tab}-tab`}
+            aria-controls={`vehicle-${tab}-panel`}
+            aria-selected={activeTab === tab}
+            tabIndex={activeTab === tab ? 0 : -1}
+            onClick={() => setActiveTab(tab)}
+            onKeyDown={(event) => {
+              if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+              event.preventDefault();
+              const next = event.key === "Home" ? "detail" : event.key === "End" ? "service" : tab === "detail" ? "service" : "detail";
+              setActiveTab(next);
+              document.getElementById(`vehicle-${next}-tab`)?.focus();
+            }}
+            className={`border-b-2 px-1 pb-3 font-display text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-focus ${activeTab === tab ? "border-ink text-ink" : "border-transparent text-ink-caption hover:text-ink"}`}
+          >
+            {tab === "detail" ? "Detail" : "Service"}
+          </button>
+        ))}
+      </div>
+
+      <div role="tabpanel" id="vehicle-detail-panel" aria-labelledby="vehicle-detail-tab" hidden={activeTab !== "detail"} tabIndex={0} className="focus-visible:outline-2 focus-visible:outline-focus">
+        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.85fr)_minmax(320px,1fr)]">
+          {orgId && role === "org_admin" && (
+            <div className="min-w-0">
+              <VehicleDocuments key={`${orgId}:${vehicle.id}`} orgId={orgId} vehicleId={vehicle.id} />
+            </div>
+          )}
+          <div className="min-w-0 xl:col-start-2">
+            <VehicleStatus key={vehicle.id} vehicle={vehicle} orgId={orgId} canManage={canManage} />
+          </div>
         </div>
-        <div className="lg:col-span-2">
-          <ReminderSetup orgId={orgId} vehicleId={vehicle.id} items={planItems} canManage={canManage} />
+        {vehicle.lifecycle_template === "showroom" ? (
+          <div className="mt-6">
+            <HandoverPanel orgId={orgId} vehicle={vehicle} planItems={planItems} canManage={canManage} />
+          </div>
+        ) : null}
+      </div>
+
+      <div role="tabpanel" id="vehicle-service-panel" aria-labelledby="vehicle-service-tab" hidden={activeTab !== "service"} tabIndex={0} className="focus-visible:outline-2 focus-visible:outline-focus">
+        <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1.85fr)_minmax(320px,1fr)]">
+          <div className="min-w-0">
+            <ServiceHistorySection orgId={orgId} vehicleId={vehicle.id} />
+          </div>
+          <div className="min-w-0">
+            <ReminderSetup orgId={orgId} vehicleId={vehicle.id} items={planItems} canManage={canManage} />
+          </div>
         </div>
       </div>
     </div>
