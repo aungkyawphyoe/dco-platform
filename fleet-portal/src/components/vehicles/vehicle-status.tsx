@@ -61,7 +61,7 @@ export function VehicleStatus({ vehicle, orgId, canManage }: {
             <Select label="Change status" placeholder="Choose next status" value={selected}
               options={next.map((status) => ({ value: status, label: label(status) }))}
               onChange={(value) => { setSelected(value); setReviewedStatus(vehicle.status); setError(null); setSaved(false); }}
-              disabled={mutation.isPending} className="w-full sm:w-64" />
+              disabled={mutation.isPending} className="w-full" />
             <Button onClick={() => void save()} disabled={!selected || mutation.isPending || reviewedStatus !== vehicle.status}>
               {mutation.isPending ? "Saving…" : "Save status"}
             </Button>
@@ -77,9 +77,9 @@ export function VehicleStatus({ vehicle, orgId, canManage }: {
       {saved && <p role="status" className="mt-3 text-sm text-ink-caption">Status saved.</p>}
       <details className="mt-4 border-t border-line-subtle pt-3">
         <summary className="cursor-pointer text-sm font-medium text-ink">What each status means</summary>
-        <dl className="mt-3 grid gap-3 sm:grid-cols-[8rem_1fr]">
+        <dl className="mt-3 grid gap-3">
           {Object.keys(states).map((status) => (
-            <div key={status} className="contents">
+            <div key={status} className="space-y-1">
               <dt className="text-sm font-medium text-ink">{label(status)}</dt>
               <dd className="max-w-2xl text-sm text-ink-caption">{descriptions[status]}</dd>
             </div>
