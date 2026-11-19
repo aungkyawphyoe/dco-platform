@@ -36,7 +36,7 @@ function renderValue(value: boolean | string, copy: Dictionary["pricing"]["table
 
 export function FeatureTable({ plans, matrix, copy }: FeatureTableProps) {
   return (
-    <div className="surface overflow-x-auto rounded-xl">
+    <div className="surface overflow-x-auto" role="region" aria-labelledby="compare-heading" tabIndex={0}>
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-line">

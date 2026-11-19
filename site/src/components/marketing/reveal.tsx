@@ -21,9 +21,8 @@ export function Reveal({ children, delay = 0, className = "", as: Tag = "div" }:
 
   useEffect(() => {
     const el = ref.current;
-    if (!el) return;
+    if (!el || el.getBoundingClientRect().top < window.innerHeight) return;
     if (typeof IntersectionObserver === "undefined") {
-      setVisible(true);
       return;
     }
     const observer = new IntersectionObserver(
@@ -35,7 +34,7 @@ export function Reveal({ children, delay = 0, className = "", as: Tag = "div" }:
           }
         }
       },
-      { rootMargin: "0px 0px -6% 0px", threshold: 0.06 },
+      { rootMargin: "0px 0px -6% 0px", threshold: 0 },
     );
     observer.observe(el);
     return () => observer.disconnect();

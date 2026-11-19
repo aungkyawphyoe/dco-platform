@@ -162,3 +162,7 @@ The shell is the same in both modes. Tables sit on `background.card`; sticky hea
 2. [`docs/theme/garage-minimal-dark.json`](theme/garage-minimal-dark.json) + [`docs/theme/garage-minimal-light.json`](theme/garage-minimal-light.json) for values (regenerate via `tools/generate-theme.mjs` after edits)
 
 If a screen needs a new color, add it here first. Do not one-off hex in widgets.
+
+### Marketing website
+
+The public AutoX site uses the ASCII Garage candidate palette in a site-local CSS layer. Plex Sans carries headings and text. Square panels and shared vertical rails frame real product captures. The highway on the homepage uses square-cell animation, and supporting garage illustrations use static characters. The footer and closing invitations use a full amber ground with black ink. These choices apply to the marketing and legal routes in `site/`.

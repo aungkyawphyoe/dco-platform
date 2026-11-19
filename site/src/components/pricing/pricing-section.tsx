@@ -30,10 +30,19 @@ export function PricingSection({ data, live, copy }: PricingSectionProps) {
       <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
         {data.plans.map((plan, index) => (
           <Reveal key={plan.id} delay={index * 80} className="h-full">
-            <PricingCard plan={plan} period={period} index={index} copy={copy.card} />
+            <PricingCard plan={plan} period={period} copy={copy.card} />
           </Reveal>
         ))}
       </div>
+
+      <Reveal className="surface grid gap-4 p-6 sm:grid-cols-3">
+        {copy.perks.map((perk) => (
+          <div key={perk.title}>
+            <h3 className="font-display text-base font-semibold">{perk.title}</h3>
+            <p className="mt-1 text-sm text-ink-muted">{perk.description}</p>
+          </div>
+        ))}
+      </Reveal>
 
       <section aria-labelledby="compare-heading" className="flex flex-col gap-6">
         <Reveal className="flex flex-col gap-2">
@@ -45,14 +54,6 @@ export function PricingSection({ data, live, copy }: PricingSectionProps) {
         <FeatureTable plans={data.plans} matrix={data.feature_matrix} copy={copy.table} />
       </section>
 
-      <Reveal className="surface surface-grad tone-info grid gap-4 rounded-xl p-6 sm:grid-cols-3">
-        {copy.perks.map((perk) => (
-          <div key={perk.title}>
-            <h3 className="font-display text-base font-semibold">{perk.title}</h3>
-            <p className="mt-1 text-sm text-ink-muted">{perk.description}</p>
-          </div>
-        ))}
-      </Reveal>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 # AutoX marketing revamp — implementation plan
 
 Date: 19 November 2026  
-Status: Reviewed execution sequence for the six-route marketing revamp.  
+Status: First implementation pass complete in the local checkout. Visual refinement is scheduled for a later pass.  
 Design source: [Layout plan](2026-11-19-marketing-layout-plan.md).  
 Reference prototype: `site/public/theme-lab/trenova-study.html` and `highway-grid.js`.
 
@@ -181,7 +181,9 @@ Hero text must never wait for the animation bundle or a remote asset to appear. 
 
 ## 6. Commands and test scope
 
-From `site/`, run the existing `npm run lint`, `npx tsc --noEmit` (using installed TypeScript), and `npm run build`. Record any pre-existing failures separately. No production build or tests were run for this planning-only turn.
+From `site/`, run the existing `npm run lint`, `npx tsc --noEmit` (using installed TypeScript), and `npm run build`. All three passed for the first implementation.
+
+Headless Chrome loaded each marketing route at 320, 390, 768, 1024 and 1440px in all four locale/theme combinations. Each returned HTTP 200 with one main heading and fit the viewport. Separate interaction checks covered the tour, theme switching, hero pause/resume, reduced motion, no-JavaScript content, menu focus, FAQ anchors and the demo email handoff. An isolated local fixture exercised one and two store links, a five-plan catalog with monthly and annual prices, and demo request failures, retry and success. The production build reported 106–113 kB of first-load JavaScript for the six routes. Real-device performance and visual-shift measurements are pending.
 
 Use focused verification for the changed behavior, not tests that duplicate every CSS class. Appropriate automated coverage includes pricing-state preservation, form validation/submission states, reveal failure/reduced-motion behavior and animation lifecycle cleanup. Use the repository's existing test tooling if available when work starts; the current site has no declared test runner. Browser QA can cover the visual and interaction flows without adding a large testing dependency.
 

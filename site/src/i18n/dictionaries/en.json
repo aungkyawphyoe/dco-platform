@@ -36,7 +36,9 @@
     "mobileAria": "Primary mobile",
     "openMenu": "Open menu",
     "closeMenu": "Close menu",
-    "requestDemo": "Request a demo"
+    "requestDemo": "Request a demo",
+    "skip": "Skip to content",
+    "home": "Home"
   },
   "theme": {
     "toLight": "Switch to light theme",
@@ -57,6 +59,7 @@
     "appStore": "App Store"
   },
   "footer": {
+    "contact": "Talk to us",
     "tagline": "AutoX — the digital garage for every vehicle you own. Track fuel, maintenance and costs, offline-first.",
     "product": "Product",
     "platforms": "Platforms",
@@ -70,12 +73,14 @@
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "deleteAccount": "Delete account",
-    "rights": "© {year} AutoX. All rights reserved."
+    "rights": "© {year} AutoX. All rights reserved.",
+    "legal": "Legal"
   },
   "home": {
     "hero": {
       "eyebrow": "Digital Car Ownership",
       "title": "Every vehicle deserves a digital identity",
+      "titleHighlight": "digital identity",
       "subtitle": "A complete digital record for every vehicle you own — every maintenance entry, every cost, every receipt, in one place that works offline and syncs the moment you reconnect.",
       "dashboardAlt": "AutoX dashboard showing the vehicle garage",
       "dashboardLabel": "Dashboard — your garage at a glance"
@@ -214,13 +219,17 @@
     "showcaseSection": {
       "eyebrow": "Explore the app",
       "title": "See your garage at a glance",
+      "titleHighlight": "garage",
       "intro": "Fuel logs, maintenance plans and costs — captured straight from the app.",
       "dashboardAlt": "Dashboard screen",
       "dashboardLabel": "Dashboard",
       "fuelAlt": "Fuel log screen",
       "fuelLabel": "Fuel log",
       "maintenanceAlt": "Maintenance plan screen",
-      "maintenanceLabel": "Maintenance plan"
+      "maintenanceLabel": "Maintenance plan",
+      "dashboardCaption": "Check the selected vehicle and its odometer before recording a trip.",
+      "fuelCaption": "See the litres and amount paid in MMK for each fill-up.",
+      "maintenanceCaption": "See the date and distance remaining until the next tyre rotation."
     },
     "download": {
       "title": "Start your digital garage now",
@@ -232,7 +241,18 @@
       "subtitle": "Pick the plan that fits — start free and upgrade any time.",
       "primary": "See pricing",
       "secondary": "Read the FAQ"
-    }
+    },
+    "motion": {
+      "pause": "Pause motion",
+      "play": "Play motion"
+    },
+    "catalogGroups": [
+      "Vehicle care",
+      "Running costs",
+      "Your garage"
+    ],
+    "offlineTitle": "Your service history travels with you.",
+    "offlineBody": "Record a service or fill-up while offline. The entry stays with your vehicle and syncs when you reconnect."
   },
   "personal": {
     "hero": {
@@ -379,8 +399,8 @@
       "requestDemo": "Request a demo",
       "seePricing": "See pricing",
       "noSignup": "No self-serve signup — we provision your workspace for you.",
-      "browserAlt": "Fleet portal dashboard with vehicle analytics and lemon flags",
-      "browserLabel": "Fleet portal — ACME Motors workspace"
+      "browserAlt": "Fleet analytics with monthly operating costs and cost per kilometre",
+      "browserLabel": "Monthly operating costs and cost per kilometre"
     },
     "challenges": {
       "eyebrow": "The challenges",
@@ -680,7 +700,11 @@
       "storage": "{storage} storage",
       "exploreFleet": "Explore fleet plans",
       "startFree": "Start free",
-      "getTheApp": "Get the app"
+      "getTheApp": "Get the app",
+      "vehicles": "Vehicles",
+      "sharing": "Sharing invites",
+      "capacity": "Storage",
+      "unlimited": "Unlimited"
     },
     "table": {
       "features": "Features",

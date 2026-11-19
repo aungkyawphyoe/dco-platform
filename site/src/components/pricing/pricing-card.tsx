@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { cardTone } from "@/lib/tone";
 import type { Dictionary } from "@/i18n/types";
 import {
+  formatLimit,
   formatMmk,
   formatStorage,
   formatUsd,
@@ -12,7 +12,6 @@ import {
 type PricingCardProps = {
   plan: PricingPlan;
   period: BillingPeriod;
-  index: number;
   copy: Dictionary["pricing"]["card"];
 };
 
@@ -23,7 +22,7 @@ function badgeFor(plan: PricingPlan, copy: Dictionary["pricing"]["card"]): strin
   return null;
 }
 
-export function PricingCard({ plan, period, index, copy }: PricingCardProps) {
+export function PricingCard({ plan, period, copy }: PricingCardProps) {
   const money = plan.prices[period];
   const badge = badgeFor(plan, copy);
   const highlighted = plan.highlighted;
@@ -31,8 +30,8 @@ export function PricingCard({ plan, period, index, copy }: PricingCardProps) {
 
   return (
     <article
-      className={`surface card-grad relative flex h-full flex-col gap-5 rounded-xl p-6 ${
-        highlighted ? "tone-gold border-gold shadow-glow" : `card-hover ${cardTone(index)}`
+      className={`surface relative flex h-full flex-col gap-5 p-6 ${
+        highlighted ? "featured-plan" : ""
       }`}
     >
       {badge && (
@@ -58,6 +57,13 @@ export function PricingCard({ plan, period, index, copy }: PricingCardProps) {
         {formatUsd(money.usd)} {pricePeriod} · {period === "annual" ? copy.billedYearly : copy.billedMonthly}
       </p>
 
+      <dl className="plan-limits">
+        {[
+          [copy.vehicles, formatLimit(plan.limits.vehicles, copy.unlimited)],
+          [copy.sharing, formatLimit(plan.limits.sharing, copy.unlimited)],
+          [copy.capacity, formatStorage(plan.limits.storage_bytes)],
+        ].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}
+      </dl>
       <ul className="flex flex-col gap-2.5 border-t border-line-subtle pt-4">
         {plan.features.map((feature) => (
           <li key={feature} className="flex items-start gap-2 text-sm text-ink-muted">
@@ -76,10 +82,7 @@ export function PricingCard({ plan, period, index, copy }: PricingCardProps) {
             {feature}
           </li>
         ))}
-        <li className="flex items-start gap-2 text-sm text-ink-faint">
-          <span aria-hidden="true" className="mt-0.5 w-4 shrink-0 text-center">·</span>
-          {copy.storage.replace("{storage}", formatStorage(plan.limits.storage_bytes))}
-        </li>
+
       </ul>
 
       <div className="mt-auto">

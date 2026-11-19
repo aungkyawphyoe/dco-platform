@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { LegalBlock, LegalDoc, LegalLink } from "@/content/legal";
 import { pillTone } from "@/lib/tone";
-import { AuroraBackdrop } from "@/components/marketing/aurora-backdrop";
 import { SectionHeading } from "@/components/marketing/section-heading";
 
 function LegalTextLink({ link }: { link: LegalLink }) {
@@ -59,7 +58,6 @@ export function LegalPage({ doc }: { doc: LegalDoc }) {
   return (
     <>
       <section className="relative isolate overflow-hidden border-b border-line">
-        <AuroraBackdrop dots />
         <div className="mx-auto max-w-4xl px-4 pb-14 pt-24 sm:px-6 sm:pb-16 sm:pt-28">
           <SectionHeading eyebrow={doc.eyebrow} title={doc.title} intro={doc.intro} />
           <p className="mt-5 text-center text-xs uppercase tracking-widest text-ink-faint">

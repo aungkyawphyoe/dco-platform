@@ -49,7 +49,7 @@ export function BrowserFrame({ label, className = "", src, alt, priority }: Brow
                 alt={alt ?? label ?? "Fleet portal screenshot"}
                 fill
                 priority={priority}
-                sizes="(min-width: 1024px) 672px, 100vw"
+                sizes="(max-width: 760px) 160vw, (min-width: 1024px) 672px, 50vw"
                 className="object-cover object-top"
                 onError={() => setFailedSrc(imageSrc)}
               />

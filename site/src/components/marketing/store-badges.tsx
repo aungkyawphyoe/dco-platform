@@ -6,15 +6,11 @@ type StoreBadgesProps = {
   className?: string;
 };
 
-/**
- * Badge-styled store buttons. Hrefs come from env placeholders until the
- * apps are published — without a URL they render as non-link badges with
- * pointer-events disabled is NOT applied, they keep href="#" so the
- * component shape stays identical when real URLs arrive.
- */
 export function StoreBadges({ labels, className = "" }: StoreBadgesProps) {
   const hasPlayStore = PLAY_STORE_URL && PLAY_STORE_URL !== "#";
   const hasAppStore = APP_STORE_URL && APP_STORE_URL !== "#";
+
+  if (!hasPlayStore && !hasAppStore) return null;
 
   return (
     <div className={`flex flex-wrap items-center gap-3 ${className}`} role="group" aria-label={labels.group}>

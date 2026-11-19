@@ -146,6 +146,14 @@ export function DemoForm({ copy }: { copy: FormCopy }) {
   const successRef = useRef<HTMLHeadingElement | null>(null);
 
   useEffect(() => {
+    try {
+      const email = sessionStorage.getItem("autox-demo-email");
+      sessionStorage.removeItem("autox-demo-email");
+      if (email) setValues(current => ({ ...current, email }));
+    } catch { /* Storage is optional for a demo request. */ }
+  }, []);
+
+  useEffect(() => {
     if (status === "sent" || status === "mailto") successRef.current?.focus();
   }, [status]);
 

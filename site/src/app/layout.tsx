@@ -30,15 +30,15 @@ export default async function RootLayout({
     <html lang={locale} className={`${theme} scroll-smooth`} suppressHydrationWarning>
       <head>
         <link rel="preload" as="font" type="font/woff2" href="/fonts/IBMPlexSans-var.woff2" crossOrigin="" />
-        <link rel="preload" as="font" type="font/woff2" href="/fonts/Barlow-600.woff2" crossOrigin="" />
       </head>
       <body
         suppressHydrationWarning
-        className="bg-bg font-sans text-ink antialiased flex min-h-screen flex-col"
+        className="marketing-site bg-bg font-sans text-ink antialiased flex min-h-screen flex-col"
       >
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <a href="#main" className="skip-link">{d.nav.skip}</a>
         <SiteNav locale={locale} labels={d.nav} language={d.language} theme={d.theme} />
-        <main className="flex-1">{children}</main>
+        <main id="main" tabIndex={-1} className="site-frame flex-1">{children}</main>
         <SiteFooter labels={d.footer} navLabels={d.nav.links} />
       </body>
     </html>
