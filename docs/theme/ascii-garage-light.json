@@ -1,0 +1,241 @@
+{
+  "themeName": "ASCII Garage Light",
+  "version": "1.0",
+  "mode": "light",
+  "platforms": [
+    "site",
+    "mobile",
+    "web",
+    "fleet-portal"
+  ],
+  "description": "Candidate black-and-amber theme for the marketing revamp and later mobile/portal migration. Not selected by the current shared theme generator.",
+  "background": {
+    "primary": "#F7F7F5",
+    "secondary": "#EEEEEA",
+    "card": "#FFFFFF",
+    "input": "#EEEEEA",
+    "nav": "#F7F7F5",
+    "navActive": "#FBE8C9",
+    "overlay": "#00000066",
+    "skeleton": "#E4E4DE"
+  },
+  "text": {
+    "primary": "#000000",
+    "secondary": "#555550",
+    "tertiary": "#6B6B64",
+    "caption": "#555550",
+    "accent": "#965100",
+    "onAccent": "#000000",
+    "disabled": "#989891",
+    "link": "#965100",
+    "inverse": "#FFFFFF"
+  },
+  "button": {
+    "primary": {
+      "background": "#FFA31A",
+      "backgroundHover": "#FFB547",
+      "backgroundPressed": "#E58B0A",
+      "backgroundDisabled": "#E8D9C2",
+      "text": "#000000",
+      "textDisabled": "#989891",
+      "border": "transparent"
+    },
+    "secondary": {
+      "background": "#FFFFFF",
+      "backgroundHover": "#E4E4DE",
+      "backgroundPressed": "#EEEEEA",
+      "backgroundDisabled": "#EEEEEA",
+      "text": "#000000",
+      "textDisabled": "#989891",
+      "border": "#858580"
+    },
+    "tertiary": {
+      "background": "transparent",
+      "backgroundHover": "#E4E4DE",
+      "backgroundPressed": "#EEEEEA",
+      "text": "#965100",
+      "textDisabled": "#989891",
+      "border": "transparent"
+    },
+    "destructive": {
+      "background": "transparent",
+      "backgroundHover": "#FBEDEA",
+      "text": "#C04531",
+      "border": "#C04531"
+    }
+  },
+  "icon": {
+    "active": "#965100",
+    "inactive": "#858580",
+    "onAccent": "#000000",
+    "inverse": "#000000"
+  },
+  "border": {
+    "subtle": "#E1E1DB",
+    "default": "#858580",
+    "divider": "#D6D6CF",
+    "highlight": "#965100",
+    "focus": "#965100"
+  },
+  "status": {
+    "success": {
+      "fg": "#2E7D5B",
+      "bg": "#2E7D5B22"
+    },
+    "warning": {
+      "fg": "#A86400",
+      "bg": "#A8640022"
+    },
+    "danger": {
+      "fg": "#C04531",
+      "bg": "#C0453122"
+    },
+    "info": {
+      "fg": "#2C6E8F",
+      "bg": "#2C6E8F22"
+    }
+  },
+  "feedback": {
+    "overdue": "#C04531",
+    "dueSoon": "#A86400",
+    "healthy": "#2E7D5B",
+    "queuedSync": "#2C6E8F"
+  },
+  "input": {
+    "background": "#EEEEEA",
+    "border": "#858580",
+    "borderFocus": "#965100",
+    "placeholder": "#6B6B64",
+    "errorBorder": "#C04531"
+  },
+  "chart": {
+    "fuel": "#C0761A",
+    "maintenance": "#3E7CA6",
+    "insurance": "#5B6FC4",
+    "parking": "#5C7181",
+    "tolls": "#6E7F91",
+    "parts": "#3F8A68",
+    "other": "#64737D"
+  },
+  "radius": {
+    "sm": 0,
+    "md": 0,
+    "lg": 0,
+    "xl": 0,
+    "full": 999
+  },
+  "space": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "5": 24,
+    "6": 32,
+    "7": 48
+  },
+  "typography": {
+    "display": {
+      "family": "IBM Plex Sans",
+      "weight": 600,
+      "size": 28,
+      "lineHeight": 34,
+      "letterSpacing": -0.3
+    },
+    "title": {
+      "family": "IBM Plex Sans",
+      "weight": 600,
+      "size": 20,
+      "lineHeight": 26
+    },
+    "body": {
+      "family": "IBM Plex Sans",
+      "weight": 400,
+      "size": 16,
+      "lineHeight": 26
+    },
+    "label": {
+      "family": "IBM Plex Sans",
+      "weight": 500,
+      "size": 14,
+      "lineHeight": 20,
+      "letterSpacing": 0.2
+    },
+    "caption": {
+      "family": "IBM Plex Sans",
+      "weight": 400,
+      "size": 12,
+      "lineHeight": 16
+    },
+    "mono": {
+      "family": "IBM Plex Mono",
+      "weight": 400,
+      "size": 13,
+      "lineHeight": 18
+    }
+  },
+  "elevation": {
+    "none": "none",
+    "card": "none",
+    "modal": "0 12px 32px #0000001F"
+  },
+  "motion": {
+    "fast": 120,
+    "base": 180,
+    "slow": 280,
+    "easing": "cubic-bezier(0.2, 0.8, 0.2, 1)",
+    "respectReducedMotion": true
+  },
+  "usageNotes": {
+    "activation": "Candidate only. Existing garage-minimal files and generated runtime tokens are unchanged.",
+    "text.accent": "Exact amber for dark surfaces; deep amber for readable small text and links on light surfaces. Use black labels on amber fills.",
+    "border.default": "Functional input/control boundaries; subtle/divider values are decorative separators.",
+    "status.warning vs text.accent": "Retain semantic status and chart colors from the active Garage Minimal theme; amber is brand, not an overdue signal.",
+    "marketing": "Marketing-only footer, grid, hero and reveal values. Do not apply 700ms reveals or the hero renderer to everyday product workflows.",
+    "radius": "Square candidate component geometry. Review touch targets, dialogs, avatars and current platform-specific card requirements before a mobile/portal migration.",
+    "migration": "New pair has identical keys and extends the existing token schema with marketing values. Generator still selects garage-minimal by filename; adopting this pair needs an explicit generator/mapping change and platform QA.",
+    "typography": "Plex Sans headings/body, Plex Mono artwork. Preserve Myanmar-capable fallback and locale-specific leading."
+  },
+  "marketing": {
+    "footer": {
+      "background": "#FFA31A",
+      "text": "#000000",
+      "border": "#965100",
+      "focus": "#000000"
+    },
+    "grid": {
+      "maxWidth": 1280,
+      "columns": 12,
+      "desktopGutter": 48,
+      "mobileGutter": 24,
+      "ruleWidth": 1
+    },
+    "hero": {
+      "desktopAspectRatio": 1.641025641025641,
+      "mobileHeight": 750,
+      "cellPitch": 5,
+      "mobileCellPitch": 4,
+      "cellGap": 1,
+      "targetFps": 20,
+      "horizonRatio": 0.74,
+      "carWidthRatio": 0.115,
+      "cityMaxHeightRatio": 0.23
+    },
+    "reveal": {
+      "distance": 14,
+      "duration": 700,
+      "stagger": 60,
+      "easing": "cubic-bezier(0.16, 1, 0.3, 1)"
+    },
+    "typography": {
+      "heroSize": 94,
+      "sectionSize": 56,
+      "mobileHeroSize": 40
+    },
+    "control": {
+      "filledBackground": "#000000",
+      "filledText": "#FFFFFF",
+      "inverseBackground": "#F7F7F5",
+      "inverseText": "#000000"
+    }
+  }
+}
