@@ -27,7 +27,7 @@ export function ProductTour({ copy }: { copy: Dictionary["home"]["showcaseSectio
   return (
     <section className="frame-section tour">
       <div>
-        <h2><HighlightedTitle title={copy.title} highlight={copy.titleHighlight} /></h2>
+        <h2><span className="section-label">{copy.eyebrow}</span><HighlightedTitle title={copy.title} highlight={copy.titleHighlight} /></h2>
         <p className="intro">{copy.intro}</p>
         <div className="tour-tabs" role="tablist" aria-orientation="vertical" aria-label={copy.title}>
           {subjects.map((item, i) => (

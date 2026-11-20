@@ -125,6 +125,7 @@ button:disabled { cursor: wait; }
 .value-strip { display: grid; grid-template-columns: repeat(4, 1fr); border-block: 1px solid var(--border-divider); }
 .value-strip div { padding: 24px clamp(12px, 2.6vw, 40px); border-inline-end: 1px solid var(--border-divider); }
 .value-strip dt, .record-list dt { font-size: 18px; font-weight: 600; }
+.value-strip dt, .accent-title { color: var(--amber); }
 .value-strip dd, .record-list dd { margin-top: 4px; line-height: 1.6; color: var(--text-secondary); }
 .tour-tabs { display: grid; margin-top: 32px; border-top: 1px solid var(--border-divider); }
 .tour-tabs button { display: flex; align-items: center; justify-content: space-between; min-height: 56px; text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border-divider); }
@@ -235,9 +236,60 @@ html[lang="my"] .marketing-site :is(h1,h2,h3,h4) { line-height: 1.4; letter-spac
 }
 
 .title-highlight {
-  background-color: var(--amber);
-  color: var(--footer-ink);
-  padding-inline: .07em;
+  background-color: transparent;
+  color: var(--amber);
   -webkit-box-decoration-break: clone;
   box-decoration-break: clone;
 }
+
+.section-label, .frame-section > h2.section-label, .scope-label {
+  display: block;
+  margin-bottom: 14px;
+  font: 500 12px/1.5 var(--font-plex-mono);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+.service-history {
+  background: var(--amber);
+  color: var(--footer-ink);
+  box-shadow: 0 0 0 100vmax var(--amber);
+  clip-path: inset(0 -100vmax);
+}
+.service-history :is(.intro, .garage-art, .title-highlight),
+.closing .title-highlight { color: inherit; }
+
+/* Each section owns its upper divider, so its surface determines the markers. */
+.site-frame > :is(.frame-section, .closing, .value-strip) {
+  border-block: 0;
+}
+.site-frame > * + :is(.frame-section, .closing, .value-strip, .demo-invitation) {
+  position: relative;
+}
+.site-frame > * + :is(.frame-section, .closing, .value-strip, .demo-invitation)::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 1px;
+  background: var(--border-divider);
+  box-shadow: 0 0 0 100vmax var(--border-divider);
+  clip-path: inset(0 -100vmax);
+  pointer-events: none;
+}
+.site-frame > * + :is(.frame-section, .value-strip, .demo-invitation):not(.service-history)::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: -5px -6px auto;
+  height: 11px;
+  color: var(--text-tertiary);
+  --stroke: linear-gradient(currentColor, currentColor);
+  background:
+    var(--stroke) left 5px center / 1px 11px,
+    var(--stroke) right 5px center / 1px 11px,
+    var(--stroke) left center / 11px 1px,
+    var(--stroke) right center / 11px 1px;
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+.site-footer { border-block-start: 1px solid var(--border-divider); }

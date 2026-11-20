@@ -3,6 +3,7 @@ import type { Dictionary } from "@/i18n/types";
 import { StoreBadges } from "./store-badges";
 
 type CtaBannerProps = {
+  label: string;
   title: string;
   subtitle?: string;
   showBadges?: boolean;
@@ -12,6 +13,7 @@ type CtaBannerProps = {
 };
 
 export function CtaBanner({
+  label,
   title,
   subtitle,
   showBadges = true,
@@ -21,7 +23,7 @@ export function CtaBanner({
 }: CtaBannerProps) {
   return (
     <section className="closing">
-      <h2>{title}</h2>
+      <h2><span className="section-label">{label}</span>{title}</h2>
       {subtitle && <p>{subtitle}</p>}
       <div className="actions">
         {primary && <Link className="action" href={primary.href}>{primary.label}</Link>}

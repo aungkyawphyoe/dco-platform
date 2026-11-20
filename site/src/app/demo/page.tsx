@@ -1,3 +1,4 @@
+import { HighlightedTitle } from "@/components/marketing/highlighted-title";
 import type { Metadata } from "next";
 import { getSiteCopy } from "@/i18n/dictionary";
 import { DemoForm } from "@/components/demo/demo-form";
@@ -17,7 +18,7 @@ export default async function DemoPage() {
   const { d } = await getSiteCopy();
   const demo = d.demo;
   return <section className="frame-section demo-layout">
-    <div className="demo-intro"><h1>{demo.title}</h1><p className="intro">{demo.subtitle}</p></div>
+    <div className="demo-intro"><h1><span className="section-label">{demo.eyebrow}</span><HighlightedTitle title={demo.title} highlight={demo.titleHighlight} /></h1><p className="intro">{demo.subtitle}</p></div>
     <div className="demo-form"><DemoForm copy={demo.form} /></div>
     <div className="demo-proof">
       <GarageArt kind="workshop" /><RecordList items={demo.proof} />

@@ -2,13 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import type { Dictionary } from "@/i18n/types";
+import { HighlightedTitle } from "@/components/marketing/highlighted-title";
 
 export function DemoInvitation({ copy }: { copy: Dictionary["demo"] }) {
   const router = useRouter();
   return <section className="demo-invitation">
     <div className="invitation-panel">
       <div className="invitation-copy">
-        <h2>{copy.title}</h2>
+        <h2><span className="section-label">{copy.eyebrow}</span><HighlightedTitle title={copy.title} highlight={copy.titleHighlight} /></h2>
         <p>{copy.subtitle}</p>
         <form action="/demo" onSubmit={event => {
           event.preventDefault();

@@ -18,6 +18,7 @@ export default async function PrivacyPage() {
     <>
       <LegalPage doc={PRIVACY_DOC} />
       <CtaBanner
+        label={d.sectionLabels.nextSteps}
         title={cta.title}
         subtitle={cta.subtitle}
         primary={{ href: "/pricing", label: cta.primary }}

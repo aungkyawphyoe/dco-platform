@@ -22,7 +22,7 @@ export default async function HomePage() {
       <section className="highway-hero">
         <HighwayPoster labels={h.motion} />
         <div className="highway-copy">
-          <h1><HighlightedTitle title={h.hero.title} highlight={h.hero.titleHighlight} /></h1>
+          <h1><span className="section-label">{h.hero.eyebrow}</span><HighlightedTitle title={h.hero.title} highlight={h.hero.titleHighlight} /></h1>
           <p>{h.hero.subtitle}</p>
           <div className="actions">
             {h.paths.map((item, index) => <Link key={item.title} className={index ? "action secondary" : "action"} href={paths[index]}>{item.cta}</Link>)}
@@ -33,32 +33,32 @@ export default async function HomePage() {
         <div key={item.title}><dt>{item.title}</dt><dd>{item.description}</dd></div>
       ))}</dl>
       <ProductTour copy={h.showcaseSection} />
-      <section className="frame-section paired">
-        <div><h2>{h.offlineTitle}</h2><p className="intro">{h.offlineBody}</p></div>
+      <section className="frame-section paired service-history">
+        <div><h2><span className="section-label">{d.sectionLabels.serviceHistory}</span><HighlightedTitle title={h.offlineTitle} highlight={h.offlineTitleHighlight} /></h2><p className="intro">{h.offlineBody}</p></div>
         <GarageArt kind="dossier" />
       </section>
       <section className="frame-section">
-        <h2>{h.featuresSection.title}</h2><p className="intro">{h.featuresSection.intro}</p>
+        <h2><span className="section-label">{h.featuresSection.eyebrow}</span><HighlightedTitle title={h.featuresSection.title} highlight={h.featuresSection.titleHighlight} /></h2><p className="intro">{h.featuresSection.intro}</p>
         <div className="catalog">{featureGroups.map((indices, i) => (
           <div key={i}><h3>{h.catalogGroups[i]}</h3><RecordList items={indices.map(j => h.features[j])} /></div>
         ))}</div>
       </section>
       <section className="frame-section">
-        <h2>{h.pathsSection.title}</h2><p className="intro">{h.pathsSection.intro}</p>
+        <h2><span className="section-label">{h.pathsSection.eyebrow}</span><HighlightedTitle title={h.pathsSection.title} highlight={h.pathsSection.titleHighlight} /></h2><p className="intro">{h.pathsSection.intro}</p>
         <div className="mt-8"><PathCards items={h.paths.map((item, i) => ({ ...item, href: paths[i] }))} /></div>
       </section>
       <section className="frame-section paired">
-        <h2>{h.audiencesSection.title}</h2>
+        <h2><span className="section-label">{h.audiencesSection.eyebrow}</span>{h.audiencesSection.title}</h2>
         <dl className="record-list">{h.audiences.map(item => <div key={item.title}>
           <dt>{item.title}</dt><dd>{item.bullets.join(" / ")}</dd>
         </div>)}</dl>
       </section>
       <section className="frame-section">
-        <h2>{h.stepsSection.title}</h2><p className="intro">{h.stepsSection.intro}</p>
+        <h2><span className="section-label">{h.stepsSection.eyebrow}</span><HighlightedTitle title={h.stepsSection.title} highlight={h.stepsSection.titleHighlight} /></h2><p className="intro">{h.stepsSection.intro}</p>
         <div className="mt-8"><StepList items={h.steps} /></div>
       </section>
       <section id="download" className="closing">
-        <h2>{h.download.title}</h2>
+        <h2><span className="section-label">{d.sectionLabels.download}</span>{h.download.title}</h2>
         <p>{HAS_STORE ? h.download.intro : h.paths[0].description}</p>
         {HAS_STORE ? <><StoreBadges labels={d.storeBadges} /><small>{h.download.note}</small></> :
           <Link className="action" href="/personal">{h.paths[0].cta}</Link>}
