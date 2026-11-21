@@ -14,3 +14,4 @@ export const DEMO_REQUEST_EMAIL =
   process.env.NEXT_PUBLIC_DEMO_REQUEST_EMAIL || FLEET_CONTACT_EMAIL || "support@autoxmm.com";
 
 export const HAS_STORE = APP_STORE_URL !== "#" || PLAY_STORE_URL !== "#";
+export const HAS_PLAY_STORE = PLAY_STORE_URL !== "#";

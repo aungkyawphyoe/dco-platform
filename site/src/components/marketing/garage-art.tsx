@@ -1,57 +1,25 @@
-const illustrations = {
-  dossier: String.raw`
-        _____________________
-       /____________________/|
-      |  _________________  ||
-      | |    ___     _    | ||
-      | | __/___\___/ |   | ||
-      | |(_o_____o___)    | ||
-      | |_________________| ||
-      |  ==  ============   ||
-      |  ==  =========      ||
-      |  ==  ============   ||
-      |_____________________|/
-     /_____________________/|
-     |_____________________|/`,
-  receipt: String.raw`
-          .--------------.
-        .-|   ::  ::  :: |-.
-        | |--------------| |
-        | |  ----   ---- | |
-        | |  ------  --- | |
-        | |              | |
-        | |  ----------  | |
-        | |  ||| || |||  | |
-        '-|              |-'
-          'v-v-v-v-v-v-vv'`,
-  workshop: String.raw`
-            ______________________
-           /_____________________/|
-          |  __________________  ||
-          | |==================| ||
-          | |  _____________   | ||
-          | | /__|___|___|__\  | ||
-          | |(____.___.______) | ||
-          | |  (O)       (O)   | ||
-          |_|__________________|_||
-      ____/______________________/____`,
-  checklist: String.raw`
-             .--------.
-         .---'--------'---.
-         |                |
-         |  [x] --------  |
-         |      -----     |
-         |  [x] --------  |
-         |      ---       |
-         |  [ ] --------  |
-         |________________|`,
-  skyline: String.raw`
-          _        __           |           __       _
-    __   |:|   _  |::|     __  |:|   _     |::|   _ |:|   __
- __|::|__|:|__|:|_|::|____|::|_|:|__|:|____|::|__|:||:|__|::|__
-================================================================`,
-};
+import { receipt, help } from "./art/desk";
+import { workshop, checklist } from "./art/operations";
+import { road, dossier } from "./art/vehicle";
+import { serviceHistory } from "./art/service-history";
+import { question } from "./art/question";
+import { globe } from "./art/globe";
+import { keys } from "./art/keys";
 
-export function GarageArt({ kind }: { kind: keyof typeof illustrations }) {
-  return <pre aria-hidden="true" className={`garage-art art-${kind}`}>{illustrations[kind].trimEnd()}</pre>;
+const scenes = { question, globe, serviceHistory, dossier, road, receipt, workshop, checklist, help, keys };
+
+export function GarageArt({ kind }: { kind: keyof typeof scenes }) {
+  // Preserve the leading spaces that locate each object on the character grid.
+  const drawing = scenes[kind].replace(/^\n|\n$/g, "");
+  const runs = drawing.split(/(@+|[.:]{3,})/g);
+
+  return (
+    <div className="garage-art" aria-hidden="true">
+      <pre><span>{runs.map((run, index) => {
+        if (run.startsWith("@")) return <b key={index}>{run}</b>;
+        if (/^[.:]{3,}$/.test(run)) return <i key={index}>{run}</i>;
+        return run;
+      })}</span></pre>
+    </div>
+  );
 }

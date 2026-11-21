@@ -8,8 +8,7 @@ import { GarageArt } from "@/components/marketing/garage-art";
 import { RecordList } from "@/components/marketing/record-list";
 import { StepList } from "@/components/marketing/step-list";
 import { PathCards } from "@/components/marketing/path-cards";
-import { StoreBadges } from "@/components/marketing/store-badges";
-import { HAS_STORE } from "@/content/site";
+import { HAS_PLAY_STORE, PLAY_STORE_URL } from "@/content/site";
 
 const paths = ["/personal", "/fleet"];
 const featureGroups = [[0, 4], [1, 3], [2, 5]];
@@ -35,7 +34,7 @@ export default async function HomePage() {
       <ProductTour copy={h.showcaseSection} />
       <section className="frame-section paired service-history">
         <div><h2><span className="section-label">{d.sectionLabels.serviceHistory}</span><HighlightedTitle title={h.offlineTitle} highlight={h.offlineTitleHighlight} /></h2><p className="intro">{h.offlineBody}</p></div>
-        <GarageArt kind="dossier" />
+        <GarageArt kind="serviceHistory" />
       </section>
       <section className="frame-section">
         <h2><span className="section-label">{h.featuresSection.eyebrow}</span><HighlightedTitle title={h.featuresSection.title} highlight={h.featuresSection.titleHighlight} /></h2><p className="intro">{h.featuresSection.intro}</p>
@@ -48,7 +47,10 @@ export default async function HomePage() {
         <div className="mt-8"><PathCards items={h.paths.map((item, i) => ({ ...item, href: paths[i] }))} /></div>
       </section>
       <section className="frame-section paired">
-        <h2><span className="section-label">{h.audiencesSection.eyebrow}</span>{h.audiencesSection.title}</h2>
+        <div className="audiences-visual">
+          <h2><span className="section-label">{h.audiencesSection.eyebrow}</span>{h.audiencesSection.title}</h2>
+          <GarageArt kind="globe" />
+        </div>
         <dl className="record-list">{h.audiences.map(item => <div key={item.title}>
           <dt>{item.title}</dt><dd>{item.bullets.join(" / ")}</dd>
         </div>)}</dl>
@@ -59,8 +61,8 @@ export default async function HomePage() {
       </section>
       <section id="download" className="closing">
         <h2><span className="section-label">{d.sectionLabels.download}</span>{h.download.title}</h2>
-        <p>{HAS_STORE ? h.download.intro : h.paths[0].description}</p>
-        {HAS_STORE ? <><StoreBadges labels={d.storeBadges} /><small>{h.download.note}</small></> :
+        <p>{HAS_PLAY_STORE ? h.download.intro : h.paths[0].description}</p>
+        {HAS_PLAY_STORE ? <><a className="action" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">{d.storeBadges.googlePlay}</a><small>{h.download.note}</small></> :
           <Link className="action" href="/personal">{h.paths[0].cta}</Link>}
         <div className="text-links"><Link href="/pricing">{h.cta.primary}</Link><Link href="/faq">{h.cta.secondary}</Link></div>
       </section>

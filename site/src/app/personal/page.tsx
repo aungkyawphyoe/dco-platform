@@ -1,13 +1,13 @@
 import { HighlightedTitle } from "@/components/marketing/highlighted-title";
 import type { Metadata } from "next";
 import { getSiteCopy } from "@/i18n/dictionary";
-import Link from "next/link";
 import { GarageArt } from "@/components/marketing/garage-art";
 import { RecordList } from "@/components/marketing/record-list";
 import { StepList } from "@/components/marketing/step-list";
 import { CtaBanner } from "@/components/marketing/cta-banner";
 import { PhoneFrame } from "@/components/marketing/phone-frame";
 import { ScreenDetail } from "@/components/marketing/screen-detail";
+import { PLAY_STORE_URL } from "@/content/site";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { d } = await getSiteCopy();
@@ -27,7 +27,7 @@ export default async function PersonalPage() {
         <span className="scope-label">{p.hero.eyebrow} / {p.hero.badge}</span>
         <h1><HighlightedTitle title={p.hero.title} highlight={p.hero.titleHighlight} /></h1><p className="intro">{p.hero.subtitle}</p>
         <ul className="bullet-list">{p.hero.bullets.map(item => <li key={item}>{item}</li>)}</ul>
-        <Link href="/#download" className="action">{p.cta.secondary}</Link>
+        <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="action">{p.cta.secondary}</a>
       </div>
       <PhoneFrame src={{dark: "/screenshots/app-garage-dark.webp", light: "/screenshots/app-garage-light.webp"}}
         alt={p.hero.phoneAlt} label={p.hero.phoneLabel} priority />
@@ -46,14 +46,20 @@ export default async function PersonalPage() {
       {([[0, 2], [1, 4], [3, 5]] as const).map(([first, second], i) => (
         <div className="feature-band" key={first}>
           <RecordList items={[p.features[first], p.features[second]]} />
-          {i === 2 ? <GarageArt kind="dossier" /> : <figure className="capture-stage">
+          {i === 2 ? <GarageArt kind="keys" /> : <figure className="capture-stage">
             <ScreenDetail subject={i === 0 ? "fuel" : "maintenance"} alt={i === 0 ? tour.fuelAlt : tour.maintenanceAlt} />
             <figcaption>{i === 0 ? tour.fuelCaption : tour.maintenanceCaption}</figcaption>
           </figure>}
         </div>
       ))}
     </section>
-    <section className="frame-section paired"><h2><span className="section-label">{p.benefitsSection.eyebrow}</span>{p.benefitsSection.title}</h2><RecordList items={p.benefits} /></section>
+    <section className="frame-section paired">
+      <div className="benefits-visual">
+        <h2><span className="section-label">{p.benefitsSection.eyebrow}</span>{p.benefitsSection.title}</h2>
+        <GarageArt kind="question" />
+      </div>
+      <RecordList items={p.benefits} />
+    </section>
     <section className="frame-section"><h2><span className="section-label">{p.stepsSection.eyebrow}</span><HighlightedTitle title={p.stepsSection.title} highlight={p.stepsSection.titleHighlight} /></h2><p className="intro">{p.stepsSection.intro}</p>
       <div className="mt-8"><StepList items={p.steps} /></div>
     </section>

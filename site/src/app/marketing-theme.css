@@ -141,7 +141,28 @@ button:disabled { cursor: wait; }
 .catalog h3 { font-size: 21px; font-weight: 600; margin-bottom: 14px; }
 .bullet-list { list-style: square; padding-left: 1.25rem; margin-block: 24px; line-height: 1.7; }
 .bullet-list li::marker { color: var(--accent); }
-.garage-art { max-width: 100%; overflow: hidden; text-align: center; color: var(--accent); font: clamp(10px, 1.05vw, 16px)/1.18 var(--font-plex-mono); user-select: none; }
+.garage-art {
+  width: 100%;
+  max-width: 640px;
+  min-width: 0;
+  justify-self: center;
+  container-type: inline-size;
+  color: var(--text-primary);
+  user-select: none;
+}
+.garage-art pre {
+  margin: 0;
+  white-space: pre;
+  font: 400 1.7cqi/1.05 var(--font-plex-mono);
+  font-variant-ligatures: none;
+  letter-spacing: 0;
+  text-align: left;
+  direction: ltr;
+}
+.garage-art b { font-weight: 500; color: var(--accent); }
+.garage-art i { font-style: normal; opacity: .55; }
+.service-history .garage-art b { color: inherit; font-weight: 600; }
+
 .feature-band { border-top: 1px solid var(--border-divider); margin-top: 36px; padding-top: 36px; }
 .feature-band .record-list > div:first-child { border-top: 0; }
 .fleet-hero { grid-template-columns: minmax(0,.9fr) minmax(0,1.1fr); }
@@ -177,7 +198,6 @@ button:disabled { cursor: wait; }
 .footer-brand { grid-row: span 2; }
 .footer-support { grid-column: 2 / -1; align-self: end; margin-top: 32px; min-width: 0; }
 .footer-support a { display: block; width: max-content; max-width: 100%; font-weight: 600; text-decoration: underline; text-underline-offset: 5px; font-size: clamp(24px, 2.6vw, 34px); overflow-wrap: anywhere; }
-.art-skyline { color: inherit; font-size: clamp(9px, 1.8vw, 30px); line-height: 1; }
 @keyframes reveal-in { from { opacity: 0; transform: translateY(14px); } }
 @media (prefers-reduced-motion: no-preference) {
   .highway-copy, .reveal.is-visible:not(:focus-within):not(:target) { animation: reveal-in 700ms var(--ease-fn-soft) backwards; }
@@ -293,3 +313,9 @@ html[lang="my"] .marketing-site :is(h1,h2,h3,h4) { line-height: 1.4; letter-spac
   pointer-events: none;
 }
 .site-footer { border-block-start: 1px solid var(--border-divider); }
+
+.audiences-visual .garage-art { max-width: 360px; margin-top: 32px; }
+.audiences-visual .garage-art pre { font-size: 2.5cqi; }
+
+.benefits-visual .garage-art { max-width: 300px; margin-top: 32px; }
+.benefits-visual .garage-art pre { font-size: 2.5cqi; }

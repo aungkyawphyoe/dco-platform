@@ -17,7 +17,7 @@ export default async function FaqPage() {
   const faq = d.faq;
   return <>
     <section className="frame-section paired route-hero"><div><h1><span className="section-label">{faq.hero.eyebrow}</span>{faq.hero.title}</h1><p className="intro">{faq.hero.intro}</p></div>
-      <GarageArt kind="dossier" /></section>
+      <GarageArt kind="help" /></section>
     <div className="frame-section faq-layout">
       <nav aria-label={faq.categoriesAria}>{faq.categories.map(c => <a key={c.id} href={`#${c.id}`}>{c.label}</a>)}</nav>
       <div className="grid gap-12">{faq.categories.map(c => <FaqCategorySection key={c.id} category={c} />)}</div>
