@@ -36,7 +36,7 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
     return { currency: result.rows[0].currency, timezone: body.timezone };
   });
 
-  async function load(request: FastifyRequest) {
+  async function load(request: FastifyRequest, expenseExport = false) {
     const { id, organization } = await access(request);
     const settings = settingsOf(organization.settings, organization.currency);
     if (!settings.currency) throw new AppError(409, 'analytics_currency_required', 'An administrator must select the fleet currency in organization settings first');
@@ -66,6 +66,12 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
     const result = await app.db.execute(sql`SELECT r.*, COALESCE(u.display_name,u.email,'Unknown') AS author
       FROM analytics_records r LEFT JOIN users u ON u.id::text=COALESCE(r.payload->>'created_by',r.payload->>'user_id')
       WHERE r.org_id=${id} AND ${vehicleScope}
+      AND ${expenseExport && q.kind === 'expenses'
+        ? sql`(r.kind <> 'expense_deleted' OR NOT EXISTS (
+          SELECT 1 FROM analytics_records live
+          WHERE live.org_id = r.org_id AND live.kind = 'expense' AND live.id = r.id
+        ))`
+        : sql`r.kind <> 'expense_deleted'`}
       AND COALESCE(r.payload->>'incurred_on',r.payload->>'serviced_on',r.payload->>'logged_on') BETWEEN ${start} AND ${period.to}
       LIMIT 100001`);
     if (result.rows.length > 100000) throw new AppError(422, 'report_too_large', 'This fleet requires a larger reporting allocation. Contact support.');
@@ -89,11 +95,46 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
       detail: data.records.find(x => x.id === r.source_id && x.kind === r.source_kind)?.payload ?? null })) };
   });
   app.get('/organizations/:id/analytics/export', async (request, reply) => {
-    const data = await load(request);
+    const data = await load(request, true);
     const common = { period_from: data.period.from, period_to: data.period.to, currency: data.settings.currency, reporting_currency: data.settings.currency, timezone: data.settings.timezone, distance_unit: 'km', vehicle_filter: data.q.vehicles ?? 'all', active_only: data.q.active, category_filter: data.q.category ?? 'all' };
-    const report = calculateAnalytics(data.vehicles, data.records, data.period);
-    const rows = data.q.kind === 'vehicles' ? report.vehicles.map(v => ({ ...common, vehicle: v.name, plate: v.plate, status: v.status, total_cost: v.total_cost, liquid_cost: v.liquid_cost, electric_cost: v.electric_cost, unclassified_energy_cost: v.unclassified_energy_cost, energy_cost_per_km: v.energy_cost_per_km, recorded_km: v.distance_km, matched_cost: v.matched_cost, cost_per_km: v.cost_per_km, cost_per_day: v.cost_per_day, measured_from: v.measured_from, measured_to: v.measured_to, coverage: v.coverage ?? 'Complete', efficiency: v.efficiency.value, efficiency_unit: v.efficiency.unit, efficiency_method: v.efficiency.label })) : expenseRows(data.records, data.period).filter(r => !data.q.category || r.category === data.q.category).map(r => ({ ...common, ...r, included_in_total: true, vehicle: data.vehicles.find(v => v.id === r.vehicle_id)?.name }));
-    const headers = rows.length ? Object.keys(rows[0]) : [...Object.keys(common), ...(data.q.kind === 'vehicles' ? ['vehicle', 'plate', 'status', 'total_cost', 'liquid_cost', 'electric_cost', 'unclassified_energy_cost', 'energy_cost_per_km', 'recorded_km', 'matched_cost', 'cost_per_km', 'cost_per_day', 'measured_from', 'measured_to', 'coverage', 'efficiency', 'efficiency_unit', 'efficiency_method'] : ['id', 'vehicle_id', 'date', 'category', 'amount', 'description', 'entered_by', 'source_kind', 'source_id', 'included_in_total', 'vehicle'])];
+    const expenseColumns = ['id', 'vehicle_id', 'date', 'category', 'amount', 'description', 'entered_by',
+      'source_kind', 'source_id', 'included_in_total', 'vehicle', 'revision', 'change_status', 'deleted_at'];
+    const vehicleColumns = ['vehicle', 'plate', 'status', 'total_cost', 'liquid_cost', 'electric_cost',
+      'unclassified_energy_cost', 'energy_cost_per_km', 'recorded_km', 'matched_cost', 'cost_per_km',
+      'cost_per_day', 'measured_from', 'measured_to', 'coverage', 'efficiency', 'efficiency_unit', 'efficiency_method'];
+    const exportingExpenses = data.q.kind === 'expenses';
+    const headers = [...Object.keys(common), ...(exportingExpenses ? expenseColumns : vehicleColumns)];
+    let rows: Record<string, unknown>[];
+    if (exportingExpenses) {
+      const categories = data.q.categories ? new Set(data.q.categories.split(',')) : null;
+      const vehicleNames = new Map(data.vehicles.map(vehicle => [vehicle.id, vehicle.name]));
+      const snapshots = new Map(data.records.filter(record => record.kind === 'expense').map(record => [record.id, record.payload]));
+      const matchesCategory = (category: string) =>
+        (!data.q.category || category === data.q.category) && (!categories || categories.has(category));
+      const activeRows = expenseRows(data.records, data.period).filter(row => matchesCategory(row.category)).map(row => {
+        const snapshot = snapshots.get(row.id);
+        const revision = snapshot?.revision ?? null;
+        return { ...common, ...row, included_in_total: true, vehicle: vehicleNames.get(row.vehicle_id),
+          revision, change_status: Number(revision) > 1 || snapshot?.admin_corrected_by ? 'corrected' : 'current' };
+      });
+      const deletedRows = data.records.flatMap(record => {
+        if (record.kind !== 'expense_deleted') return [];
+        const payload = record.payload;
+        const date = String(payload.incurred_on);
+        const category = String(payload.category);
+        if (date < data.period.from || date > data.period.to || !matchesCategory(category)) return [];
+        return [{
+          ...common, id: record.id, vehicle_id: record.vehicle_id, date, category,
+          currency: payload.currency, source_kind: payload.source_kind, source_id: payload.source_id,
+          included_in_total: false, vehicle: vehicleNames.get(record.vehicle_id), revision: payload.revision,
+          change_status: 'deleted', deleted_at: payload.deleted_at,
+        }];
+      });
+      rows = [...activeRows, ...deletedRows].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
+    } else {
+      const report = calculateAnalytics(data.vehicles, data.records, data.period);
+      rows = report.vehicles.map(v => ({ ...common, vehicle: v.name, plate: v.plate, status: v.status, total_cost: v.total_cost, liquid_cost: v.liquid_cost, electric_cost: v.electric_cost, unclassified_energy_cost: v.unclassified_energy_cost, energy_cost_per_km: v.energy_cost_per_km, recorded_km: v.distance_km, matched_cost: v.matched_cost, cost_per_km: v.cost_per_km, cost_per_day: v.cost_per_day, measured_from: v.measured_from, measured_to: v.measured_to, coverage: v.coverage ?? 'Complete', efficiency: v.efficiency.value, efficiency_unit: v.efficiency.unit, efficiency_method: v.efficiency.label }));
+    }
     const csv = [headers.map(csvCell).join(','), ...rows.map(r => headers.map(h => csvCell((r as Record<string, unknown>)[h])).join(','))].join('\r\n');
     return reply.header('content-disposition', `attachment; filename="fleet-${data.q.kind}-${data.period.from}-${data.period.to}.csv"`).type('text/csv; charset=utf-8').send('\uFEFF' + csv);
   });

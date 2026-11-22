@@ -100,7 +100,7 @@ export const fleetAgreementsPlugin: FastifyPluginAsync = async app => {
     return app.db.select({
       ...getTableColumns(fleetAgreements),
       currentProvider: sql<string | null>`(SELECT ${fleetAgreementTerms.provider} FROM ${fleetAgreementTerms}
-        WHERE ${fleetAgreementTerms.agreementId} = ${fleetAgreements.id}
+        WHERE ${fleetAgreementTerms.agreementId} = "fleet_agreements"."id"
         ORDER BY ${fleetAgreementTerms.termNumber} DESC LIMIT 1)`,
     }).from(fleetAgreements).where(eq(fleetAgreements.orgId, id))
       .orderBy(desc(fleetAgreements.createdAt), asc(fleetAgreements.id));

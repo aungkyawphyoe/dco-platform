@@ -41,3 +41,10 @@ Fleet cost/day divides by elapsed calendar days. Vehicle cost/day divides by the
 ## Rollout
 
 Deploy the backend migration/API before the portal and mobile update. Migration execution follows the existing startup migration path. Admins confirm reporting currency on first visit. No production deployment is part of this implementation task. A report exceeding 100,000 scoped records is rejected explicitly rather than returning truncated totals.
+
+
+### Expense CSV reconciliation
+
+Expense rows sort by transaction date descending and expense ID ascending. The CSV uses the same category selection as the expense records view and returns identical headers for empty and populated reports. The row's `currency` is the original currency, while `reporting_currency` is organization metadata. A blank original currency or revision indicates that the reporting snapshot lacks that value.
+
+The current export includes the snapshot `revision` and `change_status`. A revision above one or a recorded admin correction produces `corrected`. Other existing rows are marked `current`. The CSV includes deletion markers for organization expense snapshots deleted after migration 0048. Markers use the original transaction date and expense ID, the last revision plus one, and a `deleted_at` timestamp. They have a blank amount and `included_in_total=false`. Re-export the affected transaction period to reconcile deletions. Historical deletions are unavailable. Standard analytics reports and records exclude deletion markers.

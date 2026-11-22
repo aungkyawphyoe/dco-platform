@@ -85,6 +85,8 @@ PR-1, PR-2, and PR-4 do not depend on one another after PR-0 and may be develope
 - [ ] Perf: capture trunk p95 and query count for vehicle detail and organization vehicle listing with the same seeded fleet. Repeat after the change. Fail if either existing path regresses over 10% p95 or query count. Record baseline and result in the PR.
 - [ ] Operator reviews the agreement create/renewal and reminder-failure interactions before merge.
 
+**Walkthrough evidence (22 November 2026):** Fastify injection against a disposable PGlite database exercised startup migrations, agreement creation, document selection, role checks, editing, renewal history, and archiving. The reminder worker used a simulated mail provider to verify the organization-local lead window, an observable failure, retry, and suppression after a recorded send. The browser walkthrough, real email delivery, and performance comparison remain open.
+
 ## PR-2: ERP-ready expense records and export
 
 **Depends on:** PR-0 approved spreadsheet format and reconciliation contract. An ERP product or connector is not required for this first release.
