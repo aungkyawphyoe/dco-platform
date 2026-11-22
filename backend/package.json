@@ -17,7 +17,8 @@
     "seed:org": "tsx src/scripts/seed-org.ts",
     "license:key": "tsx src/scripts/generate-license-key.ts",
     "billing:reconcile": "tsx src/scripts/reconcile-play.ts",
-    "billing:reminders": "tsx src/scripts/subscription-reminders.ts"
+    "billing:reminders": "tsx src/scripts/subscription-reminders.ts",
+    "fleet:agreement-reminders": "tsx src/scripts/fleet-agreement-reminders.ts"
   },
   "dependencies": {
     "@azure/communication-email": "^1.0.0",

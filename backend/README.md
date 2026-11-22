@@ -51,3 +51,9 @@ term become read-only; account and vehicle records are retained.
 No admin review or manual SQL is needed. To give a test account paid access,
 record a direct or complimentary subscription in the admin portal. The migration
 has a completion marker so subsequent restarts do not repeat this cleanup.
+
+### Fleet agreement reminder job
+
+Run `npm run fleet:agreement-reminders` from the backend with production database and mail settings on an hourly schedule. The job uses the organization's reporting timezone, with UTC as the fallback. It sends within the current term's configured lead window, through its expiry date, to the active responsible member. Fleet admins can see the most recent attempt for each term and expiry date through the agreement API.
+
+The job exits nonzero if delivery or processing fails. The next run retries failed deliveries still within the window. A committed send suppresses subsequent runs for the same term and expiry date. If the mail provider accepts a message and the database commit then fails, a retry can send a duplicate.

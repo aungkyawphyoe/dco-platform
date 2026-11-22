@@ -3930,6 +3930,14 @@ paths:
         "200": { description: Archived agreement header }
         "403": { description: Fleet Portal admin or manager access required }
         "404": { description: Agreement not found in this organization }
+  /organizations/{id}/agreements/{agreementId}/reminder-deliveries:
+    parameters: *fleetAgreementPath
+    get:
+      summary: List recorded reminder delivery attempts
+      responses:
+        "200": { description: Latest attempt per term and expiry date with a nullable sent timestamp }
+        "403": { description: Fleet Portal admin access required }
+        "404": { description: Agreement not found in this organization }
   /organizations/{id}/work-orders:
     parameters:
       - in: path

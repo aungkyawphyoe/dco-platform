@@ -610,6 +610,15 @@ export const fleetAgreementTerms = pgTable("fleet_agreement_terms", {
   check("fleet_agreement_term_lead_positive", sql`${table.reminderLeadDays} > 0`),
 ]);
 
+export const fleetAgreementNotices = pgTable("fleet_agreement_notices", {
+  termId: uuid("term_id").notNull().references(() => fleetAgreementTerms.id),
+  endsOn: date("ends_on").notNull(),
+  attemptedAt: timestamp("attempted_at", { withTimezone: true }).notNull(),
+  sentAt: timestamp("sent_at", { withTimezone: true }),
+}, (table) => [
+  primaryKey({ name: "fleet_agreement_notices_pk", columns: [table.termId, table.endsOn] }),
+]);
+
 export const fleetAgreementTermVehicles = pgTable("fleet_agreement_term_vehicles", {
   termId: uuid("term_id").notNull().references(() => fleetAgreementTerms.id),
   vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),

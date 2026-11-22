@@ -11,6 +11,7 @@ export type MaintenanceReminderEmail = {
 };
 
 export type Mailer = {
+  sendFleetAgreementReminder?(to: string, body: string): Promise<void>;
   sendSubscriptionReminder?(to: string, body: string): Promise<void>;
   sendCode(to: string, code: string, purpose: "verify" | "reset", locale: "en" | "my"): Promise<void>;
   sendVerification(to: string, token: string): Promise<void>;
@@ -73,6 +74,14 @@ function link(env: Env, path: string, token: string): string {
 
 export function createMailer(env: Env): Mailer {
   return {
+    async sendFleetAgreementReminder(to, body) {
+      if (env.MAIL_PROVIDER === "stdout") {
+        if (env.APP_ENV === "prod") throw new Error("Production email delivery is not configured");
+        console.log(`[mail] fleet agreement reminder to ${to}: ${body}`);
+        return;
+      }
+      await sendAcs(env, to, "AutoX fleet agreement renewal reminder", body);
+    },
     async sendSubscriptionReminder(to, body) {
       if (env.MAIL_PROVIDER === "stdout") {
         if (env.APP_ENV === "prod") throw new Error("Production email delivery is not configured");

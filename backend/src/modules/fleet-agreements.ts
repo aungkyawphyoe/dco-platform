@@ -4,7 +4,7 @@ import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
 import {
-  auditEvents, documents, fleetAgreementKindEnum, fleetAgreements, fleetAgreementTerms,
+  auditEvents, documents, fleetAgreementKindEnum, fleetAgreementNotices, fleetAgreements, fleetAgreementTerms,
   fleetAgreementTermVehicles, organizationMembers, organizationVehicles, vehicleOwnershipPeriods,
 } from "../db/schema.js";
 import { AppError } from "../lib/errors.js";
@@ -118,6 +118,18 @@ export const fleetAgreementsPlugin: FastifyPluginAsync = async app => {
       terms.set(term.id, item);
     }
     return { ...rows[0].fleet_agreements, terms: [...terms.values()] };
+  });
+
+  app.get(route + "/:agreementId/reminder-deliveries", async request => {
+    const { id, agreementId } = agreementParams.parse(request.params);
+    await access(request, id, true);
+    const rows = await app.db.select({ notice: fleetAgreementNotices }).from(fleetAgreements)
+      .leftJoin(fleetAgreementTerms, eq(fleetAgreementTerms.agreementId, fleetAgreements.id))
+      .leftJoin(fleetAgreementNotices, eq(fleetAgreementNotices.termId, fleetAgreementTerms.id))
+      .where(and(eq(fleetAgreements.orgId, id), eq(fleetAgreements.id, agreementId)))
+      .orderBy(desc(fleetAgreementNotices.attemptedAt));
+    if (!rows.length) throw new AppError(404, "agreement_not_found", "Agreement not found");
+    return rows.flatMap(({ notice }) => notice ? [notice] : []);
   });
 
   app.post(route, async (request, reply) => {
