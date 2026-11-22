@@ -578,6 +578,45 @@ export const organizationVehicles = pgTable("organization_vehicles", {
   organizationIndex: index("organization_vehicles_org_idx").on(table.orgId),
 }));
 
+export const fleetAgreementKindEnum = pgEnum("fleet_agreement_kind", [
+  "insurance_policy",
+  "maintenance_agreement",
+]);
+
+export const fleetAgreements = pgTable("fleet_agreements", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id),
+  kind: fleetAgreementKindEnum("kind").notNull(),
+  responsibleMemberId: uuid("responsible_member_id").references(() => organizationMembers.id, { onDelete: "set null" }),
+  archivedAt: timestamp("archived_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (table) => [
+  index("fleet_agreements_org_idx").on(table.orgId),
+]);
+
+export const fleetAgreementTerms = pgTable("fleet_agreement_terms", {
+  id: uuid("id").primaryKey(),
+  agreementId: uuid("agreement_id").notNull().references(() => fleetAgreements.id),
+  termNumber: integer("term_number").notNull(),
+  provider: text("provider").notNull(),
+  startsOn: date("starts_on").notNull(),
+  endsOn: date("ends_on").notNull(),
+  reminderLeadDays: integer("reminder_lead_days").notNull(),
+  documentId: uuid("document_id").references(() => documents.id, { onDelete: "set null" }),
+}, (table) => [
+  unique("fleet_agreement_term_number_unique").on(table.agreementId, table.termNumber),
+  check("fleet_agreement_term_number_positive", sql`${table.termNumber} > 0`),
+  check("fleet_agreement_term_dates", sql`${table.endsOn} >= ${table.startsOn}`),
+  check("fleet_agreement_term_lead_positive", sql`${table.reminderLeadDays} > 0`),
+]);
+
+export const fleetAgreementTermVehicles = pgTable("fleet_agreement_term_vehicles", {
+  termId: uuid("term_id").notNull().references(() => fleetAgreementTerms.id),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+}, (table) => [
+  primaryKey({ name: "fleet_agreement_term_vehicles_pk", columns: [table.termId, table.vehicleId] }),
+]);
+
 export const driverAssignments = pgTable("driver_assignments", {
   id: uuid("id").primaryKey(),
   orgId: uuid("org_id").notNull().references(() => organizations.id, { onDelete: "cascade" }),

@@ -54,6 +54,8 @@ PR-1, PR-2, and PR-4 do not depend on one another after PR-0 and may be develope
 
 ## PR-1: Contract tracking and expiry alerts
 
+**Progress:** Agreement storage is scaffolded in migration `0046_fleet_agreements.sql`. Agreements retain numbered terms with per-term vehicle coverage and optional links to existing documents. The API must check organization membership, vehicle ownership, and document access before writing these references.
+
 **Depends on:** PR-0 evidence and the approved agreement FRD.
 
 **One change:** Implement the agreement workflow defined by the approved PR-0 FRD. Do not add lease billing, claims, or a general document-expiry reminder system.
