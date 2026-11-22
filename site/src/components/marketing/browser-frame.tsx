@@ -34,7 +34,7 @@ export function BrowserFrame({ label, className = "", src, alt, priority }: Brow
 
   return (
     <figure className={`flex w-full flex-col items-center gap-3 ${className}`}>
-      <div className="glass w-full max-w-2xl rounded-2xl p-2 shadow-float">
+      <div className="glass w-full max-w-2xl rounded-2xl p-2">
         <div className="surface relative overflow-hidden rounded-xl">
           <div className="flex items-center gap-2 border-b border-line-subtle px-3 py-2">
             <span className="h-2.5 w-2.5 rounded-full bg-skeleton" />

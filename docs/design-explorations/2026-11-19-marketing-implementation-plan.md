@@ -3,13 +3,13 @@
 Date: 19 November 2026  
 Status: First implementation pass complete in the local checkout. Visual refinement is scheduled for a later pass.  
 Design source: [Layout plan](2026-11-19-marketing-layout-plan.md).  
-Reference prototype: `site/public/theme-lab/trenova-study.html` and `highway-grid.js`.
+Historical prototype: `site/public/theme-lab/trenova-study.html` and `highway-grid.js` (removed after implementation; available in Git history). The active renderer is `site/src/components/marketing/highway-scene.ts`.
 
 ## 1. Deliverable and scope
 
 Revamp the six existing marketing routes (`/`, `/personal`, `/fleet`, `/pricing`, `/faq`, `/demo`) with a shared Trenova-inspired frame, direct navigation, standard-character feature illustrations, an amber footer and coordinated reveals. The homepage alone receives the square-dithered moving highway hero.
 
-Legal routes `/privacy`, `/terms`, `/account-deletion` inherit the new shell and readable typography; their legal text does not change. The authenticated web, fleet portal, Flutter app, backend behavior, pricing contracts and environment configuration stay outside this change.
+Legal routes `/privacy`, `/terms`, `/account-deletion` inherit the new shell and readable typography; their legal text does not change. The authenticated web, fleet portal, Flutter app, backend behavior and pricing contracts stay outside this change. Store URL values are public build-time configuration for the marketing site.
 
 Use the current checkout when implementation starts; inspect status and applicable instructions again so user changes are preserved. Keep reviewable increments, and use the repository's branch/commit conventions (`codex/` when creating a branch). This plan does not create a branch, commit or deployment.
 
@@ -27,7 +27,7 @@ Use the current checkout when implementation starts; inspect status and applicab
 | FAQ | `site/src/components/faq/faq-category.tsx` and dictionary categories | Preserve IDs, native accordions and all 44 answers |
 | Demo | `site/src/components/demo/demo-form.tsx` | Preserve validation, payload, endpoint/mailto, errors and success focus |
 | Motion | `site/src/components/marketing/reveal.tsx` and `.reveal` CSS | Adapt existing wrapper; fix visible-without-JS behavior |
-| Art prototype | `site/public/theme-lab/highway-grid.js` | Port the selected scene into a managed React lifecycle; do not ship the static prototype as the production route |
+| Art prototype | Historical `site/public/theme-lab/highway-grid.js` (removed) | Scene is implemented in `site/src/components/marketing/highway-scene.ts`; keep the static prototype out of the production route |
 | Assets | Five WebP subjects × two modes, official logo and self-hosted fonts | Reuse; no fake screenshots |
 
 The inspected `site/package.json` has `dev`, `build`, `start`, `lint`, API generation and theme generation scripts. It does not define a test script. Do not report an invented `npm test` result or install a broad new toolchain just to restyle pages.

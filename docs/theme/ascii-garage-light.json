@@ -8,7 +8,7 @@
     "web",
     "fleet-portal"
   ],
-  "description": "Candidate black-and-amber theme for the marketing revamp and later mobile/portal migration. Not selected by the current shared theme generator.",
+  "description": "Reference for the active ASCII Garage marketing site and future module migrations. Shared generator remains on Garage Minimal.",
   "background": {
     "primary": "#F7F7F5",
     "secondary": "#EEEEEA",
@@ -186,12 +186,12 @@
     "respectReducedMotion": true
   },
   "usageNotes": {
-    "activation": "Candidate only. Existing garage-minimal files and generated runtime tokens are unchanged.",
+    "activation": "Active site palette through marketing-tokens.css. Other modules still use generated Garage Minimal tokens.",
     "text.accent": "Exact amber for dark surfaces; deep amber for readable small text and links on light surfaces. Use black labels on amber fills.",
     "border.default": "Functional input/control boundaries; subtle/divider values are decorative separators.",
     "status.warning vs text.accent": "Retain semantic status and chart colors from the active Garage Minimal theme; amber is brand, not an overdue signal.",
     "marketing": "Marketing-only footer, grid, hero and reveal values. Do not apply 700ms reveals or the hero renderer to everyday product workflows.",
-    "radius": "Square candidate component geometry. Review touch targets, dialogs, avatars and current platform-specific card requirements before a mobile/portal migration.",
+    "radius": "Square component geometry. Review touch targets, dialogs, avatars and current platform-specific card requirements before a mobile/portal migration.",
     "migration": "New pair has identical keys and extends the existing token schema with marketing values. Generator still selects garage-minimal by filename; adopting this pair needs an explicit generator/mapping change and platform QA.",
     "typography": "Plex Sans headings/body, Plex Mono artwork. Preserve Myanmar-capable fallback and locale-specific leading."
   },
@@ -206,19 +206,19 @@
       "maxWidth": 1280,
       "columns": 12,
       "desktopGutter": 48,
-      "mobileGutter": 24,
+      "mobileGutter": 20,
       "ruleWidth": 1
     },
     "hero": {
       "desktopAspectRatio": 1.641025641025641,
-      "mobileHeight": 750,
       "cellPitch": 5,
       "mobileCellPitch": 4,
       "cellGap": 1,
       "targetFps": 20,
       "horizonRatio": 0.74,
       "carWidthRatio": 0.115,
-      "cityMaxHeightRatio": 0.23
+      "cityMaxHeightRatio": 0.23,
+      "mobileAspectRatio": 1.1470588235294117
     },
     "reveal": {
       "distance": 14,
@@ -229,7 +229,7 @@
     "typography": {
       "heroSize": 94,
       "sectionSize": 56,
-      "mobileHeroSize": 40
+      "mobileHeroSize": 44
     },
     "control": {
       "filledBackground": "#000000",

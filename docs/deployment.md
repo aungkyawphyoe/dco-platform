@@ -201,7 +201,7 @@ that was not built first: a revision referencing a missing tag goes into
 `ImagePullBackOff` and the old revision keeps serving (`az containerapp replica list`
 shows the reason).
 
-**Fonts:** the site self-hosts Barlow + IBM Plex (woff2 in `site/public/fonts`,
+**Fonts:** the site self-hosts IBM Plex (woff2 in `site/public/fonts`,
 `@font-face` in `globals.css`) — do **not** switch back to `next/font/google`: the
 ACR build environment cannot reach `fonts.googleapis.com` and `next build` fails.
 
@@ -294,3 +294,6 @@ GitHub Actions workflow should:
 1. Build & push each app to ACR on merge to `main`
 2. Run `az containerapp update` for each app
 3. Run smoke tests against new revision before 100% traffic shift
+### Marketing store links
+
+Set `NEXT_PUBLIC_PLAY_STORE_URL` and, when available, `NEXT_PUBLIC_APP_STORE_URL` before building the site. Next.js embeds these public URLs at build time; changing the runtime environment alone does not update them. Container builds accept both names as `--build-arg` values. Unset stores are hidden. `.env.example` is documentation, not loaded configuration; use `.env.local` for local development.

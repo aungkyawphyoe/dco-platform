@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @import "./theme-tokens.css";
+@import "./marketing-tokens.css";
 @import "./marketing-theme.css";
 
 @theme inline {
-  /* fonts — variables provided by next/font in layout.tsx */
+  /* font family mapping */
   --font-display: var(--font-plex-sans);
   --font-sans: var(--font-plex-sans);
   --font-mono: var(--font-plex-mono);

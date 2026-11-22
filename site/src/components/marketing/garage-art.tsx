@@ -1,12 +1,12 @@
 import { receipt, help } from "./art/desk";
 import { workshop, checklist } from "./art/operations";
-import { road, dossier } from "./art/vehicle";
+import { dossier } from "./art/vehicle";
 import { serviceHistory } from "./art/service-history";
 import { question } from "./art/question";
 import { globe } from "./art/globe";
 import { keys } from "./art/keys";
 
-const scenes = { question, globe, serviceHistory, dossier, road, receipt, workshop, checklist, help, keys };
+const scenes = { question, globe, serviceHistory, dossier, receipt, workshop, checklist, help, keys };
 
 export function GarageArt({ kind }: { kind: keyof typeof scenes }) {
   // Preserve the leading spaces that locate each object on the character grid.

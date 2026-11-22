@@ -1,3 +1,4 @@
+import { StoreBadges } from "@/components/marketing/store-badges";
 import { HighlightedTitle } from "@/components/marketing/highlighted-title";
 import { DemoInvitation } from "@/components/demo/demo-invitation";
 import Link from "next/link";
@@ -8,7 +9,7 @@ import { GarageArt } from "@/components/marketing/garage-art";
 import { RecordList } from "@/components/marketing/record-list";
 import { StepList } from "@/components/marketing/step-list";
 import { PathCards } from "@/components/marketing/path-cards";
-import { HAS_PLAY_STORE, PLAY_STORE_URL } from "@/content/site";
+import { HAS_STORE } from "@/content/site";
 
 const paths = ["/personal", "/fleet"];
 const featureGroups = [[0, 4], [1, 3], [2, 5]];
@@ -61,8 +62,8 @@ export default async function HomePage() {
       </section>
       <section id="download" className="closing">
         <h2><span className="section-label">{d.sectionLabels.download}</span>{h.download.title}</h2>
-        <p>{HAS_PLAY_STORE ? h.download.intro : h.paths[0].description}</p>
-        {HAS_PLAY_STORE ? <><a className="action" href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer">{d.storeBadges.googlePlay}</a><small>{h.download.note}</small></> :
+        <p>{HAS_STORE ? h.download.intro : h.paths[0].description}</p>
+        {HAS_STORE ? <><StoreBadges labels={d.storeBadges} /><small>{h.download.note}</small></> :
           <Link className="action" href="/personal">{h.paths[0].cta}</Link>}
         <div className="text-links"><Link href="/pricing">{h.cta.primary}</Link><Link href="/faq">{h.cta.secondary}</Link></div>
       </section>

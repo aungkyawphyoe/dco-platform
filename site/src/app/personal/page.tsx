@@ -7,7 +7,7 @@ import { StepList } from "@/components/marketing/step-list";
 import { CtaBanner } from "@/components/marketing/cta-banner";
 import { PhoneFrame } from "@/components/marketing/phone-frame";
 import { ScreenDetail } from "@/components/marketing/screen-detail";
-import { PLAY_STORE_URL } from "@/content/site";
+import { StoreBadges } from "@/components/marketing/store-badges";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { d } = await getSiteCopy();
@@ -27,7 +27,7 @@ export default async function PersonalPage() {
         <span className="scope-label">{p.hero.eyebrow} / {p.hero.badge}</span>
         <h1><HighlightedTitle title={p.hero.title} highlight={p.hero.titleHighlight} /></h1><p className="intro">{p.hero.subtitle}</p>
         <ul className="bullet-list">{p.hero.bullets.map(item => <li key={item}>{item}</li>)}</ul>
-        <a href={PLAY_STORE_URL} target="_blank" rel="noopener noreferrer" className="action">{p.cta.secondary}</a>
+        <StoreBadges labels={d.storeBadges} />
       </div>
       <PhoneFrame src={{dark: "/screenshots/app-garage-dark.webp", light: "/screenshots/app-garage-light.webp"}}
         alt={p.hero.phoneAlt} label={p.hero.phoneLabel} priority />

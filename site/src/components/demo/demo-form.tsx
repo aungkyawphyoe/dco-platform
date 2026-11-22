@@ -237,7 +237,7 @@ export function DemoForm({ copy }: { copy: FormCopy }) {
       .replace("{contact}", contactPart);
 
     return (
-      <div className="surface shadow-float rounded-2xl p-6 sm:p-8" role="status" aria-live="polite">
+      <div className="surface rounded-2xl p-6 sm:p-8" role="status" aria-live="polite">
         <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gold/15 text-gold">
           <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" className="h-6 w-6">
             <path d="m5 12.5 4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -283,7 +283,7 @@ export function DemoForm({ copy }: { copy: FormCopy }) {
     <form
       onSubmit={handleSubmit}
       noValidate
-      className="surface shadow-float rounded-2xl p-5 sm:p-7 lg:p-8"
+      className="surface rounded-2xl p-5 sm:p-7 lg:p-8"
       aria-describedby="demo-form-note"
     >
       <div className="mb-6 flex items-start justify-between gap-4">

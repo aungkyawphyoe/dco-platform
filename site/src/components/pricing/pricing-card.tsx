@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Dictionary } from "@/i18n/types";
-import { PLAY_STORE_URL } from "@/content/site";
+import { HAS_PLAY_STORE, PLAY_STORE_URL } from "@/content/site";
 import {
   formatLimit,
   formatMmk,
@@ -96,16 +96,16 @@ export function PricingCard({ plan, period, copy }: PricingCardProps) {
           </Link>
         ) : (
           <Link
-            href={plan.id === "free" ? "/personal" : PLAY_STORE_URL}
-            target={plan.id === "free" ? undefined : "_blank"}
-            rel={plan.id === "free" ? undefined : "noopener noreferrer"}
+            href={plan.id === "free" || !HAS_PLAY_STORE ? "/personal" : PLAY_STORE_URL}
+            target={plan.id === "free" || !HAS_PLAY_STORE ? undefined : "_blank"}
+            rel={plan.id === "free" || !HAS_PLAY_STORE ? undefined : "noopener noreferrer"}
             className={`flex h-11 w-full items-center justify-center rounded-full text-sm font-semibold ${
               highlighted
                 ? "btn-gloss"
                 : "surface card-hover text-ink"
             }`}
           >
-            {plan.id === "free" ? copy.startFree : copy.getTheApp}
+            {plan.id === "free" || !HAS_PLAY_STORE ? copy.startFree : copy.getTheApp}
           </Link>
         )}
       </div>

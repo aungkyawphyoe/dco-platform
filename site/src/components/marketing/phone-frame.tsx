@@ -10,8 +10,6 @@ type ThemedScreenshot = Partial<Record<ResolvedTheme, string>>;
 type PhoneFrameProps = {
   /** Caption rendered under the frame, e.g. the screen name. */
   label?: string;
-  /** Ambient float loop (hero treatment). */
-  float?: boolean;
   className?: string;
   ariaHidden?: boolean;
   /**
@@ -33,7 +31,7 @@ const SKELETON_ROWS = [92, 74, 84, 66, 88, 70, 80, 58];
  * asset's phone aspect ratio, falling back to the skeleton interior when the
  * asset is absent or fails to load.
  */
-export function PhoneFrame({ label, float = false, className = "", ariaHidden, src, alt, priority }: PhoneFrameProps) {
+export function PhoneFrame({ label, className = "", ariaHidden, src, alt, priority }: PhoneFrameProps) {
   const theme = useResolvedTheme();
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const path = typeof src === "string" ? src : src?.[theme] ?? src?.dark ?? null;
@@ -43,10 +41,9 @@ export function PhoneFrame({ label, float = false, className = "", ariaHidden, s
     <figure className={`flex flex-col items-center gap-3 ${className}`}>
       <div
         aria-hidden={ariaHidden ? "true" : undefined}
-        className={`glass relative w-[220px] rounded-[32px] p-2 shadow-float sm:w-[248px] ${float ? "animate-float" : ""}`}
+        className={`glass relative w-[220px] rounded-[32px] p-2 sm:w-[248px]`}
       >
         <div className="surface relative overflow-hidden rounded-[26px]">
-          <div className="bg-gold-wash absolute inset-x-0 top-0 h-28 opacity-80" />
           <div className="relative flex justify-center py-2">
             <span className="h-1.5 w-16 rounded-full bg-skeleton" />
           </div>
