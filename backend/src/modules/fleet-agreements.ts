@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, inArray, isNull, sql } from "drizzle-orm";
 import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
@@ -97,8 +97,26 @@ export const fleetAgreementsPlugin: FastifyPluginAsync = async app => {
   app.get(route, async request => {
     const { id } = params.parse(request.params);
     await access(request, id);
-    return app.db.select().from(fleetAgreements).where(eq(fleetAgreements.orgId, id))
+    return app.db.select({
+      ...getTableColumns(fleetAgreements),
+      currentProvider: sql<string | null>`(SELECT ${fleetAgreementTerms.provider} FROM ${fleetAgreementTerms}
+        WHERE ${fleetAgreementTerms.agreementId} = ${fleetAgreements.id}
+        ORDER BY ${fleetAgreementTerms.termNumber} DESC LIMIT 1)`,
+    }).from(fleetAgreements).where(eq(fleetAgreements.orgId, id))
       .orderBy(desc(fleetAgreements.createdAt), asc(fleetAgreements.id));
+  });
+
+  app.get(route + "/vehicle-documents/:vehicleId", async request => {
+    const { id, vehicleId } = params.extend({ vehicleId: uuid }).parse(request.params);
+    await access(request, id);
+    return app.db.select({ id: documents.id, name: documents.name }).from(documents)
+      .innerJoin(vehicleOwnershipPeriods, and(eq(documents.ownershipPeriodId, vehicleOwnershipPeriods.id),
+        eq(documents.vehicleId, vehicleOwnershipPeriods.vehicleId)))
+      .innerJoin(organizationVehicles, and(eq(organizationVehicles.vehicleId, documents.vehicleId),
+        eq(organizationVehicles.orgId, id)))
+      .where(and(eq(documents.vehicleId, vehicleId), eq(vehicleOwnershipPeriods.orgId, id),
+        isNull(vehicleOwnershipPeriods.endedAt)))
+      .orderBy(asc(documents.name), asc(documents.id));
   });
 
   app.get(route + "/:agreementId", async request => {

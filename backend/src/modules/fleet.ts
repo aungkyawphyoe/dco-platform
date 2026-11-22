@@ -105,6 +105,7 @@ function serializeOrganization(row: typeof organizations.$inferSelect, role: str
 
 function serializeMember(row: typeof organizationMembers.$inferSelect, user: typeof users.$inferSelect) {
   return {
+    member_id: row.id,
     user_id: user.id,
     email: user.email,
     display_name: user.displayName,

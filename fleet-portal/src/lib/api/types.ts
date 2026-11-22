@@ -13,6 +13,7 @@ export type OrgContext = {
 };
 
 export type OrgMember = {
+  member_id: string;
   license_expiry_date?: string | null;
   license_status?: "valid" | "expired" | "expiring_soon" | null;
   status: "active" | "deactivated";

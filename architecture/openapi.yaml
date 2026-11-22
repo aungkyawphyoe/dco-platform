@@ -3833,7 +3833,7 @@ paths:
     get:
       summary: List agreement headers for the organization
       responses:
-        "200": { description: Agreement headers ordered newest first }
+        "200": { description: Agreement headers with current provider ordered newest first }
         "403": { description: Fleet Portal admin or manager access required }
     post:
       summary: Create an agreement and its initial term
@@ -3857,6 +3857,15 @@ paths:
         "201": { description: Agreement with its initial term and covered vehicle IDs }
         "403": { description: Fleet Portal admin or manager access required }
         "422": { description: Invalid agreement input or organization references }
+  /organizations/{id}/agreements/vehicle-documents/{vehicleId}:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: vehicleId, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: List attachable organization document IDs and names for a vehicle
+      responses:
+        "200": { description: Document options for the current ownership period }
+        "403": { description: Fleet Portal admin or manager access required }
   /organizations/{id}/agreements/{agreementId}:
     parameters: &fleetAgreementPath
       - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
