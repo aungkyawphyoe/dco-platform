@@ -3,7 +3,8 @@
 import { money as formatMoney } from "@dco/ui/lib/format";
 import { useState, useRef, useEffect, useId, ReactNode } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiGet, apiPut, apiDownload } from "@/lib/api/client";
+import { apiGet, apiPut, apiRequest } from "@/lib/api/client";
+import { parseApiError } from "@/lib/api/errors";
 import { useOrgId, useOrgRole } from "@/lib/auth/session-context";
 import type { AnalyticsReport, AnalyticsExpense } from "@/lib/api/analytics";
 import styles from "./report.module.css";
@@ -490,15 +491,21 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
   const [trend, setTrend] = useState<"cost_per_km" | "cost_per_day">(
     "cost_per_km"
   );
-  async function download(kind: string, query = params) {
+  async function download(kind: "vehicles" | "expenses", query = params) {
     setDownloading(true);
     setDownloadError("");
     try {
-      const blob = await apiDownload(`${base}/export?${query}&kind=${kind}`),
-        url = URL.createObjectURL(blob);
+      const filters = new URLSearchParams(query);
+      filters.set("kind", kind);
+      filters.delete("page");
+      const response = await apiRequest(`${base}/export?${filters}`);
+      if (!response.ok) throw await parseApiError(response);
+      const url = URL.createObjectURL(await response.blob());
+      const filename = response.headers.get("content-disposition")
+        ?.match(/filename="(fleet-[a-z0-9-]+\.csv)"/i)?.[1];
       const a = document.createElement("a");
       a.href = url;
-      a.download = `fleet-${kind}.csv`;
+      a.download = filename ?? `fleet-${kind}.csv`;
       a.click();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch (e) {
@@ -510,6 +517,7 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
     }
   }
   function openRecords(title: string, additions: Record<string, string>) {
+    setDownloadError("");
     const p = new URLSearchParams(params);
     Object.entries(additions).forEach(([k, v]) => p.set(k, v));
     setDrill({ title, params: p.toString() });
@@ -656,13 +664,13 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
               disabled={!r || downloading}
               onClick={() => download("expenses")}
             >
-              Expense records
+              Expense reconciliation CSV
             </button>
             {downloading && <p role="status">Preparing export…</p>}
           </div>
         </details>
       </header>
-      {downloadError && (
+      {downloadError && !drill && (
         <p role="alert" className={styles.error}>
           {downloadError}
         </p>
@@ -1290,9 +1298,10 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
           base={base}
           selection={drill}
           currency={settings.data.currency}
-          onClose={() => setDrill(null)}
+          onClose={() => { setDrill(null); setDownloadError(""); }}
           onExport={() => download("expenses", drill.params)}
           downloading={downloading}
+          downloadError={downloadError}
         />
       )}
     </div>
@@ -1304,7 +1313,8 @@ function Records({
   currency,
   onClose,
   onExport,
-  downloading
+  downloading,
+  downloadError
 }: {
   base: string;
   selection: { title: string; params: string };
@@ -1312,6 +1322,7 @@ function Records({
   onClose: () => void;
   onExport: () => void;
   downloading: boolean;
+  downloadError: string;
 }) {
   const dialog = useRef<HTMLDialogElement>(null),
     [page, setPage] = useState(1),
@@ -1343,8 +1354,9 @@ function Records({
         </button>
       </header>
       <button disabled={downloading} onClick={onExport}>
-        Export these expenses CSV
+        Export filtered expenses CSV
       </button>
+      {downloadError && <p role="alert">{downloadError}</p>}
       {rows.isPending && <p role="status">Loading records…</p>}
       {rows.error && <p role="alert">{rows.error.message}</p>}
       {detail ? (

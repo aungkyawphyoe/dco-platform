@@ -5640,10 +5640,18 @@ paths:
           name: category
           schema: {type: string}
         - in: query
+          name: categories
+          description: Comma-separated category filter for expense exports. Intersects with category when both are supplied.
+          schema: {type: string, maxLength: 300}
+        - in: query
           name: kind
           schema: {type: string, enum: [vehicles, expenses], default: vehicles}
       responses:
-        '200': {description: Filtered reporting result}
+        '200':
+          description: Filtered CSV. Expense rows include correction status and captured deletion markers.
+          content:
+            text/csv:
+              schema: {type: string}
         '403': {description: Organization role does not permit analytics}
         '404': {description: Selected vehicle is outside the organization}
         '409': {description: Reporting currency requires administrator confirmation}
