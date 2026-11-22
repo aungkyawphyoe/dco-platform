@@ -5,6 +5,7 @@ import { subscriptionsPlugin } from "./modules/subscriptions.js";
 import { playBillingPlugin } from "./modules/play-billing.js";
 import { promotionsPlugin } from "./modules/promotions.js";
 import { fleetAnalyticsPlugin } from "./modules/fleet-analytics.js";
+import { fleetAgreementsPlugin } from "./modules/fleet-agreements.js";
 import { socialAuthPlugin } from "./modules/social-auth.js";
 import { accountSecurityPlugin } from "./modules/account-security.js";
 import Fastify from "fastify";
@@ -137,6 +138,7 @@ export async function buildApp(deps: { env: Env; db: Db; mailer: Mailer; media: 
       await v1.register(handoverPlugin);
       await v1.register(lateWriteReviewPlugin);
       await v1.register(fleetAnalyticsPlugin);
+      await v1.register(fleetAgreementsPlugin);
       await v1.register(adminPlugin);
     },
     { prefix: "/v1" },

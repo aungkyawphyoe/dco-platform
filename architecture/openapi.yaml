@@ -3827,6 +3827,71 @@ paths:
       responses:
         '200': {description: Completed assignment}
         '404': {$ref: '#/components/responses/Error'}
+  /organizations/{id}/agreements:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: List agreement headers for the organization
+      responses:
+        "200": { description: Agreement headers ordered newest first }
+        "403": { description: Fleet Portal admin or manager access required }
+    post:
+      summary: Create an agreement and its initial term
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, responsible_member_id, provider, starts_on, ends_on, reminder_lead_days, vehicle_ids]
+              properties:
+                kind: { type: string, enum: [insurance_policy, maintenance_agreement] }
+                responsible_member_id: { type: string, format: uuid }
+                provider: { type: string, minLength: 1, maxLength: 200 }
+                starts_on: { type: string, format: date }
+                ends_on: { type: string, format: date }
+                reminder_lead_days: { type: integer, minimum: 1, maximum: 2147483647 }
+                document_id: { type: string, format: uuid }
+                vehicle_ids: { type: array, minItems: 1, items: { type: string, format: uuid } }
+      responses:
+        "201": { description: Agreement with its initial term and covered vehicle IDs }
+        "403": { description: Fleet Portal admin or manager access required }
+        "422": { description: Invalid agreement input or organization references }
+  /organizations/{id}/agreements/{agreementId}:
+    parameters: &fleetAgreementPath
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: agreementId, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: Read an agreement and its term history
+      responses:
+        "200": { description: Agreement with terms ordered newest first, each with covered vehicle IDs }
+        "403": { description: Fleet Portal admin or manager access required }
+        "404": { description: Agreement not found in this organization }
+  /organizations/{id}/agreements/{agreementId}/renewals:
+    parameters: *fleetAgreementPath
+    post:
+      summary: Append a new agreement term
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [expected_term_number, provider, starts_on, ends_on, reminder_lead_days, vehicle_ids]
+              properties:
+                expected_term_number: { type: integer, minimum: 1 }
+                provider: { type: string, minLength: 1, maxLength: 200 }
+                starts_on: { type: string, format: date }
+                ends_on: { type: string, format: date }
+                reminder_lead_days: { type: integer, minimum: 1, maximum: 2147483647 }
+                document_id: { type: string, format: uuid }
+                vehicle_ids: { type: array, minItems: 1, items: { type: string, format: uuid } }
+      responses:
+        "201": { description: New term with covered vehicle IDs }
+        "403": { description: Fleet Portal admin or manager access required }
+        "404": { description: Agreement not found in this organization }
+        "409": { description: Agreement archived or expected term no longer current }
+        "422": { description: Invalid term input or organization references }
   /organizations/{id}/work-orders:
     parameters:
       - in: path

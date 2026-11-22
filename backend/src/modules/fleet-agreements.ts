@@ -1,0 +1,142 @@
+import { randomUUID } from "node:crypto";
+import { and, asc, desc, eq, inArray, isNull } from "drizzle-orm";
+import type { FastifyPluginAsync, FastifyRequest } from "fastify";
+import { z } from "zod";
+import type { Db } from "../db/client.js";
+import {
+  auditEvents, documents, fleetAgreementKindEnum, fleetAgreements, fleetAgreementTerms,
+  fleetAgreementTermVehicles, organizationMembers, organizationVehicles, vehicleOwnershipPeriods,
+} from "../db/schema.js";
+import { AppError } from "../lib/errors.js";
+import { requireFleetPortal } from "./auth.js";
+import { assertPasswordChangeClear, getOrganizationAccess } from "./fleet.js";
+
+const uuid = z.string().uuid();
+const date = z.string().date();
+const params = z.object({ id: uuid });
+const agreementParams = params.extend({ agreementId: uuid });
+const termFields = z.object({
+  provider: z.string().trim().min(1).max(200),
+  starts_on: date,
+  ends_on: date,
+  reminder_lead_days: z.number().int().positive().max(2147483647),
+  document_id: uuid.optional(),
+  vehicle_ids: z.array(uuid).min(1).transform(ids => [...new Set(ids.map(id => id.toLowerCase()))]),
+});
+const validDates = (term: z.infer<typeof termFields>) => term.ends_on >= term.starts_on;
+const createInput = termFields.extend({
+  kind: z.enum(fleetAgreementKindEnum.enumValues),
+  responsible_member_id: uuid,
+}).refine(validDates, { path: ["ends_on"], message: "End date must be on or after start date" });
+const renewInput = termFields.extend({
+  expected_term_number: z.number().int().positive(),
+}).refine(validDates, { path: ["ends_on"], message: "End date must be on or after start date" });
+
+type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
+
+async function insertTerm(tx: Transaction, orgId: string, agreementId: string, termNumber: number, input: z.infer<typeof termFields>) {
+  const vehicles = await tx.select({ id: organizationVehicles.vehicleId }).from(organizationVehicles)
+    .where(and(eq(organizationVehicles.orgId, orgId), inArray(organizationVehicles.vehicleId, input.vehicle_ids)))
+    .orderBy(asc(organizationVehicles.vehicleId)).for("share");
+  if (vehicles.length !== input.vehicle_ids.length) {
+    throw new AppError(422, "invalid_agreement_vehicles", "Choose vehicles currently in this organization");
+  }
+  if (input.document_id) {
+    const [document] = await tx.select({ id: documents.id }).from(documents)
+      .innerJoin(vehicleOwnershipPeriods, and(eq(documents.ownershipPeriodId, vehicleOwnershipPeriods.id),
+        eq(documents.vehicleId, vehicleOwnershipPeriods.vehicleId)))
+      .where(and(eq(documents.id, input.document_id), eq(vehicleOwnershipPeriods.orgId, orgId),
+        isNull(vehicleOwnershipPeriods.endedAt), inArray(documents.vehicleId, input.vehicle_ids)))
+      .for("share");
+    if (!document) throw new AppError(422, "invalid_agreement_document", "Choose an organization document for a covered vehicle");
+  }
+  const [term] = await tx.insert(fleetAgreementTerms).values({
+    id: randomUUID(), agreementId, termNumber, provider: input.provider,
+    startsOn: input.starts_on, endsOn: input.ends_on, reminderLeadDays: input.reminder_lead_days,
+    documentId: input.document_id,
+  }).returning();
+  await tx.insert(fleetAgreementTermVehicles).values(input.vehicle_ids.map(vehicleId => ({ termId: term.id, vehicleId })));
+  return { ...term, vehicleIds: input.vehicle_ids };
+}
+
+export const fleetAgreementsPlugin: FastifyPluginAsync = async app => {
+  const route = "/organizations/:id/agreements";
+
+  async function access(request: FastifyRequest, orgId: string) {
+    requireFleetPortal(request);
+    const actor = request.authUser!.sub;
+    await assertPasswordChangeClear(app.db, actor);
+    await getOrganizationAccess(app.db, actor, orgId, ["org_admin", "org_manager"]);
+    return actor;
+  }
+
+  app.get(route, async request => {
+    const { id } = params.parse(request.params);
+    await access(request, id);
+    return app.db.select().from(fleetAgreements).where(eq(fleetAgreements.orgId, id))
+      .orderBy(desc(fleetAgreements.createdAt), asc(fleetAgreements.id));
+  });
+
+  app.get(route + "/:agreementId", async request => {
+    const { id, agreementId } = agreementParams.parse(request.params);
+    await access(request, id);
+    const rows = await app.db.select().from(fleetAgreements)
+      .leftJoin(fleetAgreementTerms, eq(fleetAgreementTerms.agreementId, fleetAgreements.id))
+      .leftJoin(fleetAgreementTermVehicles, eq(fleetAgreementTermVehicles.termId, fleetAgreementTerms.id))
+      .where(and(eq(fleetAgreements.orgId, id), eq(fleetAgreements.id, agreementId)))
+      .orderBy(desc(fleetAgreementTerms.termNumber), asc(fleetAgreementTermVehicles.vehicleId));
+    if (!rows.length) throw new AppError(404, "agreement_not_found", "Agreement not found");
+    const terms = new Map<string, typeof fleetAgreementTerms.$inferSelect & { vehicleIds: string[] }>();
+    for (const { fleet_agreement_terms: term, fleet_agreement_term_vehicles: coverage } of rows) {
+      if (!term) continue;
+      const item = terms.get(term.id) ?? { ...term, vehicleIds: [] };
+      if (coverage) item.vehicleIds.push(coverage.vehicleId);
+      terms.set(term.id, item);
+    }
+    return { ...rows[0].fleet_agreements, terms: [...terms.values()] };
+  });
+
+  app.post(route, async (request, reply) => {
+    const { id } = params.parse(request.params);
+    const actor = await access(request, id);
+    const body = createInput.parse(request.body);
+    const result = await app.db.transaction(async tx => {
+      const [member] = await tx.select({ id: organizationMembers.id }).from(organizationMembers)
+        .where(and(eq(organizationMembers.id, body.responsible_member_id), eq(organizationMembers.orgId, id),
+          eq(organizationMembers.status, "active"))).for("share");
+      if (!member) throw new AppError(422, "invalid_responsible_member", "Choose an active organization member");
+      const [agreement] = await tx.insert(fleetAgreements).values({
+        id: randomUUID(), orgId: id, kind: body.kind, responsibleMemberId: member.id,
+      }).returning();
+      const term = await insertTerm(tx, id, agreement.id, 1, body);
+      await tx.insert(auditEvents).values({
+        adminUserId: actor, action: "fleet_agreement_created", detail: { orgId: id, agreementId: agreement.id, termId: term.id },
+      });
+      return { ...agreement, terms: [term] };
+    });
+    return reply.code(201).send(result);
+  });
+
+  app.post(route + "/:agreementId/renewals", async (request, reply) => {
+    const { id, agreementId } = agreementParams.parse(request.params);
+    const actor = await access(request, id);
+    const body = renewInput.parse(request.body);
+    const term = await app.db.transaction(async tx => {
+      const [agreement] = await tx.select().from(fleetAgreements)
+        .where(and(eq(fleetAgreements.id, agreementId), eq(fleetAgreements.orgId, id))).for("update");
+      if (!agreement) throw new AppError(404, "agreement_not_found", "Agreement not found");
+      if (agreement.archivedAt) throw new AppError(409, "agreement_archived", "Archived agreements cannot be renewed");
+      const [previous] = await tx.select().from(fleetAgreementTerms).where(eq(fleetAgreementTerms.agreementId, agreementId))
+        .orderBy(desc(fleetAgreementTerms.termNumber)).limit(1);
+      if (previous?.termNumber !== body.expected_term_number) {
+        throw new AppError(409, "agreement_term_changed", "Reload the agreement before renewing it");
+      }
+      const next = await insertTerm(tx, id, agreementId, previous.termNumber + 1, body);
+      await tx.insert(auditEvents).values({
+        adminUserId: actor, action: "fleet_agreement_renewed", detail: { orgId: id, agreementId, termId: next.id },
+      });
+      return next;
+    });
+    return reply.code(201).send(term);
+  });
+};
