@@ -3871,7 +3871,7 @@ paths:
     parameters: *fleetAgreementPath
     post:
       summary: Append a new agreement term
-      requestBody:
+      requestBody: &fleetAgreementTermWrite
         required: true
         content:
           application/json:
@@ -3892,6 +3892,44 @@ paths:
         "404": { description: Agreement not found in this organization }
         "409": { description: Agreement archived or expected term no longer current }
         "422": { description: Invalid term input or organization references }
+  /organizations/{id}/agreements/{agreementId}/current-term:
+    parameters: *fleetAgreementPath
+    put:
+      summary: Replace the current term fields and covered vehicles
+      requestBody: *fleetAgreementTermWrite
+      responses:
+        "200": { description: Updated term with covered vehicle IDs }
+        "403": { description: Fleet Portal admin or manager access required }
+        "404": { description: Agreement not found in this organization }
+        "409": { description: Agreement archived or expected term no longer current }
+        "422": { description: Invalid term input or organization references }
+  /organizations/{id}/agreements/{agreementId}/responsible-member:
+    parameters: *fleetAgreementPath
+    put:
+      summary: Assign an active organization member to an agreement
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [responsible_member_id]
+              properties:
+                responsible_member_id: { type: string, format: uuid }
+      responses:
+        "200": { description: Updated agreement header }
+        "403": { description: Fleet Portal admin access required }
+        "404": { description: Agreement not found in this organization }
+        "409": { description: Agreement archived }
+        "422": { description: Responsible member is inactive or outside the organization }
+  /organizations/{id}/agreements/{agreementId}/archive:
+    parameters: *fleetAgreementPath
+    post:
+      summary: Archive an agreement and retain its term history
+      responses:
+        "200": { description: Archived agreement header }
+        "403": { description: Fleet Portal admin or manager access required }
+        "404": { description: Agreement not found in this organization }
   /organizations/{id}/work-orders:
     parameters:
       - in: path
