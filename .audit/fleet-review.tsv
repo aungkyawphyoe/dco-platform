@@ -1,0 +1,4 @@
+step	hypothesis	action	evidence	verdict
+frame	A companion plan can clarify scope without approving implementation	Review source and repo instructions	Source plan says implementation scope remains unapproved	VERIFIED
+review	Existing product specs expose constraints relevant to proposed features	Read FRDs and as-built references	Fleet management FRD, documents FRD, implementation snapshot	VERIFIED
+write	Each feature can be made actionable with scoped requirements and gates	Write companion review plan	Docs/decisions/customer-fleet-feature-review-and-plan.md	VERIFIED

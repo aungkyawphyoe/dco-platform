@@ -1,0 +1,6 @@
+step	hypothesis	action	evidence	verdict
+scope	PR-0 needs decisions before feature implementation	Inspect approved plan and repository behavior	Approved documents and implementation source review	VERIFIED
+contracts	Public examples can inform discovery without inventing customer policy	Research contract fields and responsibility patterns	Odoo, UK Cabinet Office, Alabama insurance guide linked in discovery	VERIFIED
+incident	A separate incident entity needs explicit lifecycle and access rules	Interview product owner and record decisions	User answers captured; records-policy reference and live walkthrough remain open	VERIFIED
+handover	Assignment changes must preserve current many-to-many semantics	Interview trigger, completion, cancellation, late return, and visibility	User chose block conflicting schedule/completion pending manager resolution	INCONCLUSIVE
+artifacts	PR-0 docs can be reconciled without asserting unvalidated runtime behavior	Update discovery, plan, decision and incident FRD documents	Diff check passes; ERP/agreement samples, governing organization records policy and live walkthroughs remain open	INCONCLUSIVE

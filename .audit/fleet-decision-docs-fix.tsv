@@ -1,0 +1,5 @@
+step\thypothesis\taction\tevidence\tverdict
+source_split\tEach document can have one purpose without losing decisions\tAssign request, discovery, FRD, review, and implementation plan roles\tUpdated doc intros and cross-links\tVERIFIED
+stale_copy\tSettled choices no longer appear as open questions\tSearch for stale pair, expense, and incident statements\tFocused rg checks return no stale matches\tVERIFIED
+reader_load\tThe implementation plan can reference contracts rather than duplicate them\tReplace long copied requirements with discovery/FRD links\tMaterially shorter plans and preserved implementation steps\tVERIFIED
+links\tReaders can trace current requirements to their source\tCheck relative Markdown links and status wording\tManual spot-check; remaining policy and workflow gates explicit\tVERIFIED

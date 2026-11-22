@@ -1,0 +1,4 @@
+step	hypothesis	action	evidence	verdict
+scope	A separate implementation plan can break the approved review into features	Inspect approved plan and existing implementation anchors	Review plan plus fleet routes, expense schema, assignment and work-order flows	VERIFIED
+sequence	Each feature can land as one independently checked vertical slice	Define dependency graph and per-PR gates	Implementation plan artifact	VERIFIED
+verify	Plan can define observable UI and performance checks without claiming execution	Specify live scenarios and baseline-relative budgets	Implementation plan artifact	VERIFIED

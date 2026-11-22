@@ -15,7 +15,7 @@
       },
       "fleet": {
         "title": "Fleet Management",
-        "description": "Organize your company's vehicles, drivers, work orders and costs in one system — fleet portal plus mobile Fleet and Driver modes."
+        "description": "Manage your company's vehicles, drivers, work orders and costs with the Fleet Portal for managers and Driver app for drivers."
       },
       "demo": {
         "title": "Request a demo",
@@ -410,7 +410,7 @@
         "Work orders and inspections",
         "Driver assignments and roles",
         "Cost analytics: TCO and cost per km",
-        "Web portal plus mobile Fleet mode"
+        "Fleet Portal for managers, Driver app for drivers"
       ],
       "requestDemo": "Request a demo",
       "seePricing": "See pricing",
@@ -499,7 +499,7 @@
       },
       {
         "title": "Vehicle Lifecycle",
-        "description": "Showroom, taxi, rental and commercial lifecycles — plus transfer to buyers with full history."
+        "description": "Vehicle lifecycle management for showroom, taxi, rental and commercial fleets."
       }
     ],
     "benefitsSection": {
@@ -902,7 +902,7 @@
         "items": [
           {
             "q": "Does AutoX work for companies?",
-            "a": "Yes. Fleet management adds an organization workspace where managers handle vehicles, drivers, work orders, inspections, workshops and reports — plus the mobile Fleet and Driver modes."
+            "a": "Yes. Fleet management adds an organization workspace where managers handle vehicles, drivers, work orders, inspections, workshops and reports in the Fleet Portal. Drivers record fleet activity in the Driver app."
           },
           {
             "q": "How do I get started with fleet management?",
