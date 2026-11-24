@@ -3879,9 +3879,20 @@ paths:
     get:
       summary: Read an agreement and its term history
       responses:
-        "200": { description: Agreement with terms ordered newest first, each with covered vehicle IDs }
+        "200": { description: Agreement with terms ordered newest first, with covered vehicle IDs and organization-scoped document metadata }
         "403": { description: Fleet Portal admin or manager access required }
         "404": { description: Agreement not found in this organization }
+  /organizations/{id}/agreements/{agreementId}/terms/{termId}/document:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: agreementId, required: true, schema: { type: string, format: uuid } }
+      - { in: path, name: termId, required: true, schema: { type: string, format: uuid } }
+    get:
+      summary: Download the document file linked to an agreement term
+      responses:
+        "200": { description: Original document file }
+        "403": { description: Fleet Portal admin or manager access required }
+        "404": { description: Term or document file unavailable in this organization }
   /organizations/{id}/agreements/{agreementId}/renewals:
     parameters: *fleetAgreementPath
     post:
@@ -3974,7 +3985,7 @@ paths:
                   hasMore: {type: boolean}
     post:
       summary: Report an incident
-      description: Fleet admins and managers or an active driver assigned to the vehicle may submit. Upload photos using incident_photo before submitting their IDs.
+      description: Fleet admins and managers or an active driver assigned to the vehicle may submit. Upload photos using incident_photo before submitting their IDs. Unlinked photos are eligible for cleanup after 24 hours. Reuse the same ID and payload to retry a submission.
       requestBody:
         required: true
         content:
@@ -3991,6 +4002,7 @@ paths:
                 driver_at_event_id: {type: string, format: uuid, nullable: true, description: Fleet admins and managers only.}
                 photo_ids: {type: array, maxItems: 5, uniqueItems: true, items: {type: string, format: uuid}}
       responses:
+        '409': {description: The incident ID already belongs to a different or unverifiable submission}
         '201': &incidentResponse
           description: Incident
           content:

@@ -11,7 +11,11 @@ const org = '00000000-0000-4000-8000-000000000004';
 const service = '00000000-0000-4000-8000-000000000005';
 async function fixture(legacy = false) {
   const db = new PGlite();
-  await applyInitSql(async sql => { if (!legacy || !sql.includes('reconcile_vehicle_ownership')) await db.exec(sql); });
+  let beforeOwnershipMigration = true;
+  await applyInitSql(async sql => {
+    if (sql === migration) beforeOwnershipMigration = false;
+    if (!legacy || beforeOwnershipMigration) await db.exec(sql);
+  });
   await db.exec(`INSERT INTO users(id,username,email) VALUES
     ('${owner}','period-owner','period-owner@test.local'),('${buyer}','period-buyer','period-buyer@test.local');
     INSERT INTO vehicles(id,user_id,name,make,model,year,license_plate,vin,fuel_type,mileage)

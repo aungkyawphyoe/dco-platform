@@ -1,9 +1,11 @@
 import { expect, it } from 'vitest';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
+import { signAccess } from '../src/lib/crypto.js';
+import { testEnv } from './helpers.js';
 import { analyticsFixture } from './analytics-fixture.js';
-import { organizationMembers, organizationVehicles, expenses } from '../src/db/schema.js';
+import { organizations, organizationMembers, organizationVehicles, expenses, fuelLogs, users } from '../src/db/schema.js';
 import { applyInitSql } from '../src/db/migrate.js';
-it('scopes reports and exports, locks currency, freezes transferred history, and survives migration replay', async () => {
+it('scopes reports and exports, locks currency, keeps transferred expenses scoped to their original owner, and survives migration replay', async () => {
   const {app,db,client,headers,orgId,vehicleId,userId}=await analyticsFixture();
   try {
     const base=`/v1/organizations/${orgId}/analytics`, query='from=2026-01-01&to=2026-09-30';
@@ -25,11 +27,37 @@ it('scopes reports and exports, locks currency, freezes transferred history, and
     expect((await app.inject({url:`${base}/export?${query}`,headers})).statusCode).toBe(403);
     await db.update(organizationMembers).set({role:'org_admin'}).where(eq(organizationMembers.userId,userId));
     await db.delete(organizationVehicles).where(eq(organizationVehicles.vehicleId,vehicleId));
-    await db.update(expenses).set({amount:'999999'}).where(eq(expenses.vehicleId,vehicleId));
+    const buyerOrgId = crypto.randomUUID();
+    const buyerId = crypto.randomUUID();
+    await db.insert(users).values({id:buyerId, email:'analytics-buyer@test.local', username:'analytics_buyer', role:'owner', plan:'fleet'});
+    await db.insert(organizations).values({id:buyerOrgId, name:'Buyer Fleet', type:'commercial', status:'active', billingMigrated:false, currency:'MMK', adminUserId:buyerId, createdBy:buyerId});
+    await db.insert(organizationMembers).values({id:crypto.randomUUID(), orgId:buyerOrgId, userId:buyerId, role:'org_admin'});
+    await db.insert(organizationVehicles).values({id:crypto.randomUUID(), orgId:buyerOrgId, vehicleId, lifecycleTemplate:'commercial', status:'available', addedBy:buyerId});
+    const buyer = await signAccess(testEnv,{sub:buyerId,role:'owner',plan:'fleet',aud:testEnv.JWT_FLEET_AUD});
+    const buyerReport = () => app.inject({url:`/v1/organizations/${buyerOrgId}/analytics/report?${query}`,headers:{authorization:`Bearer ${buyer.token}`}});
+    const [historical] = await db.select().from(expenses).where(and(eq(expenses.vehicleId, vehicleId), isNull(expenses.sourceId))).limit(1);
+    await client.query(`INSERT INTO analytics_records(org_id,vehicle_id,kind,id,payload)
+      SELECT $1, vehicle_id, kind, id, payload - 'ownership_period_id' FROM analytics_records
+      WHERE org_id = $2 AND kind = 'expense' AND id = $3`, [buyerOrgId, orgId, historical.id]);
+    const buyerBeforeDeletion = await buyerReport();
+    expect(buyerBeforeDeletion.statusCode, buyerBeforeDeletion.body).toBe(200);
+    expect(buyerBeforeDeletion.json().total_cost).toBe(0);
+    await db.update(expenses).set({ amount: '999999' }).where(eq(expenses.id, historical.id));
+    const corrected = (await app.inject({ url: `${base}/report?${query}`, headers })).json();
+    expect(corrected.total_cost).toBe(total - Number(historical.amount) + 999999);
+    await db.delete(expenses).where(eq(expenses.id, historical.id));
+    expect((await buyerReport()).json().total_cost).toBe(0);
+    await db.delete(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId));
+    const deleted = await app.inject({ url: `${base}/export?${query}&kind=expenses`, headers });
+    expect(deleted.body.split('\r\n').find(line => line.includes(historical.id))).toContain('"deleted"');
+    const [historicalFuel] = await db.select().from(fuelLogs).where(eq(fuelLogs.vehicleId, vehicleId)).limit(1);
+    await db.update(fuelLogs).set({ cost: '1234' }).where(eq(fuelLogs.id, historicalFuel.id));
+    const [mirroredExpense] = await db.select().from(expenses).where(eq(expenses.sourceId, historicalFuel.id));
+    expect(Number(mirroredExpense.amount)).toBe(1234);
     await db.insert(expenses).values({id:crypto.randomUUID(),vehicleId,category:'parking',amount:'888888',incurredOn:'2026-05-01'});
     await applyInitSql(s=>client.exec(s));
     const frozen=await app.inject({url:`${base}/report?${query}`,headers});
-    expect(frozen.statusCode,frozen.body).toBe(200); expect(frozen.json().total_cost).toBe(total); expect(frozen.json().vehicles[0].status).toBe('transferred');
+    expect(frozen.statusCode,frozen.body).toBe(200); expect(frozen.json().total_cost).toBe(total - Number(historical.amount) - Number(historicalFuel.cost) + 1234); expect(frozen.json().vehicles[0].status).toBe('transferred');
     expect((await app.inject({url:`${base}/report?${query}&active=true`,headers})).json().total_cost).toBe(0);
   } finally {await app.close();await client.close();}
 },30000);
@@ -84,9 +112,9 @@ it('displays totals in fleet currency and preserves original tags in records and
       [orgId,vehicleId,foreignId,JSON.stringify({amount:12.25,currency:'USD',incurred_on:'2026-09-25',category:'parking'})]);
     const report=await app.inject({url:`${base}/report?${query}`,headers});
     expect(report.json().currency).toBe('MMK');
-    expect(report.json().total_cost).toBe(1962012.25);
+    expect(report.json().total_cost).toBe(1962000);
     const records=await app.inject({url:`${base}/records?${query}`,headers});
-    expect(records.json().items.find((r:{id:string})=>r.id===foreignId)).toMatchObject({amount:12.25,currency:'USD',included_in_total:true});
+    expect(records.json().items.find((r:{id:string})=>r.id===foreignId)).toMatchObject({amount:12.25,currency:'USD',included_in_total:false});
     const csv=await app.inject({url:`${base}/export?${query}&kind=expenses`,headers});
     expect(csv.body.split('\n').find(line=>line.includes(foreignId))).toContain('USD');
     const save=await app.inject({method:'PUT',url:`${base}/settings`,headers,payload:{timezone:'Asia/Bangkok'}});

@@ -9060,6 +9060,12 @@ abstract class AppLocalizations {
   /// **'Could not open the photo picker.'**
   String get incidentPickerError;
 
+  /// No description provided for @incidentSubmissionConflict.
+  ///
+  /// In en, this message translates to:
+  /// **'This incident may already have been submitted. Check Reports before submitting again.'**
+  String get incidentSubmissionConflict;
+
   /// No description provided for @incidentSubmitError.
   ///
   /// In en, this message translates to:

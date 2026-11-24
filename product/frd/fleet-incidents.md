@@ -55,8 +55,10 @@ Insurance claims, insurer communication, liability decisions, recovery accountin
 
 Fleet Portal staff open Incidents from the Fleet menu. Fleet Admins and Managers report, review, edit, close, reopen, and link or create work orders. Mechanics can read cases linked to their assigned repairs.
 
-Drivers open Incidents from Reports or Report Issue. They submit for the active vehicle and can view cases for vehicles they currently have assigned. Incident operations require a connection. In either client, the initial report can include up to five photos. Photos require case access and use organization storage.
+Drivers report an accident through **Report Issue → Accident** for the active vehicle. The form asks for the description, event time, and optional photos. Other issue types continue to create work orders and ask for odometer and urgency. **Reports** combines work orders, inspections, and incidents in one list. The **Incidents** filter shows cases for vehicles currently assigned to the driver. Incident operations require a connection. In either client, the initial report can include up to five photos. Photos require case access and use organization storage.
 
 ## Validation still open
 
 Confirm a representative customer workflow, the governing retention policy, and attachment access in the deployed environment.
+
+A retry with the original submission ID must use the same incident fields and photo IDs. If a report may already have been accepted, the app directs the driver to Reports. Unlinked photo uploads are eligible for cleanup after 24 hours.

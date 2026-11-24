@@ -7709,6 +7709,62 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/organizations/{id}/agreements/{agreementId}/terms/{termId}/document": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                agreementId: string;
+                termId: string;
+            };
+            cookie?: never;
+        };
+        /** Download the document file linked to an agreement term */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    agreementId: string;
+                    termId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Original document file */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Term or document file unavailable in this organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/organizations/{id}/agreements/{agreementId}/renewals": {
         parameters: {
             query?: never;
@@ -8101,7 +8157,7 @@ export interface paths {
         put?: never;
         /**
          * Report an incident
-         * @description Fleet admins and managers or an active driver assigned to the vehicle may submit. Upload photos using incident_photo before submitting their IDs.
+         * @description Fleet admins and managers or an active driver assigned to the vehicle may submit. Upload photos using incident_photo before submitting their IDs. Unlinked photos are eligible for cleanup after 24 hours. Reuse the same ID and payload to retry a submission.
          */
         post: {
             parameters: {
@@ -8142,6 +8198,13 @@ export interface paths {
                     content: {
                         "application/json": components["schemas"]["FleetIncident"];
                     };
+                };
+                /** @description The incident ID already belongs to a different or unverifiable submission */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
                 };
             };
         };

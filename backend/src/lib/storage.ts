@@ -2,7 +2,7 @@ import { currentRecord } from "./record-ownership.js";
 import { assertOrganizationWritable } from "./subscriptions.js";
 import { assertPersonalVehicleWritable } from "./subscription-access.js";
 import { effectiveSubscription } from "./gifts.js";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, isNull, lt, sql } from "drizzle-orm";
 import type { Db } from "../db/client.js";
 import { documents, expenses, fleetIncidentPhotos, mediaObjects, organizationVehicles, organizations, serviceRecords, users, vehicles } from "../db/schema.js";
 import { AppError } from "./errors.js";
@@ -38,7 +38,7 @@ export async function storeWithQuota(db: Db, store: MediaStore, input: {
     }
     if (input.owner.orgId) await tx.select().from(organizations).where(eq(organizations.id, input.owner.orgId)).for("update");
     else await tx.select().from(users).where(eq(users.id, input.owner.userId)).for("update");
-    const [existing] = await tx.select().from(mediaObjects).where(eq(mediaObjects.id, input.id));
+    const [existing] = await tx.select().from(mediaObjects).where(eq(mediaObjects.id, input.id)).for("update");
     if (existing) {
       if (existing.userId !== input.owner.userId || existing.ownerOrgId !== (input.owner.orgId ?? null) || existing.vehicleId !== (input.vehicleId ?? null) || existing.purpose !== input.purpose) {
         throw new AppError(409, "id_conflict", "Media ID already exists");
@@ -70,8 +70,10 @@ export async function assertDocumentMedia(db: Db, mediaId: string, vehicleId: st
 
 /** Delete only after the last live reference has been removed. Failed object-store
  * deletion retains the usage row, so a retry cannot release the allowance twice. */
-export async function deleteUnreferencedMedia(db: Db, store: MediaStore, mediaId: string) {
-  const [row] = await db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId)).for("update");
+export async function deleteUnreferencedMedia(db: Db, store: MediaStore, mediaId: string, pendingIncidentCutoff?: Date) {
+  const [row] = await db.select().from(mediaObjects).where(and(eq(mediaObjects.id, mediaId),
+    pendingIncidentCutoff ? and(eq(mediaObjects.purpose, "incident_photo"), lt(mediaObjects.createdAt, pendingIncidentCutoff)) : undefined,
+  )).for("update");
   if (!row) return;
   for (const [table, column] of [
     [documents, documents.mediaId], [serviceRecords, serviceRecords.receiptMediaId],

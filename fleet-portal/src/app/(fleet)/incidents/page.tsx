@@ -2,6 +2,9 @@
 
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Badge } from "@dco/ui/components/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow } from "@dco/ui/components/table";
+import { ServiceDialog } from "@/components/maintenance/service-dialog";
 import { Card } from "@dco/ui/components/card";
 import { Button } from "@dco/ui/components/button";
 import { Input } from "@dco/ui/components/input";
@@ -55,11 +58,28 @@ function Incidents({ org, manage }: { org: string; manage: boolean }) {
     {list.isPending && <p role="status">Loading incidents…</p>}
     {list.isError && <p role="alert">{message(list.error)} <Button onClick={() => void list.refetch()}>Retry</Button></p>}
     {list.data?.items.length === 0 && <Card>No incidents to show.</Card>}
-    <ul className="flex flex-col gap-2">{list.data?.items.map(item => <li key={item.id}>
-      <Button aria-pressed={selected === item.id} variant={selected === item.id ? "primary" : "secondary"} onClick={() => { setSelected(item.id); setEditing(null); }}>
-        {vehicleName(item.vehicleId)} · {readable(item.category)} · {new Date(item.eventAt).toLocaleString()} · {item.closedAt ? "Closed" : "Open"}
-      </Button>
-    </li>)}</ul>
+    {!!list.data?.items.length && <Card className="w-full">
+      <Table aria-label="Incidents">
+        <TableHead><TableRow>
+          <TableHeadCell>Vehicle</TableHeadCell>
+          <TableHeadCell>Incident</TableHeadCell>
+          <TableHeadCell>Event time</TableHeadCell>
+          <TableHeadCell>Status</TableHeadCell>
+          <TableHeadCell className="text-right">Action</TableHeadCell>
+        </TableRow></TableHead>
+        <TableBody>{list.data.items.map(item => <TableRow key={item.id}>
+          <TableCell className="font-medium">{vehicleName(item.vehicleId)}</TableCell>
+          <TableCell className="min-w-44">
+            <span className="font-medium capitalize">{readable(item.category)}</span>
+            <p className="line-clamp-2 max-w-md break-words text-xs text-ink-caption">{item.description}</p>
+          </TableCell>
+          <TableCell className="whitespace-nowrap"><time dateTime={item.eventAt}>{new Date(item.eventAt).toLocaleString()}</time></TableCell>
+          <TableCell><Badge tone={item.closedAt ? "neutral" : "warning"}>{item.closedAt ? "Closed" : "Open"}</Badge></TableCell>
+          <TableCell className="text-right"><Button size="sm" variant="secondary" onClick={() => setSelected(item.id)}
+            aria-label={`View ${readable(item.category)} for ${vehicleName(item.vehicleId)} on ${new Date(item.eventAt).toLocaleString()}`}>View</Button></TableCell>
+        </TableRow>)}</TableBody>
+      </Table>
+    </Card>}
     {(page > 1 || list.data?.hasMore) && <div className="flex gap-2">
       <Button variant="secondary" disabled={page === 1} onClick={() => setPage(page - 1)}>Previous</Button>
       <Button variant="secondary" disabled={!list.data?.hasMore} onClick={() => setPage(page + 1)}>Next</Button>
@@ -69,22 +89,27 @@ function Incidents({ org, manage }: { org: string; manage: boolean }) {
       onCancel={() => setEditing(null)} onSave={async id => {
         setSelected(id); setPage(1); setEditing(null); await refresh();
       }} />}
-    {selected && detail.isPending && <p role="status">Loading incident…</p>}
-    {detail.isError && <p role="alert">{message(detail.error)}</p>}
-    {incident && <Card className="flex flex-col gap-4">
-      <h2 className="text-xl font-semibold">{vehicleName(incident.vehicleId)} · {readable(incident.category)}</h2>
-      <p>{new Date(incident.eventAt).toLocaleString()} · {incident.closedAt ? "Closed" : "Open"}</p>
-      <p className="whitespace-pre-wrap">{incident.description}</p>
-      {manage && <p>Driver at event: {person(incident.driverAtEventId)}</p>}
-      {incident.closedAt && <p>Reviewed {new Date(incident.closedAt).toLocaleString()}{manage && incident.closedBy ? ` by ${person(incident.closedBy)}` : ""}{incident.reviewNote ? ` · ${incident.reviewNote}` : ""}</p>}
-      <div className="flex flex-wrap gap-2">{incident.photoIds.map((id, index) => <IncidentPhoto key={id} path={`${base}/${incident.id}/photos/${id}`} number={index + 1} />)}</div>
-      <h3 className="font-semibold">Linked work orders</h3>
-      {incident.repairs.length === 0 ? <p>No linked work orders.</p> : <ul className="list-disc pl-5">
-        {incident.repairs.map(repair => <li key={repair.id}><a className="underline" href={`/work-orders#order-${repair.id}`}>{repair.description}</a> · {readable(repair.status)}</li>)}
-      </ul>}
-      {manage && <IncidentActions key={incident.id} org={org} path={`${base}/${incident.id}`} incident={incident}
-        refresh={refresh} edit={() => setEditing("edit")} />}
-    </Card>}
+    {selected && !editing && <ServiceDialog title={incident ? vehicleName(incident.vehicleId) : "Incident details"} onClose={() => setSelected("")}>
+      {detail.isPending && <p role="status">Loading incident…</p>}
+      {detail.isError && <p role="alert">{message(detail.error)} <Button onClick={() => void detail.refetch()}>Retry</Button></p>}
+      {incident && <div className="flex flex-col gap-4">
+        <p className="flex flex-wrap items-center gap-2">
+          <span className="capitalize">{readable(incident.category)}</span>
+          <time dateTime={incident.eventAt}>{new Date(incident.eventAt).toLocaleString()}</time>
+          <Badge tone={incident.closedAt ? "neutral" : "warning"}>{incident.closedAt ? "Closed" : "Open"}</Badge>
+        </p>
+        <p className="whitespace-pre-wrap">{incident.description}</p>
+        {manage && <p>Driver at event: {person(incident.driverAtEventId)}</p>}
+        {incident.closedAt && <p>Reviewed {new Date(incident.closedAt).toLocaleString()}{manage && incident.closedBy ? ` by ${person(incident.closedBy)}` : ""}{incident.reviewNote ? ` · ${incident.reviewNote}` : ""}</p>}
+        <div className="flex flex-wrap gap-2">{incident.photoIds.map((id, index) => <IncidentPhoto key={id} path={`${base}/${incident.id}/photos/${id}`} number={index + 1} />)}</div>
+        <h3 className="font-semibold">Linked work orders</h3>
+        {incident.repairs.length === 0 ? <p>No linked work orders.</p> : <ul className="list-disc pl-5">
+          {incident.repairs.map(repair => <li key={repair.id}><a className="underline" href={`/work-orders#order-${repair.id}`}>{repair.description}</a> · {readable(repair.status)}</li>)}
+        </ul>}
+        {manage && <IncidentActions key={incident.id} org={org} path={`${base}/${incident.id}`} incident={incident}
+          refresh={refresh} edit={() => setEditing("edit")} />}
+      </div>}
+    </ServiceDialog>}
   </div>;
 }
 
@@ -146,8 +171,7 @@ function IncidentForm({ base, org, incident, onSave, onCancel }: {
       const member = knownDrivers.find(item => item.user_id === value);
       return { value, label: `${suggestion?.name || member?.display_name || member?.email || value}${suggestion ? " (assigned at event)" : ""}` };
     });
-  return <Card><form onSubmit={submit} className="flex flex-col gap-3">
-    <h2 className="text-lg font-semibold">{incident ? "Edit incident" : "Report incident"}</h2>
+  return <ServiceDialog title={incident ? "Edit incident" : "Report incident"} onClose={onCancel} busy={save.isPending}><form onSubmit={submit} className="flex flex-col gap-3">
     {!incident && <Select label="Vehicle" value={vehicle} onChange={value => { setVehicle(value); setDriver(""); setPhotos([]); }}
       placeholder="Choose a vehicle" options={vehicles.data?.items.map(v => ({ value: v.id, label: `${v.name} · ${v.license_plate}` })) ?? []} />}
     {!incident && vehicles.isError && <p role="alert">{message(vehicles.error)}</p>}
@@ -163,7 +187,7 @@ function IncidentForm({ base, org, incident, onSave, onCancel }: {
     <div className="flex gap-2"><Button type="submit" disabled={save.isPending || !vehicle || !validTime || !description.trim() || photos.length > 5}>
       {save.isPending ? "Saving…" : "Save incident"}
     </Button><Button type="button" variant="secondary" disabled={save.isPending} onClick={onCancel}>Cancel</Button></div>
-  </form></Card>;
+  </form></ServiceDialog>;
 }
 
 function IncidentActions({ org, path, incident, refresh, edit }: {

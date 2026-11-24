@@ -4910,6 +4910,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get incidentPickerError => 'Could not open the photo picker.';
 
   @override
+  String get incidentSubmissionConflict =>
+      'This incident may already have been submitted. Check Reports before submitting again.';
+
+  @override
   String get incidentSubmitError =>
       'Could not submit the incident. Check your connection and try again.';
 

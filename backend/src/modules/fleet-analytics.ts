@@ -9,6 +9,12 @@ import { assertPasswordChangeClear, getOrganizationAccess } from './fleet.js';
 const date = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).refine(v => !Number.isNaN(Date.parse(v)) && new Date(v).toISOString().slice(0, 10) === v, 'Invalid date');
 const query = z.object({ from: date, to: date, calendar: z.enum(['true', 'false']).default('false'), vehicles: z.string().optional(), active: z.enum(['true', 'false']).default('false'), category: z.string().max(80).optional(), categories: z.string().max(300).optional(), page: z.coerce.number().int().min(1).default(1), kind: z.enum(['vehicles', 'expenses']).default('vehicles') });
 type Settings = { currency: string | null; timezone: string };
+const inReportingCurrency = (sourceCurrency: unknown, reportingCurrency: string | null) =>
+  sourceCurrency === reportingCurrency;
+
+const reportingRecords = (records: ReportingRecord[], currency: string | null) =>
+  records.filter(record => record.kind !== 'expense' || inReportingCurrency(record.payload.currency, currency));
+
 const settingsOf = (s: unknown, currency: string | null): Settings => {
   const value = (s as Record<string, unknown>).analytics as Partial<Settings> | undefined;
   return { currency, timezone: value?.timezone ?? 'UTC' };
@@ -65,7 +71,20 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
     const vehicleScope = vehicles.length ? sql`r.vehicle_id IN (${sql.join(vehicles.map(v => sql`${v.id}`), sql`, `)})` : sql`false`;
     const result = await app.db.execute(sql`SELECT r.*, COALESCE(u.display_name,u.email,'Unknown') AS author
       FROM analytics_records r LEFT JOIN users u ON u.id::text=COALESCE(r.payload->>'created_by',r.payload->>'user_id')
+      LEFT JOIN LATERAL (
+        SELECT CASE r.kind
+          WHEN 'expense' THEN (SELECT ownership_period_id FROM expenses WHERE id = r.id)
+          WHEN 'fuel_log' THEN (SELECT ownership_period_id FROM fuel_logs WHERE id = r.id)
+          WHEN 'service_record' THEN (SELECT ownership_period_id FROM service_records WHERE id = r.id)
+        END AS period_id
+        WHERE r.payload->>'ownership_period_id' IS NULL
+      ) legacy ON true
       WHERE r.org_id=${id} AND ${vehicleScope}
+      AND (COALESCE((r.payload->>'ownership_period_id')::uuid, legacy.period_id) IS NULL OR EXISTS (
+        SELECT 1 FROM vehicle_ownership_periods p
+        WHERE p.id = COALESCE((r.payload->>'ownership_period_id')::uuid, legacy.period_id)
+          AND p.vehicle_id = r.vehicle_id AND p.org_id = r.org_id
+      ))
       AND ${expenseExport && q.kind === 'expenses'
         ? sql`(r.kind <> 'expense_deleted' OR NOT EXISTS (
           SELECT 1 FROM analytics_records live
@@ -82,8 +101,8 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
   }
   app.get('/organizations/:id/analytics/report', async request => {
     const data = await load(request);
-    return { ...calculateAnalytics(data.vehicles, data.records, data.period), ...data.settings, today: data.today, catalog: data.catalog,
-      warnings: [...(data.records.some(r => r.kind === 'expense' && r.payload.currency !== data.settings.currency) ? ['Totals include the entered amounts across currency tags. No exchange rates are applied.'] : []), 'Only attributable organization records are included. Earlier records without ownership evidence are excluded.', ...(data.historical ? [`${data.historical} earlier vehicle transfers have no retained reporting history.`] : [])] };
+    return { ...calculateAnalytics(data.vehicles, reportingRecords(data.records, data.settings.currency), data.period), ...data.settings, today: data.today, catalog: data.catalog,
+      warnings: [...(data.records.some(r => r.kind === 'expense' && r.payload.currency !== data.settings.currency) ? ['Expenses outside the fleet currency are excluded from totals and comparisons. Itemized records retain their original amounts and currencies.'] : []), 'Only attributable organization records are included. Earlier records without ownership evidence are excluded.', ...(data.historical ? [`${data.historical} earlier vehicle transfers have no retained reporting history.`] : [])] };
   });
   app.get('/organizations/:id/analytics/records', async request => {
     const data = await load(request);
@@ -91,7 +110,7 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
     const rows = expenseRows(data.records, data.period)
       .filter(r => (!data.q.category || r.category === data.q.category) && (!selectedCategories || selectedCategories.has(r.category)))
       .sort((a,b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
-    return { total: rows.length, page: data.q.page, items: rows.slice((data.q.page - 1) * 50, data.q.page * 50).map(r => ({ ...r, included_in_total: true, vehicle: data.vehicles.find(v => v.id === r.vehicle_id)?.name,
+    return { total: rows.length, page: data.q.page, items: rows.slice((data.q.page - 1) * 50, data.q.page * 50).map(r => ({ ...r, included_in_total: inReportingCurrency(r.currency, data.settings.currency), vehicle: data.vehicles.find(v => v.id === r.vehicle_id)?.name,
       detail: data.records.find(x => x.id === r.source_id && x.kind === r.source_kind)?.payload ?? null })) };
   });
   app.get('/organizations/:id/analytics/export', async (request, reply) => {
@@ -114,7 +133,7 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
       const activeRows = expenseRows(data.records, data.period).filter(row => matchesCategory(row.category)).map(row => {
         const snapshot = snapshots.get(row.id);
         const revision = snapshot?.revision ?? null;
-        return { ...common, ...row, included_in_total: true, vehicle: vehicleNames.get(row.vehicle_id),
+        return { ...common, ...row, included_in_total: inReportingCurrency(row.currency, data.settings.currency), vehicle: vehicleNames.get(row.vehicle_id),
           revision, change_status: Number(revision) > 1 || snapshot?.admin_corrected_by ? 'corrected' : 'current' };
       });
       const deletedRows = data.records.flatMap(record => {
@@ -132,7 +151,7 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
       });
       rows = [...activeRows, ...deletedRows].sort((a, b) => b.date.localeCompare(a.date) || a.id.localeCompare(b.id));
     } else {
-      const report = calculateAnalytics(data.vehicles, data.records, data.period);
+      const report = calculateAnalytics(data.vehicles, reportingRecords(data.records, data.settings.currency), data.period);
       rows = report.vehicles.map(v => ({ ...common, vehicle: v.name, plate: v.plate, status: v.status, total_cost: v.total_cost, liquid_cost: v.liquid_cost, electric_cost: v.electric_cost, unclassified_energy_cost: v.unclassified_energy_cost, energy_cost_per_km: v.energy_cost_per_km, recorded_km: v.distance_km, matched_cost: v.matched_cost, cost_per_km: v.cost_per_km, cost_per_day: v.cost_per_day, measured_from: v.measured_from, measured_to: v.measured_to, coverage: v.coverage ?? 'Complete', efficiency: v.efficiency.value, efficiency_unit: v.efficiency.unit, efficiency_method: v.efficiency.label }));
     }
     const csv = [headers.map(csvCell).join(','), ...rows.map(r => headers.map(h => csvCell((r as Record<string, unknown>)[h])).join(','))].join('\r\n');

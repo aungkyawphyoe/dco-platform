@@ -1540,6 +1540,7 @@
   "incidentPhotoUnavailable": "ဓာတ်ပုံ မရရှိနိုင်ပါ",
   "incidentPhoto": "ဖြစ်ရပ် ဓာတ်ပုံ",
   "incidentPickerError": "ဓာတ်ပုံ ရွေးချယ်ရန် ဖွင့်၍မရပါ။",
+  "incidentSubmissionConflict": "ဤဖြစ်ရပ်ကို တိုင်ကြားပြီးဖြစ်နိုင်ပါသည်။ ထပ်မံမတိုင်ကြားမီ Reports တွင် စစ်ဆေးပါ။",
   "incidentSubmitError": "ဖြစ်ရပ် တိုင်ကြား၍မရပါ။ ချိတ်ဆက်မှု စစ်ဆေးပြီး ထပ်မံ ကြိုးစားပါ။",
   "incidentEventTime": "ဖြစ်ရပ် အချိန်",
   "incidentCategory": "အမျိုးအစား",

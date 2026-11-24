@@ -1633,6 +1633,7 @@
   "incidentPhotoUnavailable": "Photo unavailable",
   "incidentPhoto": "Incident photo",
   "incidentPickerError": "Could not open the photo picker.",
+  "incidentSubmissionConflict": "This incident may already have been submitted. Check Reports before submitting again.",
   "incidentSubmitError": "Could not submit the incident. Check your connection and try again.",
   "incidentEventTime": "Event time",
   "incidentCategory": "Category",

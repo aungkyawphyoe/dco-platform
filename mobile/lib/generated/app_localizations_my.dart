@@ -4954,6 +4954,10 @@ class AppLocalizationsMy extends AppLocalizations {
   String get incidentPickerError => 'ဓာတ်ပုံ ရွေးချယ်ရန် ဖွင့်၍မရပါ။';
 
   @override
+  String get incidentSubmissionConflict =>
+      'ဤဖြစ်ရပ်ကို တိုင်ကြားပြီးဖြစ်နိုင်ပါသည်။ ထပ်မံမတိုင်ကြားမီ Reports တွင် စစ်ဆေးပါ။';
+
+  @override
   String get incidentSubmitError =>
       'ဖြစ်ရပ် တိုင်ကြား၍မရပါ။ ချိတ်ဆက်မှု စစ်ဆေးပြီး ထပ်မံ ကြိုးစားပါ။';
 

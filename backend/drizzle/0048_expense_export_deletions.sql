@@ -1,3 +1,5 @@
+DO $legacy_analytics$ BEGIN
+IF NOT EXISTS (SELECT 1 FROM analytics_migrations WHERE name = 'attributed_records') THEN
 CREATE OR REPLACE FUNCTION analytics_capture_expense_deletion() RETURNS trigger AS $$
 BEGIN
   INSERT INTO analytics_records (org_id, vehicle_id, kind, id, payload)
@@ -22,3 +24,5 @@ $$ LANGUAGE plpgsql;
 DROP TRIGGER IF EXISTS analytics_expense_export_deletion ON expenses;
 CREATE TRIGGER analytics_expense_export_deletion BEFORE DELETE ON expenses
   FOR EACH ROW EXECUTE FUNCTION analytics_capture_expense_deletion();
+END IF;
+END $legacy_analytics$;

@@ -1,5 +1,5 @@
-import { randomUUID } from "node:crypto";
-import { and, desc, eq, inArray, sql } from "drizzle-orm";
+import { createHash, randomUUID } from "node:crypto";
+import { and, desc, eq, getTableColumns, inArray, sql } from "drizzle-orm";
 import type { FastifyPluginAsync, FastifyRequest } from "fastify";
 import { z } from "zod";
 import type { Db } from "../db/client.js";
@@ -25,6 +25,7 @@ const photoIds = z.array(uuid.transform(id => id.toLowerCase())).max(5).refine(i
 const create = fields.extend({ id: uuid.optional(), vehicle_id: uuid, driver_at_event_id: uuid.nullable().optional(), photo_ids: photoIds.default([]) }).strict();
 const update = fields.partial().extend({ driver_at_event_id: uuid.nullable().optional() }).strict();
 type Transaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
+const { submissionFingerprint, ...incidentColumns } = getTableColumns(fleetIncidents);
 const notFound = () => new AppError(404, "incident_not_found", "Incident not found");
 
 function assigned(orgId: string, vehicleId: string, actor: string) {
@@ -76,18 +77,18 @@ export const fleetIncidentsPlugin: FastifyPluginAsync = async app => {
   }
   async function readable(request: FastifyRequest, orgId: string, incidentId: string) {
     const identity = await access(request, orgId);
-    const [incident] = await app.db.select().from(fleetIncidents).where(and(
+    const [incident] = await app.db.select(incidentColumns).from(fleetIncidents).where(and(
       eq(fleetIncidents.orgId, orgId), eq(fleetIncidents.id, incidentId), visibility(identity)));
     if (!incident) throw notFound();
     return incident;
   }
   async function lock(tx: Transaction, orgId: string, incidentId: string) {
-    const [incident] = await tx.select().from(fleetIncidents).where(and(
+    const [incident] = await tx.select(incidentColumns).from(fleetIncidents).where(and(
       eq(fleetIncidents.orgId, orgId), eq(fleetIncidents.id, incidentId))).for("update");
     if (!incident) throw notFound();
     return incident;
   }
-  function requireOpen(incident: typeof fleetIncidents.$inferSelect) {
+  function requireOpen(incident: Pick<typeof fleetIncidents.$inferSelect, "closedAt">) {
     if (incident.closedAt) throw new AppError(409, "incident_closed", "Reopen this incident before editing it");
   }
   async function audit(tx: Transaction, actor: string, orgId: string, incidentId: string, action: string, details = {}) {
@@ -98,7 +99,7 @@ export const fleetIncidentsPlugin: FastifyPluginAsync = async app => {
     const { id } = baseParams.parse(request.params);
     const identity = await access(request, id);
     const { page } = z.object({ page: z.coerce.number().int().min(1).max(100000).default(1) }).parse(request.query);
-    const rows = await app.db.select().from(fleetIncidents).where(and(eq(fleetIncidents.orgId, id), visibility(identity)))
+    const rows = await app.db.select(incidentColumns).from(fleetIncidents).where(and(eq(fleetIncidents.orgId, id), visibility(identity)))
       .orderBy(desc(fleetIncidents.eventAt), desc(fleetIncidents.id)).limit(51).offset((page - 1) * 50);
     return { items: rows.slice(0, 50), hasMore: rows.length > 50 };
   });
@@ -136,6 +137,14 @@ export const fleetIncidentsPlugin: FastifyPluginAsync = async app => {
     if (!identity.manager && identity.role !== "org_driver") throw new AppError(403, "forbidden", "Incident reporting is unavailable for this role");
     const body = create.parse(request.body);
     if (!identity.manager && body.driver_at_event_id !== undefined) throw new AppError(403, "forbidden", "Only fleet managers can set driver attribution");
+    const fingerprint = createHash("sha256").update(JSON.stringify({
+      vehicle: body.vehicle_id.toLowerCase(),
+      eventAt: body.event_at?.toISOString(),
+      category: body.category,
+      description: body.description,
+      driverAtEvent: body.driver_at_event_id?.toLowerCase() ?? body.driver_at_event_id,
+      photos: [...body.photo_ids].sort(),
+    })).digest("hex");
     const result = await app.db.transaction(async tx => {
       const [vehicle] = await tx.select({ id: organizationVehicles.id }).from(organizationVehicles)
         .where(and(eq(organizationVehicles.orgId, id), eq(organizationVehicles.vehicleId, body.vehicle_id))).for("share");
@@ -145,21 +154,25 @@ export const fleetIncidentsPlugin: FastifyPluginAsync = async app => {
           .where(assigned(id, body.vehicle_id, identity.actor)).limit(1).for("share");
         if (!assignment) throw new AppError(403, "not_assigned_to_vehicle", "Vehicle assignment is required");
       }
-      if (body.id) {
-        const [existing] = await tx.select().from(fleetIncidents).where(eq(fleetIncidents.id, body.id));
-        if (existing) {
-          if (existing.orgId !== id || existing.vehicleId !== body.vehicle_id || existing.reportedBy !== identity.actor) {
-            throw new AppError(409, "incident_id_conflict", "Incident ID is already in use");
-          }
-          return existing;
-        }
-      }
       const eventAt = body.event_at ?? new Date();
       if (body.driver_at_event_id) await validateDriver(tx, id, body.vehicle_id, body.driver_at_event_id);
       const suggestions = await getSuggestions(tx, id, body.vehicle_id, eventAt);
       const inferred = identity.manager ? (suggestions.length === 1 ? suggestions[0].id : null)
         : (suggestions.some(driver => driver.id === identity.actor) ? identity.actor : null);
       const driverAtEventId = body.driver_at_event_id === undefined ? inferred : body.driver_at_event_id;
+      const incidentId = body.id ?? randomUUID();
+      const [incident] = await tx.insert(fleetIncidents).values({
+        id: incidentId, orgId: id, vehicleId: body.vehicle_id, reportedBy: identity.actor,
+        driverAtEventId, eventAt, category: body.category, description: body.description, submissionFingerprint: fingerprint,
+      }).onConflictDoNothing().returning(incidentColumns);
+      if (!incident) {
+        const [existing] = await tx.select(incidentColumns).from(fleetIncidents).where(and(
+          eq(fleetIncidents.id, incidentId), eq(fleetIncidents.orgId, id),
+          eq(fleetIncidents.reportedBy, identity.actor), eq(submissionFingerprint, fingerprint),
+        ));
+        if (!existing) throw new AppError(409, "incident_id_conflict", "This submission ID is already in use. Check Reports before submitting again.");
+        return existing;
+      }
       if (body.photo_ids.length) {
         const photos = await tx.select({ id: mediaObjects.id }).from(mediaObjects).where(and(
           inArray(mediaObjects.id, body.photo_ids), eq(mediaObjects.ownerOrgId, id),
@@ -170,11 +183,6 @@ export const fleetIncidentsPlugin: FastifyPluginAsync = async app => {
           throw new AppError(422, "invalid_incident_photos", "Choose unused incident photos uploaded for this vehicle");
         }
       }
-      const [incident] = await tx.insert(fleetIncidents).values({
-        id: body.id ?? randomUUID(), orgId: id, vehicleId: body.vehicle_id, reportedBy: identity.actor,
-        driverAtEventId, eventAt, category: body.category, description: body.description,
-      }).onConflictDoNothing().returning();
-      if (!incident) throw new AppError(409, "incident_id_conflict", "Incident ID is already in use");
       if (body.photo_ids.length) await tx.insert(fleetIncidentPhotos)
         .values(body.photo_ids.map(mediaId => ({ incidentId: incident.id, mediaId })));
       return incident;
@@ -193,7 +201,7 @@ export const fleetIncidentsPlugin: FastifyPluginAsync = async app => {
       const [updated] = await tx.update(fleetIncidents).set({
         category: body.category, description: body.description, eventAt: body.event_at,
         driverAtEventId: body.driver_at_event_id, updatedAt: new Date(),
-      }).where(eq(fleetIncidents.id, incidentId)).returning();
+      }).where(eq(fleetIncidents.id, incidentId)).returning(incidentColumns);
       await audit(tx, actor, id, incidentId, "fleet_incident_updated");
       return updated;
     });
@@ -207,7 +215,7 @@ export const fleetIncidentsPlugin: FastifyPluginAsync = async app => {
       if (incident.closedAt) return incident;
       const now = new Date();
       const [updated] = await tx.update(fleetIncidents).set({ closedAt: now, closedBy: actor,
-        reviewNote: review_note || null, updatedAt: now }).where(eq(fleetIncidents.id, incidentId)).returning();
+        reviewNote: review_note || null, updatedAt: now }).where(eq(fleetIncidents.id, incidentId)).returning(incidentColumns);
       await audit(tx, actor, id, incidentId, "fleet_incident_closed");
       return updated;
     });
@@ -219,7 +227,7 @@ export const fleetIncidentsPlugin: FastifyPluginAsync = async app => {
       const incident = await lock(tx, id, incidentId);
       if (!incident.closedAt) return incident;
       const [updated] = await tx.update(fleetIncidents).set({ closedAt: null, closedBy: null,
-        reviewNote: null, updatedAt: new Date() }).where(eq(fleetIncidents.id, incidentId)).returning();
+        reviewNote: null, updatedAt: new Date() }).where(eq(fleetIncidents.id, incidentId)).returning(incidentColumns);
       await audit(tx, actor, id, incidentId, "fleet_incident_reopened",
         { previousClosedAt: incident.closedAt, previousClosedBy: incident.closedBy });
       return updated;

@@ -1,5 +1,7 @@
 -- All organization entry points (including work-order completion and legacy
 -- clients) use the same accounting path. Personal behavior is unchanged.
+DO $legacy_accounting$ BEGIN
+IF to_regclass('vehicle_ownership_periods') IS NULL THEN
 CREATE OR REPLACE FUNCTION maintain_organization_expense() RETURNS trigger AS $$
 DECLARE
   source_row record;
@@ -69,3 +71,5 @@ FROM fuel_logs f JOIN organization_vehicles v ON v.vehicle_id = f.vehicle_id
 WHERE NOT EXISTS (SELECT 1 FROM expenses e WHERE e.vehicle_id = f.vehicle_id AND e.category = 'fuel'
   AND e.incurred_on = f.logged_on AND e.amount = f.cost AND e.source_id IS NULL)
 ON CONFLICT DO NOTHING;
+END IF;
+END $legacy_accounting$;

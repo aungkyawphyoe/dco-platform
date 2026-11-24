@@ -664,7 +664,7 @@ function Analytics({ org, admin }: { org: string; admin: boolean }) {
               disabled={!r || downloading}
               onClick={() => download("expenses")}
             >
-              Expense reconciliation CSV
+              Expense snapshot CSV
             </button>
             {downloading && <p role="status">Preparing export…</p>}
           </div>
@@ -1356,6 +1356,7 @@ function Records({
       <button disabled={downloading} onClick={onExport}>
         Export filtered expenses CSV
       </button>
+      <p>Replace previous exports for the same filters when reconciling expenses.</p>
       {downloadError && <p role="alert">{downloadError}</p>}
       {rows.isPending && <p role="status">Loading records…</p>}
       {rows.error && <p role="alert">{rows.error.message}</p>}

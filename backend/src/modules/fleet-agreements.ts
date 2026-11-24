@@ -5,7 +5,7 @@ import { z } from "zod";
 import type { Db } from "../db/client.js";
 import {
   auditEvents, documents, fleetAgreementKindEnum, fleetAgreementNotices, fleetAgreements, fleetAgreementTerms,
-  fleetAgreementTermVehicles, organizationMembers, organizationVehicles, vehicleOwnershipPeriods,
+  fleetAgreementTermVehicles, mediaObjects, organizationMembers, organizationVehicles, vehicleOwnershipPeriods,
 } from "../db/schema.js";
 import { AppError } from "../lib/errors.js";
 import { requireFleetPortal } from "./auth.js";
@@ -119,23 +119,68 @@ export const fleetAgreementsPlugin: FastifyPluginAsync = async app => {
       .orderBy(asc(documents.name), asc(documents.id));
   });
 
+  const documentInOrganization = (orgId: string) => and(
+    eq(vehicleOwnershipPeriods.id, documents.ownershipPeriodId),
+    eq(vehicleOwnershipPeriods.vehicleId, documents.vehicleId),
+    eq(vehicleOwnershipPeriods.orgId, orgId),
+  );
+  const documentOnTerm = and(eq(documents.id, fleetAgreementTerms.documentId),
+    eq(documents.vehicleId, fleetAgreementTermVehicles.vehicleId));
+
+  const documentMedia = (orgId: string) => and(eq(mediaObjects.id, documents.mediaId),
+    eq(mediaObjects.ownerOrgId, orgId), eq(mediaObjects.vehicleId, documents.vehicleId),
+    eq(mediaObjects.ownershipPeriodId, documents.ownershipPeriodId),
+    inArray(sql`coalesce(${mediaObjects.purpose}, 'document')`, ["document", "service_receipt", "expense_receipt"]),
+  );
+
   app.get(route + "/:agreementId", async request => {
     const { id, agreementId } = agreementParams.parse(request.params);
     await access(request, id);
-    const rows = await app.db.select().from(fleetAgreements)
+    const rows = await app.db.select({
+      agreement: getTableColumns(fleetAgreements),
+      term: getTableColumns(fleetAgreementTerms),
+      coverage: { vehicleId: fleetAgreementTermVehicles.vehicleId },
+      document: { id: documents.id, name: documents.name, vehicleId: documents.vehicleId },
+      documentPeriodId: vehicleOwnershipPeriods.id,
+      documentMediaId: mediaObjects.id,
+    }).from(fleetAgreements)
       .leftJoin(fleetAgreementTerms, eq(fleetAgreementTerms.agreementId, fleetAgreements.id))
       .leftJoin(fleetAgreementTermVehicles, eq(fleetAgreementTermVehicles.termId, fleetAgreementTerms.id))
+      .leftJoin(documents, documentOnTerm)
+      .leftJoin(vehicleOwnershipPeriods, documentInOrganization(id))
+      .leftJoin(mediaObjects, documentMedia(id))
       .where(and(eq(fleetAgreements.orgId, id), eq(fleetAgreements.id, agreementId)))
       .orderBy(desc(fleetAgreementTerms.termNumber), asc(fleetAgreementTermVehicles.vehicleId));
     if (!rows.length) throw new AppError(404, "agreement_not_found", "Agreement not found");
-    const terms = new Map<string, typeof fleetAgreementTerms.$inferSelect & { vehicleIds: string[] }>();
-    for (const { fleet_agreement_terms: term, fleet_agreement_term_vehicles: coverage } of rows) {
+    const terms = new Map<string, typeof fleetAgreementTerms.$inferSelect & {
+      vehicleIds: string[];
+      document: (NonNullable<(typeof rows)[number]["document"]> & { hasFile: boolean }) | null;
+    }>();
+    for (const { term, coverage, document, documentPeriodId, documentMediaId } of rows) {
       if (!term) continue;
-      const item = terms.get(term.id) ?? { ...term, vehicleIds: [] };
+      const item = terms.get(term.id) ?? { ...term, vehicleIds: [], document: null };
       if (coverage) item.vehicleIds.push(coverage.vehicleId);
+      if (documentPeriodId && document) item.document = { ...document, hasFile: Boolean(documentMediaId) };
       terms.set(term.id, item);
     }
-    return { ...rows[0].fleet_agreements, terms: [...terms.values()] };
+    return { ...rows[0].agreement, terms: [...terms.values()] };
+  });
+
+  app.get(route + "/:agreementId/terms/:termId/document", async (request, reply) => {
+    const { id, agreementId, termId } = agreementParams.extend({ termId: uuid }).parse(request.params);
+    await access(request, id);
+    const [file] = await app.db.select({ key: mediaObjects.blobKey, contentType: mediaObjects.contentType })
+      .from(fleetAgreements)
+      .innerJoin(fleetAgreementTerms, eq(fleetAgreementTerms.agreementId, fleetAgreements.id))
+      .innerJoin(fleetAgreementTermVehicles, eq(fleetAgreementTermVehicles.termId, fleetAgreementTerms.id))
+      .innerJoin(documents, documentOnTerm)
+      .innerJoin(vehicleOwnershipPeriods, documentInOrganization(id))
+      .innerJoin(mediaObjects, documentMedia(id))
+      .where(and(eq(fleetAgreements.orgId, id), eq(fleetAgreements.id, agreementId), eq(fleetAgreementTerms.id, termId)));
+    if (!file) throw new AppError(404, "agreement_document_not_found", "Agreement document file is unavailable");
+    return reply.header("Cache-Control", "private, no-store")
+      .header("Content-Disposition", 'attachment; filename="agreement-document"')
+      .type(file.contentType).send(await app.media.get(file.key));
   });
 
   app.get(route + "/:agreementId/reminder-deliveries", async request => {

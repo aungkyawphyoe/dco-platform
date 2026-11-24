@@ -54,6 +54,6 @@ has a completion marker so subsequent restarts do not repeat this cleanup.
 
 ### Fleet agreement reminder job
 
-Run `npm run fleet:agreement-reminders` from the backend with production database and mail settings on an hourly schedule. The job uses the organization's reporting timezone, with UTC as the fallback. It sends within the current term's configured lead window, through its expiry date, to the active responsible member. Fleet admins can see the most recent attempt for each term and expiry date through the agreement API.
+The API deployment does not schedule reminders. For a separately configured hourly job, run `npm run fleet:agreement-reminders` from the production image with database and mail settings. Build with `npm run build` before running the command from a local checkout. Apply the backend migrations before running the job. Verify email delivery before enabling it. The job uses the organization's reporting timezone, with UTC as the fallback. It sends within the current term's configured lead window, through its expiry date, to the active responsible member. Fleet admins can see the most recent attempt for each term and expiry date through the agreement API.
 
 The job exits nonzero if delivery or processing fails. The next run retries failed deliveries still within the window. A committed send suppresses subsequent runs for the same term and expiry date. If the mail provider accepts a message and the database commit then fails, a retry can send a duplicate.

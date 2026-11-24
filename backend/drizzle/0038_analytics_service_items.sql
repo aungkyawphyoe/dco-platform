@@ -4,6 +4,8 @@
 
 -- The service record row is captured before its items exist, and a later
 -- correction replaces the payload. Both paths attach the current item list.
+DO $legacy_analytics$ BEGIN
+IF NOT EXISTS (SELECT 1 FROM analytics_migrations WHERE name = 'attributed_records') THEN
 CREATE OR REPLACE FUNCTION analytics_capture_record() RETURNS trigger AS $$
 DECLARE r record; organization uuid; k text;
 BEGIN
@@ -55,4 +57,6 @@ UPDATE analytics_records a
 SET payload = a.payload || jsonb_build_object('items', COALESCE(
   (SELECT jsonb_agg(jsonb_build_object('name', i.name, 'line_cost', i.line_cost) ORDER BY i.id)
    FROM service_record_items i WHERE i.service_record_id = a.id), '[]'::jsonb))
-WHERE a.kind = 'service_record';
+WHERE a.kind = 'service_record' AND NOT (a.payload ? 'items');
+END IF;
+END $legacy_analytics$;

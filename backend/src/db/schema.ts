@@ -681,6 +681,7 @@ export const fleetIncidents = pgTable("fleet_incidents", {
   id: uuid("id").primaryKey(),
   orgId: uuid("org_id").notNull().references(() => organizations.id),
   vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  submissionFingerprint: text("submission_fingerprint"),
   reportedBy: uuid("reported_by").notNull().references(() => users.id),
   driverAtEventId: uuid("driver_at_event_id").references(() => users.id),
   eventAt: timestamp("event_at", { withTimezone: true }).notNull().defaultNow(),

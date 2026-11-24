@@ -20,6 +20,9 @@ INSERT INTO analytics_tenures(id, org_id, vehicle_id, started_at, vehicle)
 SELECT o.id, o.org_id, o.vehicle_id, o.added_at, to_jsonb(v) FROM organization_vehicles o
 JOIN vehicles v ON v.id = o.vehicle_id ON CONFLICT DO NOTHING;
 
+CREATE TABLE IF NOT EXISTS analytics_migrations (name text PRIMARY KEY);
+DO $legacy_analytics$ BEGIN
+IF NOT EXISTS (SELECT 1 FROM analytics_migrations WHERE name = 'attributed_records') THEN
 CREATE OR REPLACE FUNCTION analytics_capture_record() RETURNS trigger AS $$
 DECLARE r record; organization uuid; k text;
 BEGIN
@@ -43,9 +46,11 @@ CREATE TRIGGER analytics_fuel AFTER INSERT OR UPDATE OR DELETE ON fuel_logs FOR 
 DROP TRIGGER IF EXISTS analytics_service ON service_records;
 CREATE TRIGGER analytics_service AFTER INSERT OR UPDATE OR DELETE ON service_records FOR EACH ROW EXECUTE FUNCTION analytics_capture_record();
 
+END IF;
+END $legacy_analytics$;
+
 -- Current-org baseline only. Historical transfers with no saved attribution
 -- are surfaced as unavailable; never copy records from the new owner's garage.
-CREATE TABLE IF NOT EXISTS analytics_migrations (name text PRIMARY KEY);
 DO $$ BEGIN
 IF NOT EXISTS(SELECT 1 FROM analytics_migrations WHERE name='baseline') THEN
   INSERT INTO analytics_records SELECT o.org_id,e.vehicle_id,'expense',e.id,to_jsonb(e) || jsonb_build_object('odometer_unit',(SELECT mileage_unit FROM vehicles WHERE id=e.vehicle_id))

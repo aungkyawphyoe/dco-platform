@@ -1,8 +1,8 @@
 import { currentRecord, organizationRecord } from "../lib/record-ownership.js";
 import { createHash } from "node:crypto";
 import type { FastifyPluginAsync } from "fastify";
-import { and, eq, gt, isNull } from "drizzle-orm";
-import { mediaObjects, mediaCleanup, documents, expenses, serviceRecords, vehicles, organizationVehicles, driverAssignments } from "../db/schema.js";
+import { and, eq, gt, isNull, lt, notExists } from "drizzle-orm";
+import { mediaObjects, mediaCleanup, fleetIncidentPhotos, documents, expenses, serviceRecords, vehicles, organizationVehicles, driverAssignments } from "../db/schema.js";
 import { AppError } from "../lib/errors.js";
 import { recordChange } from "../lib/dbx.js";
 import { MEDIA_MAX_BYTES } from "../lib/media.js";
@@ -127,30 +127,37 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     return reply.code(201).send(payload);
   });
 
-  // Drain retired credentials even for accounts that never sign in again.
+  const pendingIncidentPhotoLifetime = 24 * 60 * 60_000;
   let running = false;
-  async function retireLicenses() {
+  async function cleanUnusedMedia(includePending: boolean) {
     if (running) return;
     running = true;
     try {
-      let after: string | undefined;
-      do {
-        const page = await app.db.select({id:mediaObjects.id}).from(mediaObjects)
-          .where(and(eq(mediaObjects.purpose,"retired_license"),after ? gt(mediaObjects.id,after) : undefined))
-          .orderBy(mediaObjects.id).limit(50);
-        for (const {id} of page) {
-          try { await app.db.transaction(tx => deleteUnreferencedMedia(tx,app.media,id)); }
-          catch (err) { app.log.warn({err}, "Retired license deletion will retry"); }
-        }
-        after = page.length === 50 ? page[49].id : undefined;
-      } while (after);
-    } catch (err) { app.log.warn({err}, "License cleanup will retry"); }
+      for (const purpose of includePending ? ["retired_license", "incident_photo"] : ["retired_license"]) {
+        const cutoff = new Date(Date.now() - pendingIncidentPhotoLifetime);
+        let after: string | undefined;
+        do {
+          const page: { id: string }[] = await app.db.select({ id: mediaObjects.id }).from(mediaObjects)
+            .where(and(eq(mediaObjects.purpose, purpose), after ? gt(mediaObjects.id, after) : undefined,
+              purpose === "incident_photo" ? and(lt(mediaObjects.createdAt, cutoff), notExists(
+                app.db.select({ id: fleetIncidentPhotos.mediaId }).from(fleetIncidentPhotos)
+                  .where(eq(fleetIncidentPhotos.mediaId, mediaObjects.id))
+              )) : undefined))
+            .orderBy(mediaObjects.id).limit(50);
+          for (const { id } of page) {
+            try { await app.db.transaction(tx => deleteUnreferencedMedia(tx, app.media, id, purpose === "incident_photo" ? cutoff : undefined)); }
+            catch (err) { app.log.warn({ err, id, purpose }, "Unused media deletion will retry"); }
+          }
+          after = page.length === 50 ? page[49].id : undefined;
+        } while (after);
+      }
+    } catch (err) { app.log.warn({ err }, "Unused media cleanup will retry"); }
     finally { running = false; }
   }
   let timer: NodeJS.Timeout;
   app.addHook("onReady", async () => {
-    await retireLicenses();
-    timer = setInterval(() => void retireLicenses(), 60 * 60_000);
+    await cleanUnusedMedia(false);
+    timer = setInterval(() => void cleanUnusedMedia(true), 60 * 60_000);
     timer.unref();
   });
   app.addHook("onClose", async () => clearInterval(timer));
