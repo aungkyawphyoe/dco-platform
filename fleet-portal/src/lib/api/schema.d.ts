@@ -4445,10 +4445,10 @@ export interface paths {
                         /** Format: binary */
                         file: string;
                         /** @enum {string} */
-                        purpose: "vehicle_photo" | "document" | "service_receipt" | "expense_receipt";
+                        purpose: "vehicle_photo" | "document" | "service_receipt" | "expense_receipt" | "incident_photo";
                         /**
                          * Format: uuid
-                         * @description Required for documents and receipts; determines the owning storage pool. Omit for personal licenses.
+                         * @description Required for documents, receipts, and incident photos. Incident photos must be uploaded for an organization vehicle.
                          */
                         vehicle_id?: string;
                     };
@@ -4461,7 +4461,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["MediaObject"];
+                        "application/json": components["schemas"]["MediaObject"] | {
+                            /** Format: uuid */
+                            id: string;
+                        };
                     };
                 };
                 413: components["responses"]["Error"];
@@ -7503,6 +7506,1045 @@ export interface paths {
                 404: components["responses"]["Error"];
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/agreements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** List agreement headers for the organization */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Agreement headers with current provider ordered newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /** Create an agreement and its initial term */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        kind: "insurance_policy" | "maintenance_agreement";
+                        /** Format: uuid */
+                        responsible_member_id: string;
+                        provider: string;
+                        /** Format: date */
+                        starts_on: string;
+                        /** Format: date */
+                        ends_on: string;
+                        reminder_lead_days: number;
+                        /** Format: uuid */
+                        document_id?: string;
+                        vehicle_ids: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Agreement with its initial term and covered vehicle IDs */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid agreement input or organization references */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/agreements/vehicle-documents/{vehicleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                vehicleId: string;
+            };
+            cookie?: never;
+        };
+        /** List attachable organization document IDs and names for a vehicle */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    vehicleId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Document options for the current ownership period */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/agreements/{agreementId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                agreementId: string;
+            };
+            cookie?: never;
+        };
+        /** Read an agreement and its term history */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    agreementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Agreement with terms ordered newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement not found in this organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/agreements/{agreementId}/renewals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                agreementId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Append a new agreement term */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    agreementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        expected_term_number: number;
+                        provider: string;
+                        /** Format: date */
+                        starts_on: string;
+                        /** Format: date */
+                        ends_on: string;
+                        reminder_lead_days: number;
+                        /** Format: uuid */
+                        document_id?: string;
+                        vehicle_ids: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description New term with covered vehicle IDs */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement not found in this organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement archived or expected term no longer current */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid term input or organization references */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/agreements/{agreementId}/current-term": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                agreementId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Replace the current term fields and covered vehicles */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    agreementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        expected_term_number: number;
+                        provider: string;
+                        /** Format: date */
+                        starts_on: string;
+                        /** Format: date */
+                        ends_on: string;
+                        reminder_lead_days: number;
+                        /** Format: uuid */
+                        document_id?: string;
+                        vehicle_ids: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated term with covered vehicle IDs */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement not found in this organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement archived or expected term no longer current */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid term input or organization references */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/agreements/{agreementId}/responsible-member": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                agreementId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Assign an active organization member to an agreement */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    agreementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        responsible_member_id: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Updated agreement header */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement not found in this organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement archived */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Responsible member is inactive or outside the organization */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/agreements/{agreementId}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                agreementId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive an agreement and retain its term history */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    agreementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Archived agreement header */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin or manager access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement not found in this organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/agreements/{agreementId}/reminder-deliveries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                agreementId: string;
+            };
+            cookie?: never;
+        };
+        /** List recorded reminder delivery attempts */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    agreementId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Latest attempt per term and expiry date with a nullable sent timestamp */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Fleet Portal admin access required */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Agreement not found in this organization */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/incidents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * List visible fleet incidents
+         * @description Fleet admins and managers see organization incidents. Drivers and mechanics see cases through active vehicle assignments or linked repair assignments respectively.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Up to 50 visible incidents, newest event first. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: components["schemas"]["FleetIncident"][];
+                            hasMore: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Report an incident
+         * @description Fleet admins and managers or an active driver assigned to the vehicle may submit. Upload photos using incident_photo before submitting their IDs.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id?: string;
+                        /** Format: uuid */
+                        vehicle_id: string;
+                        /** Format: date-time */
+                        event_at?: string;
+                        /** @enum {string} */
+                        category: "accident" | "breakdown" | "damage" | "other";
+                        description: string;
+                        /**
+                         * Format: uuid
+                         * @description Fleet admins and managers only.
+                         */
+                        driver_at_event_id?: string | null;
+                        photo_ids?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Incident */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FleetIncident"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/incidents/driver-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        /** Suggest drivers assigned at the event time (fleet admins and managers) */
+        get: {
+            parameters: {
+                query: {
+                    vehicle_id: string;
+                    event_at: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Matching drivers. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string | null;
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/incidents/{incidentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        /** Read an incident, linked work orders, and photo IDs */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    incidentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Incident detail */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FleetIncident"] & {
+                            photoIds: string[];
+                            repairs: {
+                                /** Format: uuid */
+                                id: string;
+                                description: string;
+                                status: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Incident not visible */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit an open incident (fleet admins and managers) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    incidentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date-time */
+                        event_at?: string;
+                        /** @enum {string} */
+                        category?: "accident" | "breakdown" | "damage" | "other";
+                        description?: string;
+                        /** Format: uuid */
+                        driver_at_event_id?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Incident */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FleetIncident"];
+                    };
+                };
+                /** @description Incident must be reopened first */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/organizations/{id}/incidents/{incidentId}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close an incident independently of repair status (fleet admins and managers) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    incidentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        review_note?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Incident */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FleetIncident"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/incidents/{incidentId}/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reopen an incident and audit the transition (fleet admins and managers) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    incidentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Incident */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["FleetIncident"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/incidents/{incidentId}/work-orders": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create and link a work order (fleet admins and managers) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    incidentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        id: string;
+                        odometer_km: number;
+                        /** @enum {string} */
+                        issue_type: "breakdown" | "accident" | "wear_tear" | "scheduled_service" | "other";
+                        /** @enum {string} */
+                        urgency: "low" | "medium" | "high" | "critical";
+                        description: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Work order linked */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            workOrderId: string;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/incidents/{incidentId}/work-orders/{workOrderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Link an existing work order on the same vehicle (fleet admins and managers) */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    incidentId: string;
+                    workOrderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Work order linked */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            workOrderId: string;
+                        };
+                    };
+                };
+                /** @description Incident or same-vehicle work order not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/organizations/{id}/incidents/{incidentId}/photos/{mediaId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+                incidentId: string;
+            };
+            cookie?: never;
+        };
+        /** Read incident evidence with case access checks */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    incidentId: string;
+                    mediaId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Photo bytes */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "image/jpeg": string;
+                        "image/png": string;
+                        "image/heic": string;
+                    };
+                };
+                /** @description Incident not visible or photo not linked */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -10666,6 +11708,8 @@ export interface paths {
                     /** @description Use equivalent calendar periods for preset comparisons; custom ranges use equal days. */
                     calendar?: boolean;
                     category?: string;
+                    /** @description Comma-separated category filter for expense exports. Intersects with category when both are supplied. */
+                    categories?: string;
                     kind?: "vehicles" | "expenses";
                 };
                 header?: never;
@@ -10676,12 +11720,14 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description Filtered reporting result */
+                /** @description Filtered CSV. Expense rows include correction status and captured deletion markers. */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "text/csv": string;
+                    };
                 };
                 /** @description Organization role does not permit analytics */
                 403: {
@@ -10820,6 +11866,32 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        FleetIncident: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            orgId: string;
+            /** Format: uuid */
+            vehicleId: string;
+            /** Format: uuid */
+            reportedBy: string;
+            /** Format: uuid */
+            driverAtEventId: string | null;
+            /** Format: date-time */
+            eventAt: string;
+            /** @enum {string} */
+            category: "accident" | "breakdown" | "damage" | "other";
+            description: string;
+            /** Format: uuid */
+            closedBy: string | null;
+            /** Format: date-time */
+            closedAt: string | null;
+            reviewNote: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
         HandoverPlanItem: {
             name: string;
             interval_days?: number | null;
@@ -11604,6 +12676,10 @@ export interface components {
             vehicle_id: string;
             /** @enum {string} */
             kind: "refuel" | "charge";
+            /** @description Battery percentage before charging, at most battery_level. Null when unknown or for liquid refueling. */
+            battery_level_before?: number | null;
+            /** @description Battery percentage after charging. Unknown for historical records; ignored for liquid refueling. */
+            battery_level?: number | null;
             /**
              * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
              * @default unknown
@@ -11626,6 +12702,10 @@ export interface components {
             currency?: components["schemas"]["OperationalCurrency"];
             /** Format: uuid */
             id: string;
+            /** @description Battery percentage before charging, at most battery_level. Null when unknown or for liquid refueling. */
+            battery_level_before?: number | null;
+            /** @description Battery percentage after charging. Unknown for historical records; ignored for liquid refueling. */
+            battery_level?: number | null;
             /**
              * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
              * @default unknown
@@ -11643,6 +12723,10 @@ export interface components {
         FuelLogPatch: {
             /** @description Required with monetary entries after rollout activation. Historical edits retain their original currency. */
             currency?: components["schemas"]["OperationalCurrency"];
+            /** @description Battery percentage before charging, at most battery_level. Null when unknown or for liquid refueling. */
+            battery_level_before?: number | null;
+            /** @description Battery percentage after charging. Unknown for historical records; ignored for liquid refueling. */
+            battery_level?: number | null;
             /**
              * @description Tank state after refueling. Historical and older-client records remain unknown. Charging records use unknown.
              * @default unknown

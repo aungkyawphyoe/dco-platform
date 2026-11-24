@@ -271,7 +271,12 @@ DO $$ BEGIN
   CREATE TYPE family_status AS ENUM ('active', 'archived');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-ALTER TABLE users ADD COLUMN IF NOT EXISTS family_id uuid;
+-- Vehicle sharing supersedes the legacy family column. Do not recreate it on boot.
+DO $$ BEGIN
+  IF to_regclass('vehicle_shares') IS NULL THEN
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS family_id uuid;
+  END IF;
+END $$;
 
 CREATE TABLE IF NOT EXISTS families (
   id uuid PRIMARY KEY,

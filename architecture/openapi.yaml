@@ -2240,18 +2240,24 @@ paths:
                   format: binary
                 purpose:
                   type: string
-                  enum: [vehicle_photo, document, service_receipt, expense_receipt]
+                  enum: [vehicle_photo, document, service_receipt, expense_receipt, incident_photo]
                 vehicle_id:
                   type: string
                   format: uuid
-                  description: Required for documents and receipts; determines the owning storage pool. Omit for personal licenses.
+                  description: Required for documents, receipts, and incident photos. Incident photos must be uploaded for an organization vehicle.
       responses:
         '201':
           description: Stored
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/MediaObject'
+                anyOf:
+                  - $ref: '#/components/schemas/MediaObject'
+                  - type: object
+                    description: Incident photo upload. Case authorization is required to read its bytes.
+                    required: [id]
+                    properties:
+                      id: {type: string, format: uuid}
         '413':
           $ref: '#/components/responses/Error'
   /users/me/storage:
@@ -3947,6 +3953,182 @@ paths:
         "200": { description: Latest attempt per term and expiry date with a nullable sent timestamp }
         "403": { description: Fleet Portal admin access required }
         "404": { description: Agreement not found in this organization }
+  /organizations/{id}/incidents:
+    parameters: &incidentOrgParams
+      - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+    get:
+      summary: List visible fleet incidents
+      description: Fleet admins and managers see organization incidents. Drivers and mechanics see cases through active vehicle assignments or linked repair assignments respectively.
+      parameters:
+        - {in: query, name: page, schema: {type: integer, minimum: 1, maximum: 100000, default: 1}}
+      responses:
+        '200':
+          description: Up to 50 visible incidents, newest event first.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [items, hasMore]
+                properties:
+                  items: {type: array, items: {$ref: '#/components/schemas/FleetIncident'}}
+                  hasMore: {type: boolean}
+    post:
+      summary: Report an incident
+      description: Fleet admins and managers or an active driver assigned to the vehicle may submit. Upload photos using incident_photo before submitting their IDs.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [vehicle_id, category, description]
+              properties:
+                id: {type: string, format: uuid}
+                vehicle_id: {type: string, format: uuid}
+                event_at: {type: string, format: date-time}
+                category: &incidentCategory {type: string, enum: [accident, breakdown, damage, other]}
+                description: {type: string, minLength: 1, maxLength: 2000}
+                driver_at_event_id: {type: string, format: uuid, nullable: true, description: Fleet admins and managers only.}
+                photo_ids: {type: array, maxItems: 5, uniqueItems: true, items: {type: string, format: uuid}}
+      responses:
+        '201': &incidentResponse
+          description: Incident
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/FleetIncident'}
+  /organizations/{id}/incidents/driver-suggestions:
+    parameters: *incidentOrgParams
+    get:
+      summary: Suggest drivers assigned at the event time (fleet admins and managers)
+      parameters:
+        - {in: query, name: vehicle_id, required: true, schema: {type: string, format: uuid}}
+        - {in: query, name: event_at, required: true, schema: {type: string, format: date-time}}
+      responses:
+        '200':
+          description: Matching drivers.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  required: [id, name]
+                  properties:
+                    id: {type: string, format: uuid}
+                    name: {type: string, nullable: true}
+  /organizations/{id}/incidents/{incidentId}:
+    parameters: &incidentParams
+      - {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+      - {in: path, name: incidentId, required: true, schema: {type: string, format: uuid}}
+    get:
+      summary: Read an incident, linked work orders, and photo IDs
+      responses:
+        '200':
+          description: Incident detail
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/FleetIncident'
+                  - type: object
+                    required: [photoIds, repairs]
+                    properties:
+                      photoIds: {type: array, items: {type: string, format: uuid}}
+                      repairs:
+                        type: array
+                        items:
+                          type: object
+                          required: [id, description, status]
+                          properties:
+                            id: {type: string, format: uuid}
+                            description: {type: string}
+                            status: {type: string}
+        '404': {description: Incident not visible}
+    patch:
+      summary: Edit an open incident (fleet admins and managers)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event_at: {type: string, format: date-time}
+                category: *incidentCategory
+                description: {type: string, minLength: 1, maxLength: 2000}
+                driver_at_event_id: {type: string, format: uuid, nullable: true}
+      responses:
+        '200': *incidentResponse
+        '409': {description: Incident must be reopened first}
+  /organizations/{id}/incidents/{incidentId}/close:
+    parameters: *incidentParams
+    post:
+      summary: Close an incident independently of repair status (fleet admins and managers)
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                review_note: {type: string, maxLength: 2000}
+      responses:
+        '200': *incidentResponse
+  /organizations/{id}/incidents/{incidentId}/reopen:
+    parameters: *incidentParams
+    post:
+      summary: Reopen an incident and audit the transition (fleet admins and managers)
+      responses:
+        '200': *incidentResponse
+  /organizations/{id}/incidents/{incidentId}/work-orders:
+    parameters: *incidentParams
+    post:
+      summary: Create and link a work order (fleet admins and managers)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [id, odometer_km, issue_type, urgency, description]
+              properties:
+                id: {type: string, format: uuid}
+                odometer_km: {type: integer, minimum: 0, maximum: 2147483647}
+                issue_type: {type: string, enum: [breakdown, accident, wear_tear, scheduled_service, other]}
+                urgency: {type: string, enum: [low, medium, high, critical]}
+                description: {type: string, minLength: 10, maxLength: 2000}
+      responses:
+        '201': &incidentRepairResponse
+          description: Work order linked
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [workOrderId]
+                properties:
+                  workOrderId: {type: string, format: uuid}
+  /organizations/{id}/incidents/{incidentId}/work-orders/{workOrderId}:
+    parameters: *incidentParams
+    put:
+      summary: Link an existing work order on the same vehicle (fleet admins and managers)
+      parameters:
+        - {in: path, name: workOrderId, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200': *incidentRepairResponse
+        '404': {description: Incident or same-vehicle work order not found}
+  /organizations/{id}/incidents/{incidentId}/photos/{mediaId}:
+    parameters: *incidentParams
+    get:
+      summary: Read incident evidence with case access checks
+      parameters:
+        - {in: path, name: mediaId, required: true, schema: {type: string, format: uuid}}
+      responses:
+        '200':
+          description: Photo bytes
+          content:
+            image/jpeg: {schema: {type: string, format: binary}}
+            image/png: {schema: {type: string, format: binary}}
+            image/heic: {schema: {type: string, format: binary}}
+        '404': {description: Incident not visible or photo not linked}
   /organizations/{id}/work-orders:
     parameters:
       - in: path
@@ -5842,6 +6024,23 @@ components:
           schema:
             $ref: '#/components/schemas/ErrorBody'
   schemas:
+    FleetIncident:
+      type: object
+      required: [id, orgId, vehicleId, reportedBy, driverAtEventId, eventAt, category, description, closedBy, closedAt, reviewNote, createdAt, updatedAt]
+      properties:
+        id: {type: string, format: uuid}
+        orgId: {type: string, format: uuid}
+        vehicleId: {type: string, format: uuid}
+        reportedBy: {type: string, format: uuid}
+        driverAtEventId: {type: string, format: uuid, nullable: true}
+        eventAt: {type: string, format: date-time}
+        category: *incidentCategory
+        description: {type: string}
+        closedBy: {type: string, format: uuid, nullable: true}
+        closedAt: {type: string, format: date-time, nullable: true}
+        reviewNote: {type: string, nullable: true}
+        createdAt: {type: string, format: date-time}
+        updatedAt: {type: string, format: date-time}
     HandoverPlanItem:
       type: object
       required: [name]

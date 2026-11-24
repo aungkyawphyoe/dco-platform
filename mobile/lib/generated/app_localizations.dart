@@ -8939,6 +8939,180 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Show or scan to identify your account'**
   String get profileAccountCodeSubtitle;
+
+  /// No description provided for @incidentTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Incidents'**
+  String get incidentTitle;
+
+  /// No description provided for @incidentReport.
+  ///
+  /// In en, this message translates to:
+  /// **'Report incident'**
+  String get incidentReport;
+
+  /// No description provided for @incidentDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Incident details'**
+  String get incidentDetails;
+
+  /// No description provided for @incidentAccident.
+  ///
+  /// In en, this message translates to:
+  /// **'Accident'**
+  String get incidentAccident;
+
+  /// No description provided for @incidentBreakdown.
+  ///
+  /// In en, this message translates to:
+  /// **'Breakdown'**
+  String get incidentBreakdown;
+
+  /// No description provided for @incidentDamage.
+  ///
+  /// In en, this message translates to:
+  /// **'Damage'**
+  String get incidentDamage;
+
+  /// No description provided for @incidentOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get incidentOther;
+
+  /// No description provided for @incidentOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open'**
+  String get incidentOpen;
+
+  /// No description provided for @incidentClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Closed'**
+  String get incidentClosed;
+
+  /// No description provided for @incidentAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Fleet access is required.'**
+  String get incidentAccess;
+
+  /// No description provided for @incidentRetryList.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry loading incidents'**
+  String get incidentRetryList;
+
+  /// No description provided for @incidentRetryDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry loading incident'**
+  String get incidentRetryDetails;
+
+  /// No description provided for @incidentEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No incidents to show.'**
+  String get incidentEmpty;
+
+  /// No description provided for @incidentPrevious.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous'**
+  String get incidentPrevious;
+
+  /// No description provided for @incidentNext.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get incidentNext;
+
+  /// No description provided for @incidentSubmitted.
+  ///
+  /// In en, this message translates to:
+  /// **'Incident submitted.'**
+  String get incidentSubmitted;
+
+  /// No description provided for @incidentReviewNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Review note'**
+  String get incidentReviewNote;
+
+  /// No description provided for @incidentPhotoUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Photo unavailable'**
+  String get incidentPhotoUnavailable;
+
+  /// No description provided for @incidentPhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Incident photo'**
+  String get incidentPhoto;
+
+  /// No description provided for @incidentPickerError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the photo picker.'**
+  String get incidentPickerError;
+
+  /// No description provided for @incidentSubmitError.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not submit the incident. Check your connection and try again.'**
+  String get incidentSubmitError;
+
+  /// No description provided for @incidentEventTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Event time'**
+  String get incidentEventTime;
+
+  /// No description provided for @incidentCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get incidentCategory;
+
+  /// No description provided for @incidentDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Description'**
+  String get incidentDescription;
+
+  /// No description provided for @incidentDescriptionRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter a description.'**
+  String get incidentDescriptionRequired;
+
+  /// No description provided for @incidentRemovePhoto.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove photo'**
+  String get incidentRemovePhoto;
+
+  /// No description provided for @incidentAddPhotos.
+  ///
+  /// In en, this message translates to:
+  /// **'Add photos'**
+  String get incidentAddPhotos;
+
+  /// No description provided for @incidentSubmitting.
+  ///
+  /// In en, this message translates to:
+  /// **'Submitting…'**
+  String get incidentSubmitting;
+
+  /// No description provided for @incidentSubmit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit incident'**
+  String get incidentSubmit;
 }
 
 class _AppLocalizationsDelegate

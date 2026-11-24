@@ -134,17 +134,17 @@ PR-1, PR-2, and PR-4 do not depend on one another after PR-0 and may be develope
 
 **Implementation order:**
 
-- [ ] Preserve event-time vehicle and driver attribution as defined in the incident FRD.
-- [ ] Enforce create, view, edit, close, and reopen permissions from the incident FRD at the API boundary.
-- [ ] Add one-to-many repair links with server validation against organization and vehicle.
-- [ ] Keep incident lifecycle independent from work-order status and cost. Apply the approved audited reopen flow.
-- [ ] Add Driver app report/confirmation/status and Fleet Portal review, link, and close flows. Respect Driver app connectivity behavior defined in its FRD.
+- [x] Preserve event-time vehicle and driver attribution as defined in the incident FRD.
+- [x] Enforce create, view, edit, close, and reopen permissions from the incident FRD at the API boundary.
+- [x] Add one-to-many repair links with server validation against organization and vehicle.
+- [x] Keep incident lifecycle independent from work-order status and cost. Apply the approved audited reopen flow.
+- [x] Add Driver app report/confirmation/status and Fleet Portal review, link, and close flows. Respect Driver app connectivity behavior defined in its FRD.
 
 **Result:** One event can group several repairs, or close with no repair, while work orders and actual cost records remain independently auditable.
 
 **Verification:**
 
-- [ ] Unit: duplicate links, cross-organization links, event-time driver snapshot, close reasons, cost rollup, and role checks pass.
+- [ ] Unit: duplicate links, cross-organization links, event-time driver attribution, closure and reopening, photo access, and role checks pass.
 - [ ] Live: create an incident in Driver mode, review it in the Fleet Portal, link two repairs, close a no-repair incident and an incident with open repairs, then reassign the driver and confirm original attribution is unchanged. Verify evidence cannot be read outside its permitted roles.
 - [ ] Perf: capture trunk p95 and query count for Driver issue submission, own work-order list, and Fleet Portal work-order list on the same fixture. Repeat after incident support. Fail if existing paths regress over 10% p95 or query count. Measure incident detail p95 at the PR-0 agreed maximum evidence and repair count.
 - [ ] Operator reviews the Driver submission and Fleet review/closure interactions before merge.

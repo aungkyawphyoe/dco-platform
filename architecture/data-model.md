@@ -497,3 +497,12 @@ Existing rows are retained with null attribution and entered into `ownership_mig
 `vehicle_handover_events` records queued/delivered buyer delivery events for the vehicle, plan, warranty, and receipt. Completion writes ownership, plan, warranty, audit, sync change rows, and delivery events in one transaction; a repeated completion returns the stored result.
 
 `organization_members.can_complete_handover` records admin-granted manager completion permission. `plan_items.initial_service_required` represents an unknown baseline without fabricating a service record. `work_orders` accepts a terminal `cancelled` state with reason, actor, and time. The legacy immediate-transfer route now returns `410 handover_required`.
+
+
+## Fleet incident cases
+
+`fleet_incidents` stores organization and vehicle identity, the reporter, the event time, category, description, and the recorded driver at the time of the event. Open cases have no closure fields. Closed cases record reviewer and time plus an optional review note. The service audits close and reopen transitions. Changes to driver assignments do not change the recorded attribution.
+
+`fleet_incident_work_orders` joins cases and repairs. Composite foreign keys enforce that the case and repair share an organization and vehicle. Linking a repair does not transfer its cost or lifecycle to the case.
+
+`fleet_incident_photos` links each uploaded evidence object to at most one case. Evidence uses organization storage and authenticated access through the case. General media routes do not serve incident evidence. Case closure and vehicle transfer do not delete evidence. The organization's purge policy still needs to be defined.

@@ -2,7 +2,7 @@
 
 Date: 22 November 2026
 
-Status: Draft from product-owner decisions. Not ready for implementation: evidence retention and a representative customer workflow remain unvalidated.
+Status: PR-3 implemented locally. The organization records policy and a representative customer workflow remain unvalidated.
 
 ## Purpose
 
@@ -51,6 +51,12 @@ Insurance claims, insurer communication, liability decisions, recovery accountin
 - Reopening is an explicit audited action; closed-case edits are rejected until reopened.
 - Reassignment after the event does not alter event-time driver attribution.
 
-## Open gate
+## Application behavior
 
-Before implementation, validate retention and the scenarios with a representative customer workflow. Confirm attachment access and deletion behavior against the existing document system. Update the discovery record and this FRD with evidence and any resulting changes.
+Fleet Portal staff open Incidents from the Fleet menu. Fleet Admins and Managers report, review, edit, close, reopen, and link or create work orders. Mechanics can read cases linked to their assigned repairs.
+
+Drivers open Incidents from Reports or Report Issue. They submit for the active vehicle and can view cases for vehicles they currently have assigned. Incident operations require a connection. In either client, the initial report can include up to five photos. Photos require case access and use organization storage.
+
+## Validation still open
+
+Confirm a representative customer workflow, the governing retention policy, and attachment access in the deployed environment.

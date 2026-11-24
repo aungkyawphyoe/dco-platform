@@ -1,3 +1,4 @@
+import 'driver_incidents_screen.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_button.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
@@ -101,7 +102,19 @@ class _DriverReportIssueScreenState
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.fleetWoReportTitle)),
+      appBar: AppBar(
+        title: Text(s.fleetWoReportTitle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const DriverIncidentsScreen(),
+              ),
+            ),
+            child: Text(s.incidentTitle),
+          ),
+        ],
+      ),
       body: ListView(
         padding: EdgeInsets.all(tokens.space.s3),
         children: [

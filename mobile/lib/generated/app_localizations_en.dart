@@ -4848,4 +4848,92 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get profileAccountCodeSubtitle =>
       'Show or scan to identify your account';
+
+  @override
+  String get incidentTitle => 'Incidents';
+
+  @override
+  String get incidentReport => 'Report incident';
+
+  @override
+  String get incidentDetails => 'Incident details';
+
+  @override
+  String get incidentAccident => 'Accident';
+
+  @override
+  String get incidentBreakdown => 'Breakdown';
+
+  @override
+  String get incidentDamage => 'Damage';
+
+  @override
+  String get incidentOther => 'Other';
+
+  @override
+  String get incidentOpen => 'Open';
+
+  @override
+  String get incidentClosed => 'Closed';
+
+  @override
+  String get incidentAccess => 'Fleet access is required.';
+
+  @override
+  String get incidentRetryList => 'Retry loading incidents';
+
+  @override
+  String get incidentRetryDetails => 'Retry loading incident';
+
+  @override
+  String get incidentEmpty => 'No incidents to show.';
+
+  @override
+  String get incidentPrevious => 'Previous';
+
+  @override
+  String get incidentNext => 'Next';
+
+  @override
+  String get incidentSubmitted => 'Incident submitted.';
+
+  @override
+  String get incidentReviewNote => 'Review note';
+
+  @override
+  String get incidentPhotoUnavailable => 'Photo unavailable';
+
+  @override
+  String get incidentPhoto => 'Incident photo';
+
+  @override
+  String get incidentPickerError => 'Could not open the photo picker.';
+
+  @override
+  String get incidentSubmitError =>
+      'Could not submit the incident. Check your connection and try again.';
+
+  @override
+  String get incidentEventTime => 'Event time';
+
+  @override
+  String get incidentCategory => 'Category';
+
+  @override
+  String get incidentDescription => 'Description';
+
+  @override
+  String get incidentDescriptionRequired => 'Enter a description.';
+
+  @override
+  String get incidentRemovePhoto => 'Remove photo';
+
+  @override
+  String get incidentAddPhotos => 'Add photos';
+
+  @override
+  String get incidentSubmitting => 'Submitting…';
+
+  @override
+  String get incidentSubmit => 'Submit incident';
 }

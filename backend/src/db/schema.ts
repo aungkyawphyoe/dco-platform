@@ -2,6 +2,7 @@ import {
   bigint,
   check,
   primaryKey,
+  foreignKey,
   bigserial,
   boolean,
   date,
@@ -668,10 +669,65 @@ export const workOrders = pgTable("work_orders", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }, (table) => ({
+  incidentLinkScope: uniqueIndex("work_orders_incident_link_scope").on(table.orgId, table.vehicleId, table.id),
   orgIndex: index("work_orders_org_idx").on(table.orgId),
   vehicleIndex: index("work_orders_vehicle_idx").on(table.vehicleId),
   planItemIndex: index("work_orders_plan_item_idx").on(table.planItemId),
 }));
+
+export const fleetIncidentCategory = pgEnum("fleet_incident_category", ["accident", "breakdown", "damage", "other"]);
+
+export const fleetIncidents = pgTable("fleet_incidents", {
+  id: uuid("id").primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organizations.id),
+  vehicleId: uuid("vehicle_id").notNull().references(() => vehicles.id),
+  reportedBy: uuid("reported_by").notNull().references(() => users.id),
+  driverAtEventId: uuid("driver_at_event_id").references(() => users.id),
+  eventAt: timestamp("event_at", { withTimezone: true }).notNull().defaultNow(),
+  category: fleetIncidentCategory("category").notNull(),
+  description: text("description").notNull(),
+  closedBy: uuid("closed_by").references(() => users.id),
+  closedAt: timestamp("closed_at", { withTimezone: true }),
+  reviewNote: text("review_note"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}, table => [
+  index("fleet_incidents_org_event_idx").on(table.orgId, table.eventAt.desc(), table.id),
+  uniqueIndex("fleet_incidents_link_scope").on(table.orgId, table.vehicleId, table.id),
+  check("fleet_incidents_description_check", sql`length(btrim(${table.description})) > 0`),
+  check("fleet_incidents_closure", sql`
+    (${table.closedAt} IS NULL AND ${table.closedBy} IS NULL AND ${table.reviewNote} IS NULL)
+    OR (${table.closedAt} IS NOT NULL AND ${table.closedBy} IS NOT NULL)
+  `),
+]);
+
+export const fleetIncidentPhotos = pgTable("fleet_incident_photos", {
+  incidentId: uuid("incident_id").notNull().references(() => fleetIncidents.id),
+  mediaId: uuid("media_id").notNull().references(() => mediaObjects.id),
+}, table => [
+  primaryKey({ name: "fleet_incident_photos_pk", columns: [table.incidentId, table.mediaId] }),
+  unique("fleet_incident_photos_media_unique").on(table.mediaId),
+]);
+
+export const fleetIncidentWorkOrders = pgTable("fleet_incident_work_orders", {
+  incidentId: uuid("incident_id").notNull(),
+  workOrderId: uuid("work_order_id").notNull(),
+  orgId: uuid("org_id").notNull(),
+  vehicleId: uuid("vehicle_id").notNull(),
+}, table => [
+  primaryKey({ name: "fleet_incident_work_orders_pk", columns: [table.incidentId, table.workOrderId] }),
+  foreignKey({
+    name: "fleet_incident_work_orders_incident_fk",
+    columns: [table.orgId, table.vehicleId, table.incidentId],
+    foreignColumns: [fleetIncidents.orgId, fleetIncidents.vehicleId, fleetIncidents.id],
+  }),
+  foreignKey({
+    name: "fleet_incident_work_orders_work_order_fk",
+    columns: [table.orgId, table.vehicleId, table.workOrderId],
+    foreignColumns: [workOrders.orgId, workOrders.vehicleId, workOrders.id],
+  }),
+  index("fleet_incident_work_orders_repair_idx").on(table.workOrderId),
+]);
 
 export const maintenanceCatalog = pgTable("maintenance_catalog", {
   id: uuid("id").primaryKey(),

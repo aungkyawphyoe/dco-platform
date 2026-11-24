@@ -46,7 +46,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     if (membership.role === "org_admin") {
       const [historical] = await app.db.select().from(mediaObjects).where(and(eq(mediaObjects.id, mediaId),
         eq(mediaObjects.ownerOrgId, orgId), organizationRecord(mediaObjects, orgId)));
-      if (historical && historical.purpose !== "retired_license") {
+      if (historical && historical.purpose !== "retired_license" && historical.purpose !== "incident_photo") {
         return reply.header("Cache-Control", "private, no-store").type(historical.contentType).send(await app.media.get(historical.blobKey));
       }
     }
@@ -63,7 +63,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     }
     if (!allowed) throw new AppError(404, "not_found", "Media not found");
     const [row] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId));
-    if (!row || row.purpose === "retired_license") throw new AppError(404, "not_found", "Media not found");
+    if (!row || row.purpose === "retired_license" || row.purpose === "incident_photo") throw new AppError(404, "not_found", "Media not found");
     return reply.header("Cache-Control", "private, no-store").type(row.contentType).send(await app.media.get(row.blobKey));
   });
 
@@ -76,7 +76,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     const purpose = fields.purpose?.value;
     if (!id) throw new AppError(422, "missing_id", "id is required");
     z.string().uuid().parse(id);
-    const mediaPurpose = z.enum(["vehicle_photo", "document", "service_receipt", "expense_receipt"]).parse(purpose);
+    const mediaPurpose = z.enum(["vehicle_photo", "document", "service_receipt", "expense_receipt", "incident_photo"]).parse(purpose);
     const vehicleId = fields.vehicle_id?.value;
     let orgId: string | null = null;
     let ownerId = request.authUser!.sub;
@@ -86,9 +86,9 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
       if (!vehicle) throw new AppError(404, "not_found", "Vehicle not found");
       const [link] = await app.db.select().from(organizationVehicles).where(eq(organizationVehicles.vehicleId, vehicleId));
       if (link) {
-        const { membership } = await getOrganizationAccess(app.db, ownerId, link.orgId, ["org_admin", "org_driver"]);
+        const { membership } = await getOrganizationAccess(app.db, ownerId, link.orgId, mediaPurpose === "incident_photo" ? ["org_admin", "org_manager", "org_driver"] : ["org_admin", "org_driver"]);
         await assertPasswordChangeClear(app.db, ownerId);
-        if (membership.role === "org_admin") requireFleetPortal(request);
+        if (membership.role !== "org_driver") requireFleetPortal(request);
         else {
           requireOwner(request);
           const [assignment] = await app.db.select().from(driverAssignments).where(and(eq(driverAssignments.orgId, link.orgId), eq(driverAssignments.vehicleId, vehicleId), eq(driverAssignments.driverId, ownerId), eq(driverAssignments.status, "active")));
@@ -98,10 +98,10 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
 
       } else {
         requireOwner(request);
-        if (vehicle.userId !== ownerId) throw new AppError(403, "insufficient_permission", "Only the vehicle owner can upload documents");
+        if (mediaPurpose === "incident_photo" || vehicle.userId !== ownerId) throw new AppError(403, "insufficient_permission", "Only the vehicle owner can upload documents");
       }
     } else requireOwner(request);
-    if (["document", "service_receipt", "expense_receipt"].includes(mediaPurpose) && !vehicleId) throw new AppError(422, "missing_vehicle", "vehicle_id is required");
+    if (["document", "service_receipt", "expense_receipt", "incident_photo"].includes(mediaPurpose) && !vehicleId) throw new AppError(422, "missing_vehicle", "vehicle_id is required");
     const chunks: Buffer[] = [];
     let size = 0;
     for await (const chunk of file.file) {
@@ -111,10 +111,11 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     }
     const bytes = Buffer.concat(chunks);
     if (file.file.truncated) throw new AppError(413, "payload_too_large", "File exceeds 15MB");
-    const contentType = documentContentType(bytes, mediaPurpose === "vehicle_photo");
+    const contentType = documentContentType(bytes, mediaPurpose === "vehicle_photo" || mediaPurpose === "incident_photo");
     const row = await storeWithQuota(app.db, app.media, {
       id, owner: { userId: ownerId, orgId }, vehicleId, purpose: mediaPurpose, bytes, contentType,
     });
+    if (mediaPurpose === "incident_photo") return reply.code(201).send({ id: row.id });
     const payload = toMediaJson(app, row);
     await recordChange(app.db, {
       userId: request.authUser!.sub,
@@ -184,7 +185,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
     await assertPersonalMedia(mediaId);
     const token = (request.query as { token?: string }).token;
     const [row] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId)).limit(1);
-    if (!row || row.purpose === "retired_license") throw new AppError(404, "not_found", "Media not found");
+    if (!row || row.purpose === "retired_license" || row.purpose === "incident_photo") throw new AppError(404, "not_found", "Media not found");
     if (token) {
       if (!app.media.verifyDownload(mediaId, token)) throw new AppError(401, "unauthorized", "Invalid download token");
     } else {
@@ -204,7 +205,7 @@ export const mediaPlugin: FastifyPluginAsync = async (app) => {
       throw new AppError(401, "unauthorized", "Invalid download token");
     }
     const [row] = await app.db.select().from(mediaObjects).where(eq(mediaObjects.id, mediaId)).limit(1);
-    if (!row || row.purpose === "retired_license") throw new AppError(404, "not_found", "Media not found");
+    if (!row || row.purpose === "retired_license" || row.purpose === "incident_photo") throw new AppError(404, "not_found", "Media not found");
     const bytes = await app.media.get(row.blobKey);
     return reply.type(row.contentType).send(bytes);
   });

@@ -35,6 +35,7 @@ function getNavForRole(role: string | null): NavGroup[] {
         { href: "/vehicles", label: "Vehicles", exact: false },
         { href: "/maintenance-templates", label: "Maintenance Catalog", exact: false },
         { href: "/work-orders", label: "Work Orders", exact: false },
+        ...(["org_admin", "org_manager", "org_mechanic"].includes(role ?? "") ? [{ href: "/incidents", label: "Incidents", exact: false }] : []),
         ...(role === "org_admin" || role === "org_manager" ? [{ href: "/agreements", label: "Agreements", exact: false }] : []),
         { href: "/inspections", label: "Inspections", exact: false },
         { href: "/assignments", label: "Driver Assignments", exact: false },

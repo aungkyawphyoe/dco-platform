@@ -4,7 +4,7 @@ import { assertPersonalVehicleWritable } from "./subscription-access.js";
 import { effectiveSubscription } from "./gifts.js";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import type { Db } from "../db/client.js";
-import { documents, expenses, mediaObjects, organizationVehicles, organizations, serviceRecords, users, vehicles } from "../db/schema.js";
+import { documents, expenses, fleetIncidentPhotos, mediaObjects, organizationVehicles, organizations, serviceRecords, users, vehicles } from "../db/schema.js";
 import { AppError } from "./errors.js";
 import { PLANS } from "./plans.js";
 import type { MediaStore } from "./media.js";
@@ -62,7 +62,7 @@ export async function storeWithQuota(db: Db, store: MediaStore, input: {
 export async function assertDocumentMedia(db: Db, mediaId: string, vehicleId: string) {
   const [row] = await db.select().from(mediaObjects).where(and(eq(mediaObjects.id, mediaId), currentRecord(mediaObjects))).for("update");
   if (!row || row.vehicleId !== vehicleId || !chargedPurpose(row.purpose ?? "document") ||
-      ["driving_license", "license_front", "license_back"].includes(row.purpose ?? "")) {
+      ["driving_license", "license_front", "license_back", "incident_photo"].includes(row.purpose ?? "")) {
     throw new AppError(422, "invalid_media", "Select a document uploaded for this vehicle");
   }
 }
@@ -81,6 +81,9 @@ export async function deleteUnreferencedMedia(db: Db, store: MediaStore, mediaId
     const refs = await db.select({ id: table.id }).from(table).where(eq(column, mediaId)).limit(1);
     if (refs.length) return;
   }
+  const [incidentPhoto] = await db.select({ id: fleetIncidentPhotos.mediaId }).from(fleetIncidentPhotos)
+    .where(eq(fleetIncidentPhotos.mediaId, mediaId)).limit(1);
+  if (incidentPhoto) return;
   await store.delete(row.blobKey);
   await db.delete(mediaObjects).where(eq(mediaObjects.id, mediaId));
 }

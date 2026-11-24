@@ -35,7 +35,17 @@ ALTER TABLE maintenance_catalog ADD COLUMN IF NOT EXISTS lifecycle_template text
 ALTER TABLE maintenance_catalog ADD COLUMN IF NOT EXISTS org_id uuid REFERENCES organizations(id) ON DELETE cascade;
 CREATE INDEX IF NOT EXISTS maintenance_catalog_class_idx ON maintenance_catalog(vehicle_class);
 CREATE INDEX IF NOT EXISTS maintenance_catalog_org_idx ON maintenance_catalog(org_id);
-ALTER TABLE organization_vehicles ADD COLUMN IF NOT EXISTS maintenance_template_id uuid REFERENCES maintenance_catalog(id) ON DELETE set null;
+-- Migration 0021 retires the anchor column. Replaying this file must not recreate it.
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_attribute
+    WHERE attrelid = 'organization_vehicles'::regclass
+      AND attname = 'maintenance_template_class' AND NOT attisdropped
+  ) THEN
+    ALTER TABLE organization_vehicles ADD COLUMN IF NOT EXISTS maintenance_template_id uuid
+      REFERENCES maintenance_catalog(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- The names-only reset retires these legacy seeds permanently.
 DO $$ BEGIN

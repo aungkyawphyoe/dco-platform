@@ -1612,5 +1612,34 @@
         "type": "String"
       }
     }
-  }
+  },
+  "incidentTitle": "Incidents",
+  "incidentReport": "Report incident",
+  "incidentDetails": "Incident details",
+  "incidentAccident": "Accident",
+  "incidentBreakdown": "Breakdown",
+  "incidentDamage": "Damage",
+  "incidentOther": "Other",
+  "incidentOpen": "Open",
+  "incidentClosed": "Closed",
+  "incidentAccess": "Fleet access is required.",
+  "incidentRetryList": "Retry loading incidents",
+  "incidentRetryDetails": "Retry loading incident",
+  "incidentEmpty": "No incidents to show.",
+  "incidentPrevious": "Previous",
+  "incidentNext": "Next",
+  "incidentSubmitted": "Incident submitted.",
+  "incidentReviewNote": "Review note",
+  "incidentPhotoUnavailable": "Photo unavailable",
+  "incidentPhoto": "Incident photo",
+  "incidentPickerError": "Could not open the photo picker.",
+  "incidentSubmitError": "Could not submit the incident. Check your connection and try again.",
+  "incidentEventTime": "Event time",
+  "incidentCategory": "Category",
+  "incidentDescription": "Description",
+  "incidentDescriptionRequired": "Enter a description.",
+  "incidentRemovePhoto": "Remove photo",
+  "incidentAddPhotos": "Add photos",
+  "incidentSubmitting": "Submitting…",
+  "incidentSubmit": "Submit incident"
 }

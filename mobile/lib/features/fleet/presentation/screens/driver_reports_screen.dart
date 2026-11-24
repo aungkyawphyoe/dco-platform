@@ -1,3 +1,4 @@
+import 'driver_incidents_screen.dart';
 import 'package:dco_mobile/core/theme/dco_tokens.dart';
 import 'package:dco_mobile/core/widgets/dco_empty_state.dart';
 import 'package:dco_mobile/features/fleet/domain/entities/inspection.dart';
@@ -35,7 +36,19 @@ class DriverReportsScreen extends ConsumerWidget {
         issueWorkOrders.isEmpty && inspections.isEmpty && !isLoading;
 
     return Scaffold(
-      appBar: AppBar(title: Text(s.driverReportsTitle)),
+      appBar: AppBar(
+        title: Text(s.driverReportsTitle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (_) => const DriverIncidentsScreen(),
+              ),
+            ),
+            child: Text(s.incidentTitle),
+          ),
+        ],
+      ),
       body: hasError
           ? DcoEmptyState(
               title: s.error,

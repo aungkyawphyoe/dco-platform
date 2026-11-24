@@ -4892,4 +4892,92 @@ class AppLocalizationsMy extends AppLocalizations {
   @override
   String get profileAccountCodeSubtitle =>
       'အကောင့်ဖော်ပြရန် ပြပါ သို့မဟုတ် စကင်ဖတ်ပါ';
+
+  @override
+  String get incidentTitle => 'ဖြစ်ရပ်များ';
+
+  @override
+  String get incidentReport => 'ဖြစ်ရပ် တိုင်ကြားရန်';
+
+  @override
+  String get incidentDetails => 'ဖြစ်ရပ် အသေးစိတ်';
+
+  @override
+  String get incidentAccident => 'ယာဉ်မတော်တဆမှု';
+
+  @override
+  String get incidentBreakdown => 'ယာဉ်ပျက်ခြင်း';
+
+  @override
+  String get incidentDamage => 'ပျက်စီးမှု';
+
+  @override
+  String get incidentOther => 'အခြား';
+
+  @override
+  String get incidentOpen => 'ဖွင့်ထားသည်';
+
+  @override
+  String get incidentClosed => 'ပိတ်ထားသည်';
+
+  @override
+  String get incidentAccess => 'Fleet အသုံးပြုခွင့် လိုအပ်ပါသည်။';
+
+  @override
+  String get incidentRetryList => 'ဖြစ်ရပ်များ ပြန်ဖွင့်ရန်';
+
+  @override
+  String get incidentRetryDetails => 'ဖြစ်ရပ်ကို ပြန်ဖွင့်ရန်';
+
+  @override
+  String get incidentEmpty => 'ပြသရန် ဖြစ်ရပ် မရှိပါ။';
+
+  @override
+  String get incidentPrevious => 'ယခင်';
+
+  @override
+  String get incidentNext => 'နောက်တစ်ခု';
+
+  @override
+  String get incidentSubmitted => 'ဖြစ်ရပ် တိုင်ကြားပြီးပါပြီ။';
+
+  @override
+  String get incidentReviewNote => 'သုံးသပ်ချက် မှတ်စု';
+
+  @override
+  String get incidentPhotoUnavailable => 'ဓာတ်ပုံ မရရှိနိုင်ပါ';
+
+  @override
+  String get incidentPhoto => 'ဖြစ်ရပ် ဓာတ်ပုံ';
+
+  @override
+  String get incidentPickerError => 'ဓာတ်ပုံ ရွေးချယ်ရန် ဖွင့်၍မရပါ။';
+
+  @override
+  String get incidentSubmitError =>
+      'ဖြစ်ရပ် တိုင်ကြား၍မရပါ။ ချိတ်ဆက်မှု စစ်ဆေးပြီး ထပ်မံ ကြိုးစားပါ။';
+
+  @override
+  String get incidentEventTime => 'ဖြစ်ရပ် အချိန်';
+
+  @override
+  String get incidentCategory => 'အမျိုးအစား';
+
+  @override
+  String get incidentDescription => 'ဖော်ပြချက်';
+
+  @override
+  String get incidentDescriptionRequired => 'ဖော်ပြချက် ထည့်ပါ။';
+
+  @override
+  String get incidentRemovePhoto => 'ဓာတ်ပုံ ဖယ်ရှားရန်';
+
+  @override
+  String get incidentAddPhotos => 'ဓာတ်ပုံများ ထည့်ရန်';
+
+  @override
+  String get incidentSubmitting => 'ပေးပို့နေသည်…';
+
+  @override
+  String get incidentSubmit => 'ဖြစ်ရပ် ပေးပို့ရန်';
 }

@@ -154,6 +154,27 @@ The PATCH returns HTTP 202 (accepted). The deployment runs asynchronously.
 
 ## Step 4 — Wait and Verify
 
+### Check database migration headroom
+
+Deploy schema changes through the repository SQL migrations. Avoid schema push against production. PostgreSQL retains attribute slots for dropped columns, so repeated add and drop cycles can exhaust the table limit even when few columns are visible.
+
+Use this read-only query before a schema change if a table has a history of repeated DDL:
+
+```sql
+SELECT n.nspname AS schema_name, c.relname AS table_name,
+       MAX(a.attnum) AS highest_attribute_slot,
+       COUNT(*) FILTER (WHERE a.attisdropped) AS dropped_slots,
+       COUNT(*) FILTER (WHERE NOT a.attisdropped) AS live_columns
+FROM pg_attribute a
+JOIN pg_class c ON c.oid = a.attrelid
+JOIN pg_namespace n ON n.oid = c.relnamespace
+WHERE n.nspname = 'public' AND c.relkind IN ('r', 'p') AND a.attnum > 0
+GROUP BY n.nspname, c.relname
+ORDER BY highest_attribute_slot DESC;
+```
+
+The startup runner replays migration files. When a migration retires a column, guard the earlier creation step so replay cannot recreate it on subsequent boots. This prevents future slot consumption. Existing dropped slots remain allocated.
+
 ### Check revision status
 
 ```bash
@@ -164,7 +185,7 @@ az containerapp revision list \
   --output table
 ```
 
-Wait for `Running` state. Typical startup: 30-60 seconds.
+Wait for the **intended revision and image** to reach `Running` and confirm that revision is serving traffic. A healthy public endpoint can still be served by a previous revision while the latest one fails startup.
 
 ### Check health endpoints
 
