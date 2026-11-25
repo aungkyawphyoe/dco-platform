@@ -24,7 +24,7 @@ If this file and a source disagree, the source wins and this file must be update
 | HTTP shapes | [`architecture/openapi.yaml`](../architecture/openapi.yaml) (index: [`architecture/api.md`](../architecture/api.md)) |
 | Navigation IA | [`docs/app-shell.md`](../docs/app-shell.md) |
 | Theme rules | [`docs/design-system.md`](../docs/design-system.md) |
-| Token values | [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.json) + [`docs/theme/garage-minimal-light.json`](../docs/theme/garage-minimal-light.json) (generated via `node tools/generate-theme.mjs`) |
+| Token values | [Theme sources](../docs/theme/README.md) |
 | Stack | [`docs/technical-principles.md`](../docs/technical-principles.md) |
 | Env / secrets | [`docs/environment-secrets.md`](../docs/environment-secrets.md) |
 | Build order | [`docs/implementation-readiness.md`](../docs/implementation-readiness.md) |
@@ -55,7 +55,7 @@ Debug builds default `DCO_MOCK_AUTH=true` so auth screens work before the API ex
 
 | Role | Choice |
 |------|--------|
-| UI | Flutter. Material 3 seeded **only** from Garage Minimal Dark. No default purple. |
+| UI | Flutter. Material 3 with ASCII Garage light and dark colors. |
 | State | Riverpod (`flutter_riverpod` + `riverpod_annotation` / `riverpod_generator`) |
 | Routing | GoRouter with `StatefulShellRoute` for the four tabs |
 | Local DB | Drift / SQLite |
@@ -285,7 +285,7 @@ Empty garage: Dashboard is still the default route. Maintenance, Expenses, and D
 **Cards are elevated, never outlined (approved 21 October 2026).** Every new or redesigned mobile feature must use `DcoCard` (`core/widgets/dco_card.dart`) or an equivalent surface with `background.card`, rounded theme corners, and `tokens.shadows.card` (or `elevated` for the main featured card). Do not add a permanent `Border.all`/`BorderSide` to a card. Selection uses fill, a check/radio icon, and shadow—not an outline. Input borders, dividers, and accessible keyboard-focus rings remain separate control treatments. Standard Flutter `Card` inherits the elevated app theme. Check light and dark modes, Burmese/English, and narrow screens before delivery.
 
 
-Map [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.json) and [`docs/theme/garage-minimal-light.json`](../docs/theme/garage-minimal-light.json) 1:1 into `ColorScheme` + `ThemeExtension<DcoTokens>` (status, radius, space). Values are generated into `dco_tokens.g.dart` by `tools/generate-theme.mjs` — edit the JSON and regenerate, never the `.g.dart`. Both modes ship; `buildDcoTheme(Brightness)` builds them and Settings → Appearance (Light / Dark / System, default System) selects the mode.
+Use the ASCII Garage JSON pair for colors, spacing, and motion. Flutter corner sizes come from `mobile.radius` in the same pair. Edit the source JSON and run `node tools/generate-theme.mjs` to update `dco_tokens.g.dart`. `buildDcoTheme(Brightness)` maps the tokens into `ColorScheme` and `ThemeExtension<DcoTokens>`. Settings → Appearance selects Light, Dark, or System. System is the default.
 
 `ThemeData`:
 
@@ -296,9 +296,9 @@ Map [`docs/theme/garage-minimal-dark.json`](../docs/theme/garage-minimal-dark.js
 - `colorScheme.error` → `status.danger.fg`
 - `navigationBarTheme` icons → `icon.active` / `icon.inactive`
 
-**Gold (`#FECA1F`) allowed:** primary button, active icon, focus ring, selected vehicle chip, text links.
+Use amber `#FFA31A` for primary fills and dark-mode accents. Use deep amber `#965100` for light-mode accent text, icons, and focus rings.
 
-**Gold not allowed:** screen backgrounds, overdue badges, chart-only decoration, large hero blocks.
+Use separate semantic colors for overdue badges and chart categories.
 
 Overdue = `status.danger` / `feedback.overdue`. Due-soon = `status.warning` / `feedback.dueSoon`. Do not convey overdue by color alone — keep the word "Overdue" / an icon.
 

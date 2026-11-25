@@ -94,7 +94,7 @@ void main() {
               ).overrideWith((ref) => Stream.value([])),
             ],
             child: MaterialApp(
-              theme: ThemeData(extensions: [DcoTokens.garageMinimalLight]),
+              theme: ThemeData(extensions: [DcoTokens.asciiGarageLight]),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
               supportedLocales: AppLocalizations.supportedLocales,
               locale: const Locale('en'),

@@ -3,10 +3,9 @@
   "version": "1.0",
   "mode": "light",
   "platforms": [
-    "mobile",
     "web"
   ],
-  "description": "Day-garage surfaces, brass-bay accent. Same tokens for Flutter and the admin web portal. Pure white cards on a cool gray page; gold kept as fill, darkened to deep brass for text/lines on white (WCAG AA).",
+  "description": "Day-garage surfaces, brass-bay accent. Shared web CSS tokens. Pure white cards on a cool gray page; gold kept as fill, darkened to deep brass for text/lines on white (WCAG AA).",
   "background": {
     "primary": "#F4F6F8",
     "secondary": "#EDF0F3",

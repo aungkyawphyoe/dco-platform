@@ -23,7 +23,7 @@ void main() {
     overrides: [vehicleShareRepositoryProvider.overrideWithValue(repo)],
     child: MaterialApp(
       locale: const Locale('en'),
-      theme: ThemeData(extensions: [DcoTokens.garageMinimalLight]),
+      theme: ThemeData(extensions: [DcoTokens.asciiGarageLight]),
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: JoinByCodeScreen(initialCode: initialCode, scanQrCode: scan),

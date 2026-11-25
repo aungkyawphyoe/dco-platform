@@ -2,11 +2,11 @@
 /**
  * Theme token generator.
  *
- * Sources of truth (must have identical token key sets):
- *   docs/theme/garage-minimal-dark.json
- *   docs/theme/garage-minimal-light.json
+ * Sources in docs/theme:
+ *   garage-minimal-{dark,light}.json for CSS
+ *   ascii-garage-{dark,light}.json for Flutter
  *
- * Outputs (all committed; re-run after editing either JSON):
+ * Outputs (all committed. Re-run after editing a source JSON file):
  *   web/src/app/theme-tokens.css
  *   fleet-portal/src/app/theme-tokens.css
  *   site/src/app/theme-tokens.css
@@ -27,6 +27,8 @@ const readTheme = (name) =>
 
 const dark = readTheme("garage-minimal-dark.json");
 const light = readTheme("garage-minimal-light.json");
+const mobileDark = readTheme("ascii-garage-dark.json");
+const mobileLight = readTheme("ascii-garage-light.json");
 
 // ---------------------------------------------------------------- validation
 
@@ -43,39 +45,41 @@ function leafKeys(obj, prefix = "") {
   return out;
 }
 
-const darkKeys = leafKeys(dark);
-const lightKeys = leafKeys(light);
-const missingInLight = darkKeys.filter((k) => !lightKeys.includes(k));
-const extraInLight = lightKeys.filter((k) => !darkKeys.includes(k));
-if (missingInLight.length || extraInLight.length) {
-  console.error("Token key sets differ between dark and light themes.");
-  if (missingInLight.length) console.error("  missing in light:", missingInLight.join(", "));
-  if (extraInLight.length) console.error("  extra in light:", extraInLight.join(", "));
-  process.exit(1);
-}
-
 const HEX_RE = /^#[0-9A-F]{6}([0-9A-F]{2})?$/i;
-const COLORISH = new Set([
-  ...darkKeys.filter((k) => k.includes("background") || k.includes("text") || k.includes("border") ||
-    k.includes("icon") || k.includes("status") || k.includes("feedback") || k.includes("chart") ||
-    k.includes("overlay") || k === "accent" || k === "link" || k === "inverse" ||
-    k.endsWith(".fg") || k.endsWith(".bg") || k.startsWith("button.")),
-]);
 
 function get(obj, path) {
   return path.split(".").reduce((o, k) => (o == null ? o : o[k]), obj);
 }
 
-for (const theme of [dark, light]) {
-  for (const key of darkKeys) {
-    const v = get(theme, key);
-    const isColor = COLORISH.has(key);
-    if (isColor && v !== "transparent" && !HEX_RE.test(String(v))) {
-      console.error(`Bad color in ${theme.themeName}: ${key} = ${v}`);
-      process.exit(1);
+function validatePair(darkTheme, lightTheme) {
+  const darkKeys = leafKeys(darkTheme);
+  const lightKeys = leafKeys(lightTheme);
+  const missingInLight = darkKeys.filter((k) => !lightKeys.includes(k));
+  const extraInLight = lightKeys.filter((k) => !darkKeys.includes(k));
+  if (missingInLight.length || extraInLight.length) {
+    console.error(`Token key sets differ between ${darkTheme.themeName} and ${lightTheme.themeName}.`);
+    if (missingInLight.length) console.error("  missing in light:", missingInLight.join(", "));
+    if (extraInLight.length) console.error("  extra in light:", extraInLight.join(", "));
+    process.exit(1);
+  }
+
+  const colorKeys = darkKeys.filter((k) =>
+    /^(background|text|border|icon|status|feedback|chart|input|button)\./.test(k)
+  );
+  for (const theme of [darkTheme, lightTheme]) {
+    for (const key of colorKeys) {
+      const value = get(theme, key);
+      if (value !== "transparent" && !HEX_RE.test(String(value))) {
+        console.error(`Bad color in ${theme.themeName}: ${key} = ${value}`);
+        process.exit(1);
+      }
     }
   }
+  console.log(`validated ${darkKeys.length} token leaves per mode for ${darkTheme.themeName}`);
 }
+
+validatePair(dark, light);
+validatePair(mobileDark, mobileLight);
 
 // ------------------------------------------------------------------ CSS out
 
@@ -210,7 +214,13 @@ const hexToDart = (hex) => {
   return `Color(0xFF${h})`;
 };
 
-const color = (theme, path) => hexToDart(String(get(theme, path)));
+function color(theme, path) {
+  const value = get(theme, path);
+  if (value !== "transparent" && !HEX_RE.test(String(value))) {
+    throw new Error(`Bad color in ${theme.themeName}: ${path} = ${value}`);
+  }
+  return hexToDart(value);
+}
 const number = (theme, path) => String(get(theme, path));
 
 function dcoBackground(t) {
@@ -339,7 +349,7 @@ function dcoChart(t) {
 
 function dcoRadius(t) {
   const keys = ["sm", "md", "lg", "xl", "full"];
-  return `DcoRadius(${keys.map((k) => `${k}: ${number(t, `radius.${k}`)}`).join(", ")})`;
+  return `DcoRadius(${keys.map((k) => `${k}: ${number(t, `mobile.radius.${k}`)}`).join(", ")})`;
 }
 
 function dcoSpace(t) {
@@ -381,7 +391,7 @@ const dartShadows = `const DcoShadows _dcoShadows = DcoShadows(
 );`;
 
 function dcoTokensConst(t) {
-  return `static const garageMinimal${t.mode === "dark" ? "Dark" : "Light"} = DcoTokens(
+  return `static const asciiGarage${t.mode === "dark" ? "Dark" : "Light"} = DcoTokens(
     background: ${dcoBackground(t)},
     text: ${dcoText(t)},
     button: ${dcoButtons(t)},
@@ -399,7 +409,7 @@ function dcoTokensConst(t) {
 }
 
 const dart = `// AUTO-GENERATED by tools/generate-theme.mjs — DO NOT EDIT.
-// Sources: docs/theme/garage-minimal-dark.json + garage-minimal-light.json
+// Sources: docs/theme/ascii-garage-{dark,light}.json
 // Rules: docs/design-system.md. If a screen needs a new color, add it there first.
 part of 'dco_tokens.dart';
 
@@ -408,9 +418,9 @@ ${dartShadows}
 class DcoTokenValues {
   DcoTokenValues._();
 
-${dcoTokensConst(dark)}
+${dcoTokensConst(mobileDark)}
 
-${dcoTokensConst(light)}
+${dcoTokensConst(mobileLight)}
 }
 `;
 
@@ -427,4 +437,3 @@ for (const [rel, content] of outputs) {
   writeFileSync(join(repoRoot, rel), content);
   console.log("wrote", rel);
 }
-console.log(`validated ${darkKeys.length} token leaves per mode`);

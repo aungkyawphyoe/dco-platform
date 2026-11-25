@@ -50,7 +50,7 @@ void main() {
           vehicleSharesProvider('v').overrideWith((ref) async => detail),
         ],
         child: MaterialApp(
-          theme: ThemeData(extensions: [DcoTokens.garageMinimalLight]),
+          theme: ThemeData(extensions: [DcoTokens.asciiGarageLight]),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: const ShareManagementScreen(vehicleId: 'v'),

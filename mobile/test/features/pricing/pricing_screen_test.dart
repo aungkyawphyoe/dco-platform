@@ -153,8 +153,8 @@ void main() {
     );
     addTearDown(router.dispose);
     final t = lang == 'en'
-        ? DcoTokens.garageMinimalDark
-        : DcoTokens.garageMinimalLight;
+        ? DcoTokens.asciiGarageDark
+        : DcoTokens.asciiGarageLight;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [

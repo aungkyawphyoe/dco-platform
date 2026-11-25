@@ -8,7 +8,7 @@
     "web",
     "fleet-portal"
   ],
-  "description": "Reference for the active ASCII Garage marketing site and future module migrations. Shared generator remains on Garage Minimal.",
+  "description": "Mobile color tokens and marketing palette reference.",
   "background": {
     "primary": "#000000",
     "secondary": "#101010",
@@ -124,6 +124,15 @@
     "xl": 0,
     "full": 999
   },
+  "mobile": {
+    "radius": {
+      "sm": 4,
+      "md": 8,
+      "lg": 12,
+      "xl": 16,
+      "full": 999
+    }
+  },
   "space": {
     "1": 4,
     "2": 8,
@@ -186,13 +195,13 @@
     "respectReducedMotion": true
   },
   "usageNotes": {
-    "activation": "Active site palette through marketing-tokens.css. Other modules still use generated Garage Minimal tokens.",
+    "activation": "Flutter tokens are generated from this pair. The marketing site uses marketing-tokens.css.",
     "text.accent": "Exact amber for dark surfaces; deep amber for readable small text and links on light surfaces. Use black labels on amber fills.",
     "border.default": "Functional input/control boundaries; subtle/divider values are decorative separators.",
-    "status.warning vs text.accent": "Retain semantic status and chart colors from the active Garage Minimal theme; amber is brand, not an overdue signal.",
+    "status.warning vs text.accent": "Use distinct colors for semantic states and chart categories.",
     "marketing": "Marketing-only footer, grid, hero and reveal values. Do not apply 700ms reveals or the hero renderer to everyday product workflows.",
-    "radius": "Square component geometry. Review touch targets, dialogs, avatars and current platform-specific card requirements before a mobile/portal migration.",
-    "migration": "New pair has identical keys and extends the existing token schema with marketing values. Generator still selects garage-minimal by filename; adopting this pair needs an explicit generator/mapping change and platform QA.",
+    "radius": "The site uses square corners. Flutter uses mobile.radius.",
+    "migration": "The generator uses this pair for Flutter. Portal CSS uses its own JSON pair.",
     "typography": "Plex Sans headings/body, Plex Mono artwork. Preserve Myanmar-capable fallback and locale-specific leading."
   },
   "marketing": {

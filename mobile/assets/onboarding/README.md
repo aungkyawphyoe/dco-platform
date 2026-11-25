@@ -27,4 +27,3 @@ One illustration per introduction screen, in order:
 - Supplied for the October 2026 onboarding revamp (10 October 2026); internal product asset,
   no third-party stock-license dependency.
 - The embedded PNG carries C2PA content credentials (manifest `urn:c2pa:abd2575b-0243-45ba-bfa4-e6a5a26535cf`).
-- Palette matches the Garage Minimal tokens (navy `#123`-family, gold `#FECA1F`, light greys).

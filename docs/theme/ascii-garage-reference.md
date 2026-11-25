@@ -1,15 +1,19 @@
 # ASCII Garage implementation reference
 
-The marketing site is the reference implementation. Admin, fleet portal and mobile retain their existing theme until each module has its own migration.
+The marketing site is the reference for ASCII Garage. Mobile uses the palette with its existing Flutter widgets. Admin and fleet portal use Garage Minimal.
 
 ## Sources and ownership
 
-- `ascii-garage-dark.json` and `ascii-garage-light.json` describe the palette and proposed semantic mappings.
+- `ascii-garage-dark.json` and `ascii-garage-light.json` define the mobile colors and describe the marketing palette.
 - `site/src/app/marketing-tokens.css` contains the active site palette. It overrides generated base tokens only within `.marketing-site`.
 - `site/src/app/marketing-theme.css` owns site geometry, typography, responsive layouts and amber feature bands.
 - `site/src/components/marketing` holds the current section, screenshot, navigation and ASCII components. `art/` contains deterministic text scenes selected by the typed `GarageArt` registry.
 
-## Visual rules
+## Mobile colors
+
+`node tools/generate-theme.mjs` takes Flutter colors, spacing, and motion from the ASCII Garage pair. Flutter corner sizes come from `mobile.radius` in the same pair. Card shadows are defined in the generator.
+
+## Marketing visual rules
 
 Use IBM Plex Sans for headings, body and controls; use IBM Plex Mono for section labels and artwork. Keep locale fallbacks and Myanmar line-height rules. Headings use weight 600 and tight English leading. Use `HighlightedTitle` with dictionary `titleHighlight` or `headingHighlight` values to color a phrase without a background rectangle.
 
@@ -40,4 +44,4 @@ The current design has one marketing palette, one layout stylesheet and one ASCI
 
 The palette extraction preserves values and cascade order. Existing route text is the refactor baseline. Download corrections are intentional behavior changes: configured stores appear separately, absent stores are hidden, and pricing falls back to Personal when Play Store is unavailable. Docker builds now accept both store URLs at build time. See [deployment configuration](../deployment.md#marketing-store-links).
 
-This reference does not certify production configuration or migrate the other applications. Confirm the production build receives the intended store URLs before deployment.
+Confirm the production build receives the intended store URLs before deployment.

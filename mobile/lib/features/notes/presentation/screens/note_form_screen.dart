@@ -117,6 +117,7 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
     }
     ref.read(analyticsProvider).track(AnalyticsEvent.noteDeleted);
     if (!mounted) return;
+    final undoColor = context.tokens.text.accent;
     context.pop();
     messenger.showSnackBar(
       SnackBar(
@@ -124,7 +125,7 @@ class _NoteFormScreenState extends ConsumerState<NoteFormScreen> {
         duration: const Duration(seconds: 1),
         action: SnackBarAction(
           label: s.noteUndo,
-          textColor: DcoTokens.garageMinimalDark.text.primary,
+          textColor: undoColor,
           onPressed: () {
             repo.restore(note);
           },

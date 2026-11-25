@@ -22,8 +22,8 @@ class DcoSystemUi extends StatelessWidget {
       ThemeMode.light => false,
     };
     final tokens = isDark
-        ? DcoTokens.garageMinimalDark
-        : DcoTokens.garageMinimalLight;
+        ? DcoTokens.asciiGarageDark
+        : DcoTokens.asciiGarageLight;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,

@@ -3,10 +3,9 @@
   "version": "1.1",
   "mode": "dark",
   "platforms": [
-    "mobile",
     "web"
   ],
-  "description": "Night-garage surfaces, brass-bay accent. Same tokens for Flutter and the admin web portal.",
+  "description": "Night-garage surfaces, brass-bay accent. Shared web CSS tokens.",
   "background": {
     "primary": "#101B22",
     "secondary": "#1A2832",

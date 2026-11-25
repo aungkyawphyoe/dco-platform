@@ -2,9 +2,8 @@ import 'package:flutter/material.dart';
 
 part 'dco_tokens.g.dart';
 
-/// 1:1 map of `docs/theme/garage-minimal-{dark,light}.json` (generated values in
-/// `dco_tokens.g.dart`; run `node tools/generate-theme.mjs` after editing them).
-/// If a screen needs a new color, add it there first — no one-off hex in widgets.
+/// ASCII Garage tokens for Flutter.
+/// Run `node tools/generate-theme.mjs` after editing the JSON sources.
 @immutable
 class DcoTokens extends ThemeExtension<DcoTokens> {
   const DcoTokens({
@@ -37,11 +36,9 @@ class DcoTokens extends ThemeExtension<DcoTokens> {
   final DcoMotion motion;
   final DcoShadows shadows;
 
-  /// Values generated from `docs/theme/garage-minimal-dark.json`.
-  static const garageMinimalDark = DcoTokenValues.garageMinimalDark;
+  static const asciiGarageDark = DcoTokenValues.asciiGarageDark;
 
-  /// Values generated from `docs/theme/garage-minimal-light.json`.
-  static const garageMinimalLight = DcoTokenValues.garageMinimalLight;
+  static const asciiGarageLight = DcoTokenValues.asciiGarageLight;
 
   @override
   DcoTokens copyWith({

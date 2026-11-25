@@ -4,12 +4,11 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'dco_tokens.dart';
 
-/// Builds the app theme for [brightness] from the generated token set of the
-/// matching mode (`garage-minimal-dark.json` / `garage-minimal-light.json`).
+/// Builds the app theme for [brightness] from the matching generated token set.
 ThemeData buildDcoTheme(Brightness brightness) {
   final tokens = brightness == Brightness.dark
-      ? DcoTokens.garageMinimalDark
-      : DcoTokens.garageMinimalLight;
+      ? DcoTokens.asciiGarageDark
+      : DcoTokens.asciiGarageLight;
   final scheme = brightness == Brightness.dark
       ? ColorScheme.dark(
           primary: tokens.text.accent,
@@ -54,6 +53,14 @@ ThemeData buildDcoTheme(Brightness brightness) {
     cardColor: tokens.background.card,
     dividerColor: tokens.border.divider,
     extensions: [tokens],
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: tokens.button.primary.background,
+        foregroundColor: tokens.button.primary.text,
+        disabledBackgroundColor: tokens.button.primary.backgroundDisabled,
+        disabledForegroundColor: tokens.button.primary.textDisabled,
+      ),
+    ),
     cardTheme: CardThemeData(
       color: tokens.background.card,
       elevation: 2,
