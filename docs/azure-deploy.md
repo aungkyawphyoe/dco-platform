@@ -2,6 +2,17 @@
 
 Step-by-step guide for deploying the AutoX backend API to Azure Container Apps. Use this when `azd deploy` is unavailable or when you need fine-grained control over the deployment.
 
+> **Operational change: migrations are not applied at startup.**
+>
+> Every backend deploy must apply migrations first, with the administrator credential (`database-url`), before deploying the image. The API runs as `dco_app`, which has DML rights only (`DB_MIGRATE_ON_START=off`). A build that expects new schema without a prior migration fails at query time, not at boot — the revision still reports healthy. See [Step 2.5](#step-25--apply-migrations-out-of-band) and the [database boundary](security-database-boundary.md).
+
+```bash
+cd backend
+ADMIN_DATABASE_URL=$(az containerapp secret show --name dco-api-24739 --resource-group dco-rg \
+  --secret-name database-url --query value -o tsv)
+DATABASE_URL="$ADMIN_DATABASE_URL" npm run db:migrate:compiled
+```
+
 ---
 
 ## Prerequisites
@@ -70,6 +81,24 @@ Confirm the digest is present and the timestamp is recent.
 
 ---
 
+## Step 2.5 — Apply migrations (out of band)
+
+Production runs the API with `DB_MIGRATE_ON_START=off`, so the API process never issues DDL. Apply schema changes before deploying the image that needs them, using the administrator credential (`database-url`), never the runtime credential (`database-url-app`).
+
+```bash
+cd backend
+# ADMIN_DATABASE_URL is the `database-url` secret value.
+ADMIN_DATABASE_URL=$(az containerapp secret show --name dco-api-24739 --resource-group dco-rg \
+  --secret-name database-url --query value -o tsv)
+DATABASE_URL="$ADMIN_DATABASE_URL" npm run db:migrate:compiled
+```
+
+The runner replays every file in `drizzle/` and is replay-safe. Run it from a machine the PostgreSQL firewall permits, or from a Container Apps job inside Azure.
+
+Migrations run as `dcoadmin`, so new tables stay reachable by the runtime role: `infra/sql/app-role.sql` sets `ALTER DEFAULT PRIVILEGES FOR ROLE dcoadmin`, and re-running it is safe.
+
+---
+
 ## Step 3 — Deploy to Container Apps
 
 Use the **REST API PATCH** method. This is the only reliable way to update secrets + env vars + image in a single operation. The `az containerapp update` and `az containerapp ingress traffic set` CLIs strip secrets.
@@ -91,7 +120,8 @@ curl -s -X PATCH "https://management.azure.com${RESOURCE_ID}?api-version=2024-03
           "allowInsecure": false
         },
         "secrets": [
-          {"name": "database-url", "value": "<DATABASE_URL>"},
+          {"name": "database-url", "value": "<ADMIN_DATABASE_URL>"},
+          {"name": "database-url-app", "value": "<RUNTIME_DATABASE_URL>"},
           {"name": "jwt-access-secret", "value": "<JWT_ACCESS_SECRET>"},
           {"name": "jwt-refresh-secret", "value": "<JWT_REFRESH_SECRET>"},
           {"name": "media-signing-key", "value": "<MEDIA_SIGNING_KEY>"}
@@ -120,7 +150,8 @@ curl -s -X PATCH "https://management.azure.com${RESOURCE_ID}?api-version=2024-03
               {"name": "MAIL_PROVIDER", "value": "stdout"},
               {"name": "MAIL_FROM", "value": "noreply@localhost"},
               {"name": "MEDIA_DRIVER", "value": "local"},
-              {"name": "DATABASE_URL", "secretRef": "database-url"},
+              {"name": "DATABASE_URL", "secretRef": "database-url-app"},
+              {"name": "DB_MIGRATE_ON_START", "value": "off"},
               {"name": "JWT_ACCESS_SECRET", "secretRef": "jwt-access-secret"},
               {"name": "JWT_REFRESH_SECRET", "secretRef": "jwt-refresh-secret"},
               {"name": "MEDIA_SIGNING_KEY", "secretRef": "media-signing-key"},
@@ -140,7 +171,8 @@ curl -s -X PATCH "https://management.azure.com${RESOURCE_ID}?api-version=2024-03
 **Replace these placeholders:**
 - `<TAG>` — Docker image tag (e.g. `v1.4.0`)
 - `<REVISION_SUFFIX>` — Unique revision name (e.g. `v143`). Increment from the latest.
-- `<DATABASE_URL>` — Full Postgres connection string with `?sslmode=require`
+- `<ADMIN_DATABASE_URL>` — Full Postgres connection string for `dcoadmin` with `?sslmode=require` (migrations only)
+- `<RUNTIME_DATABASE_URL>` — Full Postgres connection string for `dco_app` with `?sslmode=require` (API runtime)
 - `<JWT_ACCESS_SECRET>` — 64-char hex string
 - `<JWT_REFRESH_SECRET>` — 64-char hex string
 - `<MEDIA_SIGNING_KEY>` — Min 8 chars (can reuse access secret)
@@ -210,6 +242,22 @@ az monitor log-analytics query -w "$WORKSPACE_ID" \
 
 You should see `[STARTUP]` messages and `Server listening at` in the logs.
 
+### Verify the runtime database role
+
+The API must connect as `dco_app` (DML only), never as `dcoadmin`. Confirm from the server side after a request has been served:
+
+```bash
+# ADMIN_DATABASE_URL is the `database-url` secret value.
+psql "$ADMIN_DATABASE_URL" -c "SELECT usename, count(*) FROM pg_stat_activity GROUP BY 1 ORDER BY 1;"
+```
+
+`dco_app` should own the API's connections. Then confirm the boundary holds:
+
+```bash
+psql "$RUNTIME_DATABASE_URL" -c "SELECT count(*) AS tables_missing_dml FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace WHERE n.nspname='public' AND c.relkind='r' AND NOT (has_table_privilege('dco_app', c.oid, 'SELECT') AND has_table_privilege('dco_app', c.oid, 'INSERT') AND has_table_privilege('dco_app', c.oid, 'UPDATE') AND has_table_privilege('dco_app', c.oid, 'DELETE'));"
+psql "$RUNTIME_DATABASE_URL" -c "ALTER TABLE users ADD COLUMN should_fail integer;"   # expect: must be owner of table users
+```
+
 ---
 
 ## Step 5 — Verify the New Endpoint
@@ -259,7 +307,7 @@ Should be 17. If 0, the secrets/envs were stripped — redeploy with PATCH.
 ### Health probe failing
 
 If the container runs but never passes readiness, check:
-1. Database connection: the init SQL runs on every startup. If the DB is down or unreachable, startup hangs.
+1. Database connection: with `DB_MIGRATE_ON_START=off` the API does not issue DDL at startup. If the DB is down or unreachable, startup still hangs. Schema drift shows up as a runtime query error, not a boot failure — apply migrations first (Step 2.5).
 2. Memory: the container has 1Gi. If the process exceeds this, it gets OOM-killed.
 3. Probe timing: readiness fires after 10s. If startup takes longer, increase `initialDelaySeconds`.
 
@@ -280,7 +328,8 @@ These are the current production secret values. **Rotate if exposed.**
 
 | Secret | Value |
 |--------|-------|
-| `database-url` | `postgres://dcoadmin:<PG_PASSWORD>@dco-pg-24739.postgres.database.azure.com:5432/dco?sslmode=require` |
+| `database-url` | `postgres://dcoadmin:<PG_PASSWORD>@dco-pg-24739.postgres.database.azure.com:5432/dco?sslmode=require` — **migrations only** |
+| `database-url-app` | `postgres://dco_app:<APP_PASSWORD>@dco-pg-24739.postgres.database.azure.com:5432/dco?sslmode=require` — API runtime, DML only |
 | `jwt-access-secret` | 64-char hex |
 | `jwt-refresh-secret` | 64-char hex |
 | `media-signing-key` | Min 8 chars (can match access secret) |
@@ -294,3 +343,4 @@ These are the current production secret values. **Rotate if exposed.**
 3. **Do not use REST API PUT** — Also strips secrets. Only PATCH works correctly.
 4. **Do not skip the `revisionSuffix`** — Without it, you may not get a new revision.
 5. **Do not forget the `DEPLOY_TS` env var** — It forces a new revision even if nothing else changed.
+6. **Do not deploy backend changes without running migrations first** — The API no longer migrates at startup. Apply migrations with the `database-url` (administrator) credential, then deploy the image. Skipping this leaves the revision healthy while queries fail at runtime.

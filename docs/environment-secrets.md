@@ -25,6 +25,7 @@ Placeholders only. Store in Key Vault (Azure) or a local ignored `.env` (`chmod 
 |----------|-------------|--------|
 | `APP_ENV` | API | `local` \| `dev` \| `stage` \| `prod` |
 | `DATABASE_URL` | API | Connection string. Local may be Docker Postgres. |
+| `DB_MIGRATE_ON_START` | API | Defaults to `on`. Set to `off` when a separate deployment step runs migrations with its own database role. |
 | `JWT_ACCESS_SECRET` | API | Signs owner, Fleet, workshop, and admin access tokens. Rotate by minting a new key and dual-verifying for one TTL. |
 | `JWT_REFRESH_SECRET` | API | Separate from access secret. |
 | `JWT_ACCESS_TTL` | API | Draft: `15m` |

@@ -227,6 +227,10 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
             { name: 'AZURE_BLOB_CONTAINER', value: blobContainer }
             { name: 'APPLICATIONINSIGHTS_CONNECTION_STRING', value: appInsights.properties.ConnectionString }
             { name: 'DATABASE_URL', secretRef: 'database-url' }
+            // Schema changes are applied out of band (npm run db:migrate:compiled).
+            // Keep this off so a redeploy cannot revert the runtime role boundary
+            // into a crash loop. See docs/security-database-boundary.md.
+            { name: 'DB_MIGRATE_ON_START', value: 'off' }
             { name: 'JWT_ACCESS_SECRET', secretRef: 'jwt-access-secret' }
             { name: 'JWT_REFRESH_SECRET', secretRef: 'jwt-refresh-secret' }
             { name: 'MEDIA_SIGNING_KEY', secretRef: 'media-signing-key' }

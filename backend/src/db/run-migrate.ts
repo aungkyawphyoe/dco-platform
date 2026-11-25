@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { loadEnv } from "../config/env.js";
+import { databaseUrlSchema } from "../config/env.js";
 import { createPgDb } from "./client.js";
 
 function loadLocalEnv() {
@@ -16,7 +16,6 @@ function loadLocalEnv() {
 }
 
 loadLocalEnv();
-const env = loadEnv();
-const { pool } = await createPgDb(env.DATABASE_URL);
+const { pool } = await createPgDb(databaseUrlSchema.parse(process.env.DATABASE_URL));
 await pool.end();
 console.log("migrations applied");

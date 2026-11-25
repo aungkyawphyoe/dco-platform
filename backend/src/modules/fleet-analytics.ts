@@ -80,11 +80,11 @@ export const fleetAnalyticsPlugin: FastifyPluginAsync = async app => {
         WHERE r.payload->>'ownership_period_id' IS NULL
       ) legacy ON true
       WHERE r.org_id=${id} AND ${vehicleScope}
-      AND (COALESCE((r.payload->>'ownership_period_id')::uuid, legacy.period_id) IS NULL OR EXISTS (
+      AND EXISTS (
         SELECT 1 FROM vehicle_ownership_periods p
         WHERE p.id = COALESCE((r.payload->>'ownership_period_id')::uuid, legacy.period_id)
           AND p.vehicle_id = r.vehicle_id AND p.org_id = r.org_id
-      ))
+      )
       AND ${expenseExport && q.kind === 'expenses'
         ? sql`(r.kind <> 'expense_deleted' OR NOT EXISTS (
           SELECT 1 FROM analytics_records live

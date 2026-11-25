@@ -24,7 +24,7 @@ Currency missing returns 409; invalid filters return 422. Missing measurement da
 
 Migration `0022_fleet_analytics.sql` adds durable organization tenure and record snapshots. Database triggers cover every existing expense/service/fuel writer, including approved reviews and work-order completion. Pending and rejected reviews are not ledger entries. Organization costs use only expenses, so linked fuel/service costs are not counted twice.
 
-Migration 0022 seeded legacy snapshots once using the recorded organization acquisition date. Migration 0050 attributes new rows, corrections, and deletion markers to the source record’s ownership period. It leaves earlier snapshots in place and excludes any snapshot whose recorded period or surviving source attribution contradicts its organization or vehicle. Historical transfers without captured attribution are reported as unavailable. The baseline marker prevents subsequent application startups from importing later owners' records. Migration replay is tested.
+Migration 0022 seeded legacy snapshots once using the recorded organization acquisition date. Migration 0050 attributes new rows, corrections, and deletion markers to the source record’s ownership period. Reports, itemized records, and CSV exports require a stored or surviving source ownership period that matches both the snapshot’s organization and vehicle. Snapshots without that evidence stay in storage for reconciliation and are excluded from reports. Historical transfers without captured attribution are reported as unavailable. The baseline marker prevents subsequent application startups from importing later owners' records. Migration replay is tested.
 
 When an organization link is removed, its tenure closes and vehicle metadata freezes. Writes in a later ownership period cannot change the former organization’s snapshots. Corrections and deletions of older source records update only the organization recorded on those sources. Snapshot odometer units remain attached to readings, protecting calculations when the new owner changes vehicle units. Multiple ownership intervals inside one range suppress distance rates rather than bridging time outside the organization. Active vehicle names/status read from the authorized current link; transferred vehicles use their frozen metadata.
 
@@ -47,13 +47,18 @@ Deploy the backend migration/API before the portal and mobile update. Migration 
 
 Expense rows sort by transaction date descending and expense ID ascending. The CSV uses the same category selection as the expense records view and returns identical headers for empty and populated reports. The row's `currency` is the original currency, while `reporting_currency` is organization metadata. A blank original currency or revision indicates that the reporting snapshot lacks that value. Totals, comparisons, and vehicle summaries include only expenses in the fleet currency. Itemized rows outside that currency stay visible with `included_in_total=false`.
 
-The current export includes the snapshot `revision` and `change_status`. A revision above one or a recorded admin correction produces `corrected`. Other existing rows are marked `current`. The CSV includes deletion markers for attributable organization expenses deleted after migration 0050 and any retained markers created under migration 0048. Markers use the original transaction date and expense ID, the last revision plus one, and a `deleted_at` timestamp. They have a blank amount and `included_in_total=false`. Treat each download as a complete replacement for its date, vehicle, active-status, and category selection. A correction can move a record outside the previous selection. Replace the old selection and reload any other affected selection. Standard analytics reports and records exclude deletion markers.
+The current export includes the snapshot `revision` and `change_status`. A revision above one or a recorded admin correction produces `corrected`. Other existing rows are marked `current`. The CSV includes deletion markers with a verified ownership period, including marks captured by migration 0050. Markers use the original transaction date and expense ID, the last revision plus one, and a `deleted_at` timestamp. They have a blank amount and `included_in_total=false`. Treat each download as a complete replacement for its date, vehicle, active-status, and category selection. A correction can move a record outside the previous selection. Replace the old selection and reload any other affected selection. Standard analytics reports and records exclude deletion markers.
 
-Before repairing existing projection rows, use this read-only query to find expense snapshots whose ownership period disagrees with the snapshot or the live source. The query also follows explicit fuel and service links on legacy expenses. Reconcile any flagged legacy mirror before using its historical totals. Rows with no surviving attribution require separate evidence.
+Use this read-only query before repairing projection rows. It finds expense snapshots and deletion markers with missing or conflicting ownership evidence. It also flags legacy expense mirrors that have a linked fuel or service ownership period but lack their own. Verify the attribution before restoring these rows to finance reports.
 
 ```sql
 SELECT r.id, r.kind, r.org_id AS snapshot_org, p.org_id AS source_org,
-       r.vehicle_id AS snapshot_vehicle, p.vehicle_id AS source_vehicle
+       r.vehicle_id AS snapshot_vehicle, p.vehicle_id AS source_vehicle,
+       CASE
+         WHEN evidence.period_id IS NULL THEN 'missing_ownership_period'
+         WHEN p.org_id IS DISTINCT FROM r.org_id OR p.vehicle_id IS DISTINCT FROM r.vehicle_id THEN 'ownership_mismatch'
+         ELSE 'legacy_mirror_needs_review'
+       END AS reason
 FROM analytics_records r
 LEFT JOIN expenses e ON r.kind = 'expense' AND e.id = r.id
 LEFT JOIN fuel_logs f ON e.source_kind = 'fuel_log'
@@ -66,7 +71,7 @@ CROSS JOIN LATERAL (
 ) evidence
 LEFT JOIN vehicle_ownership_periods p ON p.id = evidence.period_id
 WHERE r.kind IN ('expense', 'expense_deleted')
-  AND evidence.period_id IS NOT NULL
-  AND (p.org_id IS DISTINCT FROM r.org_id OR p.vehicle_id IS DISTINCT FROM r.vehicle_id
+  AND (evidence.period_id IS NULL
+       OR p.org_id IS DISTINCT FROM r.org_id OR p.vehicle_id IS DISTINCT FROM r.vehicle_id
        OR (e.ownership_period_id IS NULL AND COALESCE(f.ownership_period_id, s.ownership_period_id) IS NOT NULL));
 ```

@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+export const databaseUrlSchema = z.string().default("postgres://dco:dco@localhost:5432/dco");
+
 const schema = z.object({
   APP_ENV: z.enum(["local", "dev", "stage", "prod"]).default("local"),
   AUTH_TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(3).default(0),
@@ -17,7 +19,8 @@ const schema = z.object({
   PLAY_RTDN_AUDIENCE: z.string().url().optional(),
   PLAY_RTDN_SERVICE_ACCOUNT: z.string().email().optional(),
   PORT: z.coerce.number().default(8080),
-  DATABASE_URL: z.string().default("postgres://dco:dco@localhost:5432/dco"),
+  DATABASE_URL: databaseUrlSchema,
+  DB_MIGRATE_ON_START: z.enum(["on", "off"]).default("on"),
   JWT_ACCESS_SECRET: z.string().min(16),
   JWT_REFRESH_SECRET: z.string().min(16),
   JWT_ACCESS_TTL: z.string().default("15m"),

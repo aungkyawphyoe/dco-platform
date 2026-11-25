@@ -108,7 +108,9 @@ it('displays totals in fleet currency and preserves original tags in records and
     const base=`/v1/organizations/${orgId}/analytics`, query='from=2026-01-01&to=2026-09-30';
     // A retained historical snapshot can differ from the current fleet currency.
     const foreignId=crypto.randomUUID();
-    await client.query(`INSERT INTO analytics_records(org_id,vehicle_id,kind,id,payload) VALUES($1,$2,'expense',$3,$4::jsonb)`,
+    await client.query(`INSERT INTO analytics_records(org_id,vehicle_id,kind,id,payload)
+      SELECT org_id,vehicle_id,'expense',$3,$4::jsonb || jsonb_build_object('ownership_period_id',id)
+      FROM vehicle_ownership_periods WHERE org_id=$1 AND vehicle_id=$2 AND ended_at IS NULL`,
       [orgId,vehicleId,foreignId,JSON.stringify({amount:12.25,currency:'USD',incurred_on:'2026-09-25',category:'parking'})]);
     const report=await app.inject({url:`${base}/report?${query}`,headers});
     expect(report.json().currency).toBe('MMK');
@@ -123,3 +125,38 @@ it('displays totals in fleet currency and preserves original tags in records and
     expect((await app.inject({url:`${base}/settings`,headers})).json()).toEqual(save.json());
   } finally {await app.close();await client.close();}
 },30000);
+
+it('quarantines reporting snapshots without ownership evidence and retains attributable legacy rows', async () => {
+  const { app, client, headers, orgId, vehicleId } = await analyticsFixture();
+  try {
+    const unattributedExpense = crypto.randomUUID();
+    const unattributedDeletion = crypto.randomUUID();
+    const payload = JSON.stringify({ amount: 8000, currency: 'MMK', incurred_on: '2026-09-25', category: 'parking' });
+    const { rows: [legacy] } = await client.query<{ id: string }>(`
+      UPDATE analytics_records SET payload = payload - 'ownership_period_id'
+      WHERE org_id = $1 AND kind = 'expense' AND id = (
+        SELECT id FROM expenses WHERE vehicle_id = $2 AND ownership_period_id IS NOT NULL LIMIT 1
+      ) RETURNING id`, [orgId, vehicleId]);
+    await client.query(`INSERT INTO analytics_records(org_id, vehicle_id, kind, id, payload)
+      VALUES ($1, $2, 'expense', $3, $5::jsonb), ($1, $2, 'expense_deleted', $4, $5::jsonb)`,
+      [orgId, vehicleId, unattributedExpense, unattributedDeletion, payload]);
+
+    const base = `/v1/organizations/${orgId}/analytics`;
+    const query = 'from=2026-01-01&to=2026-09-30';
+    const report = await app.inject({ url: `${base}/report?${query}`, headers });
+    expect(report.statusCode, report.body).toBe(200);
+    expect(report.json().total_cost).toBe(1962000);
+    const records = await app.inject({ url: `${base}/records?${query}`, headers });
+    expect(records.statusCode, records.body).toBe(200);
+    expect(records.json().items).toEqual(expect.arrayContaining([expect.objectContaining({ id: legacy.id })]));
+    expect(records.body).not.toContain(unattributedExpense);
+    const csv = await app.inject({ url: `${base}/export?${query}&kind=expenses`, headers });
+    expect(csv.statusCode, csv.body).toBe(200);
+    expect(csv.body).toContain(legacy.id);
+    expect(csv.body).not.toContain(unattributedExpense);
+    expect(csv.body).not.toContain(unattributedDeletion);
+  } finally {
+    await app.close();
+    await client.close();
+  }
+}, 30000);

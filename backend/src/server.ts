@@ -1,7 +1,7 @@
 process.stderr.write("[BOOT] imports starting\n");
 import { existsSync, readFileSync } from "node:fs";
 import { loadEnv } from "./config/env.js";
-import { createPgDb } from "./db/client.js";
+import { connectPgDb, createPgDb } from "./db/client.js";
 import { bootstrapAdmin } from "./lib/bootstrap.js";
 import { createMailer } from "./lib/mail.js";
 import { createMediaStore } from "./lib/media.js";
@@ -16,7 +16,9 @@ async function main() {
   console.error("[STARTUP] Loading env...");
   const env = loadEnv();
   console.error("[STARTUP] Connecting to DB...");
-  const { db, pool } = await createPgDb(env.DATABASE_URL);
+  const { db, pool } = env.DB_MIGRATE_ON_START === "on"
+    ? await createPgDb(env.DATABASE_URL)
+    : connectPgDb(env.DATABASE_URL);
   console.error("[STARTUP] Bootstrapping admin...");
   await bootstrapAdmin(db, env);
   console.error("[STARTUP] Building app...");

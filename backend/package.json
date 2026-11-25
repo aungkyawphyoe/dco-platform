@@ -14,6 +14,7 @@
     "test:watch": "vitest",
     "test:portal-auth": "PORTAL=web vitest run --config portal-auth.config.ts && PORTAL=fleet-portal vitest run --config portal-auth.config.ts",
     "db:migrate": "tsx src/db/run-migrate.ts",
+    "db:migrate:compiled": "node dist/db/run-migrate.js",
     "seed:org": "tsx src/scripts/seed-org.ts",
     "license:key": "tsx src/scripts/generate-license-key.ts",
     "billing:reconcile": "tsx src/scripts/reconcile-play.ts",
